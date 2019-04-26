@@ -3,7 +3,7 @@ osx_instance:
 
 build_task:
   env:
-    CSC_LINK: ENCRYPTED[0cbf54cdb6b0d0fedbc77e8a3cdf5bda7c8c97b735ce65134a82e7e996f729bd13b3a83e734c738583c3325cfc67eace]
+    CSC_LINK: ENCRYPTED[98311ce1d6242e9af1119cd3963955f3cf1bba451e2c00a3f630c1e7b8472c47f62da430bd117768719202f9d4d446ec]
     CSC_KEY_PASSWORD: ENCRYPTED[951c38315572de077af72022aabf5ecac546ccce2ff4be193765ff3d8fd47a4ff837b420d789958c9c30565c28e46944]
   yarn_script: brew install yarn
   node_modules_cache:
