@@ -46,16 +46,7 @@ Use the various bundle gradle tasks available to package the app for both Window
 We accomplish packaging for both Windows and Linux thanks to the docker image provided by `electron-builder`: electronuserland/builder:wine
 which provides the dependencies needed.
 
-## Mac OS build
+## Mirroring
 
-Set up Mirroring:
-```bash
-git remote add github git@github.com:lharrylock/file-upload-app.git
-
-git push --mirror github
-```
-
-Push to mirror repo
-```bash
-git push github
-```
+The mirror for this repo is at https://github.com/aicsgithub/aics-file-upload-app in order to
+enable electron packaging on Cirrus CI.
