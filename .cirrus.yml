@@ -9,11 +9,13 @@ build_task:
     S3_CERT_LOCATION: ENCRYPTED[2dd76847fe418476188fed928db09f3d34575ae121f26815d08161654568339c1eddd71c46dd7bcc115b629dbac4ce8f]
     CSC_LINK: ~/tmp/Certificate.p12
     CSC_KEY_PASSWORD: ENCRYPTED[951c38315572de077af72022aabf5ecac546ccce2ff4be193765ff3d8fd47a4ff837b420d789958c9c30565c28e46944]
-  aws_script: pip install awscli --upgrade
-  cert_download_script: aws s3 cp $S3_CERT_LOCATION ~/tmp/Certificate.p12
-  yarn_script: brew install yarn
-  node_modules_cache:
-    folder: node_modules
-    fingerprint_script: cat yarn.lock
-    populate_script: yarn install
-  build_script: yarn dist
+  echo_script: echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $S3_CERT_LOCATION
+
+#  aws_script: pip install awscli --upgrade
+#  cert_download_script: aws s3 cp $S3_CERT_LOCATION ~/tmp/Certificate.p12
+#  yarn_script: brew install yarn
+#  node_modules_cache:
+#    folder: node_modules
+#    fingerprint_script: cat yarn.lock
+#    populate_script: yarn install
+#  build_script: yarn dist
