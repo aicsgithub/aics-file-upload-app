@@ -1,0 +1,6 @@
+os: osx
+
+jobs:
+    include:
+      - stage: yarn
+        script: brew install yarn
