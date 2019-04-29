@@ -10,7 +10,7 @@ build_task:
     CSC_LINK: ./Certificate.p12
     CSC_KEY_PASSWORD: ENCRYPTED[951c38315572de077af72022aabf5ecac546ccce2ff4be193765ff3d8fd47a4ff837b420d789958c9c30565c28e46944]
   python_script: brew install python
-  aws_script: pip install awscli
+  aws_script: pip3 install awscli
   cert_download_script: aws s3 cp $S3_CERT_LOCATION ./Certificate.p12
   yarn_script: brew install yarn
   node_modules_cache:
