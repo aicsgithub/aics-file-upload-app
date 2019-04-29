@@ -1,6 +1,10 @@
 osx_instance:
   image: mojave-xcode-10.2
 
+python_task:
+  python_script: brew install python
+  aws_script: pip3 install awscli --upgrade --user
+
 build_task:
   env:
     AWS_ACCESS_KEY_ID: ENCRYPTED[f12aca464a913746e5bc98e32f6a3781c0fbdb46cba43db73a6d7fb42dd65309637231b1ec78cb6d7674ee85d6dc5db3]
@@ -10,12 +14,10 @@ build_task:
     CSC_LINK: ~/tmp/Certificate.p12
     CSC_KEY_PASSWORD: ENCRYPTED[951c38315572de077af72022aabf5ecac546ccce2ff4be193765ff3d8fd47a4ff837b420d789958c9c30565c28e46944]
   echo_script: echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $S3_CERT_LOCATION
-
-#  aws_script: pip install awscli --upgrade
-#  cert_download_script: aws s3 cp $S3_CERT_LOCATION ~/tmp/Certificate.p12
-#  yarn_script: brew install yarn
-#  node_modules_cache:
-#    folder: node_modules
-#    fingerprint_script: cat yarn.lock
-#    populate_script: yarn install
-#  build_script: yarn dist
+  cert_download_script: aws s3 cp $S3_CERT_LOCATION ~/tmp/Certificate.p12
+  yarn_script: brew install yarn
+  node_modules_cache:
+    folder: node_modules
+    fingerprint_script: cat yarn.lock
+    populate_script: yarn install
+  build_script: yarn dist
