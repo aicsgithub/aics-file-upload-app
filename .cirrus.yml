@@ -3,8 +3,14 @@ osx_instance:
 
 build_task:
   env:
-    CSC_LINK: ENCRYPTED[f590d340be99029a4137ca003a74a614bfbe7ab9a683f222a1912d7692ccb1eceb7dbeeea2d963bca52737456772ee48]
+    AWS_ACCESS_KEY_ID: ENCRYPTED[f12aca464a913746e5bc98e32f6a3781c0fbdb46cba43db73a6d7fb42dd65309637231b1ec78cb6d7674ee85d6dc5db3]
+    AWS_SECRET_ACCESS_KEY: ENCRYPTED[ce7e03b61953851fa97bc2b5c4ae38d62375e654e167c288deebef8205daf2f5bac4a0431f64dbab50c6e73b64dfa94f]
+    AWS_DEFAULT_REGION: us-west-2
+    S3_CERT_LOCATION: ENCRYPTED[2dd76847fe418476188fed928db09f3d34575ae121f26815d08161654568339c1eddd71c46dd7bcc115b629dbac4ce8f]
+    CSC_LINK: ~/tmp/Certificate.p12
     CSC_KEY_PASSWORD: ENCRYPTED[951c38315572de077af72022aabf5ecac546ccce2ff4be193765ff3d8fd47a4ff837b420d789958c9c30565c28e46944]
+  aws_script: pip install awscli --upgrade
+  cert_download_script: aws s3 cp $S3_CERT_LOCATION ~/tmp/Certificate.p12
   yarn_script: brew install yarn
   node_modules_cache:
     folder: node_modules
