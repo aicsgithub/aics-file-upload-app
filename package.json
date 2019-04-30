@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@stash.corp.alleninstitute.org:7999/aicssw/file-upload-app.git"
+    "url": "ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/aics-file-upload-app.git"
   },
   "keywords": [
     "electron",
