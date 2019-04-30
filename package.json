@@ -1,13 +1,18 @@
 {
   "name": "file-upload-app",
   "version": "1.0.0",
-  "main": "./main.js",
+  "main": "./dist/main/main.js",
+  "build": {
+    "appId": "org.aics.alleninstitute.fileupload",
+    "files": [
+      "./dist/**/*"
+    ]
+  },
   "scripts": {
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
     "dist": "NODE_ENV=production yarn compile && DEBUG=electron-builder CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} electron-builder",
     "dist-all": "electron-builder -wl",
-    "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps",
     "release": "build"
