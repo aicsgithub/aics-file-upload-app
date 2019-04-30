@@ -8,11 +8,12 @@
     "dist-all": "electron-builder -wl",
     "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "release": "build"
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/aics-file-upload-app.git"
+    "url": "git@github.com:aicsgithub/aics-file-upload-app.git"
   },
   "keywords": [
     "electron",
