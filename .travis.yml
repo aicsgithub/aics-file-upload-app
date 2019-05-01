@@ -15,4 +15,4 @@ env:
 
 install: yarn
 
-script: yarn distAndRelease
+script: yarn dist
