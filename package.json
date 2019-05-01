@@ -2,10 +2,7 @@
   "name": "file-upload-app",
   "version": "1.0.0",
   "build": {
-    "appId": "org.aics.alleninstitute.fileupload",
-    "files": [
-      "./dist/**/*"
-    ]
+    "appId": "org.aics.alleninstitute.fileupload"
   },
   "scripts": {
     "dev": "electron-webpack dev",
