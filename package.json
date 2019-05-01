@@ -14,7 +14,6 @@
     "dist-all": "electron-builder -wl",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps",
-    "release": "build",
     "distAndRelease": "yarn dist && yarn release"
   },
   "repository": {
