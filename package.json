@@ -12,10 +12,13 @@
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
     "dist": "NODE_ENV=production yarn compile && DEBUG=electron-builder CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} electron-builder",
+    "dist2": "NODE_ENV=production yarn compile && electron-builder",
     "dist-all": "electron-builder -wl",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps",
-    "release": "build"
+    "release": "build",
+    "distAndRelease": "yarn dist && yarn release",
+    "clean": "rm -rf dist"
   },
   "repository": {
     "type": "git",
