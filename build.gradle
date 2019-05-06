@@ -112,17 +112,6 @@ createBundleTask("development", "localhost", "8080", "dev")
 createBundleTask("production", "stg-aics.corp.alleninstitute.org", "80", "stage")
 createBundleTask("production", "aics.corp.alleninstitute.org", "80", "prod")
 
-task dist(type: YarnTask){
-    dependsOn compile
-    environment = [
-            NODE_ENV: "production",
-            DEBUG: "electron-builder",
-            CSC_LINK: "https://drive.google.com/uc?export=download&id=1kjg-b8a8avYpCAyvEtNiADLi92R3Lqt4",
-            CSC_KEY_PASSWORD: "Emer@ldc1ty"
-    ]
-    args = ["electron-builder"]
-}
-
 /// Publishing
 
 task copyLinuxArtifact(type:Copy) {
