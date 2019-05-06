@@ -14,6 +14,7 @@
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
     "dist": "CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD}  LIMS_HOST=${LIMS_HOST} LIMS_PORT=${LIMS_PORT} electron-builder -p always",
+    "dist2": "LIMS_HOST=${LIMS_HOST} LIMS_PORT=${LIMS_PORT} electron-builder -p always",
     "dist-dev": "NODE_ENV=production yarn compile && electron-builder -p always",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps"
