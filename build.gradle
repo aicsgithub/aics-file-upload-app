@@ -12,7 +12,6 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1")
         classpath("org.alleninstitute.aics:gradle-plugins:1.0.23")
     }
 }
@@ -22,8 +21,6 @@ plugins {
     id "com.moowork.node" version "1.2.0"
 }
 
-apply plugin: "maven-publish"
-apply plugin: "maven-publish-auth"
 apply plugin: "org.alleninstitute.git-info"
 
 node {
@@ -39,9 +36,6 @@ project.group = "org.alleninstitute.aics"
 ext {
     // Repo settings
     artifactoryBaseUrl = "https://artifactory.corp.alleninstitute.org/artifactory"
-
-    linuxArtifact = "file-upload-app 1.0.0.AppImage"
-    windowsArtifact = "file-upload-app Setup 1.0.0.exe"
 
     artifactVersion = gitInfo.branch != "master" ? "${gitInfo.branch.tokenize("/").join("-")}" : project.version
 }
@@ -78,6 +72,10 @@ task devStg(type: YarnTask) {
 ///////////////////////////
 // Build and publish
 //////////////////////////
+task artifactClean(type: Delete) {
+    delete "$projectDir/dist"
+}
+
 
 task compile(type: YarnTask) {
     args = ["electron-webpack"]
@@ -111,57 +109,3 @@ def createBundleTask(nodeEnv, host, port, taskPrefix) {
 createBundleTask("development", "localhost", "8080", "dev")
 createBundleTask("production", "stg-aics.corp.alleninstitute.org", "80", "stage")
 createBundleTask("production", "aics.corp.alleninstitute.org", "80", "prod")
-
-/// Publishing
-
-task copyLinuxArtifact(type:Copy) {
-    dependsOn prodBundle
-    from "$projectDir/dist/$linuxArtifact"
-    into projectDir
-}
-
-task copyWindowsArtifact(type:Copy) {
-    dependsOn prodBundle
-    from "$projectDir/dist/$windowsArtifact"
-    into projectDir
-}
-
-task artifactClean(type: Delete) {
-    delete "$projectDir/$linuxArtifact", "$projectDir/$windowsArtifact"
-}
-
-task localPublish {
-    description "Create development module and publish to local cache"
-    group "AICS Publishing"
-    dependsOn copyLinuxArtifact, copyWindowsArtifact, "publishMvnModulePublicationToMavenLocal"
-}
-
-task snapshotPublish {
-    description "Create production module and publish to snapshot repo in artifactory"
-    group "AICS Publishing"
-    dependsOn copyLinuxArtifact, copyWindowsArtifact, "publishMvnModulePublicationToSnapshotsRepoRepository"
-}
-
-publishing {
-    publications {
-        mvnModule(MavenPublication) {
-            artifact(linuxArtifact) {
-                classifier "file-upload-app 1.0.0"
-                extension "AppImage"
-                version artifactVersion
-            }
-            artifact(windowsArtifact) {
-                classifier "file-upload-app Setup 1.0.0"
-                extension "exe"
-                version artifactVersion
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name = "snapshotsRepo"
-            url "${artifactoryBaseUrl}/maven-snapshot-local"
-        }
-    }
-}
