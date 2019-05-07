@@ -8,7 +8,10 @@
       "./dist/*.dmg",
       "./dist/*.AppImage",
       "./dist/*.exe"
-    ]
+    ],
+    "win": {
+      "forceCodeSigning": false
+    }
   },
   "scripts": {
     "dev": "electron-webpack dev",
