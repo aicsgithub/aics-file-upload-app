@@ -38,7 +38,8 @@ cache:
 script:
   - NODE_ENV=production yarn compile
   - |
-    if [[ $TRAVIS_OS_NAME == "linux" ]]; then ./docker-run.sh
+    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+      ./docker-run.sh
     else
       echo TRAVIS_OS_NAME $TRAVIS_OS_NAME
       CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
