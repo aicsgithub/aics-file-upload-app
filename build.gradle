@@ -80,32 +80,3 @@ task artifactClean(type: Delete) {
 task compile(type: YarnTask) {
     args = ["electron-webpack"]
 }
-
-def createBundleTask(nodeEnv, host, port, taskPrefix) {
-    def username = System.properties['user.name']
-    def uid = ["id", "-u", username].execute().text.trim()
-    def gid = ["id", "-g", username].execute().text.trim()
-    def args = [
-            "docker", "run", "--rm",
-            "--env", "LIMS_PROTOCOL=http",
-            "--env", "LIMS_HOST=$host",
-            "--env", "LIMS_PORT=$port",
-            "--env", "NODE_ENV=$nodeEnv",
-            "--env", "USER=${username}",
-            "--env", "UID=${uid}",
-            "--env", "GID=${gid}",
-            "-v", "${projectDir}:/project",
-            "-v", "${projectDir}/node_modules:/project/node_modules",
-            "docker-virtual.artifactory.corp.alleninstitute.org/electron-builder:1.0.0-1.1.0",
-            "/bin/bash", "-c", "yarn dist-all"
-    ]
-
-    return tasks.create("${taskPrefix}Bundle", Exec) {
-        dependsOn compile
-        commandLine args
-    }
-}
-
-createBundleTask("development", "localhost", "8080", "dev")
-createBundleTask("production", "stg-aics.corp.alleninstitute.org", "80", "stage")
-createBundleTask("production", "aics.corp.alleninstitute.org", "80", "prod")
