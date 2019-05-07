@@ -16,7 +16,6 @@ matrix:
         - CSC_LINK="./Certificates.p12"
         # CSC_KEY_PASSWORD
         - secure: cdxmn+QiHUYjFksqnDRvwrib3tdp2a2R7pZpzJBgx53nB0cm+WYcpiQcMNYTzfFqXH+3PYJXv+lI55uNQzacnT6QPQ7iWVLTBzjg8CaqvkvFKAlZK22ypHPizFNNVYyLK3wGItE1DS+qTdXH+KXRBpthTYGqIH02dwhQs7HRCdVFeqRcdAE8UcVT0+BjW6G1kWe2EaRfzzmAssguWSkmd6cTmNJph5VN3cplEAYF+lMPg37ukab38hMbgiEJ8zUDr8fl3R4jgw/qSsc1I4EQm+I55MOJP6CY0OfIHatQRJZnO6xFukYef6J9CDQwY0JRcB9IiFhzRRmk/6xWJuSxlcD7lKoeJgQuzdcKpn2ZRGPS3QT1d2zWE484TyqrSrXz7uiHwDfIvRZ420mAQqgj+wwCRbMncqOk1RhU65BFdw4Vg5xBuatOH+jTndhdRzIZp+7ShuTzBb/H7d2iLOI1CdomzDRHtSCBXIpyy094evUe9sBnx5y52n6XP9jld877Xe4fpKOcrPFuuJeORT1G6UvfXSrSI4exemGtrL0+Diu1YytIIXBFqMQLk9+3jedyVdvBoh/EgO3ClXHCLlyZm3zhSMj0hVs+eJ+J34qlU2Uwfjbf2gla/clemwgkwl6RHMzfTgCCs1r5KkWp/5FylxxWO3yQ+d1T9itZGg5c9TI=
-
         # LIMS_HOST
         - secure: G/dcEWo1AYTGYFWyDdYWLIOOKzFUmJzp/AY/0D7dXwZ0u2SW5d7JBq1/LUnzKDoOIOk3gYqnB8iPU4sbexfz7xZTX/nldNBgKHCaI8/p3cZB+733a7W+8MVjdHaHSBA5AffVx1uEJ9UpTaspA5nGytj6/Rq0IMU9ZX/WZV8amhmVj0g2RIVqv56fxUin71wXLfX1KZ2HtQcTL5a/Pq0yDPKHlJEHq4wCWul2mos5k9Hgv1JgoYe893hvXy2cTcgDwgolaU7UmlFYCuzPwW4aGkMGxtJ+EcwZVK5eNlVM2s84WCJE8lMptkJSb/MFhTNvvOEhGV6/+qaAPKZw09IhIj9YeBhbwEmyrPt/xKIjVY0IS2TIrq5MsWMPw0viwKRc/tu12l2X2Rvr/+vDePw6Rx+w8z5JJohrJMcnWxLEKPkaOvI6xdtjnvX4w40DvmaJFPybK3kGgkJrEBj5XTZmC57TbP6T/vjarF8Y8LVhcsjXVHNvUY+lxsm8P0Q02PCX+hwivrCYRWiYGETue1gU39uUTi0cpUFyH0PnXk3ReFHkKnLqSHLYVSr/e5qjQQZsuYnJojB0V5uXjxLFe6N1c+BG0RvJGriYC4ZOF4xWXjSOIjmVZM3jz2dWxonuUzQTVrWVWFxOsg+YPd5TWvtE3WrPRI/6//CddrGxrsob4u4=
         - LIMS_PORT=80
@@ -42,6 +41,8 @@ script:
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
       docker run --rm \
+          -e LIMS_HOST=$LIMS_HOST \
+          -e LIMS_PORT=$LIMS_HOST \
           -e GH_TOKEN=$GH_TOKEN \
           -v ${PWD}:/project \
           -v ~/.cache/electron:/root/.cache/electron \
