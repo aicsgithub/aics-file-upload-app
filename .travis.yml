@@ -34,7 +34,7 @@ script:
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then ./docker-run.sh
     else
-      yarn dist
+      CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
     fi
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/wine
