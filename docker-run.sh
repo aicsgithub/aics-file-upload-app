@@ -6,4 +6,4 @@ docker run --rm \
     -v ~/.cache/electron:/root/.cache/electron \
     -v ~/.cache/electron-builder:/root/.cache/electron-builder \
     electronuserland/builder:wine \
-    /bin/bash -c "yarn dist2 --linux --win"
+    /bin/bash -c "yarn dist --linux --win"
