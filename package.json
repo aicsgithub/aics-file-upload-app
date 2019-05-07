@@ -4,16 +4,13 @@
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
-      "./dist/main/main.js",
-      "./dist/*.dmg",
-      "./dist/*.AppImage",
-      "./dist/*.exe"
+      "./dist/**/*"
     ]
   },
   "scripts": {
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
-    "dist": "LIMS_HOST=${LIMS_HOST} LIMS_PORT=${LIMS_PORT} electron-builder -p always",
+    "dist": "electron-builder -p always",
     "dist-dev": "NODE_ENV=production yarn compile && electron-builder -p always",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps"
