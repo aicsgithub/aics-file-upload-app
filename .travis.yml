@@ -41,15 +41,14 @@ script:
   - NODE_ENV=production yarn compile
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      ENVS=`env | grep -iE '^(DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_)([A-Z]|_)*=' | sed -n '/^[^\t]/s/=.*//p' | sed '/^$/d' | sed 's/^/-e /g' | tr '\n' ' '`
-      docker run $ENVS --rm \
+      docker run --rm \
+          -e GH_TOKEN=$GH_TOKEN
           -v ${PWD}:/project \
           -v ~/.cache/electron:/root/.cache/electron \
           -v ~/.cache/electron-builder:/root/.cache/electron-builder \
           electronuserland/builder:wine \
           /bin/bash -c "yarn dist --linux --win"
     else
-      echo TRAVIS_OS_NAME $TRAVIS_OS_NAME
       CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
     fi
 before_cache:
