@@ -19,12 +19,12 @@ install: yarn
 
 matrix:
   include:
-    - os: osx
-      osx_image: xcode9.4
-      env:
-        - ELECTRON_CACHE=$HOME/.cache/electron
-        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
-        - CSC_LINK="./Certificates.p12"
+#    - os: osx
+#      osx_image: xcode9.4
+#      env:
+#        - ELECTRON_CACHE=$HOME/.cache/electron
+#        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+#        - CSC_LINK="./Certificates.p12"
 
     - os: linux
       services: docker
@@ -37,11 +37,12 @@ cache:
 
 script:
   - NODE_ENV=production yarn compile
-  - |
-    if [[ $TRAVIS_OS_NAME == "linux" ]]; then ./docker-run.sh
-    else
-      CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
-    fi
+  - ./docker-run.sh
+#  - |
+#    if [[ $TRAVIS_OS_NAME == "linux" ]]; then ./docker-run.sh
+#    else
+#      CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
+#    fi
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/wine
 
