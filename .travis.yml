@@ -1,0 +1,48 @@
+language: node_js
+node_js: "10.15.3"
+
+before_install:
+- openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d
+
+install: yarn
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode9.4
+      env:
+        - ELECTRON_CACHE=$HOME/.cache/electron
+        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+        - CSC_LINK="./Certificates.p12"
+        # CSC_KEY_PASSWORD
+        - secure: cdxmn+QiHUYjFksqnDRvwrib3tdp2a2R7pZpzJBgx53nB0cm+WYcpiQcMNYTzfFqXH+3PYJXv+lI55uNQzacnT6QPQ7iWVLTBzjg8CaqvkvFKAlZK22ypHPizFNNVYyLK3wGItE1DS+qTdXH+KXRBpthTYGqIH02dwhQs7HRCdVFeqRcdAE8UcVT0+BjW6G1kWe2EaRfzzmAssguWSkmd6cTmNJph5VN3cplEAYF+lMPg37ukab38hMbgiEJ8zUDr8fl3R4jgw/qSsc1I4EQm+I55MOJP6CY0OfIHatQRJZnO6xFukYef6J9CDQwY0JRcB9IiFhzRRmk/6xWJuSxlcD7lKoeJgQuzdcKpn2ZRGPS3QT1d2zWE484TyqrSrXz7uiHwDfIvRZ420mAQqgj+wwCRbMncqOk1RhU65BFdw4Vg5xBuatOH+jTndhdRzIZp+7ShuTzBb/H7d2iLOI1CdomzDRHtSCBXIpyy094evUe9sBnx5y52n6XP9jld877Xe4fpKOcrPFuuJeORT1G6UvfXSrSI4exemGtrL0+Diu1YytIIXBFqMQLk9+3jedyVdvBoh/EgO3ClXHCLlyZm3zhSMj0hVs+eJ+J34qlU2Uwfjbf2gla/clemwgkwl6RHMzfTgCCs1r5KkWp/5FylxxWO3yQ+d1T9itZGg5c9TI=
+    - os: linux
+      services: docker
+
+cache:
+  directories:
+    - node_modules
+    - $HOME/.cache/electron
+    - $HOME/.cache/electron-builder
+
+script:
+  - NODE_ENV=production yarn compile
+  - |
+    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+      docker run --rm \
+          -e GH_TOKEN=$GH_TOKEN \
+          -v ${PWD}:/project \
+          -v ~/.cache/electron:/root/.cache/electron \
+          -v ~/.cache/electron-builder:/root/.cache/electron-builder \
+          electronuserland/builder:wine \
+          /bin/bash -c "yarn dist --linux --win"
+    else
+      CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
+    fi
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine
+
+branches:
+  only:
+    - "/^\\d+\\.\\d+\\.\\d+$/"
+    - master
