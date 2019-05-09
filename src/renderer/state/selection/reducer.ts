@@ -57,7 +57,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is SelectBarcodeAction => action.type === SELECT_BARCODE,
         perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
             ...state,
-            ...action.payload,
+            barcode: action.payload,
         }),
     },
     [SELECT_FILE]: {

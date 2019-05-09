@@ -12,7 +12,7 @@ import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import { goBack, selectBarcode } from "../../state/selection/actions";
-import { getSelectedBarcode, getSelectedPlateId } from "../../state/selection/selectors";
+import { getSelectedBarcode } from "../../state/selection/selectors";
 import { GoBackAction, SelectBarcodeAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import LabkeyQueryService, { Plate } from "../../util/labkey-query-service";
@@ -23,7 +23,6 @@ interface EnterBarcodeProps {
     className?: string;
     barcode?: string;
     goBack: ActionCreator<GoBackAction>;
-    plateId?: number;
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     setAlert: ActionCreator<SetAlertAction>;
@@ -31,7 +30,6 @@ interface EnterBarcodeProps {
 
 interface EnterBarcodeState {
     barcode?: string;
-    plateId?: number;
 }
 
 const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
@@ -42,7 +40,7 @@ const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
 
     return LabkeyQueryService.Get.platesByBarcode(input)
         .then((plates: Plate[]) => ({
-            options: plates.map((plate: Plate) => ({barcode: plate.BarCode, plateId: plate.PlateId})),
+            options: plates.map((plate: Plate) => ({barcode: plate.BarCode})),
         }))
         .catch((err) => {
             onErr(err);
@@ -55,21 +53,20 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         super(props);
         this.state = {
             barcode: props.barcode,
-            plateId: props.plateId,
         };
         this.setBarcode = this.setBarcode.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
         this.setAlert = debounce(this.setAlert.bind(this), 2000);
         this.openCreatePlateModal = this.openCreatePlateModal.bind(this);
 
-        ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, plateId: number) => {
+        ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string) => {
             // TODO: uncomment below once redirect URL on CreatePlateStandalone includes barcode and plateId
             // this.props.selectBarcode(barcode, plateId);
         });
     }
 
     public render() {
-        const {barcode, plateId} = this.state;
+        const {barcode} = this.state;
         const {className, saveInProgress} = this.props;
         return (
             <FormPage
@@ -87,7 +84,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     label="Plate Barcode"
                     optionIdKey="barcode"
                     optionNameKey="barcode"
-                    selected={{barcode, plateId}}
+                    selected={{barcode}}
                     onOptionSelection={this.setBarcode}
                     loadOptions={createGetBarcodesAsyncFunction(this.setAlert)}
                     placeholder="barcode"
@@ -113,14 +110,13 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         } else {
             this.setState({
                 barcode: undefined,
-                plateId: undefined,
             });
         }
     }
 
     private saveAndContinue(): void {
-        if (this.state.barcode && this.state.plateId) {
-            this.props.selectBarcode(this.state.barcode, this.state.plateId);
+        if (this.state.barcode) {
+            this.props.selectBarcode(this.state.barcode);
         }
     }
 
@@ -132,8 +128,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 function mapStateToProps(state: State) {
     return {
         barcode: getSelectedBarcode(state),
-        plateId: getSelectedPlateId(state),
-        saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_WELLS),
+        saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
     };
 }
 

@@ -18,7 +18,7 @@ import { AicsSuccessResponse, HTTP_STATUS } from "../../types";
 import { selectBarcode } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
-import { getPage, getSelectedBarcode, getSelectedPlateId, getWells } from "../selectors";
+import { getPage, getSelectedBarcode, getWells } from "../selectors";
 import { DragAndDropFileList, Page, SelectionStateBranch, UploadFile, Well } from "../types";
 
 describe("Selection logics", () => {
@@ -340,7 +340,6 @@ describe("Selection logics", () => {
 
     describe("selectBarcodeLogic", () => {
         const barcode = "1234";
-        const plateId = 1;
         let mockOkResponse: AxiosResponse<AicsSuccessResponse<Well[][]>>;
         let mockBadGatewayResponse: AxiosError;
         const createMockReduxLogicDeps = (getStub: SinonStub) => ({
@@ -386,35 +385,35 @@ describe("Selection logics", () => {
         it("Adds GET wells request to requests in progress", (done) => {
             const getStub = sinon.stub().resolves(mockOkResponse);
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
-            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_WELLS)).to.be.false;
+            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
             let storeUpdates = 0;
             store.subscribe(() => {
                 storeUpdates++;
 
                 if (storeUpdates === 1) {
                     const state = store.getState();
-                    expect(getRequestsInProgressContains(state, AsyncRequest.GET_WELLS)).to.be.true;
+                    expect(getRequestsInProgressContains(state, AsyncRequest.GET_PLATE)).to.be.true;
                     done();
                 }
             });
 
-            store.dispatch(selectBarcode(barcode, plateId));
+            store.dispatch(selectBarcode(barcode));
         });
 
         it ("removes GET wells from requests in progress if GET wells is OK", (done) => {
             const getStub = sinon.stub().callsFake(() => {
                 store.subscribe(() => {
-                    expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_WELLS)).to.be.false;
+                    expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
                     done();
                 });
                 return Promise.resolve(mockOkResponse);
             });
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
 
-            store.dispatch(selectBarcode(barcode, plateId));
+            store.dispatch(selectBarcode(barcode));
         });
 
-        it("Sets wells, page, barcode, and plateId if GET wells is OK", (done) => {
+        it("Sets wells, page, barcode if GET wells is OK", (done) => {
             const getStub = sinon.stub().callsFake(() => {
                 // we add the subscription after the first store.dispatch because we're testing
                 // the process callback which gets called after the first store update
@@ -423,7 +422,6 @@ describe("Selection logics", () => {
                     expect(getWells(state)).to.not.be.empty;
                     expect(getPage(state)).to.equal(Page.AssociateWells);
                     expect(getSelectedBarcode(state)).to.equal(barcode);
-                    expect(getSelectedPlateId(state)).to.equal(plateId);
                     done();
                 });
 
@@ -431,7 +429,7 @@ describe("Selection logics", () => {
             });
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
 
-            store.dispatch(selectBarcode(barcode, plateId));
+            store.dispatch(selectBarcode(barcode));
 
         });
 
@@ -439,7 +437,7 @@ describe("Selection logics", () => {
             const getStub = sinon.stub().callsFake(() => {
                 store.subscribe(() => {
                     const state = store.getState();
-                    expect(getRequestsInProgressContains(state, AsyncRequest.GET_WELLS)).to.be.false;
+                    expect(getRequestsInProgressContains(state, AsyncRequest.GET_PLATE)).to.be.false;
                     expect(getStub.callCount).to.equal(1);
 
                     const alert = getAlert(state);
@@ -460,7 +458,7 @@ describe("Selection logics", () => {
             });
 
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
-            store.dispatch(selectBarcode(barcode, plateId));
+            store.dispatch(selectBarcode(barcode));
         });
 
         it("Shows error message if it only receives Bad Gateway error for 20 seconds", function(done) {
@@ -513,7 +511,7 @@ describe("Selection logics", () => {
                 }
             });
 
-            store.dispatch(selectBarcode(barcode, plateId));
+            store.dispatch(selectBarcode(barcode));
         });
 
         it("Can handle successful response after retrying GET wells request", function(done) {
@@ -532,12 +530,11 @@ describe("Selection logics", () => {
                     expect(getWells(state)).to.not.be.empty;
                     expect(getPage(state)).to.equal(Page.AssociateWells);
                     expect(getSelectedBarcode(state)).to.equal(barcode);
-                    expect(getSelectedPlateId(state)).to.equal(plateId);
                     okResponseReturned = false; // prevent more calls to done
                     done();
                 }
             });
-            store.dispatch(selectBarcode(barcode, plateId));
+            store.dispatch(selectBarcode(barcode));
         });
     });
 });

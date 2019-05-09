@@ -1,6 +1,6 @@
 import { isEmpty } from "lodash";
 import { createSelector } from "reselect";
-import { getWellLabel } from "../../util/index";
+import { getWellLabel } from "../../util";
 
 import { getUnits } from "../metadata/selectors";
 import { Unit } from "../metadata/types";
@@ -10,7 +10,6 @@ import { Solution, SolutionLot, ViabilityResult, Well } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
-export const getSelectedPlateId = (state: State) => state.selection.present.plateId;
 export const getSelections = (state: State) => state.selection.present;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getPage = (state: State) => state.selection.present.page;

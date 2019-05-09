@@ -182,9 +182,9 @@ const getFilesInFolderLogic = createLogic({
     type: GET_FILES_IN_FOLDER,
 });
 
-async function getWells({ action, getState, httpClient, baseMmsUrl }: ReduxLogicTransformDependencies,
-                        plateId: number): Promise<AxiosResponse<AicsSuccessResponse<Well[]>>> {
-    return httpClient.get(`${baseMmsUrl}/1.0/plate/${plateId}/well/`);
+async function getPlate({ action, getState, httpClient, baseMmsUrl }: ReduxLogicTransformDependencies,
+                        barcode: string): Promise<AxiosResponse<AicsSuccessResponse<{ wells: Well[] }>>> {
+    return httpClient.get(`${baseMmsUrl}/1.0/plate/query?barcode=${barcode}`);
 }
 
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
@@ -198,7 +198,7 @@ const selectBarcodeLogic = createLogic({
         if (!action) {
             done();
         } else {
-            const { plateId } = action.payload;
+            const { barcode } = action.payload;
             const startTime = (new Date()).getTime() / 1000;
             let currentTime = startTime;
             let receivedSuccessfulResponse = false;
@@ -208,12 +208,12 @@ const selectBarcodeLogic = createLogic({
             while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
             && !receivedNonGatewayError) {
                 try {
-                    const response = await getWells(deps, plateId);
-                    const wells: Well[][] = response.data.data;
+                    const response = await getPlate(deps, barcode);
+                    const wells: Well[] = response.data.data[0].wells;
                     receivedSuccessfulResponse = true;
                     const actions = [
                         setWells(wells),
-                        removeRequestFromInProgress(AsyncRequest.GET_WELLS),
+                        removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         action,
                     ];
                     actions.push(...getGoForwardActions(Page.EnterBarcode, deps.getState()));
@@ -249,7 +249,7 @@ const selectBarcodeLogic = createLogic({
                     GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode);
                 dispatch(batchActions([
                     action,
-                    removeRequestFromInProgress(AsyncRequest.GET_WELLS),
+                    removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                     setAlert({
                         message,
                         type: AlertType.ERROR,
@@ -263,7 +263,7 @@ const selectBarcodeLogic = createLogic({
     },
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         next(batchActions([
-            addRequestToInProgress(AsyncRequest.GET_WELLS),
+            addRequestToInProgress(AsyncRequest.GET_PLATE),
             action,
         ]));
     },

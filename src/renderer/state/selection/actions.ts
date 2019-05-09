@@ -94,17 +94,14 @@ export function getFilesInFolder(folder: UploadFile): GetFilesInFolderAction {
     };
 }
 
-export function selectBarcode(barcode: string, plateId: number): SelectBarcodeAction {
+export function selectBarcode(barcode: string): SelectBarcodeAction {
     return {
-        payload: {
-            barcode,
-            plateId,
-        },
+        payload: barcode,
         type: SELECT_BARCODE,
     };
 }
 
-export function setWells(wells: Well[][]): SetWellsAction {
+export function setWells(wells: Well[]): SetWellsAction {
     return {
         payload: wells,
         type: SET_WELLS,
