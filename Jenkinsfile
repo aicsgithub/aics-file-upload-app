@@ -1,9 +1,4 @@
 pipeline {
-
-    parameters {
-        booleanParam(name: 'PROMOTE_ARTIFACT', defaultValue: false, description: 'When checked, this will promote the artifact specified by the GIT_TAG below to docker-production where the artifact will be stored permanently.')
-        gitParameter(defaultValue: 'master', name: 'GIT_TAG', type: 'PT_TAG', sortMode: 'DESCENDING_SMART', description: 'Optionally, select a Git tag specifying the artifact which should be promoted to docker-production. This value is not used in non-promote jobs.')
-    }
     options {
         disableConcurrentBuilds()
         timeout(time: 1, unit: 'HOURS')
@@ -30,48 +25,18 @@ pipeline {
             }
         }
         stage ("lint") {
-            when {
-                not { expression { return params.PROMOTE_ARTIFACT }}
-            }
             steps {
                 sh "./gradlew -i yarn lint"
             }
         }
         stage ("test") {
-            when {
-                not { expression { return params.PROMOTE_ARTIFACT }}
-            }
             steps {
                 sh "./gradlew -i test"
             }
         }
-        stage ("build and push branch") {
-            when {
-                not { expression { return params.PROMOTE_ARTIFACT }}
-            }
+        stage ("build") {
             steps {
-                echo "This is not a master build or a promote build"
-                sh "${PYTHON} ${VENV_BIN}/manage_version -t gradle-minor-ahead -s prepare"
-                sh './gradlew -i snapshotPublish'
-            }
-        }
-        stage ("tag - master branch only") {
-            when {
-                not { expression { return params.PROMOTE_ARTIFACT }}
-                branch "master"
-            }
-            steps {
-                echo "Tagging artifact"
-                sh "${VENV_BIN}/manage_version -t gradle-minor-ahead -s tag"
-            }
-        }
-        stage ("promote") {
-            when {
-                expression { return params.PROMOTE_ARTIFACT }
-            }
-            steps {
-                echo "Promoting artifacts"
-                sh "${PYTHON} ${VENV_BIN}/promote_artifact -t gradle-minor-ahead -g ${params.GIT_TAG}"
+                sh './gradlew -i compile'
             }
         }
     }
