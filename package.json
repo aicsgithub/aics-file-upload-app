@@ -24,7 +24,7 @@
     "aics"
   ],
   "resolutions": {
-    "@types/react": "16.8.9"
+    "@types/react": "16.8.17"
   },
   "author": "Lisa Harrylock",
   "license": "ISC",
@@ -32,7 +32,7 @@
     "@aics/aics-react-labkey": "^4.1.6",
     "@aics/aicsfiles": "^0.0.13",
     "@ant-design/icons": "~1.1.0",
-    "antd": "3.16.3",
+    "antd": "3.17.0",
     "axios": "0.18.0",
     "core-js": "2.6.5",
     "js-logger": "1.6.0",
@@ -57,7 +57,7 @@
     "@types/lodash": "4.14.123",
     "@types/mocha": "5.2.6",
     "@types/node": "11.11.3",
-    "@types/react": "16.8.9",
+    "@types/react": "16.8.17",
     "@types/react-dom": "16.8.4",
     "@types/react-redux": "7.0.3",
     "@types/sinon": "7.0.10",
