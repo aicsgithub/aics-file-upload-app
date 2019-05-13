@@ -71,8 +71,8 @@ export const mockUnits: Unit[] = [
 
 export const mockWell: Well = {
     cellPopulations: [],
-    col: 1,
-    row: 1,
+    col: 0,
+    row: 0,
     solutions: [],
     viabilityResults: [],
     wellId: 1,
@@ -80,9 +80,9 @@ export const mockWell: Well = {
 
 export const mockWells: Well[] = [
     mockWell,
-    {...mockWell, wellId: 2},
-    {...mockWell, wellId: 3},
-    {...mockWell, wellId: 4},
+    {...mockWell, col: 1, row: 0, wellId: 2},
+    {...mockWell, col: 0, row: 1, wellId: 3},
+    {...mockWell, col: 1, row: 1, wellId: 4},
 ];
 
 export const mockViabilityResult: GetViabilityResultResponse = {
