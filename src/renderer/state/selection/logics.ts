@@ -1,6 +1,5 @@
-import { AxiosResponse } from "axios";
 import { stat as fsStat, Stats } from "fs";
-import { chunk, isEmpty, sortBy, uniq } from "lodash";
+import { isEmpty, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -21,7 +20,6 @@ import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 
 import {
-    AicsSuccessResponse,
     HTTP_STATUS,
     ReduxLogicDependencies,
     ReduxLogicDoneCb,
@@ -37,6 +35,7 @@ import {
     clearSelectionHistory,
     jumpToPastSelection,
     selectPage,
+    setViabilityResults,
     setWells,
     stageFiles,
     updateStagedFiles
@@ -52,7 +51,13 @@ import {
 } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
 import { getCurrentSelectionIndex, getPage, getStagedFiles } from "./selectors";
-import { DragAndDropFileList, Page, UploadFile, Well } from "./types";
+import {
+    DragAndDropFileList,
+    GetPlateResponse,
+    GetViabilityResultResponse,
+    Page,
+    UploadFile
+} from "./types";
 
 const stat = promisify(fsStat);
 
@@ -183,26 +188,21 @@ const getFilesInFolderLogic = createLogic({
 });
 
 async function getPlate({ action, getState, httpClient, baseMmsUrl }: ReduxLogicTransformDependencies,
-                        barcode: string): Promise<AxiosResponse<AicsSuccessResponse<{ wells: Well[] }>>> {
-    return httpClient.get(`${baseMmsUrl}/1.0/plate/query?barcode=${barcode}`);
+                        barcode: string): Promise<GetPlateResponse> {
+    const response = await httpClient.get(`${baseMmsUrl}/1.0/plate/query?barcode=${barcode}`);
+    return response.data.data[0];
+}
+
+async function getViabilityResults({action, getState, httpClient, baseMmsUrl}: ReduxLogicTransformDependencies,
+                                   plateId: number):
+    Promise<GetViabilityResultResponse[]> {
+    const response = await httpClient.get(`${baseMmsUrl}/1.0/plate/${plateId}/assay/viabilityResult`);
+    return response.data.data;
 }
 
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
-
-// TODO: remove after the Plate UI accepts a 1D array
-const convertWellsTo2DArray = (wells: Well[]): Well[][] => {
-    const sortedWells = sortBy(wells, ["row", "col"]);
-    const rowCount = sortedWells[sortedWells.length - 1].row + 1;
-    const colCount = sortedWells[sortedWells.length - 1].col + 1;
-
-    if (sortedWells.length !== rowCount * colCount) {
-        throw new Error("Missing wells from GET plate response.");
-    }
-
-    return chunk(sortedWells, colCount);
-};
 
 const selectBarcodeLogic = createLogic({
     process: async (deps: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
@@ -221,12 +221,14 @@ const selectBarcodeLogic = createLogic({
             while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
             && !receivedNonGatewayError) {
                 try {
-                    const response = await getPlate(deps, barcode);
-                    const wells: Well[] = response.data.data[0].wells;
+                    const { plate, wells } = await getPlate(deps, barcode);
+                    const { plateId } = plate;
+                    const viabilityResults: GetViabilityResultResponse[] = await getViabilityResults(deps, plateId);
                     receivedSuccessfulResponse = true;
                     const actions = [
-                        setWells(convertWellsTo2DArray(wells)),
+                        setWells(wells),
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
+                        setViabilityResults(viabilityResults),
                         action,
                     ];
                     actions.push(...getGoForwardActions(Page.EnterBarcode, deps.getState()));

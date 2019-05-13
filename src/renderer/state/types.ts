@@ -65,6 +65,13 @@ export interface AicsSuccessResponse<T> extends AicsResponse {
     offset: number;
 }
 
+export interface Audited {
+    created: Date; // todo not sure if this is a date or string
+    createdBy: number;
+    modified: Date; // todo not sure if this is a date or string
+    modifiedBy: number;
+}
+
 export enum HTTP_STATUS {
     BAD_GATEWAY = 502,
     BAD_REQUEST = 400,

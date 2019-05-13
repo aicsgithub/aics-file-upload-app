@@ -13,6 +13,7 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_PAGE,
+    SET_VIABILITY_RESULTS,
     SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
@@ -23,6 +24,7 @@ import {
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
+    GetViabilityResultResponse,
     GoBackAction,
     JumpToPastSelectionAction,
     LoadFilesFromDragAndDropAction,
@@ -32,11 +34,12 @@ import {
     SelectBarcodeAction,
     SelectFileAction,
     SelectPageAction,
+    SetViabilityResults,
     SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
     UploadFile,
-    Well,
+    WellResponse,
 } from "./types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
@@ -101,7 +104,14 @@ export function selectBarcode(barcode: string): SelectBarcodeAction {
     };
 }
 
-export function setWells(wells: Well[][]): SetWellsAction {
+export function setViabilityResults(viabilityResults: GetViabilityResultResponse[]): SetViabilityResults {
+    return {
+        payload: viabilityResults,
+        type: SET_VIABILITY_RESULTS,
+    };
+}
+
+export function setWells(wells: WellResponse[]): SetWellsAction {
     return {
         payload: wells,
         type: SET_WELLS,
