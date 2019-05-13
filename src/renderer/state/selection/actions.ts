@@ -101,7 +101,7 @@ export function selectBarcode(barcode: string): SelectBarcodeAction {
     };
 }
 
-export function setWells(wells: Well[]): SetWellsAction {
+export function setWells(wells: Well[][]): SetWellsAction {
     return {
         payload: wells,
         type: SET_WELLS,

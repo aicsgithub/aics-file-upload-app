@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import { stat as fsStat, Stats } from "fs";
-import { isEmpty, uniq } from "lodash";
+import { chunk, isEmpty, sortBy, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -191,6 +191,19 @@ export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not r
 export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
 
+// TODO: remove after the Plate UI accepts a 1D array
+const convertWellsTo2DArray = (wells: Well[]): Well[][] => {
+    const sortedWells = sortBy(wells, ["row", "col"]);
+    const rowCount = sortedWells[sortedWells.length - 1].row;
+    const colCount = sortedWells[sortedWells.length - 1].col;
+
+    if (sortedWells.length !== rowCount * colCount) {
+        throw new Error("Missing wells from GET plate response.");
+    }
+
+    return chunk(sortedWells, colCount);
+};
+
 const selectBarcodeLogic = createLogic({
     process: async (deps: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const action = getActionFromBatch(deps.action, SELECT_BARCODE);
@@ -198,7 +211,7 @@ const selectBarcodeLogic = createLogic({
         if (!action) {
             done();
         } else {
-            const { barcode } = action.payload;
+            const barcode = action.payload;
             const startTime = (new Date()).getTime() / 1000;
             let currentTime = startTime;
             let receivedSuccessfulResponse = false;
@@ -212,7 +225,7 @@ const selectBarcodeLogic = createLogic({
                     const wells: Well[] = response.data.data[0].wells;
                     receivedSuccessfulResponse = true;
                     const actions = [
-                        setWells(wells),
+                        setWells(convertWellsTo2DArray(wells)),
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         action,
                     ];

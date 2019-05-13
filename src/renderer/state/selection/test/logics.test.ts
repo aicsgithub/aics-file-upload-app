@@ -353,6 +353,8 @@ describe("Selection logics", () => {
         beforeEach(() => {
             const mockEmptyWell: Well = {
                 cellPopulations: [],
+                col: 0,
+                row: 0,
                 solutions: [],
                 viabilityResults: [],
                 wellId: 1,

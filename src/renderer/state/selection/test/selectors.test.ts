@@ -15,6 +15,8 @@ describe("Selections selectors", () => {
     beforeEach(() => {
         mockEmptyWell = {
             cellPopulations: [],
+            col: 0,
+            row: 0,
             solutions: [],
             viabilityResults: [],
             wellId: 1,

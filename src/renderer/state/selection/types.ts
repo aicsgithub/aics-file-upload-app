@@ -95,6 +95,8 @@ export interface ViabilityResult {
 }
 
 export interface Well {
+    row: number;
+    col: number;
     wellId: number;
     cellPopulations: CellPopulation[];
     modified?: boolean;
@@ -141,7 +143,7 @@ export interface SelectBarcodeAction {
 }
 
 export interface SetWellsAction {
-    payload: Well[];
+    payload: Well[][];
     type: string;
 }
 

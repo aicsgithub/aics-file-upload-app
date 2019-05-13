@@ -70,6 +70,8 @@ export const mockUnits: Unit[] = [
 
 export const mockWell: Well = {
     cellPopulations: [],
+    col: 1,
+    row: 1,
     solutions: [],
     viabilityResults: [],
     wellId: 1,
