@@ -194,8 +194,8 @@ export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wel
 // TODO: remove after the Plate UI accepts a 1D array
 const convertWellsTo2DArray = (wells: Well[]): Well[][] => {
     const sortedWells = sortBy(wells, ["row", "col"]);
-    const rowCount = sortedWells[sortedWells.length - 1].row;
-    const colCount = sortedWells[sortedWells.length - 1].col;
+    const rowCount = sortedWells[sortedWells.length - 1].row + 1;
+    const colCount = sortedWells[sortedWells.length - 1].col + 1;
 
     if (sortedWells.length !== rowCount * colCount) {
         throw new Error("Missing wells from GET plate response.");
