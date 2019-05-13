@@ -61,7 +61,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 
         ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string) => {
             // TODO: uncomment below once redirect URL on CreatePlateStandalone includes barcode and plateId
-            // this.props.selectBarcode(barcode, plateId);
+            // this.props.selectBarcode(barcode);
         });
     }
 
