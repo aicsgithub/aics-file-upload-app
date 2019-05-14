@@ -15,7 +15,7 @@ import { goBack, selectBarcode } from "../../state/selection/actions";
 import { getSelectedBarcode } from "../../state/selection/selectors";
 import { GoBackAction, SelectBarcodeAction } from "../../state/selection/types";
 import { State } from "../../state/types";
-import LabkeyQueryService, { Plate } from "../../util/labkey-query-service";
+import LabkeyQueryService, { Plate } from "../../util/labkey-client";
 
 const styles = require("./style.pcss");
 

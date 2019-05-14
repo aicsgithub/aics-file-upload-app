@@ -17,7 +17,6 @@ import {
 import { State } from "../types";
 
 export interface ReduxLogicDependencies {
-    baseMmsUrl: string;
     httpClient: {
         get: SinonStub,
         post: SinonStub,
@@ -28,7 +27,6 @@ export interface ReduxLogicDependencies {
 }
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
-    baseMmsUrl: "MMS",
     dialog: {
         showMessageBox: sinon.stub(),
     },

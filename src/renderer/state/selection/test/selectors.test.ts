@@ -116,9 +116,7 @@ describe("Selections selectors", () => {
                 selection: getMockStateWithHistory({
                     ...mockSelection,
                     viabilityResults: [mockViabilityResult],
-                    wells: [{
-                        ...mockEmptyWell,
-                    }],
+                    wells: [mockEmptyWell],
                 }),
             });
 

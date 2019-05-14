@@ -22,12 +22,13 @@ export interface BatchedAction {
     payload: AnyAction[];
 }
 
+export interface HttpClient {
+    get<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>;
+    post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>;
+}
+
 export interface ReduxLogicExtraDependencies {
-    baseMmsUrl: string;
-    httpClient: {
-        get<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>;
-        post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>;
-    };
+    httpClient: HttpClient;
     ctx?: any;
     dialog: {
         showMessageBox(

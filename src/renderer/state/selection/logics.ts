@@ -5,6 +5,8 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
 
+import MmsClient from "../../util/mms-client";
+
 import { API_WAIT_TIME_SECONDS } from "../constants";
 
 import {
@@ -54,8 +56,6 @@ import { UploadFileImpl } from "./models/upload-file";
 import { getCurrentSelectionIndex, getPage, getStagedFiles } from "./selectors";
 import {
     DragAndDropFileList,
-    GetPlateResponse,
-    GetViabilityResultResponse,
     Page,
     UploadFile
 } from "./types";
@@ -188,19 +188,6 @@ const getFilesInFolderLogic = createLogic({
     type: GET_FILES_IN_FOLDER,
 });
 
-async function getPlate({ action, getState, httpClient, baseMmsUrl }: ReduxLogicTransformDependencies,
-                        barcode: string): Promise<GetPlateResponse> {
-    const response = await httpClient.get(`${baseMmsUrl}/1.0/plate/query?barcode=${barcode}`);
-    return response.data.data[0];
-}
-
-async function getViabilityResults({action, getState, httpClient, baseMmsUrl}: ReduxLogicTransformDependencies,
-                                   plateId: number):
-    Promise<GetViabilityResultResponse[]> {
-    const response = await httpClient.get(`${baseMmsUrl}/1.0/plate/${plateId}/assay/viabilityResult`);
-    return response.data.data;
-}
-
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
@@ -222,9 +209,9 @@ const selectBarcodeLogic = createLogic({
             while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
             && !receivedNonGatewayError) {
                 try {
-                    const { plate, wells } = await getPlate(deps, barcode);
+                    const { plate, wells } = await MmsClient.Get.plate(deps.httpClient, barcode);
                     const { plateId } = plate;
-                    const viabilityResults: GetViabilityResultResponse[] = await getViabilityResults(deps, plateId);
+                    const viabilityResults = await MmsClient.Get.viabilityResults(deps.httpClient, plateId);
                     receivedSuccessfulResponse = true;
                     const actions = [
                         setPlate(plate),
