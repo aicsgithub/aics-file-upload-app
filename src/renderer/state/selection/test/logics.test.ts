@@ -23,7 +23,8 @@ import {
     DragAndDropFileList,
     GetPlateResponse,
     GetViabilityResultResponse,
-    Page, PlateResponse,
+    Page,
+    PlateResponse,
     SelectionStateBranch,
     UploadFile,
     Well
