@@ -79,10 +79,10 @@ export const mockWell: Well = {
 };
 
 export const mockWells: Well[] = [
-    mockWell,
     {...mockWell, col: 1, row: 0, wellId: 2},
-    {...mockWell, col: 0, row: 1, wellId: 3},
+    mockWell,
     {...mockWell, col: 1, row: 1, wellId: 4},
+    {...mockWell, col: 0, row: 1, wellId: 3},
 ];
 
 export const mockViabilityResult: GetViabilityResultResponse = {

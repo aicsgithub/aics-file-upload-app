@@ -112,11 +112,11 @@ export interface GetPlateResponse {
 export interface PlateResponse extends Audited {
     barcode: string;
     comments: string;
-    imagingSessionId: number;
+    imagingSessionId?: number;
     plateGeometryId: number;
     plateId: number;
     plateStatusId: number;
-    seededOn: Date; // todo not sure if this is a date or string
+    seededOn?: string; // Date string
 }
 
 export interface WellResponse {

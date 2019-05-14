@@ -66,9 +66,9 @@ export interface AicsSuccessResponse<T> extends AicsResponse {
 }
 
 export interface Audited {
-    created: Date; // todo not sure if this is a date or string
+    created: string; // Date string
     createdBy: number;
-    modified: Date; // todo not sure if this is a date or string
+    modified: string; // Date string
     modifiedBy: number;
 }
 
