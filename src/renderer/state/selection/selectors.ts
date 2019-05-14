@@ -10,6 +10,8 @@ import { GetViabilityResultResponse, Solution, SolutionLot, ViabilityResult, Wel
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
+export const getSelectedPlateId = (state: State) =>
+    state.selection.present.plate && state.selection.present.plate.plateId;
 export const getSelections = (state: State) => state.selection.present;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getPage = (state: State) => state.selection.present.page;

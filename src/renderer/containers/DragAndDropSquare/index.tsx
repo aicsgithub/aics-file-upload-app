@@ -79,7 +79,7 @@ class DragAndDropSquare extends React.Component<DragAndDropSquareProps, DragAndD
             title: "Open files",
         };
 
-        remote.dialog.showOpenDialog(options, (filenames: string[] | undefined) => {
+        remote.dialog.showOpenDialog(options, (filenames?: string[]) => {
             // If cancel is clicked, this callback gets called and filenames is undefined
             if (filenames && !isEmpty(filenames)) {
                 this.props.onOpen(filenames);

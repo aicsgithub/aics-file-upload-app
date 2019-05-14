@@ -16,6 +16,7 @@ import {
     SELECT_FILE,
     SELECT_METADATA,
     SELECT_PAGE,
+    SET_PLATE,
     SET_VIABILITY_RESULTS,
     SET_WELL,
     SET_WELLS,
@@ -30,6 +31,7 @@ import {
     SelectionStateBranch,
     SelectMetadataAction,
     SelectPageAction,
+    SetPlateAction,
     SetViabilityResults,
     SetWellAction,
     SetWellsAction,
@@ -61,6 +63,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
             ...state,
             barcode: action.payload,
+        }),
+    },
+    [SET_PLATE]: {
+        accepts: (action: AnyAction): action is SetPlateAction => action.type === SET_PLATE,
+        perform: (state: SelectionStateBranch, action: SetPlateAction) => ({
+            ...state,
+            plate: action.payload,
         }),
     },
     [SELECT_FILE]: {

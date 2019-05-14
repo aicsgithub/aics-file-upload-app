@@ -13,6 +13,7 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_PAGE,
+    SET_PLATE,
     SET_VIABILITY_RESULTS,
     SET_WELL,
     SET_WELLS,
@@ -31,9 +32,11 @@ import {
     LoadFilesFromOpenDialogAction,
     NextPageAction,
     Page,
+    PlateResponse,
     SelectBarcodeAction,
     SelectFileAction,
     SelectPageAction,
+    SetPlateAction,
     SetViabilityResults,
     SetWellAction,
     SetWellsAction,
@@ -101,6 +104,13 @@ export function selectBarcode(barcode: string): SelectBarcodeAction {
     return {
         payload: barcode,
         type: SELECT_BARCODE,
+    };
+}
+
+export function setPlate(plate: PlateResponse): SetPlateAction {
+    return {
+        payload: plate,
+        type: SET_PLATE,
     };
 }
 

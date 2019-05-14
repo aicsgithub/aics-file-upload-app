@@ -18,7 +18,7 @@ import { AicsSuccessResponse, HTTP_STATUS } from "../../types";
 import { selectBarcode } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
-import { getPage, getSelectedBarcode, getWells } from "../selectors";
+import { getPage, getSelectedBarcode, getSelectedPlateId, getWells } from "../selectors";
 import {
     DragAndDropFileList,
     GetPlateResponse,
@@ -348,6 +348,7 @@ describe("Selection logics", () => {
 
     describe("selectBarcodeLogic", () => {
         const barcode = "1234";
+        const plateId = 1;
         let mockOkGetPlateResponse: AxiosResponse<AicsSuccessResponse<GetPlateResponse>>;
         let mockOkGetViabilityResultsResponse: AxiosResponse<AicsSuccessResponse<GetViabilityResultResponse>>;
         let mockBadGatewayResponse: AxiosError;
@@ -572,6 +573,7 @@ describe("Selection logics", () => {
                     expect(getWells(state)).to.not.be.empty;
                     expect(getPage(state)).to.equal(Page.AssociateWells);
                     expect(getSelectedBarcode(state)).to.equal(barcode);
+                    expect(getSelectedPlateId(state)).to.equal(plateId);
                     okResponseReturned = false; // prevent more calls to done
                     done();
                 }

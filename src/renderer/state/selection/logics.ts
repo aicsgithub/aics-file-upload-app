@@ -35,6 +35,7 @@ import {
     clearSelectionHistory,
     jumpToPastSelection,
     selectPage,
+    setPlate,
     setViabilityResults,
     setWells,
     stageFiles,
@@ -226,6 +227,7 @@ const selectBarcodeLogic = createLogic({
                     const viabilityResults: GetViabilityResultResponse[] = await getViabilityResults(deps, plateId);
                     receivedSuccessfulResponse = true;
                     const actions = [
+                        setPlate(plate),
                         setWells(wells),
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         setViabilityResults(viabilityResults),
