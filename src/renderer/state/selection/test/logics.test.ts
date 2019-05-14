@@ -373,15 +373,15 @@ describe("Selection logics", () => {
             const mockPlate: PlateResponse = {
                 barcode: "123456",
                 comments: "",
-                created: new Date(),
+                created: "2018-02-14 23:03:52",
                 createdBy: 1,
                 imagingSessionId: 1,
-                modified: new Date(),
+                modified: "2018-02-14 23:03:52",
                 modifiedBy: 1,
                 plateGeometryId: 1,
                 plateId: 1,
                 plateStatusId: 1,
-                seededOn: new Date(),
+                seededOn: "2018-02-14 23:03:52",
             };
             mockOkGetPlateResponse = {
                 config: {},
@@ -456,7 +456,7 @@ describe("Selection logics", () => {
             store.dispatch(selectBarcode(barcode));
         });
 
-        it("Sets wells, page, barcode if GET wells is OK", (done) => {
+        it("Sets wells, page, barcode, and plateId if GET wells is OK", (done) => {
             const getStub = sinon.stub().onFirstCall().callsFake(() => {
                 // we add the subscription after the first store.dispatch because we're testing
                 // the process callback which gets called after the first store update
@@ -465,6 +465,7 @@ describe("Selection logics", () => {
                     expect(getWells(state)).to.not.be.empty;
                     expect(getPage(state)).to.equal(Page.AssociateWells);
                     expect(getSelectedBarcode(state)).to.equal(barcode);
+                    expect(getSelectedPlateId(state)).to.equal(plateId);
                     done();
                 });
 
