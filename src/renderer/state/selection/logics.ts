@@ -261,7 +261,7 @@ const selectBarcodeLogic = createLogic({
                 done();
             } else {
                 const message = sentRetryAlert ? MMS_IS_DOWN_MESSAGE :
-                    GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode);
+                    GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload);
                 dispatch(batchActions([
                     action,
                     removeRequestFromInProgress(AsyncRequest.GET_PLATE),
