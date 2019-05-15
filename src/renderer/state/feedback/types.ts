@@ -43,7 +43,7 @@ export interface ClearAlertAction {
 }
 
 export enum AsyncRequest {
-    GET_PLATE = "GET_WELLS",
+    GET_PLATE = "GET_PLATE",
     START_UPLOAD = "START_UPLOAD",
     COPY_FILES = "COPY_FILES",
     UPLOAD_METADATA = "UPLOAD_METADATA",
