@@ -1,20 +1,28 @@
 import { expect } from "chai";
 
-import { getMockStateWithHistory, mockSelection, mockState, mockUnits, mockWells } from "../../test/mocks";
+import {
+    getMockStateWithHistory,
+    mockSelection,
+    mockState,
+    mockUnits,
+    mockViabilityResult,
+    mockWells
+} from "../../test/mocks";
 import { State } from "../../types";
 import { getWellIdToWellLabelMap, getWellsWithModified, getWellsWithUnitsAndModified, NO_UNIT } from "../selectors";
-import { CellPopulation, Solution, ViabilityResult, Well } from "../types";
+import { CellPopulation, Solution, Well, WellResponse } from "../types";
 
 describe("Selections selectors", () => {
     let mockEmptyWell: Well;
     let mockCellPopulation: CellPopulation;
     let mockSolution: Solution;
-    let mockViabilityResult: ViabilityResult;
     let mockStateWithNonEmptyWell: State;
 
     beforeEach(() => {
         mockEmptyWell = {
             cellPopulations: [],
+            col: 0,
+            row: 0,
             solutions: [],
             viabilityResults: [],
             wellId: 1,
@@ -39,19 +47,10 @@ describe("Selections selectors", () => {
             volumeUnitId: 1,
         };
 
-        mockViabilityResult = {
-            suspensionVolume: "1000",
-            suspensionVolumeUnitId: 3,
-            viability: 91.9,
-            viableCellCountPerUnit: 88,
-            viableCellCountUnitId: 4,
-        };
-
-        const mockWell: Well = {
+        const mockWell: WellResponse = {
             ...mockEmptyWell,
             cellPopulations: [mockCellPopulation],
             solutions: [mockSolution],
-            viabilityResults: [mockViabilityResult],
         };
 
         mockStateWithNonEmptyWell = {
@@ -64,7 +63,8 @@ describe("Selections selectors", () => {
                 ...mockState.selection,
                 present: {
                     ...mockState.selection.present,
-                    wells: [[mockWell]],
+                    viabilityResults: [mockViabilityResult],
+                    wells: [mockWell],
                 },
             },
         };
@@ -81,14 +81,10 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [
-                        [
-                            {
-                                ...mockEmptyWell,
-                                cellPopulations: [mockCellPopulation],
-                            },
-                        ],
-                    ],
+                    wells: [{
+                        ...mockEmptyWell,
+                        cellPopulations: [mockCellPopulation],
+                    }],
                 }),
             });
 
@@ -102,14 +98,10 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [
-                        [
-                            {
-                                ...mockEmptyWell,
-                                solutions: [mockSolution],
-                            },
-                        ],
-                    ],
+                    wells: [{
+                        ...mockEmptyWell,
+                        solutions: [mockSolution],
+                    }],
                 }),
             });
 
@@ -123,14 +115,8 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [
-                        [
-                            {
-                                ...mockEmptyWell,
-                                viabilityResults: [mockViabilityResult],
-                            },
-                        ],
-                    ],
+                    viabilityResults: [mockViabilityResult],
+                    wells: [mockEmptyWell],
                 }),
             });
 
@@ -145,7 +131,7 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [[mockEmptyWell]],
+                    wells: [mockEmptyWell],
                 }),
             });
 

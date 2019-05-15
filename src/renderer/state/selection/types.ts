@@ -1,5 +1,6 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
+import { Audited } from "../types";
 
 export interface UploadFile {
     name: string;
@@ -17,11 +18,12 @@ export interface DeselectFilesAction {
 export interface SelectionStateBranch {
     barcode?: string;
     files: string[];
-    plateId?: number;
-    wells: Well[][];
+    plate?: PlateResponse;
+    wells: WellResponse[];
     well?: GridCell;
     page: Page;
     stagedFiles: UploadFile[];
+    viabilityResults: GetViabilityResultResponse[];
 }
 
 export interface SelectFileAction {
@@ -93,9 +95,41 @@ export interface ViabilityResult {
     viableCellCountPerUnit: number;
     viableCellCountUnitId: number;
     viableCellCountUnitDisplay?: string;
+    wellViabilityResultId: number;
+}
+
+export interface GetViabilityResultResponse extends ViabilityResult {
+    col: number;
+    row: number;
+    wellId: number;
+}
+
+export interface GetPlateResponse {
+    plate: PlateResponse;
+    wells: WellResponse[];
+}
+
+export interface PlateResponse extends Audited {
+    barcode: string;
+    comments: string;
+    imagingSessionId?: number;
+    plateGeometryId: number;
+    plateId: number;
+    plateStatusId: number;
+    seededOn?: string; // Date string
+}
+
+export interface WellResponse {
+    row: number;
+    col: number;
+    wellId: number;
+    cellPopulations: CellPopulation[];
+    solutions: Solution[];
 }
 
 export interface Well {
+    row: number;
+    col: number;
     wellId: number;
     cellPopulations: CellPopulation[];
     modified?: boolean;
@@ -137,15 +171,22 @@ export interface GetFilesInFolderAction {
 }
 
 export interface SelectBarcodeAction {
-    payload: {
-        barcode: string;
-        plateId: number;
-    };
+    payload: string;
+    type: string;
+}
+
+export interface SetPlateAction {
+    payload: PlateResponse;
+    type: string;
+}
+
+export interface SetViabilityResults {
+    payload: GetViabilityResultResponse[];
     type: string;
 }
 
 export interface SetWellsAction {
-    payload: Well[][];
+    payload: WellResponse[];
     type: string;
 }
 

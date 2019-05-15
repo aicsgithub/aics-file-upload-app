@@ -1,16 +1,17 @@
-import { isEmpty } from "lodash";
+import { isEmpty, sortBy } from "lodash";
 import { createSelector } from "reselect";
-import { getWellLabel } from "../../util/index";
+import { getWellLabel } from "../../util";
 
 import { getUnits } from "../metadata/selectors";
 import { Unit } from "../metadata/types";
 import { State } from "../types";
 
-import { Solution, SolutionLot, ViabilityResult, Well } from "./types";
+import { GetViabilityResultResponse, Solution, SolutionLot, ViabilityResult, Well, WellResponse } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
-export const getSelectedPlateId = (state: State) => state.selection.present.plateId;
+export const getSelectedPlateId = (state: State) =>
+    state.selection.present.plate && state.selection.present.plate.plateId;
 export const getSelections = (state: State) => state.selection.present;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getPage = (state: State) => state.selection.present.page;
@@ -18,21 +19,38 @@ export const getStagedFiles = (state: State) => state.selection.present.stagedFi
 export const getWells = (state: State) => state.selection.present.wells;
 export const getWell = (state: State) => state.selection.present.well;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
+export const getViabilityResults = (state: State) => state.selection.present.viabilityResults;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
 
-export const getWellsWithModified = createSelector([getWells], (wells: Well[][]): Well[][] => {
+export const getWellsWithModified = createSelector([
+    getWells,
+    getViabilityResults,
+], (wells: WellResponse[], viabilityResultsForSelectedPlate: GetViabilityResultResponse[]): Well[][] => {
     if (!wells || wells.length === 0) {
-        return wells || [];
+        return [];
     }
 
-    return wells.map(
-        (row: Well[]) => row.map((well: Well) => ({
-            ...well,
-            modified: !isEmpty(well.cellPopulations) || !isEmpty(well.solutions) || !isEmpty(well.viabilityResults),
-        }))
+    const sortedWells = sortBy(wells, ["row", "col"]);
+    const rowCount = sortedWells[sortedWells.length - 1].row + 1;
+    const colCount = sortedWells[sortedWells.length - 1].col + 1;
+
+    const result: Well[][] = Array(rowCount).fill(null).map(() => Array(colCount).fill(null));
+    wells.forEach(
+        (well: WellResponse) => {
+            const { cellPopulations, col, row, solutions } = well;
+            const viabilityResults: ViabilityResult[] = viabilityResultsForSelectedPlate
+                .filter((viabilityResult) => viabilityResult.col === col && viabilityResult.row === row);
+            result[row][col] = {
+                ...well,
+                modified: !isEmpty(cellPopulations) || !isEmpty(solutions) || !isEmpty(viabilityResults),
+                viabilityResults,
+            };
+        }
     );
+
+    return result;
 });
 
 export const getWellsWithUnitsAndModified = createSelector([
@@ -74,12 +92,10 @@ export const getWellsWithUnitsAndModified = createSelector([
 
 export const getWellIdToWellLabelMap = createSelector([
     getWells,
-], (wells: Well[][]) => {
+], (wells: WellResponse[]) => {
     const result = new Map<number, string>();
-    wells.forEach((wellRow: Well[], row) => {
-        wellRow.forEach((well: Well, col) => {
-            result.set(well.wellId, getWellLabel({row, col}));
-        });
+    wells.forEach(({ wellId, col, row }: WellResponse) => {
+        result.set(wellId, getWellLabel({row, col}));
     });
 
     return result;
