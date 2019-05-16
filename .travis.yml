@@ -13,15 +13,10 @@ matrix:
       env:
         - ELECTRON_CACHE=$HOME/.cache/electron
         - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
-        - ELECTRON_WEBPACK_APP_LIMS_HOST=aics.corp.alleninstitute.org
-        - ELECTRON_WEBPACK_APP_LIMS_PORT=80
         - CSC_LINK="./Certificates.p12"
         # CSC_KEY_PASSWORD
         - secure: cdxmn+QiHUYjFksqnDRvwrib3tdp2a2R7pZpzJBgx53nB0cm+WYcpiQcMNYTzfFqXH+3PYJXv+lI55uNQzacnT6QPQ7iWVLTBzjg8CaqvkvFKAlZK22ypHPizFNNVYyLK3wGItE1DS+qTdXH+KXRBpthTYGqIH02dwhQs7HRCdVFeqRcdAE8UcVT0+BjW6G1kWe2EaRfzzmAssguWSkmd6cTmNJph5VN3cplEAYF+lMPg37ukab38hMbgiEJ8zUDr8fl3R4jgw/qSsc1I4EQm+I55MOJP6CY0OfIHatQRJZnO6xFukYef6J9CDQwY0JRcB9IiFhzRRmk/6xWJuSxlcD7lKoeJgQuzdcKpn2ZRGPS3QT1d2zWE484TyqrSrXz7uiHwDfIvRZ420mAQqgj+wwCRbMncqOk1RhU65BFdw4Vg5xBuatOH+jTndhdRzIZp+7ShuTzBb/H7d2iLOI1CdomzDRHtSCBXIpyy094evUe9sBnx5y52n6XP9jld877Xe4fpKOcrPFuuJeORT1G6UvfXSrSI4exemGtrL0+Diu1YytIIXBFqMQLk9+3jedyVdvBoh/EgO3ClXHCLlyZm3zhSMj0hVs+eJ+J34qlU2Uwfjbf2gla/clemwgkwl6RHMzfTgCCs1r5KkWp/5FylxxWO3yQ+d1T9itZGg5c9TI=
     - os: linux
-      env:
-        - LIMS_HOST=aics.corp.alleninstitute.org
-        - LIMS_PORT=80
       services: docker
 
 cache:
@@ -31,7 +26,7 @@ cache:
     - $HOME/.cache/electron-builder
 
 script:
-  - NODE_ENV=production ELECTRON_WEBPACK_APP_LIMS_HOST=$LIMS_HOST ELECTRON_WEBPACK_APP_LIMS_PORT=$LIMS_PORT yarn compile
+  - NODE_ENV=production yarn compile-prod
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
       docker run --rm \
