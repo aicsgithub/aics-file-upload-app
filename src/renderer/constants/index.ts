@@ -1,13 +1,7 @@
 import { isEmpty } from "lodash";
+import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL, NODE_ENV } from "../../shared/constants";
 
 export const APP_ID = "app";
-
-const {
-    LIMS_PROTOCOL = "http",
-    LIMS_HOST = "localhost",
-    LIMS_PORT = "8080",
-    NODE_ENV,
-} = process.env;
 
 export const HOST = NODE_ENV === "production" ? LIMS_HOST : `${LIMS_HOST}:${LIMS_PORT}`;
 

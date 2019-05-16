@@ -5,8 +5,8 @@ export const OPEN_CREATE_PLATE_STANDALONE = "OPEN_CREATE_PLATE";
 export const PLATE_CREATED = "PLATE-CREATED";
 
 export const {
-    LIMS_PROTOCOL = "http",
-    LIMS_HOST = "localhost",
-    LIMS_PORT = "8080",
+    ELECTRON_WEBPACK_APP_LIMS_PROTOCOL: LIMS_PROTOCOL = "http",
+    ELECTRON_WEBPACK_APP_LIMS_HOST: LIMS_HOST = "localhost",
+    ELECTRON_WEBPACK_APP_LIMS_PORT: LIMS_PORT = "8080",
     NODE_ENV,
 } = process.env;
