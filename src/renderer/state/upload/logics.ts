@@ -3,9 +3,21 @@ import { ipcRenderer } from "electron";
 import Logger from "js-logger";
 import { createLogic } from "redux-logic";
 
-import { START_UPLOAD, UPLOAD_FAILED, UPLOAD_FINISHED } from "../../../shared/constants";
+import {
+    RECEIVED_JOB_ID,
+    START_UPLOAD,
+    UPLOAD_FAILED,
+    UPLOAD_FINISHED,
+    UPLOAD_PROGRESS
+} from "../../../shared/constants";
 import { getWellLabel } from "../../util";
-import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import {
+    addEvent,
+    addRequestToInProgress,
+    removeRequestFromInProgress,
+    setAlert,
+    setUploadStatus
+} from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
@@ -32,6 +44,15 @@ const associateFileAndWellLogic = createLogic({
 
 const initiateUploadLogic = createLogic({
     process: ({getState}: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, status: string) => {
+            // tslint:disable-next-line
+            console.log("UPLOAD_PROGRESS", status);
+            dispatch(setUploadStatus(status));
+        });
+        ipcRenderer.on(RECEIVED_JOB_ID, (event: Event, jobId: string) => {
+            // dispatch(setCurrentJobId(jobId));
+        });
+
         ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()));
         ipcRenderer.on(UPLOAD_FINISHED, (event: Event, result: UploadResponse) => {
             Logger.debug("Upload Completed Successfully", result);
@@ -49,16 +70,13 @@ const initiateUploadLogic = createLogic({
                     message: `Upload Failed: ${error}`,
                     type: AlertType.ERROR,
                 }),
+                setUploadStatus(`Upload Failed: ${error}`),
             ]));
 
             done();
         });
     },
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        ipcRenderer.on("test_message", (event: any, arg: string) => {
-            // tslint:disable-next-line
-            console.log("test_message", arg);
-        });
         next(batchActions([
             addEvent("Starting upload", AlertType.INFO, new Date()),
             addRequestToInProgress(AsyncRequest.START_UPLOAD),

@@ -4,6 +4,7 @@ import {
     CLEAR_ALERT,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
+    SET_UPLOAD_STATUS,
     START_LOADING,
     STOP_LOADING
 } from "./constants";
@@ -17,6 +18,7 @@ import {
     ClearAlertAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
+    SetUploadStatusAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
@@ -67,5 +69,12 @@ export function addEvent(message: string, type: AlertType, date: Date): AddEvent
             type,
         },
         type: ADD_EVENT,
+    };
+}
+
+export function setUploadStatus(status: string): SetUploadStatusAction {
+    return {
+        payload: status,
+        type: SET_UPLOAD_STATUS,
     };
 }

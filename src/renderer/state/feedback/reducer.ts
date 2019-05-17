@@ -11,6 +11,7 @@ import {
     CLEAR_ALERT,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
+    SET_UPLOAD_STATUS,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -21,6 +22,7 @@ import {
     FeedbackStateBranch,
     RemoveRequestInProgressAction,
     SetAlertAction,
+    SetUploadStatusAction,
     StartLoadingAction,
     StopLoadingAction
 } from "./types";
@@ -29,6 +31,7 @@ export const initialState: FeedbackStateBranch = {
     events: [],
     isLoading: false,
     requestsInProgress: [],
+    uploadStatus: "Not Started",
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -93,6 +96,15 @@ const actionToConfigMap: TypeToDescriptionMap = {
             return {
                 ...state,
                 events: [...state.events, action.payload],
+            };
+        },
+    },
+    [SET_UPLOAD_STATUS]: {
+        accepts: (action: AnyAction): action is SetUploadStatusAction => action.type === SET_UPLOAD_STATUS,
+        perform: (state: FeedbackStateBranch, action: AddEventAction) => {
+            return {
+                ...state,
+                uploadStatus: action.payload,
             };
         },
     },

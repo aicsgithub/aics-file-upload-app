@@ -3,6 +3,7 @@ export interface FeedbackStateBranch {
     events: AppEvent[];
     isLoading: boolean;
     requestsInProgress: AsyncRequest[];
+    uploadStatus: string;
 }
 
 export interface StartLoadingAction {
@@ -66,4 +67,9 @@ export interface AddEventAction {
         message: string;
         type: AlertType;
     };
+}
+
+export interface SetUploadStatusAction {
+    payload: string;
+    type: string;
 }

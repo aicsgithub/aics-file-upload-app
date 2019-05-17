@@ -14,6 +14,7 @@ export const getRequestsInProgressContains = (state: State, request: AsyncReques
     return includes(requestsInProgress, request);
 };
 export const getEvents = (state: State) => state.feedback.events;
+export const getUploadStatus = (state: State) => state.feedback.uploadStatus;
 
 // COMPOSED SELECTORS
 export const getRecentEvent = createSelector([

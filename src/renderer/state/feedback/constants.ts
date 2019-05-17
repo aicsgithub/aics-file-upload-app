@@ -9,3 +9,4 @@ export const STOP_LOADING = makeConstant(BRANCH_NAME, "stop-loading");
 export const ADD_REQUEST_IN_PROGRESS = makeConstant(BRANCH_NAME, "add-request-in-progress");
 export const REMOVE_REQUEST_IN_PROGRESS = makeConstant(BRANCH_NAME, "remove-request-in-progress");
 export const ADD_EVENT = makeConstant(BRANCH_NAME, "add-event");
+export const SET_UPLOAD_STATUS = makeConstant(BRANCH_NAME, "set-upload-status");
