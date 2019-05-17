@@ -81,7 +81,7 @@ app.on("ready", () => {
 
 const startUpload = async (event: Event, uploads: Uploads) => {
     Logger.debug("received start upload request from renderer");
-    const uploadClient = new FileManagementSystem(LIMS_HOST, LIMS_PORT, "debug");
+    const uploadClient = new FileManagementSystem(LIMS_HOST, LIMS_PORT, "debug", event);
     try {
         const result = await uploadClient.uploadFiles(uploads);
         event.sender.send(UPLOAD_FINISHED, result);

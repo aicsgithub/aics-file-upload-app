@@ -55,6 +55,10 @@ const initiateUploadLogic = createLogic({
         });
     },
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        ipcRenderer.on("test_message", (event: any, arg: string) => {
+            // tslint:disable-next-line
+            console.log("test_message", arg);
+        });
         next(batchActions([
             addEvent("Starting upload", AlertType.INFO, new Date()),
             addRequestToInProgress(AsyncRequest.START_UPLOAD),
