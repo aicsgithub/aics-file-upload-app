@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
-    "compile-prod": "ELECTRON_WEBPACK_APP_LIMS_HOST=\"aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 electron-webpack",
+    "compile-stage": "ELECTRON_WEBPACK_APP_LIMS_HOST=\"stg-aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 yarn compile",
+    "compile-prod": "ELECTRON_WEBPACK_APP_LIMS_HOST=\"aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 NODE_ENV=production yarn compile",
     "dist": "electron-builder -p always",
     "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps"
