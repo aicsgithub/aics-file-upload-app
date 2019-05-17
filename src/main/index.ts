@@ -112,7 +112,7 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any) => {
             e.preventDefault();
             // todo once redirect URL on CreatePlateStandalone includes barcode and plateId, parse these values
             // and include below
-            event.sender.send(PLATE_CREATED, "barcode", 789);
+            event.sender.send(PLATE_CREATED, "barcode");
             child.close();
         }
     });

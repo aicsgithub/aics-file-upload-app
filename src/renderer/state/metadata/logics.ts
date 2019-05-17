@@ -2,8 +2,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { LABKEY_SELECT_ROWS_URL } from "../../constants";
-import { LK_MICROSCOPY_SCHEMA } from "../../constants/index";
+import { LABKEY_SELECT_ROWS_URL, LK_MICROSCOPY_SCHEMA } from "../../constants";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
@@ -14,7 +13,7 @@ import { REQUEST_METADATA } from "./constants";
 import { LabkeyUnit, Unit } from "./types";
 
 const requestMetadata = createLogic({
-    process: ({baseMmsUrl, httpClient}: ReduxLogicDependencies, dispatch: (action: AnyAction) => void,
+    process: ({httpClient}: ReduxLogicDependencies, dispatch: (action: AnyAction) => void,
               done: () => void) => {
         const getUnitsURL = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "Units");
         return Promise.all([

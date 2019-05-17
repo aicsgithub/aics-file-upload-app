@@ -16,6 +16,8 @@ import {
     SELECT_FILE,
     SELECT_METADATA,
     SELECT_PAGE,
+    SET_PLATE,
+    SET_VIABILITY_RESULTS,
     SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
@@ -29,6 +31,8 @@ import {
     SelectionStateBranch,
     SelectMetadataAction,
     SelectPageAction,
+    SetPlateAction,
+    SetViabilityResults,
     SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
@@ -41,6 +45,7 @@ export const initialState = {
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
+    viabilityResults: [],
     well: undefined,
     wells: [],
 };
@@ -57,7 +62,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is SelectBarcodeAction => action.type === SELECT_BARCODE,
         perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
             ...state,
-            ...action.payload,
+            barcode: action.payload,
+        }),
+    },
+    [SET_PLATE]: {
+        accepts: (action: AnyAction): action is SetPlateAction => action.type === SET_PLATE,
+        perform: (state: SelectionStateBranch, action: SetPlateAction) => ({
+            ...state,
+            plate: action.payload,
         }),
     },
     [SELECT_FILE]: {
@@ -114,6 +126,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SetWellAction) => ({
             ...state,
             well: action.payload,
+        }),
+    },
+    [SET_VIABILITY_RESULTS]: {
+        accepts: (action: AnyAction): action is SetViabilityResults => action.type === SET_VIABILITY_RESULTS,
+        perform: (state: SelectionStateBranch, action: SetViabilityResults) => ({
+            ...state,
+            viabilityResults: action.payload,
         }),
     },
 };

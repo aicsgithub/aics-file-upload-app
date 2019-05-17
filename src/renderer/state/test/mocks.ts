@@ -1,7 +1,7 @@
 import { StateWithHistory } from "redux-undo";
 
 import { Unit } from "../metadata/types";
-import { Page, SelectionStateBranch, Well } from "../selection/types";
+import { GetViabilityResultResponse, Page, SelectionStateBranch, Well } from "../selection/types";
 import { State } from "../types";
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
@@ -20,6 +20,7 @@ export const mockSelection: SelectionStateBranch = {
     files: [],
     page: Page.DragAndDrop,
     stagedFiles: [],
+    viabilityResults: [],
     well: undefined,
     wells: [],
 };
@@ -70,12 +71,28 @@ export const mockUnits: Unit[] = [
 
 export const mockWell: Well = {
     cellPopulations: [],
+    col: 0,
+    row: 0,
     solutions: [],
     viabilityResults: [],
     wellId: 1,
 };
 
-export const mockWells: Well[][] = [
-    [mockWell, {...mockWell, wellId: 2}],
-    [{...mockWell, wellId: 3}, {...mockWell, wellId: 4}],
+export const mockWells: Well[] = [
+    {...mockWell, col: 1, row: 0, wellId: 2},
+    mockWell,
+    {...mockWell, col: 1, row: 1, wellId: 4},
+    {...mockWell, col: 0, row: 1, wellId: 3},
 ];
+
+export const mockViabilityResult: GetViabilityResultResponse = {
+    col: 0,
+    row: 0,
+    suspensionVolume: "1000",
+    suspensionVolumeUnitId: 3,
+    viability: 91.9,
+    viableCellCountPerUnit: 88,
+    viableCellCountUnitId: 4,
+    wellId: 100,
+    wellViabilityResultId: 1,
+};

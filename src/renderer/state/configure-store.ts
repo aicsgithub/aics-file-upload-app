@@ -7,8 +7,6 @@ import {
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 
-import { MMS_BASE_URL } from "../constants";
-
 import {
     enableBatching,
     feedback,
@@ -33,7 +31,6 @@ const logics = [
 ];
 
 export const reduxLogicDependencies = {
-    baseMmsUrl: MMS_BASE_URL,
     dialog: remote.dialog,
     httpClient: axios,
 };
