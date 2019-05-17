@@ -1,15 +1,9 @@
 import { isEmpty } from "lodash";
+import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../shared/constants";
 
 export const APP_ID = "app";
 
-const {
-    LIMS_PROTOCOL = "http",
-    LIMS_HOST = "localhost",
-    LIMS_PORT = "8080",
-    NODE_ENV,
-} = process.env;
-
-export const HOST = NODE_ENV === "production" ? LIMS_HOST : `${LIMS_HOST}:${LIMS_PORT}`;
+export const HOST = `${LIMS_HOST}:${LIMS_PORT}`;
 
 export const LABKEY_URL = `${LIMS_PROTOCOL}://${HOST}/labkey`;
 export const LABKEY_SELECT_ROWS_URL = (schema: string, table: string, additionalQueries: string[] = []) => {
