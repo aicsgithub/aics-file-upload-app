@@ -10,7 +10,7 @@ class Get {
 
     public static async viabilityResults(httpClient: HttpClient, plateId: number):
         Promise<GetViabilityResultResponse[]> {
-        const response = await httpClient.get(`${MMS_BASE_URL}/1.0/plate/${plateId}/assay/viabilityResult`);
+        const response = await httpClient.get(`${MMS_BASE_URL}/1.0/assay/plate/${plateId}/viabilityResult`);
         return response.data.data;
     }
 }
