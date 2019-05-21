@@ -32,7 +32,8 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
-        uploadStatus: "Not started",
+        currentJobId: undefined,
+        jobs: [],
     },
     metadata: {
         history: {

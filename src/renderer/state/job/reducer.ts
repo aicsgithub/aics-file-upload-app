@@ -1,20 +1,40 @@
 import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
-import { SET_UPLOAD_STATUS } from "./constants";
-import { JobStateBranch, SetUploadStatusAction } from "./types";
+import { ADD_JOB, SET_CURRENT_JOB_ID, SET_JOBS } from "./constants";
+import { AddJobAction, JobStateBranch, SetCurrentJobIdAction, SetJobsAction } from "./types";
 
 export const initialState = {
-    uploadStatus: "Not Started",
+    currentJobId: undefined,
+    jobs: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [SET_UPLOAD_STATUS]: {
-        accepts: (action: AnyAction): action is SetUploadStatusAction => action.type === SET_UPLOAD_STATUS,
-        perform: (state: JobStateBranch, action: SetUploadStatusAction) => {
+    [SET_JOBS]: {
+        accepts: (action: AnyAction): action is SetJobsAction => action.type === SET_JOBS,
+        perform: (state: JobStateBranch, action: SetJobsAction) => {
+            const jobs = action.payload;
             return {
                 ...state,
-                uploadStatus: action.payload,
+                jobs,
+            };
+        },
+    },
+    [SET_CURRENT_JOB_ID]: {
+        accepts: (action: AnyAction): action is SetCurrentJobIdAction => action.type === SET_CURRENT_JOB_ID,
+        perform: (state: JobStateBranch, action: SetCurrentJobIdAction) => {
+            return {
+                ...state,
+                currentJobId: action.payload,
+            };
+        },
+    },
+    [ADD_JOB]: {
+        accepts: (action: AnyAction): action is AddJobAction => action.type === ADD_JOB,
+        perform: (state: JobStateBranch, action: AddJobAction) => {
+            return {
+                ...state,
+                jobs: [...state.jobs, action.payload],
             };
         },
     },

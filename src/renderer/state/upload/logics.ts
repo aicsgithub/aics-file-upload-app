@@ -11,14 +11,10 @@ import {
     UPLOAD_PROGRESS
 } from "../../../shared/constants";
 import { getWellLabel } from "../../util";
-import {
-    addEvent,
-    addRequestToInProgress,
-    removeRequestFromInProgress,
-    setAlert,
-} from "../feedback/actions";
+import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert, } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { setUploadStatus } from "../job/actions";
+import { addJob, setCurrentJobId, setJobs, setUploadStatus } from "../job/actions";
+import { getCurrentJob, getCurrentJobIndex, getJobs } from "../job/selectors";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import { ReduxLogicDependencies, ReduxLogicDoneCb, ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
@@ -45,12 +41,30 @@ const associateFileAndWellLogic = createLogic({
 const initiateUploadLogic = createLogic({
     process: ({getState}: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, status: string) => {
-            // tslint:disable-next-line
-            console.log("UPLOAD_PROGRESS", status);
             dispatch(setUploadStatus(status));
         });
         ipcRenderer.on(RECEIVED_JOB_ID, (event: Event, jobId: string) => {
-            // dispatch(setCurrentJobId(jobId));
+            const state = getState();
+            const jobs = getJobs(state);
+            const currentJobIndex = getCurrentJobIndex(state);
+            const currentJob = getCurrentJob(state);
+            if (currentJob && currentJobIndex > -1) {
+                jobs[currentJobIndex] = {
+                    ...currentJob,
+                    jobId,
+                };
+                dispatch(batchActions([
+                    setJobs(jobs),
+                    setCurrentJobId(jobId),
+                ]));
+            } else {
+                const error = "Cannot set current job id. Current job has not been initialized.";
+                dispatch(setAlert({
+                    message: error,
+                    type: AlertType.ERROR,
+                }));
+                throw new Error(error);
+            }
         });
 
         ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()));
@@ -80,6 +94,12 @@ const initiateUploadLogic = createLogic({
         next(batchActions([
             addEvent("Starting upload", AlertType.INFO, new Date()),
             addRequestToInProgress(AsyncRequest.START_UPLOAD),
+            addJob({
+                created: new Date(),
+                jobId: undefined,
+                key: "New Job",
+                status: "Job Created",
+            }),
             action,
         ]));
     },
