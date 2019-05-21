@@ -11,13 +11,16 @@ const setUploadStatusLogic = createLogic({
         const jobs = [...getJobs(state)];
         const currentJob = getCurrentJob(state);
         const jobIndex = getCurrentJobIndex(state);
-        if (jobIndex && currentJob) {
+        if (jobIndex  > -1 && currentJob) {
             jobs[jobIndex] = {
                 ...currentJob,
                 status: action.payload,
             };
+            next(setJobs(jobs));
+        } else {
+            throw Error("Upload status cannot be updated because there is no current job!");
         }
-        next(setJobs(jobs));
+
     },
     type: SET_UPLOAD_STATUS,
 });
