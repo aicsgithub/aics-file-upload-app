@@ -10,6 +10,7 @@ import { SinonStub } from "sinon";
 import {
     enableBatching,
     feedback,
+    job,
     metadata,
     selection,
     upload,
@@ -38,6 +39,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
 
 const reducers = {
     feedback: feedback.reducer,
+    job: job.reducer,
     metadata: metadata.reducer,
     selection: selection.reducer,
     upload: upload.reducer,

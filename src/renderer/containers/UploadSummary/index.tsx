@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
-import { getUploadStatus } from "../../state/feedback/selectors";
+import { getUploadStatus } from "../../state/job/selectors";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";

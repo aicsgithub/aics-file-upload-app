@@ -16,9 +16,9 @@ import {
     addRequestToInProgress,
     removeRequestFromInProgress,
     setAlert,
-    setUploadStatus
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
+import { setUploadStatus } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import { ReduxLogicDependencies, ReduxLogicDoneCb, ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";

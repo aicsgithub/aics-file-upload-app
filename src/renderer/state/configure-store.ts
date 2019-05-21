@@ -10,6 +10,7 @@ import { createLogicMiddleware } from "redux-logic";
 import {
     enableBatching,
     feedback,
+    job,
     metadata,
     selection,
     upload,
@@ -18,6 +19,7 @@ import { State } from "./types";
 
 const reducers = {
     feedback: feedback.reducer,
+    job: job.reducer,
     metadata: metadata.reducer,
     selection: selection.reducer,
     upload: upload.reducer,
@@ -25,6 +27,7 @@ const reducers = {
 
 const logics = [
     ...feedback.logics,
+    ...job.logics,
     ...metadata.logics,
     ...selection.logics,
     ...upload.logics,

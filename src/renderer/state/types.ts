@@ -5,6 +5,7 @@ import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
 import { FeedbackStateBranch } from "./feedback/types";
+import { JobStateBranch } from "./job/types";
 import { MetadataStateBranch } from "./metadata/types";
 import { SelectionStateBranch } from "./selection/types";
 import { UploadStateBranch } from "./upload/types";
@@ -46,6 +47,7 @@ export type ReduxLogicDoneCb = () => void;
 
 export interface State {
     feedback: FeedbackStateBranch;
+    job: JobStateBranch;
     metadata: MetadataStateBranch;
     selection: StateWithHistory<SelectionStateBranch>;
     upload: StateWithHistory<UploadStateBranch>;

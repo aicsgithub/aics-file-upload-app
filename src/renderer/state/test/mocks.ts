@@ -30,6 +30,8 @@ export const mockState: State = {
         events: [],
         isLoading: false,
         requestsInProgress: [],
+    },
+    job: {
         uploadStatus: "Not started",
     },
     metadata: {
