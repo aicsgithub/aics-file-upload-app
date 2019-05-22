@@ -1,4 +1,5 @@
 import { StateWithHistory } from "redux-undo";
+import { Job } from "../job/types";
 
 import { Unit } from "../metadata/types";
 import { GetViabilityResultResponse, Page, SelectionStateBranch, Well } from "../selection/types";
@@ -99,4 +100,16 @@ export const mockViabilityResult: GetViabilityResultResponse = {
     viableCellCountUnitId: 4,
     wellId: 100,
     wellViabilityResultId: 1,
+};
+
+export const mockJob: Job = {
+    created: new Date(),
+    jobId: "123434234",
+    status: "Completed",
+};
+
+export const mockJob2: Job = {
+    created: new Date(),
+    jobId: "2222222222",
+    status: "Copying files",
 };

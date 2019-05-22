@@ -98,7 +98,6 @@ const initiateUploadLogic = createLogic({
             addJob({
                 created: new Date(),
                 jobId: tempJobId,
-                key: tempJobId,
                 status: "Job Created",
             }),
             setCurrentJobId(tempJobId),
