@@ -24,6 +24,6 @@ export const getCurrentJobIndex = createSelector([
 export const getJobsForTable = createSelector([getJobs], (jobs: Job[]): UploadSummaryTableRow[] => {
     return jobs.map((job) => ({
         ...job,
-        created: job.created.toDateString(),
+        created: job.created.toLocaleString(),
     }));
 });
