@@ -10,7 +10,7 @@ export interface Job {
     created: Date;
 }
 
-export interface JobSummaryTableRow {
+export interface UploadSummaryTableRow {
     key: string;
     jobId?: string; // current upload not defined until get Job ID back from FMS
     status: string;
