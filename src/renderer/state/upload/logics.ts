@@ -91,15 +91,17 @@ const initiateUploadLogic = createLogic({
         });
     },
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const tempJobId = (new Date()).toISOString();
         next(batchActions([
             addEvent("Starting upload", AlertType.INFO, new Date()),
             addRequestToInProgress(AsyncRequest.START_UPLOAD),
             addJob({
                 created: new Date(),
-                jobId: undefined,
-                key: "New Job",
+                jobId: tempJobId,
+                key: tempJobId,
                 status: "Job Created",
             }),
+            setCurrentJobId(tempJobId),
             action,
         ]));
     },
