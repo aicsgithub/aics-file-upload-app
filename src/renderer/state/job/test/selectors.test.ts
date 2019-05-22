@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { mockJob, mockJob2, mockState } from "../../test/mocks";
+import { mockJob, mockJob2, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
 
 import { getCurrentJob, getCurrentJobIndex, getJobsForTable } from "../selectors";
 
@@ -9,11 +9,7 @@ describe("Job selectors", () => {
         it("returns job if a currentJobId is defined", () => {
             const currentJob = getCurrentJob({
                 ...mockState,
-                job: {
-                    ...mockState.job,
-                    currentJobId: mockJob.jobId,
-                    jobs: [mockJob2, mockJob],
-                },
+                job: {...nonEmptyJobStateBranch},
             });
             expect(currentJob).to.not.be.undefined;
 
@@ -43,11 +39,7 @@ describe("Job selectors", () => {
         it("finds index of job with matching jobId", () => {
             const index = getCurrentJobIndex({
                 ...mockState,
-                job: {
-                    ...mockState.job,
-                    currentJobId: mockJob.jobId,
-                    jobs: [mockJob2, mockJob],
-                },
+                job: {...nonEmptyJobStateBranch},
             });
             expect(index).to.equal(1);
         });
@@ -74,11 +66,7 @@ describe("Job selectors", () => {
             const rawJobs = [mockJob2, mockJob];
             const jobs = getJobsForTable({
                 ...mockState,
-                job: {
-                    ...mockState.job,
-                    currentJobId: mockJob.jobId,
-                    jobs: rawJobs,
-                },
+                job: {...nonEmptyJobStateBranch},
             });
 
             expect(jobs.length).to.equal(rawJobs.length);

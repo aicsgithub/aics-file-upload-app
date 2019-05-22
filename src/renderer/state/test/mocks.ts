@@ -1,5 +1,5 @@
 import { StateWithHistory } from "redux-undo";
-import { Job } from "../job/types";
+import { Job, JobStateBranch } from "../job/types";
 
 import { Unit } from "../metadata/types";
 import { GetViabilityResultResponse, Page, SelectionStateBranch, Well } from "../selection/types";
@@ -112,4 +112,10 @@ export const mockJob2: Job = {
     created: new Date(),
     jobId: "2222222222",
     status: "Copying files",
+};
+
+export const nonEmptyJobStateBranch: JobStateBranch = {
+    ...mockState.job,
+    currentJobId: mockJob.jobId,
+    jobs: [mockJob2, mockJob],
 };
