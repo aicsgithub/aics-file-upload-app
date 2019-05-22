@@ -18,6 +18,7 @@ const setUploadStatusLogic = createLogic({
             };
             next(setJobs(jobs));
         } else {
+            next(action);
             throw Error("Upload status cannot be updated because there is no current job!");
         }
 

@@ -3,10 +3,18 @@ export interface JobStateBranch {
     jobs: Job[];
 }
 
+// Every group of files associated with an upload represents a job.
 export interface Job {
+    // used by antd's Table component to uniquely identify rows
     key: string;
-    jobId?: string; // current upload not defined until get Job ID back from FMS
+
+    // assigned by FSS
+    jobId: string;
+
+    // set by progress messages from aicsfiles
     status: string;
+
+    // when the job was initiated
     created: Date;
 }
 
