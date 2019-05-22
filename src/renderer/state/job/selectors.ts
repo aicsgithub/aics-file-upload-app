@@ -25,5 +25,6 @@ export const getJobsForTable = createSelector([getJobs], (jobs: Job[]): UploadSu
     return jobs.map((job) => ({
         ...job,
         created: job.created.toLocaleString(),
+        key: job.jobId,
     }));
 });

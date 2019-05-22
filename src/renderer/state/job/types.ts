@@ -5,9 +5,6 @@ export interface JobStateBranch {
 
 // Every group of files associated with an upload represents a job.
 export interface Job {
-    // used by antd's Table component to uniquely identify rows
-    key: string;
-
     // assigned by FSS
     jobId: string;
 
@@ -18,9 +15,11 @@ export interface Job {
     created: Date;
 }
 
+// Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow {
+    // used by antd's Table component to uniquely identify rows
     key: string;
-    jobId?: string; // current upload not defined until get Job ID back from FMS
+    jobId: string;
     status: string;
     created: string;
 }
