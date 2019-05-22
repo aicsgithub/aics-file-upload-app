@@ -85,7 +85,7 @@ const startUpload = async (event: Event, uploads: Uploads) => {
         event,
         host: LIMS_HOST,
         logLevel: "debug",
-        port: LIMS_PORT
+        port: LIMS_PORT,
     });
     try {
         const result = await uploadClient.uploadFiles(uploads);

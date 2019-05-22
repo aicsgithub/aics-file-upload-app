@@ -11,7 +11,7 @@ import {
     UPLOAD_PROGRESS
 } from "../../../shared/constants";
 import { getWellLabel } from "../../util";
-import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert, } from "../feedback/actions";
+import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addJob, setCurrentJobId, setJobs, setUploadStatus } from "../job/actions";
 import { getCurrentJob, getCurrentJobIndex, getJobs } from "../job/selectors";
