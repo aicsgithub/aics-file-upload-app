@@ -39,7 +39,7 @@ interface EnterBarcodeState {
 }
 
 export const createOptionsFromGetPlatesResponse = (allPlates: Plate[]) => {
-    const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
+    const uniquePlateBarcodes = uniqBy(allPlates, "BarCode");
     const options = uniquePlateBarcodes.map((plate: {BarCode: string}) => {
         const imagingSessionIds = allPlates
             .filter((otherPlate) => otherPlate.BarCode === plate.BarCode)
