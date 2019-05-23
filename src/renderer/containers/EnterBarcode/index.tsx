@@ -21,6 +21,7 @@ const styles = require("./style.pcss");
 
 interface LabkeyBarcodeSelectorOption {
     barcode?: string;
+    imagingSessionIds: number[];
 }
 
 interface EnterBarcodeProps {
@@ -34,6 +35,7 @@ interface EnterBarcodeProps {
 
 interface EnterBarcodeState {
     barcode?: string;
+    imagingSessionIds: number[];
 }
 
 const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
@@ -44,7 +46,7 @@ const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
 
     return LabkeyQueryService.Get.platesByBarcode(input)
         .then((plates: Plate[]) => ({
-            options: plates.map((plate: Plate) => ({barcode: plate.BarCode})),
+            options: plates.map((plate: Plate) => ({barcode: plate.BarCode, imagingSessionIds: [2, 3, 4]})),
         }))
         .catch((err) => {
             onErr(err);
@@ -57,6 +59,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         super(props);
         this.state = {
             barcode: props.barcode,
+            imagingSessionIds: [],
         };
         this.setBarcode = this.setBarcode.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
@@ -70,7 +73,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     }
 
     public render() {
-        const {barcode} = this.state;
+        const {barcode, imagingSessionIds} = this.state;
         const {className, saveInProgress} = this.props;
         return (
             <FormPage
@@ -88,7 +91,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     label="Plate Barcode"
                     optionIdKey="barcode"
                     optionNameKey="barcode"
-                    selected={{barcode}}
+                    selected={{barcode, imagingSessionIds}}
                     onOptionSelection={this.setBarcode}
                     loadOptions={createGetBarcodesAsyncFunction(this.setAlert)}
                     placeholder="barcode"
