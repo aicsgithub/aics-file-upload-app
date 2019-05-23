@@ -1,7 +1,7 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
-import { debounce } from "lodash";
+import { debounce, uniqBy } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -38,6 +38,22 @@ interface EnterBarcodeState {
     imagingSessionIds: number[];
 }
 
+export const createOptionsFromGetPlatesResponse = (allPlates: Plate[]) => {
+    const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
+    const options = uniquePlateBarcodes.map((plate: {BarCode: string}) => {
+        const imagingSessionIds = allPlates
+            .filter((otherPlate) => otherPlate.BarCode === plate.BarCode)
+            .map((p) => p.ImagingSessionId);
+        return {
+            barcode: plate.BarCode,
+            imagingSessionIds,
+        };
+    });
+    return {
+        options,
+    };
+};
+
 const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
     (input: string): Promise<{options: LabkeyBarcodeSelectorOption[]} | null> => {
     if (!input) {
@@ -45,9 +61,7 @@ const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
     }
 
     return LabkeyQueryService.Get.platesByBarcode(input)
-        .then((plates: Plate[]) => ({
-            options: plates.map((plate: Plate) => ({barcode: plate.BarCode, imagingSessionIds: [2, 3, 4]})),
-        }))
+        .then(createOptionsFromGetPlatesResponse)
         .catch((err) => {
             onErr(err);
             return err;
