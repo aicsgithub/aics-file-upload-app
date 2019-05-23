@@ -6,10 +6,18 @@ import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import { getJobsForTable } from "../../state/job/selectors";
-import { UploadSummaryTableRow } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
+
+// Matches a Job but the created date is represented as a string
+export interface UploadSummaryTableRow {
+    // used by antd's Table component to uniquely identify rows
+    key: string;
+    jobId: string;
+    status: string;
+    created: string;
+}
 
 interface Props {
     className?: string;

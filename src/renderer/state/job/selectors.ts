@@ -1,8 +1,9 @@
 import { find, findIndex } from "lodash";
 import { createSelector } from "reselect";
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { State } from "../types";
-import { Job, UploadSummaryTableRow } from "./types";
+import { Job } from "./types";
 
 export const getJobs = (state: State) => state.job.jobs;
 export const getCurrentJobId = (state: State) => state.job.currentJobId;

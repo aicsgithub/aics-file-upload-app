@@ -15,15 +15,6 @@ export interface Job {
     created: Date;
 }
 
-// Matches a Job but the created date is represented as a string
-export interface UploadSummaryTableRow {
-    // used by antd's Table component to uniquely identify rows
-    key: string;
-    jobId: string;
-    status: string;
-    created: string;
-}
-
 export interface SetUploadStatusAction {
     payload: string;
     type: string;
