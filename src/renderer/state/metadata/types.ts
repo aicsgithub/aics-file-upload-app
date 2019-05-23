@@ -33,6 +33,10 @@ export interface UpdatePageHistoryMapAction {
     type: string;
 }
 
+export interface GetImagingSessionsAction {
+    type: string;
+}
+
 export interface Unit {
     description: string;
     name: string;

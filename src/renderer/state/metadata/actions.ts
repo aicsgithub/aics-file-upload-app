@@ -1,10 +1,12 @@
 import {
+    GET_IMAGING_SESSIONS,
     RECEIVE_METADATA,
     REQUEST_METADATA,
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
 import {
+    GetImagingSessionsAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
@@ -21,6 +23,14 @@ export function receiveMetadata(payload: Partial<MetadataStateBranch> = initialS
 export function requestMetadata(): RequestMetadataAction {
     return {
         type: REQUEST_METADATA,
+    };
+}
+
+// Imaging Sessions may be created if the user creates a plate during the upload process so this is expected to be
+// called more frequently than requestMetadata
+export function getImagingSessions(): GetImagingSessionsAction {
+    return {
+        type: GET_IMAGING_SESSIONS,
     };
 }
 
