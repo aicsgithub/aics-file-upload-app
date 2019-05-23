@@ -46,6 +46,8 @@ const reducers = {
 };
 
 const logics = [
+    ...feedback.logics,
+    ...job.logics,
     ...metadata.logics,
     ...selection.logics,
     ...upload.logics,
