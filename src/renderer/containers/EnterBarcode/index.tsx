@@ -131,6 +131,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         } else {
             this.setState({
                 barcode: undefined,
+                imagingSessionIds: [],
             });
         }
     }
