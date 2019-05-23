@@ -24,10 +24,8 @@ describe("Job logics", () => {
             store.dispatch(setUploadStatus(nextStatus));
 
             // after
-            store.subscribe(() => {
-                currentJob = getCurrentJob(store.getState());
-                expect(get(currentJob, "status")).to.equal(nextStatus);
-            });
+            currentJob = getCurrentJob(store.getState());
+            expect(get(currentJob, "status")).to.equal(nextStatus);
         });
     });
 });
