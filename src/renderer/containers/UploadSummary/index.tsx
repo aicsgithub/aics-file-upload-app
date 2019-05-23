@@ -5,20 +5,30 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
+import { getJobsForTable } from "../../state/job/selectors";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
-import { UploadSummaryTableRow } from "../../state/upload/types";
+
+// Matches a Job but the created date is represented as a string
+export interface UploadSummaryTableRow {
+    // used by antd's Table component to uniquely identify rows
+    key: string;
+    jobId: string;
+    status: string;
+    created: string;
+}
 
 interface Props {
     className?: string;
+    jobs: UploadSummaryTableRow[];
     selectPage: ActionCreator<SelectPageAction>;
 }
 
 class UploadSummary extends React.Component<Props, {}> {
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
-            dataIndex: "id",
+            dataIndex: "jobId",
             key: "jobId",
             title: "Job Id",
         },
@@ -42,6 +52,7 @@ class UploadSummary extends React.Component<Props, {}> {
     public render() {
         const {
             className,
+            jobs,
         } = this.props;
         return (
             <FormPage
@@ -51,14 +62,9 @@ class UploadSummary extends React.Component<Props, {}> {
                 onBack={this.goToDragAndDrop}
                 backButtonName="Create New Upload Job"
             >
-                <Table columns={this.columns} dataSource={this.getUploadJobs()}/>
+                <Table columns={this.columns} dataSource={jobs}/>
             </FormPage>
         );
-    }
-
-    private getUploadJobs(): any[] {
-        // todo: get jobs from JSS
-        return [];
     }
 
     private goToDragAndDrop = (): void => {
@@ -67,7 +73,9 @@ class UploadSummary extends React.Component<Props, {}> {
 }
 
 function mapStateToProps(state: State) {
-    return {};
+    return {
+        jobs: getJobsForTable(state),
+    };
 }
 
 const dispatchToPropsMap = {

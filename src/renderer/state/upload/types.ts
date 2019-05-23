@@ -23,13 +23,6 @@ export interface UploadJobTableRow {
     wellLabel: string;
 }
 
-export interface UploadSummaryTableRow {
-    jobId: string;
-    status: string;
-    created: Date;
-    key: string;
-}
-
 export interface AssociateFilesAndWellAction {
     payload: {
         barcode: string,
