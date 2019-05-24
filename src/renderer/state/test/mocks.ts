@@ -18,8 +18,10 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
 };
 
 export const mockSelection: SelectionStateBranch = {
+    barcode: undefined,
     files: [],
-    // imagingSessionId: undefined,
+    imagingSessionId: undefined,
+    imagingSessionIds: [],
     page: Page.DragAndDrop,
     stagedFiles: [],
     viabilityResults: [],

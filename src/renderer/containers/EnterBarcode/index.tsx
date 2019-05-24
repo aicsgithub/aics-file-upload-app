@@ -1,7 +1,9 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
+import { Radio } from "antd";
+import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
-import { debounce, uniqBy } from "lodash";
+import { debounce, get, uniqBy } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -11,8 +13,15 @@ import FormPage from "../../components/FormPage";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { requestImagingSessions } from "../../state/metadata/actions";
+import { getImagingSessions } from "../../state/metadata/selectors";
+import { GetImagingSessionsAction, ImagingSession } from "../../state/metadata/types";
 import { goBack, selectBarcode } from "../../state/selection/actions";
-import { getSelectedBarcode } from "../../state/selection/selectors";
+import {
+    getSelectedBarcode,
+    getSelectedImagingSessionId,
+    getSelectedImagingSessionIds
+} from "../../state/selection/selectors";
 import { GoBackAction, SelectBarcodeAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import LabkeyQueryService, { Plate } from "../../util/labkey-client";
@@ -27,7 +36,11 @@ interface LabkeyBarcodeSelectorOption {
 interface EnterBarcodeProps {
     className?: string;
     barcode?: string;
+    getImagingSessions: ActionCreator<GetImagingSessionsAction>;
     goBack: ActionCreator<GoBackAction>;
+    imagingSessionId?: number;
+    imagingSessionIds: number[];
+    imagingSessions: ImagingSession[];
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     setAlert: ActionCreator<SetAlertAction>;
@@ -35,6 +48,7 @@ interface EnterBarcodeProps {
 
 interface EnterBarcodeState {
     barcode?: string;
+    imagingSessionId?: number;
     imagingSessionIds: number[];
 }
 
@@ -73,7 +87,8 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         super(props);
         this.state = {
             barcode: props.barcode,
-            imagingSessionIds: [],
+            imagingSessionId: props.imagingSessionId,
+            imagingSessionIds: props.imagingSessionIds,
         };
         this.setBarcode = this.setBarcode.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
@@ -81,7 +96,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         this.openCreatePlateModal = this.openCreatePlateModal.bind(this);
 
         ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string) => {
-            // TODO: uncomment below once redirect URL on CreatePlateStandalone includes barcode and plateId
+            // TODO: uncomment below once redirect URL on CreatePlateStandalone includes barcode and imagingSessionId
             // this.props.selectBarcode(barcode);
         });
     }
@@ -94,7 +109,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 className={className}
                 formTitle="PLATE BARCODE"
                 formPrompt="Enter a barcode associated with at least one of these files."
-                saveButtonDisabled={!this.state.barcode || saveInProgress}
+                saveButtonDisabled={this.saveButtonDisabled()}
                 onSave={this.saveAndContinue}
                 saveInProgress={saveInProgress}
                 onBack={this.props.goBack}
@@ -113,8 +128,41 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 <a href="#" className={styles.createBarcodeLink} onClick={this.openCreatePlateModal}>
                     I don't have a barcode
                 </a>
+                <div>
+                    {imagingSessionIds.length > 1 && this.renderPlateOptions()}
+                </div>
             </FormPage>
         );
+    }
+
+    private renderPlateOptions = (): JSX.Element => {
+        const { imagingSessionIds, imagingSessionId } = this.state;
+        return (
+            <div>
+                <div>Which Imaging Session?</div>
+                <Radio.Group buttonStyle="solid" value={imagingSessionId} onChange={this.onImagingSessionChanged}>
+                    {imagingSessionIds.map((id) => {
+                        const option = this.getImagingSessionName(id);
+                        return (
+                            <Radio.Button value={id} key={option}>
+                                {option}
+                            </Radio.Button>
+                        );
+                    })}
+                </Radio.Group>
+            </div>
+        );
+    }
+
+    private onImagingSessionChanged = (event: RadioChangeEvent) => {
+        const imagingSessionId = event.target.value;
+        this.setState({imagingSessionId});
+    }
+
+    private getImagingSessionName = (id: number) => {
+        const { imagingSessions } = this.props;
+        const matchingImagingSession = imagingSessions.find((i) => i.imagingSessionId === id);
+        return get(matchingImagingSession, ["name"], `Imaging Session Id: ${id}`);
     }
 
     private setAlert(error: AxiosError): void {
@@ -128,6 +176,14 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private setBarcode(option: LabkeyBarcodeSelectorOption | null): void {
         if (option) {
             this.setState(option);
+            const { imagingSessions } = this.props;
+            const { imagingSessionIds } = option;
+            const imagingSessionIdsWithInfo = imagingSessionIds.filter((i) => !!imagingSessions[i]);
+            const haveImagingSessionInfo = imagingSessionIdsWithInfo.length === imagingSessionIds.length;
+
+            if (!haveImagingSessionInfo) {
+                this.props.getImagingSessions();
+            }
         } else {
             this.setState({
                 barcode: undefined,
@@ -137,9 +193,18 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     }
 
     private saveAndContinue(): void {
-        if (this.state.barcode) {
-            this.props.selectBarcode(this.state.barcode);
+        const { barcode, imagingSessionId, imagingSessionIds} = this.state;
+        if (barcode) {
+            this.props.selectBarcode(barcode, imagingSessionIds, imagingSessionId);
         }
+    }
+
+    private saveButtonDisabled = (): boolean => {
+        const {saveInProgress} = this.props;
+        const {barcode, imagingSessionId, imagingSessionIds} = this.state;
+        const multipleOptions = imagingSessionIds.length > 1;
+        const plateSelected = multipleOptions ? barcode && imagingSessionId : barcode;
+        return !plateSelected || saveInProgress;
     }
 
     private openCreatePlateModal(): void {
@@ -150,11 +215,15 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 function mapStateToProps(state: State) {
     return {
         barcode: getSelectedBarcode(state),
+        imagingSessionId: getSelectedImagingSessionId(state),
+        imagingSessionIds: getSelectedImagingSessionIds(state),
+        imagingSessions: getImagingSessions(state),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
     };
 }
 
 const dispatchToPropsMap = {
+    getImagingSessions: requestImagingSessions,
     goBack,
     selectBarcode,
     setAlert,

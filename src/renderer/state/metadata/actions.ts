@@ -28,7 +28,7 @@ export function requestMetadata(): RequestMetadataAction {
 
 // Imaging Sessions may be created if the user creates a plate during the upload process so this is expected to be
 // called more frequently than requestMetadata
-export function getImagingSessions(): GetImagingSessionsAction {
+export function requestImagingSessions(): GetImagingSessionsAction {
     return {
         type: GET_IMAGING_SESSIONS,
     };

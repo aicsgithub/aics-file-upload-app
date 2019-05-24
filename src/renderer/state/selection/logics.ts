@@ -199,7 +199,7 @@ const selectBarcodeLogic = createLogic({
         if (!action) {
             done();
         } else {
-            const barcode = action.payload;
+            const { barcode, imagingSessionId } = action.payload;
             const startTime = (new Date()).getTime() / 1000;
             let currentTime = startTime;
             let receivedSuccessfulResponse = false;
@@ -209,7 +209,7 @@ const selectBarcodeLogic = createLogic({
             while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
             && !receivedNonGatewayError) {
                 try {
-                    const { plate, wells } = await MmsClient.Get.plate(deps.httpClient, barcode);
+                    const { plate, wells } = await MmsClient.Get.plate(deps.httpClient, barcode, imagingSessionId);
                     const { plateId } = plate;
                     const viabilityResults = await MmsClient.Get.viabilityResults(deps.httpClient, plateId);
                     receivedSuccessfulResponse = true;

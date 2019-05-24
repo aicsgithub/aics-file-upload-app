@@ -100,9 +100,13 @@ export function getFilesInFolder(folder: UploadFile): GetFilesInFolderAction {
     };
 }
 
-export function selectBarcode(barcode: string): SelectBarcodeAction {
+export function selectBarcode(
+    barcode: string,
+    imagingSessionIds: number[] = [],
+    imagingSessionId?: number
+): SelectBarcodeAction {
     return {
-        payload: barcode,
+        payload: { barcode, imagingSessionId, imagingSessionIds },
         type: SELECT_BARCODE,
     };
 }
