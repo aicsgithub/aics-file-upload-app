@@ -1,4 +1,5 @@
 export interface MetadataStateBranch {
+    imagingSessions: ImagingSession[];
     units: Unit[];
     // Gets updated every time app changes pages.
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)

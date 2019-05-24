@@ -19,6 +19,7 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
 
 export const mockSelection: SelectionStateBranch = {
     files: [],
+    // imagingSessionId: undefined,
     page: Page.DragAndDrop,
     stagedFiles: [],
     viabilityResults: [],
@@ -41,6 +42,7 @@ export const mockState: State = {
             selection: {},
             upload: {},
         },
+        imagingSessions: [],
         units: [],
     },
     selection: getMockStateWithHistory(mockSelection),

@@ -23,9 +23,9 @@ import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 
 import {
     HTTP_STATUS,
-    ReduxLogicDependencies,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
+    ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
     State
 } from "../types";
@@ -108,7 +108,7 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
     }
 };
 
-const openFilesTransformLogic = ({ action, getState }: ReduxLogicDependencies, next: ReduxLogicNextCb) => {
+const openFilesTransformLogic = ({ action, getState }: ReduxLogicProcessDependencies, next: ReduxLogicNextCb) => {
     const actions = [action, startLoading()];
     const page: Page = getPage(getState());
     if (page === Page.DragAndDrop) {
@@ -118,7 +118,7 @@ const openFilesTransformLogic = ({ action, getState }: ReduxLogicDependencies, n
 };
 
 const loadFilesLogic = createLogic({
-    process: async ({ action }: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: async ({ action }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const originalAction = action.payload.filter((a: AnyAction) => a.type === LOAD_FILES);
 
         if (!isEmpty(originalAction)) {
@@ -141,7 +141,7 @@ const loadFilesLogic = createLogic({
 });
 
 const openFilesLogic = createLogic({
-    process: async ({ action }: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: async ({ action }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const originalAction = action.payload.filter((a: AnyAction) => a.type === OPEN_FILES);
 
         if (!isEmpty(originalAction)) {
@@ -193,7 +193,7 @@ export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is r
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
 
 const selectBarcodeLogic = createLogic({
-    process: async (deps: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: async (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const action = getActionFromBatch(deps.action, SELECT_BARCODE);
 
         if (!action) {
@@ -282,7 +282,7 @@ const pageOrder: Page[] = [
     Page.UploadSummary,
 ];
 const selectPageLogic = createLogic({
-    process: ({action, getState}: ReduxLogicDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: ({action, getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const { currentPage, nextPage } = action.payload;
         const state = getState();
 
