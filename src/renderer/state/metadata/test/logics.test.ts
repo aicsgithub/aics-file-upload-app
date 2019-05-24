@@ -62,7 +62,7 @@ describe("Metadata logics", () => {
                 expect(alert).to.not.be.undefined;
                 expect(get(alert, "type")).to.equal(AlertType.ERROR);
                 expect(get(alert, "message")).to.equal("Could not retrieve imaging session metadata");
-                done()
+                done();
             });
         });
     });
