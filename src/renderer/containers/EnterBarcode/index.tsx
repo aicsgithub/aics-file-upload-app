@@ -142,8 +142,8 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private renderPlateOptions = (): JSX.Element => {
         const { imagingSessionIds, imagingSessionId } = this.state;
         return (
-            <div>
-                <div>Which Imaging Session?</div>
+            <div className={styles.imagingSessions}>
+                <div>Which Imaging Session? <span className={styles.asterisk}>*</span></div>
                 <Radio.Group buttonStyle="solid" value={imagingSessionId} onChange={this.onImagingSessionChanged}>
                     {imagingSessionIds.map((id) => {
                         const option = this.getImagingSessionName(id);
