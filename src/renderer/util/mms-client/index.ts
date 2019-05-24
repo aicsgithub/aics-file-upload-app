@@ -3,6 +3,12 @@ import { GetPlateResponse, GetViabilityResultResponse } from "../../state/select
 import { HttpClient } from "../../state/types";
 
 class Get {
+    /**
+     * Gets plates by barcode and imagingSessionId if provided
+     * @param httpClient
+     * @param barcode full barcode of plate
+     * @param imagingSessionId id of imagin
+     */
     public static async plate(
         httpClient: HttpClient,
         barcode: string,

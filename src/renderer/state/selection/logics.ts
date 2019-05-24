@@ -250,7 +250,7 @@ const selectBarcodeLogic = createLogic({
                 done();
             } else {
                 const message = sentRetryAlert ? MMS_IS_DOWN_MESSAGE :
-                    GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload);
+                    GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode);
                 dispatch(batchActions([
                     action,
                     removeRequestFromInProgress(AsyncRequest.GET_PLATE),
@@ -282,7 +282,11 @@ const pageOrder: Page[] = [
     Page.UploadSummary,
 ];
 const selectPageLogic = createLogic({
-    process: ({action, getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: (
+        {action, getState}: ReduxLogicProcessDependencies,
+        dispatch: ReduxLogicNextCb,
+        done: ReduxLogicDoneCb
+    ) => {
         const { currentPage, nextPage } = action.payload;
         const state = getState();
 

@@ -1,4 +1,5 @@
 import { StateWithHistory } from "redux-undo";
+import { LabkeyImagingSession } from "../../util/labkey-client";
 import { Job, JobStateBranch } from "../job/types";
 
 import { Unit } from "../metadata/types";
@@ -123,3 +124,16 @@ export const nonEmptyJobStateBranch: JobStateBranch = {
     currentJobId: mockJob.jobId,
     jobs: [mockJob2, mockJob],
 };
+
+export const mockImagingSessions: LabkeyImagingSession[] = [
+    {
+        Description: "",
+        ImagingSessionId: 1,
+        Name: "1 Week",
+    },
+    {
+        Description: "",
+        ImagingSessionId: 2,
+        Name: "2 Weeks",
+    },
+];

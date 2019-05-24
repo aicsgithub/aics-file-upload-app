@@ -35,14 +35,16 @@ interface LabkeyBarcodeSelectorOption {
 
 interface EnterBarcodeProps {
     className?: string;
-    barcode?: string;
+    // get the most recent list of all imaging sessions in the db
     getImagingSessions: ActionCreator<GetImagingSessionsAction>;
     goBack: ActionCreator<GoBackAction>;
-    imagingSessionId?: number;
-    imagingSessionIds: number[];
     imagingSessions: ImagingSession[];
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
+    selectedBarcode?: string;
+    selectedImagingSessionId?: number;
+    // all imaging session ids that are associated with the selectedBarcode
+    selectedImagingSessionIds: number[];
     setAlert: ActionCreator<SetAlertAction>;
 }
 
@@ -86,9 +88,9 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     constructor(props: EnterBarcodeProps) {
         super(props);
         this.state = {
-            barcode: props.barcode,
-            imagingSessionId: props.imagingSessionId,
-            imagingSessionIds: props.imagingSessionIds,
+            barcode: props.selectedBarcode,
+            imagingSessionId: props.selectedImagingSessionId,
+            imagingSessionIds: props.selectedImagingSessionIds,
         };
         this.setBarcode = this.setBarcode.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
@@ -132,15 +134,18 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 <a href="#" className={styles.createBarcodeLink} onClick={this.openCreatePlateModal}>
                     I don't have a barcode
                 </a>
-                <div>
-                    {imagingSessionIds.length > 1 && this.renderPlateOptions()}
-                </div>
+                {this.renderPlateOptions()}
             </FormPage>
         );
     }
 
-    private renderPlateOptions = (): JSX.Element => {
+    private renderPlateOptions = (): JSX.Element | null => {
         const { imagingSessionIds, imagingSessionId } = this.state;
+
+        if (imagingSessionIds.length < 2) {
+            return null;
+        }
+
         return (
             <div className={styles.imagingSessions}>
                 <div>Which Imaging Session? <span className={styles.asterisk}>*</span></div>
@@ -218,11 +223,11 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 
 function mapStateToProps(state: State) {
     return {
-        barcode: getSelectedBarcode(state),
-        imagingSessionId: getSelectedImagingSessionId(state),
-        imagingSessionIds: getSelectedImagingSessionIds(state),
         imagingSessions: getImagingSessions(state),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
+        selectedBarcode: getSelectedBarcode(state),
+        selectedImagingSessionId: getSelectedImagingSessionId(state),
+        selectedImagingSessionIds: getSelectedImagingSessionIds(state),
     };
 }
 

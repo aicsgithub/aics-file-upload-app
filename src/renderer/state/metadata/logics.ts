@@ -45,10 +45,17 @@ const requestMetadata = createLogic({
 
 const requestImagingSessions = createLogic({
     transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const imagingSessions = await LabkeyClient.Get.imagingSessions(httpClient);
-        next(receiveMetadata({
-            imagingSessions,
-        }));
+        try {
+            const imagingSessions = await LabkeyClient.Get.imagingSessions(httpClient);
+            next(receiveMetadata({
+                imagingSessions,
+            }));
+        } catch (ex) {
+            next(setAlert({
+                message: "Could not retrieve imaging session metadata",
+                type: AlertType.ERROR,
+            }));
+        }
     },
     type: GET_IMAGING_SESSIONS,
 });
