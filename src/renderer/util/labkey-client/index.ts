@@ -1,4 +1,5 @@
 import axios from "axios";
+import { map } from "lodash";
 
 import { LABKEY_SELECT_ROWS_URL, LK_MICROSCOPY_SCHEMA } from "../../constants";
 import { ImagingSession } from "../../state/metadata/types";
@@ -6,7 +7,7 @@ import { HttpClient } from "../../state/types";
 
 export interface Plate {
     BarCode: string;
-    ImagingSessionId: string;
+    ImagingSessionId: number;
 }
 interface GetBarcodesResponse {
     data: {
@@ -22,15 +23,18 @@ export interface LabkeyImagingSession {
 }
 
 class Get {
-    public static platesByBarcode(searchString: string): Promise<Plate[]> {
+    public static async platesByBarcode(searchString: string):
+        Promise<Array<{barcode: string, imagingSessionId: number}>> {
         const query = LABKEY_SELECT_ROWS_URL("microscopy", "Plate", [
             `query.barcode~contains=${searchString}`,
         ]);
 
-        return axios.get(query)
-            .then((response: GetBarcodesResponse) => {
-                return response.data.rows;
-            });
+        const response: GetBarcodesResponse = await axios.get(query);
+        const plates: Plate[] = response.data.rows;
+        return map(plates, (p) => ({
+            barcode: p.BarCode,
+            imagingSessionId: p.ImagingSessionId,
+        }));
     }
 
     public static async imagingSessions(httpClient: HttpClient): Promise<ImagingSession[]> {

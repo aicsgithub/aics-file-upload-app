@@ -24,7 +24,7 @@ import {
 } from "../../state/selection/selectors";
 import { GoBackAction, SelectBarcodeAction } from "../../state/selection/types";
 import { State } from "../../state/types";
-import LabkeyQueryService, { Plate } from "../../util/labkey-client";
+import LabkeyQueryService from "../../util/labkey-client";
 
 const styles = require("./style.pcss");
 
@@ -52,14 +52,14 @@ interface EnterBarcodeState {
     imagingSessionIds: number[];
 }
 
-export const createOptionsFromGetPlatesResponse = (allPlates: Plate[]) => {
-    const uniquePlateBarcodes = uniqBy(allPlates, "BarCode");
-    const options = uniquePlateBarcodes.map((plate: {BarCode: string}) => {
+export const createOptionsFromGetPlatesResponse = (allPlates: Array<{barcode: string, imagingSessionId: number}>) => {
+    const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
+    const options = uniquePlateBarcodes.map((plate) => {
         const imagingSessionIds = allPlates
-            .filter((otherPlate) => otherPlate.BarCode === plate.BarCode)
-            .map((p) => p.ImagingSessionId);
+            .filter((otherPlate) => otherPlate.barcode === plate.barcode)
+            .map((p) => p.imagingSessionId);
         return {
-            barcode: plate.BarCode,
+            barcode: plate.barcode,
             imagingSessionIds,
         };
     });
@@ -99,6 +99,10 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             // TODO: uncomment below once redirect URL on CreatePlateStandalone includes barcode and imagingSessionId
             // this.props.selectBarcode(barcode);
         });
+    }
+
+    public componentDidMount() {
+        this.props.getImagingSessions();
     }
 
     public render() {
