@@ -17,7 +17,12 @@ import { addJob, setCurrentJobId, setJobs, setUploadStatus } from "../job/action
 import { getCurrentJob, getCurrentJobIndex, getJobs } from "../job/selectors";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
-import { ReduxLogicDoneCb, ReduxLogicNextCb, ReduxLogicProcessDependencies, ReduxLogicTransformDependencies } from "../types";
+import {
+    ReduxLogicDoneCb,
+    ReduxLogicNextCb,
+    ReduxLogicProcessDependencies,
+    ReduxLogicTransformDependencies,
+} from "../types";
 import { batchActions } from "../util";
 import { ASSOCIATE_FILES_AND_WELL, INITIATE_UPLOAD } from "./constants";
 import { getUploadPayload } from "./selectors";
