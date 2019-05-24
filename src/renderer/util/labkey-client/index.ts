@@ -34,8 +34,9 @@ class Get {
     }
 
     public static async imagingSessions(httpClient: HttpClient): Promise<ImagingSession[]> {
-        const query = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "LabkeyImagingSession");
+        const query = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "ImagingSession");
         const response = await httpClient.get(query);
+        // todo use map in case data.rows is undefined?
         return response.data.rows.map((imagingSession: LabkeyImagingSession) => ({
             description: imagingSession.Description,
             imagingSessionId: imagingSession.ImagingSessionId,
