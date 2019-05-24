@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { LABKEY_SELECT_ROWS_URL, LK_MICROSCOPY_SCHEMA } from "../../constants";
+import { ImagingSession } from "../../state/metadata/types";
 import { HttpClient } from "../../state/types";
 
 export interface Plate {
@@ -14,7 +15,7 @@ interface GetBarcodesResponse {
     };
 }
 
-export interface ImagingSession {
+export interface LabkeyImagingSession {
     ImagingSessionId: number;
     Name: string;
     Description: string;
@@ -33,9 +34,13 @@ class Get {
     }
 
     public static async imagingSessions(httpClient: HttpClient): Promise<ImagingSession[]> {
-        const query = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "ImagingSession");
+        const query = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "LabkeyImagingSession");
         const response = await httpClient.get(query);
-        return response.data.rows;
+        return response.data.rows.map((imagingSession: LabkeyImagingSession) => ({
+            description: imagingSession.Description,
+            imagingSessionId: imagingSession.ImagingSessionId,
+            name: imagingSession.Name,
+        }));
     }
 }
 

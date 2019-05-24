@@ -8,6 +8,12 @@ export interface MetadataStateBranch {
     };
 }
 
+export interface ImagingSession {
+    imagingSessionId: number;
+    name: string;
+    description: string;
+}
+
 export interface PageToIndexMap {
     [page: string]: number;
 }
