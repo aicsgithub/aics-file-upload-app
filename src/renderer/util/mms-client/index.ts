@@ -3,8 +3,14 @@ import { GetPlateResponse, GetViabilityResultResponse } from "../../state/select
 import { HttpClient } from "../../state/types";
 
 class Get {
-    public static async plate(httpClient: HttpClient, barcode: string): Promise<GetPlateResponse> {
-        const response = await httpClient.get(`${MMS_BASE_URL}/1.0/plate/query?barcode=${barcode}`);
+    public static async plate(
+        httpClient: HttpClient,
+        barcode: string,
+        imagingSessionId?: number
+    ): Promise<GetPlateResponse> {
+        const baseUrl = `${MMS_BASE_URL}/1.0/plate/query?barcode=${barcode}`;
+        const url = imagingSessionId ? `${baseUrl}&imagingSessionId=${imagingSessionId}` : baseUrl;
+        const response = await httpClient.get(url);
         return response.data.data[0];
     }
 
