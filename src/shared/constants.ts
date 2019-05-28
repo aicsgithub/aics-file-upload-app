@@ -9,3 +9,5 @@ export const RECEIVED_JOB_ID = "RECEIVED_JOB_ID";
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
 export const LIMS_PORT = process.env.ELECTRON_WEBPACK_APP_LIMS_PORT || "8080";
 export const LIMS_PROTOCOL = process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "http";
+
+export const HOST = `${LIMS_HOST}:${LIMS_PORT}`;

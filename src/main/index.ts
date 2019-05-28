@@ -1,11 +1,13 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { app, BrowserWindow, Event, ipcMain } from "electron";
+import * as storage from "electron-json-storage";
 import Logger from "js-logger";
 import * as path from "path";
 import { format as formatUrl } from "url";
 
 import {
+    HOST,
     LIMS_HOST,
     LIMS_PORT,
     LIMS_PROTOCOL,
@@ -15,6 +17,8 @@ import {
     UPLOAD_FAILED,
     UPLOAD_FINISHED,
 } from "../shared/constants";
+
+import { setMenu } from "./menu";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -30,6 +34,8 @@ function createMainWindow() {
         },
         width: 1000,
     });
+
+    setMenu(window.webContents);
 
     if (isDevelopment) {
         window.webContents.openDevTools();
@@ -77,6 +83,12 @@ app.on("activate", () => {
 // create main BrowserWindow when electron is ready
 app.on("ready", () => {
     mainWindow = createMainWindow();
+    storage.set("user-settings", {limsHost: HOST}, {dataPath: "/tmp/file-upload"}, (err: any) => {
+        if (err) {
+            // TODO
+            console.log(err);
+        }
+    });
 });
 
 const startUpload = async (event: Event, uploads: Uploads) => {

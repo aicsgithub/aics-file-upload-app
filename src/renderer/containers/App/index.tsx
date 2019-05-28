@@ -1,5 +1,6 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message } from "antd";
+import { ipcRenderer } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -82,6 +83,9 @@ message.config({
 class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
+        ipcRenderer.on("SET_LIMS_URL", (event: Event, limsUrl: string) => {
+            console.log("received url", limsUrl);
+        });
     }
 
     public componentDidUpdate() {
