@@ -18,6 +18,8 @@ export interface DeselectFilesAction {
 export interface SelectionStateBranch {
     barcode?: string;
     files: string[];
+    imagingSessionId?: number;
+    imagingSessionIds: number[];
     plate?: PlateResponse;
     wells: WellResponse[];
     well?: GridCell;
@@ -171,7 +173,11 @@ export interface GetFilesInFolderAction {
 }
 
 export interface SelectBarcodeAction {
-    payload: string;
+    payload: {
+        barcode: string;
+        imagingSessionId?: number;
+        imagingSessionIds: number[];
+    };
     type: string;
 }
 
