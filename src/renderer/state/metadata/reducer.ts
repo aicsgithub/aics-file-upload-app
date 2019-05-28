@@ -15,6 +15,7 @@ export const initialState = {
         selection: {},
         upload: {},
     },
+    imagingSessions: [],
     units: [],
 };
 

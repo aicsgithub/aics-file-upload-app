@@ -20,6 +20,8 @@ export const getWells = (state: State) => state.selection.present.wells;
 export const getWell = (state: State) => state.selection.present.well;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getViabilityResults = (state: State) => state.selection.present.viabilityResults;
+export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
+export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

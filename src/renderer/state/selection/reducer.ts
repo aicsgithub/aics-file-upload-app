@@ -39,7 +39,10 @@ import {
 } from "./types";
 
 export const initialState = {
+    barcode: undefined,
     files: [],
+    imagingSessionId: undefined,
+    imagingSessionIds: [],
     page: Page.DragAndDrop,
     stagedFiles: [],
     startHistoryIndex: {
@@ -62,7 +65,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is SelectBarcodeAction => action.type === SELECT_BARCODE,
         perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
             ...state,
-            barcode: action.payload,
+            ...action.payload,
         }),
     },
     [SET_PLATE]: {
