@@ -5,7 +5,7 @@ import { makeReducer } from "../util";
 import { UPDATE_SETTINGS } from "./constants";
 import { SettingStateBranch, UpdateSettingsAction } from "./types";
 
-const initialState = {
+const initialState: SettingStateBranch = {
     limsHost: LIMS_HOST,
     limsPort: LIMS_PORT,
     limsProtocol: LIMS_PROTOCOL,

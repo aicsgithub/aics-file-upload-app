@@ -78,7 +78,7 @@ const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
 
     return LabkeyQueryService.Get.platesByBarcode(input)
         .then(createOptionsFromGetPlatesResponse)
-        .catch((err) => {
+        .catch((err: any) => {
             onErr(err);
             return err;
         });

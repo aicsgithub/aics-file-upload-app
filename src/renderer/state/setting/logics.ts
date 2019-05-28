@@ -47,6 +47,7 @@ const gatherSettingsLogic = createLogic({
    },
    type: GATHER_SETTINGS,
 });
+
 export default [
     gatherSettingsLogic,
     updateSettingsLogic,
