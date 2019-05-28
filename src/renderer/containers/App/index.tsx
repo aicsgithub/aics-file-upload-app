@@ -23,9 +23,9 @@ import {
     SelectFileAction,
     UploadFile,
 } from "../../state/selection/types";
-import { updateSettings } from "../../state/setting/actions";
+import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
-import { UpdateSettingsAction } from "../../state/setting/types";
+import { GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 import { FileTag } from "../../state/upload/types";
 
@@ -44,6 +44,7 @@ interface AppProps {
     clearAlert: ActionCreator<ClearAlertAction>;
     fileToTags: Map<string, FileTag[]>;
     files: UploadFile[];
+    gatherSettings: ActionCreator<GatherSettingsAction>;
     getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
     limsUrl: string;
     loading: boolean;
@@ -90,6 +91,7 @@ message.config({
 class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
+        this.props.gatherSettings();
         ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
             this.props.updateSettings(limsUrl);
         });
@@ -178,6 +180,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     clearAlert,
+    gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
     requestMetadata,
     selectFile: selection.actions.selectFile,

@@ -9,3 +9,7 @@ export interface UpdateSettingsAction {
     payload: Partial<SettingStateBranch>;
     type: string;
 }
+
+export interface GatherSettingsAction {
+    type: string;
+}
