@@ -51,8 +51,7 @@ task lint(type: YarnTask) {
 }
 
 task test(type: YarnTask) {
-    environment = [TS_NODE_PROJECT: "tsconfig.commonjs.json", NODE_ENV: "production"]
-    args = ["mocha", "--opts", "mocha.opts", "src/**/test/*.{ts,tsx}"]
+   args = ["test"]
 }
 
 task dev(type: YarnTask) {

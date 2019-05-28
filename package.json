@@ -13,7 +13,7 @@
     "compile-stage": "ELECTRON_WEBPACK_APP_LIMS_HOST=\"stg-aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 yarn compile",
     "compile-prod": "ELECTRON_WEBPACK_APP_LIMS_HOST=\"aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 NODE_ENV=production yarn compile",
     "dist": "electron-builder -p always",
-    "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
+    "test": "TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production electron-mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps"
   },
   "repository": {
@@ -42,7 +42,6 @@
     "jsdom": "14.0.0",
     "jsdom-global": "3.0.2",
     "lodash": "4.17.11",
-    "mocha": "6.0.2",
     "react": "16.8.6",
     "react-dom": "16.8.6",
     "redux-undo": "1.0.0-beta9-9-7",
@@ -70,6 +69,7 @@
     "css-loader": "2.1.1",
     "electron": "4.0.1",
     "electron-builder": "20.38.4",
+    "electron-mocha": "^8.0.2",
     "electron-webpack": "2.6.2",
     "electron-webpack-ts": "3.1.1",
     "enzyme": "3.9.0",
