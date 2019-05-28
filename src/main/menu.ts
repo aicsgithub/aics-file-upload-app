@@ -9,6 +9,10 @@ const separatorOption: MenuItemConstructorOptions = { type: "separator" };
 const app = electron.app;
 const isMac = process.platform === "darwin";
 
+/**
+ * Create App Menu
+ * @param webContents WebContents object from main BrowserWindow. Used for sending events to renderer process.
+ */
 export const setMenu = (webContents: WebContents) => {
     const template = [
         ...(isMac ? [{
@@ -63,14 +67,6 @@ export const setMenu = (webContents: WebContents) => {
         {
             label: "Edit",
             submenu: [
-                // TODO: disable and enable depending on redux history
-                // {
-                //     role: "undo",
-                // },
-                // {
-                //     role: "redo",
-                // },
-                // separatorOption,
                 {
                     role: "cut",
                 },
