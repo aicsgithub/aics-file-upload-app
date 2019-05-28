@@ -1,5 +1,6 @@
 import electron, { dialog, Menu, shell } from "electron";
-import * as storage from "electron-json-storage";
+import { SET_LIMS_URL } from "../shared/constants";
+import { LimsUrl } from "../shared/types";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 import WebContents = Electron.WebContents;
@@ -37,20 +38,19 @@ export const setMenu = (webContents: WebContents) => {
 
                         }, (response: number) => {
                             if (response > 0) {
-                                const urlMap: {[index: number]: string} = {
-                                    1: "stg-aics.corp.alleninstitute.org",
-                                    2: "aics.corp.alleninstitute.org",
+                                const urlMap: {[index: number]: LimsUrl} = {
+                                    1: {
+                                        limsHost: "stg-aics.corp.alleninstitute.org",
+                                        limsPort: "80",
+                                        limsProtocol: "http",
+                                    },
+                                    2: {
+                                        limsHost: "aics.corp.alleninstitute.org",
+                                        limsPort: "80",
+                                        limsProtocol: "http",
+                                    },
                                 };
-                                storage.set(
-                                    "user-settings",
-                                    {limsHost: urlMap[response]},
-                                    {dataPath: "/tmp/file-upload"},
-                                    (err: any) => {
-                                        if (err) {
-                                            console.log(err);
-                                        }
-                                    });
-                                webContents.send("SET_LIMS_URL", urlMap[response]);
+                                webContents.send(SET_LIMS_URL, urlMap[response]);
                             }
 
                         });

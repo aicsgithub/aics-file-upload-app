@@ -13,7 +13,7 @@ import { AlertType, AppEvent } from "../../../state/feedback/types";
 
 describe("<StatusBar/>", () => {
     const message = "Something happened";
-    const getStatusText = () => shallow(<StatusBar event={event}/>).find(".status").text();
+    const getStatusText = () => shallow(<StatusBar event={event} limsUrl="url"/>).find(".status").text();
     let event: AppEvent;
 
     beforeEach(() => {
@@ -25,7 +25,7 @@ describe("<StatusBar/>", () => {
     });
 
     it("displays an empty string if event is not defined", () => {
-        const wrapper = shallow(<StatusBar event={undefined}/>);
+        const wrapper = shallow(<StatusBar event={undefined} limsUrl="url"/>);
 
         expect(wrapper.find(".status").text()).to.be.empty;
     });

@@ -8,6 +8,7 @@ import { FeedbackStateBranch } from "./feedback/types";
 import { JobStateBranch } from "./job/types";
 import { MetadataStateBranch } from "./metadata/types";
 import { SelectionStateBranch } from "./selection/types";
+import { SettingStateBranch } from "./setting/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
@@ -50,6 +51,7 @@ export interface State {
     job: JobStateBranch;
     metadata: MetadataStateBranch;
     selection: StateWithHistory<SelectionStateBranch>;
+    setting: SettingStateBranch;
     upload: StateWithHistory<UploadStateBranch>;
 }
 

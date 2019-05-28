@@ -13,6 +13,7 @@ import {
     job,
     metadata,
     selection,
+    setting,
     upload,
 } from "../";
 import { State } from "../types";
@@ -42,6 +43,7 @@ const reducers = {
     job: job.reducer,
     metadata: metadata.reducer,
     selection: selection.reducer,
+    setting: setting.reducer,
     upload: upload.reducer,
 };
 
@@ -50,6 +52,7 @@ const logics = [
     ...job.logics,
     ...metadata.logics,
     ...selection.logics,
+    ...setting.logics,
     ...upload.logics,
 ];
 
