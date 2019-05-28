@@ -1,16 +1,12 @@
 // todo lisah 11/15/18 DT-51 create npm module so this can be shared
 declare module "@aics/aics-react-labkey" {
-    export interface LabkeyOption {
-        [id: string]: any;
-    }
-
-    export interface LabkeyOptionSelectorCommonProps {
+    export interface LabkeyOptionSelectorCommonProps<T> {
         id?: string;
         label: string;
         optionIdKey: string;
         optionNameKey?: string;
-        selected?: LabkeyOption | LabkeyOption[];
-        onOptionSelection: (option: LabkeyOption | null) => void;
+        selected?: T | T[];
+        onOptionSelection: (option: T | null) => void;
         error?: boolean;
         multiSelect?: boolean;
         placeholder?: string;
@@ -20,26 +16,26 @@ declare module "@aics/aics-react-labkey" {
     }
 
     // Default mode props
-    export interface LabkeyOptionSelectorDefaultProps extends LabkeyOptionSelectorCommonProps {
-        options: LabkeyOption[];
+    export interface LabkeyOptionSelectorDefaultProps<T> extends LabkeyOptionSelectorCommonProps<T> {
+        options: T[];
     }
 
     // Async mode props
-    export interface LabkeyOptionSelectorAsyncProps extends LabkeyOptionSelectorCommonProps {
+    export interface LabkeyOptionSelectorAsyncProps<T> extends LabkeyOptionSelectorCommonProps<T> {
         async: boolean;
-        loadOptions: (input: string) => Promise<{ options: LabkeyOption[] } | null>;
+        loadOptions: (input: string) => Promise<{ options: T[] } | null>;
     }
 
     // Creatable mode props
-    export interface LabkeyOptionSelectorCreateProps extends LabkeyOptionSelectorCommonProps {
+    export interface LabkeyOptionSelectorCreateProps<T> extends LabkeyOptionSelectorCommonProps<T> {
         creatable: boolean;
     }
 
-    type LabkeyOptionSelectorProps = LabkeyOptionSelectorDefaultProps | LabkeyOptionSelectorAsyncProps
-        | LabkeyOptionSelectorCreateProps;
+    type LabkeyOptionSelectorProps<T> = LabkeyOptionSelectorDefaultProps<T> | LabkeyOptionSelectorAsyncProps<T>
+        | LabkeyOptionSelectorCreateProps<T>;
 
-    export class LabKeyOptionSelector extends React.Component<LabkeyOptionSelectorProps, {}> {
-        constructor(props: LabkeyOptionSelectorProps);
+    export class LabKeyOptionSelector<T> extends React.Component<LabkeyOptionSelectorProps<T>, {}> {
+        constructor(props: LabkeyOptionSelectorProps<T>);
         public render(): JSX.Element | null;
     }
 }

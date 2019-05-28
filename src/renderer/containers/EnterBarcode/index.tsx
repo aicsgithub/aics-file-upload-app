@@ -1,4 +1,4 @@
-import { LabkeyOption, LabKeyOptionSelector } from "@aics/aics-react-labkey";
+import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
 import { debounce } from "lodash";
@@ -19,6 +19,10 @@ import LabkeyQueryService, { Plate } from "../../util/labkey-client";
 
 const styles = require("./style.pcss");
 
+interface LabkeyBarcodeSelectorOption {
+    barcode?: string;
+}
+
 interface EnterBarcodeProps {
     className?: string;
     barcode?: string;
@@ -33,7 +37,7 @@ interface EnterBarcodeState {
 }
 
 const createGetBarcodesAsyncFunction = (onErr: (reason: AxiosError) => void) =>
-    (input: string): Promise<{options: LabkeyOption[]} | null> => {
+    (input: string): Promise<{options: LabkeyBarcodeSelectorOption[]} | null> => {
     if (!input) {
         return Promise.resolve(null);
     }
@@ -104,7 +108,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         });
     }
 
-    private setBarcode(option: LabkeyOption | null): void {
+    private setBarcode(option: LabkeyBarcodeSelectorOption | null): void {
         if (option) {
             this.setState(option);
         } else {
