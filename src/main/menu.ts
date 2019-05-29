@@ -4,6 +4,7 @@ import { LimsUrl } from "../shared/types";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 import WebContents = Electron.WebContents;
+import MenuItem = Electron.MenuItem;
 
 const separatorOption: MenuItemConstructorOptions = { type: "separator" };
 const app = electron.app;
@@ -127,7 +128,8 @@ export const setMenu = (webContents: WebContents) => {
                 },
             ],
         },
-    ];
+    ] as any as Array<(MenuItemConstructorOptions) | (MenuItem)>;
+    // Casting is necessary to avoid having to cast each role value from string to a union string type
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
 };
