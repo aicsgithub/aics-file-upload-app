@@ -27,6 +27,7 @@ function createMainWindow() {
     const window = new BrowserWindow({
         height: 750,
         webPreferences: {
+            nodeIntegration: true,
             // Disables same-origin policy and allows us to query Labkey
             webSecurity: false,
         },
