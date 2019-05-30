@@ -76,7 +76,6 @@
     "enzyme-adapter-react-16": "1.11.2",
     "less": "3.9.0",
     "less-loader": "4.1.0",
-    "mocha": "^6.1.4",
     "mock-css-modules": "1.0.0",
     "postcss-import": "12.0.1",
     "postcss-loader": "3.0.0",
