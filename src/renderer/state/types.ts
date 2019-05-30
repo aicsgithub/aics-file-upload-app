@@ -38,6 +38,11 @@ export interface ReduxLogicExtraDependencies {
             callback?: (response: number, checkboxChecked: boolean) => void
         ): number;
     };
+    storage: {
+        get: (key: string) => any,
+        has: (key: string) => boolean;
+        set: (key: string, value: any) => void;
+    };
 }
 
 export type ReduxLogicProcessDependencies = Process.DepObj<State, AnyAction, ReduxLogicExtraDependencies>;

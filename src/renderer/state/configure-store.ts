@@ -1,5 +1,6 @@
 import axios from "axios";
 import { remote } from "electron";
+import Store from "electron-store";
 import {
     applyMiddleware,
     combineReducers,
@@ -17,6 +18,8 @@ import {
     upload,
 } from "./";
 import { State } from "./types";
+
+const storage = new Store();
 
 const reducers = {
     feedback: feedback.reducer,
@@ -39,6 +42,7 @@ const logics = [
 export const reduxLogicDependencies = {
     dialog: remote.dialog,
     httpClient: axios,
+    storage,
 };
 
 export default function createReduxStore(initialState?: State) {

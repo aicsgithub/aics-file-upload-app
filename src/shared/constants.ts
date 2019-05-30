@@ -14,4 +14,4 @@ export const LIMS_PORT = process.env.ELECTRON_WEBPACK_APP_LIMS_PORT || "8080";
 export const LIMS_PROTOCOL = process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "http";
 
 // User setting storage
-export const USER_SETTING_STORAGE_FILE_NAME = "user-settings";
+export const USER_SETTINGS_KEY = "userSettings";

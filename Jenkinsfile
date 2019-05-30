@@ -14,7 +14,6 @@ pipeline {
         JAVA_HOME = "/usr/lib/jvm/jdk-10.0.2"
         VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
         PYTHON = "${VENV_BIN}/python3"
-        DISPLAY=":99.0"
     }
     stages {
         stage ("initialize build") {
@@ -32,7 +31,6 @@ pipeline {
         }
         stage ("test") {
             steps {
-                sh "-e /etc/init.d/xvfb start"
                 sh "./gradlew -i test"
             }
         }

@@ -1,6 +1,5 @@
-import * as storage from "electron-json-storage";
 import { createLogic } from "redux-logic";
-import { USER_SETTING_STORAGE_FILE_NAME } from "../../../shared/constants";
+import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 import { ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
@@ -9,41 +8,38 @@ import { updateSettings } from "./actions";
 import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
 
 const updateSettingsLogic = createLogic({
-    transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        storage.set(
-            USER_SETTING_STORAGE_FILE_NAME,
-            action.payload,
-            (err: any) => {
-                if (err) {
-                    next(batchActions([
-                        action,
-                        setAlert({
-                            message: "Failed to persist settings",
-                            type: AlertType.WARN,
-                        }),
-                    ]));
-                }
-            });
-        next(action);
+    transform: ({action, storage}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            if (action.payload) {
+                storage.set(USER_SETTINGS_KEY, action.payload);
+                next(action);
+            }
+        } catch (e) {
+            next(batchActions([
+                action,
+                setAlert({
+                    message: "Failed to persist settings",
+                    type: AlertType.WARN,
+                }),
+            ]));
+        }
     },
     type: UPDATE_SETTINGS,
 });
 
 const gatherSettingsLogic = createLogic({
-   transform: (deps: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       storage.get(
-           USER_SETTING_STORAGE_FILE_NAME,
-           (error: any, settings: object) => {
-               if (error) {
-                   next(setAlert({
-                       message: "Failed to get saved settings. Falling back to default settings.",
-                       type: AlertType.WARN,
-                   }));
-               } else {
-                   next(updateSettings(settings));
-               }
-           }
-       );
+   transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+       try {
+           const settings = storage.get(USER_SETTINGS_KEY);
+           next(updateSettings(settings));
+
+       } catch (e) {
+           next(setAlert({
+               message: "Failed to get saved settings. Falling back to default settings.",
+               type: AlertType.WARN,
+           }));
+       }
+
    },
    type: GATHER_SETTINGS,
 });

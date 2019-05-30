@@ -26,6 +26,11 @@ export interface ReduxLogicDependencies {
     dialog: {
         showMessageBox: SinonStub;
     };
+    storage: {
+        get: SinonStub,
+        has: SinonStub;
+        set: SinonStub;
+    };
 }
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
@@ -35,6 +40,11 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     httpClient: {
         get: sinon.stub(),
         post: sinon.stub(),
+    },
+    storage: {
+        get: sinon.stub(),
+        has: sinon.stub(),
+        set: sinon.stub(),
     },
 };
 
