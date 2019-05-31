@@ -35,7 +35,7 @@
     "@aics/aicsfiles": "^0.0.15",
     "@ant-design/icons": "~1.1.0",
     "antd": "3.17.0",
-    "axios": "0.18.0",
+    "axios": "^0.19.0",
     "core-js": "2.6.5",
     "js-logger": "1.6.0",
     "jsdom": "14.0.0",
@@ -51,7 +51,7 @@
     "ts-node": "8.0.3"
   },
   "devDependencies": {
-    "@types/axios": "0.14.0",
+    "@types/axios": "^0.14.0",
     "@types/chai": "4.1.7",
     "@types/classnames": "2.2.7",
     "@types/enzyme": "3.9.0",
