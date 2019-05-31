@@ -37,6 +37,8 @@
     "antd": "3.17.0",
     "axios": "^0.19.0",
     "core-js": "2.6.5",
+    "electron-json-storage": "^4.1.6",
+    "electron-store": "^3.2.0",
     "js-logger": "1.6.0",
     "jsdom": "14.0.0",
     "jsdom-global": "3.0.2",
@@ -48,12 +50,13 @@
     "reselect": "4.0.0",
     "source-map-support": "0.5.11",
     "ts-import-plugin": "1.5.5",
-    "ts-node": "8.0.3"
+    "ts-node": "^8.2.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "4.1.7",
     "@types/classnames": "2.2.7",
+    "@types/electron-json-storage": "^4.0.0",
     "@types/enzyme": "3.9.0",
     "@types/jsdom": "12.2.3",
     "@types/lodash": "4.14.123",
@@ -66,7 +69,7 @@
     "chai": "4.2.0",
     "classnames": "2.2.6",
     "css-loader": "2.1.1",
-    "electron": "4.0.1",
+    "electron": "^5.0.2",
     "electron-builder": "20.38.4",
     "electron-webpack": "2.6.2",
     "electron-webpack-ts": "3.1.1",
