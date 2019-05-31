@@ -412,6 +412,7 @@ describe("Selection logics", () => {
             };
             mockBadGatewayResponse = {
                 config: {},
+                isAxiosError: true,
                 message: "Bad Gateway",
                 name: "",
                 response: {
