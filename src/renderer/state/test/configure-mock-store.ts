@@ -13,6 +13,7 @@ import {
     job,
     metadata,
     selection,
+    setting,
     upload,
 } from "../";
 import { State } from "../types";
@@ -25,6 +26,11 @@ export interface ReduxLogicDependencies {
     dialog: {
         showMessageBox: SinonStub;
     };
+    storage: {
+        get: SinonStub,
+        has: SinonStub;
+        set: SinonStub;
+    };
 }
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
@@ -35,6 +41,11 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         get: sinon.stub(),
         post: sinon.stub(),
     },
+    storage: {
+        get: sinon.stub(),
+        has: sinon.stub(),
+        set: sinon.stub(),
+    },
 };
 
 const reducers = {
@@ -42,6 +53,7 @@ const reducers = {
     job: job.reducer,
     metadata: metadata.reducer,
     selection: selection.reducer,
+    setting: setting.reducer,
     upload: upload.reducer,
 };
 
@@ -50,6 +62,7 @@ const logics = [
     ...job.logics,
     ...metadata.logics,
     ...selection.logics,
+    ...setting.logics,
     ...upload.logics,
 ];
 

@@ -1,8 +1,11 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message } from "antd";
+import { ipcRenderer } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
+import { SET_LIMS_URL } from "../../../shared/constants";
+import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
@@ -20,6 +23,9 @@ import {
     SelectFileAction,
     UploadFile,
 } from "../../state/selection/types";
+import { gatherSettings, updateSettings } from "../../state/setting/actions";
+import { getLimsUrl } from "../../state/setting/selectors";
+import { GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 import { FileTag } from "../../state/upload/types";
 
@@ -38,13 +44,16 @@ interface AppProps {
     clearAlert: ActionCreator<ClearAlertAction>;
     fileToTags: Map<string, FileTag[]>;
     files: UploadFile[];
+    gatherSettings: ActionCreator<GatherSettingsAction>;
     getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
+    limsUrl: string;
     loading: boolean;
     recentEvent?: AppEvent;
     requestMetadata: ActionCreator<RequestMetadataAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     page: Page;
+    updateSettings: ActionCreator<UpdateSettingsAction>;
 }
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
@@ -82,6 +91,10 @@ message.config({
 class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
+        this.props.gatherSettings();
+        ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
+            this.props.updateSettings(limsUrl);
+        });
     }
 
     public componentDidUpdate() {
@@ -115,6 +128,7 @@ class App extends React.Component<AppProps, {}> {
             fileToTags,
             files,
             getFilesInFolder,
+            limsUrl,
             loading,
             recentEvent,
             selectFile,
@@ -145,7 +159,7 @@ class App extends React.Component<AppProps, {}> {
                     }
                     {pageConfig.container}
                 </div>
-                <StatusBar className={styles.statusBar} event={recentEvent}/>
+                <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
             </div>
         );
     }
@@ -156,6 +170,7 @@ function mapStateToProps(state: State) {
         alert: getAlert(state),
         fileToTags: getFileToTags(state),
         files: getStagedFiles(state),
+        limsUrl: getLimsUrl(state),
         loading: getIsLoading(state),
         page: getPage(state),
         recentEvent: getRecentEvent(state),
@@ -165,9 +180,11 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     clearAlert,
+    gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
     requestMetadata,
     selectFile: selection.actions.selectFile,
+    updateSettings,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(App);

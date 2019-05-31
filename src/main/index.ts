@@ -16,6 +16,8 @@ import {
     UPLOAD_FINISHED,
 } from "../shared/constants";
 
+import { setMenu } from "./menu";
+
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
@@ -25,11 +27,14 @@ function createMainWindow() {
     const window = new BrowserWindow({
         height: 750,
         webPreferences: {
+            nodeIntegration: true,
             // Disables same-origin policy and allows us to query Labkey
             webSecurity: false,
         },
         width: 1000,
     });
+
+    setMenu(window.webContents);
 
     if (isDevelopment) {
         window.webContents.openDevTools();

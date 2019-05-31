@@ -49,6 +49,11 @@ export const mockState: State = {
         units: [],
     },
     selection: getMockStateWithHistory(mockSelection),
+    setting: {
+        limsHost: "localhost",
+        limsPort: "8080",
+        limsProtocol: "http",
+    },
     upload: getMockStateWithHistory({}),
 };
 
