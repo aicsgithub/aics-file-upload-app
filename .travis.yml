@@ -30,7 +30,8 @@ script:
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
       docker run --rm \
-          -e GH_TOKEN=$GH_TOKEN \
+          -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+          -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
           -v ${PWD}:/project \
           -v ~/.cache/electron:/root/.cache/electron \
           -v ~/.cache/electron-builder:/root/.cache/electron-builder \
