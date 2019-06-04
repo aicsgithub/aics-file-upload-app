@@ -5,7 +5,12 @@
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
       "./dist/**/*"
-    ]
+    ],
+    "publish": {
+      "provider": "s3",
+      "bucket": "file-upload-app.allencell.org",
+      "region": "us-west-2"
+    }
   },
   "scripts": {
     "dev": "electron-webpack dev",
