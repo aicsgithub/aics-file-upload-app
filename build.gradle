@@ -47,7 +47,7 @@ wrapper {
 
 task lint(type: YarnTask) {
     FileTree tsFiles = fileTree(dir: "src", includes: ["**/*.ts", "**/*.tsx"])
-    args = ["tslint", "-c", "tslint.json"] + tsFiles.asList()
+    args = ["tslint", "--fix", "-c", "tslint.json"] + tsFiles.asList()
 }
 
 task test(type: YarnTask) {

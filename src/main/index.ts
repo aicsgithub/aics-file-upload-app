@@ -11,6 +11,7 @@ import {
     LIMS_PROTOCOL,
     OPEN_CREATE_PLATE_STANDALONE,
     PLATE_CREATED,
+    SAFELY_CLOSE_WINDOW,
     START_UPLOAD,
     UPLOAD_FAILED,
     UPLOAD_FINISHED,
@@ -49,6 +50,11 @@ function createMainWindow() {
             slashes: true,
         }));
     }
+
+    window.on("close", (e: Event) => {
+        e.preventDefault();
+        window.webContents.send(SAFELY_CLOSE_WINDOW);
+    });
 
     window.on("closed", () => {
         mainWindow = undefined;

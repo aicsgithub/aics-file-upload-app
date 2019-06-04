@@ -4,6 +4,7 @@ import Logger from "js-logger";
 import { createLogic } from "redux-logic";
 
 import {
+    COPY_COMPLETE,
     RECEIVED_JOB_ID,
     START_UPLOAD,
     UPLOAD_FAILED,
@@ -47,6 +48,9 @@ const initiateUploadLogic = createLogic({
     process: ({getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, status: string) => {
             dispatch(setUploadStatus(status));
+        });
+        ipcRenderer.on(COPY_COMPLETE, () => {
+            dispatch(removeRequestFromInProgress(AsyncRequest.COPY_FILES));
         });
         ipcRenderer.on(RECEIVED_JOB_ID, (event: Event, jobId: string) => {
             const state = getState();
@@ -100,6 +104,7 @@ const initiateUploadLogic = createLogic({
         next(batchActions([
             addEvent("Starting upload", AlertType.INFO, new Date()),
             addRequestToInProgress(AsyncRequest.START_UPLOAD),
+            addRequestToInProgress(AsyncRequest.COPY_FILES),
             addJob({
                 created: new Date(),
                 jobId: tempJobId,
