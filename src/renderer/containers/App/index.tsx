@@ -4,15 +4,15 @@ import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import {SAFELY_CLOSE_WINDOW, SET_LIMS_URL} from "../../../shared/constants";
+import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert } from "../../state/feedback/actions";
-import {getAlert, getIsLoading, getRecentEvent, getRequestsInProgressContains} from "../../state/feedback/selectors";
-import {AlertType, AppAlert, AppEvent, AsyncRequest, ClearAlertAction} from "../../state/feedback/types";
+import { getAlert, getIsLoading, getRecentEvent, getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AlertType, AppAlert, AppEvent, AsyncRequest, ClearAlertAction } from "../../state/feedback/types";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";

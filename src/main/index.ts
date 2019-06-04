@@ -6,12 +6,12 @@ import * as path from "path";
 import { format as formatUrl } from "url";
 
 import {
-    SAFELY_CLOSE_WINDOW,
     LIMS_HOST,
     LIMS_PORT,
     LIMS_PROTOCOL,
     OPEN_CREATE_PLATE_STANDALONE,
     PLATE_CREATED,
+    SAFELY_CLOSE_WINDOW,
     START_UPLOAD,
     UPLOAD_FAILED,
     UPLOAD_FINISHED,
