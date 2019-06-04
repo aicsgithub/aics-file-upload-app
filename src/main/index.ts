@@ -6,7 +6,7 @@ import * as path from "path";
 import { format as formatUrl } from "url";
 
 import {
-    CHECK_IF_SAFE_CLOSE_WINDOW,
+    SAFELY_CLOSE_WINDOW,
     LIMS_HOST,
     LIMS_PORT,
     LIMS_PROTOCOL,
@@ -53,7 +53,7 @@ function createMainWindow() {
 
     window.on("close", (e: Event) => {
         e.preventDefault();
-        window.webContents.send(CHECK_IF_SAFE_CLOSE_WINDOW);
+        window.webContents.send(SAFELY_CLOSE_WINDOW);
     });
 
     window.on("closed", () => {
