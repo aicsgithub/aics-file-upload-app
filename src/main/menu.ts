@@ -126,6 +126,11 @@ export const setMenu = (webContents: WebContents) => {
                     },
                     label: "Learn More",
                 },
+                {
+                    // tslint:disable-next-line
+                    click: () => {},
+                    label: "About " + app.getVersion(),
+                },
             ],
         },
     ] as any as Array<(MenuItemConstructorOptions) | (MenuItem)>;
