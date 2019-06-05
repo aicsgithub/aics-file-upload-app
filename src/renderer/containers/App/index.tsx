@@ -1,18 +1,18 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message } from "antd";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import { SET_LIMS_URL } from "../../../shared/constants";
+import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert } from "../../state/feedback/actions";
-import { getAlert, getIsLoading, getRecentEvent } from "../../state/feedback/selectors";
-import { AlertType, AppAlert, AppEvent, ClearAlertAction } from "../../state/feedback/types";
+import { getAlert, getIsLoading, getRecentEvent, getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AlertType, AppAlert, AppEvent, AsyncRequest, ClearAlertAction } from "../../state/feedback/types";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
@@ -42,6 +42,7 @@ const ALERT_DURATION = 2;
 interface AppProps {
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
+    copyInProgress: boolean;
     fileToTags: Map<string, FileTag[]>;
     files: UploadFile[];
     gatherSettings: ActionCreator<GatherSettingsAction>;
@@ -94,6 +95,23 @@ class App extends React.Component<AppProps, {}> {
         this.props.gatherSettings();
         ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
             this.props.updateSettings(limsUrl);
+        });
+        ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
+            const warning = "Uploads are in progress. Exiting now will cause incomplete uploads to fail. Are you sure?";
+            if (this.props.copyInProgress) {
+                remote.dialog.showMessageBox({
+                    buttons: ["Cancel", "Close Anyways"],
+                    message: warning,
+                    title: "Danger!",
+                    type: "warning",
+                }, (response: number) => {
+                    if (response === 1) {
+                        remote.app.exit();
+                    }
+                });
+            } else {
+                remote.app.exit();
+            }
         });
     }
 
@@ -168,6 +186,7 @@ class App extends React.Component<AppProps, {}> {
 function mapStateToProps(state: State) {
     return {
         alert: getAlert(state),
+        copyInProgress: getRequestsInProgressContains(state, AsyncRequest.COPY_FILES),
         fileToTags: getFileToTags(state),
         files: getStagedFiles(state),
         limsUrl: getLimsUrl(state),
