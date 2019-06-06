@@ -1,6 +1,6 @@
 {
   "name": "file-upload-app",
-  "version": "1.0.8",
+  "version": "1.0.5",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
@@ -9,8 +9,7 @@
     "publish": {
       "provider": "s3",
       "bucket": "file-upload-app.allencell.org",
-      "region": "us-west-2",
-      "acl": null
+      "region": "us-west-2"
     }
   },
   "scripts": {
