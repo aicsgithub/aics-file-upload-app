@@ -18,6 +18,7 @@ import {
     UPLOAD_FINISHED,
 } from "../shared/constants";
 
+import { registerAutoUpdaterEvents } from "./autoupdater";
 import { setMenu } from "./menu";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -36,7 +37,10 @@ function createMainWindow() {
         width: 1000,
     });
 
-    setMenu(window.webContents);
+    // webContents allow us to send events to the renderer process
+    const { webContents } = window;
+    setMenu(webContents);
+    registerAutoUpdaterEvents(webContents);
 
     if (isDevelopment) {
         window.webContents.openDevTools();
