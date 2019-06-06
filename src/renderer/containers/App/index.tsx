@@ -4,16 +4,15 @@ import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import { ADD_EVENT_FROM_MAIN, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
+import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
-import { addEvent, clearAlert } from "../../state/feedback/actions";
+import { clearAlert } from "../../state/feedback/actions";
 import { getAlert, getIsLoading, getRecentEvent, getRequestsInProgressContains } from "../../state/feedback/selectors";
 import {
-    AddEventAction,
     AlertType,
     AppAlert,
     AppEvent,
@@ -42,7 +41,6 @@ const styles = require("./styles.pcss");
 const ALERT_DURATION = 2;
 
 interface AppProps {
-    addEvent: ActionCreator<AddEventAction>;
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
     copyInProgress: boolean;
@@ -115,9 +113,6 @@ class App extends React.Component<AppProps, {}> {
             } else {
                 remote.app.exit();
             }
-        });
-        ipcRenderer.on(ADD_EVENT_FROM_MAIN, (event: string, type: AlertType = AlertType.INFO) => {
-            this.props.addEvent(event, type, new Date());
         });
     }
 
@@ -204,7 +199,6 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
-    addEvent,
     clearAlert,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,

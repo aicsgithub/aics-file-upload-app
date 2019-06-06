@@ -29,9 +29,6 @@ export const COPY_COMPLETE = "COPY_COMPLETE";
 // emitted by main process when user tries to exit the app
 export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 
-// emitted by main process to add events to the status bar
-export const ADD_EVENT_FROM_MAIN = "ADD_EVENT_FROM_MAIN";
-
 // User settings
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
 export const LIMS_PORT = process.env.ELECTRON_WEBPACK_APP_LIMS_PORT || "8080";

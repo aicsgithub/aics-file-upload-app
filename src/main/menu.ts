@@ -127,8 +127,14 @@ export const setMenu = (webContents: WebContents) => {
                     label: "Learn More",
                 },
                 {
-                    // tslint:disable-next-line
-                    click: () => {},
+                    click: () => {
+                        dialog.showMessageBox({
+                            buttons: ["OK"],
+                            message: `Version: ${app.getVersion()}`,
+                            title: app.getName(),
+                            type: "info",
+                        });
+                    },
                     label: "About " + app.getVersion(),
                 },
             ],
