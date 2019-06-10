@@ -12,17 +12,17 @@ import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert } from "../../state/feedback/actions";
 import { getAlert, getIsLoading, getRecentEvent, getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AlertType, AppAlert, AppEvent, AsyncRequest, ClearAlertAction } from "../../state/feedback/types";
+import {
+    AlertType,
+    AppAlert,
+    AppEvent,
+    AsyncRequest,
+    ClearAlertAction
+} from "../../state/feedback/types";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
-import {
-    AppPageConfig,
-    GetFilesInFolderAction,
-    Page,
-    SelectFileAction,
-    UploadFile,
-} from "../../state/selection/types";
+import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
 import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import { GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
@@ -36,6 +36,7 @@ import UploadJobs from "../UploadJob";
 import UploadSummary from "../UploadSummary";
 
 import { getFileToTags } from "./selectors";
+
 const styles = require("./styles.pcss");
 const ALERT_DURATION = 2;
 

@@ -1,6 +1,7 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { app, BrowserWindow, Event, ipcMain } from "electron";
+import { autoUpdater } from "electron-updater";
 import Logger from "js-logger";
 import * as path from "path";
 import { format as formatUrl } from "url";
@@ -35,7 +36,9 @@ function createMainWindow() {
         width: 1000,
     });
 
-    setMenu(window.webContents);
+    // webContents allow us to send events to the renderer process
+    const { webContents } = window;
+    setMenu(webContents);
 
     if (isDevelopment) {
         window.webContents.openDevTools();
@@ -86,8 +89,9 @@ app.on("activate", () => {
 });
 
 // create main BrowserWindow when electron is ready
-app.on("ready", () => {
+app.on("ready", async () => {
     mainWindow = createMainWindow();
+    await autoUpdater.checkForUpdatesAndNotify();
 });
 
 const startUpload = async (event: Event, uploads: Uploads) => {

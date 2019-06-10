@@ -126,6 +126,17 @@ export const setMenu = (webContents: WebContents) => {
                     },
                     label: "Learn More",
                 },
+                {
+                    click: () => {
+                        dialog.showMessageBox({
+                            buttons: ["OK"],
+                            message: `Version: ${app.getVersion()}`,
+                            title: app.getName(),
+                            type: "info",
+                        });
+                    },
+                    label: "About " + app.getVersion(),
+                },
             ],
         },
     ] as any as Array<(MenuItemConstructorOptions) | (MenuItem)>;
