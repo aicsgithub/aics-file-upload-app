@@ -3,8 +3,24 @@ node_js: "10.15.3"
 
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX="g++-8"; fi
 
-install: yarn
+install:
+  - yarn --ignore-engines
+  # On Linux, initialize "virtual display". See before_script
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      /sbin/start-stop-daemon \
+      --start \
+      --quiet \
+      --pidfile /tmp/custom_xvfb_99.pid \
+      --make-pidfile \
+      --background \
+      --exec /usr/bin/Xvfb \
+      -- :99 -ac -screen 0 1280x1024x16
+    else
+      :
+    fi
 
 matrix:
   include:
@@ -17,13 +33,42 @@ matrix:
         # CSC_KEY_PASSWORD
         - secure: cdxmn+QiHUYjFksqnDRvwrib3tdp2a2R7pZpzJBgx53nB0cm+WYcpiQcMNYTzfFqXH+3PYJXv+lI55uNQzacnT6QPQ7iWVLTBzjg8CaqvkvFKAlZK22ypHPizFNNVYyLK3wGItE1DS+qTdXH+KXRBpthTYGqIH02dwhQs7HRCdVFeqRcdAE8UcVT0+BjW6G1kWe2EaRfzzmAssguWSkmd6cTmNJph5VN3cplEAYF+lMPg37ukab38hMbgiEJ8zUDr8fl3R4jgw/qSsc1I4EQm+I55MOJP6CY0OfIHatQRJZnO6xFukYef6J9CDQwY0JRcB9IiFhzRRmk/6xWJuSxlcD7lKoeJgQuzdcKpn2ZRGPS3QT1d2zWE484TyqrSrXz7uiHwDfIvRZ420mAQqgj+wwCRbMncqOk1RhU65BFdw4Vg5xBuatOH+jTndhdRzIZp+7ShuTzBb/H7d2iLOI1CdomzDRHtSCBXIpyy094evUe9sBnx5y52n6XP9jld877Xe4fpKOcrPFuuJeORT1G6UvfXSrSI4exemGtrL0+Diu1YytIIXBFqMQLk9+3jedyVdvBoh/EgO3ClXHCLlyZm3zhSMj0hVs+eJ+J34qlU2Uwfjbf2gla/clemwgkwl6RHMzfTgCCs1r5KkWp/5FylxxWO3yQ+d1T9itZGg5c9TI=
     - os: linux
-      services: docker
+      language: node_js
+      node_js:
+        - node
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-multilib
+            - g++-8
+            - g++-multilib
+            - icnsutils
+            - graphicsmagick
+            - xz-utils
+            - xorriso
+            - rpm
+    - os: windows
+      language: node_js
+      node_js:
+        - node
+      env:
+        - ELECTRON_CACHE=$HOME/.cache/electron
+        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
 
 cache:
+  yarn: true
   directories:
     - node_modules
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
+
+before_script:
+  # On Linux, create a "virtual display". This allows browsers to work properly
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh -e /etc/init.d/xvfb start; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sleep 3; fi
 
 script:
   - yarn compile-prod
