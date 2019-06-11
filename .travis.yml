@@ -4,7 +4,7 @@ node_js: "10.15.3"
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d; fi
 
-install: yarn --link-duplicates --pure-lockfile
+install: yarn --link-duplicates
 
 matrix:
   include:
