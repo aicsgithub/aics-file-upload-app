@@ -115,7 +115,6 @@ ipcMain.on(START_UPLOAD, startUpload);
 
 ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any) => {
     const child: BrowserWindow = new BrowserWindow({
-        modal: true,
         parent: mainWindow,
         show: false,
         webPreferences: {
