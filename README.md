@@ -68,7 +68,7 @@ git push origin 1.0.5-snapshot
 ```
  
 For official versions of the app,
-update the package.json version of the app using the following commands:
+update the package.json version of the app using the following commands on the master branch:
 
 ```bash
 npm version patch
