@@ -52,16 +52,18 @@ For example, these will all get built:
 
 ### Release workflow
 
-Before releasing an official version of the app, you'll want to test packaged app on all platforms. To create a
-snapshot build, tag the version you'd like to test and push to origin.
+Before releasing an official version of the app, you'll want to test the packaged app on all platforms. To create a
+snapshot build:
 
-```bash
-git tag 1.0.5-snapshot
+1. Update the version in package.json. This will be used for naming the artifact:
+```json
+ "version": "1.0.5-snapshot",
 ```
-
-Update the version in package.json to match your tag. Commit and push the tag:
-
+2. Commit, tag, and push
 ```bash
+git add package.json
+git commit -m "create snapshot"
+git tag 1.0.5-snapshot
 git push origin 1.0.5-snapshot
 ```
  
