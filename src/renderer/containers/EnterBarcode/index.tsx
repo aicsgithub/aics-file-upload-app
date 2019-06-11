@@ -158,7 +158,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     {imagingSessionIds.map((id) => {
                         const option = this.getImagingSessionName(id);
                         return (
-                            <Radio.Button value={id} key={option}>
+                            <Radio.Button value={id || "None"} key={option}>
                                 {option}
                             </Radio.Button>
                         );
