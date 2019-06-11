@@ -46,4 +46,5 @@ before_cache:
 
 branches:
   only:
-    - "/^\d+\.\d+\.\d+(-snapshot)*$/"
+    - "/^\d+\.\d+\.\d+$/"
+    - "/^\d+\.\d+\.\d+-snapshot/"
