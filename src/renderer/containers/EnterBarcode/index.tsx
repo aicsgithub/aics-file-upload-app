@@ -47,6 +47,8 @@ interface EnterBarcodeProps {
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     selectedBarcode?: string;
+    // undefined means that the user did not select an imaging session id. null means that the user chose
+    // a plate without an imaging session id (when other imaging sessions were available)
     selectedImagingSessionId?: number | null;
     // all imaging session ids that are associated with the selectedBarcode
     selectedImagingSessionIds: Array<number | null>;
