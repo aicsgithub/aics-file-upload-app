@@ -18,8 +18,8 @@ export interface DeselectFilesAction {
 export interface SelectionStateBranch {
     barcode?: string;
     files: string[];
-    imagingSessionId?: number;
-    imagingSessionIds: number[];
+    imagingSessionId?: number | null;
+    imagingSessionIds: Array<number | null>;
     plate?: PlateResponse;
     wells: WellResponse[];
     well?: GridCell;

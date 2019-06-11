@@ -30,7 +30,12 @@ const styles = require("./style.pcss");
 
 interface LabkeyBarcodeSelectorOption {
     barcode?: string;
-    imagingSessionIds: number[];
+    imagingSessionIds: Array<number | null>;
+}
+
+interface LabkeyPlateResponse {
+    barcode: string;
+    imagingSessionId: number | null;
 }
 
 interface EnterBarcodeProps {
@@ -42,19 +47,21 @@ interface EnterBarcodeProps {
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     selectedBarcode?: string;
-    selectedImagingSessionId?: number;
+    // undefined means that the user did not select an imaging session id. null means that the user chose
+    // a plate without an imaging session id (when other imaging sessions were available)
+    selectedImagingSessionId?: number | null;
     // all imaging session ids that are associated with the selectedBarcode
-    selectedImagingSessionIds: number[];
+    selectedImagingSessionIds: Array<number | null>;
     setAlert: ActionCreator<SetAlertAction>;
 }
 
 interface EnterBarcodeState {
     barcode?: string;
-    imagingSessionId?: number;
-    imagingSessionIds: number[];
+    imagingSessionId?: number | null;
+    imagingSessionIds: Array<number | null>;
 }
 
-export const createOptionsFromGetPlatesResponse = (allPlates: Array<{barcode: string, imagingSessionId: number}>) => {
+export const createOptionsFromGetPlatesResponse = (allPlates: LabkeyPlateResponse[]) => {
     const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
     const options = uniquePlateBarcodes.map((plate) => {
         const imagingSessionIds = allPlates
@@ -153,7 +160,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     {imagingSessionIds.map((id) => {
                         const option = this.getImagingSessionName(id);
                         return (
-                            <Radio.Button value={id} key={option}>
+                            <Radio.Button value={id || "None"} key={option}>
                                 {option}
                             </Radio.Button>
                         );
@@ -168,7 +175,11 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         this.setState({imagingSessionId});
     }
 
-    private getImagingSessionName = (id: number) => {
+    private getImagingSessionName = (id: number | null) => {
+        if (id == null) {
+            return "None";
+        }
+
         const { imagingSessions } = this.props;
         const matchingImagingSession = imagingSessions.find((i) => i.imagingSessionId === id);
         return get(matchingImagingSession, ["name"], `Imaging Session Id: ${id}`);
@@ -187,7 +198,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             this.setState(option);
             const { imagingSessions } = this.props;
             const { imagingSessionIds } = option;
-            const imagingSessionIdsWithInfo = imagingSessionIds.filter((i) => !!imagingSessions[i]);
+            const imagingSessionIdsWithInfo = imagingSessionIds.filter((i) => i !== null  && !!imagingSessions[i]);
             const haveImagingSessionInfo = imagingSessionIdsWithInfo.length === imagingSessionIds.length;
 
             if (!haveImagingSessionInfo) {
@@ -212,7 +223,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const {saveInProgress} = this.props;
         const {barcode, imagingSessionId, imagingSessionIds} = this.state;
         const multipleOptions = imagingSessionIds.length > 1;
-        const plateSelected = multipleOptions ? barcode && imagingSessionId : barcode;
+        const plateSelected = multipleOptions ? barcode && imagingSessionId !== undefined : barcode;
         return !plateSelected || saveInProgress;
     }
 
