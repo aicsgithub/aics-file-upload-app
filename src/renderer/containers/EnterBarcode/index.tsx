@@ -47,7 +47,7 @@ interface EnterBarcodeProps {
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     selectedBarcode?: string;
-    selectedImagingSessionId?: number;
+    selectedImagingSessionId?: number | null;
     // all imaging session ids that are associated with the selectedBarcode
     selectedImagingSessionIds: Array<number | null>;
     setAlert: ActionCreator<SetAlertAction>;
