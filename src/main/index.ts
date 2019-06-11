@@ -18,7 +18,7 @@ import {
     UPLOAD_FINISHED,
 } from "../shared/constants";
 
-// import { setMenu } from "./menu";
+import { setMenu } from "./menu";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -37,8 +37,8 @@ function createMainWindow() {
     });
 
     // webContents allow us to send events to the renderer process
-    // const { webContents } = window;
-    // setMenu(webContents);
+    const { webContents } = window;
+    setMenu(webContents);
 
     if (isDevelopment) {
         window.webContents.openDevTools();
