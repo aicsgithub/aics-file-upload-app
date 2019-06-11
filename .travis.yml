@@ -1,8 +1,3 @@
-before_install:
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d; fi
-
-install: yarn
-
 matrix:
   include:
     - os: osx
@@ -27,6 +22,11 @@ cache:
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
 
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d; fi
+
+install: yarn --link-duplicates --pure-lockfile
+
 script:
   - yarn compile-prod
   - |
@@ -38,7 +38,7 @@ script:
           -v ~/.cache/electron:/root/.cache/electron \
           -v ~/.cache/electron-builder:/root/.cache/electron-builder \
           electronuserland/builder:wine \
-          /bin/bash -c "yarn --link-duplicates --pure-lockfile && yarn dist --linux --win"
+          /bin/bash -c "yarn dist --linux --win"
     else
       CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
     fi
