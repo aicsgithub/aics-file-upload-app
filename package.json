@@ -4,12 +4,16 @@
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
-      "./dist/**/*"
+      "dist/main/*",
+      "dist/renderer/*"
     ],
     "publish": {
       "provider": "s3",
       "bucket": "file-upload-app.allencell.org",
       "region": "us-west-2"
+    },
+    "win": {
+      "target": "portable"
     }
   },
   "scripts": {
@@ -74,7 +78,7 @@
     "chai": "4.2.0",
     "classnames": "2.2.6",
     "css-loader": "2.1.1",
-    "electron": "^5.0.2",
+    "electron": "^5.0.3",
     "electron-builder": "20.42.0",
     "electron-webpack": "2.6.2",
     "electron-webpack-ts": "3.1.1",

@@ -12,13 +12,13 @@ yarn already, set it up by following these instructions:
 
 https://yarnpkg.com/en/docs/install#debian-stable
 
-Then clone the repo, install the dependencies, and run the dev server:
+Then clone the repo, install the dependencies, and run the dev server against staging:
 
 ```bash
 git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/file-upload-app.git
 cd file-upload-app
 ./gradlew yarn
-./gradlew dev
+./gradlew devStg
 ```
 
 ## Run Tests
@@ -33,18 +33,47 @@ cd file-upload-app
 ./gradlew lint
 ```
 
-## Packaging
+## Packaging and Publishing
 
-Use the various bundle gradle tasks available to package the app for both Windows and Linux. 
+We are packaging the app for Windows, Linux, and Mac platforms using electron-builder on Travis CI.
+Artifacts are sent to S3 and are available for download for all users using the Institute network (but not through VPN).
 
-| Environment | LIMS URL                         | Gradle Command             |
-| ----------- | -------------------------------- |----------------------------|
-| Production  | aics.corp.alleninstitute.org     | ./gradlew prodBundle       |
-| Staging     | stg-aics.corp.alleninstitute.org | ./gradlew stageBundle      |
-| Development | localhost:8080                   | ./gradlew devBundle        |
+We accomplish packaging for both Windows and Linux using the docker image: electronuserland/builder:wine
+which provides the dependencies needed on a Linux system to build the app for both Linux and Windows.
 
-We accomplish packaging for both Windows and Linux thanks to the docker image provided by `electron-builder`: electronuserland/builder:wine
-which provides the dependencies needed.
+Travis CI will package and publish a new version of the app for all tagged commits of the form /^\d+\.\d+\.\d+(-\S*)?$/.
+For example, these will all get built:
+
+1.0.5
+1.21.5
+1.0.5-snapshot
+1.0.5-feature-autoupdate
+
+
+### Release workflow
+
+Before releasing an official version of the app, you'll want to test the packaged app on all platforms. To create a
+snapshot build:
+
+1. Update the version in package.json. This will be used for naming the artifact:
+```json
+ "version": "1.0.5-snapshot",
+```
+2. Commit, tag, and push
+```bash
+git add package.json
+git commit -m "create snapshot"
+git tag 1.0.5-snapshot
+git push origin 1.0.5-snapshot
+```
+ 
+For official versions of the app,
+update the package.json version of the app using the following commands on the master branch:
+
+```bash
+npm version patch
+git push
+```
 
 ## Mirroring
 
