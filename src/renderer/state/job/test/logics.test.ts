@@ -21,7 +21,7 @@ describe("Job logics", () => {
 
             // apply
             const nextStatus = "Failed";
-            store.dispatch(setUploadStatus(nextStatus));
+            store.dispatch(setUploadStatus(mockJob.name, nextStatus));
 
             // after
             currentJob = getCurrentJob(store.getState());

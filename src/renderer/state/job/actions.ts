@@ -1,9 +1,9 @@
-import { ADD_JOB, SET_CURRENT_JOB_ID, SET_JOBS, SET_UPLOAD_STATUS } from "./constants";
-import { AddJobAction, Job, SetCurrentJobIdAction, SetJobsAction, SetUploadStatusAction } from "./types";
+import { ADD_JOB, SET_CURRENT_JOB_NAME, SET_JOBS, SET_UPLOAD_STATUS } from "./constants";
+import { AddJobAction, Job, SetCurrentJobNameAction, SetJobsAction, SetUploadStatusAction } from "./types";
 
-export function setUploadStatus(status: string): SetUploadStatusAction {
+export function setUploadStatus(jobName: string, status: string): SetUploadStatusAction {
     return {
-        payload: status,
+        payload: {jobName, status},
         type: SET_UPLOAD_STATUS,
     };
 }
@@ -22,9 +22,9 @@ export function addJob(job: Job): AddJobAction {
     };
 }
 
-export function setCurrentJobId(jobId: string): SetCurrentJobIdAction {
+export function setCurrentJobName(jobName: string): SetCurrentJobNameAction {
     return {
-        payload: jobId,
-        type: SET_CURRENT_JOB_ID,
+        payload: jobName,
+        type: SET_CURRENT_JOB_NAME,
     };
 }

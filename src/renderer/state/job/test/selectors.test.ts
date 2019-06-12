@@ -23,7 +23,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    currentJobId: mockJob.jobId,
+                    currentJobName: mockJob.name,
                 },
             });
             expect(currentJob).to.be.undefined;
@@ -49,7 +49,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    currentJobId: mockJob.jobId,
+                    currentJobName: mockJob.name,
                 },
             });
             expect(index).to.equal(-1);

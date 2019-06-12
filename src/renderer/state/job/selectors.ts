@@ -6,20 +6,20 @@ import { State } from "../types";
 import { Job } from "./types";
 
 export const getJobs = (state: State) => state.job.jobs;
-export const getCurrentJobId = (state: State) => state.job.currentJobId;
+export const getCurrentJobName = (state: State) => state.job.currentJobName;
 
 export const getCurrentJob = createSelector([
     getJobs,
-    getCurrentJobId,
-], (jobs: Job[], currentJobId?: string) => {
-    return find(jobs, {jobId: currentJobId});
+    getCurrentJobName,
+], (jobs: Job[], currentJobName?: string) => {
+    return find(jobs, {name: currentJobName});
 });
 
 export const getCurrentJobIndex = createSelector([
     getJobs,
-    getCurrentJobId,
-], (jobs: Job[], currentJobId?: string) => {
-    return findIndex(jobs, {jobId: currentJobId});
+    getCurrentJobName,
+], (jobs: Job[], currentJobName?: string) => {
+    return findIndex(jobs, {name: currentJobName});
 });
 
 export const getJobsForTable = createSelector([getJobs], (jobs: Job[]): UploadSummaryTableRow[] => {

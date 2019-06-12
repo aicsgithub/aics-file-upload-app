@@ -1,25 +1,27 @@
+import { findIndex } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
 import { setJobs } from "./actions";
 import { SET_UPLOAD_STATUS } from "./constants";
-import { getCurrentJob, getCurrentJobIndex, getJobs } from "./selectors";
+import { getJobs } from "./selectors";
 
 const setUploadStatusLogic = createLogic({
     transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const {jobName, status} = action.payload;
         const state = getState();
         const jobs = [...getJobs(state)];
-        const currentJob = getCurrentJob(state);
-        const jobIndex = getCurrentJobIndex(state);
-        if (jobIndex  > -1 && currentJob) {
+        const jobIndex = findIndex(jobs, {name: jobName});
+        const jobToModify = jobs[jobIndex];
+        if (jobToModify) {
             jobs[jobIndex] = {
-                ...currentJob,
-                status: action.payload,
+                ...jobToModify,
+                status,
             };
             next(setJobs(jobs));
         } else {
             next(action);
-            throw Error("Upload status cannot be updated because there is no current job!");
+            throw Error("Upload status cannot be updated because there is no current job!"); // todo custom error?
         }
 
     },

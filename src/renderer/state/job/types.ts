@@ -1,5 +1,5 @@
 export interface JobStateBranch {
-    currentJobId?: string;
+    currentJobName?: string;
     jobs: Job[];
 }
 
@@ -8,15 +8,22 @@ export interface Job {
     // assigned by FSS
     jobId: string;
 
+    // name of job. Constructed from date created and acts as an ID since jobId's assigned by FSS don't get created
+    // until after the request is validated by aicsfiles
+    name: string;
+
     // set by progress messages from aicsfiles
     status: string;
 
-    // when the job was initiated
+    // when the job was initiated.
     created: Date;
 }
 
 export interface SetUploadStatusAction {
-    payload: string;
+    payload: {
+        jobName: string;
+        status: string;
+    };
     type: string;
 }
 
@@ -30,7 +37,7 @@ export interface AddJobAction {
     type: string;
 }
 
-export interface SetCurrentJobIdAction {
+export interface SetCurrentJobNameAction {
     payload: string;
     type: string;
 }

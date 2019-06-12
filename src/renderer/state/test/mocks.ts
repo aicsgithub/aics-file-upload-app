@@ -37,7 +37,7 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
-        currentJobId: undefined,
+        currentJobName: undefined,
         jobs: [],
     },
     metadata: {
@@ -115,18 +115,20 @@ export const mockViabilityResult: GetViabilityResultResponse = {
 export const mockJob: Job = {
     created: new Date(),
     jobId: "123434234",
+    name: "mockJob1",
     status: "Completed",
 };
 
 export const mockJob2: Job = {
     created: new Date(),
     jobId: "2222222222",
+    name: "mockJob2",
     status: "Copying files",
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
-    currentJobId: mockJob.jobId,
+    currentJobName: mockJob.name,
     jobs: [mockJob2, mockJob],
 };
 
