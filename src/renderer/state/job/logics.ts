@@ -1,4 +1,4 @@
-import { findIndex } from "lodash";
+import { findIndex, omit } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
@@ -17,7 +17,7 @@ const updateJobLogic = createLogic({
         if (jobToModify) {
             jobs[index] = {
                 ...jobToModify,
-                ...job,
+                ...omit(job, ["name"]), // name acts as an id so it would be unsafe to change it
             };
             next(setJobs(jobs));
         } else {

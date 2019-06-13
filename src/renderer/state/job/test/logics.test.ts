@@ -4,7 +4,7 @@ import { get } from "lodash";
 import { createMockReduxStore } from "../../test/configure-mock-store";
 import { mockJob, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
 import { updateJob } from "../actions";
-import { getCurrentJob } from "../selectors";
+import { getCurrentJob, getCurrentJobName } from "../selectors";
 
 describe("Job logics", () => {
 
@@ -28,6 +28,22 @@ describe("Job logics", () => {
             expect(get(currentJob, "stage")).to.equal(nextStage);
         });
 
-        // todo add test to make sure name cannot be updated
+        it("Does not update job name", () => {
+            const store = createMockReduxStore({
+                ...mockState,
+                job: {...nonEmptyJobStateBranch},
+            });
+
+            // before
+            let currentJobName = getCurrentJobName(store.getState());
+            expect(currentJobName).to.equal(mockJob.name);
+
+            // apply
+            store.dispatch(updateJob(mockJob.name, { name: "Bob", stage: "Failed"}));
+
+            // after
+            currentJobName = getCurrentJobName(store.getState());
+            expect(currentJobName).to.equal(mockJob.name);
+        });
     });
 });
