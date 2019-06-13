@@ -1,6 +1,6 @@
 import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession } from "../../util/labkey-client";
-import { Job, JobStateBranch } from "../job/types";
+import { Job, JobStateBranch, JobStatus } from "../job/types";
 
 import { Unit } from "../metadata/types";
 import { GetViabilityResultResponse, Page, SelectionStateBranch, Well } from "../selection/types";
@@ -113,17 +113,21 @@ export const mockViabilityResult: GetViabilityResultResponse = {
 };
 
 export const mockJob: Job = {
+    copyComplete: true,
     created: new Date(),
     jobId: "123434234",
     name: "mockJob1",
-    status: "Completed",
+    stage: "Completed",
+    status: JobStatus.COMPLETE,
 };
 
 export const mockJob2: Job = {
+    copyComplete: true,
     created: new Date(),
     jobId: "2222222222",
     name: "mockJob2",
-    status: "Copying files",
+    stage: "Copying files",
+    status: JobStatus.COMPLETE,
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {

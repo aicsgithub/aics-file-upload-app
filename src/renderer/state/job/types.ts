@@ -12,17 +12,30 @@ export interface Job {
     // until after the request is validated by aicsfiles
     name: string;
 
-    // set by progress messages from aicsfiles
-    status: string;
+    // set by progress messages from aicsfiles. Gives more detailed information about where the upload is at
+    stage: string;
 
     // when the job was initiated.
     created: Date;
+
+    // whether copy is complete
+    copyComplete: boolean;
+
+    // status of the job
+    status: JobStatus;
 }
 
-export interface SetUploadStatusAction {
+export enum JobStatus {
+    NOT_STARTED = "NOT_STARTED", // This will get used for drafts eventually when saving drafts is possible
+    IN_PROGRESS = "IN_PROGRESS",
+    COMPLETE = "COMPLETE",
+    FAILED = "FAILED",
+}
+
+export interface UpdateJobAction {
     payload: {
         jobName: string;
-        status: string;
+        job: Partial<Job>;
     };
     type: string;
 }

@@ -15,7 +15,7 @@ export interface UploadSummaryTableRow {
     // used by antd's Table component to uniquely identify rows
     key: string;
     jobId: string;
-    status: string;
+    stage: string;
     created: string;
 }
 
@@ -33,9 +33,9 @@ class UploadSummary extends React.Component<Props, {}> {
             title: "Job Id",
         },
         {
-            dataIndex: "status",
-            key: "status",
-            title: "Status",
+            dataIndex: "stage",
+            key: "stage",
+            title: "Stage",
         },
         {
             dataIndex: "created",
