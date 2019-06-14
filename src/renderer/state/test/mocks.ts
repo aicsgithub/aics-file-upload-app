@@ -37,7 +37,6 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
-        currentJobName: undefined,
         jobs: [],
     },
     metadata: {
@@ -141,10 +140,18 @@ export const mockJob2: Job = {
     status: JobStatus.COMPLETE,
 };
 
+export const mockJob3: Job = {
+    copyComplete: false,
+    created: new Date(),
+    jobId: "3333333333",
+    name: "mockJob3",
+    stage: "Copy error",
+    status: JobStatus.FAILED,
+};
+
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
-    currentJobName: mockJob.name,
-    jobs: [mockJob2, mockJob],
+    jobs: [mockJob, mockJob2, mockJob3],
 };
 
 export const mockImagingSessions: LabkeyImagingSession[] = [

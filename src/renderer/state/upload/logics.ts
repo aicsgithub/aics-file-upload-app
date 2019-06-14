@@ -14,8 +14,7 @@ import {
 import { getWellLabel } from "../../util";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
-import { addJob, setCurrentJobName, updateJob } from "../job/actions";
-import { getCurrentJobName } from "../job/selectors";
+import { addJob, updateJob } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import {
@@ -47,7 +46,7 @@ const associateFileAndWellLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
-    process: ({getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: ({ctx, getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, jobName: string, status: string) => {
             dispatch(updateJob(jobName, { stage: status }));
         });
@@ -67,21 +66,20 @@ const initiateUploadLogic = createLogic({
             done();
         });
         ipcRenderer.on(UPLOAD_FAILED, (event: Event, jobName: string, error: string) => {
-            dispatch(batchActions([
-                setAlert({
-                    message: `Upload Failed: ${error}`,
-                    type: AlertType.ERROR,
-                }),
-                updateJob(jobName, { stage: `Upload Failed: ${error}`, status: JobStatus.FAILED }),
-            ]));
+            dispatch(setAlert({
+                message: `Upload Failed: ${error}`,
+                type: AlertType.ERROR,
+            }));
+            dispatch(updateJob(jobName, { stage: `Upload Failed: ${error}`, status: JobStatus.FAILED }));
             done();
         });
-        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), getCurrentJobName(getState()));
+        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);
     },
-    transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({action, ctx}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const now = new Date();
         const tempJobId = now.toISOString();
         const name = tempJobId;
+        ctx.name = name;
         next(batchActions([
             addEvent("Starting upload", AlertType.INFO, now),
             addJob({
@@ -92,7 +90,6 @@ const initiateUploadLogic = createLogic({
                 stage: "Job Created",
                 status: JobStatus.IN_PROGRESS,
             }),
-            setCurrentJobName(name),
             action,
         ]));
     },

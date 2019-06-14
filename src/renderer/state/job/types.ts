@@ -1,5 +1,4 @@
 export interface JobStateBranch {
-    currentJobName?: string;
     jobs: Job[];
 }
 
@@ -47,10 +46,5 @@ export interface SetJobsAction {
 
 export interface AddJobAction {
     payload: Job;
-    type: string;
-}
-
-export interface SetCurrentJobNameAction {
-    payload: string;
     type: string;
 }

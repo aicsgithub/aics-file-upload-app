@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { get } from "lodash";
 import { getRecentEvent } from "../../feedback/selectors";
-import { getCurrentJobName, getJobs } from "../../job/selectors";
+import { getJobs } from "../../job/selectors";
 
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore } from "../../test/configure-mock-store";
@@ -27,12 +27,11 @@ describe("Upload logics", () => {
     });
 
     describe("initiateUploadLogic", () => {
-        it("adds a job to jobs and sets current job name and adds a Started Upload event", () => {
+        it("adds a job to jobs and adds a Started Upload event", () => {
             const store = createMockReduxStore(mockState);
 
             // before
             let state = store.getState();
-            expect(getCurrentJobName(state)).to.be.undefined;
             expect(getJobs(state)).to.be.empty;
             expect(getRecentEvent(state)).to.be.undefined;
 
@@ -41,10 +40,8 @@ describe("Upload logics", () => {
 
             // after
             state = store.getState();
-            expect(getCurrentJobName(state)).to.not.be.undefined;
             expect(getJobs(state).length).to.equal(1);
             expect(getRecentEvent(state)).to.not.be.undefined;
         });
-
     });
 });

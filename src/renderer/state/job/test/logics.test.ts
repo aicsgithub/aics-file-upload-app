@@ -2,30 +2,30 @@ import { expect } from "chai";
 import { get } from "lodash";
 
 import { createMockReduxStore } from "../../test/configure-mock-store";
-import { mockJob, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
+import { mockJob2, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
 import { updateJob } from "../actions";
-import { getCurrentJob, getCurrentJobName } from "../selectors";
+import { getJobs } from "../selectors";
 
 describe("Job logics", () => {
 
     describe("updateJobLogic", () => {
-        it("Updates current job with stage if it exists", () => {
+        it("Updates job by name with stage if it exists", () => {
             const store = createMockReduxStore({
                 ...mockState,
                 job: {...nonEmptyJobStateBranch},
             });
 
             // before
-            let currentJob = getCurrentJob(store.getState());
-            expect(get(currentJob, "stage")).to.equal(mockJob.stage);
+            const nextStage = "Failed";
+            let jobs = getJobs(store.getState());
+            expect(get(jobs[1], "stage")).to.not.equal(nextStage);
 
             // apply
-            const nextStage = "Failed";
-            store.dispatch(updateJob(mockJob.name, { stage: nextStage }));
+            store.dispatch(updateJob(mockJob2.name, { stage: nextStage }));
 
             // after
-            currentJob = getCurrentJob(store.getState());
-            expect(get(currentJob, "stage")).to.equal(nextStage);
+            jobs = getJobs(store.getState());
+            expect(get(jobs[1], "stage")).to.equal(nextStage);
         });
 
         it("Does not update job name", () => {
@@ -35,15 +35,15 @@ describe("Job logics", () => {
             });
 
             // before
-            let currentJobName = getCurrentJobName(store.getState());
-            expect(currentJobName).to.equal(mockJob.name);
+            let jobs = getJobs(store.getState());
+            expect(jobs[1].name).to.equal(mockJob2.name);
 
             // apply
-            store.dispatch(updateJob(mockJob.name, { name: "Bob", stage: "Failed"}));
+            store.dispatch(updateJob(mockJob2.name, { name: "Bob", stage: "Failed"}));
 
             // after
-            currentJobName = getCurrentJobName(store.getState());
-            expect(currentJobName).to.equal(mockJob.name);
+            jobs = getJobs(store.getState());
+            expect(jobs[1].name).to.equal(mockJob2.name);
         });
     });
 });

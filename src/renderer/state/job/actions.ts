@@ -1,8 +1,7 @@
-import { ADD_JOB, SET_CURRENT_JOB_NAME, SET_JOBS, UPDATE_JOB } from "./constants";
+import { ADD_JOB, SET_JOBS, UPDATE_JOB } from "./constants";
 import {
     AddJobAction,
     Job,
-    SetCurrentJobNameAction,
     SetJobsAction,
     UpdateJobAction,
 } from "./types";
@@ -25,12 +24,5 @@ export function addJob(job: Job): AddJobAction {
     return {
         payload: job,
         type: ADD_JOB,
-    };
-}
-
-export function setCurrentJobName(jobName: string): SetCurrentJobNameAction {
-    return {
-        payload: jobName,
-        type: SET_CURRENT_JOB_NAME,
     };
 }
