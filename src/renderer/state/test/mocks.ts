@@ -1,6 +1,6 @@
 import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession } from "../../util/labkey-client";
-import { Job, JobStateBranch } from "../job/types";
+import { Job, JobStateBranch, JobStatus } from "../job/types";
 
 import { Unit } from "../metadata/types";
 import { GetViabilityResultResponse, Page, SelectionStateBranch, Well } from "../selection/types";
@@ -37,7 +37,6 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
-        currentJobId: undefined,
         jobs: [],
     },
     metadata: {
@@ -54,7 +53,18 @@ export const mockState: State = {
         limsPort: "8080",
         limsProtocol: "http",
     },
-    upload: getMockStateWithHistory({}),
+    upload: getMockStateWithHistory({
+        "/path/to/file1": {
+            barcode: "1234",
+            wellId: 1,
+            wellLabel: "A1",
+        },
+        "/path/to/file2": {
+            barcode: "1235",
+            wellId: 2,
+            wellLabel: "A2",
+        },
+    }),
 };
 
 export const mockUnits: Unit[] = [
@@ -113,21 +123,35 @@ export const mockViabilityResult: GetViabilityResultResponse = {
 };
 
 export const mockJob: Job = {
+    copyComplete: true,
     created: new Date(),
     jobId: "123434234",
-    status: "Completed",
+    name: "mockJob1",
+    stage: "Completed",
+    status: JobStatus.COMPLETE,
 };
 
 export const mockJob2: Job = {
+    copyComplete: true,
     created: new Date(),
     jobId: "2222222222",
-    status: "Copying files",
+    name: "mockJob2",
+    stage: "Copying files",
+    status: JobStatus.COMPLETE,
+};
+
+export const mockJob3: Job = {
+    copyComplete: false,
+    created: new Date(),
+    jobId: "3333333333",
+    name: "mockJob3",
+    stage: "Copy error",
+    status: JobStatus.FAILED,
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
-    currentJobId: mockJob.jobId,
-    jobs: [mockJob2, mockJob],
+    jobs: [mockJob, mockJob2, mockJob3],
 };
 
 export const mockImagingSessions: LabkeyImagingSession[] = [

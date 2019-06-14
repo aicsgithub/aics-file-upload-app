@@ -94,7 +94,7 @@ app.on("ready", async () => {
     await autoUpdater.checkForUpdatesAndNotify();
 });
 
-const startUpload = async (event: Event, uploads: Uploads) => {
+const startUpload = async (event: Event, uploads: Uploads, jobName: string) => {
     Logger.debug("received start upload request from renderer");
     const uploadClient = new FileManagementSystem({
         event,
@@ -103,11 +103,11 @@ const startUpload = async (event: Event, uploads: Uploads) => {
         port: LIMS_PORT,
     });
     try {
-        const result = await uploadClient.uploadFiles(uploads);
-        event.sender.send(UPLOAD_FINISHED, result);
+        const result = await uploadClient.uploadFiles(uploads, jobName);
+        event.sender.send(UPLOAD_FINISHED, jobName, result);
     } catch (e) {
         Logger.error(e.message);
-        event.sender.send(UPLOAD_FAILED, e.message);
+        event.sender.send(UPLOAD_FAILED, jobName, e.message);
     }
 };
 

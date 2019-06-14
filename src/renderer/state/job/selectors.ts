@@ -1,26 +1,11 @@
-import { find, findIndex } from "lodash";
+import { some } from "lodash";
 import { createSelector } from "reselect";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { State } from "../types";
-import { Job } from "./types";
+import { Job, JobStatus } from "./types";
 
 export const getJobs = (state: State) => state.job.jobs;
-export const getCurrentJobId = (state: State) => state.job.currentJobId;
-
-export const getCurrentJob = createSelector([
-    getJobs,
-    getCurrentJobId,
-], (jobs: Job[], currentJobId?: string) => {
-    return find(jobs, {jobId: currentJobId});
-});
-
-export const getCurrentJobIndex = createSelector([
-    getJobs,
-    getCurrentJobId,
-], (jobs: Job[], currentJobId?: string) => {
-    return findIndex(jobs, {jobId: currentJobId});
-});
 
 export const getJobsForTable = createSelector([getJobs], (jobs: Job[]): UploadSummaryTableRow[] => {
     return jobs.map((job) => ({
@@ -28,4 +13,8 @@ export const getJobsForTable = createSelector([getJobs], (jobs: Job[]): UploadSu
         created: job.created.toLocaleString(),
         key: job.jobId,
     }));
+});
+
+export const getIsUnsafeToExit = createSelector([getJobs], (jobs: Job[]): boolean => {
+    return some(jobs, (job) => !job.copyComplete && job.status === JobStatus.IN_PROGRESS);
 });

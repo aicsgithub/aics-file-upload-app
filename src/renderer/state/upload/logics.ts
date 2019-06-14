@@ -9,13 +9,12 @@ import {
     START_UPLOAD,
     UPLOAD_FAILED,
     UPLOAD_FINISHED,
-    UPLOAD_PROGRESS
+    UPLOAD_PROGRESS,
 } from "../../../shared/constants";
 import { getWellLabel } from "../../util";
-import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
-import { addJob, setCurrentJobId, setJobs, setUploadStatus } from "../job/actions";
-import { getCurrentJob, getCurrentJobIndex, getJobs } from "../job/selectors";
+import { addEvent, setAlert } from "../feedback/actions";
+import { AlertType } from "../feedback/types";
+import { addJob, updateJob } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import {
@@ -27,6 +26,8 @@ import {
 import { batchActions } from "../util";
 import { ASSOCIATE_FILES_AND_WELL, INITIATE_UPLOAD } from "./constants";
 import { getUploadPayload } from "./selectors";
+
+import { JobStatus } from "../job/types";
 
 const associateFileAndWellLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -45,72 +46,50 @@ const associateFileAndWellLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
-    process: ({getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, status: string) => {
-            dispatch(setUploadStatus(status));
+    process: ({ctx, getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, jobName: string, status: string) => {
+            dispatch(updateJob(jobName, { stage: status }));
         });
-        ipcRenderer.on(COPY_COMPLETE, () => {
-            dispatch(removeRequestFromInProgress(AsyncRequest.COPY_FILES));
+        ipcRenderer.on(COPY_COMPLETE, (event: Event, jobName: string) => {
+            dispatch(updateJob(jobName, { copyComplete: true }));
         });
-        ipcRenderer.on(RECEIVED_JOB_ID, (event: Event, jobId: string) => {
-            const state = getState();
-            const jobs = getJobs(state);
-            const currentJobIndex = getCurrentJobIndex(state);
-            const currentJob = getCurrentJob(state);
-            if (currentJob && currentJobIndex > -1) {
-                jobs[currentJobIndex] = {
-                    ...currentJob,
-                    jobId,
-                };
-                dispatch(batchActions([
-                    setJobs(jobs),
-                    setCurrentJobId(jobId),
-                ]));
-            } else {
-                const error = "Cannot set current job id. Current job has not been initialized.";
-                dispatch(setAlert({
-                    message: error,
-                    type: AlertType.ERROR,
-                }));
-                throw new Error(error);
-            }
+        ipcRenderer.on(RECEIVED_JOB_ID, (event: Event, jobName: string, jobId: string) => {
+            dispatch(updateJob(jobName, { jobId }));
         });
-
-        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()));
-        ipcRenderer.on(UPLOAD_FINISHED, (event: Event, result: UploadResponse) => {
+        ipcRenderer.on(UPLOAD_FINISHED, (event: Event, jobName: string, result: UploadResponse) => {
             Logger.debug("Upload Completed Successfully", result);
             dispatch(batchActions([
-                removeRequestFromInProgress(AsyncRequest.START_UPLOAD),
+                updateJob(jobName, { status: JobStatus.COMPLETE, stage: "Upload Complete" }),
                 addEvent("Upload Finished", AlertType.SUCCESS, new Date()),
             ]));
 
             done();
         });
-        ipcRenderer.on(UPLOAD_FAILED, (event: Event, error: string) => {
-            dispatch(batchActions([
-                removeRequestFromInProgress(AsyncRequest.START_UPLOAD),
-                setAlert({
-                    message: `Upload Failed: ${error}`,
-                    type: AlertType.ERROR,
-                }),
-                setUploadStatus(`Upload Failed: ${error}`),
-            ]));
-
+        ipcRenderer.on(UPLOAD_FAILED, (event: Event, jobName: string, error: string) => {
+            dispatch(setAlert({
+                message: `Upload Failed: ${error}`,
+                type: AlertType.ERROR,
+            }));
+            dispatch(updateJob(jobName, { stage: `Upload Failed: ${error}`, status: JobStatus.FAILED }));
             done();
         });
+        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);
     },
-    transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const tempJobId = (new Date()).toISOString();
+    transform: ({action, ctx}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const now = new Date();
+        const tempJobId = now.toISOString();
+        const name = tempJobId;
+        ctx.name = name;
         next(batchActions([
-            addEvent("Starting upload", AlertType.INFO, new Date()),
-            addRequestToInProgress(AsyncRequest.START_UPLOAD),
-            addRequestToInProgress(AsyncRequest.COPY_FILES),
+            addEvent("Starting upload", AlertType.INFO, now),
             addJob({
-                created: new Date(),
+                copyComplete: false,
+                created: now,
                 jobId: tempJobId,
-                status: "Job Created",
+                name,
+                stage: "Job Created",
+                status: JobStatus.IN_PROGRESS,
             }),
-            setCurrentJobId(tempJobId),
             action,
         ]));
     },

@@ -1,10 +1,15 @@
-import { ADD_JOB, SET_CURRENT_JOB_ID, SET_JOBS, SET_UPLOAD_STATUS } from "./constants";
-import { AddJobAction, Job, SetCurrentJobIdAction, SetJobsAction, SetUploadStatusAction } from "./types";
+import { ADD_JOB, SET_JOBS, UPDATE_JOB } from "./constants";
+import {
+    AddJobAction,
+    Job,
+    SetJobsAction,
+    UpdateJobAction,
+} from "./types";
 
-export function setUploadStatus(status: string): SetUploadStatusAction {
+export function updateJob(jobName: string, job: Partial<Job>): UpdateJobAction {
     return {
-        payload: status,
-        type: SET_UPLOAD_STATUS,
+        payload: {jobName, job},
+        type: UPDATE_JOB,
     };
 }
 
@@ -19,12 +24,5 @@ export function addJob(job: Job): AddJobAction {
     return {
         payload: job,
         type: ADD_JOB,
-    };
-}
-
-export function setCurrentJobId(jobId: string): SetCurrentJobIdAction {
-    return {
-        payload: jobId,
-        type: SET_CURRENT_JOB_ID,
     };
 }

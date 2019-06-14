@@ -11,14 +11,14 @@ import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert } from "../../state/feedback/actions";
-import { getAlert, getIsLoading, getRecentEvent, getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { getAlert, getIsLoading, getRecentEvent } from "../../state/feedback/selectors";
 import {
     AlertType,
     AppAlert,
     AppEvent,
-    AsyncRequest,
     ClearAlertAction
 } from "../../state/feedback/types";
+import { getIsUnsafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
@@ -187,7 +187,7 @@ class App extends React.Component<AppProps, {}> {
 function mapStateToProps(state: State) {
     return {
         alert: getAlert(state),
-        copyInProgress: getRequestsInProgressContains(state, AsyncRequest.COPY_FILES),
+        copyInProgress: getIsUnsafeToExit(state),
         fileToTags: getFileToTags(state),
         files: getStagedFiles(state),
         limsUrl: getLimsUrl(state),
