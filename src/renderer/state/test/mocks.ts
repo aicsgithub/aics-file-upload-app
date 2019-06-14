@@ -54,7 +54,18 @@ export const mockState: State = {
         limsPort: "8080",
         limsProtocol: "http",
     },
-    upload: getMockStateWithHistory({}),
+    upload: getMockStateWithHistory({
+        "/path/to/file1": {
+            barcode: "1234",
+            wellId: 1,
+            wellLabel: "A1",
+        },
+        "/path/to/file2": {
+            barcode: "1235",
+            wellId: 2,
+            wellLabel: "A2",
+        },
+    }),
 };
 
 export const mockUnits: Unit[] = [
