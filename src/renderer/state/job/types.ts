@@ -11,7 +11,7 @@ export interface Job {
     // until after the request is validated by aicsfiles
     name: string;
 
-    // set by progress messages from aicsfiles. Gives more detailed information about where the upload is at
+    // contains the latest log message from aicsfiles as it executes an upload
     stage: string;
 
     // when the job was initiated.
