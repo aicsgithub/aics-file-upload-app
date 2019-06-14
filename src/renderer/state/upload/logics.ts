@@ -28,7 +28,6 @@ import { batchActions } from "../util";
 import { ASSOCIATE_FILES_AND_WELL, INITIATE_UPLOAD } from "./constants";
 import { getUploadPayload } from "./selectors";
 
-import { JobDoesNotExistError } from "../../errors/JobDoesNotExistError";
 import { JobStatus } from "../job/types";
 
 const associateFileAndWellLogic = createLogic({
@@ -58,8 +57,6 @@ const initiateUploadLogic = createLogic({
         ipcRenderer.on(RECEIVED_JOB_ID, (event: Event, jobName: string, jobId: string) => {
             dispatch(updateJob(jobName, { jobId }));
         });
-
-        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), getCurrentJobName(getState()));
         ipcRenderer.on(UPLOAD_FINISHED, (event: Event, jobName: string, result: UploadResponse) => {
             Logger.debug("Upload Completed Successfully", result);
             dispatch(batchActions([
@@ -70,22 +67,16 @@ const initiateUploadLogic = createLogic({
             done();
         });
         ipcRenderer.on(UPLOAD_FAILED, (event: Event, jobName: string, error: string) => {
-            const currentJob = getCurrentJobName(getState());
-
-            if (currentJob) {
-                dispatch(batchActions([
-                    setAlert({
-                        message: `Upload Failed: ${error}`,
-                        type: AlertType.ERROR,
-                    }),
-                    updateJob(currentJob, { stage: `Upload Failed: ${error}`, status: JobStatus.FAILED }),
-                ]));
-            } else {
-                throw new JobDoesNotExistError();
-            }
-
+            dispatch(batchActions([
+                setAlert({
+                    message: `Upload Failed: ${error}`,
+                    type: AlertType.ERROR,
+                }),
+                updateJob(jobName, { stage: `Upload Failed: ${error}`, status: JobStatus.FAILED }),
+            ]));
             done();
         });
+        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), getCurrentJobName(getState()));
     },
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const now = new Date();
