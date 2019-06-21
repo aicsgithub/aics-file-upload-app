@@ -18,12 +18,15 @@ import {
 import { State } from "../types";
 
 export interface ReduxLogicDependencies {
+    dialog: {
+        showMessageBox: SinonStub;
+    };
+    fms: {
+        validateMetadata: SinonStub;
+    };
     httpClient: {
         get: SinonStub;
         post: SinonStub;
-    };
-    dialog: {
-        showMessageBox: SinonStub;
     };
     ipcRenderer: {
         on: SinonStub;
@@ -39,6 +42,9 @@ export interface ReduxLogicDependencies {
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     dialog: {
         showMessageBox: stub(),
+    },
+    fms: {
+        validateMetadata: stub(),
     },
     httpClient: {
         get: stub(),

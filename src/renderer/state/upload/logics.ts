@@ -75,23 +75,32 @@ const initiateUploadLogic = createLogic({
         });
         ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);
     },
-    transform: ({action, ctx}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const now = new Date();
-        const tempJobId = now.toISOString();
-        const name = tempJobId;
-        ctx.name = name;
-        next(batchActions([
-            addEvent("Starting upload", AlertType.INFO, now),
-            addJob({
-                copyComplete: false,
-                created: now,
-                jobId: tempJobId,
-                name,
-                stage: "Job Created",
-                status: JobStatus.IN_PROGRESS,
-            }),
-            action,
-        ]));
+    transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            await fms.validateMetadata(getUploadPayload(getState()));
+            const now = new Date();
+            const tempJobId = now.toISOString();
+            const name = tempJobId;
+            ctx.name = name;
+            next(batchActions([
+                addEvent("Starting upload", AlertType.INFO, now),
+                addJob({
+                    copyComplete: false,
+                    created: now,
+                    jobId: tempJobId,
+                    name,
+                    stage: "Job Created",
+                    status: JobStatus.IN_PROGRESS,
+                }),
+                action,
+            ]));
+        } catch (e) {
+            next(setAlert({
+                message: e.message || "Validation error",
+                type: AlertType.ERROR,
+            }));
+        }
+
     },
     type: INITIATE_UPLOAD,
 });
