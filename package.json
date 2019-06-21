@@ -1,6 +1,6 @@
 {
   "name": "file-upload-app",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
@@ -41,7 +41,7 @@
   "license": "ISC",
   "dependencies": {
     "@aics/aics-react-labkey": "^4.1.6",
-    "@aics/aicsfiles": "^1.0.1",
+    "@aics/aicsfiles": "^1.0.2",
     "@ant-design/icons": "~1.1.0",
     "antd": "3.17.0",
     "axios": "^0.19.0",

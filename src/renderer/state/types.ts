@@ -1,3 +1,4 @@
+import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { AxiosPromise, AxiosRequestConfig } from "axios";
 import { MessageBoxOptions } from "electron";
 import { AnyAction } from "redux";
@@ -30,13 +31,20 @@ export interface HttpClient {
 }
 
 export interface ReduxLogicExtraDependencies {
-    httpClient: HttpClient;
     ctx?: any;
     dialog: {
         showMessageBox(
             options: MessageBoxOptions,
             callback?: (response: number, checkboxChecked: boolean) => void
         ): number;
+    };
+    fms: {
+        validateMetadata: (metadata: Uploads) => Promise<void>;
+    };
+    httpClient: HttpClient;
+    ipcRenderer: {
+        on: (channel: string, listener: (...args: any[]) => void) => void;
+        send: (channel: string, ...args: any[]) => void;
     };
     storage: {
         get: (key: string) => any,

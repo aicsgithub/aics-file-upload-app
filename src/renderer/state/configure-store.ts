@@ -1,5 +1,6 @@
+import { FileManagementSystem } from "@aics/aicsfiles";
 import axios from "axios";
-import { remote } from "electron";
+import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
 import {
     applyMiddleware,
@@ -18,6 +19,8 @@ import {
     upload,
 } from "./";
 import { State } from "./types";
+
+import { LIMS_HOST, LIMS_PORT } from "../../shared/constants";
 
 const storage = new Store();
 
@@ -41,7 +44,9 @@ const logics = [
 
 export const reduxLogicDependencies = {
     dialog: remote.dialog,
+    fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT}),
     httpClient: axios,
+    ipcRenderer,
     storage,
 };
 
