@@ -38,6 +38,10 @@ export interface ReduxLogicExtraDependencies {
             callback?: (response: number, checkboxChecked: boolean) => void
         ): number;
     };
+    ipcRenderer: {
+        on: (channel: string, listener: (...args: any[]) => void) => void;
+        send: (channel: string, ...args: any[]) => void;
+    };
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;

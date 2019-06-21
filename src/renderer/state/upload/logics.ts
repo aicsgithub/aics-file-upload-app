@@ -1,5 +1,4 @@
 import { UploadResponse } from "@aics/aicsfiles/type-declarations/types";
-import { ipcRenderer } from "electron";
 import Logger from "js-logger";
 import { createLogic } from "redux-logic";
 
@@ -46,7 +45,8 @@ const associateFileAndWellLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
-    process: ({ctx, getState}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: ({ctx, getState, ipcRenderer}: ReduxLogicProcessDependencies,
+              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, jobName: string, status: string) => {
             dispatch(updateJob(jobName, { stage: status }));
         });

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { remote } from "electron";
+import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
 import {
     applyMiddleware,
@@ -42,6 +42,7 @@ const logics = [
 export const reduxLogicDependencies = {
     dialog: remote.dialog,
     httpClient: axios,
+    ipcRenderer,
     storage,
 };
 

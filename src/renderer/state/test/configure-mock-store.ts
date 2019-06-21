@@ -4,8 +4,7 @@ import {
     createStore,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
-import * as sinon from "sinon";
-import { SinonStub } from "sinon";
+import { SinonStub, stub } from "sinon";
 
 import {
     enableBatching,
@@ -20,11 +19,15 @@ import { State } from "../types";
 
 export interface ReduxLogicDependencies {
     httpClient: {
-        get: SinonStub,
-        post: SinonStub,
+        get: SinonStub;
+        post: SinonStub;
     };
     dialog: {
         showMessageBox: SinonStub;
+    };
+    ipcRenderer: {
+        on: SinonStub;
+        send: SinonStub;
     };
     storage: {
         get: SinonStub,
@@ -35,16 +38,20 @@ export interface ReduxLogicDependencies {
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     dialog: {
-        showMessageBox: sinon.stub(),
+        showMessageBox: stub(),
     },
     httpClient: {
-        get: sinon.stub(),
-        post: sinon.stub(),
+        get: stub(),
+        post: stub(),
+    },
+    ipcRenderer: {
+        on: stub(),
+        send: stub(),
     },
     storage: {
-        get: sinon.stub(),
-        has: sinon.stub(),
-        set: sinon.stub(),
+        get: stub(),
+        has: stub(),
+        set: stub(),
     },
 };
 
