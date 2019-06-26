@@ -14,7 +14,6 @@ import {
     SELECT_FILE,
     SELECT_PAGE,
     SET_PLATE,
-    SET_VIABILITY_RESULTS,
     SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
@@ -25,7 +24,6 @@ import {
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
-    GetViabilityResultResponse,
     GoBackAction,
     JumpToPastSelectionAction,
     LoadFilesFromDragAndDropAction,
@@ -37,7 +35,6 @@ import {
     SelectFileAction,
     SelectPageAction,
     SetPlateAction,
-    SetViabilityResults,
     SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
@@ -115,13 +112,6 @@ export function setPlate(plate: PlateResponse): SetPlateAction {
     return {
         payload: plate,
         type: SET_PLATE,
-    };
-}
-
-export function setViabilityResults(viabilityResults: GetViabilityResultResponse[]): SetViabilityResults {
-    return {
-        payload: viabilityResults,
-        type: SET_VIABILITY_RESULTS,
     };
 }
 

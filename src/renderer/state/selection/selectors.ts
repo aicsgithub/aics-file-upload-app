@@ -6,20 +6,18 @@ import { getUnits } from "../metadata/selectors";
 import { Unit } from "../metadata/types";
 import { State } from "../types";
 
-import { GetViabilityResultResponse, Solution, SolutionLot, ViabilityResult, Well, WellResponse } from "./types";
+import { Solution, SolutionLot, Well, WellResponse } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
 export const getSelectedPlateId = (state: State) =>
     state.selection.present.plate && state.selection.present.plate.plateId;
-export const getSelections = (state: State) => state.selection.present;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getPage = (state: State) => state.selection.present.page;
 export const getStagedFiles = (state: State) => state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
 export const getWell = (state: State) => state.selection.present.well;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
-export const getViabilityResults = (state: State) => state.selection.present.viabilityResults;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
 
@@ -28,8 +26,7 @@ export const NO_UNIT = "(Unit Not Found)";
 
 export const getWellsWithModified = createSelector([
     getWells,
-    getViabilityResults,
-], (wells: WellResponse[], viabilityResultsForSelectedPlate: GetViabilityResultResponse[]): Well[][] => {
+], (wells: WellResponse[]): Well[][] => {
     if (!wells || wells.length === 0) {
         return [];
     }
@@ -42,12 +39,9 @@ export const getWellsWithModified = createSelector([
     wells.forEach(
         (well: WellResponse) => {
             const { cellPopulations, col, row, solutions } = well;
-            const viabilityResults: ViabilityResult[] = viabilityResultsForSelectedPlate
-                .filter((viabilityResult) => viabilityResult.col === col && viabilityResult.row === row);
             result[row][col] = {
                 ...well,
-                modified: !isEmpty(cellPopulations) || !isEmpty(solutions) || !isEmpty(viabilityResults),
-                viabilityResults,
+                modified: !isEmpty(cellPopulations) || !isEmpty(solutions),
             };
         }
     );
@@ -74,20 +68,10 @@ export const getWellsWithUnitsAndModified = createSelector([
                 volumeUnitDisplay:  volumeUnit ? volumeUnit.name : NO_UNIT,
             };
         });
-        const viabilityResults: ViabilityResult[] = well.viabilityResults.map((v: ViabilityResult) => {
-            const suspensionVolumUnit: Unit | undefined = units.find((u) => u.unitsId === v.suspensionVolumeUnitId);
-            const viableCellCountUnit: Unit | undefined = units.find((u) => u.unitsId === v.viableCellCountUnitId);
-            return {
-                ...v,
-                suspensionVolumeUnitDisplay: suspensionVolumUnit ? suspensionVolumUnit.name : NO_UNIT,
-                viableCellCountUnitDisplay: viableCellCountUnit ? viableCellCountUnit.name : NO_UNIT,
-            };
-        });
 
         return {
             ...well,
             solutions,
-            viabilityResults,
         };
     }));
 });

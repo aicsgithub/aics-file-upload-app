@@ -17,7 +17,6 @@ import {
     SELECT_METADATA,
     SELECT_PAGE,
     SET_PLATE,
-    SET_VIABILITY_RESULTS,
     SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
@@ -32,7 +31,6 @@ import {
     SelectMetadataAction,
     SelectPageAction,
     SetPlateAction,
-    SetViabilityResults,
     SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
@@ -48,7 +46,6 @@ export const initialState = {
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
-    viabilityResults: [],
     well: undefined,
     wells: [],
 };
@@ -129,13 +126,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SetWellAction) => ({
             ...state,
             well: action.payload,
-        }),
-    },
-    [SET_VIABILITY_RESULTS]: {
-        accepts: (action: AnyAction): action is SetViabilityResults => action.type === SET_VIABILITY_RESULTS,
-        perform: (state: SelectionStateBranch, action: SetViabilityResults) => ({
-            ...state,
-            viabilityResults: action.payload,
         }),
     },
 };

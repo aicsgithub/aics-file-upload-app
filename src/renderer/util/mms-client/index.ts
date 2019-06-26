@@ -1,5 +1,5 @@
 import { MMS_BASE_URL } from "../../constants";
-import { GetPlateResponse, GetViabilityResultResponse } from "../../state/selection/types";
+import { GetPlateResponse } from "../../state/selection/types";
 import { HttpClient } from "../../state/types";
 
 class Get {
@@ -18,12 +18,6 @@ class Get {
         const url = imagingSessionId ? `${baseUrl}&imagingSessionId=${imagingSessionId}` : baseUrl;
         const response = await httpClient.get(url);
         return response.data.data[0];
-    }
-
-    public static async viabilityResults(httpClient: HttpClient, plateId: number):
-        Promise<GetViabilityResultResponse[]> {
-        const response = await httpClient.get(`${MMS_BASE_URL}/1.0/assay/plate/${plateId}/viabilityResult`);
-        return response.data.data;
     }
 }
 
