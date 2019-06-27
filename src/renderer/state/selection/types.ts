@@ -25,7 +25,6 @@ export interface SelectionStateBranch {
     well?: GridCell;
     page: Page;
     stagedFiles: UploadFile[];
-    viabilityResults: GetViabilityResultResponse[];
 }
 
 export interface SelectFileAction {
@@ -89,23 +88,6 @@ export interface Solution {
     volumeUnitDisplay?: string;
 }
 
-export interface ViabilityResult {
-    suspensionVolume: string;
-    suspensionVolumeUnitId: number;
-    suspensionVolumeUnitDisplay?: string;
-    viability: number;
-    viableCellCountPerUnit: number;
-    viableCellCountUnitId: number;
-    viableCellCountUnitDisplay?: string;
-    wellViabilityResultId: number;
-}
-
-export interface GetViabilityResultResponse extends ViabilityResult {
-    col: number;
-    row: number;
-    wellId: number;
-}
-
 export interface GetPlateResponse {
     plate: PlateResponse;
     wells: WellResponse[];
@@ -136,7 +118,6 @@ export interface Well {
     cellPopulations: CellPopulation[];
     modified?: boolean;
     solutions: Solution[];
-    viabilityResults: ViabilityResult[];
 }
 
 export interface LoadFilesFromDragAndDropAction {
@@ -183,11 +164,6 @@ export interface SelectBarcodeAction {
 
 export interface SetPlateAction {
     payload: PlateResponse;
-    type: string;
-}
-
-export interface SetViabilityResults {
-    payload: GetViabilityResultResponse[];
     type: string;
 }
 

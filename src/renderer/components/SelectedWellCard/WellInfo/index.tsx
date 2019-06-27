@@ -7,7 +7,6 @@ import { Well } from "../../../state/selection/types";
 
 import CellPopulations from "./CellPopulations";
 import Solutions from "./Solutions";
-import ViabilityResults from "./ViabilityResults";
 
 const styles = require("./style.pcss");
 export const NULL_TEXT = "None";
@@ -36,15 +35,13 @@ class WellInfo extends React.Component<WellInfoProps, []> {
             );
         }
 
-        const { cellPopulations, solutions, viabilityResults } = well;
+        const { cellPopulations, solutions } = well;
 
         return (
             <div className={classNames(styles.container, className)}>
                 <CellPopulations cellPopulations={cellPopulations}/>
                 {!isEmpty(solutions) && <Divider />}
                 <Solutions solutions={solutions}/>
-                {!isEmpty(viabilityResults) && <Divider />}
-                <ViabilityResults viabilityResults={viabilityResults}/>
             </div>
         );
     }

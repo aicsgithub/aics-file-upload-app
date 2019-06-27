@@ -13,7 +13,7 @@ import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, mockSelection, mockState, mockViabilityResult } from "../../test/mocks";
+import { getMockStateWithHistory, mockSelection, mockState } from "../../test/mocks";
 import { AicsSuccessResponse, HTTP_STATUS } from "../../types";
 import { selectBarcode } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
@@ -22,7 +22,6 @@ import { getPage, getSelectedBarcode, getSelectedPlateId, getWells } from "../se
 import {
     DragAndDropFileList,
     GetPlateResponse,
-    GetViabilityResultResponse,
     Page,
     PlateResponse,
     SelectionStateBranch,
@@ -351,7 +350,6 @@ describe("Selection logics", () => {
         const barcode = "1234";
         const plateId = 1;
         let mockOkGetPlateResponse: AxiosResponse<AicsSuccessResponse<GetPlateResponse>>;
-        let mockOkGetViabilityResultsResponse: AxiosResponse<AicsSuccessResponse<GetViabilityResultResponse>>;
         let mockBadGatewayResponse: AxiosError;
         const createMockReduxLogicDeps = (getStub: SinonStub) => ({
             ...mockReduxLogicDeps,
@@ -367,7 +365,6 @@ describe("Selection logics", () => {
                 col: 0,
                 row: 0,
                 solutions: [],
-                viabilityResults: [],
                 wellId: 1,
             };
             const mockPlate: PlateResponse = {
@@ -398,18 +395,6 @@ describe("Selection logics", () => {
                 status: HTTP_STATUS.OK,
                 statusText: "OK",
             };
-            mockOkGetViabilityResultsResponse = {
-                config: {},
-                data: {
-                    data: [mockViabilityResult],
-                    offset: 0,
-                    responseType: "SUCCESS",
-                    totalCount: 1,
-                },
-                headers: {},
-                status: HTTP_STATUS.OK,
-                statusText: "OK",
-            };
             mockBadGatewayResponse = {
                 config: {},
                 isAxiosError: true,
@@ -426,8 +411,7 @@ describe("Selection logics", () => {
 
         it("Adds GET wells request to requests in progress", (done) => {
             const getStub = sinon.stub()
-                .onFirstCall().resolves(mockOkGetPlateResponse)
-                .onSecondCall().resolves(mockOkGetViabilityResultsResponse);
+                .onFirstCall().resolves(mockOkGetPlateResponse);
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
             expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
             let storeUpdates = 0;
@@ -451,7 +435,7 @@ describe("Selection logics", () => {
                     done();
                 });
                 return Promise.resolve(mockOkGetPlateResponse);
-            }).onSecondCall().resolves(mockOkGetViabilityResultsResponse);
+            });
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
 
             store.dispatch(selectBarcode(barcode));
@@ -471,7 +455,7 @@ describe("Selection logics", () => {
                 });
 
                 return Promise.resolve(mockOkGetPlateResponse);
-            }).onSecondCall().resolves(mockOkGetViabilityResultsResponse);
+            });
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
 
             store.dispatch(selectBarcode(barcode));
@@ -500,7 +484,7 @@ describe("Selection logics", () => {
                     ...mockOkGetPlateResponse,
                     status: HTTP_STATUS.BAD_REQUEST,
                 });
-            }).onSecondCall().resolves(mockOkGetViabilityResultsResponse);
+            });
 
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
             store.dispatch(selectBarcode(barcode));
@@ -567,8 +551,7 @@ describe("Selection logics", () => {
                 .onSecondCall().callsFake(() => {
                     okResponseReturned = true;
                     return Promise.resolve(mockOkGetPlateResponse);
-                })
-                .onThirdCall().resolves(mockOkGetViabilityResultsResponse);
+                });
             const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
             store.subscribe(() => {
                 if (okResponseReturned) {

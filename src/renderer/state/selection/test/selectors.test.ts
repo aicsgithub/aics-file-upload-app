@@ -5,7 +5,6 @@ import {
     mockSelection,
     mockState,
     mockUnits,
-    mockViabilityResult,
     mockWells
 } from "../../test/mocks";
 import { State } from "../../types";
@@ -24,7 +23,6 @@ describe("Selections selectors", () => {
             col: 0,
             row: 0,
             solutions: [],
-            viabilityResults: [],
             wellId: 1,
         };
 
@@ -63,7 +61,6 @@ describe("Selections selectors", () => {
                 ...mockState.selection,
                 present: {
                     ...mockState.selection.present,
-                    viabilityResults: [mockViabilityResult],
                     wells: [mockWell],
                 },
             },
@@ -110,21 +107,6 @@ describe("Selections selectors", () => {
                 expect(result[0][0].modified).to.be.true;
             }
         });
-        it("sets modified as true on wells with viabilityResults", () => {
-            const result: Well[][] = getWellsWithModified({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    viabilityResults: [mockViabilityResult],
-                    wells: [mockEmptyWell],
-                }),
-            });
-
-            expectOneWell(result);
-            if (result && result[0][0]) {
-                expect(result[0][0].modified).to.be.true;
-            }
-        });
 
         it ("sets modified as false on wells without modifications", () => {
             const result: Well[][] = getWellsWithModified({
@@ -157,8 +139,6 @@ describe("Selections selectors", () => {
                 const well = result[0][0];
                 expect(well.solutions[0].volumeUnitDisplay).to.equal(NO_UNIT);
                 expect(well.solutions[0].solutionLot.concentrationUnitsDisplay).to.equal(NO_UNIT);
-                expect(well.viabilityResults[0].suspensionVolumeUnitDisplay).to.equal(NO_UNIT);
-                expect(well.viabilityResults[0].viableCellCountUnitDisplay).to.equal(NO_UNIT);
             }
         });
 
@@ -185,8 +165,6 @@ describe("Selections selectors", () => {
                 const well = result[0][0];
                 expect(well.solutions[0].volumeUnitDisplay).to.equal("unit1");
                 expect(well.solutions[0].solutionLot.concentrationUnitsDisplay).to.equal("unit2");
-                expect(well.viabilityResults[0].suspensionVolumeUnitDisplay).to.equal("unit3");
-                expect(well.viabilityResults[0].viableCellCountUnitDisplay).to.equal("unit4");
             }
         });
     });

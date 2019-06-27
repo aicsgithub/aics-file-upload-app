@@ -38,7 +38,6 @@ import {
     jumpToPastSelection,
     selectPage,
     setPlate,
-    setViabilityResults,
     setWells,
     stageFiles,
     updateStagedFiles
@@ -210,14 +209,11 @@ const selectBarcodeLogic = createLogic({
             && !receivedNonGatewayError) {
                 try {
                     const { plate, wells } = await MmsClient.Get.plate(deps.httpClient, barcode, imagingSessionId);
-                    const { plateId } = plate;
-                    const viabilityResults = await MmsClient.Get.viabilityResults(deps.httpClient, plateId);
                     receivedSuccessfulResponse = true;
                     const actions = [
                         setPlate(plate),
                         setWells(wells),
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
-                        setViabilityResults(viabilityResults),
                         action,
                     ];
                     actions.push(...getGoForwardActions(Page.EnterBarcode, deps.getState()));
