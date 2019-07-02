@@ -17,22 +17,26 @@ import {
     UndoFileWellAssociationAction
 } from "./types";
 
-export function associateFilesAndWell(fullPaths: string[], wellId: number)
+export function associateFilesAndWell(fullPaths: string[], wellIds: number[], wellLabels: string[])
     : AssociateFilesAndWellAction {
     return {
         payload: {
             barcode: "",
             fullPaths,
-            wellId,
-            wellLabel: "",
+            wellIds,
+            wellLabels
         },
         type: ASSOCIATE_FILES_AND_WELL,
     };
 }
 
-export function undoFileWellAssociation(fullPath: string): UndoFileWellAssociationAction {
+export function undoFileWellAssociation(fullPath: string, wellIds: number[], wellLabels: string[]): UndoFileWellAssociationAction {
     return {
-        payload: fullPath,
+        payload: {
+            fullPath,
+            wellIds,
+            wellLabels
+        },
         type: UNDO_FILE_WELL_ASSOCIATION,
     };
 }

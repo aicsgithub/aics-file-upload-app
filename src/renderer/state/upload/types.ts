@@ -5,8 +5,8 @@ export interface UploadStateBranch {
 // Metadata associated with a file
 export interface UploadMetadata {
     barcode: string;
-    wellId: number;
-    wellLabel: string;
+    wellIds: number[];
+    wellLabels: string[];
 }
 
 export interface UploadJobTableRow {
@@ -20,21 +20,25 @@ export interface UploadJobTableRow {
     key: string;
 
     // human readable identifier of well, such as "A1"
-    wellLabel: string;
+    wellLabels: string;
 }
 
 export interface AssociateFilesAndWellAction {
     payload: {
         barcode: string,
         fullPaths: string[],
-        wellId: number,
-        wellLabel: string,
+        wellIds: number[],
+        wellLabels: string[]
     };
     type: string;
 }
 
 export interface UndoFileWellAssociationAction {
-    payload: string;
+    payload: {
+        fullPath: string,
+        wellIds: number[],
+        wellLabels: string[]
+    };
     type: string;
 }
 

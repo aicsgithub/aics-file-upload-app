@@ -17,13 +17,15 @@ export const getWellIdToFiles = createSelector([getUpload], (upload: UploadState
         if (upload.hasOwnProperty(fullPath)) {
             const metadata = upload[fullPath];
 
-            if (wellIdToFilesMap.has(metadata.wellId)) {
-                const files: string[] = wellIdToFilesMap.get(metadata.wellId) || [];
-                files.push(fullPath);
-                wellIdToFilesMap.set(metadata.wellId, uniq(files));
-            } else {
-                wellIdToFilesMap.set(metadata.wellId, [fullPath]);
-            }
+            metadata.wellIds.forEach((wellId) => {
+                if (wellIdToFilesMap.has(wellId)) {
+                    const files: string[] = wellIdToFilesMap.get(wellId) || [];
+                    files.push(fullPath);
+                    wellIdToFilesMap.set(wellId, uniq(files));
+                } else {
+                    wellIdToFilesMap.set(wellId, [fullPath]);
+                }
+            });
         }
     }
 
@@ -39,11 +41,11 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
 });
 
 export const getUploadSummaryRows = createSelector([getUpload], (uploads: UploadStateBranch): UploadJobTableRow[] =>
-    map(uploads, ({ barcode, wellLabel}: UploadMetadata, fullPath: string) => ({
+    map(uploads, ({ barcode, wellLabels}: UploadMetadata, fullPath: string) => ({
         barcode,
         file: fullPath,
         key: fullPath,
-        wellLabel,
+        wellLabels: wellLabels.sort().join(', '),
     }))
 );
 
@@ -65,7 +67,7 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
 
 export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
     let result = {};
-    map(uploads, ({wellId}: UploadMetadata, fullPath: string) => {
+    map(uploads, ({wellIds}: UploadMetadata, fullPath: string) => {
         result = {
             ...result,
             [fullPath]: {
@@ -73,7 +75,7 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                 },
                 microscopy: {
-                    wellId,
+                    wellIds,
                 },
             },
         };

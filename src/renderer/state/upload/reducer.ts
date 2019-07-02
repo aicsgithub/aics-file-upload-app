@@ -31,18 +31,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: UploadStateBranch, action: AssociateFilesAndWellAction) => {
             const nextState = {...state};
 
-            return action.payload.fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => {
-                const { barcode, wellId, wellLabel } = action.payload;
-                return {
-                    ...accum,
-                    [fullPath]: {
-                        ...accum[fullPath],
-                        barcode,
-                        wellId,
-                        wellLabel,
-                    },
-                };
-            }, nextState);
+            const { barcode, wellIds, wellLabels, fullPaths } = action.payload;
+
+            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => ({
+                ...accum,
+                [fullPath]: {
+                    ...accum[fullPath],
+                    barcode,
+                    wellIds: accum[fullPath] ? [...accum[fullPath].wellIds, ...wellIds] : wellIds,
+                    wellLabels: accum[fullPath] ? [...accum[fullPath].wellLabels, ...wellLabels] : wellLabels
+                }
+            }), nextState);
         },
     },
     [UNDO_FILE_WELL_ASSOCIATION]: {
@@ -50,9 +49,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === UNDO_FILE_WELL_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => ({
             ...state,
-            [action.payload]: {
-                ...state[action.payload],
-                wellId: undefined,
+            [action.payload.fullPath]: {
+                ...state[action.payload.fullPath],
+                wellIds: state[action.payload.fullPath].wellIds.filter(wellId => (
+                    !action.payload.wellIds.includes(wellId)
+                )),
+                wellLabels: state[action.payload.fullPath].wellLabels.filter(wellLabel => (
+                    !action.payload.wellLabels.includes(wellLabel)
+                )),
             },
         }),
     },
