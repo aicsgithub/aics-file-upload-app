@@ -15,6 +15,7 @@ export const UPDATE_STAGED_FILES = makeConstant(BRANCH_NAME, "update-staged-file
 export const GET_FILES_IN_FOLDER = makeConstant(BRANCH_NAME, "get-files-in-folder");
 export const SET_WELLS = makeConstant(BRANCH_NAME, "set-wells");
 export const SET_WELL = makeConstant(BRANCH_NAME, "set-well");
+export const SELECT_WELLS = makeConstant(BRANCH_NAME, "select-wells");
 export const GO_BACK = makeConstant(BRANCH_NAME, "go-back");
 export const GO_FORWARD = makeConstant(BRANCH_NAME, "go-forward");
 export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");

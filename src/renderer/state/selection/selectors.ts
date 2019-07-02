@@ -16,7 +16,7 @@ export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getPage = (state: State) => state.selection.present.page;
 export const getStagedFiles = (state: State) => state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
-export const getWell = (state: State) => state.selection.present.well;
+export const getSelectedWells = (state: State) => state.selection.present.selectedWells;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;

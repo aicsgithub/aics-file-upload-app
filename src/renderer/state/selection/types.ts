@@ -22,7 +22,7 @@ export interface SelectionStateBranch {
     imagingSessionIds: Array<number | null>;
     plate?: PlateResponse;
     wells: WellResponse[];
-    well?: GridCell;
+    selectedWells: GridCell[];
     page: Page;
     stagedFiles: UploadFile[];
 }
@@ -174,6 +174,11 @@ export interface SetWellsAction {
 
 export interface SetWellAction {
     payload: GridCell;
+    type: string;
+}
+
+export interface SelectWellsAction {
+    payload: GridCell[];
     type: string;
 }
 

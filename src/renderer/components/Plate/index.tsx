@@ -12,7 +12,7 @@ const WELL_WIDTH = "60px";
 
 interface PlateProps {
     className?: string;
-    onWellClick: (row: number, col: number, well?: Well) => void;
+    onWellClick: (cells: AicsGridCell[]) => void;
     selectedWells: AicsGridCell[];
     wells: Well[][];
     wellIdToFiles: Map<number, string[]>;
@@ -25,7 +25,6 @@ class Plate extends React.Component<PlateProps, {}> {
 
     constructor(props: PlateProps) {
         super(props);
-        this.handleWellClick = this.handleWellClick.bind(this);
         this.wellColorSelector = this.wellColorSelector.bind(this);
     }
 
@@ -39,25 +38,18 @@ class Plate extends React.Component<PlateProps, {}> {
         return cellData.modified ? MODIFIED_WELL_COLOR : DEFAULT_WELL_COLOR;
     }
 
-    public handleWellClick(event: React.MouseEvent<HTMLDivElement>, row: number, col: number, data: Well): void {
-        event.preventDefault();
-
-        if (data.modified) {
-            this.props.onWellClick(row, col, data);
-        }
-    }
-
     public render() {
         const {
             className,
             selectedWells,
             wells,
+            onWellClick
         } = this.props;
 
         return (
             <div className={className}>
                 <AicsGrid
-                    selectMode="single"
+                    selectMode="multi"
                     cellHeight={WELL_WIDTH}
                     cellWidth={WELL_WIDTH}
                     fontSize="14px"
@@ -65,7 +57,8 @@ class Plate extends React.Component<PlateProps, {}> {
                     displayBackground={this.wellColorSelector}
                     displayText={Plate.getWellDisplayText}
                     cells={wells}
-                    onCellClick={this.handleWellClick}
+                    onCellClick={() => {}}
+                    onSelectedCellsChanged={onWellClick}
                 />
             </div>
         );

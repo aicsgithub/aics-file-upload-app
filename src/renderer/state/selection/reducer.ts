@@ -16,6 +16,7 @@ import {
     SELECT_FILE,
     SELECT_METADATA,
     SELECT_PAGE,
+    SELECT_WELLS,
     SET_PLATE,
     SET_WELL,
     SET_WELLS,
@@ -30,6 +31,7 @@ import {
     SelectionStateBranch,
     SelectMetadataAction,
     SelectPageAction,
+    SelectWellsAction,
     SetPlateAction,
     SetWellAction,
     SetWellsAction,
@@ -46,7 +48,7 @@ export const initialState = {
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
-    well: undefined,
+    selectedWells: [],
     wells: [],
 };
 
@@ -121,11 +123,18 @@ const actionToConfigMap: TypeToDescriptionMap = {
             wells: action.payload,
         }),
     },
+    [SELECT_WELLS]: {
+        accepts: (action: AnyAction): action is SelectWellsAction => action.type === SELECT_WELLS,
+        perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
+            ...state,
+            selectedWells: action.payload,
+        }),
+    },
     [SET_WELL]: {
         accepts: (action: AnyAction): action is SetWellAction => action.type === SET_WELL,
         perform: (state: SelectionStateBranch, action: SetWellAction) => ({
             ...state,
-            well: action.payload,
+            selectedWells: [action.payload],
         }),
     },
 };
