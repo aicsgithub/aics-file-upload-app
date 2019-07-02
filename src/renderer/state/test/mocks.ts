@@ -25,7 +25,7 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionIds: [],
     page: Page.DragAndDrop,
     stagedFiles: [],
-    well: undefined,
+    selectedWells: [],
     wells: [],
 };
 
@@ -55,13 +55,13 @@ export const mockState: State = {
     upload: getMockStateWithHistory({
         "/path/to/file1": {
             barcode: "1234",
-            wellId: 1,
-            wellLabel: "A1",
+            wellIds: [1],
+            wellLabels: ["A1"],
         },
         "/path/to/file2": {
             barcode: "1235",
-            wellId: 2,
-            wellLabel: "A2",
+            wellIds: [2],
+            wellLabels: ["A2"],
         },
     }),
 };

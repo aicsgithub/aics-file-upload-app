@@ -18,7 +18,7 @@ describe("Upload logics", () => {
             const file2 = "/path2";
             const wellId = 1;
 
-            store.dispatch(associateFilesAndWell(["/path1", "/path2"], wellId));
+            store.dispatch(associateFilesAndWell(["/path1", "/path2"], [wellId], ["A1"]));
             expect(getSelectedFiles(store.getState())).to.be.empty;
 
             const upload = getUpload(store.getState());
