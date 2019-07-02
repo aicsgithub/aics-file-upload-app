@@ -130,6 +130,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 <LabKeyOptionSelector
                     required={true}
                     async={true}
+                    // id="plate-barcode-selector" Adding an id to fix propType here throws an error - Sean M 7/2/19
                     label="Plate Barcode"
                     optionIdKey="barcode"
                     optionNameKey="barcode"
