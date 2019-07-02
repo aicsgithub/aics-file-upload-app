@@ -44,11 +44,11 @@ export const initialState = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     page: Page.DragAndDrop,
+    selectedWells: [],
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
-    selectedWells: [],
     wells: [],
 };
 

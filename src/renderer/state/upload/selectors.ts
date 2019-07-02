@@ -45,7 +45,7 @@ export const getUploadSummaryRows = createSelector([getUpload], (uploads: Upload
         barcode,
         file: fullPath,
         key: fullPath,
-        wellLabels: wellLabels.sort().join(', '),
+        wellLabels: wellLabels.sort().join(", "),
     }))
 );
 

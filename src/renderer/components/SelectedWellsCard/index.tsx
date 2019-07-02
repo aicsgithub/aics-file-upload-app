@@ -2,9 +2,9 @@ import { Button, Card, Tabs } from "antd";
 import * as React from "react";
 
 import { Well } from "../../state/selection/types";
+import { getWellLabel } from "../../util";
 import WellFileAssociations from "./WellFileAssociations/index";
 import WellInfo from "./WellInfo/index";
-import { getWellLabel } from "../../util";
 
 const styles = require("./style.pcss");
 
@@ -42,7 +42,7 @@ class SelectedWellsCard extends React.Component<WellInfoProps, {}> {
 
         const title = (
             <div className={styles.titleRow}>
-                <div className={styles.title}>Selected Well(s): {wellLabels.sort().join(', ')}</div>
+                <div className={styles.title}>Selected Well(s): {wellLabels.sort().join(", ")}</div>
 
                 <div className={styles.titleButtons}>
                     <Button
@@ -73,7 +73,7 @@ class SelectedWellsCard extends React.Component<WellInfoProps, {}> {
                             undoAssociation={undoAssociation}
                         />
                     </Tabs.TabPane>
-                    {selectedWells.map(well => (
+                    {selectedWells.map((well) => (
                         <Tabs.TabPane key={getWellLabel(well)} tab={getWellLabel(well)} className={styles.tabPane}>
                             <WellInfo className={styles.tabPane} well={well}/>
                         </Tabs.TabPane>

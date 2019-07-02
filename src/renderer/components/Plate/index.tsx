@@ -43,7 +43,7 @@ class Plate extends React.Component<PlateProps, {}> {
             className,
             selectedWells,
             wells,
-            onWellClick
+            onWellClick,
         } = this.props;
 
         return (
@@ -57,7 +57,6 @@ class Plate extends React.Component<PlateProps, {}> {
                     displayBackground={this.wellColorSelector}
                     displayText={Plate.getWellDisplayText}
                     cells={wells}
-                    onCellClick={() => {}}
                     onSelectedCellsChanged={onWellClick}
                 />
             </div>

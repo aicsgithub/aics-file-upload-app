@@ -32,7 +32,7 @@ const associateFileAndWellLogic = createLogic({
         const state = getState();
         action.payload = {
             ...action.payload,
-            barcode: getSelectedBarcode(state)
+            barcode: getSelectedBarcode(state),
         };
         next(batchActions([
             action,

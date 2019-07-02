@@ -22,7 +22,7 @@ describe("App selectors", () => {
             });
 
             const file1Tags = map.get(filePath1) || [];
-            expect(file1Tags.length).to.equal(1);
+            expect(file1Tags.length).to.equal(2);
             expect(get(file1Tags, [0, "title"])).to.equal("A1");
 
             const file2Tags = map.get(filePath2) || [];

@@ -24,18 +24,19 @@ export function associateFilesAndWell(fullPaths: string[], wellIds: number[], we
             barcode: "",
             fullPaths,
             wellIds,
-            wellLabels
+            wellLabels,
         },
         type: ASSOCIATE_FILES_AND_WELL,
     };
 }
 
-export function undoFileWellAssociation(fullPath: string, wellIds: number[], wellLabels: string[]): UndoFileWellAssociationAction {
+export function undoFileWellAssociation(fullPath: string, wellIds: number[], wellLabels: string[])
+    : UndoFileWellAssociationAction {
     return {
         payload: {
             fullPath,
             wellIds,
-            wellLabels
+            wellLabels,
         },
         type: UNDO_FILE_WELL_ASSOCIATION,
     };

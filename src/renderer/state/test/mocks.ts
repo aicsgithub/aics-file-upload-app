@@ -24,8 +24,8 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     page: Page.DragAndDrop,
-    stagedFiles: [],
     selectedWells: [],
+    stagedFiles: [],
     wells: [],
 };
 

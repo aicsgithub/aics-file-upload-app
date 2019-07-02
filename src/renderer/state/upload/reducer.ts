@@ -39,8 +39,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
                     ...accum[fullPath],
                     barcode,
                     wellIds: accum[fullPath] ? [...accum[fullPath].wellIds, ...wellIds] : wellIds,
-                    wellLabels: accum[fullPath] ? [...accum[fullPath].wellLabels, ...wellLabels] : wellLabels
-                }
+                    wellLabels: accum[fullPath] ? [...accum[fullPath].wellLabels, ...wellLabels] : wellLabels,
+                },
             }), nextState);
         },
     },
@@ -51,10 +51,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
             ...state,
             [action.payload.fullPath]: {
                 ...state[action.payload.fullPath],
-                wellIds: state[action.payload.fullPath].wellIds.filter(wellId => (
+                wellIds: state[action.payload.fullPath].wellIds.filter((wellId) => (
                     !action.payload.wellIds.includes(wellId)
                 )),
-                wellLabels: state[action.payload.fullPath].wellLabels.filter(wellLabel => (
+                wellLabels: state[action.payload.fullPath].wellLabels.filter((wellLabel) => (
                     !action.payload.wellLabels.includes(wellLabel)
                 )),
             },

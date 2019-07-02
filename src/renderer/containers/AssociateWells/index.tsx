@@ -23,8 +23,8 @@ import {
 } from "../../state/upload/types";
 import { getWellLabel } from "../../util";
 
-import { GridCell } from "./grid-cell";
 import { AicsGridCell } from "@aics/aics-react-labkey";
+import { GridCell } from "./grid-cell";
 
 const styles = require("./style.pcss");
 
@@ -57,13 +57,15 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
 
     public render() {
         const { className, canRedo, canUndo, selectedFiles, selectedWells, wells, wellIdToFiles } = this.props;
-        const wellLabels = selectedWells.map(well => getWellLabel(well));
-        const selectedWellsData = wells ? selectedWells.map(well => wells[well.row][well.col]) : [];
+        const wellLabels = selectedWells.map((well) => getWellLabel(well));
+        const selectedWellsData = wells ? selectedWells.map((well) => wells[well.row][well.col]) : [];
         const files = [...selectedWellsData.reduce((set, well) => {
             const filesForWell = wellIdToFiles.get(well.wellId);
-            filesForWell && filesForWell.forEach(file => {
-                set.add(file)
-            });
+            if (filesForWell) {
+                filesForWell.forEach((file) => {
+                    set.add(file);
+                });
+            }
             return set;
         }, new Set())];
 
@@ -103,14 +105,14 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     }
 
     public selectWells(cells: AicsGridCell[]): void {
-        const gridCells = cells.map(cell => new GridCell(cell.row, cell.col));
+        const gridCells = cells.map((cell) => new GridCell(cell.row, cell.col));
         this.props.selectWells(gridCells);
     }
 
     private undoAssociation(file: string): void {
         const { selectedWells, wells } = this.props;
-        const wellIds = wells ? selectedWells.map(well => wells[well.row][well.col].wellId) : [];
-        const wellLabels = wells ? selectedWells.map(well => getWellLabel(well)) : [];
+        const wellIds = wells ? selectedWells.map((well) => wells[well.row][well.col].wellId) : [];
+        const wellLabels = wells ? selectedWells.map((well) => getWellLabel(well)) : [];
         this.props.undoAssociation(file, wellIds, wellLabels);
     }
 
@@ -124,8 +126,8 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
 
         if (this.canAssociate() && wells) {
             const { selectedFiles, selectedWells } = this.props;
-            const wellLabels = selectedWells.map(well => getWellLabel(well));
-            const wellIds = selectedWells.map(well => wells[well.row][well.col].wellId);
+            const wellLabels = selectedWells.map((well) => getWellLabel(well));
+            const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
             this.props.associateFilesAndWell(selectedFiles, wellIds, wellLabels);
         }
     }

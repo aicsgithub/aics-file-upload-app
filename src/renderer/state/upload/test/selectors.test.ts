@@ -87,6 +87,12 @@ describe("Upload selectors", () => {
                         wellIds: [4],
                         wellLabels: ["A1"],
                     },
+                    "/path/to/multi-well.txt": {
+                        barcode: "456",
+                        plateId: 7,
+                        wellIds: [5, 6, 7],
+                        wellLabels: ["A1", "A2", "A3"],
+                    },
                     "/path/to/no-extension": {
                         barcode: "888",
                         plateId: 7,
@@ -104,12 +110,6 @@ describe("Upload selectors", () => {
                         plateId: 7,
                         wellIds: [5],
                         wellLabels: ["A1"],
-                    },
-                    "/path/to/multi-well.txt": {
-                        barcode: "456",
-                        plateId: 7,
-                        wellIds: [5, 6, 7],
-                        wellLabels: ["A1", "A2", "A3"],
                     },
                 }),
             };
@@ -154,6 +154,14 @@ describe("Upload selectors", () => {
                         wellIds: [4],
                     },
                 },
+                "/path/to/multi-well.txt": {
+                    file: {
+                        fileType: FileType.TEXT,
+                    },
+                    microscopy: {
+                        wellIds: [5, 6, 7],
+                    },
+                },
                 "/path/to/no-extension": {
                     file: {
                         fileType: FileType.OTHER,
@@ -176,14 +184,6 @@ describe("Upload selectors", () => {
                     },
                     microscopy: {
                         wellIds: [5],
-                    },
-                },
-                "/path/to/multi-well.txt": {
-                    file: {
-                        fileType: FileType.TEXT,
-                    },
-                    microscopy: {
-                        wellIds: [5, 6, 7],
                     },
                 },
             };

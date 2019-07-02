@@ -22,8 +22,8 @@ describe("Upload logics", () => {
             expect(getSelectedFiles(store.getState())).to.be.empty;
 
             const upload = getUpload(store.getState());
-            expect(get(upload, [file1, "wellId"])).to.equal(wellId);
-            expect(get(upload, [file2, "wellId"])).to.equal(wellId);
+            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
         });
     });
 

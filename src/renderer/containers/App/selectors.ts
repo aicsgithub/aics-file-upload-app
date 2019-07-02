@@ -25,8 +25,8 @@ Map<string, FileTag[]> => {
         // Don't include JavaScript object meta properties
         if (upload.hasOwnProperty(fullPath)) {
             const metadata = upload[fullPath];
-            const tags = metadata.wellIds.map(wellId => (
-                new WellFileTag(wellIdToWellLabel.get(wellId) || '')
+            const tags = metadata.wellIds.map((wellId) => (
+                new WellFileTag(wellIdToWellLabel.get(wellId) || "")
             ));
 
             fullPathToTags.set(fullPath, tags);
