@@ -1,5 +1,5 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
-import { MetadataStateBranch } from "../metadata/types";
+import {BarcodePrefix, ImagingSession, MetadataStateBranch} from "../metadata/types";
 import { Audited } from "../types";
 
 export interface UploadFile {
@@ -17,7 +17,9 @@ export interface DeselectFilesAction {
 
 export interface SelectionStateBranch {
     barcode?: string;
+    barcodePrefix?: BarcodePrefix;
     files: string[];
+    imagingSession?: ImagingSession;
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
     plate?: PlateResponse;
@@ -159,6 +161,11 @@ export interface SelectBarcodeAction {
         imagingSessionId?: number;
         imagingSessionIds: number[];
     };
+    type: string;
+}
+
+export interface SelectBarcodePrefixAction {
+    payload: BarcodePrefix;
     type: string;
 }
 

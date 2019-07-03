@@ -1,4 +1,5 @@
 import { AxiosError, AxiosResponse } from "axios";
+import { ipcRenderer } from "electron";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -10,8 +11,29 @@ import { AlertType } from "../feedback/types";
 import { ReduxLogicNextCb, ReduxLogicProcessDependencies, ReduxLogicTransformDependencies } from "../types";
 
 import { receiveMetadata } from "./actions";
-import { GET_IMAGING_SESSIONS, REQUEST_METADATA } from "./constants";
+import {CREATE_BARCODE, GET_BARCODE_PREFIXES, GET_IMAGING_SESSIONS, REQUEST_METADATA} from "./constants";
 import { LabkeyUnit, Unit } from "./types";
+import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
+
+const createBarcode = createLogic({
+    transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const prefixId = action.prefixId;
+            const imagingSessionId = action.imagingSessionId;
+            const barcode = await LabkeyClient.Create.barcode(httpClient, prefixId);
+            next(receiveMetadata({
+                barcode,
+            }));
+            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, imagingSessionId);
+        } catch (ex) {
+            next(setAlert({
+                message: "Could not create barcode metadata",
+                type: AlertType.ERROR,
+            }));
+        }
+    },
+    type: CREATE_BARCODE,
+});
 
 const requestMetadata = createLogic({
     process: ({httpClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
@@ -60,7 +82,26 @@ const requestImagingSessions = createLogic({
     type: GET_IMAGING_SESSIONS,
 });
 
+// TODO: Make this a part of getting the metadata?
+const requestBarcodePrefixes = createLogic({
+    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const barcodePrefixes = await LabkeyClient.Get.barcodePrefixes(httpClient);
+            next(receiveMetadata({
+                barcodePrefixes,
+            }));
+        } catch (ex) {
+            next(setAlert({
+                message: "Could not retrieve barcode prefix metadata",
+                type: AlertType.ERROR,
+            }));
+        }
+    },
+    type: GET_BARCODE_PREFIXES,
+});
+
 export default [
     requestMetadata,
     requestImagingSessions,
+    requestBarcodePrefixes
 ];

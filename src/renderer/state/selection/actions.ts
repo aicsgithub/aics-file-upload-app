@@ -10,7 +10,7 @@ import {
     JUMP_TO_PAST_SELECTION,
     LOAD_FILES,
     OPEN_FILES,
-    SELECT_BARCODE,
+    SELECT_BARCODE, SELECT_BARCODE_PREFIX,
     SELECT_FILE,
     SELECT_PAGE,
     SET_PLATE,
@@ -31,7 +31,7 @@ import {
     NextPageAction,
     Page,
     PlateResponse,
-    SelectBarcodeAction,
+    SelectBarcodeAction, SelectBarcodePrefixAction,
     SelectFileAction,
     SelectPageAction,
     SetPlateAction,
@@ -41,6 +41,7 @@ import {
     UploadFile,
     WellResponse,
 } from "./types";
+import {BarcodePrefix} from "../metadata/types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
     return {
@@ -105,6 +106,13 @@ export function selectBarcode(
     return {
         payload: { barcode, imagingSessionId, imagingSessionIds },
         type: SELECT_BARCODE,
+    };
+}
+
+export function selectBarcodePrefix(barcodePrefix: BarcodePrefix): SelectBarcodePrefixAction {
+    return {
+        payload: barcodePrefix,
+        type: SELECT_BARCODE_PREFIX,
     };
 }
 

@@ -1,5 +1,7 @@
 export interface MetadataStateBranch {
+    barcode: string;
     imagingSessions: ImagingSession[];
+    barcodePrefixes: BarcodePrefix[];
     units: Unit[];
     // Gets updated every time app changes pages.
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
@@ -7,6 +9,12 @@ export interface MetadataStateBranch {
         selection: PageToIndexMap;
         upload: PageToIndexMap;
     };
+}
+
+export interface BarcodePrefix {
+    description: string;
+    prefixId: number;
+    prefix: string;
 }
 
 export interface ImagingSession {
@@ -40,7 +48,19 @@ export interface UpdatePageHistoryMapAction {
     type: string;
 }
 
+export interface CreateBarcodeAction {
+    payload: {
+        prefixId: number,
+        imagingSessionId: number
+    };
+    type: string;
+}
+
 export interface GetImagingSessionsAction {
+    type: string;
+}
+
+export interface GetBarcodePrefixesAction {
     type: string;
 }
 

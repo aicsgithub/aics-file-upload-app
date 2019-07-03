@@ -113,7 +113,7 @@ const startUpload = async (event: Event, uploads: Uploads, jobName: string) => {
 
 ipcMain.on(START_UPLOAD, startUpload);
 
-ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any) => {
+ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, imagingSessionId: number) => {
     const child: BrowserWindow = new BrowserWindow({
         parent: mainWindow,
         show: false,
@@ -121,7 +121,9 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any) => {
             nodeIntegration: false,
         },
     });
-    const modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}/labkey/aics_microscopy/AICS/plateStandalone.view`;
+    const imagingSessionQuery = imagingSessionId && `&ImagingSessionId=${imagingSessionId}`;
+    const modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}/labkey/aics_microscopy/AICS/plateStandalone.view?
+                        Barcode=${barcode}${imagingSessionQuery}`;
     child.loadURL(modalUrl);
     child.once("ready-to-show", () => {
         child.show();
@@ -129,9 +131,7 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any) => {
     child.webContents.on("will-navigate", (e: Event, next: string) => {
         if (next.indexOf("plateStandalone.view") === -1) {
             e.preventDefault();
-            // todo once redirect URL on CreatePlateStandalone includes barcode and plateId, parse these values
-            // and include below
-            event.sender.send(PLATE_CREATED, "barcode");
+            event.sender.send(PLATE_CREATED, barcode, imagingSessionId);
             child.close();
         }
     });

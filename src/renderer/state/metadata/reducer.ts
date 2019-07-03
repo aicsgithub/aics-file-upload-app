@@ -16,6 +16,7 @@ export const initialState = {
         upload: {},
     },
     imagingSessions: [],
+    barcodePrefixes: [],
     units: [],
 };
 

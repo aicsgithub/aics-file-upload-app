@@ -1,4 +1,6 @@
 import {
+    CREATE_BARCODE,
+    GET_BARCODE_PREFIXES,
     GET_IMAGING_SESSIONS,
     RECEIVE_METADATA,
     REQUEST_METADATA,
@@ -6,6 +8,8 @@ import {
 } from "./constants";
 import { initialState } from "./reducer";
 import {
+    CreateBarcodeAction,
+    GetBarcodePrefixesAction,
     GetImagingSessionsAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
@@ -31,6 +35,22 @@ export function requestMetadata(): RequestMetadataAction {
 export function requestImagingSessions(): GetImagingSessionsAction {
     return {
         type: GET_IMAGING_SESSIONS,
+    };
+}
+
+export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
+    return {
+        type: GET_BARCODE_PREFIXES,
+    };
+}
+
+export function createBarcode(prefixId: number, imagingSessionId: number): CreateBarcodeAction {
+    return {
+        payload: {
+            prefixId,
+            imagingSessionId
+        },
+        type: CREATE_BARCODE
     };
 }
 
