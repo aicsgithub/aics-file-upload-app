@@ -128,6 +128,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 onBack={this.props.goBack}
             >
                 <LabKeyOptionSelector
+                    autofocus={true}
                     required={true}
                     async={true}
                     label="Plate Barcode"
