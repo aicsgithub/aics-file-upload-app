@@ -22,7 +22,7 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { ASSOCIATE_FILES_AND_WELL, INITIATE_UPLOAD } from "./constants";
+import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD } from "./constants";
 import { getUploadPayload } from "./selectors";
 
 import { JobStatus } from "../job/types";
@@ -39,7 +39,7 @@ const associateFileAndWellLogic = createLogic({
             deselectFiles(),
         ]));
     },
-    type: ASSOCIATE_FILES_AND_WELL,
+    type: ASSOCIATE_FILES_AND_WELLS,
 });
 
 const initiateUploadLogic = createLogic({

@@ -7,7 +7,7 @@ import { getJobs } from "../../job/selectors";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
-import { associateFilesAndWell, initiateUpload } from "../actions";
+import { associateFilesAndWells, initiateUpload } from "../actions";
 import { getUpload } from "../selectors";
 
 describe("Upload logics", () => {
@@ -18,7 +18,7 @@ describe("Upload logics", () => {
             const file2 = "/path2";
             const wellId = 1;
 
-            store.dispatch(associateFilesAndWell(["/path1", "/path2"], [wellId], ["A1"]));
+            store.dispatch(associateFilesAndWells(["/path1", "/path2"], [wellId], ["A1"]));
             expect(getSelectedFiles(store.getState())).to.be.empty;
 
             const upload = getUpload(store.getState());

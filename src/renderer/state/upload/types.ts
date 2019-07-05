@@ -23,7 +23,7 @@ export interface UploadJobTableRow {
     wellLabels: string;
 }
 
-export interface AssociateFilesAndWellAction {
+export interface AssociateFilesAndWellsAction {
     payload: {
         barcode: string,
         fullPaths: string[],
