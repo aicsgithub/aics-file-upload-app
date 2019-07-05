@@ -172,11 +172,6 @@ export interface SetWellsAction {
     type: string;
 }
 
-export interface SetWellAction {
-    payload: GridCell;
-    type: string;
-}
-
 export interface SelectWellsAction {
     payload: GridCell[];
     type: string;

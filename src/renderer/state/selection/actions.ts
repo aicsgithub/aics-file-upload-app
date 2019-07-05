@@ -15,7 +15,6 @@ import {
     SELECT_PAGE,
     SELECT_WELLS,
     SET_PLATE,
-    SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -37,7 +36,6 @@ import {
     SelectPageAction,
     SelectWellsAction,
     SetPlateAction,
-    SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
     UploadFile,
@@ -121,13 +119,6 @@ export function setWells(wells: WellResponse[]): SetWellsAction {
     return {
         payload: wells,
         type: SET_WELLS,
-    };
-}
-
-export function setWell(well: GridCell): SetWellAction {
-    return {
-        payload: well,
-        type: SET_WELL,
     };
 }
 

@@ -18,7 +18,6 @@ import {
     SELECT_PAGE,
     SELECT_WELLS,
     SET_PLATE,
-    SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -33,7 +32,6 @@ import {
     SelectPageAction,
     SelectWellsAction,
     SetPlateAction,
-    SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
 } from "./types";
@@ -128,13 +126,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
             ...state,
             selectedWells: action.payload,
-        }),
-    },
-    [SET_WELL]: {
-        accepts: (action: AnyAction): action is SetWellAction => action.type === SET_WELL,
-        perform: (state: SelectionStateBranch, action: SetWellAction) => ({
-            ...state,
-            selectedWells: [action.payload],
         }),
     },
 };
