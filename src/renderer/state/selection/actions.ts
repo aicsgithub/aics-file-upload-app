@@ -1,5 +1,6 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
 
+import { BarcodePrefix } from "../metadata/types";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -41,7 +42,6 @@ import {
     UploadFile,
     WellResponse,
 } from "./types";
-import {BarcodePrefix} from "../metadata/types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
     return {

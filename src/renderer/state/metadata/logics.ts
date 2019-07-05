@@ -10,16 +10,22 @@ import { AlertType } from "../feedback/types";
 
 import { ReduxLogicNextCb, ReduxLogicProcessDependencies, ReduxLogicTransformDependencies } from "../types";
 
-import { receiveMetadata } from "./actions";
-import {CREATE_BARCODE, GET_BARCODE_PREFIXES, GET_IMAGING_SESSIONS, REQUEST_METADATA} from "./constants";
-import { LabkeyUnit, Unit } from "./types";
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
+import { receiveMetadata } from "./actions";
+import { CREATE_BARCODE, GET_BARCODE_PREFIXES, GET_IMAGING_SESSIONS, REQUEST_METADATA } from "./constants";
+import { LabkeyUnit, Unit } from "./types";
 
 const createBarcode = createLogic({
     transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const prefixId = action.prefixId;
-            const imagingSessionId = action.imagingSessionId;
+            const { prefixId, imagingSession} = action.payload;
+            let imagingSessionId = imagingSession && imagingSession.imagingSessionId;
+            // LabKeyOptionSelector has a notable behavior where when you ask it to "Create an option" it will
+            // set the id to be the same as the name, we are using that behavior here to see if it is an option that
+            // needs to be entered into the database - Sean M 07/05/19
+            if (imagingSession && imagingSessionId === imagingSession.name) {
+                imagingSessionId = await LabkeyClient.Create.imagingSession(httpClient, imagingSession.name);
+            }
             const barcode = await LabkeyClient.Create.barcode(httpClient, prefixId);
             next(receiveMetadata({
                 barcode,
@@ -82,7 +88,7 @@ const requestImagingSessions = createLogic({
     type: GET_IMAGING_SESSIONS,
 });
 
-// TODO: Make this a part of getting the metadata?
+// TODO: Should this be a part of getting the metadata or is it preferred to have these sorts of things spread out?
 const requestBarcodePrefixes = createLogic({
     transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
@@ -101,7 +107,8 @@ const requestBarcodePrefixes = createLogic({
 });
 
 export default [
+    createBarcode,
     requestMetadata,
     requestImagingSessions,
-    requestBarcodePrefixes
+    requestBarcodePrefixes,
 ];

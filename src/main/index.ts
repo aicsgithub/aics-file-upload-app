@@ -121,10 +121,10 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, imagingSe
             nodeIntegration: false,
         },
     });
+    const modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}/labkey/aics_microscopy/AICS/plateStandalone.view?`;
     const imagingSessionQuery = imagingSessionId && `&ImagingSessionId=${imagingSessionId}`;
-    const modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}/labkey/aics_microscopy/AICS/plateStandalone.view?
-                        Barcode=${barcode}${imagingSessionQuery}`;
-    child.loadURL(modalUrl);
+    const urlWithQuery = `${modalUrl}Barcode=${barcode}${imagingSessionQuery}`;
+    child.loadURL(urlWithQuery);
     child.once("ready-to-show", () => {
         child.show();
     });

@@ -1,5 +1,5 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import {Button, Col, Radio, Row} from "antd";
+import { Button, Col, Radio, Row } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
@@ -13,10 +13,15 @@ import FormPage from "../../components/FormPage";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
-import {createBarcode, requestBarcodePrefixes, requestImagingSessions} from "../../state/metadata/actions";
-import {getBarcodePrefixes, getImagingSessions} from "../../state/metadata/selectors";
 import {
-    BarcodePrefix, CreateBarcodeAction,
+    createBarcode,
+    requestBarcodePrefixes,
+    requestImagingSessions
+} from "../../state/metadata/actions";
+import { getBarcodePrefixes, getImagingSessions } from "../../state/metadata/selectors";
+import {
+    BarcodePrefix,
+    CreateBarcodeAction,
     GetBarcodePrefixesAction,
     GetImagingSessionsAction,
     ImagingSession
@@ -116,7 +121,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             imagingSession: props.selectedImagingSession || undefined,
             imagingSessionId: props.selectedImagingSessionId,
             imagingSessionIds: props.selectedImagingSessionIds,
-            showCreateBarcodeForm: false
+            showCreateBarcodeForm: false,
         };
         this.createBarcode = this.createBarcode.bind(this);
         this.setBarcode = this.setBarcode.bind(this);
@@ -164,51 +169,48 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 <a href="#" className={styles.createBarcodeLink} onClick={this.toggleCreateBarcodeForm}>
                     I don't have a barcode
                 </a>
-                {this.renderBarcodeForm()}
+                {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : <div/>}
                 {this.renderPlateOptions()}
             </FormPage>
         );
     }
 
     private renderBarcodeForm = (): JSX.Element | null => {
-        if (!this.state.showCreateBarcodeForm) {
-            return <div/>;
-        }
         const { barcodePrefix, imagingSession } = this.state;
         const { barcodePrefixes, imagingSessions } = this.props;
 
         return (
             <Row>
-                <Col xs={8}>
+                <Col xs={8} md={10}>
                     <LabKeyOptionSelector
-                        required
+                        required={true}
                         label="Barcode Prefix"
                         optionIdKey="prefixId"
                         optionNameKey="description"
                         selected={barcodePrefix}
                         onOptionSelection={this.setBarcodePrefixOption}
-                        options={barcodePrefixes || []}
+                        options={barcodePrefixes}
                         placeholder="Select Barcode Prefix"
                     />
                 </Col>
-                <Col xs={8}>
+                <Col xs={8} md={10}>
                     <LabKeyOptionSelector
-                        creatable
+                        creatable={true}
                         label="Imaging Session"
                         optionIdKey="imagingSessionId"
                         optionNameKey="name"
                         selected={imagingSession}
                         onOptionSelection={this.setImagingSessionOption}
-                        options={imagingSessions || []}
+                        options={imagingSessions}
                         placeholder="Select or Create Imaging Session"
-                        onCreateOptionClicked={() => { console.log('clicked'); }}
                     />
                 </Col>
-                <Col xs={8}>
+                <Col xs={8} md={4}>
                     <Button
                         disabled={!barcodePrefix}
                         onClick={this.createBarcode}
                         size="large"
+                        style={{ float: "right", marginTop: "24px" }}
                         type="primary"
                     >Create
                     </Button>
@@ -259,7 +261,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     }
 
     private toggleCreateBarcodeForm(): void {
-        this.setState({ showCreateBarcodeForm: !this.state.showCreateBarcodeForm })
+        this.setState({ showCreateBarcodeForm: !this.state.showCreateBarcodeForm });
     }
 
     private getImagingSessionName = (id: number | null) => {
@@ -303,7 +305,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const { barcodePrefix, imagingSession } = this.state;
         if (barcodePrefix) {
             this.toggleCreateBarcodeForm();
-            this.props.createBarcode(barcodePrefix.prefixId, imagingSession && imagingSession.imagingSessionId);
+            this.props.createBarcode(barcodePrefix.prefixId, imagingSession);
         }
     }
 
@@ -325,8 +327,8 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 
 function mapStateToProps(state: State) {
     return {
-        imagingSessions: getImagingSessions(state),
         barcodePrefixes: getBarcodePrefixes(state),
+        imagingSessions: getImagingSessions(state),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
         selectedBarcode: getSelectedBarcode(state),
         selectedBarcodePrefix: getSelectedBarcodePrefix(state),
@@ -337,9 +339,9 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
-    getImagingSessions: requestImagingSessions,
-    getBarcodePrefixes: requestBarcodePrefixes,
     createBarcode,
+    getBarcodePrefixes: requestBarcodePrefixes,
+    getImagingSessions: requestImagingSessions,
     goBack,
     selectBarcode,
     setAlert,

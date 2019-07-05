@@ -1,5 +1,5 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
-import {BarcodePrefix, ImagingSession, MetadataStateBranch} from "../metadata/types";
+import { BarcodePrefix, ImagingSession, MetadataStateBranch } from "../metadata/types";
 import { Audited } from "../types";
 
 export interface UploadFile {

@@ -1,5 +1,5 @@
 export interface MetadataStateBranch {
-    barcode: string;
+    barcode?: string;
     imagingSessions: ImagingSession[];
     barcodePrefixes: BarcodePrefix[];
     units: Unit[];
@@ -51,7 +51,7 @@ export interface UpdatePageHistoryMapAction {
 export interface CreateBarcodeAction {
     payload: {
         prefixId: number,
-        imagingSessionId: number
+        imagingSession: ImagingSession
     };
     type: string;
 }

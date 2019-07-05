@@ -11,12 +11,13 @@ import {
 } from "./types";
 
 export const initialState = {
+    barcode: undefined,
+    barcodePrefixes: [],
     history: {
         selection: {},
         upload: {},
     },
     imagingSessions: [],
-    barcodePrefixes: [],
     units: [],
 };
 
