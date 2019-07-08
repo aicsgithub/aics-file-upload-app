@@ -19,13 +19,7 @@ const createBarcode = createLogic({
     transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             const { prefixId, imagingSession} = action.payload;
-            let imagingSessionId = imagingSession && imagingSession.imagingSessionId;
-            // LabKeyOptionSelector has a notable behavior where when you ask it to "Create an option" it will
-            // set the id to be the same as the name, we are using that behavior here to see if it is an option that
-            // needs to be entered into the database - Sean M 07/05/19
-            if (imagingSession && imagingSessionId === imagingSession.name) {
-                imagingSessionId = await LabkeyClient.Create.imagingSession(httpClient, imagingSession.name);
-            }
+            const imagingSessionId = imagingSession && imagingSession.imagingSessionId;
             const barcode = await LabkeyClient.Create.barcode(httpClient, prefixId);
             next(receiveMetadata({
                 barcode,

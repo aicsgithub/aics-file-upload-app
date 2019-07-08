@@ -1,5 +1,5 @@
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession } from "../../util/labkey-client";
+import { LabkeyImagingSession } from "../../util/labkey-client/Get";
 import { Job, JobStateBranch, JobStatus } from "../job/types";
 
 import { Unit } from "../metadata/types";
@@ -39,6 +39,7 @@ export const mockState: State = {
         jobs: [],
     },
     metadata: {
+        barcodePrefixes: [],
         history: {
             selection: {},
             upload: {},

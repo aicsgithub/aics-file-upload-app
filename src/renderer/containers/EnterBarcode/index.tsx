@@ -195,7 +195,6 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 </Col>
                 <Col xs={8} md={10}>
                     <LabKeyOptionSelector
-                        creatable={true}
                         label="Imaging Session"
                         optionIdKey="imagingSessionId"
                         optionNameKey="name"
