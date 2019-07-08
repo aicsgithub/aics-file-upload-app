@@ -5,7 +5,7 @@ import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { State } from "../types";
 
-export const getJobs = (state: State) => state.job.jobs;
+export const getJobs = (state: State) => state.job.uploadJobs;
 
 export const getJobsForTable = createSelector([getJobs], (jobs: JSSJob[]): UploadSummaryTableRow[] => {
     return orderBy(jobs.map(({created, currentStage, jobId}) => ({

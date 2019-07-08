@@ -1,15 +1,7 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
 export interface JobStateBranch {
-    jobs: JSSJob[];
-}
-
-// TODO Remove?
-export enum JobStatus {
-    NOT_STARTED = "NOT_STARTED", // This will get used for drafts eventually when saving drafts is possible
-    IN_PROGRESS = "IN_PROGRESS",
-    COMPLETE = "COMPLETE",
-    FAILED = "FAILED",
+    uploadJobs: JSSJob[];
 }
 
 export interface RetrieveJobsAction {

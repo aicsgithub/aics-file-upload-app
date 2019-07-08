@@ -7,7 +7,7 @@ import { getJobsForTable } from "../selectors";
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
         it("converts jobs in redux store to objects used by upload summary page", () => {
-            const jobs = nonEmptyJobStateBranch.jobs;
+            const jobs = nonEmptyJobStateBranch.uploadJobs;
             const jobTableRows = getJobsForTable({
                 ...mockState,
                 job: {...nonEmptyJobStateBranch},

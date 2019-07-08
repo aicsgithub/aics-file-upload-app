@@ -11,8 +11,8 @@ import { RETRIEVE_JOBS } from "./constants";
 const retrieveJobsLogic = createLogic({
     transform: async ({ action, jssClient }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            // get all jobs for user from jss
-            // TODO in the future allow user to set params for querying for jobs
+            // get all uploadJobs for user from jss
+            // TODO in the future allow user to set params for querying for uploadJobs
             const jobs = await jssClient.getJobs({
                 user: userInfo().username,
             });

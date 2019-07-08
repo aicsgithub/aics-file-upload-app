@@ -37,7 +37,7 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
-        jobs: [],
+        uploadJobs: [],
     },
     metadata: {
         history: {
@@ -141,7 +141,7 @@ export const mockJob3: JSSJob = {
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
-    jobs: [mockJob, mockJob2, mockJob3],
+    uploadJobs: [mockJob, mockJob2, mockJob3],
 };
 
 export const mockImagingSessions: LabkeyImagingSession[] = [
