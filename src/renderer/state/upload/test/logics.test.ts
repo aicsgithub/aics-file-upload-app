@@ -3,7 +3,7 @@ import { get } from "lodash";
 import { stub } from "sinon";
 
 import { getAlert, getRecentEvent } from "../../feedback/selectors";
-import { getJobs } from "../../job/selectors";
+import { getUploadJobs } from "../../job/selectors";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
@@ -38,7 +38,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(getJobs(state)).to.be.empty;
+            expect(getUploadJobs(state)).to.be.empty;
             expect(getRecentEvent(state)).to.be.undefined;
 
             // apply
@@ -47,7 +47,7 @@ describe("Upload logics", () => {
             // after
             store.subscribe(() => {
                 state = store.getState();
-                expect(getJobs(state).length).to.equal(1);
+                expect(getUploadJobs(state).length).to.equal(1);
                 expect(getRecentEvent(state)).to.not.be.undefined;
                 expect(getAlert(state)).to.be.undefined;
                 done();
@@ -63,7 +63,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(getJobs(state)).to.be.empty;
+            expect(getUploadJobs(state)).to.be.empty;
             expect(getRecentEvent(state)).to.be.undefined;
             expect(getAlert(state)).to.be.undefined;
 
@@ -73,7 +73,7 @@ describe("Upload logics", () => {
             // after
             store.subscribe(() => {
                 state = store.getState();
-                expect(getJobs(state)).to.be.empty;
+                expect(getUploadJobs(state)).to.be.empty;
                 expect(getRecentEvent(state)).to.be.undefined;
                 expect(getAlert(state)).to.not.be.undefined;
                 done();

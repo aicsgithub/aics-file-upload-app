@@ -1,22 +1,22 @@
 import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
-import { SET_JOBS } from "./constants";
-import { JobStateBranch, SetJobsAction } from "./types";
+import { SET_UPLOAD_JOBS } from "./constants";
+import { JobStateBranch, SetUploadJobsAction } from "./types";
 
 export const initialState = {
-    currentJobId: undefined,
-    jobs: [],
+    copyJobs: [],
+    uploadJobs: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [SET_JOBS]: {
-        accepts: (action: AnyAction): action is SetJobsAction => action.type === SET_JOBS,
-        perform: (state: JobStateBranch, action: SetJobsAction) => {
-            const jobs = action.payload;
+    [SET_UPLOAD_JOBS]: {
+        accepts: (action: AnyAction): action is SetUploadJobsAction => action.type === SET_UPLOAD_JOBS,
+        perform: (state: JobStateBranch, action: SetUploadJobsAction) => {
+            const uploadJobs = action.payload;
             return {
                 ...state,
-                jobs,
+                uploadJobs,
             };
         },
     },

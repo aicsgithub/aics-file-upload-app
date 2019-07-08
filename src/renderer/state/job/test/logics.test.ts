@@ -5,7 +5,7 @@ import { getAlert } from "../../feedback/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
 import { retrieveJobs } from "../actions";
-import { getJobs } from "../selectors";
+import { getUploadJobs } from "../selectors";
 
 describe("Job logics", () => {
 
@@ -16,7 +16,7 @@ describe("Job logics", () => {
             });
 
             // before
-            let jobs = getJobs(store.getState());
+            let jobs = getUploadJobs(store.getState());
             expect(jobs).to.be.empty;
 
             // apply
@@ -24,7 +24,7 @@ describe("Job logics", () => {
 
             // after
             store.subscribe(() => {
-                jobs = getJobs(store.getState());
+                jobs = getUploadJobs(store.getState());
                 expect(jobs).to.not.be.empty;
                 done();
             });

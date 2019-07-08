@@ -71,10 +71,12 @@ const initiateUploadLogic = createLogic({
     transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            const now = new Date();
             ctx.name = name;
             next(batchActions([
-                addEvent("Starting upload", AlertType.INFO, now),
+                setAlert({
+                    message: "Starting upload",
+                    type: AlertType.INFO,
+                }),
                 action,
             ]));
         } catch (e) {

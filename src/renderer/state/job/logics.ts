@@ -4,7 +4,7 @@ import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
 import { ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
-import { setJobs } from "./actions";
+import { setUploadJobs } from "./actions";
 
 import { RETRIEVE_JOBS } from "./constants";
 
@@ -16,7 +16,8 @@ const retrieveJobsLogic = createLogic({
             const jobs = await jssClient.getJobs({
                 user: userInfo().username,
             });
-            next(setJobs(jobs));
+            console.log(jobs)
+            next(setUploadJobs(jobs));
         } catch (e) {
             next(setAlert({
                 message: "Error while retrieving jobs: " + e.message,
