@@ -10,8 +10,9 @@ const styles = require("./style.pcss");
 interface WellInfoProps {
     className?: string;
     selectedFilesCount: number;
-    well?: Well;
-    wellLabel: string;
+    selectedWellLabels: string[];
+    selectedWells: Well[];
+    wellLabels: string[];
     files: string[];
     associate: () => void;
     undoAssociation: (file: string) => void;
@@ -22,7 +23,7 @@ interface WellInfoProps {
     canRedo: boolean;
 }
 
-class SelectedWellCard extends React.Component<WellInfoProps, {}> {
+class SelectedWellsCard extends React.Component<WellInfoProps, {}> {
     public render() {
         const {
             associate,
@@ -35,13 +36,14 @@ class SelectedWellCard extends React.Component<WellInfoProps, {}> {
             selectedFilesCount,
             undoAssociation,
             undoLastAssociation,
-            well,
-            wellLabel,
+            selectedWellLabels,
+            selectedWells,
+            wellLabels,
         } = this.props;
 
         const title = (
             <div className={styles.titleRow}>
-                <div className={styles.title}>Selected Well: {wellLabel}</div>
+                <div className={styles.title}>Selected Well(s): {wellLabels.sort().join(", ")}</div>
 
                 <div className={styles.titleButtons}>
                     <Button
@@ -72,13 +74,19 @@ class SelectedWellCard extends React.Component<WellInfoProps, {}> {
                             undoAssociation={undoAssociation}
                         />
                     </Tabs.TabPane>
-                    <Tabs.TabPane tab="Well Info" key="info" className={styles.tabPane}>
-                        <WellInfo className={styles.tabPane} well={well}/>
-                    </Tabs.TabPane>
+                    {selectedWells.map((well, i) => (
+                        <Tabs.TabPane
+                            className={styles.tabPane}
+                            key={selectedWellLabels[i]}
+                            tab={selectedWellLabels[i]}
+                        >
+                            <WellInfo className={styles.tabPane} well={well}/>
+                        </Tabs.TabPane>
+                    ))}
                 </Tabs>
             </Card>
         );
     }
 }
 
-export default SelectedWellCard;
+export default SelectedWellsCard;

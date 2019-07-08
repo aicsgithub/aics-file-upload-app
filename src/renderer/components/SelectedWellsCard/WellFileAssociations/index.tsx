@@ -25,7 +25,7 @@ class WellFileAssociations extends React.Component<WellFileAssociationsProps, {}
 
         return (
             <div className={classNames(styles.cardContent, className)}>
-                <div className={styles.files}>
+                <div className={styles.mutualFiles}>
                     {this.renderFiles()}
                 </div>
                 <div className={styles.addRow}>

@@ -10,12 +10,11 @@ import {
     UPLOAD_FINISHED,
     UPLOAD_PROGRESS,
 } from "../../../shared/constants";
-import { getWellLabel } from "../../util";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 import { addJob, updateJob } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
-import { getSelectedBarcode, getWell } from "../selection/selectors";
+import { getSelectedBarcode } from "../selection/selectors";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -23,7 +22,7 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { ASSOCIATE_FILES_AND_WELL, INITIATE_UPLOAD } from "./constants";
+import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD } from "./constants";
 import { getUploadPayload } from "./selectors";
 
 import { JobStatus } from "../job/types";
@@ -34,14 +33,13 @@ const associateFileAndWellLogic = createLogic({
         action.payload = {
             ...action.payload,
             barcode: getSelectedBarcode(state),
-            wellLabel: getWellLabel(getWell(state)),
         };
         next(batchActions([
             action,
             deselectFiles(),
         ]));
     },
-    type: ASSOCIATE_FILES_AND_WELL,
+    type: ASSOCIATE_FILES_AND_WELLS,
 });
 
 const initiateUploadLogic = createLogic({

@@ -2,6 +2,7 @@ import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession } from "../../util/labkey-client";
 import { Job, JobStateBranch, JobStatus } from "../job/types";
 
+import { GridCell } from "../../containers/AssociateWells/grid-cell";
 import { Unit } from "../metadata/types";
 import { Page, SelectionStateBranch, Well } from "../selection/types";
 import { State } from "../types";
@@ -24,8 +25,8 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     page: Page.DragAndDrop,
+    selectedWells: [],
     stagedFiles: [],
-    well: undefined,
     wells: [],
 };
 
@@ -55,13 +56,18 @@ export const mockState: State = {
     upload: getMockStateWithHistory({
         "/path/to/file1": {
             barcode: "1234",
-            wellId: 1,
-            wellLabel: "A1",
+            wellIds: [1],
+            wellLabels: ["A1"],
         },
         "/path/to/file2": {
             barcode: "1235",
-            wellId: 2,
-            wellLabel: "A2",
+            wellIds: [2],
+            wellLabels: ["A2"],
+        },
+        "/path/to/file3": {
+            barcode: "1236",
+            wellIds: [1, 2, 3],
+            wellLabels: ["A1", "A2", "B1"],
         },
     }),
 };
@@ -106,6 +112,13 @@ export const mockWells: Well[] = [
     mockWell,
     {...mockWell, col: 1, row: 1, wellId: 4},
     {...mockWell, col: 0, row: 1, wellId: 3},
+];
+
+export const mockSelectedWells: GridCell[] = [
+    new GridCell(0, 0),
+    new GridCell(0, 1),
+    new GridCell(1, 0),
+    new GridCell(1, 1),
 ];
 
 export const mockJob: Job = {

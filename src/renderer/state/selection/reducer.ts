@@ -16,8 +16,8 @@ import {
     SELECT_FILE,
     SELECT_METADATA,
     SELECT_PAGE,
+    SELECT_WELLS,
     SET_PLATE,
-    SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -30,8 +30,8 @@ import {
     SelectionStateBranch,
     SelectMetadataAction,
     SelectPageAction,
+    SelectWellsAction,
     SetPlateAction,
-    SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
 } from "./types";
@@ -42,11 +42,11 @@ export const initialState = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     page: Page.DragAndDrop,
+    selectedWells: [],
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
-    well: undefined,
     wells: [],
 };
 
@@ -121,11 +121,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
             wells: action.payload,
         }),
     },
-    [SET_WELL]: {
-        accepts: (action: AnyAction): action is SetWellAction => action.type === SET_WELL,
-        perform: (state: SelectionStateBranch, action: SetWellAction) => ({
+    [SELECT_WELLS]: {
+        accepts: (action: AnyAction): action is SelectWellsAction => action.type === SELECT_WELLS,
+        perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
             ...state,
-            well: action.payload,
+            selectedWells: action.payload,
         }),
     },
 };

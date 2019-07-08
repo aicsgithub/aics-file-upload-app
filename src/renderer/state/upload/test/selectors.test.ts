@@ -27,10 +27,10 @@ describe("Upload selectors", () => {
             const map = getWellIdToFiles({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    "/path1": {barcode, wellId, wellLabel},
-                    "/path2": {barcode, wellId, wellLabel},
-                    "/path3": {barcode, wellId, wellLabel},
-                    "/path4": {barcode, wellId: wellId2, wellLabel: wellLabel2},
+                    "/path1": {barcode, wellIds: [wellId], wellLabels: [wellLabel]},
+                    "/path2": {barcode, wellIds: [wellId], wellLabels: [wellLabel]},
+                    "/path3": {barcode, wellIds: [wellId], wellLabels: [wellLabel]},
+                    "/path4": {barcode, wellIds: [wellId2], wellLabels: [wellLabel2]},
                 }),
             });
 
@@ -60,50 +60,56 @@ describe("Upload selectors", () => {
                     "/path/to.dot/image.tiff": {
                         barcode: "452",
                         plateId: 4,
-                        wellId: 6,
-                        wellLabel: "A1",
+                        wellIds: [6],
+                        wellLabels: ["A1"],
                     },
                     "/path/to/image.czi": {
                         barcode: "567",
                         plateId: 4,
-                        wellId: 1,
-                        wellLabel: "A1",
+                        wellIds: [1],
+                        wellLabels: ["A1"],
                     },
                     "/path/to/image.ome.tiff": {
                         barcode: "123",
                         plateId: 2,
-                        wellId: 2,
-                        wellLabel: "A1",
+                        wellIds: [2],
+                        wellLabels: ["A1"],
                     },
                     "/path/to/image.png": {
                         barcode: "345",
                         plateId: 5,
-                        wellId: 3,
-                        wellLabel: "A1",
+                        wellIds: [3],
+                        wellLabels: ["A1"],
                     },
                     "/path/to/image.tiff": {
                         barcode: "234",
                         plateId: 3,
-                        wellId: 4,
-                        wellLabel: "A1",
+                        wellIds: [4],
+                        wellLabels: ["A1"],
+                    },
+                    "/path/to/multi-well.txt": {
+                        barcode: "456",
+                        plateId: 7,
+                        wellIds: [5, 6, 7],
+                        wellLabels: ["A1", "A2", "A3"],
                     },
                     "/path/to/no-extension": {
                         barcode: "888",
                         plateId: 7,
-                        wellId: 7,
-                        wellLabel: "A1",
+                        wellIds: [7],
+                        wellLabels: ["A1"],
                     },
                     "/path/to/not-image.csv": {
                         barcode: "578",
                         plateId: 7,
-                        wellId: 8,
-                        wellLabel: "A1",
+                        wellIds: [8],
+                        wellLabels: ["A1"],
                     },
                     "/path/to/not-image.txt": {
                         barcode: "456",
                         plateId: 7,
-                        wellId: 5,
-                        wellLabel: "A1",
+                        wellIds: [5],
+                        wellLabels: ["A1"],
                     },
                 }),
             };
@@ -113,7 +119,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                     },
                     microscopy: {
-                        wellId: 6,
+                        wellIds: [6],
                     },
                 },
                 "/path/to/image.czi": {
@@ -121,7 +127,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                     },
                     microscopy: {
-                        wellId: 1,
+                        wellIds: [1],
                     },
                 },
                 "/path/to/image.ome.tiff": {
@@ -129,7 +135,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                     },
                     microscopy: {
-                        wellId: 2,
+                        wellIds: [2],
                     },
                 },
                 "/path/to/image.png": {
@@ -137,7 +143,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                     },
                     microscopy: {
-                        wellId: 3,
+                        wellIds: [3],
                     },
                 },
                 "/path/to/image.tiff": {
@@ -145,7 +151,15 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                     },
                     microscopy: {
-                        wellId: 4,
+                        wellIds: [4],
+                    },
+                },
+                "/path/to/multi-well.txt": {
+                    file: {
+                        fileType: FileType.TEXT,
+                    },
+                    microscopy: {
+                        wellIds: [5, 6, 7],
                     },
                 },
                 "/path/to/no-extension": {
@@ -153,7 +167,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.OTHER,
                     },
                     microscopy: {
-                        wellId: 7,
+                        wellIds: [7],
                     },
                 },
                 "/path/to/not-image.csv": {
@@ -161,7 +175,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.CSV,
                     },
                     microscopy: {
-                        wellId: 8,
+                        wellIds: [8],
                     },
                 },
                 "/path/to/not-image.txt": {
@@ -169,7 +183,7 @@ describe("Upload selectors", () => {
                         fileType: FileType.TEXT,
                     },
                     microscopy: {
-                        wellId: 5,
+                        wellIds: [5],
                     },
                 },
             };

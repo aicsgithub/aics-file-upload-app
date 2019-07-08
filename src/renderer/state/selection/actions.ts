@@ -13,8 +13,8 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_PAGE,
+    SELECT_WELLS,
     SET_PLATE,
-    SET_WELL,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -34,8 +34,8 @@ import {
     SelectBarcodeAction,
     SelectFileAction,
     SelectPageAction,
+    SelectWellsAction,
     SetPlateAction,
-    SetWellAction,
     SetWellsAction,
     UpdateStagedFilesAction,
     UploadFile,
@@ -122,10 +122,10 @@ export function setWells(wells: WellResponse[]): SetWellsAction {
     };
 }
 
-export function setWell(well: GridCell): SetWellAction {
+export function selectWells(wells: GridCell[]): SelectWellsAction {
     return {
-        payload: well,
-        type: SET_WELL,
+        payload: wells,
+        type: SELECT_WELLS,
     };
 }
 

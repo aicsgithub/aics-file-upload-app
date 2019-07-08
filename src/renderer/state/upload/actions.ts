@@ -1,5 +1,5 @@
 import {
-    ASSOCIATE_FILES_AND_WELL,
+    ASSOCIATE_FILES_AND_WELLS,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOAD,
     INITIATE_UPLOAD,
@@ -8,7 +8,7 @@ import {
     UNDO_FILE_WELL_ASSOCIATION
 } from "./constants";
 import {
-    AssociateFilesAndWellAction,
+    AssociateFilesAndWellsAction,
     ClearUploadHistoryAction,
     InitiateUploadAction,
     JumpToPastUploadAction,
@@ -17,22 +17,27 @@ import {
     UndoFileWellAssociationAction
 } from "./types";
 
-export function associateFilesAndWell(fullPaths: string[], wellId: number)
-    : AssociateFilesAndWellAction {
+export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
+    : AssociateFilesAndWellsAction {
     return {
         payload: {
             barcode: "",
             fullPaths,
-            wellId,
-            wellLabel: "",
+            wellIds,
+            wellLabels,
         },
-        type: ASSOCIATE_FILES_AND_WELL,
+        type: ASSOCIATE_FILES_AND_WELLS,
     };
 }
 
-export function undoFileWellAssociation(fullPath: string): UndoFileWellAssociationAction {
+export function undoFileWellAssociation(fullPath: string, wellIds: number[], wellLabels: string[])
+    : UndoFileWellAssociationAction {
     return {
-        payload: fullPath,
+        payload: {
+            fullPath,
+            wellIds,
+            wellLabels,
+        },
         type: UNDO_FILE_WELL_ASSOCIATION,
     };
 }
