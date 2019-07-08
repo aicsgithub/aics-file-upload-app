@@ -23,9 +23,6 @@ export const RECEIVED_JOB_ID = "RECEIVED_JOB_ID";
 // emitted by main process when user wants to switch environments
 export const SET_LIMS_URL = "SET_LIMS_URL";
 
-// emitted by aicsfiles after copying files to incoming directory
-export const COPY_COMPLETE = "COPY_COMPLETE";
-
 // emitted by main process when user tries to exit the app
 export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 

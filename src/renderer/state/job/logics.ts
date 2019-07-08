@@ -1,29 +1,32 @@
+import { userInfo } from "os";
 import { createLogic } from "redux-logic";
+import { setAlert } from "../feedback/actions";
+import { AlertType } from "../feedback/types";
 
 import { ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
+import { setJobs } from "./actions";
 
-import { UPDATE_JOB } from "./constants";
+import { RETRIEVE_JOBS } from "./constants";
 
-const updateJobLogic = createLogic({
-    transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        // const { jobName, job } = action.payload;
-        // const jobs = [...getJobs(getState())];
-        // const index = findIndex(jobs, {name: jobName});
-        // const jobToModify = jobs[index];
-        // if (jobToModify) {
-        //     jobs[index] = {
-        //         ...jobToModify,
-        //         ...omit(job, ["name"]), // name acts as an id so it would be unsafe to change it
-        //     };
-        next(action);
-        // } else {
-        //     next(action);
-        //     throw new JobDoesNotExistError();
-        // }
+const retrieveJobsLogic = createLogic({
+    transform: async ({ action, jssClient }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            // get all jobs for user from jss
+            // TODO in the future allow user to set params for querying for jobs
+            const jobs = await jssClient.getJobs({
+                user: userInfo().username,
+            });
+            next(setJobs(jobs));
+        } catch (e) {
+            next(setAlert({
+                message: "Error while retrieving jobs: " + e.message,
+                type: AlertType.ERROR,
+            }));
+        }
     },
-    type: UPDATE_JOB,
+    type: RETRIEVE_JOBS,
 });
 
 export default [
-    updateJobLogic,
+    retrieveJobsLogic,
 ];

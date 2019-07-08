@@ -1,28 +1,19 @@
-import { ADD_JOB, SET_JOBS, UPDATE_JOB } from "./constants";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+import { RETRIEVE_JOBS, SET_JOBS } from "./constants";
 import {
-    AddJobAction,
-    Job,
+    RetrieveJobsAction,
     SetJobsAction,
-    UpdateJobAction,
 } from "./types";
 
-export function updateJob(jobName: string, job: Partial<Job>): UpdateJobAction {
+export function retrieveJobs(): RetrieveJobsAction {
     return {
-        payload: {jobName, job},
-        type: UPDATE_JOB,
+        type: RETRIEVE_JOBS,
     };
 }
 
-export function setJobs(jobs: Job[]): SetJobsAction {
+export function setJobs(jobs: JSSJob[]): SetJobsAction {
     return {
         payload: jobs,
         type: SET_JOBS,
-    };
-}
-
-export function addJob(job: Job): AddJobAction {
-    return {
-        payload: job,
-        type: ADD_JOB,
     };
 }

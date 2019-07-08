@@ -1,11 +1,13 @@
-import { Table } from "antd";
+import { Button, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
+import { retrieveJobs } from "../../state/job/actions";
 import { getJobsForTable } from "../../state/job/selectors";
+import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
@@ -22,6 +24,7 @@ export interface UploadSummaryTableRow {
 interface Props {
     className?: string;
     jobs: UploadSummaryTableRow[];
+    retrieveJobs: ActionCreator<RetrieveJobsAction>;
     selectPage: ActionCreator<SelectPageAction>;
 }
 
@@ -34,7 +37,7 @@ class UploadSummary extends React.Component<Props, {}> {
         },
         {
             dataIndex: "stage",
-            key: "stage",
+            key: "currentStage",
             title: "Stage",
         },
         {
@@ -47,6 +50,10 @@ class UploadSummary extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props);
         this.state = {};
+    }
+
+    public componentWillMount(): void {
+        this.props.retrieveJobs();
     }
 
     public render() {
@@ -62,6 +69,7 @@ class UploadSummary extends React.Component<Props, {}> {
                 onBack={this.goToDragAndDrop}
                 backButtonName="Create New Upload Job"
             >
+                <Button onClick={this.props.retrieveJobs}>Refresh</Button>
                 <Table columns={this.columns} dataSource={jobs}/>
             </FormPage>
         );
@@ -79,6 +87,7 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
+    retrieveJobs,
     selectPage,
 };
 
