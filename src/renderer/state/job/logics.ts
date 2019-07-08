@@ -3,25 +3,42 @@ import { createLogic } from "redux-logic";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
-import { ReduxLogicNextCb, ReduxLogicTransformDependencies } from "../types";
-import { setUploadJobs } from "./actions";
+import { ReduxLogicDoneCb, ReduxLogicNextCb, ReduxLogicProcessDependencies } from "../types";
+import { setCopyJobs, setUploadJobs } from "./actions";
 
 import { RETRIEVE_JOBS } from "./constants";
 
 const retrieveJobsLogic = createLogic({
-    transform: async ({ action, jssClient }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    process: async ({ action, jssClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
         try {
             // get all uploadJobs for user from jss
             // TODO in the future allow user to set params for querying for uploadJobs
-            const jobs = await jssClient.getJobs({
+            const getUploadJobsPromise = jssClient.getJobs({
+                serviceFields: {
+                    type: "upload",
+                },
+                user: userInfo().username,
+
+            });
+            const getCopyJobsPromise = jssClient.getJobs({
+                serviceFields: {
+                    type: "copy",
+                },
                 user: userInfo().username,
             });
-            next(setUploadJobs(jobs));
+
+            const [uploadJobs, copyJobs] = await Promise.all([getUploadJobsPromise, getCopyJobsPromise]);
+
+            dispatch(setUploadJobs(uploadJobs));
+            dispatch(setCopyJobs(copyJobs));
+            done();
         } catch (e) {
-            next(setAlert({
+            dispatch(setAlert({
                 message: "Error while retrieving jobs: " + e.message,
                 type: AlertType.ERROR,
             }));
+            done();
         }
     },
     type: RETRIEVE_JOBS,

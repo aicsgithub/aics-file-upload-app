@@ -12,13 +12,16 @@ import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 
+const styles = require("./styles.pcss");
+
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow {
     // used by antd's Table component to uniquely identify rows
     key: string;
-    jobId: string;
+    jobName: string;
     stage: string;
-    created: string;
+    status: string;
+    modified: string;
 }
 
 interface Props {
@@ -31,19 +34,24 @@ interface Props {
 class UploadSummary extends React.Component<Props, {}> {
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
-            dataIndex: "jobId",
-            key: "jobId",
-            title: "Job Id",
+            dataIndex: "status",
+            key: "status",
+            title: "Status",
+        },
+        {
+            dataIndex: "jobName",
+            key: "jobName",
+            title: "Job Name",
         },
         {
             dataIndex: "stage",
             key: "currentStage",
-            title: "Stage",
+            title: "Current Stage",
         },
         {
-            dataIndex: "created",
-            key: "created",
-            title: "Created",
+            dataIndex: "modified",
+            key: "modified",
+            title: "Last Modified",
         },
     ];
 
@@ -64,12 +72,14 @@ class UploadSummary extends React.Component<Props, {}> {
         return (
             <FormPage
                 className={className}
-                formTitle="UPLOAD STATUSES"
+                formTitle="UPLOADS"
                 formPrompt=""
                 onBack={this.goToDragAndDrop}
                 backButtonName="Create New Upload Job"
             >
-                <Button onClick={this.props.retrieveJobs}>Refresh</Button>
+                <div className={styles.tableControls}>
+                    <Button onClick={this.props.retrieveJobs}>Refresh</Button>
+                </div>
                 <Table columns={this.columns} dataSource={jobs}/>
             </FormPage>
         );
