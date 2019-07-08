@@ -4,10 +4,9 @@ import * as sinon from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { getSelectedBarcode } from "../../selection/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockBarcodePrefixes, mockImagingSessions, mockState } from "../../test/mocks";
-import { createBarcode, requestBarcodePrefixes, requestImagingSessions } from "../actions";
+import { requestBarcodePrefixes, requestImagingSessions } from "../actions";
 import { getBarcodePrefixes, getImagingSessions } from "../selectors";
 
 describe("Metadata logics", () => {
