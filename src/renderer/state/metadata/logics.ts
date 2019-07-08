@@ -82,7 +82,6 @@ const requestImagingSessions = createLogic({
     type: GET_IMAGING_SESSIONS,
 });
 
-// TODO: Should this be a part of getting the metadata or is it preferred to have these sorts of things spread out?
 const requestBarcodePrefixes = createLogic({
     transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {

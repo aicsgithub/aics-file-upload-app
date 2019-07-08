@@ -51,7 +51,7 @@ export interface UpdatePageHistoryMapAction {
 export interface CreateBarcodeAction {
     payload: {
         prefixId: number,
-        imagingSession: ImagingSession
+        imagingSession?: ImagingSession
     };
     type: string;
 }

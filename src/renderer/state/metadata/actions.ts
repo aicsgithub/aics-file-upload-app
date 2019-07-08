@@ -45,7 +45,7 @@ export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
     };
 }
 
-export function createBarcode(prefixId: number, imagingSession: ImagingSession): CreateBarcodeAction {
+export function createBarcode(prefixId: number, imagingSession?: ImagingSession): CreateBarcodeAction {
     return {
         payload: {
             imagingSession,

@@ -1,5 +1,5 @@
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession } from "../../util/labkey-client/Get";
+import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/Get";
 import { Job, JobStateBranch, JobStatus } from "../job/types";
 
 import { Unit } from "../metadata/types";
@@ -151,5 +151,18 @@ export const mockImagingSessions: LabkeyImagingSession[] = [
         Description: "",
         ImagingSessionId: 2,
         Name: "2 Weeks",
+    },
+];
+
+export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
+    {
+        PlateBarcodePrefixId: 1,
+        Prefix: "AX",
+        TeamName: "Assay Dev",
+    },
+    {
+        PlateBarcodePrefixId: 2,
+        Prefix: "MX",
+        TeamName: "Microscopy",
     },
 ];
