@@ -16,7 +16,6 @@ const retrieveJobsLogic = createLogic({
             const jobs = await jssClient.getJobs({
                 user: userInfo().username,
             });
-            console.log(jobs)
             next(setUploadJobs(jobs));
         } catch (e) {
             next(setAlert({
