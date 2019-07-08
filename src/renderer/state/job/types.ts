@@ -1,5 +1,7 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+
 export interface JobStateBranch {
-    jobs: Job[];
+    jobs: JSSJob[];
 }
 
 // Every group of files associated with an upload represents a job.

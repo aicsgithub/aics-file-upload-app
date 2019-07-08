@@ -1,6 +1,7 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession } from "../../util/labkey-client";
-import { Job, JobStateBranch, JobStatus } from "../job/types";
+import { JobStateBranch } from "../job/types";
 
 import { Unit } from "../metadata/types";
 import { Page, SelectionStateBranch, Well } from "../selection/types";
@@ -108,31 +109,34 @@ export const mockWells: Well[] = [
     {...mockWell, col: 0, row: 1, wellId: 3},
 ];
 
-export const mockJob: Job = {
-    copyComplete: true,
+export const mockJob: JSSJob = {
     created: new Date(),
+    currentStage: "Completed",
     jobId: "123434234",
-    name: "mockJob1",
-    stage: "Completed",
-    status: JobStatus.COMPLETE,
+    jobName: "mockJob1",
+    modified: new Date(),
+    status: "SUCCEEDED",
+    user: "test_user",
 };
 
-export const mockJob2: Job = {
-    copyComplete: true,
+export const mockJob2: JSSJob = {
     created: new Date(),
+    currentStage: "Copying files",
     jobId: "2222222222",
-    name: "mockJob2",
-    stage: "Copying files",
-    status: JobStatus.COMPLETE,
+    jobName: "mockJob2",
+    modified: new Date(),
+    status: "SUCCEEDED",
+    user: "test_user",
 };
 
-export const mockJob3: Job = {
-    copyComplete: false,
+export const mockJob3: JSSJob = {
     created: new Date(),
+    currentStage: "Copy error",
     jobId: "3333333333",
-    name: "mockJob3",
-    stage: "Copy error",
-    status: JobStatus.FAILED,
+    jobName: "mockJob3",
+    modified: new Date(),
+    status: "FAILED",
+    user: "test_user",
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
