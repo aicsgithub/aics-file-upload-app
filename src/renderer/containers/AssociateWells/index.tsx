@@ -82,6 +82,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
             >
                 <SelectedWellsCard
                     className={styles.wellInfo}
+                    selectedWellLabels={this.props.selectedWellLabels}
                     selectedWells={this.props.selectedWellsData}
                     wellLabels={selectedWellLabels}
                     files={this.props.mutualFiles}
@@ -109,8 +110,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     public selectWells(cells: AicsGridCell[]): void {
         const { wells } = this.props;
         if (wells) {
-            const filledCells = cells.filter((cell) =>
-                wells[cell.row][cell.col].solutions.length || wells[cell.row][cell.col].cellPopulations.length);
+            const filledCells = cells.filter((cell) => wells[cell.row][cell.col].modified);
             const gridCells = filledCells.map((cell) => new GridCell(cell.row, cell.col));
             this.props.selectWells(gridCells);
         }
