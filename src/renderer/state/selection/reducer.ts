@@ -13,7 +13,6 @@ import {
     DESELECT_FILES,
     JUMP_TO_PAST_SELECTION,
     SELECT_BARCODE,
-    SELECT_BARCODE_PREFIX,
     SELECT_FILE,
     SELECT_METADATA,
     SELECT_PAGE,
@@ -27,7 +26,6 @@ import {
     DeselectFilesAction,
     Page,
     SelectBarcodeAction,
-    SelectBarcodePrefixAction,
     SelectFileAction,
     SelectionStateBranch,
     SelectMetadataAction,
@@ -39,10 +37,7 @@ import {
 } from "./types";
 
 export const initialState = {
-    barcode: undefined,
-    barcodePrefix: undefined,
     files: [],
-    imagingSession: undefined,
     imagingSessionId: undefined,
     imagingSessionIds: [],
     page: Page.DragAndDrop,
@@ -50,7 +45,6 @@ export const initialState = {
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
-    well: undefined,
     wells: [],
 };
 
@@ -65,13 +59,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [SELECT_BARCODE]: {
         accepts: (action: AnyAction): action is SelectBarcodeAction => action.type === SELECT_BARCODE,
         perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
-            ...state,
-            ...action.payload,
-        }),
-    },
-    [SELECT_BARCODE_PREFIX]: {
-        accepts: (action: AnyAction): action is SelectBarcodePrefixAction => action.type === SELECT_BARCODE_PREFIX,
-        perform: (state: SelectionStateBranch, action: SelectBarcodePrefixAction) => ({
             ...state,
             ...action.payload,
         }),

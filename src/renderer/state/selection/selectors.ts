@@ -10,8 +10,6 @@ import { Solution, SolutionLot, Well, WellResponse } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
-export const getSelectedBarcodePrefix = (state: State) => state.selection.present.barcodePrefix;
-export const getSelectedImagingSession = (state: State) => state.selection.present.imagingSession;
 export const getSelectedPlateId = (state: State) =>
     state.selection.present.plate && state.selection.present.plate.plateId;
 export const getSelectedFiles = (state: State) => state.selection.present.files;

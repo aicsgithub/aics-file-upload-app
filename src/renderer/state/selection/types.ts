@@ -164,11 +164,6 @@ export interface SelectBarcodeAction {
     type: string;
 }
 
-export interface SelectBarcodePrefixAction {
-    payload: BarcodePrefix;
-    type: string;
-}
-
 export interface SetPlateAction {
     payload: PlateResponse;
     type: string;

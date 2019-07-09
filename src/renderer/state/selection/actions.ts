@@ -1,6 +1,5 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
 
-import { BarcodePrefix } from "../metadata/types";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -12,7 +11,6 @@ import {
     LOAD_FILES,
     OPEN_FILES,
     SELECT_BARCODE,
-    SELECT_BARCODE_PREFIX,
     SELECT_FILE,
     SELECT_PAGE,
     SET_PLATE,
@@ -34,7 +32,6 @@ import {
     Page,
     PlateResponse,
     SelectBarcodeAction,
-    SelectBarcodePrefixAction,
     SelectFileAction,
     SelectPageAction,
     SetPlateAction,
@@ -108,13 +105,6 @@ export function selectBarcode(
     return {
         payload: { barcode, imagingSessionId, imagingSessionIds },
         type: SELECT_BARCODE,
-    };
-}
-
-export function selectBarcodePrefix(barcodePrefix: BarcodePrefix): SelectBarcodePrefixAction {
-    return {
-        payload: barcodePrefix,
-        type: SELECT_BARCODE_PREFIX,
     };
 }
 
