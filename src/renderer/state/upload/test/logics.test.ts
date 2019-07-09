@@ -44,14 +44,18 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
+            let doneCalled = false;
             store.subscribe(() => {
-                state = store.getState();
-                const alert = getAlert(state);
-                expect(alert).to.not.be.undefined;
-                if (alert) {
-                    expect(alert.type).to.equal(AlertType.INFO);
+                if (!doneCalled) {
+                    state = store.getState();
+                    const alert = getAlert(state);
+                    expect(alert).to.not.be.undefined;
+                    if (alert) {
+                        expect(alert.type).to.equal(AlertType.INFO);
+                    }
+                    done();
+                    doneCalled = true;
                 }
-                done();
             });
         });
         it("does not add job given invalid metadata", (done) => {
@@ -70,14 +74,18 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
+            let doneCalled = false;
             store.subscribe(() => {
-                state = store.getState();
-                const alert = getAlert(state);
-                expect(alert).to.not.be.undefined;
-                if (alert) {
-                    expect(alert.type).to.equal(AlertType.ERROR);
+                if (!doneCalled) {
+                    state = store.getState();
+                    const alert = getAlert(state);
+                    expect(alert).to.not.be.undefined;
+                    if (alert) {
+                        expect(alert.type).to.equal(AlertType.ERROR);
+                    }
+                    done();
+                    doneCalled = true;
                 }
-                done();
             });
         });
     });
