@@ -113,7 +113,7 @@ const startUpload = async (event: Event, uploads: Uploads, jobName: string) => {
 
 ipcMain.on(START_UPLOAD, startUpload);
 
-ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, imagingSessionId: number) => {
+ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string) => {
     const child: BrowserWindow = new BrowserWindow({
         parent: mainWindow,
         show: false,
@@ -122,15 +122,15 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, imagingSe
         },
     });
     const modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}/labkey/aics_microscopy/AICS/plateStandalone.view?`;
-    const imagingSessionQuery = imagingSessionId && `&ImagingSessionId=${imagingSessionId}`;
-    const urlWithQuery = `${modalUrl}Barcode=${barcode}${imagingSessionQuery}`;
-    child.loadURL(urlWithQuery);
+    child.loadURL(`${modalUrl}Barcode=${barcode}`);
     child.once("ready-to-show", () => {
         child.show();
     });
     child.webContents.on("will-navigate", (e: Event, next: string) => {
         if (next.indexOf("plateStandalone.view") === -1) {
             e.preventDefault();
+            const childURL = new URL(child.webContents.getURL());
+            const imagingSessionId = new URLSearchParams(childURL.search).get("ImagingSessionId");
             event.sender.send(PLATE_CREATED, barcode, imagingSessionId);
             child.close();
         }

@@ -49,10 +49,7 @@ export interface UpdatePageHistoryMapAction {
 }
 
 export interface CreateBarcodeAction {
-    payload: {
-        prefixId: number,
-        imagingSession?: ImagingSession
-    };
+    payload: number;
     type: string;
 }
 

@@ -5,6 +5,7 @@ import { createLogic } from "redux-logic";
 
 import { LABKEY_SELECT_ROWS_URL, LK_MICROSCOPY_SCHEMA } from "../../constants";
 import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
@@ -18,13 +19,8 @@ import { LabkeyUnit, Unit } from "./types";
 const createBarcode = createLogic({
     transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const { prefixId, imagingSession} = action.payload;
-            const imagingSessionId = imagingSession && imagingSession.imagingSessionId;
-            const barcode = await LabkeyClient.Create.barcode(httpClient, prefixId);
-            next(receiveMetadata({
-                barcode,
-            }));
-            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, imagingSessionId);
+            const barcode = await MMSClient.Create.barcode(httpClient, action.payload);
+            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode);
         } catch (ex) {
             next(setAlert({
                 message: "Could not create barcode metadata",

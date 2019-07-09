@@ -11,7 +11,6 @@ import {
     CreateBarcodeAction,
     GetBarcodePrefixesAction,
     GetImagingSessionsAction,
-    ImagingSession,
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
@@ -45,12 +44,9 @@ export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
     };
 }
 
-export function createBarcode(prefixId: number, imagingSession?: ImagingSession): CreateBarcodeAction {
+export function createBarcode(prefixId: number): CreateBarcodeAction {
     return {
-        payload: {
-            imagingSession,
-            prefixId,
-        },
+        payload: prefixId,
         type: CREATE_BARCODE,
     };
 }
