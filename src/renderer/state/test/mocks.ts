@@ -1,5 +1,5 @@
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/Get";
+import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client";
 import { Job, JobStateBranch, JobStatus } from "../job/types";
 
 import { Unit } from "../metadata/types";
