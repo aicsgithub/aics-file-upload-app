@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { get, orderBy } from "lodash";
+import { get, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
@@ -39,6 +39,18 @@ export const getJobsForTable = createSelector([
     })), ["modified"], ["desc"]);
 });
 
-export const getIsUnsafeToExit = createSelector([getUploadJobs], (jobs: JSSJob[]): boolean => {
-    return false;
+const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
+
+export const getIsUnsafeToExit = createSelector([
+    getUploadJobsWithCopyJob,
+    getNumberOfPendingJobs,
+], (jobs: JSSJob[], numberPendingJobs: number): boolean => {
+    if (numberPendingJobs > 0) {
+        return true;
+    }
+
+    return some(jobs, ({status, serviceFields}) => {
+        const { copyJob } = serviceFields;
+        return some(IN_PROGRESS_STATUSES, status) && some(IN_PROGRESS_STATUSES, copyJob.status);
+    });
 });
