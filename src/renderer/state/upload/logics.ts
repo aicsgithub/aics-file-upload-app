@@ -64,6 +64,7 @@ const initiateUploadLogic = createLogic({
                 message: `Upload Failed: ${error}`,
                 type: AlertType.ERROR,
             }));
+            // dispatch(decrementPendingJobs());
             done();
         });
         ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);

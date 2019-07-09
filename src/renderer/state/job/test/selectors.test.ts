@@ -17,10 +17,10 @@ describe("Job selectors", () => {
             for (let i = 0; i < jobs.length; i++) {
                 const job = jobs[i];
                 const jobTableRow = jobTableRows[i];
-                expect(jobTableRow.jobId).to.equal(job.jobId);
+                expect(jobTableRow.jobName).to.equal(job.jobName);
                 expect(jobTableRow.key).to.equal(job.jobId);
                 expect(jobTableRow.stage).to.equal(job.currentStage);
-                expect(jobTableRow.created).to.equal(job.created.toLocaleString());
+                expect(jobTableRow.modified).to.equal(job.modified.toLocaleString());
             }
         });
     });

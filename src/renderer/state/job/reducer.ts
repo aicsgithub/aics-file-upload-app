@@ -1,11 +1,18 @@
 import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
-import { SET_COPY_JOBS, SET_UPLOAD_JOBS } from "./constants";
-import { JobStateBranch, SetCopyJobsAction, SetUploadJobsAction } from "./types";
+import { DECREMENT_PENDING_JOBS, INCREMENT_PENDING_JOBS, SET_COPY_JOBS, SET_UPLOAD_JOBS } from "./constants";
+import {
+    DecrementPendingJobsAction,
+    IncrementPendingJobsAction,
+    JobStateBranch,
+    SetCopyJobsAction,
+    SetUploadJobsAction,
+} from "./types";
 
 export const initialState = {
     copyJobs: [],
+    pendingJobs: 0,
     uploadJobs: [],
 };
 
@@ -27,6 +34,24 @@ const actionToConfigMap: TypeToDescriptionMap = {
             return {
                 ...state,
                 copyJobs,
+            };
+        },
+    },
+    [INCREMENT_PENDING_JOBS]: {
+        accepts: (action: AnyAction): action is IncrementPendingJobsAction => action.type === INCREMENT_PENDING_JOBS,
+        perform: (state: JobStateBranch) => {
+            return {
+                ...state,
+                pendingJobs: state.pendingJobs++,
+            };
+        },
+    },
+    [DECREMENT_PENDING_JOBS]: {
+        accepts: (action: AnyAction): action is DecrementPendingJobsAction => action.type === DECREMENT_PENDING_JOBS,
+        perform: (state: JobStateBranch) => {
+            return {
+                ...state,
+                pendingJobs: Math.max(state.pendingJobs--, 0),
             };
         },
     },

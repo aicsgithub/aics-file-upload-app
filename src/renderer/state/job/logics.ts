@@ -4,6 +4,7 @@ import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
 import { ReduxLogicDoneCb, ReduxLogicNextCb, ReduxLogicProcessDependencies } from "../types";
+import { batchActions } from "../util";
 import { setCopyJobs, setUploadJobs } from "./actions";
 
 import { RETRIEVE_JOBS } from "./constants";
@@ -30,8 +31,10 @@ const retrieveJobsLogic = createLogic({
 
             const [uploadJobs, copyJobs] = await Promise.all([getUploadJobsPromise, getCopyJobsPromise]);
 
-            dispatch(setUploadJobs(uploadJobs));
-            dispatch(setCopyJobs(copyJobs));
+            dispatch(batchActions([
+                setUploadJobs(uploadJobs),
+                setCopyJobs(copyJobs),
+            ]));
             done();
         } catch (e) {
             dispatch(setAlert({

@@ -6,7 +6,7 @@ import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import { retrieveJobs } from "../../state/job/actions";
-import { getJobsForTable } from "../../state/job/selectors";
+import { getJobsForTable, getPendingJobs } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
@@ -27,6 +27,7 @@ export interface UploadSummaryTableRow {
 interface Props {
     className?: string;
     jobs: UploadSummaryTableRow[];
+    numberPendingJobs: number;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     selectPage: ActionCreator<SelectPageAction>;
 }
@@ -68,6 +69,7 @@ class UploadSummary extends React.Component<Props, {}> {
         const {
             className,
             jobs,
+            numberPendingJobs,
         } = this.props;
         return (
             <FormPage
@@ -77,6 +79,7 @@ class UploadSummary extends React.Component<Props, {}> {
                 onBack={this.goToDragAndDrop}
                 backButtonName="Create New Upload Job"
             >
+                <div className={styles.pendingJobs}>Pending Jobs: {numberPendingJobs}</div>
                 <div className={styles.tableControls}>
                     <Button onClick={this.props.retrieveJobs}>Refresh</Button>
                 </div>
@@ -93,6 +96,7 @@ class UploadSummary extends React.Component<Props, {}> {
 function mapStateToProps(state: State) {
     return {
         jobs: getJobsForTable(state),
+        numberPendingJobs: getPendingJobs(state),
     };
 }
 

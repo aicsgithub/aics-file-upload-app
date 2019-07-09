@@ -16,7 +16,7 @@ import {
     upload,
 } from "../";
 import { State } from "../types";
-import { mockJob, mockJob2, mockJob3 } from "./mocks";
+import { mockFailedUploadJob, mockSuccessfulUploadJob, mockWorkingUploadJob } from "./mocks";
 
 export interface ReduxLogicDependencies {
     dialog: {
@@ -62,10 +62,10 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         send: stub(),
     },
     jssClient: {
-        createJob: stub().resolves(mockJob),
+        createJob: stub().resolves(mockSuccessfulUploadJob),
         getJob: stub(),
-        getJobs: stub().resolves([mockJob, mockJob2, mockJob3]),
-        updateJob: stub().resolves(mockJob),
+        getJobs: stub().resolves([mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob]),
+        updateJob: stub().resolves(mockSuccessfulUploadJob),
     },
     storage: {
         get: stub(),

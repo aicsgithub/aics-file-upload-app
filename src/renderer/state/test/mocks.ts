@@ -37,6 +37,8 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
+        copyJobs: [],
+        pendingJobs: 0,
         uploadJobs: [],
     },
     metadata: {
@@ -109,39 +111,73 @@ export const mockWells: Well[] = [
     {...mockWell, col: 0, row: 1, wellId: 3},
 ];
 
-export const mockJob: JSSJob = {
+export const mockSuccessfulUploadJob: JSSJob = {
     created: new Date(),
     currentStage: "Completed",
     jobId: "123434234",
     jobName: "mockJob1",
     modified: new Date(),
+    serviceFields: {
+        copyJobId: "copyJobId1",
+    },
     status: "SUCCEEDED",
     user: "test_user",
 };
 
-export const mockJob2: JSSJob = {
+export const mockWorkingUploadJob: JSSJob = {
     created: new Date(),
     currentStage: "Copying files",
     jobId: "2222222222",
-    jobName: "mockJob2",
+    jobName: "mockWorkingUploadJob",
     modified: new Date(),
-    status: "SUCCEEDED",
+    serviceFields: {
+        copyJobId: "copyJobId2",
+    },
+    status: "WORKING",
     user: "test_user",
 };
 
-export const mockJob3: JSSJob = {
+export const mockFailedUploadJob: JSSJob = {
     created: new Date(),
     currentStage: "Copy error",
     jobId: "3333333333",
-    jobName: "mockJob3",
+    jobName: "mockFailedUploadJob",
     modified: new Date(),
     status: "FAILED",
     user: "test_user",
 };
 
+export const mockSuccessfulCopyJob: JSSJob = {
+    created: new Date(),
+    currentStage: "Complete",
+    jobId: "copyJobId1",
+    jobName: "Copy job parent for 123434234",
+    modified: new Date(),
+    status: "SUCCEEDED",
+    user: "test_user",
+};
+
+export const mockWorkingCopyJob: JSSJob = {
+    ...mockSuccessfulCopyJob,
+    currentStage: "Copying files",
+    jobId: "copyJobId2",
+    jobName: "Copy job parent for 2222222222",
+    status: "WORKING",
+};
+
+export const mockFailedCopyJob: JSSJob = {
+    ...mockSuccessfulCopyJob,
+    currentStage: "Invalid permissions",
+    jobId: "copyJobId3",
+    jobName: "Copy job parent for 3333333333",
+    status: "FAILED",
+};
+
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
-    uploadJobs: [mockJob, mockJob2, mockJob3],
+    copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
+    pendingJobs: 1,
+    uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
 export const mockImagingSessions: LabkeyImagingSession[] = [

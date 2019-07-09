@@ -7,6 +7,7 @@ import { State } from "../types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
+export const getPendingJobs = (state: State) => state.job.pendingJobs;
 
 export const getUploadJobsWithCopyJob = createSelector([
     getCopyJobs,
