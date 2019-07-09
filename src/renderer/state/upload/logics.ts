@@ -12,7 +12,7 @@ import {
 import { getWellLabel } from "../../util";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
-import { retrieveJobs } from "../job/actions";
+import { removePendingJob, addPendingJob, retrieveJobs } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import {
@@ -50,11 +50,13 @@ const initiateUploadLogic = createLogic({
         });
         ipcRenderer.on(RECEIVED_JOB_ID, () => {
             dispatch(retrieveJobs());
+            dispatch(removePendingJob(ctx.name));
         });
         ipcRenderer.on(UPLOAD_FINISHED, (event: Event, jobName: string, result: UploadResponse) => {
             Logger.debug(`UPLOAD_FINISHED for jobName=${jobName} with result:`, result);
             dispatch(retrieveJobs());
             dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
+            dispatch(removePendingJob(ctx.name));
             done();
         });
         ipcRenderer.on(UPLOAD_FAILED, (event: Event, jobName: string, error: string) => {
@@ -64,10 +66,11 @@ const initiateUploadLogic = createLogic({
                 message: `Upload Failed: ${error}`,
                 type: AlertType.ERROR,
             }));
-            // dispatch(decrementPendingJobs());
+            dispatch(removePendingJob(ctx.name));
             done();
         });
         ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);
+        dispatch(addPendingJob(ctx.name));
     },
     transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {

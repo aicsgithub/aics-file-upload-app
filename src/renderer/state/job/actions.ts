@@ -1,14 +1,14 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
-    DECREMENT_PENDING_JOBS,
-    INCREMENT_PENDING_JOBS,
+    ADD_PENDING_JOB,
+    REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
-    DecrementPendingJobsAction,
-    IncrementPendingJobsAction,
+    AddPendingJobAction,
+    RemovePendingJobAction,
     RetrieveJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
@@ -34,14 +34,16 @@ export function setCopyJobs(jobs: JSSJob[]): SetCopyJobsAction {
     };
 }
 
-export function incrementPendingJobs(): IncrementPendingJobsAction {
+export function addPendingJob(jobName: string): AddPendingJobAction {
     return {
-        type: INCREMENT_PENDING_JOBS,
+        payload: jobName,
+        type: ADD_PENDING_JOB,
     };
 }
 
-export function decrementPendingJobs(): DecrementPendingJobsAction {
+export function removePendingJob(jobName: string): RemovePendingJobAction {
     return {
-        type: DECREMENT_PENDING_JOBS,
+        payload: jobName,
+        type: REMOVE_PENDING_JOB,
     };
 }

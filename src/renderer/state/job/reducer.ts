@@ -1,18 +1,20 @@
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
+
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
-import { DECREMENT_PENDING_JOBS, INCREMENT_PENDING_JOBS, SET_COPY_JOBS, SET_UPLOAD_JOBS } from "./constants";
+import { ADD_PENDING_JOB, REMOVE_PENDING_JOB, SET_COPY_JOBS, SET_UPLOAD_JOBS } from "./constants";
 import {
-    DecrementPendingJobsAction,
-    IncrementPendingJobsAction,
+    AddPendingJobAction,
     JobStateBranch,
+    RemovePendingJobAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
 } from "./types";
 
 export const initialState = {
     copyJobs: [],
-    pendingJobs: 0,
+    pendingJobs: [],
     uploadJobs: [],
 };
 
@@ -37,21 +39,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [INCREMENT_PENDING_JOBS]: {
-        accepts: (action: AnyAction): action is IncrementPendingJobsAction => action.type === INCREMENT_PENDING_JOBS,
-        perform: (state: JobStateBranch) => {
+    [ADD_PENDING_JOB]: {
+        accepts: (action: AnyAction): action is AddPendingJobAction => action.type === ADD_PENDING_JOB,
+        perform: (state: JobStateBranch, action: AddPendingJobAction) => {
             return {
                 ...state,
-                pendingJobs: state.pendingJobs++,
+                pendingJobs: uniq([...state.pendingJobs, action.payload]),
             };
         },
     },
-    [DECREMENT_PENDING_JOBS]: {
-        accepts: (action: AnyAction): action is DecrementPendingJobsAction => action.type === DECREMENT_PENDING_JOBS,
-        perform: (state: JobStateBranch) => {
+    [REMOVE_PENDING_JOB]: {
+        accepts: (action: AnyAction): action is RemovePendingJobAction => action.type === REMOVE_PENDING_JOB,
+        perform: (state: JobStateBranch, action: RemovePendingJobAction) => {
             return {
                 ...state,
-                pendingJobs: Math.max(state.pendingJobs--, 0),
+                pendingJobs: without(state.pendingJobs, action.payload),
             };
         },
     },

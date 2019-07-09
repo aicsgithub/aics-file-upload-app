@@ -38,7 +38,7 @@ export const mockState: State = {
     },
     job: {
         copyJobs: [],
-        pendingJobs: 0,
+        pendingJobs: [],
         uploadJobs: [],
     },
     metadata: {
@@ -176,7 +176,7 @@ export const mockFailedCopyJob: JSSJob = {
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
     copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
-    pendingJobs: 1,
+    pendingJobs: [],
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 

@@ -3,7 +3,7 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
-    pendingJobs: number;
+    pendingJobs: string[];
 }
 
 export interface RetrieveJobsAction {
@@ -20,10 +20,12 @@ export interface SetCopyJobsAction {
     type: string;
 }
 
-export interface IncrementPendingJobsAction {
+export interface AddPendingJobAction {
+    payload: string; // jobName
     type: string;
 }
 
-export interface DecrementPendingJobsAction {
+export interface RemovePendingJobAction {
+    payload: string; // jobName
     type: string;
 }

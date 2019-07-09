@@ -9,6 +9,10 @@ export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getPendingJobs = (state: State) => state.job.pendingJobs;
 
+export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: string[]) => {
+   return pendingJobs.length;
+});
+
 export const getUploadJobsWithCopyJob = createSelector([
     getCopyJobs,
     getUploadJobs,

@@ -2,9 +2,8 @@ import { expect } from "chai";
 import { get } from "lodash";
 import { stub } from "sinon";
 
-import { getAlert, getRecentEvent } from "../../feedback/selectors";
+import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { getUploadJobs } from "../../job/selectors";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";

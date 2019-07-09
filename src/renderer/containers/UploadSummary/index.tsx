@@ -6,7 +6,7 @@ import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import { retrieveJobs } from "../../state/job/actions";
-import { getJobsForTable, getPendingJobs } from "../../state/job/selectors";
+import { getJobsForTable, getNumberOfPendingJobs } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
@@ -96,7 +96,7 @@ class UploadSummary extends React.Component<Props, {}> {
 function mapStateToProps(state: State) {
     return {
         jobs: getJobsForTable(state),
-        numberPendingJobs: getPendingJobs(state),
+        numberPendingJobs: getNumberOfPendingJobs(state),
     };
 }
 
