@@ -11,6 +11,7 @@ import {
 } from "./types";
 
 export const initialState = {
+    barcodePrefixes: [],
     history: {
         selection: {},
         upload: {},

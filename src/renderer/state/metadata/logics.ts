@@ -1,17 +1,35 @@
 import { AxiosError, AxiosResponse } from "axios";
+import { ipcRenderer } from "electron";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { LABKEY_SELECT_ROWS_URL, LK_MICROSCOPY_SCHEMA } from "../../constants";
 import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
 import { ReduxLogicNextCb, ReduxLogicProcessDependencies, ReduxLogicTransformDependencies } from "../types";
 
+import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { receiveMetadata } from "./actions";
-import { GET_IMAGING_SESSIONS, REQUEST_METADATA } from "./constants";
+import { CREATE_BARCODE, GET_BARCODE_PREFIXES, GET_IMAGING_SESSIONS, REQUEST_METADATA } from "./constants";
 import { LabkeyUnit, Unit } from "./types";
+
+const createBarcode = createLogic({
+    transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const barcode = await MMSClient.Create.barcode(httpClient, action.payload);
+            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode);
+        } catch (ex) {
+            next(setAlert({
+                message: "Could not create barcode metadata",
+                type: AlertType.ERROR,
+            }));
+        }
+    },
+    type: CREATE_BARCODE,
+});
 
 const requestMetadata = createLogic({
     process: ({httpClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
@@ -60,7 +78,26 @@ const requestImagingSessions = createLogic({
     type: GET_IMAGING_SESSIONS,
 });
 
+const requestBarcodePrefixes = createLogic({
+    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const barcodePrefixes = await LabkeyClient.Get.barcodePrefixes(httpClient);
+            next(receiveMetadata({
+                barcodePrefixes,
+            }));
+        } catch (ex) {
+            next(setAlert({
+                message: "Could not retrieve barcode prefix metadata",
+                type: AlertType.ERROR,
+            }));
+        }
+    },
+    type: GET_BARCODE_PREFIXES,
+});
+
 export default [
+    createBarcode,
     requestMetadata,
     requestImagingSessions,
+    requestBarcodePrefixes,
 ];
