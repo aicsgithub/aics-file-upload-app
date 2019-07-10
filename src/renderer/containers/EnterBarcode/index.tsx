@@ -119,7 +119,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         this.saveAndContinue = this.saveAndContinue.bind(this);
         this.setAlert = debounce(this.setAlert.bind(this), 2000);
 
-        ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, imagingSessionId: number) => {
+        ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, imagingSessionId: number | null) => {
             this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
         });
     }

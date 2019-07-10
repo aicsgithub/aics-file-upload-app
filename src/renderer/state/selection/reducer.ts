@@ -37,6 +37,7 @@ import {
 } from "./types";
 
 export const initialState = {
+    barcode: undefined,
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
