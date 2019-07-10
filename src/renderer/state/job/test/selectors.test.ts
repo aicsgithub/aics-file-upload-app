@@ -27,6 +27,8 @@ describe("Job selectors", () => {
                 expect(jobTableRow.jobName).to.equal(job.jobName);
                 expect(jobTableRow.key).to.equal(job.jobId);
                 expect(jobTableRow.stage).to.equal(job.currentStage);
+                expect(jobTableRow.status).to.equal(job.status);
+                // expect(jobTableRow.statusCircleClassName).to.equal();
                 expect(jobTableRow.modified).to.equal(job.modified.toLocaleString());
             }
         });

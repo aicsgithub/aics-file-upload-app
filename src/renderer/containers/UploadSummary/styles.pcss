@@ -1,5 +1,29 @@
+:root {
+    --status-circle-diameter: 0.75em;
+}
+
 .table-controls {
     display: flex;
     justify-content: flex-end;
     padding: 1em 0;
+}
+
+.status-circle {
+    height: var(--status-circle-diameter);
+    width: var(--status-circle-diameter);
+    border-radius: 50%;
+    background-color: var(--grey);
+    margin: 0 auto;
+
+    &.success {
+        background-color: var(--success);
+    }
+
+    &.in-progress {
+        background-color: var(--warning);
+    }
+
+    &.error {
+        background-color: var(--error);
+    }
 }

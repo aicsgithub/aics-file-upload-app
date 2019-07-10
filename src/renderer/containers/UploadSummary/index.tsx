@@ -1,5 +1,7 @@
-import { Button, Table } from "antd";
+import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
+import { Button, Table, Tooltip } from "antd";
 import { ColumnProps } from "antd/lib/table";
+import * as classNames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -14,13 +16,16 @@ import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
+export type StatusCircleClassName = "success" | "inProgress" | "error";
+
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow {
     // used by antd's Table component to uniquely identify rows
     key: string;
     jobName: string;
     stage: string;
-    status: string;
+    status: JSSJobStatus;
+    statusCircleClassName?: StatusCircleClassName;
     modified: string;
 }
 
@@ -35,8 +40,14 @@ interface Props {
 class UploadSummary extends React.Component<Props, {}> {
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
-            dataIndex: "status",
-            key: "status",
+            align: "center",
+            dataIndex: "statusCircleClassName",
+            key: "statusCircleClassName",
+            render: (status: StatusCircleClassName, row: UploadSummaryTableRow) => (
+                <Tooltip placement="right" title={row.status}>
+                    <div className={classNames(styles.statusCircle, styles[status])}/>
+                </Tooltip>
+            ),
             title: "Status",
         },
         {
