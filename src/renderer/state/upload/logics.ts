@@ -23,7 +23,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { ASSOCIATE_FILES_AND_WELL, INITIATE_UPLOAD } from "./constants";
-import { getUploadPayload } from "./selectors";
+import { getUploadJobName, getUploadPayload } from "./selectors";
 
 const associateFileAndWellLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -75,7 +75,7 @@ const initiateUploadLogic = createLogic({
     transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = name;
+            ctx.name = getUploadJobName(getState());
             next(batchActions([
                 setAlert({
                     message: "Starting upload",

@@ -81,3 +81,14 @@ export const getIsUnsafeToExit = createSelector([
         return uploadInProgress && copyInProgress;
     });
 });
+
+export const getUploadJobNames = createSelector([
+    getUploadJobs,
+], (uploadJobs: JSSJob[]): string[] => {
+    return uploadJobs
+        .map((job) => job.jobName)
+        .filter((name) => !!name) as string[];
+    // typescript static analysis is unable to track the fact that undefined values should be filtered out
+    // so we need to cast here.
+    // https://codereview.stackexchange.com/questions/135363/filtering-undefined-elements-out-of-an-array
+});

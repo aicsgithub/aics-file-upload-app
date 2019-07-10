@@ -2,6 +2,8 @@ import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { isEmpty, map, uniq } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+import { getUploadJobNames } from "../job/selectors";
+import { getSelectedBarcode } from "../selection/selectors";
 
 import { State } from "../types";
 import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -80,4 +82,17 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
     });
 
     return result;
+});
+
+export const getUploadJobName = createSelector([
+    getUploadJobNames,
+    getSelectedBarcode,
+], (uploadJobNames: string[], barcode?: string) => {
+    if (!barcode) {
+        return "";
+    }
+
+    const jobNamesForBarcode = uploadJobNames.filter((name) => name.includes(barcode));
+    const numberOfJobsWithBarcode = jobNamesForBarcode.length;
+    return numberOfJobsWithBarcode === 0 ? barcode : `${barcode} (${numberOfJobsWithBarcode})`;
 });
