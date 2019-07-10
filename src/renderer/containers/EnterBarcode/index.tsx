@@ -1,5 +1,5 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import { Radio } from "antd";
+import { Button, Col, Radio, Row } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
@@ -7,15 +7,25 @@ import { debounce, get, uniqBy } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import { OPEN_CREATE_PLATE_STANDALONE, PLATE_CREATED } from "../../../shared/constants";
+import { PLATE_CREATED } from "../../../shared/constants";
 
 import FormPage from "../../components/FormPage";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
-import { requestImagingSessions } from "../../state/metadata/actions";
-import { getImagingSessions } from "../../state/metadata/selectors";
-import { GetImagingSessionsAction, ImagingSession } from "../../state/metadata/types";
+import {
+    createBarcode,
+    requestBarcodePrefixes,
+    requestImagingSessions
+} from "../../state/metadata/actions";
+import { getBarcodePrefixes, getImagingSessions } from "../../state/metadata/selectors";
+import {
+    BarcodePrefix,
+    CreateBarcodeAction,
+    GetBarcodePrefixesAction,
+    GetImagingSessionsAction,
+    ImagingSession
+} from "../../state/metadata/types";
 import { goBack, selectBarcode } from "../../state/selection/actions";
 import {
     getSelectedBarcode,
@@ -39,9 +49,12 @@ interface LabkeyPlateResponse {
 }
 
 interface EnterBarcodeProps {
+    barcodePrefixes: BarcodePrefix[];
     className?: string;
+    createBarcode: ActionCreator<CreateBarcodeAction>;
     // get the most recent list of all imaging sessions in the db
     getImagingSessions: ActionCreator<GetImagingSessionsAction>;
+    getBarcodePrefixes: ActionCreator<GetBarcodePrefixesAction>;
     goBack: ActionCreator<GoBackAction>;
     imagingSessions: ImagingSession[];
     saveInProgress: boolean;
@@ -57,8 +70,10 @@ interface EnterBarcodeProps {
 
 interface EnterBarcodeState {
     barcode?: string;
+    barcodePrefix?: BarcodePrefix;
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
+    showCreateBarcodeForm: boolean;
 }
 
 export const createOptionsFromGetPlatesResponse = (allPlates: LabkeyPlateResponse[]) => {
@@ -98,20 +113,20 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             barcode: props.selectedBarcode,
             imagingSessionId: props.selectedImagingSessionId,
             imagingSessionIds: props.selectedImagingSessionIds,
+            showCreateBarcodeForm: false,
         };
         this.setBarcode = this.setBarcode.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
         this.setAlert = debounce(this.setAlert.bind(this), 2000);
-        this.openCreatePlateModal = this.openCreatePlateModal.bind(this);
 
-        ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string) => {
-            // TODO: uncomment below once redirect URL on CreatePlateStandalone includes barcode and imagingSessionId
-            // this.props.selectBarcode(barcode);
+        ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, imagingSessionId: number | null) => {
+            this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
         });
     }
 
     public componentDidMount() {
         this.props.getImagingSessions();
+        this.props.getBarcodePrefixes();
     }
 
     public render() {
@@ -140,11 +155,44 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     loadOptions={createGetBarcodesAsyncFunction(this.setAlert)}
                     placeholder="barcode"
                 />
-                <a href="#" className={styles.createBarcodeLink} onClick={this.openCreatePlateModal}>
+                <a href="#" className={styles.createBarcodeLink} onClick={this.toggleCreateBarcodeForm}>
                     I don't have a barcode
                 </a>
+                {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : null}
                 {this.renderPlateOptions()}
             </FormPage>
+        );
+    }
+
+    private renderBarcodeForm = (): JSX.Element | null => {
+        const { barcodePrefix } = this.state;
+        const { barcodePrefixes } = this.props;
+
+        return (
+            <Row>
+                <Col xs={16} md={20}>
+                    <LabKeyOptionSelector
+                        required={true}
+                        label="Barcode Prefix"
+                        optionIdKey="prefixId"
+                        optionNameKey="description"
+                        selected={barcodePrefix}
+                        onOptionSelection={this.setBarcodePrefixOption}
+                        options={barcodePrefixes}
+                        placeholder="Select Barcode Prefix"
+                    />
+                </Col>
+                <Col xs={8} md={4}>
+                    <Button
+                        className={styles.createBarcodeButton}
+                        disabled={!barcodePrefix}
+                        onClick={this.createBarcode}
+                        size="large"
+                        type="primary"
+                    >Create
+                    </Button>
+                </Col>
+            </Row>
         );
     }
 
@@ -177,6 +225,14 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         this.setState({imagingSessionId});
     }
 
+    private setBarcodePrefixOption = (barcodePrefix?: BarcodePrefix | null ) => {
+        this.setState({ barcodePrefix: barcodePrefix || undefined });
+    }
+
+    private toggleCreateBarcodeForm = () => {
+        this.setState({ showCreateBarcodeForm: !this.state.showCreateBarcodeForm });
+    }
+
     private getImagingSessionName = (id: number | null) => {
         if (id == null) {
             return "None";
@@ -198,19 +254,19 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private setBarcode(option: LabkeyBarcodeSelectorOption | null): void {
         if (option) {
             this.setState(option);
-            const { imagingSessions } = this.props;
-            const { imagingSessionIds } = option;
-            const imagingSessionIdsWithInfo = imagingSessionIds.filter((i) => i !== null  && !!imagingSessions[i]);
-            const haveImagingSessionInfo = imagingSessionIdsWithInfo.length === imagingSessionIds.length;
-
-            if (!haveImagingSessionInfo) {
-                this.props.getImagingSessions();
-            }
         } else {
             this.setState({
                 barcode: undefined,
                 imagingSessionIds: [],
             });
+        }
+    }
+
+    private createBarcode = () => {
+        const { barcodePrefix } = this.state;
+        if (barcodePrefix) {
+            this.toggleCreateBarcodeForm();
+            this.props.createBarcode(barcodePrefix.prefixId);
         }
     }
 
@@ -228,14 +284,11 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const plateSelected = multipleOptions ? barcode && imagingSessionId !== undefined : barcode;
         return !plateSelected || saveInProgress;
     }
-
-    private openCreatePlateModal(): void {
-        ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE);
-    }
 }
 
 function mapStateToProps(state: State) {
     return {
+        barcodePrefixes: getBarcodePrefixes(state),
         imagingSessions: getImagingSessions(state),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
         selectedBarcode: getSelectedBarcode(state),
@@ -245,6 +298,8 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
+    createBarcode,
+    getBarcodePrefixes: requestBarcodePrefixes,
     getImagingSessions: requestImagingSessions,
     goBack,
     selectBarcode,

@@ -2,7 +2,7 @@ import axios from "axios";
 import { map } from "lodash";
 
 import { LABKEY_SELECT_ROWS_URL, LK_MICROSCOPY_SCHEMA } from "../../constants";
-import { ImagingSession } from "../../state/metadata/types";
+import { BarcodePrefix, ImagingSession } from "../../state/metadata/types";
 import { HttpClient } from "../../state/types";
 
 interface LabkeyPlate {
@@ -21,6 +21,12 @@ export interface LabkeyImagingSession {
     ImagingSessionId: number;
     Name: string;
     Description: string;
+}
+
+export interface LabKeyPlateBarcodePrefix {
+    PlateBarcodePrefixId: number;
+    Prefix: string;
+    TeamName: string;
 }
 
 class Get {
@@ -53,6 +59,20 @@ class Get {
             description: imagingSession.Description,
             imagingSessionId: imagingSession.ImagingSessionId,
             name: imagingSession.Name,
+        }));
+    }
+
+    /**
+     * Retrieves all barcodePrefixes
+     * @param httpClient
+     */
+    public static async barcodePrefixes(httpClient: HttpClient): Promise<BarcodePrefix[]> {
+        const query = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "PlateBarcodePrefix");
+        const response = await httpClient.get(query);
+        return response.data.rows.map((barcodePrefix: LabKeyPlateBarcodePrefix) => ({
+            description: `${barcodePrefix.Prefix} - ${barcodePrefix.TeamName}`,
+            prefix: barcodePrefix.Prefix,
+            prefixId: barcodePrefix.PlateBarcodePrefixId,
         }));
     }
 }
