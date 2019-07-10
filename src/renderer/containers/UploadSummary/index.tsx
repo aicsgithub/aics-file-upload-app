@@ -7,8 +7,10 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
+import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AsyncRequest } from "../../state/feedback/types";
 import { retrieveJobs } from "../../state/job/actions";
-import { getJobsForTable, getNumberOfPendingJobs } from "../../state/job/selectors";
+import { getJobsForTable, getPendingJobs } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
@@ -32,8 +34,9 @@ export interface UploadSummaryTableRow {
 interface Props {
     className?: string;
     jobs: UploadSummaryTableRow[];
-    numberPendingJobs: number;
+    pendingJobs: string[];
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
+    retrievingJobs: boolean;
     selectPage: ActionCreator<SelectPageAction>;
 }
 
@@ -80,21 +83,23 @@ class UploadSummary extends React.Component<Props, {}> {
         const {
             className,
             jobs,
-            numberPendingJobs,
+            pendingJobs,
+            retrievingJobs,
         } = this.props;
+        const pendingJobsText = pendingJobs.length > 0 ? pendingJobs.join(", ") : "None";
         return (
             <FormPage
                 className={className}
-                formTitle="UPLOADS"
+                formTitle="YOUR UPLOADS"
                 formPrompt=""
                 onBack={this.goToDragAndDrop}
                 backButtonName="Create New Upload Job"
             >
-                <div className={styles.pendingJobs}>Pending Jobs: {numberPendingJobs}</div>
+                <div className={styles.pendingJobs}>Pending Jobs: {pendingJobsText}</div>
                 <div className={styles.tableControls}>
-                    <Button onClick={this.props.retrieveJobs}>Refresh</Button>
+                    <Button onClick={this.props.retrieveJobs} loading={retrievingJobs}>Refresh</Button>
                 </div>
-                <Table columns={this.columns} dataSource={jobs}/>
+                <Table columns={this.columns} dataSource={jobs} loading={retrievingJobs}/>
             </FormPage>
         );
     }
@@ -107,7 +112,8 @@ class UploadSummary extends React.Component<Props, {}> {
 function mapStateToProps(state: State) {
     return {
         jobs: getJobsForTable(state),
-        numberPendingJobs: getNumberOfPendingJobs(state),
+        pendingJobs: getPendingJobs(state),
+        retrievingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
     };
 }
 

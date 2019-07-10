@@ -1,10 +1,15 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
-import { setAlert } from "../feedback/actions";
-import { AlertType } from "../feedback/types";
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { AlertType, AsyncRequest } from "../feedback/types";
 
-import { ReduxLogicDoneCb, ReduxLogicNextCb, ReduxLogicProcessDependencies } from "../types";
+import {
+    ReduxLogicDoneCb,
+    ReduxLogicNextCb,
+    ReduxLogicProcessDependencies,
+    ReduxLogicTransformDependencies,
+} from "../types";
 import { batchActions } from "../util";
 import { setCopyJobs, setUploadJobs } from "./actions";
 
@@ -40,15 +45,22 @@ const retrieveJobsLogic = createLogic({
             dispatch(batchActions([
                 setUploadJobs(uploadJobs.map(convertJobDates)),
                 setCopyJobs(copyJobs.map(convertJobDates)),
+                removeRequestFromInProgress(AsyncRequest.GET_JOBS),
             ]));
             done();
         } catch (e) {
-            dispatch(setAlert({
-                message: "Error while retrieving jobs: " + e.message,
-                type: AlertType.ERROR,
-            }));
+            dispatch(batchActions([
+                setAlert({
+                    message: "Error while retrieving jobs: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+                removeRequestFromInProgress(AsyncRequest.GET_JOBS),
+            ]));
             done();
         }
+    },
+    transform: (deps: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+      next(addRequestToInProgress(AsyncRequest.GET_JOBS));
     },
     type: RETRIEVE_JOBS,
 });

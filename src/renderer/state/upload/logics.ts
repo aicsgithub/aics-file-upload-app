@@ -12,7 +12,7 @@ import {
 import { getWellLabel } from "../../util";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
-import { removePendingJob, addPendingJob, retrieveJobs } from "../job/actions";
+import { addPendingJob, removePendingJob, retrieveJobs } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import {
