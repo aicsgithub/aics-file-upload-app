@@ -9,7 +9,7 @@ import {
     nonEmptyJobStateBranch,
 } from "../../test/mocks";
 
-import { getIsUnsafeToExit, getJobsForTable } from "../selectors";
+import { getIsUnsafeToExit, getJobsForTable, getStatusCircleClassName } from "../selectors";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
@@ -28,7 +28,7 @@ describe("Job selectors", () => {
                 expect(jobTableRow.key).to.equal(job.jobId);
                 expect(jobTableRow.stage).to.equal(job.currentStage);
                 expect(jobTableRow.status).to.equal(job.status);
-                // expect(jobTableRow.statusCircleClassName).to.equal();
+                expect(jobTableRow.statusCircleClassName).to.equal(getStatusCircleClassName(job.status));
                 expect(jobTableRow.modified).to.equal(job.modified.toLocaleString());
             }
         });

@@ -32,7 +32,7 @@ const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
 const SUCCESS_STATUSES = ["SUCCEEDED"];
 const ERROR_STATUSES = [ "FAILED", "UNRECOVERABLE" ];
 
-const getStatusCircleClassName = (status: JSSJobStatus): StatusCircleClassName | undefined => {
+export const getStatusCircleClassName = (status: JSSJobStatus): StatusCircleClassName | undefined => {
     if (includes(IN_PROGRESS_STATUSES, status)) {
         return "inProgress";
     }
