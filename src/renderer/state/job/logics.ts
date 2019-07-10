@@ -1,3 +1,4 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { setAlert } from "../feedback/actions";
@@ -9,6 +10,11 @@ import { setCopyJobs, setUploadJobs } from "./actions";
 
 import { RETRIEVE_JOBS } from "./constants";
 
+const convertJobDates = (j: JSSJob) => ({
+    ...j,
+    created: new Date(j.created),
+    modified: new Date(j.modified),
+});
 const retrieveJobsLogic = createLogic({
     process: async ({ action, jssClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
@@ -32,8 +38,8 @@ const retrieveJobsLogic = createLogic({
             const [uploadJobs, copyJobs] = await Promise.all([getUploadJobsPromise, getCopyJobsPromise]);
 
             dispatch(batchActions([
-                setUploadJobs(uploadJobs),
-                setCopyJobs(copyJobs),
+                setUploadJobs(uploadJobs.map(convertJobDates)),
+                setCopyJobs(copyJobs.map(convertJobDates)),
             ]));
             done();
         } catch (e) {

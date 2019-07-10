@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { mockState, nonEmptyJobStateBranch } from "../../test/mocks";
 
-import { getJobsForTable } from "../selectors";
+import { getIsUnsafeToExit, getJobsForTable } from "../selectors";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
@@ -26,6 +26,18 @@ describe("Job selectors", () => {
     });
 
     describe("getIsUnsafeToExit", () => {
-        // TODO
+        it("returns true if there are any pending jobs", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
+                ...mockState,
+                job: {...mockState.job, pendingJobs: ["job1"]},
+            });
+            expect(isUnsafeToExit).to.be.true;
+        });
+
+        it("returns true if an upload job is in progress and its copy job is in progress", () => {});
+        it("returns false if an upload job is in failed and its copy job is in progress", () => {});
+        it("returns false if an upload job is in progress and its copy job is in complete", () => {});
+        it("returns false if an upload job is in progress and its copy job is in failed", () => {});
+        it("returns false if an upload job is complete", () => {});
     });
 });

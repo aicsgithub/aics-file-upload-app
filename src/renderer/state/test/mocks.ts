@@ -176,7 +176,7 @@ export const mockFailedCopyJob: JSSJob = {
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
     copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
-    pendingJobs: [],
+    pendingJobs: ["job1", "job2"],
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 

@@ -30,13 +30,14 @@ export const getUploadJobsWithCopyJob = createSelector([
 export const getJobsForTable = createSelector([
     getUploadJobsWithCopyJob,
 ], (uploadJobs: JSSJob[]): UploadSummaryTableRow[] => {
-    return orderBy(uploadJobs.map(({modified, currentStage, jobName, jobId, status}) => ({
+    const orderedJobs = orderBy(uploadJobs, ["modified"], ["desc"]);
+    return orderedJobs.map(({modified, currentStage, jobName, jobId, status}) => ({
         jobName: jobName || "",
         key: jobId,
         modified: modified.toLocaleString(),
         stage: currentStage || "",
         status,
-    })), ["modified"], ["desc"]);
+    }));
 });
 
 const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
