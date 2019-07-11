@@ -1,8 +1,8 @@
-import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { get, includes, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
 
-import { StatusCircleClassName, UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { State } from "../types";
 import { PendingJob } from "./types";
@@ -35,24 +35,6 @@ export const getUploadJobsWithCopyJob = createSelector([
 });
 
 const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
-const SUCCESS_STATUSES = ["SUCCEEDED"];
-const ERROR_STATUSES = [ "FAILED", "UNRECOVERABLE" ];
-
-export const getStatusCircleClassName = (status: JSSJobStatus): StatusCircleClassName | undefined => {
-    if (includes(IN_PROGRESS_STATUSES, status)) {
-        return "inProgress";
-    }
-
-    if (includes(SUCCESS_STATUSES, status)) {
-        return "success";
-    }
-
-    if (includes(ERROR_STATUSES, status)) {
-        return "error";
-    }
-
-    return undefined;
-};
 
 export const getJobsForTable = createSelector([
     getUploadJobsWithCopyJob,
@@ -65,7 +47,6 @@ export const getJobsForTable = createSelector([
         modified: modified.toLocaleString(),
         stage: currentStage || "",
         status,
-        statusCircleClassName: getStatusCircleClassName(status),
     }));
 });
 

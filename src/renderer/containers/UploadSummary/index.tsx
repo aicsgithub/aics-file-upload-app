@@ -1,12 +1,12 @@
 import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Table, Tooltip } from "antd";
+import { Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
-import * as classNames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
+import StatusCircle from "../../components/StatusCircle";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { retrieveJobs } from "../../state/job/actions";
@@ -17,10 +17,6 @@ import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import Timeout = NodeJS.Timeout;
 
-const styles = require("./styles.pcss");
-
-export type StatusCircleClassName = "success" | "inProgress" | "error";
-
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow {
     // used by antd's Table component to uniquely identify rows
@@ -28,7 +24,6 @@ export interface UploadSummaryTableRow {
     jobName: string;
     stage: string;
     status: JSSJobStatus;
-    statusCircleClassName?: StatusCircleClassName;
     modified: string;
 }
 
@@ -44,13 +39,9 @@ class UploadSummary extends React.Component<Props, {}> {
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
-            dataIndex: "statusCircleClassName",
-            key: "statusCircleClassName",
-            render: (status: StatusCircleClassName, row: UploadSummaryTableRow) => (
-                <Tooltip placement="right" title={row.status}>
-                    <div className={classNames(styles.statusCircle, styles[status])}/>
-                </Tooltip>
-            ),
+            dataIndex: "status",
+            key: "status",
+            render: (status: JSSJobStatus) => <StatusCircle status={status}/>,
             title: "Status",
         },
         {
