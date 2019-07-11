@@ -7,8 +7,8 @@ import {
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
-    AddPendingJobAction,
-    RemovePendingJobAction,
+    AddPendingJobAction, PendingJob,
+    RemovePendingJobsAction,
     RetrieveJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
@@ -34,16 +34,16 @@ export function setCopyJobs(jobs: JSSJob[]): SetCopyJobsAction {
     };
 }
 
-export function addPendingJob(jobName: string): AddPendingJobAction {
+export function addPendingJob(job: PendingJob): AddPendingJobAction {
     return {
-        payload: jobName,
+        payload: job,
         type: ADD_PENDING_JOB,
     };
 }
 
-export function removePendingJob(jobName: string): RemovePendingJobAction {
+export function removePendingJobs(jobNames: string[]): RemovePendingJobsAction {
     return {
-        payload: jobName,
+        payload: jobNames,
         type: REMOVE_PENDING_JOB,
     };
 }

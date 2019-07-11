@@ -1,5 +1,5 @@
 import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Button, Table, Tooltip } from "antd";
+import { Table, Tooltip } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
 import * as React from "react";
@@ -10,11 +10,12 @@ import FormPage from "../../components/FormPage";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { retrieveJobs } from "../../state/job/actions";
-import { getJobsForTable, getPendingJobs } from "../../state/job/selectors";
+import { getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
+import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
 
@@ -34,7 +35,6 @@ export interface UploadSummaryTableRow {
 interface Props {
     className?: string;
     jobs: UploadSummaryTableRow[];
-    pendingJobs: string[];
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     retrievingJobs: boolean;
     selectPage: ActionCreator<SelectPageAction>;
@@ -69,6 +69,7 @@ class UploadSummary extends React.Component<Props, {}> {
             title: "Last Modified",
         },
     ];
+    private interval!: Timeout;
 
     constructor(props: Props) {
         super(props);
@@ -79,27 +80,28 @@ class UploadSummary extends React.Component<Props, {}> {
         this.props.retrieveJobs();
     }
 
+    public componentDidMount(): void {
+        this.interval = setInterval(this.props.retrieveJobs, 1000);
+    }
+
+    public componentWillUnmount(): void {
+        clearInterval(this.interval);
+    }
+
     public render() {
         const {
             className,
             jobs,
-            pendingJobs,
-            retrievingJobs,
         } = this.props;
-        const pendingJobsText = pendingJobs.length > 0 ? pendingJobs.join(", ") : "None";
         return (
             <FormPage
                 className={className}
                 formTitle="YOUR UPLOADS"
                 formPrompt=""
-                onBack={this.goToDragAndDrop}
-                backButtonName="Create New Upload Job"
+                onSave={this.goToDragAndDrop}
+                saveButtonName="Create New Upload Job"
             >
-                <div className={styles.pendingJobs}>Pending Jobs: {pendingJobsText}</div>
-                <div className={styles.tableControls}>
-                    <Button onClick={this.props.retrieveJobs} loading={retrievingJobs}>Refresh</Button>
-                </div>
-                <Table columns={this.columns} dataSource={jobs} loading={retrievingJobs}/>
+                <Table columns={this.columns} dataSource={jobs}/>
             </FormPage>
         );
     }
@@ -112,7 +114,6 @@ class UploadSummary extends React.Component<Props, {}> {
 function mapStateToProps(state: State) {
     return {
         jobs: getJobsForTable(state),
-        pendingJobs: getPendingJobs(state),
         retrievingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
     };
 }

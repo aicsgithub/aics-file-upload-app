@@ -1,11 +1,13 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession } from "../../util/labkey-client";
-import { JobStateBranch } from "../job/types";
+import { JobStateBranch, PendingJob } from "../job/types";
 
 import { Unit } from "../metadata/types";
 import { Page, SelectionStateBranch, Well } from "../selection/types";
 import { State } from "../types";
+import { getUploadPayload } from "../upload/selectors";
+import { UploadStateBranch } from "../upload/types";
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
@@ -28,6 +30,18 @@ export const mockSelection: SelectionStateBranch = {
     stagedFiles: [],
     well: undefined,
     wells: [],
+};
+export const mockUpload: UploadStateBranch = {
+    "/path/to/file1": {
+        barcode: "1234",
+        wellId: 1,
+        wellLabel: "A1",
+    },
+    "/path/to/file2": {
+        barcode: "1235",
+        wellId: 2,
+        wellLabel: "A2",
+    },
 };
 
 export const mockState: State = {
@@ -55,18 +69,7 @@ export const mockState: State = {
         limsPort: "8080",
         limsProtocol: "http",
     },
-    upload: getMockStateWithHistory({
-        "/path/to/file1": {
-            barcode: "1234",
-            wellId: 1,
-            wellLabel: "A1",
-        },
-        "/path/to/file2": {
-            barcode: "1235",
-            wellId: 2,
-            wellLabel: "A2",
-        },
-    }),
+    upload: getMockStateWithHistory(mockUpload),
 };
 
 export const mockUnits: Unit[] = [
@@ -173,10 +176,15 @@ export const mockFailedCopyJob: JSSJob = {
     status: "FAILED",
 };
 
+export const mockPendingJob: PendingJob = {
+    ...mockWorkingUploadJob,
+    uploads: getUploadPayload(mockState),
+};
+
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
     copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
-    pendingJobs: ["job1", "job2"],
+    pendingJobs: [mockPendingJob],
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 

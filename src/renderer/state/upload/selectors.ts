@@ -84,6 +84,8 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
     return result;
 });
 
+const barcodeRegex = /^([^\s])+/;
+// TODO test this!
 export const getUploadJobName = createSelector([
     getUploadJobNames,
     getSelectedBarcode,
@@ -92,7 +94,11 @@ export const getUploadJobName = createSelector([
         return "";
     }
 
-    const jobNamesForBarcode = uploadJobNames.filter((name) => name.includes(barcode));
+    const jobNamesForBarcode = uploadJobNames.filter((name) => {
+        // name could look like "barcode" or "barcode (1)". We want to get just "barcode"
+        const barcodeParts = name.match(barcodeRegex);
+        return barcodeParts && barcodeParts.length > 0 && barcodeParts[0] === barcode;
+    });
     const numberOfJobsWithBarcode = jobNamesForBarcode.length;
     return numberOfJobsWithBarcode === 0 ? barcode : `${barcode} (${numberOfJobsWithBarcode})`;
 });

@@ -1,9 +1,16 @@
+import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
 export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
-    pendingJobs: string[];
+    pendingJobs: PendingJob[];
+}
+
+// When a user submits an upload, a job doesn't get created right away so the job is stored
+// in this form first
+export interface PendingJob extends JSSJob {
+    uploads: Uploads;
 }
 
 export interface RetrieveJobsAction {
@@ -21,11 +28,11 @@ export interface SetCopyJobsAction {
 }
 
 export interface AddPendingJobAction {
-    payload: string; // jobName
+    payload: PendingJob;
     type: string;
 }
 
-export interface RemovePendingJobAction {
-    payload: string; // jobName
+export interface RemovePendingJobsAction {
+    payload: string[]; // jobNames
     type: string;
 }

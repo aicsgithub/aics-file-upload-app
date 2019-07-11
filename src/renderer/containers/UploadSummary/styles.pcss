@@ -2,12 +2,6 @@
     --status-circle-diameter: 0.75em;
 }
 
-.table-controls {
-    display: flex;
-    justify-content: flex-end;
-    padding: 1em 0;
-}
-
 .status-circle {
     height: var(--status-circle-diameter);
     width: var(--status-circle-diameter);
@@ -21,7 +15,7 @@
 
     &.in-progress {
         background-color: var(--warning);
-        -webkit-animation: pulse 2s infinite alternate;
+        -webkit-animation: pulse 1s infinite alternate;
     }
 
     &.error {
@@ -30,9 +24,8 @@
 }
 
 @-webkit-keyframes pulse {
-    0% {background-color: #f5a742;}
-    25% {background-color: #f5b042;}
-    50% {background-color: #f5e042;}
-    75% {background-color: #f5ef42;}
-    100% {background-color: #e5e5e5;}
+    0% {background-color: #f5b042;}
+    33% {background-color: #f5cb42;}
+    66% {background-color: #f5ef42;}
+    100% {background-color: #fcfbcc;}
 }

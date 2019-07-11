@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import {
     mockFailedCopyJob,
-    mockFailedUploadJob,
+    mockFailedUploadJob, mockPendingJob,
     mockState, mockSuccessfulCopyJob, mockSuccessfulUploadJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
@@ -20,7 +20,7 @@ describe("Job selectors", () => {
                 job: {...nonEmptyJobStateBranch},
             });
 
-            expect(jobTableRows.length).to.equal(jobs.length);
+            expect(jobTableRows.length).to.equal(jobs.length + nonEmptyJobStateBranch.pendingJobs.length);
             for (let i = 0; i < jobs.length; i++) {
                 const job = jobs[i];
                 const jobTableRow = jobTableRows[i];
@@ -38,7 +38,7 @@ describe("Job selectors", () => {
         it("returns true if there are any pending jobs", () => {
             const isUnsafeToExit = getIsUnsafeToExit({
                 ...mockState,
-                job: {...mockState.job, pendingJobs: ["job1"]},
+                job: {...mockState.job, pendingJobs: [mockPendingJob]},
             });
             expect(isUnsafeToExit).to.be.true;
         });

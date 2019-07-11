@@ -1,4 +1,4 @@
-import { uniq, without } from "lodash";
+import { filter, includes, uniqBy } from "lodash";
 import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
@@ -7,7 +7,7 @@ import { ADD_PENDING_JOB, REMOVE_PENDING_JOB, SET_COPY_JOBS, SET_UPLOAD_JOBS } f
 import {
     AddPendingJobAction,
     JobStateBranch,
-    RemovePendingJobAction,
+    RemovePendingJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
 } from "./types";
@@ -44,16 +44,16 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch, action: AddPendingJobAction) => {
             return {
                 ...state,
-                pendingJobs: uniq([...state.pendingJobs, action.payload]),
+                pendingJobs: uniqBy([...state.pendingJobs, action.payload], "jobName"),
             };
         },
     },
     [REMOVE_PENDING_JOB]: {
-        accepts: (action: AnyAction): action is RemovePendingJobAction => action.type === REMOVE_PENDING_JOB,
-        perform: (state: JobStateBranch, action: RemovePendingJobAction) => {
+        accepts: (action: AnyAction): action is RemovePendingJobsAction => action.type === REMOVE_PENDING_JOB,
+        perform: (state: JobStateBranch, action: RemovePendingJobsAction) => {
             return {
                 ...state,
-                pendingJobs: without(state.pendingJobs, action.payload),
+                pendingJobs: filter(state.pendingJobs, ({jobName}) => !includes(action.payload, jobName)),
             };
         },
     },

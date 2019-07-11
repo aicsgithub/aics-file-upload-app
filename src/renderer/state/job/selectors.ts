@@ -1,16 +1,22 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
 import { get, includes, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
+
 import { StatusCircleClassName, UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { State } from "../types";
+import { PendingJob } from "./types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getPendingJobs = (state: State) => state.job.pendingJobs;
 
-export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: string[]) => {
+export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
    return pendingJobs.length;
+});
+
+export const getPendingJobNames = createSelector([getPendingJobs], (jobs: PendingJob[]) => {
+    return jobs.map((job) => job.jobName);
 });
 
 export const getUploadJobsWithCopyJob = createSelector([
@@ -50,8 +56,9 @@ export const getStatusCircleClassName = (status: JSSJobStatus): StatusCircleClas
 
 export const getJobsForTable = createSelector([
     getUploadJobsWithCopyJob,
-], (uploadJobs: JSSJob[]): UploadSummaryTableRow[] => {
-    const orderedJobs = orderBy(uploadJobs, ["modified"], ["desc"]);
+    getPendingJobs,
+], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
+    const orderedJobs = orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"]);
     return orderedJobs.map(({modified, currentStage, jobName, jobId, status}) => ({
         jobName: jobName || "",
         key: jobId,

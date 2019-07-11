@@ -1,18 +1,17 @@
 import { UploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import Logger from "js-logger";
+import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 
 import {
-    RECEIVED_JOB_ID,
     START_UPLOAD,
     UPLOAD_FAILED,
     UPLOAD_FINISHED,
-    UPLOAD_PROGRESS,
 } from "../../../shared/constants";
 import { getWellLabel } from "../../util";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
-import { addPendingJob, removePendingJob, retrieveJobs } from "../job/actions";
+import { addPendingJob, removePendingJobs } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getWell } from "../selection/selectors";
 import {
@@ -44,38 +43,39 @@ const associateFileAndWellLogic = createLogic({
 const initiateUploadLogic = createLogic({
     process: ({ctx, getState, ipcRenderer}: ReduxLogicProcessDependencies,
               dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        ipcRenderer.on(UPLOAD_PROGRESS, (event: Event, jobName: string, currentStage: string) => {
-            Logger.debug(`UPLOAD_PROGRESS for jobName=${jobName}, updating currentStage to ${currentStage}`);
-            dispatch(retrieveJobs());
-        });
-        ipcRenderer.on(RECEIVED_JOB_ID, () => {
-            dispatch(retrieveJobs());
-            dispatch(removePendingJob(ctx.name));
-        });
         ipcRenderer.on(UPLOAD_FINISHED, (event: Event, jobName: string, result: UploadResponse) => {
             Logger.debug(`UPLOAD_FINISHED for jobName=${jobName} with result:`, result);
-            dispatch(retrieveJobs());
             dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
-            dispatch(removePendingJob(ctx.name));
+            dispatch(removePendingJobs(ctx.name));
             done();
         });
         ipcRenderer.on(UPLOAD_FAILED, (event: Event, jobName: string, error: string) => {
             Logger.error(`UPLOAD_FAILED for jobName=${jobName}`, error);
-            dispatch(retrieveJobs());
             dispatch(setAlert({
                 message: `Upload Failed: ${error}`,
                 type: AlertType.ERROR,
             }));
-            dispatch(removePendingJob(ctx.name));
+            dispatch(removePendingJobs(ctx.name));
             done();
         });
         ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);
-        dispatch(addPendingJob(ctx.name));
+        const now = new Date();
+        dispatch(addPendingJob({
+            created: now,
+            currentStage: "Pending",
+            jobId: (now).toLocaleString(),
+            jobName: ctx.name,
+            modified: now,
+            status: "WAITING",
+            uploads: ctx.uploads,
+            user: userInfo().username,
+        }));
     },
     transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
             ctx.name = getUploadJobName(getState());
+            ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({
                     message: "Starting upload",
