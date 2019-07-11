@@ -9,7 +9,6 @@ import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { retrieveJobs } from "../../state/job/actions";
 import { getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
@@ -31,7 +30,6 @@ interface Props {
     className?: string;
     jobs: UploadSummaryTableRow[];
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
-    retrievingJobs: boolean;
     selectPage: ActionCreator<SelectPageAction>;
 }
 
@@ -65,10 +63,6 @@ class UploadSummary extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props);
         this.state = {};
-    }
-
-    public componentWillMount(): void {
-        this.props.retrieveJobs();
     }
 
     public componentDidMount(): void {
@@ -110,7 +104,6 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
-    retrieveJobs,
     selectPage,
 };
 

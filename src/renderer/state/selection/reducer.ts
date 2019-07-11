@@ -41,7 +41,7 @@ export const initialState = {
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
-    page: Page.UploadSummary, // Page.DragAndDrop,
+    page: Page.UploadSummary,
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,

@@ -5,15 +5,10 @@ import * as React from "react";
 
 const styles = require("./styles.pcss");
 
-interface Props {
-    className?: string;
-    status: JSSJobStatus;
-}
 const IN_PROGRESS_CLASSNAME = "inProgress";
 const SUCCESS_CLASSNAME = "success";
 const ERROR_CLASSNAME = "error";
-
-const statusToClassNameMap: {[status: string]: string} = Object.freeze({
+const STATUS_TO_CLASSNAME_MAP: {[status: string]: string} = Object.freeze({
     BLOCKED: IN_PROGRESS_CLASSNAME,
     FAILED: ERROR_CLASSNAME,
     RETRYING: IN_PROGRESS_CLASSNAME,
@@ -23,9 +18,14 @@ const statusToClassNameMap: {[status: string]: string} = Object.freeze({
     WORKING: IN_PROGRESS_CLASSNAME,
 });
 
+interface Props {
+    className?: string;
+    status: JSSJobStatus;
+}
+
 const StatusCircle: React.FunctionComponent<Props> = ({className, status}: Props) => (
     <Tooltip placement="right" title={status} className={className}>
-        <div className={classNames(styles.statusCircle, styles[statusToClassNameMap[status]])}/>
+        <div className={classNames(styles.statusCircle, styles[STATUS_TO_CLASSNAME_MAP[status]])}/>
     </Tooltip>
 );
 
