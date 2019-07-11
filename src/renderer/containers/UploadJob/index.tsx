@@ -55,11 +55,9 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             title: "File",
         },
         {
-            dataIndex: "wellLabel",
-            key: "wellLabel",
-            sortDirections: ["ascend", "descend"],
-            sorter: (a, b) => alphaOrderComparator(a.wellLabel, b.wellLabel),
-            title: "Well",
+            dataIndex: "wellLabels",
+            key: "wellLabels",
+            title: "Well(s)",
         },
         {
             key: "action",

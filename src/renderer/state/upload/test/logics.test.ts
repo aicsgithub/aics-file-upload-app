@@ -7,7 +7,7 @@ import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
-import { associateFilesAndWell, initiateUpload } from "../actions";
+import { associateFilesAndWells, initiateUpload } from "../actions";
 import { getUpload } from "../selectors";
 
 describe("Upload logics", () => {
@@ -18,12 +18,12 @@ describe("Upload logics", () => {
             const file2 = "/path2";
             const wellId = 1;
 
-            store.dispatch(associateFilesAndWell(["/path1", "/path2"], wellId));
+            store.dispatch(associateFilesAndWells(["/path1", "/path2"], [wellId], ["A1"]));
             expect(getSelectedFiles(store.getState())).to.be.empty;
 
             const upload = getUpload(store.getState());
-            expect(get(upload, [file1, "wellId"])).to.equal(wellId);
-            expect(get(upload, [file2, "wellId"])).to.equal(wellId);
+            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
         });
     });
 

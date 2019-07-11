@@ -1,3 +1,4 @@
+import { AicsGridCell } from "@aics/aics-react-labkey";
 import { isEmpty, sortBy } from "lodash";
 import { createSelector } from "reselect";
 import { getWellLabel } from "../../util";
@@ -6,6 +7,7 @@ import { getUnits } from "../metadata/selectors";
 import { Unit } from "../metadata/types";
 import { State } from "../types";
 
+import { GridCell } from "../../containers/AssociateWells/grid-cell";
 import { Solution, SolutionLot, Well, WellResponse } from "./types";
 
 // BASIC SELECTORS
@@ -16,7 +18,7 @@ export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getPage = (state: State) => state.selection.present.page;
 export const getStagedFiles = (state: State) => state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
-export const getWell = (state: State) => state.selection.present.well;
+export const getSelectedWells = (state: State) => state.selection.present.selectedWells;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
@@ -85,4 +87,25 @@ export const getWellIdToWellLabelMap = createSelector([
     });
 
     return result;
+});
+
+export const getSelectedWellLabels = createSelector([
+    getSelectedWells,
+], (wells: AicsGridCell[]): string[] => {
+    if (!wells || !wells.length) {
+        return [];
+    }
+
+    return wells.map((well) => getWellLabel(well));
+});
+
+export const getSelectedWellsWithData = createSelector([
+    getSelectedWells,
+    getWellsWithModified,
+], (selectedWells: GridCell[], wells: Well[][]): Well[] => {
+    if (!wells || !wells.length || !selectedWells.length) {
+        return [];
+    }
+
+    return selectedWells.map((well) => wells[well.row][well.col]);
 });

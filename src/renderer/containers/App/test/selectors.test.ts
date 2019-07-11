@@ -16,13 +16,13 @@ describe("App selectors", () => {
                     wells: mockWells,
                 }),
                 upload: getMockStateWithHistory({
-                    [filePath1]: { barcode: "test_barcode", wellId: 1, wellLabel: "A1"},
-                    [filePath2]: { barcode: "test_barcode", wellId: 4, wellLabel: "A4"},
+                    [filePath1]: { barcode: "test_barcode", wellIds: [1, 3], wellLabels: ["A1", "A3"]},
+                    [filePath2]: { barcode: "test_barcode", wellIds: [4], wellLabels: ["A4"]},
                 }),
             });
 
             const file1Tags = map.get(filePath1) || [];
-            expect(file1Tags.length).to.equal(1);
+            expect(file1Tags.length).to.equal(2);
             expect(get(file1Tags, [0, "title"])).to.equal("A1");
 
             const file2Tags = map.get(filePath2) || [];

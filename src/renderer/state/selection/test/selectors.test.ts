@@ -2,13 +2,21 @@ import { expect } from "chai";
 
 import {
     getMockStateWithHistory,
+    mockSelectedWells,
     mockSelection,
     mockState,
     mockUnits,
-    mockWells
+    mockWells,
 } from "../../test/mocks";
 import { State } from "../../types";
-import { getWellIdToWellLabelMap, getWellsWithModified, getWellsWithUnitsAndModified, NO_UNIT } from "../selectors";
+import {
+    getSelectedWellLabels,
+    getSelectedWellsWithData,
+    getWellIdToWellLabelMap,
+    getWellsWithModified,
+    getWellsWithUnitsAndModified,
+    NO_UNIT
+} from "../selectors";
 import { CellPopulation, Solution, Well, WellResponse } from "../types";
 
 describe("Selections selectors", () => {
@@ -182,6 +190,64 @@ describe("Selections selectors", () => {
             expect(map.get(2)).to.equal("A2");
             expect(map.get(3)).to.equal("B1");
             expect(map.get(4)).to.equal("B2");
+        });
+    });
+
+    describe("getSelectedWellLabels", () => {
+        it("returns array of well labels of the selected wells", () => {
+            const arr = getSelectedWellLabels({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: mockSelectedWells,
+                }),
+            });
+            expect(arr[0]).to.equal("A1");
+            expect(arr[1]).to.equal("A2");
+            expect(arr[2]).to.equal("B1");
+            expect(arr[3]).to.equal("B2");
+        });
+
+        it("returns an empty array if no selected wells", () => {
+            const arr = getSelectedWellLabels({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: [],
+                }),
+            });
+            expect(arr).to.be.empty;
+        });
+    });
+
+    describe("getSelectedWellsWithData", () => {
+        it("returns array of wells with all of the data on a well (ex. wellId)", () => {
+            const arr = getSelectedWellsWithData({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: mockSelectedWells,
+                    wells: mockWells,
+                }),
+            });
+            expect(arr[0].wellId).to.equal(1);
+            expect(arr[1].wellId).to.equal(2);
+            expect(arr[2].wellId).to.equal(3);
+            expect(arr[3].wellId).to.equal(4);
+        });
+
+        it("returns an empty array if no selected wells", () => {
+            const arr = getSelectedWellsWithData({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: [],
+                }),
+            });
+            expect(arr).to.be.empty;
         });
     });
 });
