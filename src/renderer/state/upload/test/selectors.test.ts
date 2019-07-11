@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { difference } from "lodash";
 
-import { getMockStateWithHistory, mockState } from "../../test/mocks";
+import { getMockStateWithHistory, mockSelection, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
 import { State } from "../../types";
 
-import { getUploadPayload, getWellIdToFiles } from "../selectors";
+import { getUploadJobName, getUploadPayload, getWellIdToFiles } from "../selectors";
 import { FileType } from "../types";
 
 describe("Upload selectors", () => {
@@ -176,6 +176,52 @@ describe("Upload selectors", () => {
 
             const payload = getUploadPayload(state);
             expect(payload).to.deep.equal(expected);
+        });
+    });
+
+    describe("getUploadJobName", () => {
+        it("returns empty string if no barcode selected", () => {
+            const jobName = getUploadJobName(mockState);
+            expect(jobName).to.equal("");
+        });
+
+        it("returns selected barcode if no other jobs with barcode found", () => {
+            const barcode = "test1234";
+            const jobName = getUploadJobName({
+                ...mockState,
+                job: nonEmptyJobStateBranch,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    barcode,
+                }),
+            });
+            expect(jobName).to.equal(barcode);
+        });
+
+        it("returns selected barcode and count in parenthesis if multiple jobs with barcode found", () => {
+            const barcode = "mockWorkingUploadJob";
+            const jobName = getUploadJobName({
+                ...mockState,
+                job: nonEmptyJobStateBranch,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    barcode,
+                }),
+            });
+            expect(jobName).to.equal(`${barcode} (1)`);
+        });
+
+        it("Sees jobNames 'mockWorkingUploadJob' and 'mockWorkingUploadJob2' as separate barcodes", () => {
+            const barcode = "mockWorkingUploadJob";
+            const jobName = getUploadJobName({
+                ...mockState,
+                job: nonEmptyJobStateBranch,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    barcode: `${barcode}2`,
+                }),
+            });
+            expect(jobName).to.equal(`${barcode}2`);
         });
     });
 });

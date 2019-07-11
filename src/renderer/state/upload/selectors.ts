@@ -85,7 +85,6 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
 });
 
 const barcodeRegex = /^([^\s])+/;
-// TODO test this!
 export const getUploadJobName = createSelector([
     getUploadJobNames,
     getSelectedBarcode,

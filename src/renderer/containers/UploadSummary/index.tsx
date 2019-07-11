@@ -7,8 +7,7 @@ import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
-import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
+import { retrieveJobs } from "../../state/job/actions";
 import { getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
@@ -99,11 +98,11 @@ class UploadSummary extends React.Component<Props, {}> {
 function mapStateToProps(state: State) {
     return {
         jobs: getJobsForTable(state),
-        retrievingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
     };
 }
 
 const dispatchToPropsMap = {
+    retrieveJobs,
     selectPage,
 };
 
