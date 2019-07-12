@@ -1,49 +1,56 @@
 import { expect } from "chai";
-import { get } from "lodash";
+import { stub } from "sinon";
+import { getAlert } from "../../feedback/selectors";
 
-import { createMockReduxStore } from "../../test/configure-mock-store";
-import { mockJob2, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
-import { updateJob } from "../actions";
-import { getJobs } from "../selectors";
+import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { mockState } from "../../test/mocks";
+import { retrieveJobs } from "../actions";
+import { getUploadJobs } from "../selectors";
 
 describe("Job logics", () => {
 
-    describe("updateJobLogic", () => {
-        it("Updates job by name with stage if it exists", () => {
+    describe("retrieveJobsLogic", () => {
+        it("Sets jobs given successful JSS query", (done) => {
             const store = createMockReduxStore({
                 ...mockState,
-                job: {...nonEmptyJobStateBranch},
             });
 
             // before
-            const nextStage = "Failed";
-            let jobs = getJobs(store.getState());
-            expect(get(jobs[1], "stage")).to.not.equal(nextStage);
+            let jobs = getUploadJobs(store.getState());
+            expect(jobs).to.be.empty;
 
             // apply
-            store.dispatch(updateJob(mockJob2.name, { stage: nextStage }));
+            store.dispatch(retrieveJobs());
 
             // after
-            jobs = getJobs(store.getState());
-            expect(get(jobs[1], "stage")).to.equal(nextStage);
+            store.subscribe(() => {
+                jobs = getUploadJobs(store.getState());
+                expect(jobs).to.not.be.empty;
+                done();
+            });
         });
 
-        it("Does not update job name", () => {
+        it("Sets an alert given a non OK response from JSS", (done) => {
+            const jssClient = {...mockReduxLogicDeps.jssClient};
+            jssClient.getJobs = stub().rejects();
+
             const store = createMockReduxStore({
                 ...mockState,
-                job: {...nonEmptyJobStateBranch},
-            });
+            }, {...mockReduxLogicDeps, jssClient});
 
             // before
-            let jobs = getJobs(store.getState());
-            expect(jobs[1].name).to.equal(mockJob2.name);
+            let alert = getAlert(store.getState());
+            expect(alert).to.be.undefined;
 
             // apply
-            store.dispatch(updateJob(mockJob2.name, { name: "Bob", stage: "Failed"}));
+            store.dispatch(retrieveJobs());
 
             // after
-            jobs = getJobs(store.getState());
-            expect(jobs[1].name).to.equal(mockJob2.name);
+            store.subscribe(() => {
+                alert = getAlert(store.getState());
+                expect(alert).to.not.be.undefined;
+                done();
+            });
         });
     });
 });

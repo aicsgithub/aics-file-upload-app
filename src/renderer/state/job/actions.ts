@@ -1,28 +1,49 @@
-import { ADD_JOB, SET_JOBS, UPDATE_JOB } from "./constants";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
-    AddJobAction,
-    Job,
-    SetJobsAction,
-    UpdateJobAction,
+    ADD_PENDING_JOB,
+    REMOVE_PENDING_JOB,
+    RETRIEVE_JOBS,
+    SET_COPY_JOBS,
+    SET_UPLOAD_JOBS,
+} from "./constants";
+import {
+    AddPendingJobAction, PendingJob,
+    RemovePendingJobsAction,
+    RetrieveJobsAction,
+    SetCopyJobsAction,
+    SetUploadJobsAction,
 } from "./types";
 
-export function updateJob(jobName: string, job: Partial<Job>): UpdateJobAction {
+export function retrieveJobs(): RetrieveJobsAction {
     return {
-        payload: {jobName, job},
-        type: UPDATE_JOB,
+        type: RETRIEVE_JOBS,
     };
 }
 
-export function setJobs(jobs: Job[]): SetJobsAction {
+export function setUploadJobs(jobs: JSSJob[]): SetUploadJobsAction {
     return {
         payload: jobs,
-        type: SET_JOBS,
+        type: SET_UPLOAD_JOBS,
     };
 }
 
-export function addJob(job: Job): AddJobAction {
+export function setCopyJobs(jobs: JSSJob[]): SetCopyJobsAction {
+    return {
+        payload: jobs,
+        type: SET_COPY_JOBS,
+    };
+}
+
+export function addPendingJob(job: PendingJob): AddPendingJobAction {
     return {
         payload: job,
-        type: ADD_JOB,
+        type: ADD_PENDING_JOB,
+    };
+}
+
+export function removePendingJobs(jobNames: string[]): RemovePendingJobsAction {
+    return {
+        payload: jobNames,
+        type: REMOVE_PENDING_JOB,
     };
 }

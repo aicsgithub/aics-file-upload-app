@@ -10,7 +10,6 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import {
-    getMutualFiles,
     getSelectedWellLabels,
     getSelectedWellsWithData,
     getWellIdToWellLabelMap,
@@ -246,43 +245,6 @@ describe("Selections selectors", () => {
                 selection: getMockStateWithHistory({
                     ...mockSelection,
                     selectedWells: [],
-                }),
-            });
-            expect(arr).to.be.empty;
-        });
-    });
-
-    describe("getMutualFiles", () => {
-        it("returns array of wells of file paths that are shared by the selected wells", () => {
-            const arr = getMutualFiles({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    selectedWells: mockSelectedWells.slice(0, 3),
-                    wells: mockWells,
-                }),
-            });
-            expect(arr[0]).to.equal("/path/to/file3");
-            expect(arr.length).to.equal(1);
-        });
-
-        it("returns an empty array if no selected wells", () => {
-            const arr = getMutualFiles({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    selectedWells: [],
-                }),
-            });
-            expect(arr).to.be.empty;
-        });
-
-        it("returns an empty array if no mutual files", () => {
-            const arr = getMutualFiles({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    selectedWells: mockSelectedWells,
                 }),
             });
             expect(arr).to.be.empty;

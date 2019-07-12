@@ -1,57 +1,12 @@
 import { expect } from "chai";
-import { difference } from "lodash";
 
-import { getMockStateWithHistory, mockState } from "../../test/mocks";
+import { getMockStateWithHistory, mockSelection, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
 import { State } from "../../types";
 
-import { getUploadPayload, getWellIdToFiles } from "../selectors";
+import { getUploadJobName, getUploadPayload } from "../selectors";
 import { FileType } from "../types";
 
 describe("Upload selectors", () => {
-    describe("getWellIdToFiles", () => {
-        it("returns an empty map given no uploads", () => {
-           const map = getWellIdToFiles({
-               ...mockState,
-               upload: getMockStateWithHistory({}),
-           });
-
-           expect(map.size).to.equal(0);
-        });
-
-        it("aggregates all files associated with a well given multiple files", () => {
-            const barcode = "test_barcode";
-            const wellId = 2;
-            const wellLabel = "A1";
-            const wellId2 = 5;
-            const wellLabel2 = "A5";
-            const map = getWellIdToFiles({
-                ...mockState,
-                upload: getMockStateWithHistory({
-                    "/path1": {barcode, wellIds: [wellId], wellLabels: [wellLabel]},
-                    "/path2": {barcode, wellIds: [wellId], wellLabels: [wellLabel]},
-                    "/path3": {barcode, wellIds: [wellId], wellLabels: [wellLabel]},
-                    "/path4": {barcode, wellIds: [wellId2], wellLabels: [wellLabel2]},
-                }),
-            });
-
-            expect(map.size).to.equal(2);
-            const filesForWell1 = map.get(wellId);
-            expect(filesForWell1).to.not.be.undefined;
-
-            if (filesForWell1) {
-
-                expect(difference(filesForWell1, ["/path1", "/path2", "/path3"]).length).to.equal(0);
-            }
-
-            const filesForWell2 = map.get(wellId2);
-            expect(filesForWell2).to.not.be.undefined;
-
-            if (filesForWell2) {
-                expect(difference(filesForWell2, ["/path4"]).length).to.equal(0);
-            }
-        });
-    });
-
     describe("getUploadPayload", () => {
         it("Adds correct file type and moves wellId to microscopy section", () => {
             const state: State = {
@@ -190,6 +145,52 @@ describe("Upload selectors", () => {
 
             const payload = getUploadPayload(state);
             expect(payload).to.deep.equal(expected);
+        });
+    });
+
+    describe("getUploadJobName", () => {
+        it("returns empty string if no barcode selected", () => {
+            const jobName = getUploadJobName(mockState);
+            expect(jobName).to.equal("");
+        });
+
+        it("returns selected barcode if no other jobs with barcode found", () => {
+            const barcode = "test1234";
+            const jobName = getUploadJobName({
+                ...mockState,
+                job: nonEmptyJobStateBranch,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    barcode,
+                }),
+            });
+            expect(jobName).to.equal(barcode);
+        });
+
+        it("returns selected barcode and count in parenthesis if multiple jobs with barcode found", () => {
+            const barcode = "mockWorkingUploadJob";
+            const jobName = getUploadJobName({
+                ...mockState,
+                job: nonEmptyJobStateBranch,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    barcode,
+                }),
+            });
+            expect(jobName).to.equal(`${barcode} (1)`);
+        });
+
+        it("Sees jobNames 'mockWorkingUploadJob' and 'mockWorkingUploadJob2' as separate barcodes", () => {
+            const barcode = "mockWorkingUploadJob";
+            const jobName = getUploadJobName({
+                ...mockState,
+                job: nonEmptyJobStateBranch,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    barcode: `${barcode}2`,
+                }),
+            });
+            expect(jobName).to.equal(`${barcode}2`);
         });
     });
 });

@@ -1,7 +1,9 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { isEmpty, map, uniq } from "lodash";
+import { isEmpty, map } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+import { getUploadJobNames } from "../job/selectors";
+import { getSelectedBarcode } from "../selection/selectors";
 
 import { State } from "../types";
 import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -11,26 +13,7 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-export const getWellIdToFiles = createSelector([getUpload], (upload: UploadStateBranch) => {
-    const wellIdToFilesMap = new Map<number, string[]>();
-    for (const fullPath in upload) {
-        if (upload.hasOwnProperty(fullPath)) {
-            const metadata = upload[fullPath];
 
-            metadata.wellIds.forEach((wellId) => {
-                if (wellIdToFilesMap.has(wellId)) {
-                    const files: string[] = wellIdToFilesMap.get(wellId) || [];
-                    files.push(fullPath);
-                    wellIdToFilesMap.set(wellId, uniq(files));
-                } else {
-                    wellIdToFilesMap.set(wellId, [fullPath]);
-                }
-            });
-        }
-    }
-
-    return wellIdToFilesMap;
-});
 
 export const getCanRedoUpload = createSelector([getUploadFuture], (future: UploadStateBranch[]) => {
     return !isEmpty(future);
@@ -82,4 +65,22 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
     });
 
     return result;
+});
+
+const barcodeRegex = /^([^\s])+/;
+export const getUploadJobName = createSelector([
+    getUploadJobNames,
+    getSelectedBarcode,
+], (uploadJobNames: string[], barcode?: string) => {
+    if (!barcode) {
+        return "";
+    }
+
+    const jobNamesForBarcode = uploadJobNames.filter((name) => {
+        // name could look like "barcode" or "barcode (1)". We want to get just "barcode"
+        const barcodeParts = name.match(barcodeRegex);
+        return barcodeParts && barcodeParts.length > 0 && barcodeParts[0] === barcode;
+    });
+    const numberOfJobsWithBarcode = jobNamesForBarcode.length;
+    return numberOfJobsWithBarcode === 0 ? barcode : `${barcode} (${numberOfJobsWithBarcode})`;
 });

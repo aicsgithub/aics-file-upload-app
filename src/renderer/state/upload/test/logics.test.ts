@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { get } from "lodash";
 import { stub } from "sinon";
 
-import { getAlert, getRecentEvent } from "../../feedback/selectors";
-import { getJobs } from "../../job/selectors";
+import { getAlert } from "../../feedback/selectors";
+import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
@@ -28,7 +28,7 @@ describe("Upload logics", () => {
     });
 
     describe("initiateUploadLogic", () => {
-        it("adds a job to jobs and adds a Started Upload event given valid metadata", (done) => {
+        it("adds an info alert given valid metadata", (done) => {
             const store = createMockReduxStore(mockState, {
                 ...mockReduxLogicDeps,
                 fms: {
@@ -38,19 +38,24 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(getJobs(state)).to.be.empty;
-            expect(getRecentEvent(state)).to.be.undefined;
+            expect(getAlert(state)).to.be.undefined;
 
             // apply
             store.dispatch(initiateUpload());
 
             // after
+            let doneCalled = false;
             store.subscribe(() => {
-                state = store.getState();
-                expect(getJobs(state).length).to.equal(1);
-                expect(getRecentEvent(state)).to.not.be.undefined;
-                expect(getAlert(state)).to.be.undefined;
-                done();
+                if (!doneCalled) {
+                    state = store.getState();
+                    const alert = getAlert(state);
+                    expect(alert).to.not.be.undefined;
+                    if (alert) {
+                        expect(alert.type).to.equal(AlertType.INFO);
+                    }
+                    done();
+                    doneCalled = true;
+                }
             });
         });
         it("does not add job given invalid metadata", (done) => {
@@ -63,20 +68,24 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(getJobs(state)).to.be.empty;
-            expect(getRecentEvent(state)).to.be.undefined;
             expect(getAlert(state)).to.be.undefined;
 
             // apply
             store.dispatch(initiateUpload());
 
             // after
+            let doneCalled = false;
             store.subscribe(() => {
-                state = store.getState();
-                expect(getJobs(state)).to.be.empty;
-                expect(getRecentEvent(state)).to.be.undefined;
-                expect(getAlert(state)).to.not.be.undefined;
-                done();
+                if (!doneCalled) {
+                    state = store.getState();
+                    const alert = getAlert(state);
+                    expect(alert).to.not.be.undefined;
+                    if (alert) {
+                        expect(alert.type).to.equal(AlertType.ERROR);
+                    }
+                    done();
+                    doneCalled = true;
+                }
             });
         });
     });
