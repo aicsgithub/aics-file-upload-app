@@ -12,7 +12,7 @@ import { getMutualFiles, getWellIdToFiles } from "../selectors";
 
 describe("AssociateWells selectors", () => {
     describe("getMutualFiles", () => {
-        it("returns array of wells of file paths that are shared by the selected wells", () => {
+        it("returns array file paths that are shared by the selected wells", () => {
             const arr = getMutualFiles({
                 ...mockState,
                 selection: getMockStateWithHistory({
