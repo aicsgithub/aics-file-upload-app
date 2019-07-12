@@ -1,6 +1,7 @@
-import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Table } from "antd";
+import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
+import { Modal, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
+import { get } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -15,14 +16,12 @@ import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import Timeout = NodeJS.Timeout;
 
+const styles = require("./styles.pcss");
+
 // Matches a Job but the created date is represented as a string
-export interface UploadSummaryTableRow {
+export interface UploadSummaryTableRow extends JSSJob {
     // used by antd's Table component to uniquely identify rows
     key: string;
-    jobName: string;
-    stage: string;
-    status: JSSJobStatus;
-    modified: string;
 }
 
 interface Props {
@@ -32,8 +31,12 @@ interface Props {
     selectPage: ActionCreator<SelectPageAction>;
 }
 
-class UploadSummary extends React.Component<Props, {}> {
-    private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
+interface UploadSummaryState {
+    selectedJob?: JSSJob;
+}
+
+class UploadSummary extends React.Component<Props, UploadSummaryState> {
+    private columns: Array<ColumnProps<JSSJob>> = [
         {
             align: "center",
             dataIndex: "status",
@@ -47,13 +50,14 @@ class UploadSummary extends React.Component<Props, {}> {
             title: "Job Name",
         },
         {
-            dataIndex: "stage",
+            dataIndex: "currentStage",
             key: "currentStage",
             title: "Current Stage",
         },
         {
             dataIndex: "modified",
             key: "modified",
+            render: (modified: Date) => modified.toLocaleString(),
             title: "Last Modified",
         },
     ];
@@ -77,6 +81,7 @@ class UploadSummary extends React.Component<Props, {}> {
             className,
             jobs,
         } = this.props;
+        const { selectedJob } = this.state;
         return (
             <FormPage
                 className={className}
@@ -85,13 +90,39 @@ class UploadSummary extends React.Component<Props, {}> {
                 onSave={this.goToDragAndDrop}
                 saveButtonName="Create New Upload Job"
             >
-                <Table columns={this.columns} dataSource={jobs}/>
+                <Table
+                    className={styles.jobTable}
+                    columns={this.columns}
+                    dataSource={jobs}
+                    onRow={this.onRow}
+                />
+                <Modal
+                    visible={!!selectedJob}
+                    title={get(selectedJob, "jobName")}
+                    footer={null}
+                    onCancel={this.closeModal}
+                >
+                   hello
+                </Modal>
             </FormPage>
         );
     }
 
     private goToDragAndDrop = (): void => {
         this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
+    }
+
+    private onRow = (record: UploadSummaryTableRow, rowIndex: number) => {
+        return {
+            onClick: () => {
+                this.setState({selectedJob: record});
+                console.log(record);
+            },
+        };
+    }
+
+    private closeModal = () => {
+        this.setState({selectedJob: undefined});
     }
 }
 
