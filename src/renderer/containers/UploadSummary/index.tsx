@@ -32,11 +32,11 @@ interface Props {
 }
 
 interface UploadSummaryState {
-    selectedJob?: JSSJob;
+    selectedJob?: UploadSummaryTableRow;
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
-    private columns: Array<ColumnProps<JSSJob>> = [
+    private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
             dataIndex: "status",
