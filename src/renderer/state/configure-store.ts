@@ -1,7 +1,9 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
+import { JobStatusClient } from "@aics/job-status-client";
 import axios from "axios";
 import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
+import { userInfo } from "os";
 import {
     applyMiddleware,
     combineReducers,
@@ -47,6 +49,12 @@ export const reduxLogicDependencies = {
     fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT}),
     httpClient: axios,
     ipcRenderer,
+    jssClient: new JobStatusClient({
+        host: LIMS_HOST,
+        logLevel: "debug",
+        port: LIMS_PORT,
+        username: userInfo().username,
+    }),
     storage,
 };
 

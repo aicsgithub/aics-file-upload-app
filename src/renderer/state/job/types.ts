@@ -1,50 +1,38 @@
+import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+
 export interface JobStateBranch {
-    jobs: Job[];
+    uploadJobs: JSSJob[];
+    copyJobs: JSSJob[];
+    pendingJobs: PendingJob[];
 }
 
-// Every group of files associated with an upload represents a job.
-export interface Job {
-    // assigned by FSS
-    jobId: string;
-
-    // name of job. Constructed from date created and acts as an ID since jobId's assigned by FSS don't get created
-    // until after the request is validated by aicsfiles
-    name: string;
-
-    // contains the latest log message from aicsfiles as it executes an upload
-    stage: string;
-
-    // when the job was initiated.
-    created: Date;
-
-    // whether copy is complete
-    copyComplete: boolean;
-
-    // status of the job
-    status: JobStatus;
+// When a user submits an upload, a job doesn't get created right away so the job is stored
+// in this form first
+export interface PendingJob extends JSSJob {
+    uploads: Uploads;
 }
 
-export enum JobStatus {
-    NOT_STARTED = "NOT_STARTED", // This will get used for drafts eventually when saving drafts is possible
-    IN_PROGRESS = "IN_PROGRESS",
-    COMPLETE = "COMPLETE",
-    FAILED = "FAILED",
-}
-
-export interface UpdateJobAction {
-    payload: {
-        jobName: string;
-        job: Partial<Job>;
-    };
+export interface RetrieveJobsAction {
     type: string;
 }
 
-export interface SetJobsAction {
-    payload: Job[];
+export interface SetUploadJobsAction {
+    payload: JSSJob[];
     type: string;
 }
 
-export interface AddJobAction {
-    payload: Job;
+export interface SetCopyJobsAction {
+    payload: JSSJob[];
+    type: string;
+}
+
+export interface AddPendingJobAction {
+    payload: PendingJob;
+    type: string;
+}
+
+export interface RemovePendingJobsAction {
+    payload: string[]; // jobNames
     type: string;
 }

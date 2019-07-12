@@ -1,66 +1,123 @@
 import { expect } from "chai";
 
-import { mockJob, mockJob2, mockState, nonEmptyJobStateBranch } from "../../test/mocks";
+import {
+    mockFailedCopyJob,
+    mockFailedUploadJob, mockPendingJob,
+    mockState, mockSuccessfulCopyJob, mockSuccessfulUploadJob,
+    mockWorkingCopyJob,
+    mockWorkingUploadJob,
+    nonEmptyJobStateBranch,
+} from "../../test/mocks";
 
 import { getIsUnsafeToExit, getJobsForTable } from "../selectors";
-import { JobStatus } from "../types";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
         it("converts jobs in redux store to objects used by upload summary page", () => {
-            const jobs = nonEmptyJobStateBranch.jobs;
+            const jobs = nonEmptyJobStateBranch.uploadJobs;
             const jobTableRows = getJobsForTable({
                 ...mockState,
                 job: {...nonEmptyJobStateBranch},
             });
 
-            expect(jobTableRows.length).to.equal(jobs.length);
+            expect(jobTableRows.length).to.equal(jobs.length + nonEmptyJobStateBranch.pendingJobs.length);
             for (let i = 0; i < jobs.length; i++) {
                 const job = jobs[i];
                 const jobTableRow = jobTableRows[i];
-                expect(jobTableRow.jobId).to.equal(job.jobId);
+                expect(jobTableRow.jobName).to.equal(job.jobName);
                 expect(jobTableRow.key).to.equal(job.jobId);
-                expect(jobTableRow.stage).to.equal(job.stage);
-                expect(jobTableRow.created).to.equal(job.created.toLocaleString());
+                expect(jobTableRow.stage).to.equal(job.currentStage);
+                expect(jobTableRow.status).to.equal(job.status);
+                expect(jobTableRow.modified).to.equal(job.modified.toLocaleString());
             }
         });
     });
 
     describe("getIsUnsafeToExit", () => {
-        it("returns true if at least one job is not done with copying and it is still in progress", () => {
-            const state = {
+        it("returns true if there are any pending jobs", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
                 ...mockState,
-                job: {
-                    ...mockState.job,
-                    jobs: [mockJob, {...mockJob2, copyComplete: false, status: JobStatus.IN_PROGRESS}],
-                },
-            };
-            const copyInProgress = getIsUnsafeToExit(state);
-            expect(copyInProgress).to.be.true;
+                job: {...mockState.job, pendingJobs: [mockPendingJob]},
+            });
+            expect(isUnsafeToExit).to.be.true;
         });
 
-        it("returns false if all jobs are done with copying", () => {
-            const state = {
+        it("returns true if an upload job is in progress and its copy job is in progress", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    jobs: [mockJob, mockJob2],
+                    copyJobs: [mockWorkingCopyJob],
+                    uploadJobs: [mockWorkingUploadJob],
                 },
-            };
-            const copyInProgress = getIsUnsafeToExit(state);
-            expect(copyInProgress).to.be.false;
+            });
+            expect(isUnsafeToExit).to.be.true;
         });
 
-        it("returns false if a job failed before copy completed", () => {
-            const state = {
+        it("returns false if an upload job is failed and its copy job is in progress", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    jobs: [mockJob, {...mockJob2, copyComplete: false, status: JobStatus.FAILED}],
+                    copyJobs: [mockWorkingCopyJob],
+                    uploadJobs: [{
+                        ...mockFailedUploadJob,
+                        serviceFields: {
+                            ...mockFailedUploadJob.serviceFields,
+                            copyJobId: mockWorkingCopyJob.jobId,
+                        },
+                    }],
                 },
-            };
-            const copyInProgress = getIsUnsafeToExit(state);
-            expect(copyInProgress).to.be.false;
+            });
+            expect(isUnsafeToExit).to.be.false;
+        });
+
+        it("returns false if an upload job is in progress and its copy job is in complete", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    copyJobs: [mockSuccessfulCopyJob],
+                    uploadJobs: [{
+                        ...mockWorkingUploadJob,
+                        serviceFields: {
+                            ...mockWorkingUploadJob.serviceFields,
+                            copyJobId: mockSuccessfulCopyJob.jobId,
+                        },
+                    }],
+                },
+            });
+            expect(isUnsafeToExit).to.be.false;
+        });
+
+        it("returns false if an upload job is in progress and its copy job is in failed", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    copyJobs: [mockFailedCopyJob],
+                    uploadJobs: [{
+                        ...mockFailedUploadJob,
+                        serviceFields: {
+                            ...mockFailedUploadJob.serviceFields,
+                            copyJobId: mockFailedCopyJob.jobId,
+                        },
+                    }],
+                },
+            });
+            expect(isUnsafeToExit).to.be.false;
+        });
+
+        it("returns false if an upload job is complete", () => {
+            const isUnsafeToExit = getIsUnsafeToExit({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    copyJobs: [mockSuccessfulCopyJob],
+                    uploadJobs: [mockSuccessfulUploadJob],
+                },
+            });
+            expect(isUnsafeToExit).to.be.false;
         });
     });
 });

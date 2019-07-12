@@ -1,11 +1,14 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client";
-import { Job, JobStateBranch, JobStatus } from "../job/types";
+import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
 import { Unit } from "../metadata/types";
 import { Page, SelectionStateBranch, Well } from "../selection/types";
 import { State } from "../types";
+import { getUploadPayload } from "../upload/selectors";
+import { UploadStateBranch } from "../upload/types";
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
@@ -29,6 +32,23 @@ export const mockSelection: SelectionStateBranch = {
     stagedFiles: [],
     wells: [],
 };
+export const mockUpload: UploadStateBranch = {
+    "/path/to/file1": {
+        barcode: "1234",
+        wellIds: [1],
+        wellLabels: ["A1"],
+    },
+    "/path/to/file2": {
+        barcode: "1235",
+        wellIds: [2],
+        wellLabels: ["A2"],
+    },
+    "/path/to/file3": {
+        barcode: "1236",
+        wellIds: [1, 2, 3],
+        wellLabels: ["A1", "A2", "B1"],
+    },
+};
 
 export const mockState: State = {
     feedback: {
@@ -37,7 +57,9 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
-        jobs: [],
+        copyJobs: [],
+        pendingJobs: [],
+        uploadJobs: [],
     },
     metadata: {
         barcodePrefixes: [],
@@ -54,23 +76,7 @@ export const mockState: State = {
         limsPort: "8080",
         limsProtocol: "http",
     },
-    upload: getMockStateWithHistory({
-        "/path/to/file1": {
-            barcode: "1234",
-            wellIds: [1],
-            wellLabels: ["A1"],
-        },
-        "/path/to/file2": {
-            barcode: "1235",
-            wellIds: [2],
-            wellLabels: ["A2"],
-        },
-        "/path/to/file3": {
-            barcode: "1236",
-            wellIds: [1, 2, 3],
-            wellLabels: ["A1", "A2", "B1"],
-        },
-    }),
+    upload: getMockStateWithHistory(mockUpload),
 };
 
 export const mockUnits: Unit[] = [
@@ -122,36 +128,78 @@ export const mockSelectedWells: GridCell[] = [
     new GridCell(1, 1),
 ];
 
-export const mockJob: Job = {
-    copyComplete: true,
+export const mockSuccessfulUploadJob: JSSJob = {
     created: new Date(),
+    currentStage: "Completed",
     jobId: "123434234",
-    name: "mockJob1",
-    stage: "Completed",
-    status: JobStatus.COMPLETE,
+    jobName: "mockJob1",
+    modified: new Date(),
+    serviceFields: {
+        copyJobId: "copyJobId1",
+    },
+    status: "SUCCEEDED",
+    user: "test_user",
 };
 
-export const mockJob2: Job = {
-    copyComplete: true,
+export const mockWorkingUploadJob: JSSJob = {
     created: new Date(),
+    currentStage: "Copying files",
     jobId: "2222222222",
-    name: "mockJob2",
-    stage: "Copying files",
-    status: JobStatus.COMPLETE,
+    jobName: "mockWorkingUploadJob",
+    modified: new Date(),
+    serviceFields: {
+        copyJobId: "copyJobId2",
+    },
+    status: "WORKING",
+    user: "test_user",
 };
 
-export const mockJob3: Job = {
-    copyComplete: false,
+export const mockFailedUploadJob: JSSJob = {
     created: new Date(),
+    currentStage: "Copy error",
     jobId: "3333333333",
-    name: "mockJob3",
-    stage: "Copy error",
-    status: JobStatus.FAILED,
+    jobName: "mockFailedUploadJob",
+    modified: new Date(),
+    status: "FAILED",
+    user: "test_user",
+};
+
+export const mockSuccessfulCopyJob: JSSJob = {
+    created: new Date(),
+    currentStage: "Complete",
+    jobId: "copyJobId1",
+    jobName: "Copy job parent for 123434234",
+    modified: new Date(),
+    status: "SUCCEEDED",
+    user: "test_user",
+};
+
+export const mockWorkingCopyJob: JSSJob = {
+    ...mockSuccessfulCopyJob,
+    currentStage: "Copying files",
+    jobId: "copyJobId2",
+    jobName: "Copy job parent for 2222222222",
+    status: "WORKING",
+};
+
+export const mockFailedCopyJob: JSSJob = {
+    ...mockSuccessfulCopyJob,
+    currentStage: "Invalid permissions",
+    jobId: "copyJobId3",
+    jobName: "Copy job parent for 3333333333",
+    status: "FAILED",
+};
+
+export const mockPendingJob: PendingJob = {
+    ...mockWorkingUploadJob,
+    uploads: getUploadPayload(mockState),
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
-    jobs: [mockJob, mockJob2, mockJob3],
+    copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
+    pendingJobs: [mockPendingJob],
+    uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
 export const mockImagingSessions: LabkeyImagingSession[] = [

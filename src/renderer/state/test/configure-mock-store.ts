@@ -16,6 +16,7 @@ import {
     upload,
 } from "../";
 import { State } from "../types";
+import { mockFailedUploadJob, mockSuccessfulUploadJob, mockWorkingUploadJob } from "./mocks";
 
 export interface ReduxLogicDependencies {
     dialog: {
@@ -31,6 +32,12 @@ export interface ReduxLogicDependencies {
     ipcRenderer: {
         on: SinonStub;
         send: SinonStub;
+    };
+    jssClient: {
+        createJob: SinonStub;
+        getJob: SinonStub;
+        getJobs: SinonStub;
+        updateJob: SinonStub;
     };
     storage: {
         get: SinonStub,
@@ -53,6 +60,12 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     ipcRenderer: {
         on: stub(),
         send: stub(),
+    },
+    jssClient: {
+        createJob: stub().resolves(mockSuccessfulUploadJob),
+        getJob: stub(),
+        getJobs: stub().resolves([mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob]),
+        updateJob: stub().resolves(mockSuccessfulUploadJob),
     },
     storage: {
         get: stub(),

@@ -1,20 +1,82 @@
-import { some } from "lodash";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+import { get, includes, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
+
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { State } from "../types";
-import { Job, JobStatus } from "./types";
+import { PendingJob } from "./types";
 
-export const getJobs = (state: State) => state.job.jobs;
+export const getCopyJobs = (state: State) => state.job.copyJobs;
+export const getUploadJobs = (state: State) => state.job.uploadJobs;
+export const getPendingJobs = (state: State) => state.job.pendingJobs;
 
-export const getJobsForTable = createSelector([getJobs], (jobs: Job[]): UploadSummaryTableRow[] => {
-    return jobs.map((job) => ({
-        ...job,
-        created: job.created.toLocaleString(),
-        key: job.jobId,
+export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
+   return pendingJobs.length;
+});
+
+export const getPendingJobNames = createSelector([getPendingJobs], (jobs: PendingJob[]) => {
+    return jobs.map((job) => job.jobName);
+});
+
+export const getUploadJobsWithCopyJob = createSelector([
+    getCopyJobs,
+    getUploadJobs,
+], (copyJobs: JSSJob[], uploadJobs: JSSJob[]) => {
+   return uploadJobs.map((j) => {
+       return {
+           ...j,
+           serviceFields: {
+               ...j.serviceFields,
+               copyJob: copyJobs.find((cj) => cj.jobId === get(j, ["serviceFields", "copyJobId"])),
+           },
+       };
+   });
+});
+
+const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
+
+export const getJobsForTable = createSelector([
+    getUploadJobsWithCopyJob,
+    getPendingJobs,
+], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
+    const orderedJobs = orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"]);
+    return orderedJobs.map(({modified, currentStage, jobName, jobId, status}) => ({
+        jobName: jobName || "",
+        key: jobId,
+        modified: modified.toLocaleString(),
+        stage: currentStage || "",
+        status,
     }));
 });
 
-export const getIsUnsafeToExit = createSelector([getJobs], (jobs: Job[]): boolean => {
-    return some(jobs, (job) => !job.copyComplete && job.status === JobStatus.IN_PROGRESS);
+export const getIsUnsafeToExit = createSelector([
+    getUploadJobsWithCopyJob,
+    getNumberOfPendingJobs,
+], (jobs: JSSJob[], numberPendingJobs: number): boolean => {
+    if (numberPendingJobs > 0) {
+        return true;
+    }
+
+    return some(jobs, ({status, serviceFields}) => {
+        const { copyJob } = serviceFields;
+        if (!copyJob) {
+            return false;
+        }
+
+        const uploadInProgress = includes(IN_PROGRESS_STATUSES, status);
+        const copyInProgress = includes(IN_PROGRESS_STATUSES, copyJob.status);
+        return uploadInProgress && copyInProgress;
+    });
+});
+
+export const getUploadJobNames = createSelector([
+    getUploadJobs,
+], (uploadJobs: JSSJob[]): string[] => {
+    return uploadJobs
+        .map((job) => job.jobName)
+        .filter((name) => !!name) as string[];
+    // typescript static analysis is unable to track the fact that undefined values should be filtered out
+    // so we need to cast here.
+    // https://codereview.stackexchange.com/questions/135363/filtering-undefined-elements-out-of-an-array
 });

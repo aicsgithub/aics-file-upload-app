@@ -9,15 +9,16 @@ import SelectedWellsCard from "../../components/SelectedWellsCard/index";
 
 import { goBack, goForward, selectWells } from "../../state/selection/actions";
 import {
-    getMutualFiles,
-    getSelectedFiles, getSelectedWellLabels,
-    getSelectedWells, getSelectedWellsWithData,
-    getWellsWithUnitsAndModified
+    getSelectedFiles,
+    getSelectedWellLabels,
+    getSelectedWells,
+    getSelectedWellsWithData,
+    getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import { GoBackAction, NextPageAction, SelectWellsAction, Well } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { associateFilesAndWells, jumpToUpload, undoFileWellAssociation } from "../../state/upload/actions";
-import { getCanRedoUpload, getCanUndoUpload, getWellIdToFiles } from "../../state/upload/selectors";
+import { getCanRedoUpload, getCanUndoUpload } from "../../state/upload/selectors";
 import {
     AssociateFilesAndWellsAction,
     JumpToUploadAction,
@@ -26,6 +27,7 @@ import {
 import { getWellLabel } from "../../util";
 
 import { GridCell } from "./grid-cell";
+import { getMutualFiles, getWellIdToFiles } from "./selectors";
 
 const styles = require("./style.pcss");
 

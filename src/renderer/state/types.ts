@@ -1,4 +1,5 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import { CreateJobRequest, JobQuery, JSSJob, UpdateJobRequest } from "@aics/job-status-client/type-declarations/types";
 import { AxiosPromise, AxiosRequestConfig } from "axios";
 import { MessageBoxOptions } from "electron";
 import { AnyAction } from "redux";
@@ -45,6 +46,12 @@ export interface ReduxLogicExtraDependencies {
     ipcRenderer: {
         on: (channel: string, listener: (...args: any[]) => void) => void;
         send: (channel: string, ...args: any[]) => void;
+    };
+    jssClient: { // todo replace with IJobStatusClient once it stops exposing constructor and JSSConnection
+        createJob(job: CreateJobRequest): Promise<JSSJob>;
+        updateJob(jobId: string, job: UpdateJobRequest, patch?: boolean): Promise<JSSJob>;
+        getJob(jobId: string): Promise<JSSJob>;
+        getJobs(query: JobQuery): Promise<JSSJob[]>;
     };
     storage: {
         get: (key: string) => any,
