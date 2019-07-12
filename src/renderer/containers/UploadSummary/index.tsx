@@ -1,13 +1,13 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
 import { Modal, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
-import { get } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
+import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { retrieveJobs } from "../../state/job/actions";
 import { getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
@@ -96,14 +96,15 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     dataSource={jobs}
                     onRow={this.onRow}
                 />
-                <Modal
+                {selectedJob && <Modal
+                    title="Upload Job"
+                    width="90%"
                     visible={!!selectedJob}
-                    title={get(selectedJob, "jobName")}
                     footer={null}
                     onCancel={this.closeModal}
                 >
-                   hello
-                </Modal>
+                   <UploadJobDisplay job={selectedJob}/>
+                </Modal>}
             </FormPage>
         );
     }
@@ -116,7 +117,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         return {
             onClick: () => {
                 this.setState({selectedJob: record});
-                console.log(record);
             },
         };
     }
