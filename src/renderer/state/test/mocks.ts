@@ -154,6 +154,21 @@ export const mockWorkingUploadJob: JSSJob = {
     user: "test_user",
 };
 
+export const mockRetryingUploadJob: JSSJob = {
+    ...mockWorkingUploadJob,
+    status: "RETRYING",
+};
+
+export const mockWaitingUploadJob: JSSJob = {
+    ...mockWorkingUploadJob,
+    status: "WAITING",
+};
+
+export const mockBlockedUploadJob: JSSJob = {
+    ...mockWorkingUploadJob,
+    status: "BLOCKED",
+};
+
 export const mockFailedUploadJob: JSSJob = {
     created: new Date(),
     currentStage: "Copy error",

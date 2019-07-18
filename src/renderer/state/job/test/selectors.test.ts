@@ -1,15 +1,16 @@
 import { expect } from "chai";
 
 import {
+    mockBlockedUploadJob,
     mockFailedCopyJob,
     mockFailedUploadJob, mockPendingJob,
-    mockState, mockSuccessfulCopyJob, mockSuccessfulUploadJob,
+    mockState, mockSuccessfulCopyJob, mockSuccessfulUploadJob, mockWaitingUploadJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
     nonEmptyJobStateBranch,
 } from "../../test/mocks";
 
-import { getIsUnsafeToExit, getJobsForTable } from "../selectors";
+import { getAreAllJobsComplete, getIsUnsafeToExit, getJobsForTable } from "../selectors";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
@@ -118,6 +119,85 @@ describe("Job selectors", () => {
                 },
             });
             expect(isUnsafeToExit).to.be.false;
+        });
+    });
+
+    describe("getAreAllJobsComplete", () => {
+        it("returns false if pending jobs exist", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    pendingJobs: [mockPendingJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is working", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockWorkingUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is retrying", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockWorkingUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is waiting", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockWaitingUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is blocked", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockBlockedUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns true if all upload jobs succeeded", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockSuccessfulUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
+        });
+
+        it("returns true if all upload jobs failed", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockFailedUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
         });
     });
 });
