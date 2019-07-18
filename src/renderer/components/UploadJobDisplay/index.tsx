@@ -7,6 +7,8 @@ import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
+const styles = require("./styles.pcss");
+
 const Item = Descriptions.Item;
 const SEPARATOR = { separator: " "};
 
@@ -16,7 +18,7 @@ interface MetadataDisplayProps {
 }
 const MetadataDisplay: React.FunctionComponent<MetadataDisplayProps> = ({metadata, title}: MetadataDisplayProps) => {
     metadata = decamelizeKeys(metadata, SEPARATOR);
-    title = `${title.charAt(0).toUpperCase()}${title.slice(1)} Metadata`;
+    title = `${title} Metadata`;
     return (
         <Descriptions
             size="small"
@@ -57,7 +59,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({class
             {showFiles && (
                 <>
                     <div className="ant-descriptions-title">Files</div>
-                    <Collapse>
+                    <Collapse className={styles.files}>
                         {serviceFields.files.map((f: UploadMetadata) => {
                             if (!f.file.originalPath) {
                                 return null;
