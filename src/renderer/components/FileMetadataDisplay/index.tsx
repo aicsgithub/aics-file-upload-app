@@ -1,6 +1,6 @@
 import { Descriptions } from "antd";
 import { decamelizeKeys } from "humps";
-import { map } from "lodash";
+import { flatMap } from "lodash";
 import * as React from "react";
 
 const Item = Descriptions.Item;
@@ -23,10 +23,13 @@ const FileMetadataDisplay: React.FunctionComponent<MetadataDisplayProps> =
             title={title}
             column={{xs: 1}}
         >
-            {map(metadata, (value: any, key: string) => {
+            {flatMap(metadata, (value: any, key: string) => {
                 if (typeof value === "object") {
                     if (Array.isArray(value)) {
-                        // todo handle arrays of objects
+                        if (value[0] && typeof value[0] === "object") {
+                            throw new Error("Array of objects found. This is currently not supported");
+                        }
+
                         return <Item label={key} key={key}>{value.join(", ")}</Item>;
                     }
                     return <FileMetadataDisplay title={key} metadata={value} key={key}/>;

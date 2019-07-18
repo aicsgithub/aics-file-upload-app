@@ -33,7 +33,7 @@ describe("Job selectors", () => {
                 expect(jobTableRow.key).to.equal(job.jobId);
                 expect(jobTableRow.currentStage).to.equal(job.currentStage);
                 expect(jobTableRow.status).to.equal(job.status);
-                expect(jobTableRow.modified).to.equal(job.modified.toLocaleString());
+                expect(jobTableRow.modified).to.equal(job.modified);
             }
         });
     });
