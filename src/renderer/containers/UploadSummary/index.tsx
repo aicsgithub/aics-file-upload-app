@@ -9,7 +9,7 @@ import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { retrieveJobs } from "../../state/job/actions";
-import { getJobsForTable } from "../../state/job/selectors";
+import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
@@ -25,6 +25,7 @@ export interface UploadSummaryTableRow extends JSSJob {
 }
 
 interface Props {
+    allJobsComplete: boolean;
     className?: string;
     jobs: UploadSummaryTableRow[];
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
@@ -61,7 +62,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             title: "Last Modified",
         },
     ];
-    private interval!: Timeout;
+    private interval: Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -72,8 +73,17 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.interval = setInterval(this.props.retrieveJobs, 1000);
     }
 
+    public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<{}>, snapshot?: any): void {
+        if (this.interval && this.props.allJobsComplete) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+    }
+
     public componentWillUnmount(): void {
-        clearInterval(this.interval);
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
     }
 
     public render() {
@@ -128,6 +138,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
 function mapStateToProps(state: State) {
     return {
+        allJobsComplete: getAreAllJobsComplete(state),
         jobs: getJobsForTable(state),
     };
 }
