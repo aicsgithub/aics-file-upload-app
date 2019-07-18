@@ -21,9 +21,10 @@ const createBarcode = createLogic({
         try {
             const barcode = await MMSClient.Create.barcode(httpClient, action.payload);
             ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode);
+            next(action);
         } catch (ex) {
             next(setAlert({
-                message: "Could not create barcode metadata",
+                message: "Could not create barcode: " + ex.message,
                 type: AlertType.ERROR,
             }));
         }

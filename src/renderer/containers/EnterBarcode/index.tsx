@@ -155,7 +155,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     loadOptions={createGetBarcodesAsyncFunction(this.setAlert)}
                     placeholder="barcode"
                 />
-                <a href="#" className={styles.createBarcodeLink} onClick={this.toggleCreateBarcodeForm}>
+                <a href="#" className={styles.createBarcodeLink} onClick={this.showCreateBarcodeForm}>
                     I don't have a barcode
                 </a>
                 {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : null}
@@ -169,7 +169,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const { barcodePrefixes } = this.props;
 
         return (
-            <Row>
+            <Row className={styles.createBarcodeForm}>
                 <Col xs={16} md={20}>
                     <LabKeyOptionSelector
                         required={true}
@@ -229,8 +229,14 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         this.setState({ barcodePrefix: barcodePrefix || undefined });
     }
 
-    private toggleCreateBarcodeForm = () => {
-        this.setState({ showCreateBarcodeForm: !this.state.showCreateBarcodeForm });
+    private showCreateBarcodeForm = () => {
+        this.setState({
+            barcode: undefined,
+            barcodePrefix: undefined,
+            imagingSessionId: undefined,
+            imagingSessionIds: [],
+            showCreateBarcodeForm: true,
+        });
     }
 
     private getImagingSessionName = (id: number | null) => {
@@ -253,7 +259,12 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 
     private setBarcode(option: LabkeyBarcodeSelectorOption | null): void {
         if (option) {
-            this.setState(option);
+            this.setState({
+                ...option,
+                barcodePrefix: undefined,
+                imagingSessionId: undefined,
+                showCreateBarcodeForm: false,
+            });
         } else {
             this.setState({
                 barcode: undefined,
@@ -265,7 +276,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private createBarcode = () => {
         const { barcodePrefix } = this.state;
         if (barcodePrefix) {
-            this.toggleCreateBarcodeForm();
+            this.setState({showCreateBarcodeForm: false});
             this.props.createBarcode(barcodePrefix.prefixId);
         }
     }

@@ -1,45 +1,45 @@
-import { intersection, uniq } from "lodash";
+import { difference, isEmpty, reduce, uniq } from "lodash";
 import { createSelector } from "reselect";
 import { getSelectedWellsWithData } from "../../state/selection/selectors";
 import { Well } from "../../state/selection/types";
 import { getUpload } from "../../state/upload/selectors";
-import { UploadStateBranch } from "../../state/upload/types";
+import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
-export const getWellIdToFiles = createSelector([getUpload], (upload: UploadStateBranch) => {
-    const wellIdToFilesMap = new Map<number, string[]>();
-    for (const fullPath in upload) {
-        if (upload.hasOwnProperty(fullPath)) {
-            const metadata = upload[fullPath];
+export interface WellIdToFilesMap {
+    [wellId: number]: string[]; // filePaths
+}
 
-            metadata.wellIds.forEach((wellId) => {
-                if (wellIdToFilesMap.has(wellId)) {
-                    const files: string[] = wellIdToFilesMap.get(wellId) || [];
-                    files.push(fullPath);
-                    wellIdToFilesMap.set(wellId, uniq(files));
-                } else {
-                    wellIdToFilesMap.set(wellId, [fullPath]);
-                }
-            });
-        }
-    }
-
-    return wellIdToFilesMap;
+export const getWellIdToFiles = createSelector([getUpload], (upload: UploadStateBranch): WellIdToFilesMap => {
+    return reduce(upload, (result: WellIdToFilesMap, {wellIds}: UploadMetadata, filePath: string) => {
+        return {
+            ...result,
+            ...reduce(wellIds, (accum2: WellIdToFilesMap, wellId: number) => {
+                const files = accum2[wellId] || [];
+                return {
+                    ...accum2,
+                    [wellId]: uniq([...files, filePath]),
+                };
+            }, {}),
+        };
+    }, {});
 });
 
 export const getMutualFiles = createSelector([
     getSelectedWellsWithData,
-    getWellIdToFiles,
-], (selectedWellsData: Well[], wellIdToFiles: Map<number, string[]>): string[] => {
-    if (!selectedWellsData.length || !wellIdToFiles.size) {
+    getUpload,
+], (selectedWellsData: Well[], upload: UploadStateBranch): string[] => {
+    if (isEmpty(selectedWellsData)) {
         return [];
     }
-    let mutualFiles = wellIdToFiles.get(selectedWellsData[0].wellId);
-    for (let wellIndex = 1; wellIndex < selectedWellsData.length; wellIndex += 1) {
-        const currentFiles = wellIdToFiles.get(selectedWellsData[wellIndex].wellId);
-        if (!mutualFiles || !mutualFiles.length || !currentFiles || !currentFiles.length) {
-            return [];
+
+    const selectedWellIds = selectedWellsData.map((well: Well) => well.wellId);
+
+    return reduce(upload, (files: string[], metadata: UploadMetadata, filepath: string) => {
+        const allWellsFound = isEmpty(difference(selectedWellIds, metadata.wellIds));
+        const accum = [...files];
+        if (allWellsFound) {
+            accum.push(filepath);
         }
-        mutualFiles = intersection(mutualFiles, currentFiles);
-    }
-    return mutualFiles || [];
+        return accum;
+    }, []);
 });

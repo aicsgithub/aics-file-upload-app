@@ -13,8 +13,6 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-
-
 export const getCanRedoUpload = createSelector([getUploadFuture], (future: UploadStateBranch[]) => {
     return !isEmpty(future);
 });
