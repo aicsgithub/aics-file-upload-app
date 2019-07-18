@@ -1,4 +1,5 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
+import { keys } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -27,7 +28,7 @@ import {
 import { getWellLabel } from "../../util";
 
 import { GridCell } from "./grid-cell";
-import { getMutualFiles, getWellIdToFiles } from "./selectors";
+import { getMutualFiles, getWellIdToFiles, WellIdToFilesMap } from "./selectors";
 
 const styles = require("./style.pcss");
 
@@ -45,7 +46,7 @@ interface AssociateWellsProps {
     selectedWellsData: Well[];
     selectWells: ActionCreator<SelectWellsAction>;
     wells?: Well[][];
-    wellIdToFiles: Map<number, string[]>;
+    wellIdToFiles: WellIdToFilesMap;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
     undoAssociation: ActionCreator<UndoFileWellAssociationAction>;
 }
@@ -151,7 +152,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     }
 
     private canContinue = (): boolean => {
-        return this.props.wellIdToFiles.size > 0;
+        return keys(this.props.wellIdToFiles).length > 0;
     }
 }
 

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { difference } from "lodash";
+import { difference, keys } from "lodash";
 
 import {
     getMockStateWithHistory,
@@ -12,7 +12,7 @@ import { getMutualFiles, getWellIdToFiles } from "../selectors";
 
 describe("AssociateWells selectors", () => {
     describe("getMutualFiles", () => {
-        it("returns array file paths that are shared by the selected wells", () => {
+        it("returns file paths that are shared by the selected wells", () => {
             const arr = getMutualFiles({
                 ...mockState,
                 selection: getMockStateWithHistory({
@@ -54,7 +54,7 @@ describe("AssociateWells selectors", () => {
                 upload: getMockStateWithHistory({}),
             });
 
-            expect(map.size).to.equal(0);
+            expect(keys(map).length).to.equal(0);
         });
 
         it("aggregates all files associated with a well given multiple files", () => {
@@ -73,8 +73,8 @@ describe("AssociateWells selectors", () => {
                 }),
             });
 
-            expect(map.size).to.equal(2);
-            const filesForWell1 = map.get(wellId);
+            expect(keys(map).length).to.equal(2);
+            const filesForWell1 = map[wellId];
             expect(filesForWell1).to.not.be.undefined;
 
             if (filesForWell1) {
@@ -82,7 +82,7 @@ describe("AssociateWells selectors", () => {
                 expect(difference(filesForWell1, ["/path1", "/path2", "/path3"]).length).to.equal(0);
             }
 
-            const filesForWell2 = map.get(wellId2);
+            const filesForWell2 = map[wellId2];
             expect(filesForWell2).to.not.be.undefined;
 
             if (filesForWell2) {
