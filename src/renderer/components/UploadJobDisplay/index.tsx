@@ -1,10 +1,11 @@
 import { UploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Collapse, Descriptions } from "antd";
 import CollapsePanel from "antd/lib/collapse/CollapsePanel";
-import { decamelizeKeys} from "humps";
+import { decamelizeKeys } from "humps";
 import { isEmpty, map } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const Item = Descriptions.Item;
 const SEPARATOR = { separator: " "};
@@ -44,38 +45,14 @@ interface UploadJobDisplayProps {
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({className, job}: UploadJobDisplayProps) => {
     const {
-        created,
-        currentStage,
-        currentHost,
-        jobId,
-        jobName,
-        modified,
-        originationHost,
         serviceFields,
-        status,
-        user,
     } = job;
     const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
         && !isEmpty(serviceFields.files);
 
     return (
         <div className={className}>
-            <Descriptions
-                size="small"
-                title="Job Overview"
-                bordered={false}
-                column={{ xxl: 3, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
-            >
-                <Item label="Job Id">{jobId}</Item>
-                <Item label="Job Name">{jobName}</Item>
-                <Item label="Status">{status}</Item>
-                <Item label="Created">{created.toLocaleString()}</Item>
-                <Item label="Created By">{user}</Item>
-                <Item label="Origination Host">{originationHost}</Item>
-                <Item label="Current Host">{currentHost}</Item>
-                <Item label="Modified">{modified.toLocaleString()}</Item>
-                <Item label="Current Stage">{currentStage}</Item>
-            </Descriptions>
+            <JobOverviewDisplay job={job}/>
 
             {showFiles && (
                 <>
