@@ -22,7 +22,6 @@ const FileMetadataDisplay: React.FunctionComponent<MetadataDisplayProps> =
             size="small"
             title={title}
             column={{xs: 1}}
-            bordered={false}
         >
             {map(metadata, (value: any, key: string) => {
                 if (typeof value === "object") {

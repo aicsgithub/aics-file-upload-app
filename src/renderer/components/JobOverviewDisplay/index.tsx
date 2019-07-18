@@ -26,7 +26,6 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job}: Pr
             className={className}
             size="small"
             title="Job Overview"
-            bordered={false}
             column={{ xxl: 3, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
         >
             <Item label="Job Id">{jobId}</Item>
