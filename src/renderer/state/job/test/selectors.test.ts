@@ -3,8 +3,12 @@ import { expect } from "chai";
 import {
     mockBlockedUploadJob,
     mockFailedCopyJob,
-    mockFailedUploadJob, mockPendingJob,
-    mockState, mockSuccessfulCopyJob, mockSuccessfulUploadJob, mockWaitingUploadJob,
+    mockFailedUploadJob,
+    mockPendingJob, mockRetryingUploadJob,
+    mockState,
+    mockSuccessfulCopyJob,
+    mockSuccessfulUploadJob,
+    mockWaitingUploadJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
     nonEmptyJobStateBranch,
@@ -129,6 +133,7 @@ describe("Job selectors", () => {
                 job: {
                     ...mockState.job,
                     pendingJobs: [mockPendingJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockSuccessfulUploadJob, mockSuccessfulUploadJob],
                 },
             });
             expect(complete).to.be.false;
@@ -139,7 +144,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockWorkingUploadJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob],
                 },
             });
             expect(complete).to.be.false;
@@ -150,7 +155,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockWorkingUploadJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockRetryingUploadJob],
                 },
             });
             expect(complete).to.be.false;
@@ -161,7 +166,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockWaitingUploadJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockWaitingUploadJob],
                 },
             });
             expect(complete).to.be.false;
@@ -172,7 +177,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockBlockedUploadJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockBlockedUploadJob],
                 },
             });
             expect(complete).to.be.false;
@@ -183,7 +188,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockSuccessfulUploadJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockSuccessfulUploadJob],
                 },
             });
             expect(complete).to.be.true;
@@ -194,7 +199,18 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockFailedUploadJob],
+                    uploadJobs: [mockFailedUploadJob, mockFailedUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
+        });
+
+        it("returns true if all upload jobs failed or succeeded", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockFailedUploadJob, mockSuccessfulUploadJob],
                 },
             });
             expect(complete).to.be.true;
