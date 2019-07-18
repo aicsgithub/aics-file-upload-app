@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { get, includes, orderBy, some } from "lodash";
+import { every, get, includes, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -79,4 +79,11 @@ export const getUploadJobNames = createSelector([
     // typescript static analysis is unable to track the fact that undefined values should be filtered out
     // so we need to cast here.
     // https://codereview.stackexchange.com/questions/135363/filtering-undefined-elements-out-of-an-array
+});
+
+export const getAreAllJobsComplete = createSelector([
+    getUploadJobs,
+    getNumberOfPendingJobs,
+], (uploadJobs: JSSJob[], pendingJobs: number) => {
+    return pendingJobs === 0 && every(uploadJobs, (job: JSSJob) => !includes(IN_PROGRESS_STATUSES, job.status));
 });
