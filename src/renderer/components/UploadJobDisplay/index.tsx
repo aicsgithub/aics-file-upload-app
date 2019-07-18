@@ -1,44 +1,13 @@
 import { UploadMetadata } from "@aics/aicsfiles/type-declarations/types";
-import { Collapse, Descriptions } from "antd";
+import { Collapse } from "antd";
 import CollapsePanel from "antd/lib/collapse/CollapsePanel";
-import { decamelizeKeys } from "humps";
 import { isEmpty, map } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import FileMetadataDisplay from "../FileMetadataDisplay";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const styles = require("./styles.pcss");
-
-const Item = Descriptions.Item;
-const SEPARATOR = { separator: " "};
-
-interface MetadataDisplayProps {
-    title: string;
-    metadata: any;
-}
-const MetadataDisplay: React.FunctionComponent<MetadataDisplayProps> = ({metadata, title}: MetadataDisplayProps) => {
-    metadata = decamelizeKeys(metadata, SEPARATOR);
-    title = `${title} Metadata`;
-    return (
-        <Descriptions
-            size="small"
-            title={title}
-            column={{xs: 1}}
-            bordered={false}
-        >
-            {map(metadata, (value: any, key: string) => {
-                if (typeof value === "object") {
-                    if (Array.isArray(value)) {
-                        return <Item label={key} key={key}>{value.join(", ")}</Item>;
-                    }
-                    return <MetadataDisplay title={key} metadata={value} key={key}/>;
-                }
-
-                return <Item label={key} key={key}>{value}</Item>;
-            })}
-        </Descriptions>
-    );
-};
 
 interface UploadJobDisplayProps {
     className?: string;
@@ -69,7 +38,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({class
                                 <CollapsePanel header={f.file.originalPath} key={f.file.originalPath}>
 
                                     {map(f, (value: any, metadataGroupName: string) => (
-                                        <MetadataDisplay
+                                        <FileMetadataDisplay
                                             metadata={value}
                                             title={metadataGroupName}
                                             key={metadataGroupName}
