@@ -123,7 +123,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
     }
 
-    private onRow = (record: UploadSummaryTableRow, rowIndex: number) => {
+    private onRow = (record: UploadSummaryTableRow) => {
         return {
             onClick: () => {
                 this.setState({selectedJob: record});

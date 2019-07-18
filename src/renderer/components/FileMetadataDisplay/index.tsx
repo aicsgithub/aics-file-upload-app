@@ -1,11 +1,10 @@
 import { Descriptions } from "antd";
 import { decamelizeKeys } from "humps";
-import { flatMap } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 
 const Item = Descriptions.Item;
 
-const SEPARATOR = { separator: " "};
 interface MetadataDisplayProps {
     className?: string;
     title: string;
@@ -14,7 +13,7 @@ interface MetadataDisplayProps {
 const FileMetadataDisplay: React.FunctionComponent<MetadataDisplayProps> =
     ({className, metadata, title}: MetadataDisplayProps) => {
 
-    metadata = decamelizeKeys(metadata, SEPARATOR);
+    metadata = decamelizeKeys(metadata, { separator: " "});
     title = `${title} Metadata`;
     return (
         <Descriptions
@@ -23,7 +22,7 @@ const FileMetadataDisplay: React.FunctionComponent<MetadataDisplayProps> =
             title={title}
             column={{xs: 1}}
         >
-            {flatMap(metadata, (value: any, key: string) => {
+            {map(metadata, (value: any, key: string) => {
                 if (typeof value === "object") {
                     if (Array.isArray(value)) {
                         if (value[0] && typeof value[0] === "object") {
