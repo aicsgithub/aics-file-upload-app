@@ -1,15 +1,22 @@
 import { expect } from "chai";
 
 import {
+    mockBlockedUploadJob,
     mockFailedCopyJob,
-    mockFailedUploadJob, mockPendingJob,
-    mockState, mockSuccessfulCopyJob, mockSuccessfulUploadJob,
+    mockFailedUploadJob,
+    mockPendingJob,
+    mockRetryingUploadJob,
+    mockState,
+    mockSuccessfulCopyJob,
+    mockSuccessfulUploadJob,
+    mockUnrecoverableUploadJob,
+    mockWaitingUploadJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
     nonEmptyJobStateBranch,
 } from "../../test/mocks";
 
-import { getIsUnsafeToExit, getJobsForTable } from "../selectors";
+import { getAreAllJobsComplete, getIsUnsafeToExit, getJobsForTable } from "../selectors";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
@@ -26,9 +33,9 @@ describe("Job selectors", () => {
                 const jobTableRow = jobTableRows[i];
                 expect(jobTableRow.jobName).to.equal(job.jobName);
                 expect(jobTableRow.key).to.equal(job.jobId);
-                expect(jobTableRow.stage).to.equal(job.currentStage);
+                expect(jobTableRow.currentStage).to.equal(job.currentStage);
                 expect(jobTableRow.status).to.equal(job.status);
-                expect(jobTableRow.modified).to.equal(job.modified.toLocaleString());
+                expect(jobTableRow.modified).to.equal(job.modified);
             }
         });
     });
@@ -118,6 +125,108 @@ describe("Job selectors", () => {
                 },
             });
             expect(isUnsafeToExit).to.be.false;
+        });
+    });
+
+    describe("getAreAllJobsComplete", () => {
+        it("returns false if pending jobs exist", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    pendingJobs: [mockPendingJob],
+                    uploadJobs: [mockSuccessfulUploadJob, mockSuccessfulUploadJob, mockSuccessfulUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is working", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is retrying", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockSuccessfulUploadJob, mockRetryingUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is waiting", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockSuccessfulUploadJob, mockWaitingUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns false if an upload job is blocked", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockSuccessfulUploadJob, mockBlockedUploadJob],
+                },
+            });
+            expect(complete).to.be.false;
+        });
+
+        it("returns true if all upload jobs succeeded", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockSuccessfulUploadJob, mockSuccessfulUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
+        });
+
+        it("returns true if all upload jobs failed", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockFailedUploadJob, mockFailedUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
+        });
+
+        it("returns true if upload jobs are unrecoverable", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockUnrecoverableUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
+        });
+
+        it("returns true if all upload jobs failed or succeeded or unrecoverable", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockFailedUploadJob, mockSuccessfulUploadJob, mockUnrecoverableUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
         });
     });
 });

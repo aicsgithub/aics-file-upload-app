@@ -6,7 +6,7 @@ const styles = require("./style.pcss");
 
 interface FormPageProps {
     backButtonDisabled?: boolean;
-    children: JSX.Element | Array<JSX.Element | null>;
+    children: JSX.Element | Array<JSX.Element | null | undefined> | null | undefined;
     className?: string;
     formTitle: string;
     formPrompt: string;
