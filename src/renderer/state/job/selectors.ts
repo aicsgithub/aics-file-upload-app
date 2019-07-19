@@ -40,14 +40,8 @@ export const getJobsForTable = createSelector([
     getUploadJobsWithCopyJob,
     getPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
-    const orderedJobs = orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"]);
-    return orderedJobs.map(({modified, currentStage, jobName, jobId, status}) => ({
-        jobName: jobName || "",
-        key: jobId,
-        modified: modified.toLocaleString(),
-        stage: currentStage || "",
-        status,
-    }));
+    return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"])
+        .map((job) => ({...job, key: job.jobId}));
 });
 
 export const getIsUnsafeToExit = createSelector([
