@@ -13,3 +13,25 @@ export interface UpdateSettingsAction {
 export interface GatherSettingsAction {
     type: string;
 }
+
+export interface CreateSchemaAction {
+    payload: SchemaDefinition;
+    type: string;
+}
+
+export interface SchemaDefinition {
+    name: string;
+    columns: ColumnDefinition[];
+}
+
+export interface ColumnDefinition {
+    label: string;
+    type: ColumnType;
+}
+
+export enum ColumnType {
+    NUMBER = "NUMBER",
+    TEXT = "TEXT",
+    DATE = "DATE",
+    BOOLEAN = "BOOLEAN",
+}

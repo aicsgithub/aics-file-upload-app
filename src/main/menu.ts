@@ -1,5 +1,5 @@
 import electron, { dialog, Menu, shell } from "electron";
-import { SET_LIMS_URL } from "../shared/constants";
+import { OPEN_CREATE_SCHEMA_MODAL, SET_LIMS_URL } from "../shared/constants";
 import { LimsUrl } from "../shared/types";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
@@ -33,6 +33,15 @@ export const setMenu = (webContents: WebContents) => {
         {
             label: "File",
             submenu: [
+                {
+                    label: "New",
+                    submenu: [
+                        {
+                            click: () => webContents.send(OPEN_CREATE_SCHEMA_MODAL),
+                            label: "Schema",
+                        },
+                    ],
+                },
                 {
                     click: () => {
                         dialog.showMessageBox({

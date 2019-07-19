@@ -20,6 +20,9 @@ export const SET_LIMS_URL = "SET_LIMS_URL";
 // emitted by main process when user tries to exit the app
 export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 
+// emitted by main process when user selects File > New > Schema
+export const OPEN_CREATE_SCHEMA_MODAL = "OPEN_CREATE_SCHEMA_MODAL";
+
 // User settings
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
 export const LIMS_PORT = process.env.ELECTRON_WEBPACK_APP_LIMS_PORT || "8080";
