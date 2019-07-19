@@ -1,5 +1,5 @@
-import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Table } from "antd";
+import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
+import { Modal, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -7,32 +7,36 @@ import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
+import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { retrieveJobs } from "../../state/job/actions";
-import { getJobsForTable } from "../../state/job/selectors";
+import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import Timeout = NodeJS.Timeout;
 
+const styles = require("./styles.pcss");
+
 // Matches a Job but the created date is represented as a string
-export interface UploadSummaryTableRow {
+export interface UploadSummaryTableRow extends JSSJob {
     // used by antd's Table component to uniquely identify rows
     key: string;
-    jobName: string;
-    stage: string;
-    status: JSSJobStatus;
-    modified: string;
 }
 
 interface Props {
+    allJobsComplete: boolean;
     className?: string;
     jobs: UploadSummaryTableRow[];
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     selectPage: ActionCreator<SelectPageAction>;
 }
 
-class UploadSummary extends React.Component<Props, {}> {
+interface UploadSummaryState {
+    selectedJob?: UploadSummaryTableRow;
+}
+
+class UploadSummary extends React.Component<Props, UploadSummaryState> {
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
@@ -47,17 +51,18 @@ class UploadSummary extends React.Component<Props, {}> {
             title: "Job Name",
         },
         {
-            dataIndex: "stage",
+            dataIndex: "currentStage",
             key: "currentStage",
             title: "Current Stage",
         },
         {
             dataIndex: "modified",
             key: "modified",
+            render: (modified: Date) => modified.toLocaleString(),
             title: "Last Modified",
         },
     ];
-    private interval!: Timeout;
+    private interval: Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -68,8 +73,17 @@ class UploadSummary extends React.Component<Props, {}> {
         this.interval = setInterval(this.props.retrieveJobs, 1000);
     }
 
+    public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<{}>, snapshot?: any): void {
+        if (this.interval && this.props.allJobsComplete) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+    }
+
     public componentWillUnmount(): void {
-        clearInterval(this.interval);
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
     }
 
     public render() {
@@ -77,6 +91,7 @@ class UploadSummary extends React.Component<Props, {}> {
             className,
             jobs,
         } = this.props;
+        const { selectedJob } = this.state;
         return (
             <FormPage
                 className={className}
@@ -85,7 +100,21 @@ class UploadSummary extends React.Component<Props, {}> {
                 onSave={this.goToDragAndDrop}
                 saveButtonName="Create New Upload Job"
             >
-                <Table columns={this.columns} dataSource={jobs}/>
+                <Table
+                    className={styles.jobTable}
+                    columns={this.columns}
+                    dataSource={jobs}
+                    onRow={this.onRow}
+                />
+                {selectedJob && <Modal
+                    title="Upload Job"
+                    width="90%"
+                    visible={!!selectedJob}
+                    footer={null}
+                    onCancel={this.closeModal}
+                >
+                   <UploadJobDisplay job={selectedJob}/>
+                </Modal>}
             </FormPage>
         );
     }
@@ -93,10 +122,23 @@ class UploadSummary extends React.Component<Props, {}> {
     private goToDragAndDrop = (): void => {
         this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
     }
+
+    private onRow = (record: UploadSummaryTableRow) => {
+        return {
+            onClick: () => {
+                this.setState({selectedJob: record});
+            },
+        };
+    }
+
+    private closeModal = () => {
+        this.setState({selectedJob: undefined});
+    }
 }
 
 function mapStateToProps(state: State) {
     return {
+        allJobsComplete: getAreAllJobsComplete(state),
         jobs: getJobsForTable(state),
     };
 }
