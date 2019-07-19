@@ -22,9 +22,7 @@ interface ResultFile {
 }
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({className, job}: UploadJobDisplayProps) => {
-    const {
-        serviceFields,
-    } = job;
+    const { serviceFields } = job;
     const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
         && !isEmpty(serviceFields.files);
 
