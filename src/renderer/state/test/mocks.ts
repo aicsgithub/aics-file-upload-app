@@ -141,6 +141,11 @@ export const mockSuccessfulUploadJob: JSSJob = {
     user: "test_user",
 };
 
+export const mockUnrecoverableUploadJob: JSSJob = {
+    ...mockSuccessfulUploadJob,
+    status: "UNRECOVERABLE",
+};
+
 export const mockWorkingUploadJob: JSSJob = {
     created: new Date(),
     currentStage: "Copying files",

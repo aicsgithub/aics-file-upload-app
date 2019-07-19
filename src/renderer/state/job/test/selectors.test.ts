@@ -4,10 +4,12 @@ import {
     mockBlockedUploadJob,
     mockFailedCopyJob,
     mockFailedUploadJob,
-    mockPendingJob, mockRetryingUploadJob,
+    mockPendingJob,
+    mockRetryingUploadJob,
     mockState,
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob,
+    mockUnrecoverableUploadJob,
     mockWaitingUploadJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
@@ -205,12 +207,23 @@ describe("Job selectors", () => {
             expect(complete).to.be.true;
         });
 
-        it("returns true if all upload jobs failed or succeeded", () => {
+        it("returns true if upload jobs are unrecoverable", () => {
             const complete = getAreAllJobsComplete({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    uploadJobs: [mockFailedUploadJob, mockSuccessfulUploadJob],
+                    uploadJobs: [mockUnrecoverableUploadJob],
+                },
+            });
+            expect(complete).to.be.true;
+        });
+
+        it("returns true if all upload jobs failed or succeeded or unrecoverable", () => {
+            const complete = getAreAllJobsComplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    uploadJobs: [mockFailedUploadJob, mockSuccessfulUploadJob, mockUnrecoverableUploadJob],
                 },
             });
             expect(complete).to.be.true;
