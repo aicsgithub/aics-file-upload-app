@@ -2,6 +2,7 @@
 declare module "@aics/aics-react-labkey" {
     export interface LabkeyOptionSelectorCommonProps<T> {
         autofocus?: boolean;
+        className?: string;
         id?: string;
         label: string;
         optionIdKey: string;

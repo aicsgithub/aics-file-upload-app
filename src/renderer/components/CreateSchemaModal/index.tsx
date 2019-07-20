@@ -1,16 +1,31 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import { Button, Input, Modal, Select } from "antd";
+import { Button, Modal } from "antd";
 import { ChangeEvent } from "react";
 import * as React from "react";
 import { ActionCreator } from "redux";
 import { ColumnDefinition, ColumnType, CreateSchemaAction } from "../../state/setting/types";
+import LabeledInput from "../LabeledInput";
 
-const Option = Select.Option;
 const styles = require("./styles.pcss");
-const DEFAULT_DRAFT = Object.freeze({
-    label: undefined,
-    type: ColumnType.TEXT,
+const DEFAULT_COLUMN_TYPE = Object.freeze({
+    id: ColumnType.TEXT,
+    name: "Text",
 });
+const COLUMN_TYPE_OPTIONS: ColumnTypeOption[] = [
+    DEFAULT_COLUMN_TYPE,
+    {
+        id: ColumnType.BOOLEAN,
+        name: "Yes/No",
+    },
+    {
+        id: ColumnType.NUMBER,
+        name: "Number",
+    },
+    {
+        id: ColumnType.DATE,
+        name: "Date",
+    },
+];
 
 interface ColumnTypeOption {
     name: string;
@@ -26,16 +41,18 @@ interface Props {
 
 interface CreateSchemaModalState {
     columns: ColumnDefinition[];
-    draft: {
-        label?: string;
-        type?: ColumnType;
-    };
+    draftColumnLabel?: string;
+    draftColumnType?: ColumnTypeOption;
 }
 
 class CreateSchemaModal extends React.Component<Props, CreateSchemaModalState> {
     public state: CreateSchemaModalState = {
         columns: [],
-        draft: DEFAULT_DRAFT,
+        draftColumnLabel: undefined,
+        draftColumnType:  {
+            id: ColumnType.TEXT,
+            name: "Text",
+        },
     };
 
     public render() {
@@ -44,7 +61,7 @@ class CreateSchemaModal extends React.Component<Props, CreateSchemaModalState> {
             close,
             visible,
         } = this.props;
-        const { columns } = this.state;
+        const { columns, draftColumnLabel, draftColumnType } = this.state;
         return (
             <Modal
                 width="90%"
@@ -54,29 +71,35 @@ class CreateSchemaModal extends React.Component<Props, CreateSchemaModalState> {
                 onOk={this.saveAndClose}
                 onCancel={close}
             >
-                {columns.map((column) => (
+                {columns.map((column, i) => (
                     <div className={styles.columnRow} key={column.label}>
                         <div className={styles.columnName}>{column.label}</div>
                         <div className={styles.columnType}>{column.type}</div>
+                        <Button shape="circle" icon="delete" onClick={this.removeColumn(i)}/>
                     </div>
                 ))}
                 <div className={styles.columnForm}>
-                    <Input placeholder="Column Name" className={styles.columnName} onChange={this.setColumnLabel}/>
+                    <LabeledInput
+                        className={styles.columnName}
+                        required={true}
+                        placeholder="Column Name"
+                        label="Column Name"
+                        onChange={this.setColumnLabel}
+                        onPressEnter={this.addColumn}
+                        value={draftColumnLabel}
+                    />
                     <LabKeyOptionSelector
+                        style={{flex: 1, marginRight: "1em"}}
+                        className={styles.columnType}
                         required={true}
                         label="Column Type"
                         optionIdKey="id"
                         optionNameKey="name"
-                        selected={this.state.draft.type}
+                        selected={draftColumnType}
                         onOptionSelection={this.setColumnType}
                         placeholder="Column Type"
+                        options={COLUMN_TYPE_OPTIONS}
                     />
-                    <Select defaultValue={ColumnType.TEXT} className={styles.columnType} onChange={this.setColumnType}>
-                        <Option value={ColumnType.TEXT}>Text</Option>
-                        <Option value={ColumnType.BOOLEAN}>Yes/No</Option>
-                        <Option value={ColumnType.NUMBER}>Number</Option>
-                        <Option value={ColumnType.DATE}>Date/Time</Option>
-                    </Select>
                     <Button icon="plus" shape="circle" type="primary" onClick={this.addColumn}/>
                 </div>
             </Modal>
@@ -90,30 +113,29 @@ class CreateSchemaModal extends React.Component<Props, CreateSchemaModalState> {
 
     private setColumnLabel = (event: ChangeEvent<HTMLInputElement>) => {
         this.setState({
-            draft: {
-                ...this.state.draft,
-                label: event.target.value,
-            },
+            draftColumnLabel: event.target.value,
         });
     }
 
     private setColumnType = (selectedOption: ColumnTypeOption | null) => {
         this.setState({
-            draft: {
-                ...this.state.draft,
-                type: selectedOption ? selectedOption.id : undefined,
-            },
+            draftColumnType: selectedOption || undefined,
         });
     }
 
     private addColumn = () => {
-        const { columns, draft } = this.state;
-        if (draft.label !== undefined && !!draft.type) {
+        const { columns, draftColumnLabel: label, draftColumnType: type } = this.state;
+        if (label && type) {
             this.setState({
-                columns: [...columns, draft],
-                draft: DEFAULT_DRAFT,
+                columns: [...columns, {label, type: type.id}],
+                draftColumnLabel: undefined,
+                draftColumnType: DEFAULT_COLUMN_TYPE,
             });
         }
+    }
+
+    private removeColumn = (index: number) => {
+        return () => this.setState({columns: [...this.state.columns].splice(index, 1)});
     }
 }
 
