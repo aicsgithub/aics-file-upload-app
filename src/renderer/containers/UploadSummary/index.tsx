@@ -70,7 +70,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     public componentDidMount(): void {
-        this.interval = setInterval(this.props.retrieveJobs, 1000);
+        // this.interval = setInterval(this.props.retrieveJobs, 1000);
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<{}>, snapshot?: any): void {

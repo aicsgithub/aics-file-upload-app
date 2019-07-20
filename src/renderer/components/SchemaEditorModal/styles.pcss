@@ -1,6 +1,18 @@
-.column-form, .column-row {
+.column-headers {
     display: flex;
-    align-items: flex-end;
+}
+
+.label-header, .type-header {
+    flex: 1;
+}
+
+.selected {
+    background-color: lightblue;
+}
+
+
+.column-row {
+    display: flex;
 }
 
 .column-name, .column-type {
@@ -10,4 +22,17 @@
 
 .add-btn {
     flex: 0 0 auto;
+}
+
+.column-form {
+    padding-top: 1em;
+}
+
+.button-row {
+    display: flex;
+    justify-content: left;
+}
+
+.plus {
+    margin-right: 0.5em;
 }

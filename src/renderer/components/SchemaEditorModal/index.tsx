@@ -1,36 +1,16 @@
-import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
 import { Button, Modal } from "antd";
-import { ChangeEvent } from "react";
+import * as classNames from "classnames";
+import { includes, set } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
-import { ColumnDefinition, ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
-import LabeledInput from "../LabeledInput";
+import { ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
+import ColumnDefinitionForm from "./ColumnDefinitionForm";
 
-const styles = require("./styles.pcss");
-const DEFAULT_COLUMN_TYPE = Object.freeze({
-    id: ColumnType.TEXT,
-    name: "Text",
+const DEFAULT_COLUMN = Object.freeze({
+    label: undefined,
+    type: ColumnType.TEXT,
 });
-const COLUMN_TYPE_OPTIONS: ColumnTypeOption[] = [
-    DEFAULT_COLUMN_TYPE,
-    {
-        id: ColumnType.BOOLEAN,
-        name: "Yes/No",
-    },
-    {
-        id: ColumnType.NUMBER,
-        name: "Number",
-    },
-    {
-        id: ColumnType.DATE,
-        name: "Date",
-    },
-];
-
-interface ColumnTypeOption {
-    name: string;
-    id: ColumnType;
-}
+const styles = require("./styles.pcss");
 
 interface Props {
     className?: string;
@@ -41,9 +21,8 @@ interface Props {
 }
 
 interface SchemaEditorModalState {
-    columns: ColumnDefinition[];
-    draftColumnLabel?: string;
-    draftColumnType?: ColumnTypeOption;
+    columns: Array<{label?: string, type?: ColumnType}>;
+    selectedRows: number[];
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
@@ -52,11 +31,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
         this.state = {
             columns: props.schema ? props.schema.columns : [],
-            draftColumnLabel: undefined,
-            draftColumnType:  {
-                id: ColumnType.TEXT,
-                name: "Text",
-            },
+            selectedRows: [],
         };
     }
 
@@ -67,8 +42,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             schema,
             visible,
         } = this.props;
-        const { columns, draftColumnLabel, draftColumnType } = this.state;
-        console.log(columns)
+        const { columns, selectedRows } = this.state;
         return (
             <Modal
                 width="90%"
@@ -78,39 +52,39 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 onOk={this.saveAndClose}
                 onCancel={close}
             >
-                {columns.map((column, i) => (
-                    <div className={styles.columnRow} key={column.label}>
-                        <div className={styles.columnName}>{column.label}</div>
-                        <div className={styles.columnType}>{column.type}</div>
-                        <Button shape="circle" icon="delete" onClick={this.removeColumn(i)}/>
+                <div className={styles.columns}>
+                    <div className={styles.columnHeaders}>
+                        <div className={styles.labelHeader}>
+                            Column Name
+                        </div>
+                        <div className={styles.typeHeader}>
+                            Data Type
+                        </div>
                     </div>
-                ))}
-                <div className={styles.columnForm}>
-                    <LabeledInput
-                        className={styles.columnName}
-                        required={true}
-                        placeholder="Column Name"
-                        label="Column Name"
-                        onChange={this.setColumnLabel}
-                        onPressEnter={this.addColumn}
-                        value={draftColumnLabel}
-                    />
-                    <LabKeyOptionSelector
-                        style={{flex: 1, marginRight: "1em"}}
-                        className={styles.columnType}
-                        required={true}
-                        label="Column Type"
-                        optionIdKey="id"
-                        optionNameKey="name"
-                        selected={draftColumnType}
-                        onOptionSelection={this.setColumnType}
-                        placeholder="Column Type"
-                        options={COLUMN_TYPE_OPTIONS}
-                    />
-                    <Button icon="plus" shape="circle" type="primary" onClick={this.addColumn}/>
+                    {columns.map((column, i) => (
+                        <ColumnDefinitionForm
+                          className={classNames(styles.columnRow, {
+                              [styles.selected]: includes(selectedRows, i),
+                          })}
+                          key={column.label || i}
+                          onClick={this.selectRow(i)}
+                          setColumnLabel={this.setLabel(i)}
+                          setColumnType={this.setType(i)}
+                          columnType={column.type}
+                          columnLabel={column.label}
+                        />
+                    ))}
+                </div>
+                <div className={styles.buttonRow}>
+                    <Button icon="plus" className={styles.plus} onClick={this.addColumn}/>
+                    <Button icon="minus" className={styles.minus} onClick={this.removeColumns}/>
                 </div>
             </Modal>
         );
+    }
+
+    private selectRow = (index: number) => {
+       return () => this.setState({selectedRows: [index]});
     }
 
     private saveAndClose = () => {
@@ -118,35 +92,38 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         this.props.close();
     }
 
-    private setColumnLabel = (event: ChangeEvent<HTMLInputElement>) => {
-        this.setState({
-            draftColumnLabel: event.target.value,
-        });
+    private setType = (i: number) => {
+        return (type: ColumnType) => {
+            const columns = [...this.state.columns];
+            set(columns, `[${i}].type`, type);
+            this.setState({columns});
+        };
     }
 
-    private setColumnType = (selectedOption: ColumnTypeOption | null) => {
-        this.setState({
-            draftColumnType: selectedOption || undefined,
-        });
+    private setLabel = (i: number) => {
+        return (label?: string) => {
+            const columns = [...this.state.columns];
+            columns[i] = {
+                ...columns[i],
+                label,
+            };
+            this.setState({columns});
+        };
     }
 
     private addColumn = () => {
-        const { columns, draftColumnLabel: label, draftColumnType: type } = this.state;
-        if (label && type) {
-            this.setState({
-                columns: [...columns, {label, type: type.id}],
-                draftColumnLabel: undefined,
-                draftColumnType: DEFAULT_COLUMN_TYPE,
-            });
-        }
+        this.setState({
+            columns: [...this.state.columns, DEFAULT_COLUMN],
+        });
     }
 
-    private removeColumn = (index: number) => {
-        return () => {
-            const columns = [...this.state.columns];
-            columns.splice(index, 1);
-            this.setState({ columns });
-        };
+    private removeColumns = () => {
+        const { selectedRows } = this.state;
+        const columns = [...this.state.columns];
+        selectedRows.forEach((row) => {
+            columns.splice(row, 1);
+        });
+        this.setState({ columns });
     }
 }
 
