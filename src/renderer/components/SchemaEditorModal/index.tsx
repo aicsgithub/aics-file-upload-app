@@ -3,7 +3,7 @@ import { Button, Modal } from "antd";
 import { ChangeEvent } from "react";
 import * as React from "react";
 import { ActionCreator } from "redux";
-import { ColumnDefinition, ColumnType, CreateSchemaAction } from "../../state/setting/types";
+import { ColumnDefinition, ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
 import LabeledInput from "../LabeledInput";
 
 const styles = require("./styles.pcss");
@@ -36,37 +36,44 @@ interface Props {
     className?: string;
     createSchema: ActionCreator<CreateSchemaAction>;
     close: () => void;
+    schema?: SchemaDefinition;
     visible: boolean;
 }
 
-interface CreateSchemaModalState {
+interface SchemaEditorModalState {
     columns: ColumnDefinition[];
     draftColumnLabel?: string;
     draftColumnType?: ColumnTypeOption;
 }
 
-class CreateSchemaModal extends React.Component<Props, CreateSchemaModalState> {
-    public state: CreateSchemaModalState = {
-        columns: [],
-        draftColumnLabel: undefined,
-        draftColumnType:  {
-            id: ColumnType.TEXT,
-            name: "Text",
-        },
-    };
+class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
+    constructor(props: Props) {
+        super(props);
+
+        this.state = {
+            columns: props.schema ? props.schema.columns : [],
+            draftColumnLabel: undefined,
+            draftColumnType:  {
+                id: ColumnType.TEXT,
+                name: "Text",
+            },
+        };
+    }
 
     public render() {
         const {
             className,
             close,
+            schema,
             visible,
         } = this.props;
         const { columns, draftColumnLabel, draftColumnType } = this.state;
+        console.log(columns)
         return (
             <Modal
                 width="90%"
                 className={className}
-                title="Create Schema"
+                title={schema ? "Edit Schema" : "New Schema"}
                 visible={visible}
                 onOk={this.saveAndClose}
                 onCancel={close}
@@ -135,8 +142,12 @@ class CreateSchemaModal extends React.Component<Props, CreateSchemaModalState> {
     }
 
     private removeColumn = (index: number) => {
-        return () => this.setState({columns: [...this.state.columns].splice(index, 1)});
+        return () => {
+            const columns = [...this.state.columns];
+            columns.splice(index, 1);
+            this.setState({ columns });
+        };
     }
 }
 
-export default CreateSchemaModal;
+export default SchemaEditorModal;

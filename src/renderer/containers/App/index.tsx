@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
-import CreateSchemaModal from "../../components/CreateSchemaModal";
+import CreateSchemaModal from "../../components/SchemaEditorModal";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
