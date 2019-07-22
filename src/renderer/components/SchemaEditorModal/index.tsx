@@ -1,10 +1,11 @@
 import { Button, Modal } from "antd";
 import * as classNames from "classnames";
-import { includes, set } from "lodash";
+import { findIndex, includes, set } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 import { ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
 import ColumnDefinitionForm from "./ColumnDefinitionForm";
+import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
 
 const DEFAULT_COLUMN = Object.freeze({
     label: undefined,
@@ -20,8 +21,13 @@ interface Props {
     visible: boolean;
 }
 
+interface ColumnDefinitionDraft {
+    label?: string;
+    type?: ColumnType;
+}
+
 interface SchemaEditorModalState {
-    columns: Array<{label?: string, type?: ColumnType}>;
+    columns: Array<ColumnDefinitionDraft | null>;
     selectedRows: number[];
 }
 
@@ -29,8 +35,13 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     constructor(props: Props) {
         super(props);
 
+        const columns: Array<ColumnDefinitionDraft | null> = props.schema ? props.schema.columns : [];
+        for (let i = columns.length; i < 5; i++) {
+            columns.push(null);
+        }
+
         this.state = {
-            columns: props.schema ? props.schema.columns : [],
+            columns,
             selectedRows: [],
         };
     }
@@ -61,19 +72,25 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                             Data Type
                         </div>
                     </div>
-                    {columns.map((column, i) => (
-                        <ColumnDefinitionForm
-                          className={classNames(styles.columnRow, {
-                              [styles.selected]: includes(selectedRows, i),
-                          })}
-                          key={column.label || i}
-                          onClick={this.selectRow(i)}
-                          setColumnLabel={this.setLabel(i)}
-                          setColumnType={this.setType(i)}
-                          columnType={column.type}
-                          columnLabel={column.label}
-                        />
-                    ))}
+                    {columns.map((column, i) => {
+                        if (!column) {
+                            return <EmptyColumnDefinitionRow key={i}/>;
+                        }
+
+                        return (
+                            <ColumnDefinitionForm
+                                className={classNames(styles.columnRow, {
+                                    [styles.selected]: includes(selectedRows, i),
+                                })}
+                                key={column.label || i}
+                                onClick={this.selectRow(i)}
+                                setColumnLabel={this.setLabel(i)}
+                                setColumnType={this.setType(i)}
+                                columnType={column.type}
+                                columnLabel={column.label}
+                            />
+                        );
+                    })}
                 </div>
                 <div className={styles.buttonRow}>
                     <Button icon="plus" className={styles.plus} onClick={this.addColumn}/>
@@ -112,8 +129,15 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private addColumn = () => {
+        const columns = [...this.state.columns];
+        const firstNullIndex = findIndex(columns, (col) => col === null);
+        if (firstNullIndex < 0) {
+            columns.push(DEFAULT_COLUMN);
+        } else {
+            columns[firstNullIndex] = DEFAULT_COLUMN;
+        }
         this.setState({
-            columns: [...this.state.columns, DEFAULT_COLUMN],
+            columns,
         });
     }
 
