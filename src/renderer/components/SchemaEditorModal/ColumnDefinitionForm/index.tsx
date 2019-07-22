@@ -1,4 +1,4 @@
-import { Select } from "antd";
+import { Icon, Select } from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
 import { ColumnType } from "../../../state/setting/types";
@@ -27,6 +27,7 @@ const ColumnDefinitionForm: React.FunctionComponent<Props> = ({
 
     return (
         <div className={classNames(styles.columnForm, className)} onClick={onClick}>
+            <Icon className={styles.dragIcon} type="more"/>
             <EditableText
                 className={styles.columnName}
                 value={columnLabel}
