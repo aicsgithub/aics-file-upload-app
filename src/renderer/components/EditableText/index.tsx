@@ -53,7 +53,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
             <div className={classNames(className, {[styles.readOnly]: !isEditing})} onClick={this.setIsEditing(true)}>
                 {!isEditing && <span>{newValue}</span>}
                 <Input
-                    className={classNames(styles.input, {[styles.hidden]: !isEditing})}
+                    className={styles.input}
                     placeholder={placeholder}
                     onChange={this.updateValue}
                     value={newValue}
@@ -61,6 +61,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                         this.input = i ? i.input : undefined;
                     }}
                     onBlur={this.setIsEditing(false)}
+                    type={isEditing ? "text" : "hidden"}
                 />
             </div>
         );
