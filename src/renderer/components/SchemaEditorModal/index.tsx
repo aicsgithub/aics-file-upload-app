@@ -65,40 +65,42 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 onOk={this.saveAndClose}
                 onCancel={close}
             >
-                <div className={styles.columns}>
-                    <div className={styles.columnHeaders}>
-                        <div className={styles.labelHeader}>
-                            Column Name
+                <div className={styles.modalContent}>
+                    <div className={styles.columns}>
+                        <div className={styles.columnHeaders}>
+                            <div className={styles.labelHeader}>
+                                Column Name
+                            </div>
+                            <div className={styles.typeHeader}>
+                                Data Type
+                            </div>
                         </div>
-                        <div className={styles.typeHeader}>
-                            Data Type
-                        </div>
-                    </div>
-                    {columns.map((column, i) => {
-                        if (!column) {
-                            return <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>;
-                        }
+                        {columns.map((column, i) => {
+                            if (!column) {
+                                return <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>;
+                            }
 
-                        return (
-                            <ColumnDefinitionForm
-                                className={classNames(styles.columnRow, {
-                                    [styles.selected]: includes(selectedRows, i),
-                                })}
-                                key={column.label || i}
-                                onClick={this.selectRow(i)}
-                                setIsEditing={this.setIsEditing(i)}
-                                setColumnLabel={this.setLabel(i)}
-                                setColumnType={this.setType(i)}
-                                columnType={column.type}
-                                columnLabel={column.label}
-                                isEditing={isEditing[i]}
-                            />
-                        );
-                    })}
-                </div>
-                <div className={styles.buttonRow}>
-                    <Button icon="plus" className={styles.plus} onClick={this.addColumn}/>
-                    <Button icon="minus" className={styles.minus} onClick={this.removeColumns}/>
+                            return (
+                                <ColumnDefinitionForm
+                                    className={classNames(styles.columnRow, {
+                                        [styles.selected]: includes(selectedRows, i),
+                                    })}
+                                    key={column.label || i}
+                                    onClick={this.selectRow(i)}
+                                    setIsEditing={this.setIsEditing(i)}
+                                    setColumnLabel={this.setLabel(i)}
+                                    setColumnType={this.setType(i)}
+                                    columnType={column.type}
+                                    columnLabel={column.label}
+                                    isEditing={isEditing[i]}
+                                />
+                            );
+                        })}
+                    </div>
+                    <div className={styles.buttons}>
+                        <Button icon="plus" onClick={this.addColumn}/>
+                        <Button icon="minus" onClick={this.removeColumns}/>
+                    </div>
                 </div>
             </Modal>
         );
