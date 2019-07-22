@@ -32,6 +32,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
             setColumnType,
             setIsEditing,
         } = this.props;
+        console.log(isEditing);
 
         return (
             <div className={classNames(styles.columnForm, className)} onClick={onClick}>

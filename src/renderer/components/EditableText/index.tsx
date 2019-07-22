@@ -31,14 +31,12 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
 
     public componentDidMount() {
         if (this.input && this.props.isEditing) {
-            console.log("componentDidMount", "focus input");
             this.input.focus();
         }
     }
 
     public componentDidUpdate(newProps: EditableTextProps) {
-        if (this.input && newProps.isEditing) {
-            console.log("componentDidUpdate", "focus input");
+        if (this.input && this.props.isEditing) {
             this.input.focus();
         }
     }

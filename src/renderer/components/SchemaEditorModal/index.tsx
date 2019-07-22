@@ -1,6 +1,6 @@
 import { Button, Modal } from "antd";
 import * as classNames from "classnames";
-import { findIndex, findLastIndex, includes, noop, set } from "lodash";
+import { findIndex, includes, set } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 import { ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
@@ -33,8 +33,6 @@ interface SchemaEditorModalState {
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
-    public lastInput?: HTMLInputElement;
-
     constructor(props: Props) {
         super(props);
 
@@ -94,12 +92,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                 columnType={column.type}
                                 columnLabel={column.label}
                                 isEditing={isEditing[i]}
-                                // ref={(form: ColumnDefinitionForm) => {
-                                //     const lastNonNullRowIndex = findLastIndex(columns, (col) => col !== null);
-                                //     if (i === lastNonNullRowIndex && form) {
-                                //         this.lastInput = form.input;
-                                //     }
-                                // }}
                             />
                         );
                     })}
@@ -158,10 +150,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             // focus column name input
             const isEditing = [...this.state.isEditing];
             isEditing[firstEmptyColumnDefinition] = true;
-            this.setState({isEditing});
-            if (this.lastInput) {
-                this.lastInput.focus();
-            }
+            this.setState({isEditing, selectedRows: []});
 
         } else {
             // find first empty row and convert that to a column definition form or else append a form to the end
@@ -178,6 +167,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             this.setState({
                 columns,
                 isEditing,
+                selectedRows: [],
             });
         }
     }
