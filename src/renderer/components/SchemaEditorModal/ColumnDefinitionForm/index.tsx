@@ -19,8 +19,6 @@ interface Props {
 }
 
 class ColumnDefinitionForm extends React.Component<Props, {}> {
-    // public input?: HTMLInputElement;
-
     public render() {
         const {
             className,
@@ -32,7 +30,6 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
             setColumnType,
             setIsEditing,
         } = this.props;
-        console.log(isEditing);
 
         return (
             <div className={classNames(styles.columnForm, className)} onClick={onClick}>
@@ -43,9 +40,6 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                     onBlur={setColumnLabel}
                     isEditing={isEditing}
                     setIsEditing={setIsEditing}
-                    // ref={(i: EditableText) => {
-                    //     this.input = i ? i.input : undefined;
-                    // }}
                 />
                 <Select
                     className={styles.columnType}
