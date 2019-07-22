@@ -68,6 +68,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 <div className={styles.modalContent}>
                     <div className={styles.columns}>
                         <div className={styles.columnHeaders}>
+                            <div className={styles.orderColumn}/>
                             <div className={styles.labelHeader}>
                                 Column Name
                             </div>
@@ -81,19 +82,21 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                             }
 
                             return (
-                                <ColumnDefinitionForm
-                                    className={classNames(styles.columnRow, {
-                                        [styles.selected]: includes(selectedRows, i),
-                                    })}
-                                    key={column.label || i}
-                                    onClick={this.selectRow(i)}
-                                    setIsEditing={this.setIsEditing(i)}
-                                    setColumnLabel={this.setLabel(i)}
-                                    setColumnType={this.setType(i)}
-                                    columnType={column.type}
-                                    columnLabel={column.label}
-                                    isEditing={isEditing[i]}
-                                />
+                                <div className={styles.columnRowContainer} key={column.label || i}>
+                                    <div className={styles.orderColumn}>{i + 1}</div>
+                                    <ColumnDefinitionForm
+                                        className={classNames(styles.columnRow, {
+                                            [styles.selected]: includes(selectedRows, i),
+                                        })}
+                                        onClick={this.selectRow(i)}
+                                        setIsEditing={this.setIsEditing(i)}
+                                        setColumnLabel={this.setLabel(i)}
+                                        setColumnType={this.setType(i)}
+                                        columnType={column.type}
+                                        columnLabel={column.label}
+                                        isEditing={isEditing[i]}
+                                    />
+                                </div>
                             );
                         })}
                     </div>
