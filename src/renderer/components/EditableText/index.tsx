@@ -50,7 +50,10 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
         const { newValue } = this.state;
 
         return (
-            <div className={classNames(className, {[styles.readOnly]: !isEditing})} onClick={this.setIsEditing(true)}>
+            <div
+                className={classNames({[styles.readOnly]: !isEditing}, className)}
+                onClick={this.setIsEditing(true)}
+            >
                 {!isEditing && <span>{newValue}</span>}
                 <Input
                     className={styles.input}
@@ -71,7 +74,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
         this.setState({ newValue: event.target.value });
     }
 
-    private setIsEditing = (isEditing: boolean): () => void  => {
+    private setIsEditing = (isEditing: boolean) => {
         return () => {
             this.props.setIsEditing(isEditing);
 
