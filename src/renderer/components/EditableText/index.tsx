@@ -11,11 +11,11 @@ interface EditableTextProps {
     value?: string;
     onBlur: (value?: string) => void;
     placeholder?: string;
+    setIsEditing: (isEditing: boolean) => void;
     onIsValidChange?: (isValid: boolean) => void;
 }
 
 interface EditableTextState {
-    isEditing: boolean;
     newValue?: string;
 }
 
@@ -25,19 +25,20 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
     constructor(props: EditableTextProps) {
         super(props);
         this.state = {
-            isEditing: props.isEditing || false,
             newValue: props.value,
         };
     }
 
     public componentDidMount() {
         if (this.input && this.props.isEditing) {
+            console.log("componentDidMount", "focus input");
             this.input.focus();
         }
     }
 
     public componentDidUpdate(newProps: EditableTextProps) {
         if (this.input && newProps.isEditing) {
+            console.log("componentDidUpdate", "focus input");
             this.input.focus();
         }
     }
@@ -45,26 +46,25 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
     public render() {
         const {
             className,
+            isEditing,
             placeholder,
         } = this.props;
-        const { isEditing, newValue } = this.state;
-        if (!isEditing) {
-            return (
-                <div className={classNames(styles.readOnly, className)} onClick={this.setIsEditing(true)}>
-                    <span>{newValue}</span>
-                </div>
-        );
-        }
+        const { newValue } = this.state;
 
         return (
-            <Input
-                className={className}
-                placeholder={placeholder}
-                onChange={this.updateValue}
-                value={newValue}
-                ref={(i: Input) => { this.input = i ? i.input : undefined; }}
-                onBlur={this.setIsEditing(false)}
-            />
+            <div className={classNames(className, {[styles.readOnly]: !isEditing})} onClick={this.setIsEditing(true)}>
+                {!isEditing && <span>{newValue}</span>}
+                <Input
+                    className={classNames(styles.input, {[styles.hidden]: !isEditing})}
+                    placeholder={placeholder}
+                    onChange={this.updateValue}
+                    value={newValue}
+                    ref={(i: Input) => {
+                        this.input = i ? i.input : undefined;
+                    }}
+                    onBlur={this.setIsEditing(false)}
+                />
+            </div>
         );
     }
 
@@ -74,7 +74,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
 
     private setIsEditing = (isEditing: boolean): () => void  => {
         return () => {
-            this.setState({isEditing});
+            this.props.setIsEditing(isEditing);
 
             if (!isEditing) {
                 this.props.onBlur(this.state.newValue);

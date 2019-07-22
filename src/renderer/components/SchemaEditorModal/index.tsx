@@ -1,6 +1,6 @@
 import { Button, Modal } from "antd";
 import * as classNames from "classnames";
-import { findIndex, includes, set } from "lodash";
+import { findIndex, findLastIndex, includes, noop, set } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 import { ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
@@ -29,9 +29,12 @@ interface ColumnDefinitionDraft {
 interface SchemaEditorModalState {
     columns: Array<ColumnDefinitionDraft | null>;
     selectedRows: number[];
+    isEditing: boolean[];
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
+    public lastInput?: HTMLInputElement;
+
     constructor(props: Props) {
         super(props);
 
@@ -42,6 +45,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
         this.state = {
             columns,
+            isEditing: columns.map(() => false),
             selectedRows: [],
         };
     }
@@ -53,7 +57,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             schema,
             visible,
         } = this.props;
-        const { columns, selectedRows } = this.state;
+        const { columns, isEditing, selectedRows } = this.state;
         return (
             <Modal
                 width="90%"
@@ -84,10 +88,18 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                 })}
                                 key={column.label || i}
                                 onClick={this.selectRow(i)}
+                                setIsEditing={this.setIsEditing(i)}
                                 setColumnLabel={this.setLabel(i)}
                                 setColumnType={this.setType(i)}
                                 columnType={column.type}
                                 columnLabel={column.label}
+                                isEditing={isEditing[i]}
+                                // ref={(form: ColumnDefinitionForm) => {
+                                //     const lastNonNullRowIndex = findLastIndex(columns, (col) => col !== null);
+                                //     if (i === lastNonNullRowIndex && form) {
+                                //         this.lastInput = form.input;
+                                //     }
+                                // }}
                             />
                         );
                     })}
@@ -100,8 +112,16 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
     }
 
+    private setIsEditing = (index: number) => {
+        return (editing: boolean) => {
+            const isEditing = [...this.state.isEditing];
+            isEditing[index] = editing;
+            this.setState({isEditing});
+        };
+    }
+
     private selectRow = (index: number) => {
-       return () => this.setState({selectedRows: [index]});
+        return () => this.setState({selectedRows: [index]});
     }
 
     private saveAndClose = () => {
@@ -133,22 +153,31 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
         // first look for empty column definition forms
         const firstEmptyColumnDefinition = findIndex(columns, (col) => col !== null && !col.label);
-        console.log(firstEmptyColumnDefinition)
 
         if (firstEmptyColumnDefinition > -1) {
             // focus column name input
+            const isEditing = [...this.state.isEditing];
+            isEditing[firstEmptyColumnDefinition] = true;
+            this.setState({isEditing});
+            if (this.lastInput) {
+                this.lastInput.focus();
+            }
 
         } else {
             // find first empty row and convert that to a column definition form or else append a form to the end
             // of the list.
             const firstNullIndex = findIndex(columns, (col) => col === null);
+            const isEditing = [...this.state.isEditing];
             if (firstNullIndex < 0) {
                 columns.push(DEFAULT_COLUMN);
+                isEditing.push(true);
             } else {
                 columns[firstNullIndex] = DEFAULT_COLUMN;
+                isEditing[firstNullIndex] = true;
             }
             this.setState({
                 columns,
+                isEditing,
             });
         }
     }

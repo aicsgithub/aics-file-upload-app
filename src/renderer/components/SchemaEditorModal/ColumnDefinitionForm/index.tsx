@@ -11,44 +11,56 @@ interface Props {
     className?: string;
     columnLabel?: string;
     columnType?: ColumnType;
-    onClick: () => void;
+    isEditing: boolean;
+    onClick?: () => void;
     setColumnLabel: (label?: string) => void;
     setColumnType: (selectedOption: ColumnType) => void;
+    setIsEditing: (isEditing: boolean) => void;
 }
 
-const ColumnDefinitionForm: React.FunctionComponent<Props> = ({
-    className,
-    columnLabel,
-    columnType,
-    onClick,
-    setColumnLabel,
-    setColumnType,
-}: Props) => {
+class ColumnDefinitionForm extends React.Component<Props, {}> {
+    // public input?: HTMLInputElement;
 
-    return (
-        <div className={classNames(styles.columnForm, className)} onClick={onClick}>
-            <Icon className={styles.dragIcon} type="more"/>
-            <EditableText
-                className={styles.columnName}
-                value={columnLabel}
-                onBlur={setColumnLabel}
-                placeholder="Column Name"
-                isEditing={true}
-            />
-            <Select
-                className={styles.columnType}
-                value={columnType}
-                onChange={setColumnType}
-                placeholder="Column Type"
-                defaultValue={ColumnType.TEXT}
-            >
-                <Option value={ColumnType.TEXT}>Text</Option>
-                <Option value={ColumnType.BOOLEAN}>Yes/No</Option>
-                <Option value={ColumnType.NUMBER}>Number</Option>
-                <Option value={ColumnType.DATE}>Date</Option>
-            </Select>
-        </div>
-    );
-};
+    public render() {
+        const {
+            className,
+            columnLabel,
+            columnType,
+            isEditing,
+            onClick,
+            setColumnLabel,
+            setColumnType,
+            setIsEditing,
+        } = this.props;
+
+        return (
+            <div className={classNames(styles.columnForm, className)} onClick={onClick}>
+                <Icon className={styles.dragIcon} type="more"/>
+                <EditableText
+                    className={styles.columnName}
+                    value={columnLabel}
+                    onBlur={setColumnLabel}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    // ref={(i: EditableText) => {
+                    //     this.input = i ? i.input : undefined;
+                    // }}
+                />
+                <Select
+                    className={styles.columnType}
+                    value={columnType}
+                    onChange={setColumnType}
+                    placeholder="Column Type"
+                    defaultValue={ColumnType.TEXT}
+                >
+                    <Option value={ColumnType.TEXT}>Text</Option>
+                    <Option value={ColumnType.BOOLEAN}>Yes/No</Option>
+                    <Option value={ColumnType.NUMBER}>Number</Option>
+                    <Option value={ColumnType.DATE}>Date</Option>
+                </Select>
+            </div>
+        );
+    }
+}
 
 export default ColumnDefinitionForm;
