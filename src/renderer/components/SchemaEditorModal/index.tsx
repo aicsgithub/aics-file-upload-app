@@ -130,15 +130,27 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private addColumn = () => {
         const columns = [...this.state.columns];
-        const firstNullIndex = findIndex(columns, (col) => col === null);
-        if (firstNullIndex < 0) {
-            columns.push(DEFAULT_COLUMN);
+
+        // first look for empty column definition forms
+        const firstEmptyColumnDefinition = findIndex(columns, (col) => col !== null && !col.label);
+        console.log(firstEmptyColumnDefinition)
+
+        if (firstEmptyColumnDefinition > -1) {
+            // focus column name input
+
         } else {
-            columns[firstNullIndex] = DEFAULT_COLUMN;
+            // find first empty row and convert that to a column definition form or else append a form to the end
+            // of the list.
+            const firstNullIndex = findIndex(columns, (col) => col === null);
+            if (firstNullIndex < 0) {
+                columns.push(DEFAULT_COLUMN);
+            } else {
+                columns[firstNullIndex] = DEFAULT_COLUMN;
+            }
+            this.setState({
+                columns,
+            });
         }
-        this.setState({
-            columns,
-        });
     }
 
     private removeColumns = () => {
