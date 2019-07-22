@@ -76,7 +76,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                     </div>
                     {columns.map((column, i) => {
                         if (!column) {
-                            return <EmptyColumnDefinitionRow key={i}/>;
+                            return <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>;
                         }
 
                         return (

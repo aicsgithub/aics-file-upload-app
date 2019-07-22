@@ -1,5 +1,6 @@
 .column-headers {
     display: flex;
+    border-bottom: var(--border);
 }
 
 .label-header, .type-header {
@@ -12,6 +13,7 @@
 
 .columns {
     background-color: #f0eee6;
+    border: var(--border);
 }
 
 .selected {
@@ -24,6 +26,10 @@
 
 .column-form {
     padding-top: 1em;
+}
+
+.column-row:not(:last-child) {
+    border-bottom: var(--border);
 }
 
 .button-row {
