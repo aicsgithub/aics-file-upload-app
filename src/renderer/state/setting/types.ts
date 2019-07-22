@@ -27,6 +27,7 @@ export interface SchemaDefinition {
 export interface ColumnDefinition {
     label: string;
     type: ColumnType;
+    required: boolean;
 }
 
 export enum ColumnType {

@@ -1,4 +1,5 @@
 import { Button, Modal } from "antd";
+import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import * as classNames from "classnames";
 import { findIndex, includes, set } from "lodash";
 import * as React from "react";
@@ -9,6 +10,7 @@ import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
 
 const DEFAULT_COLUMN = Object.freeze({
     label: undefined,
+    required: true,
     type: ColumnType.TEXT,
 });
 const styles = require("./styles.pcss");
@@ -24,6 +26,7 @@ interface Props {
 interface ColumnDefinitionDraft {
     label?: string;
     type?: ColumnType;
+    required?: boolean;
 }
 
 interface SchemaEditorModalState {
@@ -75,6 +78,9 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                             <div className={styles.typeHeader}>
                                 Data Type
                             </div>
+                            <div className={styles.requiredHeader}>
+                                Required?
+                            </div>
                         </div>
                         {columns.map((column, i) => {
                             if (!column) {
@@ -92,9 +98,11 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                         setIsEditing={this.setIsEditing(i)}
                                         setColumnLabel={this.setLabel(i)}
                                         setColumnType={this.setType(i)}
+                                        setRequired={this.setRequired(i)}
                                         columnType={column.type}
                                         columnLabel={column.label}
                                         isEditing={isEditing[i]}
+                                        required={column.required || false}
                                     />
                                 </div>
                             );
@@ -140,6 +148,17 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             columns[i] = {
                 ...columns[i],
                 label,
+            };
+            this.setState({columns});
+        };
+    }
+
+    private setRequired = (i: number) => {
+        return (e: CheckboxChangeEvent) => {
+            const columns = [...this.state.columns];
+            columns[i] = {
+                ...columns[i],
+                required: e.target.value,
             };
             this.setState({columns});
         };

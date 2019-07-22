@@ -1,4 +1,5 @@
-import { Icon, Select } from "antd";
+import { Checkbox, Icon, Select } from "antd";
+import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import * as classNames from "classnames";
 import * as React from "react";
 import { ColumnType } from "../../../state/setting/types";
@@ -12,10 +13,12 @@ interface Props {
     columnLabel?: string;
     columnType?: ColumnType;
     isEditing: boolean;
+    required: boolean;
     onClick?: () => void;
     setColumnLabel: (label?: string) => void;
     setColumnType: (selectedOption: ColumnType) => void;
     setIsEditing: (isEditing: boolean) => void;
+    setRequired: (e: CheckboxChangeEvent) => void;
 }
 
 class ColumnDefinitionForm extends React.Component<Props, {}> {
@@ -25,10 +28,12 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
             columnLabel,
             columnType,
             isEditing,
+            required,
             onClick,
             setColumnLabel,
             setColumnType,
             setIsEditing,
+            setRequired,
         } = this.props;
 
         return (
@@ -53,6 +58,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                     <Option value={ColumnType.NUMBER}>Number</Option>
                     <Option value={ColumnType.DATE}>Date</Option>
                 </Select>
+                <Checkbox onChange={setRequired} value={required}/>
             </div>
         );
     }
