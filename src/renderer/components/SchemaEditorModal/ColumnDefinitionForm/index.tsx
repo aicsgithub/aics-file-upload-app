@@ -58,7 +58,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                     <Option value={ColumnType.NUMBER}>Number</Option>
                     <Option value={ColumnType.DATE}>Date</Option>
                 </Select>
-                <Checkbox onChange={setRequired} value={required}/>
+                <Checkbox onChange={setRequired} className={styles.required} value={required}/>
             </div>
         );
     }

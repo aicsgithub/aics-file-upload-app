@@ -69,31 +69,31 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 onCancel={close}
             >
                 <div className={styles.modalContent}>
-                    <div className={styles.columns}>
+                    <div className={styles.grid}>
                         <div className={styles.columnHeaders}>
-                            <div className={styles.orderColumn}/>
-                            <div className={styles.labelHeader}>
+                            <div className={classNames(styles.header, styles.orderColumn)}/>
+                            <div className={classNames(styles.header, styles.labelColumn)}>
                                 Column Name
                             </div>
-                            <div className={styles.typeHeader}>
+                            <div className={classNames(styles.header, styles.typeColumn)}>
                                 Data Type
                             </div>
-                            <div className={styles.requiredHeader}>
+                            <div className={classNames(styles.header, styles.requiredColumn)}>
                                 Required?
                             </div>
                         </div>
                         {columns.map((column, i) => {
-                            if (!column) {
-                                return <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>;
-                            }
-
                             return (
-                                <div className={styles.columnRowContainer} key={column.label || i}>
-                                    <div className={styles.orderColumn}>{i + 1}</div>
-                                    <ColumnDefinitionForm
-                                        className={classNames(styles.columnRow, {
-                                            [styles.selected]: includes(selectedRows, i),
-                                        })}
+                                <div
+                                    className={classNames(styles.row,
+                                        {[styles.selected]: includes(selectedRows, i)})}
+                                    key={column && column.label ? column.label : i}
+                                >
+                                    <div className={classNames(styles.orderColumn, styles.orderNumber)}>
+                                        {column ? i + 1 : ""}
+                                    </div>
+                                    {column && <ColumnDefinitionForm
+                                        className={classNames(styles.columnRow)}
                                         onClick={this.selectRow(i)}
                                         setIsEditing={this.setIsEditing(i)}
                                         setColumnLabel={this.setLabel(i)}
@@ -103,7 +103,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                         columnLabel={column.label}
                                         isEditing={isEditing[i]}
                                         required={column.required || false}
-                                    />
+                                    />}
+                                    {!column && <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>}
                                 </div>
                             );
                         })}
