@@ -62,6 +62,9 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             visible,
         } = this.props;
         const { columns, isEditing, notes, selectedRows } = this.state;
+        const columnNames = columns
+            .filter((c) => c !== null)
+            .map((c) => c ? c.label : "") as string[];
         return (
             <Modal
                 width="90%"
@@ -91,13 +94,14 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                     <div
                                         className={classNames(styles.row,
                                             {[styles.selected]: includes(selectedRows, i)})}
-                                        key={column && column.label ? column.label : i}
+                                        key={column && column.label ? column.label + i : i}
                                         onClick={this.selectRow(i)}
                                     >
                                         <div className={classNames(styles.orderColumn, styles.orderNumber)}>
                                             {column ? i + 1 : ""}
                                         </div>
                                         {column && <ColumnDefinitionForm
+                                            columnNames={columnNames}
                                             className={classNames(styles.columnRow)}
                                             setIsEditing={this.setIsEditing(i)}
                                             setColumnLabel={this.setLabel(i)}

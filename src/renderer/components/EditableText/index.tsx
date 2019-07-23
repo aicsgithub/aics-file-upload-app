@@ -1,4 +1,4 @@
-import { Input } from "antd";
+import { Icon, Input, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { ChangeEvent } from "react";
 import * as React from "react";
@@ -7,6 +7,7 @@ const styles = require("./styles.pcss");
 
 interface EditableTextProps {
     className?: string;
+    error?: string;
     isEditing?: boolean;
     value?: string;
     onBlur: (value?: string) => void;
@@ -43,6 +44,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
     public render() {
         const {
             className,
+            error,
             isEditing,
             placeholder,
         } = this.props;
@@ -50,10 +52,14 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
 
         return (
             <div
-                className={classNames({[styles.readOnly]: !isEditing}, className)}
+                className={classNames(
+                    styles.container,
+                    {[styles.readOnly]: !isEditing},
+                    {[styles.error]: error}, className)
+                }
                 onClick={this.setIsEditing(true)}
             >
-                {!isEditing && <span>{newValue}</span>}
+                {!isEditing && <div>{newValue}</div>}
                 <Input
                     className={styles.input}
                     placeholder={placeholder}
@@ -65,6 +71,9 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                     onBlur={this.setIsEditing(false)}
                     type={isEditing ? "text" : "hidden"}
                 />
+                {error && !isEditing && <Tooltip title={error} className={styles.errorIcon} >
+                    <Icon type="close-circle" theme="filled" />
+                </Tooltip>}
             </div>
         );
     }

@@ -10,6 +10,7 @@ const Option = Select.Option;
 
 interface Props {
     className?: string;
+    columnNames: string[];
     columnLabel?: string;
     columnType?: ColumnType;
     isEditing: boolean;
@@ -25,6 +26,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
         const {
             className,
             columnLabel,
+            columnNames,
             columnType,
             isEditing,
             required,
@@ -33,6 +35,8 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
             setIsEditing,
             setRequired,
         } = this.props;
+
+        const duplicateNameError = columnNames.filter((name) => name === columnLabel).length > 1;
 
         return (
             <div className={classNames(styles.columnForm, className)}>
@@ -43,6 +47,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                     onBlur={setColumnLabel}
                     isEditing={isEditing}
                     setIsEditing={setIsEditing}
+                    error={duplicateNameError ? "Column label must be unique" : undefined}
                 />
                 <Select
                     className={styles.columnType}
