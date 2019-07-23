@@ -1,7 +1,9 @@
 import { Button, Modal } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
+import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
-import { findIndex, includes, set } from "lodash";
+import { findIndex, includes, isEmpty, set } from "lodash";
+import { ChangeEvent } from "react";
 import * as React from "react";
 import { ActionCreator } from "redux";
 import { ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
@@ -31,6 +33,7 @@ interface ColumnDefinitionDraft {
 
 interface SchemaEditorModalState {
     columns: Array<ColumnDefinitionDraft | null>;
+    notes?: string;
     selectedRows: number[];
     isEditing: boolean[];
 }
@@ -58,7 +61,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             schema,
             visible,
         } = this.props;
-        const { columns, isEditing, selectedRows } = this.state;
+        const { columns, isEditing, notes, selectedRows } = this.state;
         return (
             <Modal
                 width="90%"
@@ -68,50 +71,58 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 onOk={this.saveAndClose}
                 onCancel={close}
             >
-                <div className={styles.modalContent}>
-                    <div className={styles.grid}>
-                        <div className={styles.columnHeaders}>
-                            <div className={classNames(styles.header, styles.orderColumn)}/>
-                            <div className={classNames(styles.header, styles.labelColumn)}>
-                                Column Name
-                            </div>
-                            <div className={classNames(styles.header, styles.typeColumn)}>
-                                Data Type
-                            </div>
-                            <div className={classNames(styles.header, styles.requiredColumn)}>
-                                Required?
-                            </div>
-                        </div>
-                        {columns.map((column, i) => {
-                            return (
-                                <div
-                                    className={classNames(styles.row,
-                                        {[styles.selected]: includes(selectedRows, i)})}
-                                    key={column && column.label ? column.label : i}
-                                >
-                                    <div className={classNames(styles.orderColumn, styles.orderNumber)}>
-                                        {column ? i + 1 : ""}
-                                    </div>
-                                    {column && <ColumnDefinitionForm
-                                        className={classNames(styles.columnRow)}
-                                        onClick={this.selectRow(i)}
-                                        setIsEditing={this.setIsEditing(i)}
-                                        setColumnLabel={this.setLabel(i)}
-                                        setColumnType={this.setType(i)}
-                                        setRequired={this.setRequired(i)}
-                                        columnType={column.type}
-                                        columnLabel={column.label}
-                                        isEditing={isEditing[i]}
-                                        required={column.required || false}
-                                    />}
-                                    {!column && <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>}
+                <div className={styles.columnDefinitionForm}>
+                    <div className={styles.gridAndNotes}>
+                        <div className={styles.grid}>
+                            <div className={styles.columnHeaders}>
+                                <div className={classNames(styles.header, styles.orderColumn)}/>
+                                <div className={classNames(styles.header, styles.labelColumn)}>
+                                    Column Name
                                 </div>
-                            );
-                        })}
+                                <div className={classNames(styles.header, styles.typeColumn)}>
+                                    Data Type
+                                </div>
+                                <div className={classNames(styles.header, styles.requiredColumn)}>
+                                    Required?
+                                </div>
+                            </div>
+                            {columns.map((column, i) => {
+                                return (
+                                    <div
+                                        className={classNames(styles.row,
+                                            {[styles.selected]: includes(selectedRows, i)})}
+                                        key={column && column.label ? column.label : i}
+                                        onClick={this.selectRow(i)}
+                                    >
+                                        <div className={classNames(styles.orderColumn, styles.orderNumber)}>
+                                            {column ? i + 1 : ""}
+                                        </div>
+                                        {column && <ColumnDefinitionForm
+                                            className={classNames(styles.columnRow)}
+                                            setIsEditing={this.setIsEditing(i)}
+                                            setColumnLabel={this.setLabel(i)}
+                                            setColumnType={this.setType(i)}
+                                            setRequired={this.setRequired(i)}
+                                            columnType={column.type}
+                                            columnLabel={column.label}
+                                            isEditing={isEditing[i]}
+                                            required={column.required || false}
+                                        />}
+                                        {!column && <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <TextArea
+                            rows={4}
+                            placeholder="Notes for your team"
+                            onBlur={this.setNotes}
+                            value={notes}
+                        />
                     </div>
                     <div className={styles.buttons}>
                         <Button icon="plus" onClick={this.addColumn}/>
-                        <Button icon="minus" onClick={this.removeColumns}/>
+                        <Button icon="minus" onClick={this.removeColumns} disabled={isEmpty(selectedRows)}/>
                     </div>
                 </div>
             </Modal>
@@ -127,6 +138,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private selectRow = (index: number) => {
+        // todo: Select multiple if CTRL or SHIFT held down
         return () => this.setState({selectedRows: [index]});
     }
 
@@ -163,6 +175,10 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             };
             this.setState({columns});
         };
+    }
+
+    private setNotes = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        this.setState({notes: e.target.value});
     }
 
     private addColumn = () => {

@@ -14,7 +14,6 @@ interface Props {
     columnType?: ColumnType;
     isEditing: boolean;
     required: boolean;
-    onClick?: () => void;
     setColumnLabel: (label?: string) => void;
     setColumnType: (selectedOption: ColumnType) => void;
     setIsEditing: (isEditing: boolean) => void;
@@ -29,7 +28,6 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
             columnType,
             isEditing,
             required,
-            onClick,
             setColumnLabel,
             setColumnType,
             setIsEditing,
@@ -37,7 +35,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
         } = this.props;
 
         return (
-            <div className={classNames(styles.columnForm, className)} onClick={onClick}>
+            <div className={classNames(styles.columnForm, className)}>
                 <Icon className={styles.dragIcon} type="more"/>
                 <EditableText
                     className={styles.columnName}
