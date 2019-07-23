@@ -1,4 +1,4 @@
-import { CREATE_SCHEMA, GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
+import { GATHER_SETTINGS, SAVE_SCHEMA, UPDATE_SETTINGS } from "./constants";
 import {
     CreateSchemaAction,
     GatherSettingsAction,
@@ -20,9 +20,9 @@ export function gatherSettings(): GatherSettingsAction {
     };
 }
 
-export function createSchema(schema: SchemaDefinition): CreateSchemaAction {
+export function saveSchema(schema: SchemaDefinition): CreateSchemaAction {
     return {
         payload: schema,
-        type: CREATE_SCHEMA,
+        type: SAVE_SCHEMA,
     };
 }

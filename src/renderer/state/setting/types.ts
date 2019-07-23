@@ -20,8 +20,8 @@ export interface CreateSchemaAction {
 }
 
 export interface SchemaDefinition {
-    name: string;
     columns: ColumnDefinition[];
+    notes?: string;
 }
 
 export interface ColumnDefinition {

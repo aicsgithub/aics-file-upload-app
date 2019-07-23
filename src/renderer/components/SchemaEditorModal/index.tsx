@@ -153,7 +153,10 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private saveAndClose = () => {
-        // this.props.createSchema(this.state.draft);
+        this.props.createSchema({
+            columns: this.state.columns.filter((c) => !!c && c.label && c.type),
+            notes: this.state.notes,
+        });
         this.props.close();
     }
 

@@ -1,3 +1,4 @@
+import { appendFile } from "fs";
 import { map } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -7,7 +8,7 @@ import { AlertType } from "../feedback/types";
 import { ReduxLogicNextCb, ReduxLogicRejectCb, ReduxLogicTransformDependencies } from "../types";
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
-import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
+import { GATHER_SETTINGS, SAVE_SCHEMA, UPDATE_SETTINGS } from "./constants";
 
 const updateSettingsLogic = createLogic({
     transform: ({action, storage}: ReduxLogicTransformDependencies,
@@ -52,7 +53,24 @@ const gatherSettingsLogic = createLogic({
    type: GATHER_SETTINGS,
 });
 
+const saveSchemaLogic = createLogic({
+    transform: ({ action, dialog }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        dialog.showSaveDialog({
+            title: "Save Schema",
+        }, (filename: string) => {
+            if (filename) {
+                appendFile(`${filename}.json`, JSON.stringify(action.payload), (err) => {
+                    console.log(err);
+                    // TODO handle error
+                });
+            }
+        });
+    },
+    type: SAVE_SCHEMA,
+});
+
 export default [
     gatherSettingsLogic,
+    saveSchemaLogic,
     updateSettingsLogic,
 ];

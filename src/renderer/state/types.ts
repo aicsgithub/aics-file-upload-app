@@ -14,6 +14,7 @@ import { SettingStateBranch } from "./setting/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
+import SaveDialogOptions = Electron.SaveDialogOptions;
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;
@@ -38,6 +39,7 @@ export interface ReduxLogicExtraDependencies {
             options: MessageBoxOptions,
             callback?: (response: number, checkboxChecked: boolean) => void
         ): number;
+        showSaveDialog(options: SaveDialogOptions, callback: (filepath: string) => void): string;
     };
     fms: {
         validateMetadata: (metadata: Uploads) => Promise<void>;

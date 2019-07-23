@@ -24,7 +24,7 @@ import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
 import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
-import { createSchema, gatherSettings, updateSettings } from "../../state/setting/actions";
+import { gatherSettings, saveSchema, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import { CreateSchemaAction, GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
@@ -45,7 +45,6 @@ interface AppProps {
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
     copyInProgress: boolean;
-    createSchema: ActionCreator<CreateSchemaAction>;
     fileToTags: Map<string, FileTag[]>;
     files: UploadFile[];
     gatherSettings: ActionCreator<GatherSettingsAction>;
@@ -54,6 +53,7 @@ interface AppProps {
     loading: boolean;
     recentEvent?: AppEvent;
     requestMetadata: ActionCreator<RequestMetadataAction>;
+    saveSchema: ActionCreator<CreateSchemaAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     page: Page;
@@ -220,10 +220,10 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     clearAlert,
-    createSchema,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
     requestMetadata,
+    saveSchema,
     selectFile: selection.actions.selectFile,
     updateSettings,
 };
