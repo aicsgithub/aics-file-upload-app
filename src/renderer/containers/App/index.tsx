@@ -6,9 +6,9 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
-import CreateSchemaModal from "../../components/SchemaEditorModal";
 
 import FolderTree from "../../components/FolderTree";
+import SchemaEditorModal from "../../components/SchemaEditorModal";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert } from "../../state/feedback/actions";
@@ -26,7 +26,7 @@ import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection
 import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
 import { gatherSettings, saveSchema, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
-import { CreateSchemaAction, GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
+import { GatherSettingsAction, SaveSchemaAction, UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 import { FileTag } from "../../state/upload/types";
 
@@ -53,7 +53,7 @@ interface AppProps {
     loading: boolean;
     recentEvent?: AppEvent;
     requestMetadata: ActionCreator<RequestMetadataAction>;
-    saveSchema: ActionCreator<CreateSchemaAction>;
+    saveSchema: ActionCreator<SaveSchemaAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     page: Page;
@@ -192,8 +192,8 @@ class App extends React.Component<AppProps, AppState> {
                     {pageConfig.container}
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
-                <CreateSchemaModal
-                    createSchema={this.props.createSchema}
+                <SchemaEditorModal
+                    saveSchema={this.props.saveSchema}
                     close={this.closeCreateSchemaModal}
                     visible={showCreateSchemaModal}
                 />

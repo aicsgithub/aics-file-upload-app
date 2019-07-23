@@ -14,7 +14,7 @@ export interface GatherSettingsAction {
     type: string;
 }
 
-export interface CreateSchemaAction {
+export interface SaveSchemaAction {
     payload: SchemaDefinition;
     type: string;
 }

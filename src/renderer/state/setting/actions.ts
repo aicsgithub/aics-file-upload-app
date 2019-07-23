@@ -1,6 +1,6 @@
 import { GATHER_SETTINGS, SAVE_SCHEMA, UPDATE_SETTINGS } from "./constants";
 import {
-    CreateSchemaAction,
+    SaveSchemaAction,
     GatherSettingsAction,
     SchemaDefinition,
     SettingStateBranch,
@@ -20,7 +20,7 @@ export function gatherSettings(): GatherSettingsAction {
     };
 }
 
-export function saveSchema(schema: SchemaDefinition): CreateSchemaAction {
+export function saveSchema(schema: SchemaDefinition): SaveSchemaAction {
     return {
         payload: schema,
         type: SAVE_SCHEMA,

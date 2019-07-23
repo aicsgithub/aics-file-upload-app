@@ -6,7 +6,7 @@ import { findIndex, includes, isEmpty, set, uniq } from "lodash";
 import { ChangeEvent } from "react";
 import * as React from "react";
 import { ActionCreator } from "redux";
-import { ColumnType, CreateSchemaAction, SchemaDefinition } from "../../state/setting/types";
+import { ColumnType, SaveSchemaAction, SchemaDefinition } from "../../state/setting/types";
 import ColumnDefinitionForm from "./ColumnDefinitionForm";
 import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
 
@@ -19,7 +19,7 @@ const styles = require("./styles.pcss");
 
 interface Props {
     className?: string;
-    createSchema: ActionCreator<CreateSchemaAction>;
+    saveSchema: ActionCreator<SaveSchemaAction>;
     close: () => void;
     schema?: SchemaDefinition;
     visible: boolean;
@@ -153,7 +153,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private saveAndClose = () => {
-        this.props.createSchema({
+        this.props.saveSchema({
             columns: this.state.columns.filter((c) => !!c && c.label && c.type),
             notes: this.state.notes,
         });
