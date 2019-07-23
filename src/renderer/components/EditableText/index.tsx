@@ -12,7 +12,6 @@ interface EditableTextProps {
     onBlur: (value?: string) => void;
     placeholder?: string;
     setIsEditing: (isEditing: boolean) => void;
-    onIsValidChange?: (isValid: boolean) => void;
 }
 
 interface EditableTextState {
