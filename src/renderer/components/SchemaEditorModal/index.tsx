@@ -2,7 +2,7 @@ import { Button, Modal } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
-import { findIndex, includes, isEmpty, set } from "lodash";
+import { findIndex, includes, isEmpty, set, uniq } from "lodash";
 import { ChangeEvent } from "react";
 import * as React from "react";
 import { ActionCreator } from "redux";
@@ -65,6 +65,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         const columnNames = columns
             .filter((c) => c !== null)
             .map((c) => c ? c.label : "") as string[];
+        const canSave = columnNames.length > 0 && uniq(columnNames).length === columnNames.length;
         return (
             <Modal
                 width="90%"
@@ -73,6 +74,11 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 visible={visible}
                 onOk={this.saveAndClose}
                 onCancel={close}
+                destroyOnClose={true}
+                okText="Save"
+                okButtonProps={{
+                    disabled: !canSave,
+                }}
             >
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
