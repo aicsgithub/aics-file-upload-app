@@ -126,7 +126,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                         <TextArea
                             rows={4}
                             placeholder="Notes for your team"
-                            onBlur={this.setNotes}
+                            onChange={this.setNotes}
                             value={notes}
                         />
                     </div>
