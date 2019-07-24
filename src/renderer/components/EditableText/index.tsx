@@ -9,10 +9,10 @@ interface EditableTextProps {
     className?: string;
     error?: string;
     isEditing?: boolean;
-    value?: string;
     onBlur: (value?: string) => void;
     placeholder?: string;
     setIsEditing: (isEditing: boolean) => void;
+    value?: string;
 }
 
 interface EditableTextState {
@@ -46,6 +46,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
             className,
             error,
             isEditing,
+            maxLength,
             placeholder,
         } = this.props;
         const { newValue } = this.state;
@@ -63,6 +64,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                 <Input
                     className={styles.input}
                     placeholder={placeholder}
+                    maxLength={maxLength}
                     onChange={this.updateValue}
                     value={newValue}
                     ref={(i: Input) => {
