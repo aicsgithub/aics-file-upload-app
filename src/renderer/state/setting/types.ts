@@ -34,5 +34,7 @@ export enum ColumnType {
     NUMBER = "NUMBER",
     TEXT = "TEXT",
     DATE = "DATE",
+    DATETIME = "DATETIME",
     BOOLEAN = "BOOLEAN",
+    DROPDOWN = "DROPDOWN",
 }
