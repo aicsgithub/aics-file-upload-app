@@ -21,6 +21,7 @@ import { mockFailedUploadJob, mockSuccessfulUploadJob, mockWorkingUploadJob } fr
 export interface ReduxLogicDependencies {
     dialog: {
         showMessageBox: SinonStub;
+        showSaveDialog: SinonStub;
     };
     fms: {
         validateMetadata: SinonStub;
@@ -49,6 +50,7 @@ export interface ReduxLogicDependencies {
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     dialog: {
         showMessageBox: stub(),
+        showSaveDialog: stub(),
     },
     fms: {
         validateMetadata: stub(),

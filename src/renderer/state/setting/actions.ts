@@ -1,7 +1,7 @@
 import { GATHER_SETTINGS, SAVE_SCHEMA, UPDATE_SETTINGS } from "./constants";
 import {
-    SaveSchemaAction,
     GatherSettingsAction,
+    SaveSchemaAction,
     SchemaDefinition,
     SettingStateBranch,
     UpdateSettingsAction,
