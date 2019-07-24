@@ -57,7 +57,7 @@ const saveSchemaLogic = createLogic({
     transform: ({ action, dialog }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         dialog.showSaveDialog({
             title: "Save Schema",
-        }, (filename: string) => {
+        }, (filename?: string) => {
             if (filename) {
                 appendFile(`${filename}.json`, JSON.stringify(action.payload), (err) => {
                     console.log(err);
