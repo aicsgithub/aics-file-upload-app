@@ -11,11 +11,17 @@
 
 .column-name {
   flex: var(--label-column-flex);
+  min-height: inherit;
 }
 
 .column-type {
-  display: flex;
   flex: var(--type-column-flex);
+  min-height: inherit;
+}
+
+.column-type-body {
+  width: 100%;
+  display: flex;
   align-items: center;
 
   & .column-type-select {
@@ -35,8 +41,4 @@
 
 .add-btn {
   flex: 0 0 auto;
-}
-
-.drag-icon {
-  flex-basis: 1em;
 }

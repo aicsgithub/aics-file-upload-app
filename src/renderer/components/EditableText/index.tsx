@@ -1,7 +1,8 @@
-import { Icon, Input, Tooltip } from "antd";
+import { Input } from "antd";
 import * as classNames from "classnames";
 import { ChangeEvent } from "react";
 import * as React from "react";
+import FormGroup from "../FormGroup";
 
 const styles = require("./styles.pcss");
 
@@ -46,25 +47,24 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
             className,
             error,
             isEditing,
-            maxLength,
             placeholder,
         } = this.props;
         const { newValue } = this.state;
 
         return (
-            <div
+            <FormGroup
                 className={classNames(
                     styles.container,
                     {[styles.readOnly]: !isEditing},
-                    {[styles.error]: error}, className)
-                }
+                    className
+                )}
+                error={error}
                 onClick={this.setIsEditing(true)}
             >
                 {!isEditing && <div>{newValue}</div>}
                 <Input
                     className={styles.input}
                     placeholder={placeholder}
-                    maxLength={maxLength}
                     onChange={this.updateValue}
                     value={newValue}
                     ref={(i: Input) => {
@@ -73,10 +73,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                     onBlur={this.setIsEditing(false)}
                     type={isEditing ? "text" : "hidden"}
                 />
-                {error && !isEditing && <Tooltip title={error} className={styles.errorIcon} >
-                    <Icon type="close-circle" theme="filled" />
-                </Tooltip>}
-            </div>
+            </FormGroup>
         );
     }
 

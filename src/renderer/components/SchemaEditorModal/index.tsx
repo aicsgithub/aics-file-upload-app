@@ -2,12 +2,12 @@ import { Button, Modal } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
-import { findIndex, includes, isEmpty, set, uniq } from "lodash";
-import { ChangeEvent } from "react";
+import { findIndex, includes, isEmpty, set } from "lodash";
 import * as React from "react";
+import { ChangeEvent } from "react";
 import { ActionCreator } from "redux";
 import { ColumnType, SaveSchemaAction, SchemaDefinition } from "../../state/setting/types";
-import ColumnDefinitionForm from "./ColumnDefinitionForm";
+import ColumnDefinitionForm, { ColumnDefinitionError } from "./ColumnDefinitionForm";
 import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
 
 const DEFAULT_COLUMN = Object.freeze({
@@ -26,7 +26,7 @@ interface Props {
 }
 
 interface ColumnDefinitionDraft {
-    dropdownValues?: string[]; // only applicable if ColumnType is
+    dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
     label?: string;
     type?: ColumnType;
     required?: boolean;
@@ -59,8 +59,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         // todo update state based on props.
     }
 
-    // todo afterClose
-
     public render() {
         const {
             className,
@@ -69,10 +67,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             visible,
         } = this.props;
         const { columns, isEditing, notes, selectedRows } = this.state;
-        const columnNames = columns
-            .filter((c) => c !== null)
-            .map((c) => c ? c.label : "") as string[];
-        const canSave = columnNames.length > 0 && uniq(columnNames).length === columnNames.length;
+        const errors = this.getErrors();
+        const canSave = isEmpty(errors.filter((e) => !!e));
         return (
             <Modal
                 width="90%"
@@ -86,6 +82,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                     disabled: !canSave,
                 }}
                 maskClosable={false}
+                afterClose={this.afterClose}
             >
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
@@ -114,8 +111,9 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                             {column ? i + 1 : ""}
                                         </div>
                                         {column && <ColumnDefinitionForm
-                                            columnNames={columnNames}
                                             className={classNames(styles.columnRow)}
+                                            dropdownValues={column.dropdownValues}
+                                            error={errors[i]}
                                             setIsEditing={this.setIsEditing(i)}
                                             setColumnLabel={this.setLabel(i)}
                                             setColumnType={this.setType(i)}
@@ -147,6 +145,34 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
     }
 
+    private getErrors = (): Array<ColumnDefinitionError | undefined> => {
+        const { columns } = this.state;
+        const columnNames: string[] = columns
+            .filter((c) => !!c)
+            .map((c) => c ? c.label : "") as string[];
+        return columns.map((col: ColumnDefinitionDraft | null) => {
+            if (!col) {
+                return undefined;
+            }
+
+            const labelIsEmpty = !col.label;
+            const dropdownValuesMissing = col.type === ColumnType.DROPDOWN && isEmpty(col.dropdownValues);
+            const duplicateLabel = columnNames.filter((name) => name === col.label).length > 1;
+
+            let columnLabelError;
+            if (labelIsEmpty) {
+                columnLabelError = "This field is required";
+            } else if (duplicateLabel) {
+                columnLabelError = "Column names must be unique";
+            }
+
+            return labelIsEmpty || dropdownValuesMissing || duplicateLabel ? {
+                columnLabel: columnLabelError,
+                columnType: dropdownValuesMissing ? "Dropdown values are required" : undefined,
+            } : undefined;
+        });
+    }
+
     private setIsEditing = (index: number) => {
         return (editing: boolean) => {
             const isEditing = [...this.state.isEditing];
@@ -157,7 +183,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private selectRow = (index: number) => {
         // todo: Select multiple if CTRL or SHIFT held down
-        return () => this.setState({selectedRows: [index]});
+        return this.state.columns[index] ? () => this.setState({selectedRows: [index]}) : undefined;
     }
 
     private saveAndClose = () => {
