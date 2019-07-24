@@ -26,6 +26,7 @@ interface Props {
 }
 
 interface ColumnDefinitionDraft {
+    dropdownValues?: string[]; // only applicable if ColumnType is
     label?: string;
     type?: ColumnType;
     required?: boolean;
@@ -54,6 +55,12 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         };
     }
 
+    public componentDidUpdate(): void {
+        // todo update state based on props.
+    }
+
+    // todo afterClose
+
     public render() {
         const {
             className,
@@ -74,11 +81,11 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 visible={visible}
                 onOk={this.saveAndClose}
                 onCancel={close}
-                destroyOnClose={true}
                 okText="Save"
                 okButtonProps={{
                     disabled: !canSave,
                 }}
+                maskClosable={false}
             >
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
@@ -112,6 +119,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                                             setIsEditing={this.setIsEditing(i)}
                                             setColumnLabel={this.setLabel(i)}
                                             setColumnType={this.setType(i)}
+                                            setDropdownValues={this.setDropdownValues(i)}
                                             setRequired={this.setRequired(i)}
                                             columnType={column.type}
                                             columnLabel={column.label}
@@ -157,7 +165,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             columns: this.state.columns.filter((c) => !!c && c.label && c.type),
             notes: this.state.notes,
         });
-        this.props.close();
+        this.props.close(); // todo
     }
 
     private setType = (i: number) => {
@@ -166,6 +174,18 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             set(columns, `[${i}].type`, type);
             this.setState({columns});
         };
+    }
+
+    private setDropdownValues = (i: number) => {
+        return (values: string[]) => {
+            const columns = [...this.state.columns];
+            set(columns, `[${i}.dropdownValues`, values);
+            this.setState({columns});
+        };
+    }
+
+    private afterClose = () => {
+        // reset state?
     }
 
     private setLabel = (i: number) => {

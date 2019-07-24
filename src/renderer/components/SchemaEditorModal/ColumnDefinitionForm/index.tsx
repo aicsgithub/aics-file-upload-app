@@ -17,6 +17,7 @@ interface Props {
     required: boolean;
     setColumnLabel: (label?: string) => void;
     setColumnType: (selectedOption: ColumnType) => void;
+    setDropdownValues: (selectOption: string[]) => void;
     setIsEditing: (isEditing: boolean) => void;
     setRequired: (e: CheckboxChangeEvent) => void;
 }
@@ -32,6 +33,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
             required,
             setColumnLabel,
             setColumnType,
+            setDropdownValues,
             setIsEditing,
             setRequired,
         } = this.props;
@@ -49,18 +51,32 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                     setIsEditing={setIsEditing}
                     error={duplicateNameError ? "Column label must be unique" : undefined}
                 />
-                <Select
-                    className={styles.columnType}
-                    value={columnType}
-                    onChange={setColumnType}
-                    placeholder="Column Type"
-                    defaultValue={ColumnType.TEXT}
-                >
-                    <Option value={ColumnType.TEXT}>Text</Option>
-                    <Option value={ColumnType.BOOLEAN}>Yes/No</Option>
-                    <Option value={ColumnType.NUMBER}>Number</Option>
-                    <Option value={ColumnType.DATE}>Date</Option>
-                </Select>
+                <div className={styles.columnType}>
+                    <Select
+                        className={styles.columnTypeSelect}
+                        value={columnType}
+                        onChange={setColumnType}
+                        placeholder="Column Type"
+                        defaultValue={ColumnType.TEXT}
+                    >
+                        <Option value={ColumnType.TEXT}>Text</Option>
+                        <Option value={ColumnType.DROPDOWN}>Dropdown</Option>
+                        <Option value={ColumnType.BOOLEAN}>Yes/No</Option>
+                        <Option value={ColumnType.NUMBER}>Number</Option>
+                        <Option value={ColumnType.DATE}>Date</Option>
+                        <Option value={ColumnType.DATETIME}>Date and Time</Option>
+                    </Select>
+                    {
+                        columnType === ColumnType.DROPDOWN && (
+                            <Select
+                                className={styles.dropdownValuesSelect}
+                                mode="tags"
+                                placeholder="Dropdown values"
+                                onChange={setDropdownValues}
+                            />
+                        )
+                    }
+                </div>
                 <Checkbox onChange={setRequired} className={styles.required} value={required}/>
             </div>
         );

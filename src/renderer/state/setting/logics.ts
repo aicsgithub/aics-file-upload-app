@@ -61,6 +61,7 @@ const saveSchemaLogic = createLogic({
             if (filename) {
                 appendFile(`${filename}.json`, JSON.stringify(action.payload), (err) => {
                     // TODO handle error
+                    // TODO call next!
                 });
             }
         });

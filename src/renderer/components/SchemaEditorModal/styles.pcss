@@ -1,3 +1,11 @@
+:root {
+    --order-column-flex: 0 0 50px;
+    --label-column-flex: 1;
+    --type-column-flex: 3;
+    --required-column-flex: 0 0 100px;
+    --column-definition-row-height: 34px;
+}
+
 .column-definition-form {
     display: flex;
 }
@@ -34,19 +42,23 @@
         }
     }
 
-    & .label-column, & .type-column {
-        flex: 1
+    & .label-column {
+        flex: var(--label-column-flex);
+    }
+
+    & .type-column {
+        flex: var(--type-column-flex);
     }
 
     & .order-column {
-        flex: 0 0 50px;
+        flex: var(--order-column-flex);
         height: 100%;
         display: flex;
         justify-content: center;
     }
 
     & .required-column {
-        flex: 0 0 100px;
+        flex: var(--required-column-flex);
     }
 }
 
