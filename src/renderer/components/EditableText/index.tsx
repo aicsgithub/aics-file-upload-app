@@ -2,16 +2,15 @@ import { Input } from "antd";
 import * as classNames from "classnames";
 import { ChangeEvent } from "react";
 import * as React from "react";
-import FormGroup from "../FormGroup";
+import FormControl from "../FormControl";
 
 const styles = require("./styles.pcss");
 
 interface EditableTextProps {
     className?: string;
     error?: string;
-    isEditing?: boolean;
+    isEditing: boolean;
     onBlur: (value?: string) => void;
-    placeholder?: string;
     setIsEditing: (isEditing: boolean) => void;
     value?: string;
 }
@@ -20,6 +19,8 @@ interface EditableTextState {
     newValue?: string;
 }
 
+// An input that reverts to plain text when not focused
+// Additionally, it displays errors if errors present
 class EditableText extends React.Component<EditableTextProps, EditableTextState> {
     public input?: HTMLInputElement;
 
@@ -47,12 +48,11 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
             className,
             error,
             isEditing,
-            placeholder,
         } = this.props;
         const { newValue } = this.state;
 
         return (
-            <FormGroup
+            <FormControl
                 className={classNames(
                     styles.container,
                     {[styles.readOnly]: !isEditing},
@@ -64,7 +64,6 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                 {!isEditing && <div>{newValue}</div>}
                 <Input
                     className={styles.input}
-                    placeholder={placeholder}
                     onChange={this.updateValue}
                     value={newValue}
                     ref={(i: Input) => {
@@ -73,7 +72,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                     onBlur={this.setIsEditing(false)}
                     type={isEditing ? "text" : "hidden"}
                 />
-            </FormGroup>
+            </FormControl>
         );
     }
 

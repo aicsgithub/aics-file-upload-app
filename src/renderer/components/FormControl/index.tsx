@@ -12,7 +12,7 @@ interface Props {
     onClick?: () => void;
 }
 
-const FormGroup: React.FunctionComponent<Props> = ({
+const FormControl: React.FunctionComponent<Props> = ({
                                                        children,
                                                        className,
                                                        error,
@@ -35,4 +35,4 @@ const FormGroup: React.FunctionComponent<Props> = ({
     </div>
 );
 
-export default FormGroup;
+export default FormControl;

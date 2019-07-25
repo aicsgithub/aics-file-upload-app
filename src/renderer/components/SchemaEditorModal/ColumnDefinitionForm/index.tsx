@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { ColumnType } from "../../../state/setting/types";
 import EditableText from "../../EditableText";
-import FormGroup from "../../FormGroup";
+import FormControl from "../../FormControl";
 
 const styles = require("./styles.pcss");
 const Option = Select.Option;
@@ -57,7 +57,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                     setIsEditing={setIsEditing}
                     error={error ? error.columnLabel : undefined}
                 />
-                <FormGroup
+                <FormControl
                     className={styles.columnType}
                     error={error ? error.columnType : undefined}
                 >
@@ -88,7 +88,7 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                             )
                         }
                     </div>
-                </FormGroup>
+                </FormControl>
                 <Checkbox onChange={setRequired} className={styles.required} value={required}/>
             </div>
         );

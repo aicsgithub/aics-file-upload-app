@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, get, includes, isEmpty, orderBy, some } from "lodash";
+import { every, get, includes, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -79,6 +79,5 @@ export const getAreAllJobsComplete = createSelector([
     getUploadJobs,
     getNumberOfPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: number) => {
-    return pendingJobs === 0 &&
-        (isEmpty(uploadJobs) || every(uploadJobs, (job: JSSJob) => !includes(IN_PROGRESS_STATUSES, job.status)));
+    return pendingJobs === 0 && every(uploadJobs, (job: JSSJob) => !includes(IN_PROGRESS_STATUSES, job.status));
 });
