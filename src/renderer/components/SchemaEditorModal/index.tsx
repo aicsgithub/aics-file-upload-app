@@ -140,7 +140,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
-        const columns: Array<ColumnDefinitionDraft | null> = schema ? schema.columns : [];
+        const columns: Array<ColumnDefinitionDraft | null> = schema ? schema.columns : [DEFAULT_COLUMN];
         for (let i = columns.length; i < 5; i++) {
             columns.push(null);
         }
