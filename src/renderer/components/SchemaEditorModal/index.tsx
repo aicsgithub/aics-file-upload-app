@@ -149,6 +149,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         return {
             columns,
             isEditing: columns.map(() => false),
+            notes: schema ? schema.notes : undefined,
             selectedRows: [],
         };
     }
