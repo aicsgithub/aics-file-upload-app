@@ -15,7 +15,7 @@ import ErrnoException = NodeJS.ErrnoException;
 
 const DEFAULT_COLUMN = Object.freeze({
     label: undefined,
-    required: true,
+    required: false,
     type: ColumnType.TEXT,
 });
 const styles = require("./styles.pcss");
