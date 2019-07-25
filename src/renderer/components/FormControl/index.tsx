@@ -12,12 +12,7 @@ interface Props {
     onClick?: () => void;
 }
 
-const FormControl: React.FunctionComponent<Props> = ({
-                                                       children,
-                                                       className,
-                                                       error,
-                                                       onClick,
-}: Props) => (
+const FormControl: React.FunctionComponent<Props> = ({children, className, error, onClick}: Props) => (
     <div
         className={classNames(
             styles.container,

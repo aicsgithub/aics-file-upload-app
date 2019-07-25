@@ -51,6 +51,8 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
         } = this.props;
         const { newValue } = this.state;
 
+        // Input needs to be in the DOM at all times in order to maintain a ref
+        // To hide it, the type gets set to hidden.
         return (
             <FormControl
                 className={classNames(
