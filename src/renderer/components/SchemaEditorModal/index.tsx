@@ -11,6 +11,7 @@ import { ActionCreator } from "redux";
 import { ColumnType, SaveSchemaAction, SchemaDefinition } from "../../state/setting/types";
 import ColumnDefinitionForm, { ColumnDefinitionError } from "./ColumnDefinitionForm";
 import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
+import ErrnoException = NodeJS.ErrnoException;
 
 const DEFAULT_COLUMN = Object.freeze({
     label: undefined,
@@ -197,12 +198,19 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
 
         remote.dialog.showSaveDialog({
+            filters: [
+                {name: "JSON", extensions: ["json"]},
+            ],
             title: "Save Schema",
         }, (filename?: string) => {
             if (filename) {
-                writeFile(`${filename}.json`, schemaJson, (err) => {
-                    // TODO handle error
-                    if (!err) {
+                if (!filename.endsWith(".json")) {
+                    filename = `${filename}.json`;
+                }
+                writeFile(filename, schemaJson, (err: ErrnoException) => {
+                    if (err) {
+                        remote.dialog.showErrorBox("Error", err.message);
+                    } else {
                         this.props.close();
                     }
                 });
