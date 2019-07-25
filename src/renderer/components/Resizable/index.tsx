@@ -111,7 +111,7 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
     private onMouseDown = (event: MouseEvent) => {
         // Not preventing default causes HTML default drag and drop interaction 10% of the time - Sean M 7/25/19
         event.preventDefault();
-        if (!event || !event.target) {
+        if (!event.target) {
             return;
         }
         const { clientX, clientY } = event;
