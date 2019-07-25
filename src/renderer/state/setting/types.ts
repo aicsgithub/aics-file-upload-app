@@ -14,11 +14,6 @@ export interface GatherSettingsAction {
     type: string;
 }
 
-export interface SaveSchemaAction {
-    payload: SchemaDefinition;
-    type: string;
-}
-
 export interface SchemaDefinition {
     columns: ColumnDefinition[];
     notes?: string;

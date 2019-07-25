@@ -7,8 +7,7 @@ import { writeFile } from "fs";
 import { findIndex, includes, isEmpty, set } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
-import { ActionCreator } from "redux";
-import { ColumnType, SaveSchemaAction, SchemaDefinition } from "../../state/setting/types";
+import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 import ColumnDefinitionForm, { ColumnDefinitionError } from "./ColumnDefinitionForm";
 import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
 import ErrnoException = NodeJS.ErrnoException;
@@ -22,7 +21,6 @@ const styles = require("./styles.pcss");
 
 interface Props {
     className?: string;
-    saveSchema: ActionCreator<SaveSchemaAction>;
     close: () => void;
     schema?: SchemaDefinition;
     visible: boolean;
