@@ -4,7 +4,7 @@ import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
 import { remote } from "electron";
 import { writeFile } from "fs";
-import { findIndex, includes, isEmpty, set } from "lodash";
+import { findIndex, includes, isEmpty } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 
@@ -227,44 +227,45 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         });
     }
 
+    private setLabel = (i: number) => {
+        return (label?: string) => {
+            this.updateColumnRow(i, "label", label);
+        };
+    }
+
     private setType = (i: number) => {
         return (type: ColumnType) => {
-            const columns = [...this.state.columns];
-            set(columns, `[${i}].type`, type);
-            this.setState({columns});
+            this.updateColumnRow(i, "type", type);
         };
     }
 
     private setDropdownValues = (i: number) => {
         return (values: string[]) => {
-            const columns = [...this.state.columns];
-            set(columns, `[${i}.dropdownValues`, values);
-            this.setState({columns});
+            this.updateColumnRow(i, "dropdownValues", values);
         };
+    }
+
+    private setRequired = (i: number) => {
+        return (e: CheckboxChangeEvent) => {
+            this.updateColumnRow(i, "required", e.target.checked);
+        };
+    }
+
+    private setNotes = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        this.setState({notes: e.target.value});
     }
 
     private afterClose = () => {
         this.setState(this.getInitialState());
     }
 
-    private setLabel = (i: number) => {
-        return (label?: string) => {
-            const columns = [...this.state.columns];
-            set(columns, `[${i}].label`, label);
-            this.setState({columns});
+    private updateColumnRow = <T extends {}>(index: number, property: keyof ColumnDefinitionDraft, value?: T) => {
+        const columns = this.state.columns;
+        columns[index] = {
+            ...columns[index],
+            [property]: value,
         };
-    }
-
-    private setRequired = (i: number) => {
-        return (e: CheckboxChangeEvent) => {
-            const columns = [...this.state.columns];
-            set(columns, `[${i}.required`, e.target.checked);
-            this.setState({columns});
-        };
-    }
-
-    private setNotes = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        this.setState({notes: e.target.value});
+        this.setState({columns});
     }
 
     private addColumn = () => {
