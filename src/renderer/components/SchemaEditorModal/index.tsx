@@ -215,7 +215,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 if (!filename.endsWith(".json")) {
                     filename = `${filename}.json`;
                 }
-                writeFile(filename, schemaJson, (err: ErrnoException) => {
+                writeFile(filename, schemaJson, (err: ErrnoException | null) => {
                     if (err) {
                         remote.dialog.showErrorBox("Error", err.message);
                     } else {
