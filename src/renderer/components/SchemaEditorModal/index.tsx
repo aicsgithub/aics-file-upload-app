@@ -44,20 +44,13 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     constructor(props: Props) {
         super(props);
 
-        const columns: Array<ColumnDefinitionDraft | null> = props.schema ? props.schema.columns : [];
-        for (let i = columns.length; i < 5; i++) {
-            columns.push(null);
-        }
-
-        this.state = {
-            columns,
-            isEditing: columns.map(() => false),
-            selectedRows: [],
-        };
+        this.state = this.initializeState(props.schema);
     }
 
-    public componentDidUpdate(): void {
-        // todo update state based on props.
+    public componentDidUpdate(prevProps: Props): void {
+        if (prevProps.schema !== this.props.schema) {
+            this.setState(this.initializeState(this.props.schema));
+        }
     }
 
     public render() {
@@ -144,6 +137,19 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 </div>
             </Modal>
         );
+    }
+
+    private initializeState = (schema?: SchemaDefinition): SchemaEditorModalState => {
+        const columns: Array<ColumnDefinitionDraft | null> = schema ? schema.columns : [];
+        for (let i = columns.length; i < 5; i++) {
+            columns.push(null);
+        }
+
+        return {
+            columns,
+            isEditing: columns.map(() => false),
+            selectedRows: [],
+        };
     }
 
     private getErrors = (): Array<ColumnDefinitionError | undefined> => {
@@ -233,7 +239,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private afterClose = () => {
-        // reset state?
+        this.setState(this.initializeState());
     }
 
     private setLabel = (i: number) => {

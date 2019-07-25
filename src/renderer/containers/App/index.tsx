@@ -24,9 +24,9 @@ import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
 import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
-import { gatherSettings, saveSchema, updateSettings } from "../../state/setting/actions";
+import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
-import { GatherSettingsAction, SaveSchemaAction, UpdateSettingsAction } from "../../state/setting/types";
+import { GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 import { FileTag } from "../../state/upload/types";
 
@@ -53,7 +53,6 @@ interface AppProps {
     loading: boolean;
     recentEvent?: AppEvent;
     requestMetadata: ActionCreator<RequestMetadataAction>;
-    saveSchema: ActionCreator<SaveSchemaAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     page: Page;
@@ -193,7 +192,6 @@ class App extends React.Component<AppProps, AppState> {
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
-                    saveSchema={this.props.saveSchema}
                     close={this.closeCreateSchemaModal}
                     visible={showCreateSchemaModal}
                 />
@@ -223,7 +221,6 @@ const dispatchToPropsMap = {
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
     requestMetadata,
-    saveSchema,
     selectFile: selection.actions.selectFile,
     updateSettings,
 };
