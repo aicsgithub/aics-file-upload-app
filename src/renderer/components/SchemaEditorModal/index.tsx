@@ -7,6 +7,7 @@ import { writeFile } from "fs";
 import { findIndex, includes, isEmpty, set } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
+
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 import ColumnDefinitionForm, { ColumnDefinitionError } from "./ColumnDefinitionForm";
 import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
@@ -249,10 +250,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     private setLabel = (i: number) => {
         return (label?: string) => {
             const columns = [...this.state.columns];
-            columns[i] = {
-                ...columns[i],
-                label,
-            };
+            set(columns, `[${i}].label`, label);
             this.setState({columns});
         };
     }
