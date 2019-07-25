@@ -190,7 +190,11 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private selectRow = (index: number) => {
         // todo: Select multiple if CTRL or SHIFT held down
-        return this.state.columns[index] ? () => this.setState({selectedRows: [index]}) : undefined;
+        const columnDefinitionIsNotNull = !!this.state.columns[index];
+        if (columnDefinitionIsNotNull) {
+            return () => this.setState({selectedRows: [index]});
+        }
+        return this.addColumn;
     }
 
     private saveAndClose = () => {
@@ -303,7 +307,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         selectedRows.forEach((row) => {
             columns.splice(row, 1);
         });
-        this.setState({ columns });
+        this.setState({ columns, selectedRows: [] });
     }
 }
 
