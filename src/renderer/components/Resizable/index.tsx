@@ -34,6 +34,7 @@ interface ResizableState {
 
 class Resizable extends React.Component<ResizableProps, ResizableState> {
     private readonly borderSizeInPixels: number;
+    private readonly cursor: string;
     private readonly divRef: RefObject<HTMLDivElement> | null;
     private readonly minimumHeight: number;
     private readonly minimumWidth: number;
@@ -47,6 +48,7 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
         };
 
         this.borderSizeInPixels = this.props.borderSizeInPixels || 10;
+        this.cursor = this.determineCursor();
         this.minimumHeight = this.props.minimumHeight || 10;
         this.minimumWidth = this.props.minimumWidth || 10;
         this.padding = {
@@ -69,6 +71,7 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
     }
 
     public componentDidMount() {
+        // Have to attach mouseup & mouseover to window because we want them to be able to go outside the div
         window.addEventListener("mouseup", this.onMouseUp);
         window.addEventListener("mousemove", this.onMouseMove);
         this.divRef!.current!.addEventListener("mousedown", this.onMouseDown);
@@ -81,12 +84,12 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
     }
 
     public render() {
-        const { divRef, padding } = this;
+        const { cursor, divRef, padding } = this;
         const { className, children } = this.props;
         const { height, width } = this.state;
 
         return (
-            <div className={styles.outerBorder} ref={divRef} style={{ height, ...padding, width }}>
+            <div className={styles.outerBorder} ref={divRef} style={{ cursor, height, ...padding, width }}>
                 <div className={classNames(className, styles.innerChildren)}>
                     {children}
                 </div>
@@ -106,6 +109,8 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
 
     // Initial step: Begin tracking cursor if it is on a border we are resizing from
     private onMouseDown = (event: MouseEvent) => {
+        // Not preventing default causes HTML default drag and drop interaction 10% of the time - Sean M 7/25/19
+        event.preventDefault();
         if (!event || !event.target) {
             return;
         }
@@ -149,6 +154,19 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
         if (this.state.userResizeOriginY) {
             this.setState({ userResizeOriginY: undefined });
         }
+    }
+
+    // Depending on how we are resizing the cursor needs to be different
+    private determineCursor = () => {
+        const horizontal = this.props.left || this.props.right;
+        const vertical = this.props.bottom || this.props.top;
+        if (horizontal && vertical) {
+            return "all-scroll";
+        }
+        if (horizontal) {
+            return "col-resize";
+        }
+        return "row-resize"; // default to vertical
     }
 }
 
