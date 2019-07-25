@@ -1,11 +1,28 @@
+import * as classNames from "classnames";
 import * as React from "react";
+import {RefObject} from "react";
 
+const styles = require("./style.pcss");
+
+interface Padding {
+    readonly paddingBottom?: string;
+    readonly paddingLeft?: string;
+    readonly paddingRight?: string;
+    readonly paddingTop?: string;
+}
 
 interface ResizableProps {
+    borderSizeInPixels?: number;
+    bottom?: boolean;
+    children: JSX.Element | Array<JSX.Element | null>;
+    className?: string;
     height?: number;
-    horizontal?: boolean;
-    vertical?: boolean;
-    width?: number
+    left?: boolean;
+    minimumHeight?: number;
+    minimumWidth?: number;
+    right?: boolean;
+    top?: boolean;
+    width?: number;
 }
 
 interface ResizableState {
@@ -15,9 +32,12 @@ interface ResizableState {
     width?: number;
 }
 
-
 class Resizable extends React.Component<ResizableProps, ResizableState> {
-    private divRef: HTMLDivElement | null;
+    private readonly borderSizeInPixels: number;
+    private readonly divRef: RefObject<HTMLDivElement> | null;
+    private readonly minimumHeight: number;
+    private readonly minimumWidth: number;
+    private readonly padding?: Padding;
 
     constructor(props: ResizableProps) {
         super(props);
@@ -26,66 +46,108 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
             width: this.props.width,
         };
 
+        this.borderSizeInPixels = this.props.borderSizeInPixels || 10;
+        this.minimumHeight = this.props.minimumHeight || 10;
+        this.minimumWidth = this.props.minimumWidth || 10;
+        this.padding = {
+            paddingBottom: this.props.bottom ? `${this.borderSizeInPixels}px` : undefined,
+            paddingLeft: this.props.left ? `${this.borderSizeInPixels}px` : undefined,
+            paddingRight: this.props.right ? `${this.borderSizeInPixels}px` : undefined,
+            paddingTop: this.props.top ? `${this.borderSizeInPixels}px` : undefined,
+        };
         this.divRef = React.createRef<HTMLDivElement>();
+        this.onMouseMove = this.onMouseMove.bind(this);
     }
 
-    componentDidMount() {
-        this.divRef.addEventListener('mouseup', this.onMouseUp);
-        this.divRef.addEventListener('mousedown', this.onMouseDown);
+    public componentWillMount() {
+        if (!this.props.width && (this.props.left || this.props.right)) {
+            throw Error("Width required if component is supposed to resize horizontally");
+        }
+        if (!this.props.height && (this.props.top || this.props.bottom)) {
+            throw Error("Height required if component is supposed to resize vertically");
+        }
     }
 
-    componentWillUnmount() {
-        this.divRef.removeEventListener('mouseup', this.onMouseUp);
-        this.divRef.removeEventListener('mousedown', this.onMouseDown);
+    public componentDidMount() {
+        window.addEventListener("mouseup", this.onMouseUp);
+        window.addEventListener("mousemove", this.onMouseMove);
+        this.divRef!.current!.addEventListener("mousedown", this.onMouseDown);
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("mouseup", this.onMouseUp);
+        window.removeEventListener("mousemove", this.onMouseMove);
+        this.divRef!.current!.removeEventListener("mousedown", this.onMouseDown);
     }
 
     public render() {
-        //  TODO: add cursor icon change
+        const { divRef, padding } = this;
+        const { className, children } = this.props;
         const { height, width } = this.state;
 
         return (
-            <div ref={this.divRef} style={{ height, width }}>
-                {this.props.children}
+            <div className={styles.outerBorder} ref={divRef} style={{ height, ...padding, width }}>
+                <div className={classNames(className, styles.innerChildren)}>
+                    {children}
+                </div>
             </div>
         );
     }
 
-    private onMouseDown = (event: MouseEvent) => {
-        console.log('start DOWN');
-        console.log(event.clientX);
-        console.log(event.clientY);
-        console.log(event.offsetX);
-        console.log(event.offsetY);
-        console.log('end DOWN');
-        const distanceFromRightBorder = event.currentTarget.offsetWidth - event.clientX;
-        console.log(distanceFromRightBorder);
-        if (distanceFromRightBorder <= 5 || distanceFromRightBorder >= 5) {
-            if (this.props.horizontal && this.props.vertical) {
-                this.setState({ userResizeOriginX: event.clientX, userResizeOriginY: event.clientY });
-            } else if (this.props.horizontal) {
-                this.setState({ userResizeOriginX: event.clientX });
-            } else if (this.props.vertical) {
-                this.setState({ userResizeOriginY: event.clientY });
-            }
+    // Middle step: Track cursor and update width and height to animate the transition
+    public onMouseMove(event: MouseEvent) {
+        if (this.state.userResizeOriginX) {
+            this.updateWidth(event.clientX);
+        }
+        if (this.state.userResizeOriginY) {
+            this.updateHeight(event.clientY);
         }
     }
 
-    private onMouseUp = (event: MouseEvent) => {
-        console.log('start UP');
-        console.log(event.clientX);
-        console.log(event.clientY);
-        console.log(event.offsetX);
-        console.log(event.offsetY);
-        console.log('end UP');
-        if (this.state.userResizeOriginX && this.state.width) {
-            const locationDelta = event.clientX - this.state.userResizeOriginX;
-            const width = this.state.width - locationDelta;
-            this.setState({ userResizeOriginX: undefined, width });
+    // Initial step: Begin tracking cursor if it is on a border we are resizing from
+    private onMouseDown = (event: MouseEvent) => {
+        if (!event || !event.target) {
+            return;
         }
-        if (this.state.userResizeOriginY && this.state.height) {
-            const locationDelta = event.clientY - this.state.userResizeOriginY;
-            const height = this.state.height - locationDelta;
-            this.setState({ userResizeOriginY: undefined, height });
+        const { clientX, clientY } = event;
+        const { clientWidth, clientLeft, clientHeight, clientTop } = event.target as HTMLDivElement;
+
+        const onLeftBorder = Math.abs(clientLeft - clientX) <= this.borderSizeInPixels;
+        const onRightBorder = Math.abs((clientWidth + clientLeft) - clientX) <= this.borderSizeInPixels;
+        const onTopBorder = Math.abs(clientTop - clientY) <= this.borderSizeInPixels;
+        const onBottomBorder = Math.abs((clientHeight + clientTop) - clientY) <= this.borderSizeInPixels;
+
+        if ((this.props.left && onLeftBorder) || (this.props.right && onRightBorder)) {
+            this.setState({ userResizeOriginX: event.clientX });
+        }
+        if ((this.props.top && onTopBorder) || (this.props.bottom && onBottomBorder)) {
+            this.setState({ userResizeOriginY: event.clientY });
+        }
+    }
+
+    private updateWidth = (xPos: number) => {
+        const locationDelta = this.state.userResizeOriginX! - xPos;
+        const width = this.state.width! - locationDelta;
+        if (width > this.minimumWidth) {
+            this.setState({ userResizeOriginX: xPos, width });
+        }
+    }
+
+    private updateHeight = (yPos: number) => {
+        const locationDelta = this.state.userResizeOriginY! - yPos;
+        const height = this.state.height! - locationDelta;
+        if (height > this.minimumHeight) {
+            this.setState({ userResizeOriginY: yPos, height });
+        }
+    }
+
+    // Final step: Update state to prevent further resizing
+    private onMouseUp = () => {
+        if (this.state.userResizeOriginX) {
+            this.setState({ userResizeOriginX: undefined });
+        }
+        if (this.state.userResizeOriginY) {
+            this.setState({ userResizeOriginY: undefined });
         }
     }
 }
