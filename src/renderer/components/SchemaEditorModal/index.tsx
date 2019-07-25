@@ -2,6 +2,8 @@ import { Button, Modal } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
+import { remote } from "electron";
+import { writeFile } from "fs";
 import { findIndex, includes, isEmpty, set } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
@@ -187,11 +189,25 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private saveAndClose = () => {
-        this.props.saveSchema({
-            columns: this.state.columns.filter((c) => !!c && c.label && c.type),
-            notes: this.state.notes,
+        const schemaJson = JSON.stringify(
+            {
+                columns: this.state.columns.filter((c) => !!c && c.label && c.type),
+                notes: this.state.notes,
+            }
+        );
+
+        remote.dialog.showSaveDialog({
+            title: "Save Schema",
+        }, (filename?: string) => {
+            if (filename) {
+                writeFile(`${filename}.json`, schemaJson, (err) => {
+                    // TODO handle error
+                    if (!err) {
+                        this.props.close();
+                    }
+                });
+            }
         });
-        this.props.close(); // todo
     }
 
     private setType = (i: number) => {
@@ -228,10 +244,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     private setRequired = (i: number) => {
         return (e: CheckboxChangeEvent) => {
             const columns = [...this.state.columns];
-            columns[i] = {
-                ...columns[i],
-                required: e.target.value,
-            };
+            set(columns, `[${i}.required`, e.target.checked);
             this.setState({columns});
         };
     }
