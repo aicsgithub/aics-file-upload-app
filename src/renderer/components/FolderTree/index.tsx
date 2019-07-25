@@ -2,7 +2,7 @@ import {Icon, Spin, Tag, Tree} from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import {GetFilesInFolderAction, SelectFileAction, UploadFile,} from "../../state/selection/types";
+import {GetFilesInFolderAction, SelectFileAction, UploadFile} from "../../state/selection/types";
 import {FileTag} from "../../state/upload/types";
 import Resizable from "../Resizable";
 
