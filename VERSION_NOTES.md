@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.8
+- Feature: Updated fields displayed in upload summary page
+- Feature: Added job details modal that appears on click of an upload on the upload summary page
+
 ## 1.0.7
 - Feature: Generate barcode before going to plate standalone
 - Bugfix: Removed viability result information from plate page

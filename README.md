@@ -67,10 +67,12 @@ git tag 1.0.5-snapshot
 git push origin 1.0.5-snapshot
 ```
  
-For official versions of the app,
-update the package.json version of the app using the following commands on the master branch:
+For official versions of the app, first revert the version back to the pre-snapshot version in package.json (on master).
+Then update VERSION_NOTES.md and update the version using the following commands:
 
 ```bash
+git add .
+git commit -m "update version"
 npm version patch
 git push
 ```
