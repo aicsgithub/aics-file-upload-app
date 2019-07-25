@@ -44,12 +44,12 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     constructor(props: Props) {
         super(props);
 
-        this.state = this.initializeState(props.schema);
+        this.state = this.getInitialState(props.schema);
     }
 
     public componentDidUpdate(prevProps: Props): void {
         if (prevProps.schema !== this.props.schema) {
-            this.setState(this.initializeState(this.props.schema));
+            this.setState(this.getInitialState(this.props.schema));
         }
     }
 
@@ -139,7 +139,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
     }
 
-    private initializeState = (schema?: SchemaDefinition): SchemaEditorModalState => {
+    private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
         const columns: Array<ColumnDefinitionDraft | null> = schema ? schema.columns : [];
         for (let i = columns.length; i < 5; i++) {
             columns.push(null);
@@ -239,7 +239,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private afterClose = () => {
-        this.setState(this.initializeState());
+        this.setState(this.getInitialState());
     }
 
     private setLabel = (i: number) => {
