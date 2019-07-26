@@ -89,7 +89,6 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                         onSelect={this.onSelect}
                         onExpand={this.onExpand}
                         selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
-                        selectable={true}
                     >
                         {files.map((file: UploadFile) => this.renderChildDirectories(file))}
                     </Tree.DirectoryTree>}
