@@ -22,7 +22,7 @@ interface EditableTextState {
 // An input that reverts to plain text when not focused
 // Additionally, it displays errors if errors present
 class EditableText extends React.Component<EditableTextProps, EditableTextState> {
-    public input?: HTMLInputElement;
+    public input = React.createRef<Input>();
 
     constructor(props: EditableTextProps) {
         super(props);
@@ -32,14 +32,14 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
     }
 
     public componentDidMount() {
-        if (this.input && this.props.isEditing) {
-            this.input.focus();
+        if (this.input.current && this.props.isEditing) {
+            this.input.current.focus();
         }
     }
 
     public componentDidUpdate(newProps: EditableTextProps) {
-        if (this.input && this.props.isEditing) {
-            this.input.focus();
+        if (this.input.current && this.props.isEditing) {
+            this.input.current.focus();
         }
     }
 
@@ -68,9 +68,7 @@ class EditableText extends React.Component<EditableTextProps, EditableTextState>
                     className={styles.input}
                     onChange={this.updateValue}
                     value={newValue}
-                    ref={(i: Input) => {
-                        this.input = i ? i.input : undefined;
-                    }}
+                    ref={this.input}
                     onBlur={this.setIsEditing(false)}
                     type={isEditing ? "text" : "hidden"}
                 />
