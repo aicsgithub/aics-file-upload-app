@@ -1,6 +1,6 @@
 import * as classNames from "classnames";
 import * as React from "react";
-import {RefObject} from "react";
+import {ReactNode, ReactNodeArray} from "react";
 
 const styles = require("./style.pcss");
 
@@ -12,9 +12,10 @@ interface Padding {
 }
 
 interface ResizableProps {
+    // The border is invisible -- this just defines the amount of space that will show as draggable
     borderSizeInPixels?: number;
     bottom?: boolean;
-    children: JSX.Element | Array<JSX.Element | null>;
+    children: ReactNode | ReactNodeArray;
     className?: string;
     height?: number;
     left?: boolean;
@@ -32,10 +33,16 @@ interface ResizableState {
     width?: number;
 }
 
+/*
+    This component is for wrapping rectangular components in a resizable div.
+    Specifying the props 'left', 'right', 'top', & 'bottom' determine which edge of the div
+    will be resizable ex. passing left=true means the left edge of the div will be able to be grabbed
+    and the div will be resizable horizontally
+ */
 class Resizable extends React.Component<ResizableProps, ResizableState> {
     private readonly borderSizeInPixels: number;
-    private readonly cursor: string;
-    private readonly divRef: RefObject<HTMLDivElement> | null;
+    private readonly cursor: "col-resize" | "row-resize" | "all-scroll";
+    private readonly divRef = React.createRef<HTMLDivElement>();
     private readonly minimumHeight: number;
     private readonly minimumWidth: number;
     private readonly padding?: Padding;
@@ -57,8 +64,6 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
             paddingRight: this.props.right ? `${this.borderSizeInPixels}px` : undefined,
             paddingTop: this.props.top ? `${this.borderSizeInPixels}px` : undefined,
         };
-        this.divRef = React.createRef<HTMLDivElement>();
-        this.onMouseMove = this.onMouseMove.bind(this);
     }
 
     public componentWillMount() {
@@ -74,13 +79,13 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
         // Have to attach mouseup & mouseover to window because we want them to be able to go outside the div
         window.addEventListener("mouseup", this.onMouseUp);
         window.addEventListener("mousemove", this.onMouseMove);
-        this.divRef!.current!.addEventListener("mousedown", this.onMouseDown);
+        this.divRef.current!.addEventListener("mousedown", this.onMouseDown);
     }
 
     public componentWillUnmount() {
         window.removeEventListener("mouseup", this.onMouseUp);
         window.removeEventListener("mousemove", this.onMouseMove);
-        this.divRef!.current!.removeEventListener("mousedown", this.onMouseDown);
+        this.divRef.current!.removeEventListener("mousedown", this.onMouseDown);
     }
 
     public render() {
@@ -90,21 +95,11 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
 
         return (
             <div className={styles.outerBorder} ref={divRef} style={{ cursor, height, ...padding, width }}>
-                <div className={classNames(className, styles.innerChildren)}>
+                <div className={classNames(styles.innerChildren, className)}>
                     {children}
                 </div>
             </div>
         );
-    }
-
-    // Middle step: Track cursor and update width and height to animate the transition
-    public onMouseMove(event: MouseEvent) {
-        if (this.state.userResizeOriginX) {
-            this.updateWidth(event.clientX);
-        }
-        if (this.state.userResizeOriginY) {
-            this.updateHeight(event.clientY);
-        }
     }
 
     // Initial step: Begin tracking cursor if it is on a border we are resizing from
@@ -127,6 +122,16 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
         }
         if ((this.props.top && onTopBorder) || (this.props.bottom && onBottomBorder)) {
             this.setState({ userResizeOriginY: event.clientY });
+        }
+    }
+
+    // Middle step: Track cursor and update width and height to animate the transition
+    private onMouseMove = (event: MouseEvent) => {
+        if (this.state.userResizeOriginX) {
+            this.updateWidth(event.clientX);
+        }
+        if (this.state.userResizeOriginY) {
+            this.updateHeight(event.clientY);
         }
     }
 

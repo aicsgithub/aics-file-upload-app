@@ -78,7 +78,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         }
 
         return (
-            <Resizable className={classNames(className, styles.container)} right={true} width={375}>
+            <Resizable className={classNames(className, styles.container)} minimumWidth={375} right={true} width={375}>
                 <div className={styles.logoContainer}>
                     <Icon type="cloud-upload" className={styles.logo}/>
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
