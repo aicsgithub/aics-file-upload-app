@@ -26,10 +26,10 @@ export interface ColumnDefinition {
 }
 
 export enum ColumnType {
-    NUMBER = "NUMBER",
-    TEXT = "TEXT",
-    DATE = "DATE",
-    DATETIME = "DATETIME",
-    BOOLEAN = "BOOLEAN",
-    DROPDOWN = "DROPDOWN",
+    TEXT = "Text",
+    DROPDOWN = "Dropdown",
+    BOOLEAN = "Yes/No",
+    NUMBER = "Number",
+    DATE = "Date",
+    DATETIME = "Date and Time",
 }

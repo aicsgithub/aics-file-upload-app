@@ -1,6 +1,7 @@
 import { Checkbox, Select } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import * as classNames from "classnames";
+import { map } from "lodash";
 import * as React from "react";
 
 import { ColumnType } from "../../../state/setting/types";
@@ -72,12 +73,9 @@ class ColumnDefinitionForm extends React.Component<Props, {}> {
                             placeholder="Column Type"
                             defaultValue={ColumnType.TEXT}
                         >
-                            <Option value={ColumnType.TEXT}>Text</Option>
-                            <Option value={ColumnType.DROPDOWN}>Dropdown</Option>
-                            <Option value={ColumnType.BOOLEAN}>Yes/No</Option>
-                            <Option value={ColumnType.NUMBER}>Number</Option>
-                            <Option value={ColumnType.DATE}>Date</Option>
-                            <Option value={ColumnType.DATETIME}>Date and Time</Option>
+                            {map(ColumnType, (display: string, key: ColumnType) => (
+                                <Option value={key} key={key}>{display}</Option>
+                            ))}
                         </Select>
                         {
                             columnType === ColumnType.DROPDOWN && (
