@@ -1,13 +1,10 @@
-import { Icon, Spin, Tag, Tree } from "antd";
+import {Icon, Spin, Tag, Tree} from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import {
-    GetFilesInFolderAction,
-    SelectFileAction,
-    UploadFile,
-} from "../../state/selection/types";
-import { FileTag } from "../../state/upload/types";
+import {GetFilesInFolderAction, SelectFileAction, UploadFile} from "../../state/selection/types";
+import {FileTag} from "../../state/upload/types";
+import Resizable from "../Resizable";
 
 const styles = require("./style.pcss");
 
@@ -81,7 +78,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         }
 
         return (
-            <div className={classNames(className, styles.container)}>
+            <Resizable className={classNames(className, styles.container)} minimumWidth={375} right={true} width={375}>
                 <div className={styles.logoContainer}>
                     <Icon type="cloud-upload" className={styles.logo}/>
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
@@ -100,7 +97,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     </Tree.DirectoryTree>}
                     {isLoading && <Spin size="large"/>}
                 </div>
-            </div>
+            </Resizable>
         );
     }
 
