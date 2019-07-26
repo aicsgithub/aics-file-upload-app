@@ -13,3 +13,23 @@ export interface UpdateSettingsAction {
 export interface GatherSettingsAction {
     type: string;
 }
+
+export interface SchemaDefinition {
+    columns: ColumnDefinition[];
+    notes?: string;
+}
+
+export interface ColumnDefinition {
+    label: string;
+    type: ColumnType;
+    required: boolean;
+}
+
+export enum ColumnType {
+    TEXT = "Text",
+    DROPDOWN = "Dropdown",
+    BOOLEAN = "Yes/No",
+    NUMBER = "Number",
+    DATE = "Date",
+    DATETIME = "Date and Time",
+}

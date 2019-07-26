@@ -1,5 +1,9 @@
 import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
-import { GatherSettingsAction, SettingStateBranch, UpdateSettingsAction } from "./types";
+import {
+    GatherSettingsAction,
+    SettingStateBranch,
+    UpdateSettingsAction,
+} from "./types";
 
 export function updateSettings(payload: Partial<SettingStateBranch>): UpdateSettingsAction {
     return {

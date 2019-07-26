@@ -4,10 +4,11 @@ import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
+import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
+import SchemaEditorModal from "../../components/SchemaEditorModal";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert } from "../../state/feedback/actions";
@@ -58,6 +59,10 @@ interface AppProps {
     updateSettings: ActionCreator<UpdateSettingsAction>;
 }
 
+interface AppState {
+    showCreateSchemaModal: boolean;
+}
+
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop"/>,
@@ -90,7 +95,11 @@ message.config({
     maxCount: 1,
 });
 
-class App extends React.Component<AppProps, {}> {
+class App extends React.Component<AppProps, AppState> {
+    public state: AppState = {
+        showCreateSchemaModal: false,
+    };
+
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
@@ -113,6 +122,9 @@ class App extends React.Component<AppProps, {}> {
             } else {
                 remote.app.exit();
             }
+        });
+        ipcRenderer.on(OPEN_CREATE_SCHEMA_MODAL, () => {
+            this.setState({showCreateSchemaModal: true});
         });
     }
 
@@ -154,7 +166,7 @@ class App extends React.Component<AppProps, {}> {
             selectedFiles,
             page,
         } = this.props;
-
+        const { showCreateSchemaModal } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
 
         if (!pageConfig) {
@@ -179,9 +191,15 @@ class App extends React.Component<AppProps, {}> {
                     {pageConfig.container}
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
+                <SchemaEditorModal
+                    close={this.closeCreateSchemaModal}
+                    visible={showCreateSchemaModal}
+                />
             </div>
         );
     }
+
+    private closeCreateSchemaModal = () => this.setState({showCreateSchemaModal: false});
 }
 
 function mapStateToProps(state: State) {

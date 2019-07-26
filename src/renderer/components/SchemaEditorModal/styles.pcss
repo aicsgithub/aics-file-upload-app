@@ -1,0 +1,87 @@
+:root {
+    --order-column-flex: 0 0 50px;
+    --label-column-flex: 1;
+    --type-column-flex: 3;
+    --required-column-flex: 0 0 100px;
+    --column-definition-row-height: 34px;
+}
+
+.column-definition-form {
+    display: flex;
+}
+
+.grid-and-notes {
+    flex: 1;
+}
+
+.grid {
+    background-color: #f8f8f7;
+    border: var(--border);
+    margin-bottom: 1em;
+
+    & .column-headers {
+        display: flex;
+        border-bottom: var(--border);
+        background-color: #fcfcfa;
+        font-size: var(--small);
+        text-transform: uppercase;
+        font-weight: bold;
+
+        & .header {
+            padding: 0.75em;
+        }
+    }
+
+    & .row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+
+        &:not(:last-child) .column-row {
+            border-bottom: var(--border);
+        }
+    }
+
+    & .label-column {
+        flex: var(--label-column-flex);
+    }
+
+    & .type-column {
+        flex: var(--type-column-flex);
+    }
+
+    & .order-column {
+        flex: var(--order-column-flex);
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    & .required-column {
+        flex: var(--required-column-flex);
+    }
+}
+
+.order-number {
+   min-height: var(--column-definition-row-height);
+}
+
+.selected .order-number {
+    background-color: #4B92EA;
+    color: white;
+}
+
+.column-row {
+    flex: 1;
+    border-left: var(--border);
+}
+
+.buttons {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    height: 100%;
+    margin-left: 0.5em;
+}

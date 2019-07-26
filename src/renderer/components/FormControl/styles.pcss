@@ -1,0 +1,22 @@
+.container {
+    display: flex;
+
+    & .form {
+        flex: 1;
+        min-height: inherit;
+        display: flex;
+        align-items: center;
+    }
+
+    &.error {
+        border: 1px solid var(--error);
+
+        & .error-icon {
+            flex: 0 0 auto;
+            color: var(--error);
+            margin: 0 0.5em;
+            display: flex;
+            align-items: center;
+        }
+    }
+}
