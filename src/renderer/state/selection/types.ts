@@ -1,6 +1,6 @@
-import { GridCell } from "../../containers/AssociateWells/grid-cell";
-import { MetadataStateBranch } from "../metadata/types";
-import { Audited } from "../types";
+import {GridCell} from "../../containers/AssociateWells/grid-cell";
+import {MetadataStateBranch} from "../metadata/types";
+import {Audited} from "../types";
 
 export interface UploadFile {
     name: string;
@@ -198,7 +198,6 @@ export enum Page {
 export interface AppPageConfig {
     container: JSX.Element;
     folderTreeVisible: boolean;
-    folderTreeSelectable: boolean;
 }
 
 export interface GoBackAction {
