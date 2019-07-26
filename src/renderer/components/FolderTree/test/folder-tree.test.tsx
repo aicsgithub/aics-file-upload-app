@@ -1,14 +1,14 @@
-import { Tree } from "antd";
-import { expect } from "chai";
-import { shallow } from "enzyme";
-import { resolve } from "path";
+import {Tree} from "antd";
+import {expect} from "chai";
+import {shallow} from "enzyme";
+import {resolve} from "path";
 import * as React from "react";
 import * as sinon from "sinon";
 
 import FolderTree from "../";
-import { selection } from "../../../state";
-import { UploadFileImpl } from "../../../state/selection/models/upload-file";
-import { UploadFile } from "../../../state/selection/types";
+import {selection} from "../../../state";
+import {UploadFileImpl} from "../../../state/selection/models/upload-file";
+import {UploadFile} from "../../../state/selection/types";
 
 const DirectoryTree = Tree.DirectoryTree;
 
@@ -38,7 +38,6 @@ describe("<FolderTree/>", () => {
                 <FolderTree
                         files={files}
                         getFilesInFolder={getFilesInFolder}
-                        isSelectable={false}
                         onCheck={ON_CHECK}
                         selectedKeys={[]}
                         fileToTags={new Map()}
@@ -63,7 +62,6 @@ describe("<FolderTree/>", () => {
                 <FolderTree
                     files={files}
                     getFilesInFolder={getFilesInFolder}
-                    isSelectable={false}
                     onCheck={ON_CHECK}
                     selectedKeys={[]}
                     fileToTags={new Map()}
