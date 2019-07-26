@@ -30,6 +30,9 @@ interface Props {
     setRequired: (e: CheckboxChangeEvent) => void;
 }
 
+/**
+ * Form used to define a column in a schema
+ */
 class ColumnDefinitionForm extends React.Component<Props, {}> {
     public render() {
         const {
