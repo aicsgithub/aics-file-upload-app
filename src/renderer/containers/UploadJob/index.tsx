@@ -1,23 +1,26 @@
-import { Button, Table } from "antd";
-import { ColumnProps } from "antd/lib/table";
-import { isEmpty } from "lodash";
+import {Button, Table} from "antd";
+import {ColumnProps} from "antd/lib/table";
+import {isEmpty} from "lodash";
 import * as React from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import {connect} from "react-redux";
+import {ActionCreator} from "redux";
 
+import NoteIcon from "../../components/NoteIcon";
 import FormPage from "../../components/FormPage";
 import { goBack, goForward } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
-import { initiateUpload, jumpToUpload, removeUploads } from "../../state/upload/actions";
+import { initiateUpload, jumpToUpload, removeUploads, updateUpload } from "../../state/upload/actions";
 import { getCanRedoUpload, getCanUndoUpload, getUploadSummaryRows } from "../../state/upload/selectors";
 import {
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
+    UpdateUploadAction,
     UploadJobTableRow
 } from "../../state/upload/types";
 import { alphaOrderComparator } from "../../util";
+import { TableEventListeners } from "antd/es/table/interface";
 
 const styles = require("./style.pcss");
 
@@ -30,6 +33,7 @@ interface Props {
     goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
+    updateUpload: ActionCreator<UpdateUploadAction>;
     uploads: UploadJobTableRow[];
 }
 
@@ -63,6 +67,13 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             key: "action",
             render: (text: string, record: UploadJobTableRow) => (<a onClick={this.removeUpload(record)}>Remove</a>),
             title: "Action",
+        },
+        {
+            key: "notes",
+            render: (text: string, record: UploadJobTableRow) => (
+                <NoteIcon notes={record.notes} saveNotes={(notes: string | undefined) => this.saveNotes(record, notes)} />
+            ),
+            title: "Notes",
         }];
 
     private get rowSelection() {
@@ -105,7 +116,12 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
-                <Table columns={this.columns} dataSource={uploads} rowSelection={this.rowSelection}/>
+                <Table
+                    columns={this.columns}
+                    dataSource={uploads}
+                    onRow={this.onRow}
+                    rowSelection={this.rowSelection}
+                />
             </FormPage>
         );
     }
@@ -149,6 +165,20 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         this.props.removeUploads(this.state.selectedFiles);
     }
 
+    private onRow = (record: UploadJobTableRow): TableEventListeners => {
+        return { onDrop: (e: React.DragEvent<HTMLDivElement>) => this.onDrop(record, e) };
+    }
+
+    private onDrop = (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
+        e.preventDefault();
+        const notes = NoteIcon.onDrop(e.dataTransfer.files);
+        this.saveNotes(record, notes);
+    }
+
+    private saveNotes = (record: UploadJobTableRow, notes: string | undefined) => {
+        this.props.updateUpload({ ...record, notes });
+    }
+
     private onSelectChange = (selectedFiles: string[] | number[]): void => {
         // keys are always defined on the rows as a string so we can safely cast this:
         const files = selectedFiles as string[];
@@ -178,6 +208,7 @@ const dispatchToPropsMap = {
     initiateUpload,
     jumpToUpload,
     removeUploads,
+    updateUpload,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadJob);
