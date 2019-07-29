@@ -1,4 +1,4 @@
-import { makeConstant } from "../util";
+import {makeConstant} from "../util";
 
 const BRANCH_NAME = "upload";
 
@@ -9,3 +9,4 @@ export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOAD = makeConstant(BRANCH_NAME, "delete-upload");
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");
+export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, 'update-upload');

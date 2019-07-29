@@ -1,12 +1,12 @@
-import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { isEmpty, map } from "lodash";
-import { extname } from "path";
-import { createSelector } from "reselect";
-import { getUploadJobNames } from "../job/selectors";
-import { getSelectedBarcode } from "../selection/selectors";
+import {Uploads} from "@aics/aicsfiles/type-declarations/types";
+import {isEmpty, map} from "lodash";
+import {extname} from "path";
+import {createSelector} from "reselect";
+import {getUploadJobNames} from "../job/selectors";
+import {getSelectedBarcode} from "../selection/selectors";
 
-import { State } from "../types";
-import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
+import {State} from "../types";
+import {FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch} from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -22,10 +22,11 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
 });
 
 export const getUploadSummaryRows = createSelector([getUpload], (uploads: UploadStateBranch): UploadJobTableRow[] =>
-    map(uploads, ({ barcode, wellLabels}: UploadMetadata, fullPath: string) => ({
+    map(uploads, ({ barcode, notes, wellLabels }: UploadMetadata, fullPath: string) => ({
         barcode,
         file: fullPath,
         key: fullPath,
+        notes,
         wellLabels: wellLabels.sort().join(", "),
     }))
 );
@@ -48,11 +49,12 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
 
 export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
     let result = {};
-    map(uploads, ({wellIds}: UploadMetadata, fullPath: string) => {
+    map(uploads, ({wellIds, notes}: UploadMetadata, fullPath: string) => {
         result = {
             ...result,
             [fullPath]: {
                 file: {
+                    notes,
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                 },
                 microscopy: {

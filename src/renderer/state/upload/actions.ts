@@ -5,7 +5,8 @@ import {
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
-    UNDO_FILE_WELL_ASSOCIATION
+    UNDO_FILE_WELL_ASSOCIATION,
+    UPDATE_UPLOAD
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
@@ -14,7 +15,9 @@ import {
     JumpToPastUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
-    UndoFileWellAssociationAction
+    UndoFileWellAssociationAction,
+    UpdateUploadAction,
+    UploadJobTableRow
 } from "./types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
@@ -72,5 +75,13 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
 export function initiateUpload(): InitiateUploadAction {
     return {
         type: INITIATE_UPLOAD,
+    };
+}
+
+
+export function updateUpload(upload: UploadJobTableRow): UpdateUploadAction {
+    return {
+        payload: upload,
+        type: UPDATE_UPLOAD,
     };
 }
