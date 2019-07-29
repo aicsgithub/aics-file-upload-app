@@ -198,7 +198,6 @@ export enum Page {
 export interface AppPageConfig {
     container: JSX.Element;
     folderTreeVisible: boolean;
-    folderTreeSelectable: boolean;
 }
 
 export interface GoBackAction {

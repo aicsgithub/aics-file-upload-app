@@ -66,27 +66,22 @@ interface AppState {
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop"/>,
-        folderTreeSelectable: false,
         folderTreeVisible: false,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
-        folderTreeSelectable: false,
         folderTreeVisible: true,
     }],
     [Page.AssociateWells, {
         container:  <AssociateWells key="associateWells" className={styles.mainContent}/>,
-        folderTreeSelectable: true,
         folderTreeVisible: true,
     }],
     [Page.UploadJobs, {
         container: <UploadJobs key="uploadJobs" className={styles.mainContent}/>,
-        folderTreeSelectable: false,
         folderTreeVisible: true,
     }],
     [Page.UploadSummary, {
         container: <UploadSummary key="uploadSummary" className={styles.mainContent}/>,
-        folderTreeSelectable: false,
         folderTreeVisible: false,
     }],
 ]);
@@ -182,7 +177,6 @@ class App extends React.Component<AppProps, AppState> {
                            files={files}
                            getFilesInFolder={getFilesInFolder}
                            isLoading={loading}
-                           isSelectable={pageConfig.folderTreeSelectable}
                            onCheck={selectFile}
                            selectedKeys={selectedFiles}
                            fileToTags={fileToTags}
