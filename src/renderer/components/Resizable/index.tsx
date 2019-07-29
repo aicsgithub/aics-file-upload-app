@@ -1,6 +1,6 @@
 import * as classNames from "classnames";
 import * as React from "react";
-import {ReactNode, ReactNodeArray} from "react";
+import { ReactNode, ReactNodeArray } from "react";
 
 const styles = require("./style.pcss");
 
