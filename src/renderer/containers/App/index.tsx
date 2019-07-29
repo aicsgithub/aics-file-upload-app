@@ -1,29 +1,34 @@
 import "@aics/aics-react-labkey/dist/styles.css";
-import {message} from "antd";
-import {ipcRenderer, remote} from "electron";
+import { message } from "antd";
+import { ipcRenderer, remote } from "electron";
 import * as React from "react";
-import {connect} from "react-redux";
-import {ActionCreator} from "redux";
-import {OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL} from "../../../shared/constants";
-import {LimsUrl} from "../../../shared/types";
+import { connect } from "react-redux";
+import { ActionCreator } from "redux";
+import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
+import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import SchemaEditorModal from "../../components/SchemaEditorModal";
 import StatusBar from "../../components/StatusBar";
-import {selection} from "../../state";
-import {clearAlert} from "../../state/feedback/actions";
-import {getAlert, getIsLoading, getRecentEvent} from "../../state/feedback/selectors";
-import {AlertType, AppAlert, AppEvent, ClearAlertAction} from "../../state/feedback/types";
-import {getIsUnsafeToExit} from "../../state/job/selectors";
-import {requestMetadata} from "../../state/metadata/actions";
-import {RequestMetadataAction} from "../../state/metadata/types";
-import {getPage, getSelectedFiles, getStagedFiles} from "../../state/selection/selectors";
-import {AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile} from "../../state/selection/types";
-import {gatherSettings, updateSettings} from "../../state/setting/actions";
-import {getLimsUrl} from "../../state/setting/selectors";
-import {GatherSettingsAction, UpdateSettingsAction} from "../../state/setting/types";
-import {State} from "../../state/types";
-import {FileTag} from "../../state/upload/types";
+import { selection } from "../../state";
+import { clearAlert } from "../../state/feedback/actions";
+import { getAlert, getIsLoading, getRecentEvent } from "../../state/feedback/selectors";
+import {
+    AlertType,
+    AppAlert,
+    AppEvent,
+    ClearAlertAction
+} from "../../state/feedback/types";
+import { getIsUnsafeToExit } from "../../state/job/selectors";
+import { requestMetadata } from "../../state/metadata/actions";
+import { RequestMetadataAction } from "../../state/metadata/types";
+import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
+import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
+import { gatherSettings, updateSettings } from "../../state/setting/actions";
+import { getLimsUrl } from "../../state/setting/selectors";
+import { GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
+import { State } from "../../state/types";
+import { FileTag } from "../../state/upload/types";
 
 import AssociateWells from "../AssociateWells";
 import DragAndDropSquare from "../DragAndDropSquare";
@@ -31,7 +36,7 @@ import EnterBarcode from "../EnterBarcode";
 import UploadJobs from "../UploadJob";
 import UploadSummary from "../UploadSummary";
 
-import {getFileToTags} from "./selectors";
+import { getFileToTags } from "./selectors";
 
 const styles = require("./styles.pcss");
 const ALERT_DURATION = 2;
