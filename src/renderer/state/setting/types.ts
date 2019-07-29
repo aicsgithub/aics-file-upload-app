@@ -21,15 +21,19 @@ export interface SchemaDefinition {
 
 export interface ColumnDefinition {
     label: string;
-    type: ColumnType;
+    order: number;
+    type: {
+        type: ColumnType;
+        dropdownValues: string[];
+    };
     required: boolean;
 }
 
 export enum ColumnType {
-    TEXT = "Text",
-    DROPDOWN = "Dropdown",
-    BOOLEAN = "Yes/No",
-    NUMBER = "Number",
-    DATE = "Date",
-    DATETIME = "Date and Time",
+    TEXT = 1,
+    DROPDOWN = 2,
+    BOOLEAN = 3,
+    NUMBER = 4,
+    DATE = 5,
+    DATETIME = 6,
 }
