@@ -1,19 +1,19 @@
-import { Button, Modal } from "antd";
+import { Alert, Button, Modal } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { remote } from "electron";
 import { writeFile } from "fs";
-import { isEmpty, without } from "lodash";
+import { isEmpty, uniqBy, without } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
 
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 import CheckboxEditor from "../CheckboxEditor";
-import { ColumnDefinitionError } from "./ColumnDefinitionForm";
+import FormControl from "../FormControl";
 import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
-import ErrnoException = NodeJS.ErrnoException;
 import GridRowsUpdatedEvent = AdazzleReactDataGrid.GridRowsUpdatedEvent;
+import ErrnoException = NodeJS.ErrnoException;
 
 const DEFAULT_COLUMN = Object.freeze({
     label: "",
@@ -36,6 +36,15 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
 const SCHEMA_EDITOR_COLUMNS = [
     {
         editable: true,
+        formatter: ({value}: {value: string}) => {
+            return (
+                <FormControl
+                    error={value ? undefined : "This field is required"}
+                >
+                    {value}
+                </FormControl>
+            );
+        },
         key: "label",
         name: "Column Name",
         resizable: true,
@@ -69,7 +78,7 @@ interface Props {
 
 interface ColumnDefinitionDraft {
     label?: string;
-    type?: {
+    type: {
         type: ColumnType,
         dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
     };
@@ -104,8 +113,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             visible,
         } = this.props;
         const { columns, notes, selectedRows } = this.state;
-        const errors = this.getErrors();
-        const canSave = isEmpty(errors.filter((e) => !!e));
+        const duplicateNamesFound = this.duplicateNamesFound();
+        const canSave = this.canSave();
         return (
             <Modal
                 width="90%"
@@ -121,6 +130,13 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 maskClosable={false}
                 afterClose={this.afterClose}
             >
+                {duplicateNamesFound &&
+                <Alert
+                    className={styles.alert}
+                    message="Columns with the same name found"
+                    type="error"
+                    showIcon={true}
+                />}
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
                         <ReactDataGrid
@@ -162,11 +178,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
         const columns: ColumnDefinitionDraft[] = schema ? schema.columns : [DEFAULT_COLUMN];
-        for (let i = columns.length; i < 5; i++) {
-            columns.push({
-                ...DEFAULT_COLUMN,
-            });
-        }
 
         return {
             columns,
@@ -176,29 +187,19 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         };
     }
 
-    private getErrors = (): Array<ColumnDefinitionError | undefined> => {
+    private canSave = (): boolean => {
         const { columns } = this.state;
-        const columnNames: string[] = columns
-            .filter((c) => !!c)
-            .map((c) => c ? c.label : "") as string[];
-        return columns.map((col: ColumnDefinitionDraft) => {
-            const labelIsEmpty = !col.label;
-            const dropdownValuesMissing =  col.type && col.type.type === ColumnType.DROPDOWN
-                && isEmpty(col.type.dropdownValues);
-            const duplicateLabel = columnNames.filter((name) => name === col.label).length > 1;
+        const duplicateNamesFound: boolean = this.duplicateNamesFound();
+        const columnWithNoLabelFound: boolean = !!columns.find(({label}) => !label);
+        const dropdownValuesMissing: boolean = !!columns
+            .find(({type}) => type.type === ColumnType.DROPDOWN && isEmpty(type.dropdownValues));
 
-            let columnLabelError;
-            if (labelIsEmpty) {
-                columnLabelError = "This field is required";
-            } else if (duplicateLabel) {
-                columnLabelError = "Column names must be unique";
-            }
+        return !duplicateNamesFound && !columnWithNoLabelFound && !dropdownValuesMissing;
+    }
 
-            return labelIsEmpty || dropdownValuesMissing || duplicateLabel ? {
-                columnLabel: columnLabelError,
-                columnType: dropdownValuesMissing ? "Dropdown values are required" : undefined,
-            } : undefined;
-        });
+    private duplicateNamesFound = (): boolean => {
+        const { columns } = this.state;
+        return uniqBy(columns, "label").length !== columns.length;
     }
 
     private saveAndClose = () => {

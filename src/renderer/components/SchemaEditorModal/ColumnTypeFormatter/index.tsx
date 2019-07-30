@@ -2,6 +2,7 @@ import { Icon, Popover } from "antd";
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { ColumnType } from "../../../state/setting/types";
+import FormControl from "../../FormControl";
 import { COLUMN_TYPE_DISPLAY_MAP } from "../index";
 
 const styles = require("./styles.pcss");
@@ -26,8 +27,12 @@ const ColumnTypeFormatter: React.FunctionComponent<Props> = ({value}: Props) => 
                 ))}
             </div>
         ) : null;
+
         return (
-            <div className={styles.container}>
+            <FormControl
+                className={styles.container}
+                error={popoverContent ? undefined : "Dropdown values are required"}
+            >
                 <div className={styles.type}>{COLUMN_TYPE_DISPLAY_MAP[value.type]}</div>
                 {popoverContent && <Popover
                     className={styles.popover}
@@ -37,7 +42,7 @@ const ColumnTypeFormatter: React.FunctionComponent<Props> = ({value}: Props) => 
                 >
                     <Icon type="info-circle"/>
                 </Popover>}
-            </div>
+            </FormControl>
         );
     }
 
