@@ -48,6 +48,7 @@ const SCHEMA_EDITOR_COLUMNS = [
         key: "label",
         name: "Column Name",
         resizable: true,
+        width: 300,
     },
     {
         editable: true,
