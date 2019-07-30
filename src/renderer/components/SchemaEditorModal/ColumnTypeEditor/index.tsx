@@ -51,7 +51,9 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
 
     public componentDidUpdate(prevProps: Readonly<Props & AdazzleReactDataGrid.EditorBaseProps>,
                               prevState: Readonly<ColumnTypeEditorState>, snapshot?: any): void {
-        if (prevState.newType !== this.state.newType || prevState.newDropdownValues !== this.state.newDropdownValues) {
+        const typeChanged = prevState.newType !== this.state.newType;
+        const typeIsNotDropdown = this.state.newType !== ColumnType.DROPDOWN;
+        if ((typeChanged && typeIsNotDropdown)) {
             this.props.onCommit();
         }
     }
@@ -81,6 +83,7 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
                     mode="tags"
                     placeholder="Dropdown values"
                     onChange={this.setDropdownValues}
+                    onBlur={this.props.onCommit}
                 />}
             </div>
         );
@@ -105,10 +108,9 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
     }
 
     private setColumnType = (e: ChangeEvent<HTMLSelectElement>) => {
-        this.setState({newType: parseInt(e.target.value, 10)});
-        // if (type !== ColumnType.DROPDOWN) {
-        //     this.props.onCommit();
-        // }
+        const newType = parseInt(e.target.value, 10);
+        const columnTypeIsDropdown = newType === ColumnType.DROPDOWN;
+        this.setState({newType, newDropdownValues: columnTypeIsDropdown ? [] : undefined});
     }
 }
 
