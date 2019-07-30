@@ -1,9 +1,9 @@
-import {omit, uniq, without} from "lodash";
-import {AnyAction} from "redux";
-import undoable, {UndoableOptions,} from "redux-undo";
+import { omit, uniq, without } from "lodash";
+import { AnyAction } from "redux";
+import undoable, { UndoableOptions } from "redux-undo";
 
-import {TypeToDescriptionMap} from "../types";
-import {makeReducer} from "../util";
+import { TypeToDescriptionMap } from "../types";
+import { makeReducer } from "../util";
 import {
     ASSOCIATE_FILES_AND_WELLS,
     CLEAR_UPLOAD_HISTORY,
@@ -70,9 +70,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
             [action.payload.file]: {
                 ...state[action.payload.file],
                 notes: action.payload.notes,
-            }
+            },
         }),
-    }
+    },
 };
 
 const upload = makeReducer<UploadStateBranch>(actionToConfigMap, initialState);

@@ -1,14 +1,14 @@
 import * as React from "react";
-import {connect} from "react-redux";
+import { connect } from "react-redux";
 
-import {selection} from "../../state";
+import { OpenDialogOptions } from "electron";
+import DragAndDrop from "../../components/DragAndDrop";
+import { selection } from "../../state";
 import {
     DragAndDropFileList,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
 } from "../../state/selection/types";
-import DragAndDrop from "../../components/DragAndDrop";
-import {OpenDialogOptions} from "electron";
 
 interface DragAndDropSquareProps {
     className?: string;
@@ -21,7 +21,11 @@ const openDialogOptions: OpenDialogOptions = {
     title: "Open files",
 };
 
-const DragAndDropSquare: React.FunctionComponent<DragAndDropSquareProps> = ({ className, onDrop, onOpen }: DragAndDropSquareProps) => {
+const DragAndDropSquare: React.FunctionComponent<DragAndDropSquareProps> = ({
+                                                                                className,
+                                                                                onDrop,
+                                                                                onOpen,
+                                                                            }: DragAndDropSquareProps) => {
     return (
         <DragAndDrop
             openDialogOptions={openDialogOptions}

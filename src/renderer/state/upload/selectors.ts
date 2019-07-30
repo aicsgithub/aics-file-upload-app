@@ -1,12 +1,12 @@
-import {Uploads} from "@aics/aicsfiles/type-declarations/types";
-import {isEmpty, map} from "lodash";
-import {extname} from "path";
-import {createSelector} from "reselect";
-import {getUploadJobNames} from "../job/selectors";
-import {getSelectedBarcode} from "../selection/selectors";
+import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import { isEmpty, map } from "lodash";
+import { extname } from "path";
+import { createSelector } from "reselect";
+import { getUploadJobNames } from "../job/selectors";
+import { getSelectedBarcode } from "../selection/selectors";
 
-import {State} from "../types";
-import {FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch} from "./types";
+import { State } from "../types";
+import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -54,8 +54,8 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
             ...result,
             [fullPath]: {
                 file: {
-                    notes,
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
+                    notes,
                 },
                 microscopy: {
                     wellIds,

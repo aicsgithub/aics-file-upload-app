@@ -5,7 +5,7 @@ export interface UploadStateBranch {
 // Metadata associated with a file
 export interface UploadMetadata {
     barcode: string;
-    notes? :string;
+    notes?: string;
     wellIds: number[];
     wellLabels: string[];
 }

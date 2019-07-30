@@ -1,8 +1,8 @@
-import fs from 'fs';
-import * as React from "react";
 import { Icon, Modal } from "antd";
-import { clipboard, OpenDialogOptions, remote } from "electron";
 import TextArea from "antd/es/input/TextArea";
+import { clipboard, OpenDialogOptions, remote } from "electron";
+import fs from "fs";
+import * as React from "react";
 import { DragAndDropFileList } from "../../state/selection/types";
 import DragAndDrop from "../DragAndDrop";
 
@@ -19,11 +19,11 @@ interface NoteIconState {
 
 // Only want user to be able to select 1 file & it must be of type .txt
 const openDialogOptions: OpenDialogOptions = {
+    filters: [
+        { name: "Text", extensions: ["txt"] },
+    ],
     properties: ["openFile"],
     title: "Open Text file",
-    filters: [
-        { name: 'Text', extensions: ['txt'] },
-    ]
 };
 
 /*
@@ -31,43 +31,12 @@ const openDialogOptions: OpenDialogOptions = {
     It also contains static methods for reading .txt files from drag or drop events.
  */
 class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
-    private readonly iconRef = React.createRef<HTMLDivElement>();
-    private readonly paste = {
-        label: 'Paste',
-        click: () => {
-            const notes = clipboard.readText('clipboard');
-            this.props.saveNotes(notes);
-        }
-    };
-    private readonly pasteMenu = remote.Menu.buildFromTemplate([this.paste]);
-    private readonly fullMenu = remote.Menu.buildFromTemplate([
-        {
-            label: 'Cut',
-            click: () => {
-                clipboard.writeText(this.state.notes);
-                this.props.saveNotes(undefined);
-            }
-        },
-        {
-            label: 'Copy',
-            click: () => {
-                clipboard.writeText(this.state.notes);
-            }
-        },
-        this.paste,
-        {
-            label: 'Delete',
-            click: () => {
-                this.props.saveNotes(undefined);
-            }
-        },
-    ]);
 
     public static onDrop = (files: DragAndDropFileList): string => {
         if (files.length > 1) {
             throw new Error(`Unexpected number of files dropped: ${files.length}.`);
         } else if (files.length < 1) {
-            return '';
+            return "";
         }
         return NoteIcon.readFile(files[0].path);
     }
@@ -76,7 +45,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         if (files.length > 1) {
             throw new Error(`Unexpected number of files opened: ${files.length}.`);
         } else if (files.length < 1) {
-            return '';
+            return "";
         }
         return NoteIcon.readFile(files[0]);
     }
@@ -89,16 +58,46 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
             const notesBuffer = fs.readFileSync(file);
             return notesBuffer.toString();
         } catch (e) {
-            console.log(e);
+            return "";
         }
-        return '';
     }
+    private readonly iconRef = React.createRef<HTMLDivElement>();
+    private readonly paste = {
+        click: () => {
+            const notes = clipboard.readText("clipboard");
+            this.props.saveNotes(notes);
+        },
+        label: "Paste",
+    };
+    private readonly pasteMenu = remote.Menu.buildFromTemplate([this.paste]);
+    private readonly fullMenu = remote.Menu.buildFromTemplate([
+        {
+            click: () => {
+                clipboard.writeText(this.state.notes);
+                this.props.saveNotes(undefined);
+            },
+            label: "Cut",
+        },
+        {
+            click: () => {
+                clipboard.writeText(this.state.notes);
+            },
+            label: "Copy",
+        },
+        this.paste,
+        {
+            click: () => {
+                this.props.saveNotes(undefined);
+            },
+            label: "Delete",
+        },
+    ]);
 
     constructor(props: NoteIconProps) {
         super(props);
         this.state = {
             editing: false,
-            notes: props.notes || '',
+            notes: props.notes || "",
             showNotes: false,
         };
     }
@@ -107,11 +106,11 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         this.iconRef.current!.addEventListener("contextmenu", this.replaceContextMenu, false);
     }
 
+    // We want to manage our own state because we want the aspect of "saving" notes & "canceling" them
+    // So here we are updating if we are not editing assuming that if we are not editing the store must
+    // have the source of truth now (this allows for drag and drop on table rows & cut/copy/paste/delete actions)
     public componentDidUpdate() {
-        // We want to manage our own state because we want the aspect of "saving" notes & "canceling" them
-        // So here we are updating if we are not editing assuming that if we are not editing the store must
-        // have the source of truth now (this allows for drag and drop on table rows & cut/copy/paste/delete actions)
-        const propNotes = this.props.notes || ''; // State can't be undefined only ''
+        const propNotes = this.props.notes || "";
         if (!this.state.editing && propNotes !== this.state.notes) {
             this.setState({ notes: propNotes });
         }
@@ -122,11 +121,11 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
             <>
                 <Modal
                     width="90%"
-                    title={this.state.editing ? 'Add Notes' : 'View Notes'}
+                    title={this.state.editing ? "Add Notes" : "View Notes"}
                     visible={this.state.showNotes}
                     onOk={this.saveAndClose}
                     onCancel={this.closeModal}
-                    okText={this.state.editing ? 'Save' : 'Done'}
+                    okText={this.state.editing ? "Save" : "Done"}
                 >
                     {this.renderNotes()}
                 </Modal>
@@ -161,13 +160,13 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         }
         return (
             <>
-                <Icon onClick={this.startEditing} style={{ float: 'right' }} type="form" />
+                <Icon onClick={this.startEditing} style={{ float: "right" }} type="form" />
                 {/* New line formatting might be important for viewing, so preserve it in view */}
-                {this.state.notes.split('\n').map(line => (
+                {this.state.notes.split("\n").map((line) => (
                     <p key={line}>{line}</p>
                 ))}
             </>
-        )
+        );
     }
 
     private openModal = () => {
@@ -183,7 +182,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
     }
 
     private updateNotes = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        this.setState({ notes: e.target.value})
+        this.setState({ notes: e.target.value});
     }
 
     private handleOnDrop = (files: DragAndDropFileList) => {

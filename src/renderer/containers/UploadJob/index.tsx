@@ -1,12 +1,13 @@
-import {Button, Table} from "antd";
-import {ColumnProps} from "antd/lib/table";
-import {isEmpty} from "lodash";
+import { Button, Table } from "antd";
+import { ColumnProps } from "antd/lib/table";
+import { isEmpty } from "lodash";
 import * as React from "react";
-import {connect} from "react-redux";
-import {ActionCreator} from "redux";
+import { connect } from "react-redux";
+import { ActionCreator } from "redux";
 
-import NoteIcon from "../../components/NoteIcon";
+import { TableEventListeners } from "antd/es/table/interface";
 import FormPage from "../../components/FormPage";
+import NoteIcon from "../../components/NoteIcon";
 import { goBack, goForward } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
@@ -20,12 +21,11 @@ import {
     UploadJobTableRow
 } from "../../state/upload/types";
 import { alphaOrderComparator } from "../../util";
-import { TableEventListeners } from "antd/es/table/interface";
 
 const styles = require("./style.pcss");
 
 interface DragEnterCounts {
-    [file: string]: number
+    [file: string]: number;
 }
 
 interface Props {
@@ -42,14 +42,14 @@ interface Props {
 }
 
 interface UploadJobState {
-    // array of fullpaths
-    selectedFiles: string[];
     // Keeps track of net number of drag events into each row.
     // Used to determine if the row is being hovered or not.
     // This is guaranteed to be 1 or greater when a file is hovered within the row.
     // Making this a boolean doesn't work because child elements will also fire
     // drag/drop events (and this can't be prevented).
     dragEnterCounts: DragEnterCounts;
+    // array of fullpaths
+    selectedFiles: string[];
 }
 
 class UploadJob extends React.Component<Props, UploadJobState> {
@@ -81,7 +81,10 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         {
             key: "notes",
             render: (text: string, record: UploadJobTableRow) => (
-                <NoteIcon notes={record.notes} saveNotes={(notes: string | undefined) => this.saveNotes(record, notes)} />
+                <NoteIcon
+                    notes={record.notes}
+                    saveNotes={this.saveNotesByRecord(record)}
+                />
             ),
             title: "Notes",
         }];
@@ -106,8 +109,8 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     constructor(props: Props) {
         super(props);
         this.state = {
+            dragEnterCounts: {},
             selectedFiles: [],
-            dragEnterCounts: {}
         };
     }
 
@@ -181,9 +184,9 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         const className = this.state.dragEnterCounts[record.file] && styles.rowHighlight;
         return {
             className,
-            onDrop: (e: React.DragEvent<HTMLDivElement>) => this.onDrop(record, e),
             onDragEnter: (e: React.DragEvent<HTMLDivElement>) => this.onDragEnter(record, e),
             onDragLeave: (e: React.DragEvent<HTMLDivElement>) => this.onDragLeave(record, e),
+            onDrop: (e: React.DragEvent<HTMLDivElement>) => this.onDrop(record, e),
         };
     }
 
@@ -199,7 +202,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         this.setState({
             dragEnterCounts: {
                 ...this.state.dragEnterCounts,
-                [record.file]: (this.state.dragEnterCounts[record.file] || 0) + 1
+                [record.file]: (this.state.dragEnterCounts[record.file] || 0) + 1,
             },
         });
     }
@@ -209,9 +212,14 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         this.setState({
             dragEnterCounts: {
                 ...this.state.dragEnterCounts,
-                [record.file]: this.state.dragEnterCounts[record.file] - 1
+                [record.file]: this.state.dragEnterCounts[record.file] - 1,
             },
         });
+    }
+
+    // Not allowing lambdas in JSX attributes resulted in this (perhaps there is a better way?)
+    private saveNotesByRecord = (record: UploadJobTableRow): (notes: string | undefined) => void => {
+        return (notes: string | undefined) => this.saveNotes(record, notes);
     }
 
     private saveNotes = (record: UploadJobTableRow, notes: string | undefined) => {

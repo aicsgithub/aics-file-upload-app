@@ -78,7 +78,6 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-
 export function updateUpload(upload: UploadJobTableRow): UpdateUploadAction {
     return {
         payload: upload,
