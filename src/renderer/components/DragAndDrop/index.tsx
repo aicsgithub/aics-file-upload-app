@@ -1,10 +1,10 @@
-import {Button, Icon,} from "antd";
+import { Button, Icon } from "antd";
 import * as classNames from "classnames";
-import {OpenDialogOptions, remote,} from "electron";
+import { OpenDialogOptions, remote } from "electron";
 import * as React from "react";
 
-import {DragAndDropFileList,} from "../../state/selection/types";
-import {isEmpty} from "lodash";
+import { isEmpty } from "lodash";
+import { DragAndDropFileList } from "../../state/selection/types";
 
 const styles = require("../../components/DragAndDrop/style.pcss");
 
@@ -25,6 +25,11 @@ interface DragAndDropState {
 }
 
 class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
+    private static onDragOver(e: React.DragEvent<HTMLDivElement>): void {
+        // Not having this was causing issues when > 1 divs with onDrag were layered
+        e.preventDefault();
+    }
+
     constructor(props: DragAndDropProps) {
         super(props);
         this.state = {
@@ -48,6 +53,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
                 onDragLeave={this.onDragLeave}
                 onDragEnd={this.onDragLeave}
                 onDrop={this.onDrop}
+                onDragOver={DragAndDrop.onDragOver}
             >
                 <div className={styles.content}>
                     <Icon type="upload" className={styles.uploadIcon} />
