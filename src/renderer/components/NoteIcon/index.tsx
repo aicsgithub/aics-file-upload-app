@@ -1,8 +1,8 @@
 import fs from 'fs';
 import * as React from "react";
 import { Icon, Modal } from "antd";
-import TextArea from "antd/es/input/TextArea";
 import { clipboard, OpenDialogOptions, remote } from "electron";
+import TextArea from "antd/es/input/TextArea";
 import { DragAndDropFileList } from "../../state/selection/types";
 import DragAndDrop from "../DragAndDrop";
 
@@ -17,6 +17,7 @@ interface NoteIconState {
     showNotes: boolean;
 }
 
+// Only want user to be able to select 1 file & it must be of type .txt
 const openDialogOptions: OpenDialogOptions = {
     properties: ["openFile"],
     title: "Open Text file",
@@ -25,20 +26,25 @@ const openDialogOptions: OpenDialogOptions = {
     ]
 };
 
-// TODO: Undo / Redo
-// TODO: Drag / Drop on table rows
 /*
     This component is for rendering notes related to files and managing different modes of editing them.
     It also contains static methods for reading .txt files from drag or drop events.
  */
 class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
     private readonly iconRef = React.createRef<HTMLDivElement>();
-    private readonly menu = remote.Menu.buildFromTemplate([
+    private readonly paste = {
+        label: 'Paste',
+        click: () => {
+            const notes = clipboard.readText('clipboard');
+            this.props.saveNotes(notes);
+        }
+    };
+    private readonly pasteMenu = remote.Menu.buildFromTemplate([this.paste]);
+    private readonly fullMenu = remote.Menu.buildFromTemplate([
         {
             label: 'Cut',
             click: () => {
                 clipboard.writeText(this.state.notes);
-                this.setState({ notes: '' });
                 this.props.saveNotes(undefined);
             }
         },
@@ -48,17 +54,10 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
                 clipboard.writeText(this.state.notes);
             }
         },
-        {
-            label: 'Paste',
-            click: () => {
-                const notes = clipboard.readText('clipboard');
-                this.setState({ notes });
-            }
-        },
+        this.paste,
         {
             label: 'Delete',
             click: () => {
-                this.setState({ notes: '' });
                 this.props.saveNotes(undefined);
             }
         },
@@ -104,18 +103,17 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         };
     }
 
-    // We only want to have a 'contextmenu' event when the notes exist so we have to check to see if it does exist
-    // before adding it
     public componentDidMount() {
-        if (this.state.notes) {
-            this.iconRef.current!.addEventListener("contextmenu", this.replaceContextMenu, false);
-        }
+        this.iconRef.current!.addEventListener("contextmenu", this.replaceContextMenu, false);
     }
 
-    // If the ref was not added while mounting and notes have been added since then we want to add the event
     public componentDidUpdate() {
-        if (this.state.notes) {
-            this.iconRef.current!.addEventListener("contextmenu", this.replaceContextMenu, false);
+        // We want to manage our own state because we want the aspect of "saving" notes & "canceling" them
+        // So here we are updating if we are not editing assuming that if we are not editing the store must
+        // have the source of truth now (this allows for drag and drop on table rows & cut/copy/paste/delete actions)
+        const propNotes = this.props.notes || ''; // State can't be undefined only ''
+        if (!this.state.editing && propNotes !== this.state.notes) {
+            this.setState({ notes: propNotes });
         }
     }
 
@@ -132,13 +130,13 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
                 >
                     {this.renderNotes()}
                 </Modal>
-                {this.state.notes ?
                     <div ref={this.iconRef}>
-                        <Icon onClick={this.openModal} type="file-text" />
+                        {this.state.notes ?
+                            <Icon onClick={this.openModal} type="file-text" />
+                            :
+                            <Icon onClick={this.startEditing} type="plus-circle" />
+                        }
                     </div>
-                    :
-                    <Icon onClick={this.startEditing} type="plus-circle" />
-                }
             </>
         );
     }
@@ -148,15 +146,15 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
             return (
                 <>
                     <TextArea
-                        rows={4}
-                        placeholder="Notes for the file"
                         onChange={this.updateNotes}
+                        placeholder="Type notes for file here or drag/drop a file below"
+                        autosize={{ minRows: 4, maxRows: 12 }}
                         value={this.state.notes}
                     />
                     <DragAndDrop
-                        openDialogOptions={openDialogOptions}
                         onDrop={this.handleOnDrop}
                         onOpen={this.handleOnOpen}
+                        openDialogOptions={openDialogOptions}
                     />
                 </>
             );
@@ -164,7 +162,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         return (
             <>
                 <Icon onClick={this.startEditing} style={{ float: 'right' }} type="form" />
-                {/* New line formatting might be important for viewing */}
+                {/* New line formatting might be important for viewing, so preserve it in view */}
                 {this.state.notes.split('\n').map(line => (
                     <p key={line}>{line}</p>
                 ))}
@@ -207,7 +205,12 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
     // Replaces right-click menu on 'contextmenu' events with an Electron menu
     private replaceContextMenu = (e: MouseEvent) => {
         e.preventDefault();
-        this.menu.popup();
+        // We want all options if there is are notes, but only paste if there isn't
+        if (this.state.notes) {
+            this.fullMenu.popup();
+        } else {
+            this.pasteMenu.popup();
+        }
     }
 }
 

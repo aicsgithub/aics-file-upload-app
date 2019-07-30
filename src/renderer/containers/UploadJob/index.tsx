@@ -24,6 +24,10 @@ import { TableEventListeners } from "antd/es/table/interface";
 
 const styles = require("./style.pcss");
 
+interface DragEnterCounts {
+    [file: string]: number
+}
+
 interface Props {
     canRedo: boolean;
     canUndo: boolean;
@@ -40,6 +44,12 @@ interface Props {
 interface UploadJobState {
     // array of fullpaths
     selectedFiles: string[];
+    // Keeps track of net number of drag events into each row.
+    // Used to determine if the row is being hovered or not.
+    // This is guaranteed to be 1 or greater when a file is hovered within the row.
+    // Making this a boolean doesn't work because child elements will also fire
+    // drag/drop events (and this can't be prevented).
+    dragEnterCounts: DragEnterCounts;
 }
 
 class UploadJob extends React.Component<Props, UploadJobState> {
@@ -97,6 +107,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         super(props);
         this.state = {
             selectedFiles: [],
+            dragEnterCounts: {}
         };
     }
 
@@ -117,6 +128,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             >
                 {this.renderButtons()}
                 <Table
+                    className={styles.tableRow}
                     columns={this.columns}
                     dataSource={uploads}
                     onRow={this.onRow}
@@ -166,13 +178,40 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     private onRow = (record: UploadJobTableRow): TableEventListeners => {
-        return { onDrop: (e: React.DragEvent<HTMLDivElement>) => this.onDrop(record, e) };
+        const className = this.state.dragEnterCounts[record.file] && styles.rowHighlight;
+        return {
+            className,
+            onDrop: (e: React.DragEvent<HTMLDivElement>) => this.onDrop(record, e),
+            onDragEnter: (e: React.DragEvent<HTMLDivElement>) => this.onDragEnter(record, e),
+            onDragLeave: (e: React.DragEvent<HTMLDivElement>) => this.onDragLeave(record, e),
+        };
     }
 
     private onDrop = (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
         e.preventDefault();
         const notes = NoteIcon.onDrop(e.dataTransfer.files);
         this.saveNotes(record, notes);
+        this.setState({ dragEnterCounts: {} });
+    }
+
+    private onDragEnter = (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
+        e.preventDefault();
+        this.setState({
+            dragEnterCounts: {
+                ...this.state.dragEnterCounts,
+                [record.file]: (this.state.dragEnterCounts[record.file] || 0) + 1
+            },
+        });
+    }
+
+    private onDragLeave = (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
+        e.preventDefault();
+        this.setState({
+            dragEnterCounts: {
+                ...this.state.dragEnterCounts,
+                [record.file]: this.state.dragEnterCounts[record.file] - 1
+            },
+        });
     }
 
     private saveNotes = (record: UploadJobTableRow, notes: string | undefined) => {
