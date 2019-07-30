@@ -6,31 +6,19 @@ import { ChangeEvent } from "react";
 import { editors } from "react-data-grid";
 
 import { ColumnType } from "../../../state/setting/types";
+import { EditorBaseProps } from "../../../state/types";
 import { COLUMN_TYPE_DISPLAY_MAP } from "../index";
+
 import EditorBase = editors.EditorBase;
 
 const styles = require("./styles.pcss");
 
-interface Props {
+interface Props extends EditorBaseProps {
     className?: string;
     value: {
         type: ColumnType;
         dropdownValues: string[];
     };
-    column: {
-        editable: boolean;
-        name: any;
-        key: string;
-        width: number;
-        resizeable: boolean;
-        filterable: boolean;
-    };
-    height: number;
-    onBlur: () => void;
-    onCommit: () => void;
-    onCommitCancel: () => void;
-    rowData: any;
-    rowMetaData: any;
 }
 
 interface ColumnTypeEditorState {
@@ -60,7 +48,7 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
 
     public render() {
         const {className} = this.props;
-        const { newDropdownValues, newType } = this.state;
+        const {newDropdownValues, newType} = this.state;
 
         return (
             <div
@@ -84,6 +72,7 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
                     placeholder="Dropdown values"
                     onChange={this.setDropdownValues}
                     onBlur={this.props.onCommit}
+                    onInputKeyDown={this.onDropdownValuesKeydown}
                 />}
             </div>
         );
@@ -112,6 +101,8 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
         const columnTypeIsDropdown = newType === ColumnType.DROPDOWN;
         this.setState({newType, newDropdownValues: columnTypeIsDropdown ? [] : undefined});
     }
+
+    private onDropdownValuesKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => e.stopPropagation();
 }
 
 export default ColumnTypeEditor;

@@ -57,7 +57,6 @@
     "mocha": "6.0.2",
     "react": "16.8.6",
     "react-data-grid": "5.0.4",
-    "react-data-grid-addons": "5.0.4",
     "react-dom": "16.8.6",
     "redux-undo": "1.0.0-beta9-9-7",
     "reselect": "4.0.0",

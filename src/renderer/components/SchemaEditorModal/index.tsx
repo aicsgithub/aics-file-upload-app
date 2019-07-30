@@ -6,16 +6,14 @@ import { findIndex, isEmpty } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
-import { Editors } from "react-data-grid-addons";
 
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
+import CheckboxEditor from "../CheckboxEditor";
 import { ColumnDefinitionError } from "./ColumnDefinitionForm";
 import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
 import ErrnoException = NodeJS.ErrnoException;
 import GridRowsUpdatedEvent = AdazzleReactDataGrid.GridRowsUpdatedEvent;
-
-const { CheckboxEditor } = Editors;
 
 const DEFAULT_COLUMN = Object.freeze({
     label: "",
@@ -60,10 +58,9 @@ const SCHEMA_EDITOR_COLUMNS = [
     },
     {
         editable: true,
-        editor: (
-            <CheckboxEditor/>
-        ),
-        formatter: (required: boolean) => required ? <span>True</span> : <span>False</span>,
+        // @ts-ignore
+        editor: <CheckboxEditor propName="required"/>,
+        formatter: ({ value }: any) => <div>{value ? "True" : "False"}</div>,
         key: "required",
         name: "Required?",
         width: 100,
@@ -243,7 +240,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private updateGridRow = (e: GridRowsUpdatedEvent<ColumnDefinitionDraft>) => {
         const { fromRow, toRow, updated } = e;
-        console.log(e);
         const columns = [...this.state.columns];
         for (let i = fromRow; i <= toRow; i++) {
             columns[i] = {
