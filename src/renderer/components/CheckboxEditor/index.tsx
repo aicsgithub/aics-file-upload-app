@@ -39,13 +39,13 @@ class CheckboxEditor extends EditorBase<Props, CheckboxEditorState> {
         return <Checkbox checked={checked} onChange={this.setChecked} ref={this.input}/>;
     }
 
-    public getValue() {
+    public getValue = () => {
         return {
             [this.props.propName]: this.state.checked,
         };
     }
 
-    public getInputNode(): Element | Text | null {
+    public getInputNode = (): Element | Text | null => {
         const node = ReactDOM.findDOMNode(this);
         if (node && node instanceof Element) {
             return node.getElementsByTagName("input")[0];
