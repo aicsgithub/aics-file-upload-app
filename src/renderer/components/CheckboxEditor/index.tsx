@@ -29,7 +29,7 @@ class CheckboxEditor extends EditorBase<Props, CheckboxEditorState> {
     public componentDidUpdate(prevProps: Readonly<Props & AdazzleReactDataGrid.EditorBaseProps>,
                               prevState: Readonly<CheckboxEditorState>): void {
         if (prevState.checked !== this.state.checked) {
-            setTimeout(this.props.onCommit, 1000);
+            setTimeout(this.props.onCommit, 500);
         }
     }
 
