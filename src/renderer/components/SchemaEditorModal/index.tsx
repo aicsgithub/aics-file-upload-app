@@ -2,7 +2,7 @@ import { Button, Modal } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { remote } from "electron";
 import { writeFile } from "fs";
-import { findIndex, isEmpty } from "lodash";
+import { isEmpty, without } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
@@ -17,7 +17,6 @@ import GridRowsUpdatedEvent = AdazzleReactDataGrid.GridRowsUpdatedEvent;
 
 const DEFAULT_COLUMN = Object.freeze({
     label: "",
-    order: 0,
     required: false,
     type: {
         type: ColumnType.TEXT,
@@ -35,12 +34,6 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
 };
 
 const SCHEMA_EDITOR_COLUMNS = [
-    {
-        frozen: true,
-        key: "order",
-        name: "",
-        width: 50,
-    },
     {
         editable: true,
         key: "label",
@@ -76,7 +69,6 @@ interface Props {
 
 interface ColumnDefinitionDraft {
     label?: string;
-    order: number;
     type?: {
         type: ColumnType,
         dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
@@ -138,8 +130,17 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                             cellNavigationMode="changeRow"
                             enableCellSelect={true}
                             onGridRowsUpdated={this.updateGridRow}
+                            rowSelection={{
+                                enableShiftSelect: true,
+                                onRowsDeselected: this.deselectRows,
+                                onRowsSelected: this.selectRows,
+                                selectBy: {
+                                    indexes: selectedRows,
+                                },
+                            }}
                         />
                         <TextArea
+                            className={styles.notes}
                             rows={4}
                             placeholder="Notes for your team"
                             onChange={this.setNotes}
@@ -164,7 +165,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         for (let i = columns.length; i < 5; i++) {
             columns.push({
                 ...DEFAULT_COLUMN,
-                order: i,
             });
         }
 
@@ -252,34 +252,10 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private addColumn = () => {
         const columns = [...this.state.columns];
-
-        // first look for empty column definition forms
-        const firstEmptyColumnDefinition = findIndex(columns, (col) => col !== null && !col.label);
-
-        if (firstEmptyColumnDefinition > -1) {
-            // focus column name input
-            const isEditing = [...this.state.isEditing];
-            isEditing[firstEmptyColumnDefinition] = true;
-            this.setState({isEditing, selectedRows: []});
-
-        } else {
-            // find first empty row and convert that to a column definition form or else append a form to the end
-            // of the list.
-            const firstNullIndex = findIndex(columns, (col) => col === null);
-            const isEditing = [...this.state.isEditing];
-            if (firstNullIndex < 0) {
-                columns.push(DEFAULT_COLUMN);
-                isEditing.push(true);
-            } else {
-                columns[firstNullIndex] = DEFAULT_COLUMN;
-                isEditing[firstNullIndex] = true;
-            }
-            this.setState({
-                columns,
-                isEditing,
-                selectedRows: [],
-            });
-        }
+        columns.push({
+            ...DEFAULT_COLUMN,
+        });
+        this.setState({columns});
     }
 
     private removeColumns = () => {
@@ -289,6 +265,17 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             columns.splice(row, 1);
         });
         this.setState({ columns, selectedRows: [] });
+    }
+
+    private selectRows = (rows: Array<{rowIdx: number}>) => {
+        const indexes = rows.map((r) => r.rowIdx);
+        this.setState({selectedRows: [...this.state.selectedRows, ...indexes]});
+    }
+
+    private deselectRows = (rows: Array<{rowIdx: number}>) => {
+        const indexes = rows.map((r) => r.rowIdx);
+        const selectedRows = without(this.state.selectedRows, ...indexes);
+        this.setState({selectedRows});
     }
 }
 
