@@ -1,8 +1,8 @@
-import * as React from "react";
 import { Icon, Modal } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { readFileSync } from "fs";
 import { clipboard, OpenDialogOptions, remote } from "electron";
+import { readFileSync } from "fs";
+import * as React from "react";
 
 import { DragAndDropFileList } from "../../state/selection/types";
 import DragAndDrop from "../DragAndDrop";
@@ -40,7 +40,10 @@ const openDialogOptions: OpenDialogOptions = {
  */
 class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
 
-    public static onDrop = async (files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> => {
+    public static onDrop = async (
+        files: DragAndDropFileList,
+        handleError: (error: string
+    ) => void): Promise<string> => {
         if (files.length > 1) {
             throw new Error(`Unexpected number of files dropped: ${files.length}.`);
         } else if (files.length < 1) {
@@ -69,7 +72,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         } catch (e) {
             // It is possible for a user to select a directory
             handleError("Invalid file or directory selected (.txt only)");
-            return '';
+            return "";
         }
     }
 
