@@ -1,12 +1,20 @@
+import * as React from "react";
 import { Icon, Modal } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import { readFileSync } from "fs";
 import { clipboard, OpenDialogOptions, remote } from "electron";
-import fs from "fs";
-import * as React from "react";
+
 import { DragAndDropFileList } from "../../state/selection/types";
 import DragAndDrop from "../DragAndDrop";
 
+const readFileAsync = (file: string) => {
+    return new Promise((resolve) => {
+        resolve(readFileSync(file));
+    });
+};
+
 interface NoteIconProps {
+    handleError: (error: string) => void;
     notes?: string;
     saveNotes: (notes: string | undefined) => void;
 }
@@ -32,35 +40,39 @@ const openDialogOptions: OpenDialogOptions = {
  */
 class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
 
-    public static onDrop = (files: DragAndDropFileList): string => {
+    public static onDrop = async (files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> => {
         if (files.length > 1) {
             throw new Error(`Unexpected number of files dropped: ${files.length}.`);
         } else if (files.length < 1) {
             return "";
         }
-        return NoteIcon.readFile(files[0].path);
+        return await NoteIcon.readFile(files[0].path, handleError);
     }
 
-    public static onOpen = (files: string[]): string => {
+    public static onOpen = async (files: string[], handleError: (error: string) => void): Promise<string> => {
         if (files.length > 1) {
             throw new Error(`Unexpected number of files opened: ${files.length}.`);
         } else if (files.length < 1) {
             return "";
         }
-        return NoteIcon.readFile(files[0]);
+        return await NoteIcon.readFile(files[0], handleError);
     }
 
-    private static readFile = (file: string): string => {
-        // Currently it is possible the user selected a directory or an invalid data type
-        // in which case it *should* be obvious nothing was read in since the notes will not update
-        // and the UI will remain in edit mode, but we might want to alert them - Sean M 7/29/19
+    private static readFile = async (file: string, handleError: (error: string) => void): Promise<string> => {
         try {
-            const notesBuffer = fs.readFileSync(file);
-            return notesBuffer.toString();
+            const notesBuffer = await readFileAsync(file);
+            const notes = notesBuffer.toString();
+            if (!notes) {
+                handleError("No notes found in file.");
+            }
+            return notes;
         } catch (e) {
-            return "";
+            // It is possible for a user to select a directory
+            handleError("Invalid file or directory selected (.txt only)");
+            return '';
         }
     }
+
     private readonly iconRef = React.createRef<HTMLDivElement>();
     private readonly paste = {
         click: () => {
@@ -129,13 +141,13 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
                 >
                     {this.renderNotes()}
                 </Modal>
-                    <div ref={this.iconRef}>
-                        {this.state.notes ?
-                            <Icon onClick={this.openModal} type="file-text" />
-                            :
-                            <Icon onClick={this.startEditing} type="plus-circle" />
-                        }
-                    </div>
+                <div ref={this.iconRef}>
+                    {this.state.notes ?
+                        <Icon onClick={this.openModal} type="file-text" />
+                        :
+                        <Icon onClick={this.startEditing} type="plus-circle" />
+                    }
+                </div>
             </>
         );
     }
@@ -185,13 +197,13 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
         this.setState({ notes: e.target.value});
     }
 
-    private handleOnDrop = (files: DragAndDropFileList) => {
-        const notes = NoteIcon.onDrop(files);
+    private handleOnDrop = async (files: DragAndDropFileList) => {
+        const notes = await NoteIcon.onDrop(files, this.props.handleError);
         this.setState({ notes });
     }
 
-    private handleOnOpen = (files: string[]) => {
-        const notes = NoteIcon.onOpen(files);
+    private handleOnOpen = async (files: string[]) => {
+        const notes = await NoteIcon.onOpen(files, this.props.handleError);
         this.setState({ notes });
     }
 
