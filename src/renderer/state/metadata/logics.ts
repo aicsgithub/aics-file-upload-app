@@ -19,8 +19,9 @@ import { LabkeyUnit, Unit } from "./types";
 const createBarcode = createLogic({
     transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const barcode = await MMSClient.Create.barcode(httpClient, action.payload);
-            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode);
+            const { prefixId, prefix } = action.payload;
+            const barcode = await MMSClient.Create.barcode(httpClient, prefixId);
+            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, prefix);
             next(action);
         } catch (ex) {
             next(setAlert({

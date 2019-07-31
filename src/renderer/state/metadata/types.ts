@@ -49,7 +49,7 @@ export interface UpdatePageHistoryMapAction {
 }
 
 export interface CreateBarcodeAction {
-    payload: number;
+    payload: BarcodePrefix;
     type: string;
 }
 
