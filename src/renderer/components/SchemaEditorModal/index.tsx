@@ -198,7 +198,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private duplicateNamesFound = (): boolean => {
-        const { columns } = this.state;
+        let { columns } = this.state;
+        columns = columns.filter((c) => !!c.label);
         return uniqBy(columns, "label").length !== columns.length;
     }
 
