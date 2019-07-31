@@ -8,13 +8,12 @@ import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
 
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
+
 import CheckboxEditor from "../CheckboxEditor";
 import FormControl from "../FormControl";
+
 import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
-import GridRowsUpdatedEvent = AdazzleReactDataGrid.GridRowsUpdatedEvent;
-import ErrnoException = NodeJS.ErrnoException;
-import Column = AdazzleReactDataGrid.Column;
 
 const DEFAULT_COLUMN: ColumnDefinitionDraft = Object.freeze({
     label: "",
@@ -34,7 +33,7 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
   [ColumnType.NUMBER]: "Number",
 };
 
-const SCHEMA_EDITOR_COLUMNS: Array<Column<ColumnDefinitionDraft>> = [
+const SCHEMA_EDITOR_COLUMNS: Array<AdazzleReactDataGrid.Column<ColumnDefinitionDraft>> = [
     {
         editable: true,
         formatter: ({value}: {value: string}) => {
@@ -96,7 +95,6 @@ interface SchemaEditorModalState {
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     constructor(props: Props) {
         super(props);
-
         this.state = this.getInitialState(props.schema);
     }
 
@@ -219,7 +217,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 if (!filename.endsWith(".json")) {
                     filename = `${filename}.json`;
                 }
-                writeFile(filename, schemaJson, (err: ErrnoException | null) => {
+                writeFile(filename, schemaJson, (err: NodeJS.ErrnoException | null) => {
                     if (err) {
                         remote.dialog.showErrorBox("Error", err.message);
                     } else {
@@ -238,7 +236,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         this.setState(this.getInitialState());
     }
 
-    private updateGridRow = (e: GridRowsUpdatedEvent<ColumnDefinitionDraft>) => {
+    private updateGridRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<ColumnDefinitionDraft>) => {
         const { fromRow, toRow, updated } = e;
         const columns = [...this.state.columns];
         for (let i = fromRow; i <= toRow; i++) {
