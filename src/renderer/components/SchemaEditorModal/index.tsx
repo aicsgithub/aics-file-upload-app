@@ -14,8 +14,9 @@ import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
 import GridRowsUpdatedEvent = AdazzleReactDataGrid.GridRowsUpdatedEvent;
 import ErrnoException = NodeJS.ErrnoException;
+import Column = AdazzleReactDataGrid.Column;
 
-const DEFAULT_COLUMN = Object.freeze({
+const DEFAULT_COLUMN: ColumnDefinitionDraft = Object.freeze({
     label: "",
     required: false,
     type: {
@@ -33,7 +34,7 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
   [ColumnType.NUMBER]: "Number",
 };
 
-const SCHEMA_EDITOR_COLUMNS = [
+const SCHEMA_EDITOR_COLUMNS: Array<Column<ColumnDefinitionDraft>> = [
     {
         editable: true,
         formatter: ({value}: {value: string}) => {
@@ -113,8 +114,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             visible,
         } = this.props;
         const { columns, notes, selectedRows } = this.state;
-        const duplicateNamesFound = this.duplicateNamesFound();
-        const canSave = this.canSave();
+
         return (
             <Modal
                 width="90%"
@@ -124,13 +124,11 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 onOk={this.saveAndClose}
                 onCancel={close}
                 okText="Save"
-                okButtonProps={{
-                    disabled: !canSave,
-                }}
+                okButtonProps={{disabled: !this.canSave()}}
                 maskClosable={false}
                 afterClose={this.afterClose}
             >
-                {duplicateNamesFound &&
+                {this.duplicateNamesFound() &&
                 <Alert
                     className={styles.alert}
                     message="Columns with the same name found"
