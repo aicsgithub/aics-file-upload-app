@@ -4,22 +4,19 @@ import * as React from "react";
 import { editors } from "react-data-grid";
 import * as ReactDOM from "react-dom";
 
-import EditorBase = editors.EditorBase;
-
 const styles = require("./styles.pcss");
 
 interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     value: boolean;
-    propName: string;
 }
 
 interface CheckboxEditorState {
     checked: boolean;
 }
 
-// This
-class CheckboxEditor extends EditorBase<Props, CheckboxEditorState> {
-    public input = React.createRef<Checkbox>();
+// This is for use in ReactDataGrid for displaying a checkbox
+class CheckboxEditor extends editors.EditorBase<Props, CheckboxEditorState> {
+    private input = React.createRef<Checkbox>();
 
     constructor(props: Props) {
         super(props);
@@ -41,19 +38,11 @@ class CheckboxEditor extends EditorBase<Props, CheckboxEditorState> {
         return <Checkbox className={styles.checkbox} checked={checked} onChange={this.setChecked} ref={this.input}/>;
     }
 
-    public getValue = () => {
-        return {
-            [this.props.propName]: this.state.checked,
-        };
-    }
+    public getValue = () => ({[this.props.column.key]: this.state.checked});
 
     public getInputNode = (): Element | Text | null => {
         const node = ReactDOM.findDOMNode(this);
-        if (node && node instanceof Element) {
-            return node.getElementsByTagName("input")[0];
-        }
-
-        return null;
+        return node && node instanceof Element ? node.getElementsByTagName("input")[0] : null;
     }
 
     private setChecked = (e: CheckboxChangeEvent) => {

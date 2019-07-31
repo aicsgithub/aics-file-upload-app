@@ -6,9 +6,8 @@ import { ChangeEvent } from "react";
 import { editors } from "react-data-grid";
 
 import { ColumnType } from "../../../state/setting/types";
-import { COLUMN_TYPE_DISPLAY_MAP } from "../index";
 
-import EditorBase = editors.EditorBase;
+import { COLUMN_TYPE_DISPLAY_MAP } from "../";
 
 const styles = require("./styles.pcss");
 
@@ -25,7 +24,10 @@ interface ColumnTypeEditorState {
     newDropdownValues?: string[];
 }
 
-class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
+// This component is for use in the ReactDataGrid component for editing column type.
+// If the user selects dropdown as a column type, they will also be able to define
+// the dropdown values.
+class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> {
     public input = React.createRef<HTMLSelectElement>();
 
     constructor(props: Props) {
@@ -37,7 +39,7 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
     }
 
     public componentDidUpdate(prevProps: Readonly<Props & AdazzleReactDataGrid.EditorBaseProps>,
-                              prevState: Readonly<ColumnTypeEditorState>, snapshot?: any): void {
+                              prevState: Readonly<ColumnTypeEditorState>): void {
         const typeChanged = prevState.newType !== this.state.newType;
         const typeIsNotDropdown = this.state.newType !== ColumnType.DROPDOWN;
         if ((typeChanged && typeIsNotDropdown)) {
@@ -77,17 +79,17 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
         );
     }
 
-    public getValue() {
+    public getValue = () => {
         // should return an object of key/value pairs to be merged back to the row
         return {
-            type: {
+            [this.props.column.key]: {
                 dropdownValues: this.state.newDropdownValues,
                 type: this.state.newType,
             },
         };
     }
 
-    public getInputNode(): Element | Text | null {
+    public getInputNode = (): Element | Text | null => {
         return this.input.current;
     }
 
@@ -96,7 +98,7 @@ class ColumnTypeEditor extends EditorBase<Props, ColumnTypeEditorState> {
     }
 
     private setColumnType = (e: ChangeEvent<HTMLSelectElement>) => {
-        const newType = parseInt(e.target.value, 10);
+        const newType = parseInt(e.target.value, 10) || ColumnType.TEXT;
         const columnTypeIsDropdown = newType === ColumnType.DROPDOWN;
         this.setState({newType, newDropdownValues: columnTypeIsDropdown ? [] : undefined});
     }

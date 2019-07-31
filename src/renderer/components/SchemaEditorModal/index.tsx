@@ -53,7 +53,6 @@ interface SchemaEditorModalState {
     columns: ColumnDefinitionDraft[];
     notes?: string;
     selectedRows: number[];
-    isEditing: boolean[];
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
@@ -82,16 +81,14 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         },
         {
             editable: true,
-            // @ts-ignore
-            editor: <ColumnTypeEditor/>,
-            formatter: <ColumnTypeFormatter/>,
+            editor: ColumnTypeEditor,
+            formatter: ColumnTypeFormatter,
             key: "type",
             name: "Data Type",
         },
         {
             editable: true,
-            // @ts-ignore
-            editor: <CheckboxEditor propName="required"/>,
+            editor: CheckboxEditor,
             formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
             key: "required",
             name: "Required?",
@@ -166,16 +163,13 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
     }
 
-    private getRow = (i: number) => {
-        return this.state.columns[i];
-    }
+    private getRow = (i: number) => this.state.columns[i];
 
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
         const columns: ColumnDefinitionDraft[] = schema ? schema.columns : [DEFAULT_COLUMN];
 
         return {
             columns,
-            isEditing: columns.map(() => false),
             notes: schema ? schema.notes : undefined,
             selectedRows: [],
         };
@@ -183,12 +177,13 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private canSave = (): boolean => {
         const { columns } = this.state;
+        const columnWithNoTypeFound: boolean = !!columns.find(({type}) => !type || !type.type);
         const duplicateNamesFound: boolean = this.duplicateNamesFound();
         const columnWithNoLabelFound: boolean = !!columns.find(({label}) => !label);
         const dropdownValuesMissing: boolean = !!columns
             .find(({type}) => type.type === ColumnType.DROPDOWN && isEmpty(type.dropdownValues));
 
-        return !duplicateNamesFound && !columnWithNoLabelFound && !dropdownValuesMissing;
+        return !duplicateNamesFound && !columnWithNoLabelFound && !dropdownValuesMissing && ! columnWithNoTypeFound;
     }
 
     private duplicateNamesFound = (): boolean => {
@@ -200,7 +195,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     private saveAndClose = () => {
         const schemaJson = JSON.stringify(
             {
-                columns: this.state.columns.filter((c) => !!c && c.label && c.type),
+                columns: this.state.columns,
                 notes: this.state.notes,
             }
         );
@@ -247,11 +242,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     private addColumn = () => {
-        const columns = [...this.state.columns];
-        columns.push({
-            ...DEFAULT_COLUMN,
-        });
-        this.setState({columns});
+        this.setState({columns: [...this.state.columns, DEFAULT_COLUMN]});
     }
 
     private removeColumns = () => {
