@@ -7,6 +7,8 @@ import { editors } from "react-data-grid";
 import { EditorBaseProps } from "../../state/types";
 import EditorBase = editors.EditorBase;
 
+const styles = require("./styles.pcss");
+
 interface Props extends EditorBaseProps {
     value: boolean;
     propName: string;
@@ -36,7 +38,7 @@ class CheckboxEditor extends EditorBase<Props, CheckboxEditorState> {
     public render() {
         const { checked } = this.state;
 
-        return <Checkbox checked={checked} onChange={this.setChecked} ref={this.input}/>;
+        return <Checkbox className={styles.checkbox} checked={checked} onChange={this.setChecked} ref={this.input}/>;
     }
 
     public getValue = () => {

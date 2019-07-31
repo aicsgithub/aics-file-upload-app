@@ -63,7 +63,7 @@ const SCHEMA_EDITOR_COLUMNS: Array<Column<ColumnDefinitionDraft>> = [
         editable: true,
         // @ts-ignore
         editor: <CheckboxEditor propName="required"/>,
-        formatter: ({ value }: any) => <div>{value ? "True" : "False"}</div>,
+        formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
         key: "required",
         name: "Required?",
         width: 100,
