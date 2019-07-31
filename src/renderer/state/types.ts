@@ -104,25 +104,3 @@ export enum HTTP_STATUS {
     INTERNAL_SERVER_ERROR = 500,
     OK = 200,
 }
-
-// todo
-export interface ExcelColumn {
-    editable: boolean;
-    name: any;
-    key: string;
-    width: number;
-    resizeable: boolean;
-    filterable: boolean;
-}
-
-// todo
-export interface EditorBaseProps {
-    value: any;
-    column: ExcelColumn;
-    height: number;
-    onBlur: () => void;
-    onCommit: () => void;
-    onCommitCancel: () => void;
-    rowData: any;
-    rowMetaData: any;
-}

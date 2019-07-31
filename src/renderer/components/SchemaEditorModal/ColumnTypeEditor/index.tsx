@@ -6,14 +6,13 @@ import { ChangeEvent } from "react";
 import { editors } from "react-data-grid";
 
 import { ColumnType } from "../../../state/setting/types";
-import { EditorBaseProps } from "../../../state/types";
 import { COLUMN_TYPE_DISPLAY_MAP } from "../index";
 
 import EditorBase = editors.EditorBase;
 
 const styles = require("./styles.pcss");
 
-interface Props extends EditorBaseProps {
+interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     className?: string;
     value: {
         type: ColumnType;

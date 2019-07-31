@@ -1,15 +1,14 @@
 import { Checkbox } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import * as React from "react";
+import { editors } from "react-data-grid";
 import * as ReactDOM from "react-dom";
 
-import { editors } from "react-data-grid";
-import { EditorBaseProps } from "../../state/types";
 import EditorBase = editors.EditorBase;
 
 const styles = require("./styles.pcss");
 
-interface Props extends EditorBaseProps {
+interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     value: boolean;
     propName: string;
 }
@@ -18,6 +17,7 @@ interface CheckboxEditorState {
     checked: boolean;
 }
 
+// This
 class CheckboxEditor extends EditorBase<Props, CheckboxEditorState> {
     public input = React.createRef<Checkbox>();
 
