@@ -1,4 +1,4 @@
-import { Alert, Button, Modal } from "antd";
+import { Button, Modal } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { remote } from "electron";
 import { writeFile } from "fs";
@@ -33,42 +33,6 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
   [ColumnType.NUMBER]: "Number",
 };
 
-const SCHEMA_EDITOR_COLUMNS: Array<AdazzleReactDataGrid.Column<ColumnDefinitionDraft>> = [
-    {
-        editable: true,
-        formatter: ({value}: {value: string}) => {
-            return (
-                <FormControl
-                    error={value ? undefined : "This field is required"}
-                >
-                    {value}
-                </FormControl>
-            );
-        },
-        key: "label",
-        name: "Column Name",
-        resizable: true,
-        width: 300,
-    },
-    {
-        editable: true,
-        // @ts-ignore
-        editor: <ColumnTypeEditor/>,
-        formatter: <ColumnTypeFormatter/>,
-        key: "type",
-        name: "Data Type",
-    },
-    {
-        editable: true,
-        // @ts-ignore
-        editor: <CheckboxEditor propName="required"/>,
-        formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
-        key: "required",
-        name: "Required?",
-        width: 100,
-    },
-];
-
 interface Props {
     className?: string;
     close: () => void;
@@ -93,6 +57,47 @@ interface SchemaEditorModalState {
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
+    private SCHEMA_EDITOR_COLUMNS: Array<AdazzleReactDataGrid.Column<ColumnDefinitionDraft>> = [
+        {
+            editable: true,
+            formatter: ({value}: {value: string}) => {
+                let error;
+                if (!value) {
+                    error = "This field is required";
+                } else if (this.state.columns.filter((c) => c.label === value).length > 1) {
+                    error = "Column names must be unique";
+                }
+                return (
+                    <FormControl
+                        error={error}
+                    >
+                        {value}
+                    </FormControl>
+                );
+            },
+            key: "label",
+            name: "Column Name",
+            resizable: true,
+            width: 300,
+        },
+        {
+            editable: true,
+            // @ts-ignore
+            editor: <ColumnTypeEditor/>,
+            formatter: <ColumnTypeFormatter/>,
+            key: "type",
+            name: "Data Type",
+        },
+        {
+            editable: true,
+            // @ts-ignore
+            editor: <CheckboxEditor propName="required"/>,
+            formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
+            key: "required",
+            name: "Required?",
+            width: 100,
+        },
+    ];
     constructor(props: Props) {
         super(props);
         this.state = this.getInitialState(props.schema);
@@ -126,17 +131,10 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 maskClosable={false}
                 afterClose={this.afterClose}
             >
-                {this.duplicateNamesFound() &&
-                <Alert
-                    className={styles.alert}
-                    message="Columns with the same name found"
-                    type="error"
-                    showIcon={true}
-                />}
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
                         <ReactDataGrid
-                            columns={SCHEMA_EDITOR_COLUMNS}
+                            columns={this.SCHEMA_EDITOR_COLUMNS}
                             rowGetter={this.getRow}
                             rowsCount={columns.length}
                             cellNavigationMode="changeRow"
