@@ -123,8 +123,8 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         return (
             <FormPage
                 className={className}
-                formTitle="UPLOAD JOB"
-                formPrompt="Review files below and click Upload to submit a job."
+                formTitle="ADD ADDITIONAL DATA"
+                formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
