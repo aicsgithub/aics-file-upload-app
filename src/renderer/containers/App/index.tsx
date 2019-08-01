@@ -2,7 +2,6 @@ import "@aics/aics-react-labkey/dist/styles.css";
 import { message } from "antd";
 import { ipcRenderer, remote } from "electron";
 import { readFile } from "fs";
-import { every, isEmpty } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -29,8 +28,6 @@ import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFi
 import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
-    ColumnDefinition,
-    ColumnType,
     GatherSettingsAction,
     SchemaDefinition,
     UpdateSettingsAction,
@@ -45,33 +42,10 @@ import UploadJobs from "../UploadJob";
 import UploadSummary from "../UploadSummary";
 
 import { getFileToTags } from "./selectors";
+import { isSchemaDefinition } from "./util";
 
 const styles = require("./styles.pcss");
 const ALERT_DURATION = 2;
-const isColumnDefinition = (json: any): json is ColumnDefinition => {
-    if (!json) {
-        return false;
-    }
-
-    const labelIsValid = json.label && typeof json.label === "string";
-    const typeIsValid = json.type && json.type.type && json.type.type in ColumnType;
-    const dropdownValuesValid = json.type && (json.type !== ColumnType.DROPDOWN || !isEmpty(json.type.dropdownValues));
-    return labelIsValid && typeIsValid && dropdownValuesValid;
-};
-const isSchemaDefinition = (json: any): json is SchemaDefinition => {
-    if (!json) {
-        return false;
-    }
-
-    const hasColumns = !isEmpty(json.columns);
-    if (!hasColumns) {
-        return false;
-    }
-
-    const columnsAreValid = every(json.columns, isColumnDefinition);
-    const validNotes = typeof json.notes === "string" || typeof json.notes === "undefined";
-    return validNotes && columnsAreValid;
-};
 
 interface AppProps {
     alert?: AppAlert;

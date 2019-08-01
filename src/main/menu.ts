@@ -53,8 +53,6 @@ export const setMenu = (webContents: WebContents) => {
                                     if (filePaths) {
                                         webContents.send(OPEN_CREATE_SCHEMA_MODAL, filePaths[0]);
                                     }
-
-                                    // todo handle error/cancel
                                 });
                             },
                             label: "Schema",
