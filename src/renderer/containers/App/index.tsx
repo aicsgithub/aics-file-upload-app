@@ -238,6 +238,7 @@ class App extends React.Component<AppProps, AppState> {
                     close={this.closeCreateSchemaModal}
                     visible={showCreateSchemaModal}
                     schema={schema}
+                    setAlert={setAlert}
                     filepath={schemaFilepath}
                 />
             </div>

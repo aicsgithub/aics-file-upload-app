@@ -6,6 +6,8 @@ import { isEmpty, uniqBy, without } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
+import { ActionCreator } from "redux";
+import { AlertType, SetAlertAction } from "../../state/feedback/types";
 
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 
@@ -38,6 +40,7 @@ interface Props {
     close: () => void;
     filepath?: string;
     schema?: SchemaDefinition;
+    setAlert: ActionCreator<SetAlertAction>;
     visible: boolean;
 }
 
@@ -202,7 +205,10 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
         writeFile(filename, schemaJson, (err: NodeJS.ErrnoException | null) => {
             if (err) {
-                remote.dialog.showErrorBox("Error", err.message);
+                this.props.setAlert({
+                    message: err.message || "Unknown error occurred while saving file",
+                    type: AlertType.ERROR,
+                });
             } else {
                 this.props.close();
             }

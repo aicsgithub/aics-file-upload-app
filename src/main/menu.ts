@@ -48,6 +48,7 @@ export const setMenu = (webContents: WebContents) => {
                         {
                             click: () => {
                                 dialog.showOpenDialog({
+                                    filters: [{name: "JSON", extensions: ["json"]}],
                                     properties: ["openFile"],
                                     title: "Open Schema"}, (filePaths?: string[]) => {
                                     if (filePaths) {
