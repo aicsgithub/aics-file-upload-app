@@ -21,7 +21,6 @@ export interface SchemaDefinition {
 
 export interface ColumnDefinition {
     label: string;
-    order: number;
     type: {
         type: ColumnType;
         dropdownValues: string[];
