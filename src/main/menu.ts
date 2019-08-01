@@ -43,6 +43,25 @@ export const setMenu = (webContents: WebContents) => {
                     ],
                 },
                 {
+                    label: "Open",
+                    submenu: [
+                        {
+                            click: () => {
+                                dialog.showOpenDialog({
+                                    properties: ["openFile"],
+                                    title: "Open Schema"}, (filePaths?: string[]) => {
+                                    if (filePaths) {
+                                        webContents.send(OPEN_CREATE_SCHEMA_MODAL, filePaths[0]);
+                                    }
+
+                                    // todo handle error/cancel
+                                });
+                            },
+                            label: "Schema",
+                        },
+                    ],
+                },
+                {
                     click: () => {
                         dialog.showMessageBox({
                             buttons: ["Cancel", "Staging", "Production"],
