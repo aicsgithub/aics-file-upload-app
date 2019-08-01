@@ -16,8 +16,6 @@ interface CheckboxEditorState {
 
 // This is for use in ReactDataGrid for displaying a checkbox
 class CheckboxEditor extends editors.EditorBase<Props, CheckboxEditorState> {
-    private input = React.createRef<Checkbox>();
-
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -35,7 +33,7 @@ class CheckboxEditor extends editors.EditorBase<Props, CheckboxEditorState> {
     public render() {
         const { checked } = this.state;
 
-        return <Checkbox className={styles.checkbox} checked={checked} onChange={this.setChecked} ref={this.input}/>;
+        return <Checkbox className={styles.checkbox} checked={checked} onChange={this.setChecked}/>;
     }
 
     public getValue = () => ({[this.props.column.key]: this.state.checked});

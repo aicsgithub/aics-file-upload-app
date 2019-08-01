@@ -14,8 +14,8 @@ const styles = require("./styles.pcss");
 interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     className?: string;
     value: {
-        type: ColumnType;
         dropdownValues: string[];
+        type: ColumnType;
     };
 }
 
