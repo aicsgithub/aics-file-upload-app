@@ -8,6 +8,7 @@ import {
 } from "./constants";
 import { initialState } from "./reducer";
 import {
+    BarcodePrefix,
     CreateBarcodeAction,
     GetBarcodePrefixesAction,
     GetImagingSessionsAction,
@@ -44,9 +45,9 @@ export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
     };
 }
 
-export function createBarcode(prefixId: number): CreateBarcodeAction {
+export function createBarcode(barcodePrefix: BarcodePrefix): CreateBarcodeAction {
     return {
-        payload: prefixId,
+        payload: barcodePrefix,
         type: CREATE_BARCODE,
     };
 }
