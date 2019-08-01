@@ -30,6 +30,7 @@ import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
     ColumnDefinition,
+    ColumnType,
     GatherSettingsAction,
     SchemaDefinition,
     UpdateSettingsAction,
@@ -52,8 +53,10 @@ const isColumnDefinition = (json: any): json is ColumnDefinition => {
         return false;
     }
 
-    const labelIsValid = json.label && json.label instanceof "string";
-    const orderIs
+    const labelIsValid = json.label && typeof json.label === "string";
+    const typeIsValid = json.type && json.type.type && json.type.type in ColumnType;
+    const dropdownValuesValid = json.type && (json.type !== ColumnType.DROPDOWN || !isEmpty(json.type.dropdownValues));
+    return labelIsValid && typeIsValid && dropdownValuesValid;
 };
 const isSchemaDefinition = (json: any): json is SchemaDefinition => {
     if (!json) {
@@ -66,9 +69,8 @@ const isSchemaDefinition = (json: any): json is SchemaDefinition => {
     }
 
     const columnsAreValid = every(json.columns, isColumnDefinition);
-
-    const validNotes = json.notes ? typeof json.notes === "string" : true;
-    return validNotes;
+    const validNotes = typeof json.notes === "string" || typeof json.notes === "undefined";
+    return validNotes && columnsAreValid;
 };
 
 interface AppProps {
@@ -172,6 +174,11 @@ class App extends React.Component<AppProps, AppState> {
                                     schema: json,
                                     schemaFilepath,
                                     showCreateSchemaModal: true,
+                                });
+                            } else {
+                                this.props.setAlert({
+                                    message: "Invalid schema JSON",
+                                    type: AlertType.ERROR,
                                 });
                             }
 
