@@ -918,6 +918,13 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
+"@types/react-data-grid@^4.0.3":
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.3.tgz#be8eb886575d39955c97ac2a53e4cd164e553aaa"
+  integrity sha512-k6Efzb3rkpZIWDdQp4VRze36BxVFOvklELEJZF3fK3T2K7qOwqahPCNRdem3ZT6tgIzg809pGYG+Si/Xm14zIw==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-dom@16.8.4":
   version "16.8.4"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.8.4.tgz#7fb7ba368857c7aa0f4e4511c4710ca2c5a12a88"
@@ -8178,6 +8185,11 @@ react-bootstrap@^0.32.1:
     react-transition-group "^2.0.0"
     uncontrollable "^5.0.0"
     warning "^3.0.0"
+
+react-data-grid@5.0.4:
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/react-data-grid/-/react-data-grid-5.0.4.tgz#a242863b48a0829eed65ba8a5fc3e8a475dad3fe"
+  integrity sha512-h0LWwf0o2l1ioG1ADQGDiUMItZszO3YrVpAWmBOsFSdedHl5us/JEumohFVidadYcGQyj+XBhm+gsg0YWTiUDA==
 
 react-dom@16.8.6:
   version "16.8.6"

@@ -1,24 +1,37 @@
 import { Button, Modal } from "antd";
-import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import TextArea from "antd/lib/input/TextArea";
-import * as classNames from "classnames";
 import { remote } from "electron";
 import { writeFile } from "fs";
-import { findIndex, includes, isEmpty } from "lodash";
+import { isEmpty, uniqBy, without } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
+import ReactDataGrid from "react-data-grid";
 
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
-import ColumnDefinitionForm, { ColumnDefinitionError } from "./ColumnDefinitionForm";
-import EmptyColumnDefinitionRow from "./EmptyColumnDefinitionRow";
-import ErrnoException = NodeJS.ErrnoException;
 
-const DEFAULT_COLUMN = Object.freeze({
-    label: undefined,
+import CheckboxEditor from "../CheckboxEditor";
+import FormControl from "../FormControl";
+
+import ColumnTypeEditor from "./ColumnTypeEditor";
+import ColumnTypeFormatter from "./ColumnTypeFormatter";
+
+const DEFAULT_COLUMN: ColumnDefinitionDraft = Object.freeze({
+    label: "",
     required: false,
-    type: ColumnType.TEXT,
+    type: {
+        type: ColumnType.TEXT,
+    },
 });
 const styles = require("./styles.pcss");
+
+export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
+  [ColumnType.TEXT]: "Text",
+  [ColumnType.DROPDOWN]: "Dropdown",
+  [ColumnType.BOOLEAN]: "Yes/No",
+  [ColumnType.DATETIME]: "Date and Time",
+  [ColumnType.DATE]: "Date",
+  [ColumnType.NUMBER]: "Number",
+};
 
 interface Props {
     className?: string;
@@ -28,23 +41,62 @@ interface Props {
 }
 
 interface ColumnDefinitionDraft {
-    dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
     label?: string;
-    type?: ColumnType;
+    type: {
+        type: ColumnType,
+        dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
+    };
     required?: boolean;
 }
 
 interface SchemaEditorModalState {
-    columns: Array<ColumnDefinitionDraft | null>;
+    columns: ColumnDefinitionDraft[];
     notes?: string;
     selectedRows: number[];
-    isEditing: boolean[];
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
+    private SCHEMA_EDITOR_COLUMNS: Array<AdazzleReactDataGrid.Column<ColumnDefinitionDraft>> = [
+        {
+            editable: true,
+            formatter: ({value}: {value: string}) => {
+                let error;
+                if (!value) {
+                    error = "This field is required";
+                } else if (this.state.columns.filter((c) => c.label === value).length > 1) {
+                    error = "Column names must be unique";
+                }
+                return (
+                    <FormControl
+                        error={error}
+                    >
+                        {value}
+                    </FormControl>
+                );
+            },
+            key: "label",
+            name: "Column Name",
+            resizable: true,
+            width: 300,
+        },
+        {
+            editable: true,
+            editor: ColumnTypeEditor,
+            formatter: ColumnTypeFormatter,
+            key: "type",
+            name: "Data Type",
+        },
+        {
+            editable: true,
+            editor: CheckboxEditor,
+            formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
+            key: "required",
+            name: "Required?",
+            width: 100,
+        },
+    ];
     constructor(props: Props) {
         super(props);
-
         this.state = this.getInitialState(props.schema);
     }
 
@@ -61,9 +113,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             schema,
             visible,
         } = this.props;
-        const { columns, isEditing, notes, selectedRows } = this.state;
-        const errors = this.getErrors();
-        const canSave = isEmpty(errors.filter((e) => !!e));
+        const { columns, notes, selectedRows } = this.state;
+
         return (
             <Modal
                 width="90%"
@@ -73,58 +124,30 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 onOk={this.saveAndClose}
                 onCancel={close}
                 okText="Save"
-                okButtonProps={{
-                    disabled: !canSave,
-                }}
+                okButtonProps={{disabled: !this.canSave()}}
                 maskClosable={false}
                 afterClose={this.afterClose}
             >
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
-                        <div className={styles.grid}>
-                            <div className={styles.columnHeaders}>
-                                <div className={classNames(styles.header, styles.orderColumn)}/>
-                                <div className={classNames(styles.header, styles.labelColumn)}>
-                                    Column Name
-                                </div>
-                                <div className={classNames(styles.header, styles.typeColumn)}>
-                                    Data Type
-                                </div>
-                                <div className={classNames(styles.header, styles.requiredColumn)}>
-                                    Required?
-                                </div>
-                            </div>
-                            {columns.map((column, i) => {
-                                return (
-                                    <div
-                                        className={classNames(styles.row,
-                                            {[styles.selected]: includes(selectedRows, i)})}
-                                        key={column && column.label ? column.label + i : i}
-                                        onClick={this.selectRow(i)}
-                                    >
-                                        <div className={classNames(styles.orderColumn, styles.orderNumber)}>
-                                            {column ? i + 1 : ""}
-                                        </div>
-                                        {column && <ColumnDefinitionForm
-                                            className={classNames(styles.columnRow)}
-                                            dropdownValues={column.dropdownValues}
-                                            error={errors[i]}
-                                            setIsEditing={this.setIsEditing(i)}
-                                            setColumnLabel={this.setLabel(i)}
-                                            setColumnType={this.setType(i)}
-                                            setDropdownValues={this.setDropdownValues(i)}
-                                            setRequired={this.setRequired(i)}
-                                            columnType={column.type}
-                                            columnLabel={column.label}
-                                            isEditing={isEditing[i]}
-                                            required={column.required || false}
-                                        />}
-                                        {!column && <EmptyColumnDefinitionRow key={i} className={styles.columnRow}/>}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        <ReactDataGrid
+                            columns={this.SCHEMA_EDITOR_COLUMNS}
+                            rowGetter={this.getRow}
+                            rowsCount={columns.length}
+                            cellNavigationMode="changeRow"
+                            enableCellSelect={true}
+                            onGridRowsUpdated={this.updateGridRow}
+                            rowSelection={{
+                                enableShiftSelect: true,
+                                onRowsDeselected: this.deselectRows,
+                                onRowsSelected: this.selectRows,
+                                selectBy: {
+                                    indexes: selectedRows,
+                                },
+                            }}
+                        />
                         <TextArea
+                            className={styles.notes}
                             rows={4}
                             placeholder="Notes for your team"
                             onChange={this.setNotes}
@@ -140,69 +163,39 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
     }
 
+    private getRow = (i: number) => this.state.columns[i];
+
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
-        const columns: Array<ColumnDefinitionDraft | null> = schema ? schema.columns : [DEFAULT_COLUMN];
-        for (let i = columns.length; i < 5; i++) {
-            columns.push(null);
-        }
+        const columns: ColumnDefinitionDraft[] = schema ? schema.columns : [DEFAULT_COLUMN];
 
         return {
             columns,
-            isEditing: columns.map(() => false),
             notes: schema ? schema.notes : undefined,
             selectedRows: [],
         };
     }
 
-    private getErrors = (): Array<ColumnDefinitionError | undefined> => {
+    private canSave = (): boolean => {
         const { columns } = this.state;
-        const columnNames: string[] = columns
-            .filter((c) => !!c)
-            .map((c) => c ? c.label : "") as string[];
-        return columns.map((col: ColumnDefinitionDraft | null) => {
-            if (!col) {
-                return undefined;
-            }
+        const columnWithNoTypeFound: boolean = !!columns.find(({type}) => !type || !type.type);
+        const duplicateNamesFound: boolean = this.duplicateNamesFound();
+        const columnWithNoLabelFound: boolean = !!columns.find(({label}) => !label);
+        const dropdownValuesMissing: boolean = !!columns
+            .find(({type}) => type.type === ColumnType.DROPDOWN && isEmpty(type.dropdownValues));
 
-            const labelIsEmpty = !col.label;
-            const dropdownValuesMissing = col.type === ColumnType.DROPDOWN && isEmpty(col.dropdownValues);
-            const duplicateLabel = columnNames.filter((name) => name === col.label).length > 1;
-
-            let columnLabelError;
-            if (labelIsEmpty) {
-                columnLabelError = "This field is required";
-            } else if (duplicateLabel) {
-                columnLabelError = "Column names must be unique";
-            }
-
-            return labelIsEmpty || dropdownValuesMissing || duplicateLabel ? {
-                columnLabel: columnLabelError,
-                columnType: dropdownValuesMissing ? "Dropdown values are required" : undefined,
-            } : undefined;
-        });
+        return !duplicateNamesFound && !columnWithNoLabelFound && !dropdownValuesMissing && ! columnWithNoTypeFound;
     }
 
-    private setIsEditing = (index: number) => {
-        return (editing: boolean) => {
-            const isEditing = [...this.state.isEditing];
-            isEditing[index] = editing;
-            this.setState({isEditing});
-        };
-    }
-
-    private selectRow = (index: number) => {
-        // todo: Select multiple if CTRL or SHIFT held down
-        const columnDefinitionIsNotNull = !!this.state.columns[index];
-        if (columnDefinitionIsNotNull) {
-            return () => this.setState({selectedRows: [index]});
-        }
-        return this.addColumn;
+    private duplicateNamesFound = (): boolean => {
+        let { columns } = this.state;
+        columns = columns.filter((c) => !!c.label);
+        return uniqBy(columns, "label").length !== columns.length;
     }
 
     private saveAndClose = () => {
         const schemaJson = JSON.stringify(
             {
-                columns: this.state.columns.filter((c) => !!c && c.label && c.type),
+                columns: this.state.columns,
                 notes: this.state.notes,
             }
         );
@@ -217,7 +210,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 if (!filename.endsWith(".json")) {
                     filename = `${filename}.json`;
                 }
-                writeFile(filename, schemaJson, (err: ErrnoException | null) => {
+                writeFile(filename, schemaJson, (err: NodeJS.ErrnoException | null) => {
                     if (err) {
                         remote.dialog.showErrorBox("Error", err.message);
                     } else {
@@ -228,30 +221,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         });
     }
 
-    private setLabel = (i: number) => {
-        return (label?: string) => {
-            this.updateColumnRow(i, "label", label);
-        };
-    }
-
-    private setType = (i: number) => {
-        return (type: ColumnType) => {
-            this.updateColumnRow(i, "type", type);
-        };
-    }
-
-    private setDropdownValues = (i: number) => {
-        return (values: string[]) => {
-            this.updateColumnRow(i, "dropdownValues", values);
-        };
-    }
-
-    private setRequired = (i: number) => {
-        return (e: CheckboxChangeEvent) => {
-            this.updateColumnRow(i, "required", e.target.checked);
-        };
-    }
-
     private setNotes = (e: ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({notes: e.target.value});
     }
@@ -260,45 +229,20 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         this.setState(this.getInitialState());
     }
 
-    private updateColumnRow = <T extends {}>(index: number, property: keyof ColumnDefinitionDraft, value?: T) => {
-        const columns = this.state.columns;
-        columns[index] = {
-            ...columns[index],
-            [property]: value,
-        };
+    private updateGridRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<ColumnDefinitionDraft>) => {
+        const { fromRow, toRow, updated } = e;
+        const columns = [...this.state.columns];
+        for (let i = fromRow; i <= toRow; i++) {
+            columns[i] = {
+                ...columns[i],
+                ...updated,
+            };
+        }
         this.setState({columns});
     }
 
     private addColumn = () => {
-        const columns = [...this.state.columns];
-
-        // first look for empty column definition forms
-        const firstEmptyColumnDefinition = findIndex(columns, (col) => col !== null && !col.label);
-
-        if (firstEmptyColumnDefinition > -1) {
-            // focus column name input
-            const isEditing = [...this.state.isEditing];
-            isEditing[firstEmptyColumnDefinition] = true;
-            this.setState({isEditing, selectedRows: []});
-
-        } else {
-            // find first empty row and convert that to a column definition form or else append a form to the end
-            // of the list.
-            const firstNullIndex = findIndex(columns, (col) => col === null);
-            const isEditing = [...this.state.isEditing];
-            if (firstNullIndex < 0) {
-                columns.push(DEFAULT_COLUMN);
-                isEditing.push(true);
-            } else {
-                columns[firstNullIndex] = DEFAULT_COLUMN;
-                isEditing[firstNullIndex] = true;
-            }
-            this.setState({
-                columns,
-                isEditing,
-                selectedRows: [],
-            });
-        }
+        this.setState({columns: [...this.state.columns, DEFAULT_COLUMN]});
     }
 
     private removeColumns = () => {
@@ -308,6 +252,17 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             columns.splice(row, 1);
         });
         this.setState({ columns, selectedRows: [] });
+    }
+
+    private selectRows = (rows: Array<{rowIdx: number}>) => {
+        const indexes = rows.map((r) => r.rowIdx);
+        this.setState({selectedRows: [...this.state.selectedRows, ...indexes]});
+    }
+
+    private deselectRows = (rows: Array<{rowIdx: number}>) => {
+        const indexes = rows.map((r) => r.rowIdx);
+        const selectedRows = without(this.state.selectedRows, ...indexes);
+        this.setState({selectedRows});
     }
 }
 
