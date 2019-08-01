@@ -121,13 +121,12 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, prefix: s
             nodeIntegration: false,
         },
     });
-    let teamModeQueryParam = "";
+    const plateView = `/labkey/aics_microscopy/AICS/plateStandalone.view?Barcode=${barcode}`;
+    let modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}${plateView}`;
     if (prefix === "AX" || prefix === "AD") {
-        teamModeQueryParam = "TeamMode=AssayDev";
+        modalUrl = `${modalUrl}&TeamMode=AssayDev"`;
     }
-    const plateView = "/labkey/aics_microscopy/AICS/plateStandalone.view";
-    const modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}${plateView}?${teamModeQueryParam}`;
-    child.loadURL(`${modalUrl}Barcode=${barcode}`);
+    child.loadURL(modalUrl);
     child.once("ready-to-show", () => {
         child.show();
     });
