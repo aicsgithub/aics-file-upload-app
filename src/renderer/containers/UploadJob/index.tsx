@@ -77,11 +77,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             title: "Well(s)",
         },
         {
-            key: "action",
-            render: (text: string, record: UploadJobTableRow) => (<a onClick={this.removeUpload(record)}>Remove</a>),
-            title: "Action",
-        },
-        {
             key: "notes",
             render: (text: string, record: UploadJobTableRow) => (
                 <NoteIcon
@@ -170,13 +165,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     private upload = (): void => {
         this.props.initiateUpload();
         this.props.goForward();
-    }
-
-    private removeUpload = (upload: UploadJobTableRow) => {
-        return () => {
-            this.setState({selectedFiles: []});
-            this.props.removeUploads([upload.file]);
-        };
     }
 
     private removeUploads = (): void => {
