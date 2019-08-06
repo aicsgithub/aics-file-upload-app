@@ -43,6 +43,24 @@ export const setMenu = (webContents: WebContents) => {
                     ],
                 },
                 {
+                    label: "Open",
+                    submenu: [
+                        {
+                            click: () => {
+                                dialog.showOpenDialog({
+                                    filters: [{name: "JSON", extensions: ["json"]}],
+                                    properties: ["openFile"],
+                                    title: "Open Schema"}, (filePaths?: string[]) => {
+                                    if (filePaths) {
+                                        webContents.send(OPEN_CREATE_SCHEMA_MODAL, filePaths[0]);
+                                    }
+                                });
+                            },
+                            label: "Schema",
+                        },
+                    ],
+                },
+                {
                     click: () => {
                         dialog.showMessageBox({
                             buttons: ["Cancel", "Staging", "Production"],
