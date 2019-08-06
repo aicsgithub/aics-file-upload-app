@@ -18,7 +18,8 @@ import {
     AlertType,
     AppAlert,
     AppEvent,
-    ClearAlertAction, SetAlertAction,
+    ClearAlertAction,
+    SetAlertAction,
 } from "../../state/feedback/types";
 import { getIsUnsafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
