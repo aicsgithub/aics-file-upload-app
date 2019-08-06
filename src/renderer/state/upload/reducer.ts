@@ -1,8 +1,6 @@
 import { omit, uniq, without } from "lodash";
 import { AnyAction } from "redux";
-import undoable, {
-    UndoableOptions,
-} from "redux-undo";
+import undoable, { UndoableOptions } from "redux-undo";
 
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
@@ -12,12 +10,14 @@ import {
     DELETE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
-    UNDO_FILE_WELL_ASSOCIATION
+    UNDO_FILE_WELL_ASSOCIATION,
+    UPDATE_UPLOAD
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
+    UpdateUploadAction,
     UploadStateBranch
 } from "./types";
 
@@ -62,6 +62,16 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [DELETE_UPLOAD]: {
         accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOAD,
         perform: (state: UploadStateBranch, action: RemoveUploadsAction) => omit(state, action.payload),
+    },
+    [UPDATE_UPLOAD]: {
+        accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
+        perform: (state: UploadStateBranch, action: UpdateUploadAction) => ({
+            ...state,
+            [action.payload.file]: {
+                ...state[action.payload.file],
+                notes: action.payload.notes,
+            },
+        }),
     },
 };
 

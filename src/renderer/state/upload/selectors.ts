@@ -22,10 +22,11 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
 });
 
 export const getUploadSummaryRows = createSelector([getUpload], (uploads: UploadStateBranch): UploadJobTableRow[] =>
-    map(uploads, ({ barcode, wellLabels}: UploadMetadata, fullPath: string) => ({
+    map(uploads, ({ barcode, notes, wellLabels }: UploadMetadata, fullPath: string) => ({
         barcode,
         file: fullPath,
         key: fullPath,
+        notes,
         wellLabels: wellLabels.sort().join(", "),
     }))
 );
@@ -48,12 +49,13 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
 
 export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
     let result = {};
-    map(uploads, ({wellIds}: UploadMetadata, fullPath: string) => {
+    map(uploads, ({wellIds, notes}: UploadMetadata, fullPath: string) => {
         result = {
             ...result,
             [fullPath]: {
                 file: {
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
+                    notes,
                 },
                 microscopy: {
                     wellIds,

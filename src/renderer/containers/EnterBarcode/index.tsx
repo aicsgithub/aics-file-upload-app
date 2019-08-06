@@ -277,7 +277,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const { barcodePrefix } = this.state;
         if (barcodePrefix) {
             this.setState({showCreateBarcodeForm: false});
-            this.props.createBarcode(barcodePrefix.prefixId);
+            this.props.createBarcode(barcodePrefix);
         }
     }
 
