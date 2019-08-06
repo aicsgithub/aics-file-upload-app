@@ -40,12 +40,6 @@ ext {
     artifactVersion = gitInfo.branch != "master" ? "${gitInfo.branch.tokenize("/").join("-")}" : project.version
 }
 
-yarn {
-    inputs.files fileTree(project.projectDir).matching {
-        exclude "**/.gradle"
-    }
-}
-
 wrapper {
     gradleVersion "5.2"
     setDistributionType(DistributionType.BIN)
