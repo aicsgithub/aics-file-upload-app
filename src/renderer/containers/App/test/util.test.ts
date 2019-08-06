@@ -9,7 +9,7 @@ describe("App util", () => {
         type: {
             type: ColumnType.TEXT,
         },
-    }
+    };
     const validSchema = {
         columns: [validColumn],
         notes: "A note",
