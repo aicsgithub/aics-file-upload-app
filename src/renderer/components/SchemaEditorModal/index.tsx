@@ -6,6 +6,8 @@ import { isEmpty, uniqBy, without } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
+import { ActionCreator } from "redux";
+import { AlertType, SetAlertAction } from "../../state/feedback/types";
 
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 
@@ -36,7 +38,9 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
 interface Props {
     className?: string;
     close: () => void;
+    filepath?: string;
     schema?: SchemaDefinition;
+    setAlert: ActionCreator<SetAlertAction>;
     visible: boolean;
 }
 
@@ -192,33 +196,44 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         return uniqBy(columns, "label").length !== columns.length;
     }
 
-    private saveAndClose = () => {
+    private writeFile = (filename: string) => {
         const schemaJson = JSON.stringify(
             {
                 columns: this.state.columns,
                 notes: this.state.notes,
             }
         );
-
-        remote.dialog.showSaveDialog({
-            filters: [
-                {name: "JSON", extensions: ["json"]},
-            ],
-            title: "Save Schema",
-        }, (filename?: string) => {
-            if (filename) {
-                if (!filename.endsWith(".json")) {
-                    filename = `${filename}.json`;
-                }
-                writeFile(filename, schemaJson, (err: NodeJS.ErrnoException | null) => {
-                    if (err) {
-                        remote.dialog.showErrorBox("Error", err.message);
-                    } else {
-                        this.props.close();
-                    }
+        writeFile(filename, schemaJson, (err: NodeJS.ErrnoException | null) => {
+            if (err) {
+                this.props.setAlert({
+                    message: err.message || "Unknown error occurred while saving file",
+                    type: AlertType.ERROR,
                 });
+            } else {
+                this.props.close();
             }
         });
+    }
+
+    private saveAndClose = () => {
+        if (this.props.filepath) {
+            this.writeFile(this.props.filepath);
+        } else {
+            remote.dialog.showSaveDialog({
+                filters: [
+                    {name: "JSON", extensions: ["json"]},
+                ],
+                title: "Save Schema",
+            }, (filename?: string) => {
+                if (filename) {
+                    if (!filename.endsWith(".json")) {
+                        filename = `${filename}.json`;
+                    }
+
+                    this.writeFile(filename);
+                }
+            });
+        }
     }
 
     private setNotes = (e: ChangeEvent<HTMLTextAreaElement>) => {

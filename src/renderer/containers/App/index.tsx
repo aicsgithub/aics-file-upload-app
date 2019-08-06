@@ -1,6 +1,7 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message } from "antd";
 import { ipcRenderer, remote } from "electron";
+import { readFile } from "fs";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -11,13 +12,14 @@ import FolderTree from "../../components/FolderTree";
 import SchemaEditorModal from "../../components/SchemaEditorModal";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
-import { clearAlert } from "../../state/feedback/actions";
+import { clearAlert, setAlert } from "../../state/feedback/actions";
 import { getAlert, getIsLoading, getRecentEvent } from "../../state/feedback/selectors";
 import {
     AlertType,
     AppAlert,
     AppEvent,
-    ClearAlertAction
+    ClearAlertAction,
+    SetAlertAction,
 } from "../../state/feedback/types";
 import { getIsUnsafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
@@ -26,7 +28,11 @@ import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection
 import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
 import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
-import { GatherSettingsAction, UpdateSettingsAction } from "../../state/setting/types";
+import {
+    GatherSettingsAction,
+    SchemaDefinition,
+    UpdateSettingsAction,
+} from "../../state/setting/types";
 import { State } from "../../state/types";
 import { FileTag } from "../../state/upload/types";
 
@@ -37,6 +43,7 @@ import UploadJobs from "../UploadJob";
 import UploadSummary from "../UploadSummary";
 
 import { getFileToTags } from "./selectors";
+import { isSchemaDefinition } from "./util";
 
 const styles = require("./styles.pcss");
 const ALERT_DURATION = 2;
@@ -55,11 +62,14 @@ interface AppProps {
     requestMetadata: ActionCreator<RequestMetadataAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
+    setAlert: ActionCreator<SetAlertAction>;
     page: Page;
     updateSettings: ActionCreator<UpdateSettingsAction>;
 }
 
 interface AppState {
+    schema?: SchemaDefinition;
+    schemaFilepath?: string;
     showCreateSchemaModal: boolean;
 }
 
@@ -118,9 +128,43 @@ class App extends React.Component<AppProps, AppState> {
                 remote.app.exit();
             }
         });
-        ipcRenderer.on(OPEN_CREATE_SCHEMA_MODAL, () => {
-            this.setState({showCreateSchemaModal: true});
+        ipcRenderer.on(OPEN_CREATE_SCHEMA_MODAL, (event: Event, schemaFilepath?: string) => {
+            if (schemaFilepath) {
+                readFile(schemaFilepath, (err, data: Buffer) => {
+                    if (err) {
+                        this.props.setAlert({
+                            message: err,
+                            type: AlertType.ERROR,
+                        });
+                    } else {
+                        try {
+                            const json = JSON.parse(data.toString());
+                            if (isSchemaDefinition(json)) {
+                                this.setState({
+                                    schema: json,
+                                    schemaFilepath,
+                                    showCreateSchemaModal: true,
+                                });
+                            } else {
+                                this.props.setAlert({
+                                    message: "Invalid schema JSON",
+                                    type: AlertType.ERROR,
+                                });
+                            }
+
+                        } catch (e) {
+                            this.props.setAlert({
+                                message: e.message || "File is not valid JSON",
+                                type: AlertType.ERROR,
+                            });
+                        }
+                    }
+                });
+            } else {
+                this.setState({showCreateSchemaModal: true});
+            }
         });
+
     }
 
     public componentDidUpdate() {
@@ -161,7 +205,7 @@ class App extends React.Component<AppProps, AppState> {
             selectedFiles,
             page,
         } = this.props;
-        const { showCreateSchemaModal } = this.state;
+        const { schema, schemaFilepath, showCreateSchemaModal } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
 
         if (!pageConfig) {
@@ -188,6 +232,9 @@ class App extends React.Component<AppProps, AppState> {
                 <SchemaEditorModal
                     close={this.closeCreateSchemaModal}
                     visible={showCreateSchemaModal}
+                    schema={schema}
+                    setAlert={setAlert}
+                    filepath={schemaFilepath}
                 />
             </div>
         );
@@ -216,6 +263,7 @@ const dispatchToPropsMap = {
     getFilesInFolder: selection.actions.getFilesInFolder,
     requestMetadata,
     selectFile: selection.actions.selectFile,
+    setAlert,
     updateSettings,
 };
 
