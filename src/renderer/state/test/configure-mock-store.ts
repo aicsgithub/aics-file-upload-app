@@ -52,8 +52,8 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         showMessageBox: stub(),
     },
     fms: {
-        uploadFiles: stub(),
-        validateMetadata: stub(),
+        uploadFiles: stub().resolves(),
+        validateMetadata: stub().resolves(),
     },
     httpClient: {
         get: stub(),
