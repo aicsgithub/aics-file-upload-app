@@ -73,6 +73,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         notes: undefined,
+                        originalPath: "/path/to.dot/image.tiff",
                     },
                     microscopy: {
                         wellIds: [6],
@@ -82,6 +83,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         notes: undefined,
+                        originalPath: "/path/to/image.czi",
                     },
                     microscopy: {
                         wellIds: [1],
@@ -91,6 +93,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         notes: undefined,
+                        originalPath: "/path/to/image.ome.tiff",
                     },
                     microscopy: {
                         wellIds: [2],
@@ -100,6 +103,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         notes: undefined,
+                        originalPath: "/path/to/image.png",
                     },
                     microscopy: {
                         wellIds: [3],
@@ -109,6 +113,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         notes: undefined,
+                        originalPath: "/path/to/image.tiff",
                     },
                     microscopy: {
                         wellIds: [4],
@@ -118,6 +123,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.TEXT,
                         notes: undefined,
+                        originalPath: "/path/to/multi-well.txt",
                     },
                     microscopy: {
                         wellIds: [5, 6, 7],
@@ -127,6 +133,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.OTHER,
                         notes: undefined,
+                        originalPath: "/path/to/no-extension",
                     },
                     microscopy: {
                         wellIds: [7],
@@ -136,6 +143,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.CSV,
                         notes: undefined,
+                        originalPath: "/path/to/not-image.csv",
                     },
                     microscopy: {
                         wellIds: [8],
@@ -145,6 +153,7 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.TEXT,
                         notes: undefined,
+                        originalPath: "/path/to/not-image.txt",
                     },
                     microscopy: {
                         wellIds: [5],

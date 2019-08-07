@@ -32,6 +32,7 @@ describe("Upload logics", () => {
             const store = createMockReduxStore(mockState, {
                 ...mockReduxLogicDeps,
                 fms: {
+                    ...mockReduxLogicDeps.fms,
                     validateMetadata: stub().resolves(),
                 },
             });
@@ -62,6 +63,7 @@ describe("Upload logics", () => {
             const store = createMockReduxStore(mockState, {
                 ...mockReduxLogicDeps,
                 fms: {
+                    ...mockReduxLogicDeps.fms,
                     validateMetadata: stub().rejects(),
                 },
             });

@@ -1,12 +1,4 @@
 // Event channels
-// emitted by main process when an upload is initiated
-export const START_UPLOAD = "START_UPLOAD";
-
-// emitted by main process if upload by aicsfiles finishes successfully
-export const UPLOAD_FINISHED = "UPLOAD_FINISHED";
-
-// emitted by main process if upload by aicsfiles throws an error
-export const UPLOAD_FAILED = "UPLOAD_FAILED";
 
 // emitted by main process when user clicks link to create plate standalone
 export const OPEN_CREATE_PLATE_STANDALONE = "OPEN_CREATE_PLATE";

@@ -1,8 +1,5 @@
-import { FileManagementSystem } from "@aics/aicsfiles";
-import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { app, BrowserWindow, Event, ipcMain } from "electron";
 import { autoUpdater } from "electron-updater";
-import Logger from "js-logger";
 import * as path from "path";
 import { format as formatUrl } from "url";
 
@@ -13,9 +10,6 @@ import {
     OPEN_CREATE_PLATE_STANDALONE,
     PLATE_CREATED,
     SAFELY_CLOSE_WINDOW,
-    START_UPLOAD,
-    UPLOAD_FAILED,
-    UPLOAD_FINISHED,
 } from "../shared/constants";
 
 import { setMenu } from "./menu";
@@ -93,25 +87,6 @@ app.on("ready", async () => {
     mainWindow = createMainWindow();
     await autoUpdater.checkForUpdatesAndNotify();
 });
-
-const startUpload = async (event: Event, uploads: Uploads, jobName: string) => {
-    Logger.debug("received start upload request from renderer");
-    const uploadClient = new FileManagementSystem({
-        event,
-        host: LIMS_HOST,
-        logLevel: "debug",
-        port: LIMS_PORT,
-    });
-    try {
-        const result = await uploadClient.uploadFiles(uploads, jobName);
-        event.sender.send(UPLOAD_FINISHED, jobName, result);
-    } catch (e) {
-        Logger.error(e.message);
-        event.sender.send(UPLOAD_FAILED, jobName, e.message);
-    }
-};
-
-ipcMain.on(START_UPLOAD, startUpload);
 
 ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, prefix: string) => {
     const child: BrowserWindow = new BrowserWindow({

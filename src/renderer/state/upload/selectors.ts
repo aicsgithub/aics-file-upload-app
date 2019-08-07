@@ -56,6 +56,7 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                 file: {
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     notes,
+                    originalPath: fullPath,
                 },
                 microscopy: {
                     wellIds,
