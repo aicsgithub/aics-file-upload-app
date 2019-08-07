@@ -46,21 +46,22 @@ const initiateUploadLogic = createLogic({
             uploads: ctx.uploads,
             user: userInfo().username,
         }));
+
         try {
             const result = await fms.uploadFiles(getUploadPayload(getState()), ctx.name);
             Logger.debug(`UPLOAD_FINISHED for jobName=${ctx.name} with result:`, result);
             dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
-            dispatch(removePendingJobs(ctx.name));
-            done();
+
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
             dispatch(setAlert({
                 message: `Upload Failed: ${e.message}`,
                 type: AlertType.ERROR,
             }));
-            dispatch(removePendingJobs(ctx.name));
-            done();
         }
+
+        dispatch(removePendingJobs(ctx.name));
+        done();
     },
     transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
