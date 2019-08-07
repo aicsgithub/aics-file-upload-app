@@ -21,13 +21,13 @@ import { getAreAllJobsComplete, getIsUnsafeToExit, getJobsForTable } from "../se
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
         it("converts jobs in redux store to objects used by upload summary page", () => {
-            const jobs = nonEmptyJobStateBranch.uploadJobs;
+            const jobs = [...nonEmptyJobStateBranch.uploadJobs, ...nonEmptyJobStateBranch.pendingJobs];
             const jobTableRows = getJobsForTable({
                 ...mockState,
                 job: {...nonEmptyJobStateBranch},
             });
 
-            expect(jobTableRows.length).to.equal(jobs.length + nonEmptyJobStateBranch.pendingJobs.length);
+            expect(jobTableRows.length).to.equal(jobs.length);
             jobTableRows.forEach((jobTableRow) => {
                 const match = jobs.find((job) => {
                     return job.jobName === jobTableRow.jobName &&
