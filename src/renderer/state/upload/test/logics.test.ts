@@ -29,12 +29,7 @@ describe("Upload logics", () => {
 
     describe("initiateUploadLogic", () => {
         it("adds an info alert given valid metadata", (done) => {
-            const store = createMockReduxStore(mockState, {
-                ...mockReduxLogicDeps,
-                fms: {
-                    validateMetadata: stub().resolves(),
-                },
-            });
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -62,6 +57,7 @@ describe("Upload logics", () => {
             const store = createMockReduxStore(mockState, {
                 ...mockReduxLogicDeps,
                 fms: {
+                    ...mockReduxLogicDeps.fms,
                     validateMetadata: stub().rejects(),
                 },
             });

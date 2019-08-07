@@ -21,22 +21,23 @@ import { getAreAllJobsComplete, getIsUnsafeToExit, getJobsForTable } from "../se
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
         it("converts jobs in redux store to objects used by upload summary page", () => {
-            const jobs = nonEmptyJobStateBranch.uploadJobs;
+            const jobs = [...nonEmptyJobStateBranch.uploadJobs, ...nonEmptyJobStateBranch.pendingJobs];
             const jobTableRows = getJobsForTable({
                 ...mockState,
                 job: {...nonEmptyJobStateBranch},
             });
 
-            expect(jobTableRows.length).to.equal(jobs.length + nonEmptyJobStateBranch.pendingJobs.length);
-            for (let i = 0; i < jobs.length; i++) {
-                const job = jobs[i];
-                const jobTableRow = jobTableRows[i];
-                expect(jobTableRow.jobName).to.equal(job.jobName);
-                expect(jobTableRow.key).to.equal(job.jobId);
-                expect(jobTableRow.currentStage).to.equal(job.currentStage);
-                expect(jobTableRow.status).to.equal(job.status);
-                expect(jobTableRow.modified).to.equal(job.modified);
-            }
+            expect(jobTableRows.length).to.equal(jobs.length);
+            jobTableRows.forEach((jobTableRow) => {
+                const match = jobs.find((job) => {
+                    return job.jobName === jobTableRow.jobName &&
+                        job.jobId === jobTableRow.key &&
+                        job.currentStage === jobTableRow.currentStage &&
+                        job.status === jobTableRow.status &&
+                        job.modified === jobTableRow.modified;
+                });
+                expect(match).to.not.be.undefined;
+            });
         });
     });
 

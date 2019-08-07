@@ -1,4 +1,4 @@
-import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import { UploadResponse, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { CreateJobRequest, JobQuery, JSSJob, UpdateJobRequest } from "@aics/job-status-client/type-declarations/types";
 import { AxiosPromise, AxiosRequestConfig } from "axios";
 import { MessageBoxOptions } from "electron";
@@ -40,6 +40,7 @@ export interface ReduxLogicExtraDependencies {
         ): number;
     };
     fms: {
+        uploadFiles: (uploads: Uploads, jobName: string) => Promise<UploadResponse>;
         validateMetadata: (metadata: Uploads) => Promise<void>;
     };
     httpClient: HttpClient;

@@ -23,6 +23,7 @@ export interface ReduxLogicDependencies {
         showMessageBox: SinonStub;
     };
     fms: {
+        uploadFiles: SinonStub;
         validateMetadata: SinonStub;
     };
     httpClient: {
@@ -51,7 +52,8 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         showMessageBox: stub(),
     },
     fms: {
-        validateMetadata: stub(),
+        uploadFiles: stub().resolves(),
+        validateMetadata: stub().resolves(),
     },
     httpClient: {
         get: stub(),

@@ -1,13 +1,7 @@
-import { UploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import Logger from "js-logger";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 
-import {
-    START_UPLOAD,
-    UPLOAD_FAILED,
-    UPLOAD_FINISHED,
-} from "../../../shared/constants";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 import { addPendingJob, removePendingJobs } from "../job/actions";
@@ -39,24 +33,8 @@ const associateFileAndWellLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
-    process: ({ctx, getState, ipcRenderer}: ReduxLogicProcessDependencies,
-              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        ipcRenderer.on(UPLOAD_FINISHED, (event: Event, jobName: string, result: UploadResponse) => {
-            Logger.debug(`UPLOAD_FINISHED for jobName=${jobName} with result:`, result);
-            dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
-            dispatch(removePendingJobs(ctx.name));
-            done();
-        });
-        ipcRenderer.on(UPLOAD_FAILED, (event: Event, jobName: string, error: string) => {
-            Logger.error(`UPLOAD_FAILED for jobName=${jobName}`, error);
-            dispatch(setAlert({
-                message: `Upload Failed: ${error}`,
-                type: AlertType.ERROR,
-            }));
-            dispatch(removePendingJobs(ctx.name));
-            done();
-        });
-        ipcRenderer.send(START_UPLOAD, getUploadPayload(getState()), ctx.name);
+    process: async ({ctx, fms, getState, ipcRenderer}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const now = new Date();
         dispatch(addPendingJob({
             created: now,
@@ -68,6 +46,22 @@ const initiateUploadLogic = createLogic({
             uploads: ctx.uploads,
             user: userInfo().username,
         }));
+
+        try {
+            const result = await fms.uploadFiles(getUploadPayload(getState()), ctx.name);
+            Logger.debug(`UPLOAD_FINISHED for jobName=${ctx.name} with result:`, result);
+            dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
+
+        } catch (e) {
+            Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
+            dispatch(setAlert({
+                message: `Upload Failed: ${e.message}`,
+                type: AlertType.ERROR,
+            }));
+        }
+
+        dispatch(removePendingJobs(ctx.name));
+        done();
     },
     transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
