@@ -1,16 +1,17 @@
 import { Button } from "antd";
-import { isEmpty } from "lodash";
+import { isEmpty, without } from "lodash";
 import * as React from "react";
+import ReactDataGrid from "react-data-grid";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import { State } from "../../state/types";
 import FormPage from "../../components/FormPage";
 import NoteIcon from "../../components/NoteIcon";
 import { setAlert } from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction } from "../../state/selection/types";
-import { State } from "../../state/types";
 import { initiateUpload, jumpToUpload, removeUploads, updateUpload } from "../../state/upload/actions";
 import { getCanRedoUpload, getCanUndoUpload, getUploadSummaryRows } from "../../state/upload/selectors";
 import {
@@ -20,15 +21,8 @@ import {
     UpdateUploadAction,
     UploadJobTableRow
 } from "../../state/upload/types";
-import ReactDataGrid from "react-data-grid";
-import { without } from 'lodash';
-// TODO: Fix ordering of imports and spacing
 
 const styles = require("./style.pcss");
-
-interface DragEnterCounts {
-    [file: string]: number;
-}
 
 interface Props {
     canRedo: boolean;
@@ -45,29 +39,15 @@ interface Props {
 }
 
 interface UploadJobState {
-    // Keeps track of net number of drag events into each row.
-    // Used to determine if the row is being hovered or not.
-    // This is guaranteed to be 1 or greater when a file is hovered within the row.
-    // Making this a boolean doesn't work because child elements will also fire
-    // drag/drop events (and this can't be prevented).
-    dragEnterCounts: DragEnterCounts;
-    // array of fullpaths
     selectedRows: number[];
     sortColumn?: 'barcode' | 'file' | 'wellLabels';
     sortDirection?: 'ASC' | 'DESC' | 'NONE'
 }
 
-// TODO: Drag n drop highlighting on row
-// TODO: Do some text wrapping
 class UploadJob extends React.Component<Props, UploadJobState> {
     // Necessary to allow drag and dropping on row rather than just the NoteIcon
     private dragAndDropFormatter = ({ row, value }: any) => (
-        <div
-            className={this.state.dragEnterCounts[row.file] && styles.rowHighlight}
-            // onDragEnter={(e: React.DragEvent<HTMLDivElement>) => this.onDragEnter(row, e)}
-            // onDragLeave={(e: React.DragEvent<HTMLDivElement>) => this.onDragLeave(row, e)}
-            // onDrop={(e: React.DragEvent<HTMLDivElement>) => this.onDrop(row, e)}
-        >
+        <div onDrop={(e: React.DragEvent<HTMLDivElement>) => this.onDrop(row, e)}>
             {value}
         </div>
     );
@@ -92,14 +72,11 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             formatter: this.dragAndDropFormatter,
             key: "wellLabels",
             name: "Well(s)",
+            sortable: true,
         },
         {
             formatter: ({ row }: any) => (
-                <div
-                    onDragEnter={(e: React.DragEvent<HTMLDivElement>) => this.onDragEnter(row, e)}
-                    onDragLeave={(e: React.DragEvent<HTMLDivElement>) => this.onDragLeave(row, e)}
-                    onDrop={(e: React.DragEvent<HTMLDivElement>) => this.onDrop(row, e)}
-                >
+                <div onDrop={(e: React.DragEvent<HTMLDivElement>) => this.onDrop(row, e)}>
                     <NoteIcon
                         handleError={this.handleError}
                         notes={row.notes}
@@ -116,7 +93,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            dragEnterCounts: {},
             selectedRows: [],
         };
     }
@@ -128,8 +104,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         // having notes & sorted (or in the future edited/filtered) rows. At the moment, I went with this solution of
         // sorting on each render
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
-        const rowsWithClassName = sortedRows.map((row: UploadJobTableRow) => ({ ...row, className: styles.rowHighlight}));
-        const rowGetter = (idx: number) => rowsWithClassName[idx];
+        const rowGetter = (idx: number) => sortedRows[idx];
 
         return (
             <FormPage
@@ -142,7 +117,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
-                <div className={styles.gridAndNotes}>
+                <div className={styles.dataGrid}>
                     {sortedRows.length ?
                         <ReactDataGrid
                             cellNavigationMode="changeRow"
@@ -204,10 +179,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     private renderButtons = () => {
-        const {
-            canRedo,
-            canUndo,
-        } = this.props;
+        const { canRedo, canUndo } = this.props;
         const { selectedRows } = this.state;
 
         return (
@@ -242,27 +214,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         e.preventDefault();
         const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
         this.saveNotes(row, notes);
-        this.setState({ dragEnterCounts: {} });
-    }
-
-    private onDragEnter = (row: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
-        e.preventDefault();
-        this.setState({
-            dragEnterCounts: {
-                ...this.state.dragEnterCounts,
-                [row.file]: (this.state.dragEnterCounts[row.file] || 0) + 1,
-            },
-        });
-    }
-
-    private onDragLeave = (row: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
-        e.preventDefault();
-        this.setState({
-            dragEnterCounts: {
-                ...this.state.dragEnterCounts,
-                [row.file]: this.state.dragEnterCounts[row.file] - 1,
-            },
-        });
     }
 
     // Not allowing lambdas in JSX attributes resulted in this (perhaps there is a better way?)
