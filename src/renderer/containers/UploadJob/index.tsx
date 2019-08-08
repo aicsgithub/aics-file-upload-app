@@ -1,8 +1,8 @@
-import { Button, Table } from "antd";
-import { TableEventListeners } from "antd/es/table/interface";
-import { ColumnProps } from "antd/lib/table";
-import { isEmpty } from "lodash";
+import { Button } from "antd";
+import { isEmpty, without } from "lodash";
+import Logger from "js-logger";
 import * as React from "react";
+import ReactDataGrid from "react-data-grid";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
@@ -22,13 +22,11 @@ import {
     UpdateUploadAction,
     UploadJobTableRow
 } from "../../state/upload/types";
-import { alphaOrderComparator } from "../../util";
 
 const styles = require("./style.pcss");
 
-interface DragEnterCounts {
-    [file: string]: number;
-}
+type SortableColumns = "barcode" | "file" | "wellLabels";
+type SortDirections = "ASC" | "DESC" | "NONE";
 
 interface Props {
     canRedo: boolean;
@@ -45,79 +43,77 @@ interface Props {
 }
 
 interface UploadJobState {
-    // Keeps track of net number of drag events into each row.
-    // Used to determine if the row is being hovered or not.
-    // This is guaranteed to be 1 or greater when a file is hovered within the row.
-    // Making this a boolean doesn't work because child elements will also fire
-    // drag/drop events (and this can't be prevented).
-    dragEnterCounts: DragEnterCounts;
-    // array of fullpaths
     selectedFiles: string[];
+    sortColumn?: SortableColumns;
+    sortDirection?: SortDirections;
 }
 
 class UploadJob extends React.Component<Props, UploadJobState> {
-    private columns: Array<ColumnProps<UploadJobTableRow>> = [
+    private UPLOAD_JOB_COLUMNS: Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> = [
         {
-            dataIndex: "barcode",
-            key: "barcode",
-            sortDirections: ["ascend", "descend"],
-            sorter: (a, b) => alphaOrderComparator(a.barcode, b.barcode),
-            title: "Barcode",
-        },
-        {
-            dataIndex: "file",
-            key: "file",
-            sortDirections: ["ascend", "descend"],
-            sorter: (a, b) => alphaOrderComparator(a.file, b.file),
-            title: "File",
-        },
-        {
-            dataIndex: "wellLabels",
-            key: "wellLabels",
-            title: "Well(s)",
-        },
-        {
-            key: "notes",
-            render: (text: string, record: UploadJobTableRow) => (
-                <NoteIcon
-                    notes={record.notes}
-                    handleError={this.handleError}
-                    saveNotes={this.saveNotesByRecord(record)}
-                />
+            formatter: ({ row, value }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    {value}
+                </div>
             ),
-            title: "Notes",
-        }];
-
-    private get rowSelection() {
-        return {
-            hideDefaultSelections: true,
-            onChange: this.onSelectChange,
-            selectedRowKeys: this.state.selectedFiles,
-            selections: [
-                {
-                    key: "all-data",
-                    onSelect: () => this.setState({
-                        selectedFiles: this.props.uploads.map((u) => u.file),
-                    }),
-                    text: "Select all pages",
-                },
-            ],
-        };
-    }
+            key: "file",
+            name: "File",
+            resizable: true,
+            sortable: true,
+        },
+        {
+            formatter: ({ row, value }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    {value}
+                </div>
+            ),
+            key: "barcode",
+            name: "Barcode",
+            resizable: true,
+            sortable: true,
+            width: 135,
+        },
+        {
+            formatter: ({ row, value }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    {value}
+                </div>
+            ),
+            key: "wellLabels",
+            name: "Well(s)",
+            sortable: true,
+        },
+        {
+            formatter: ({ row }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    <NoteIcon
+                        handleError={this.handleError}
+                        notes={row.notes}
+                        saveNotes={this.saveNotesByRow(row)}
+                    />
+                </div>
+            ),
+            key: "notes",
+            name: "Notes",
+            width: 80,
+        },
+    ];
 
     constructor(props: Props) {
         super(props);
         this.state = {
-            dragEnterCounts: {},
             selectedFiles: [],
         };
     }
 
     public render() {
-        const {
-            className,
-            uploads,
-        } = this.props;
+        const { className, uploads} = this.props;
+        const { selectedFiles } = this.state;
+        // Saving rows to the state seems to significantly complicate things due to actions like undo/redo while
+        // having notes & sorted (or in the future edited/filtered) rows. At the moment, I went with this solution of
+        // sorting on each render
+        const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
+        const rowGetter = (idx: number) => sortedRows[idx];
 
         return (
             <FormPage
@@ -125,32 +121,90 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
+                saveButtonDisabled={!this.props.uploads.length}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
-                <Table
-                    className={styles.tableRow}
-                    columns={this.columns}
-                    dataSource={uploads}
-                    onRow={this.onRow}
-                    rowSelection={this.rowSelection}
-                />
+                <div className={styles.dataGrid}>
+                    {sortedRows.length ?
+                        <ReactDataGrid
+                            cellNavigationMode="changeRow"
+                            columns={this.UPLOAD_JOB_COLUMNS}
+                            enableCellSelect={true}
+                            enableDragAndDrop={true}
+                            onGridSort={this.determineSort}
+                            rowGetter={rowGetter}
+                            rowsCount={sortedRows.length}
+                            rowSelection={{
+                                enableShiftSelect: true,
+                                onRowsDeselected: this.deselectRows,
+                                onRowsSelected: this.selectRows,
+                                selectBy: {
+                                    keys: {
+                                        rowKey: "file",
+                                        values: selectedFiles,
+                                    }
+                                },
+                            }}
+                        />
+                        :
+                        <p className={styles.alignCenter}>No Uploads</p>
+                    }
+                </div>
             </FormPage>
         );
     }
 
+    // This method currently only supports file, barcode, and wellLabels due to typescript constraints on allowing
+    // indexing of objects with a key of type: string since TS7017: Element implicitly has an 'any' type because type
+    // 'UploadJobTableRow' has no index signature. Can update this to include more columns or search inside an array
+    // of "editableColumns"
+    private determineSort = (sortColumn: string, sortDirection: SortDirections) => {
+        if (sortColumn !== "barcode" && sortColumn !== "file" && sortColumn !== "wellLabels") {
+            Logger.error(`Invalid column sort attempted with column: ${sortColumn}`);
+        } else {
+            this.setState({ sortColumn, sortDirection });
+        }
+    }
+
+    // This method converts the value at the key to string to allow this sort of generic comparison with localCompare
+    private sortRows = (rows: UploadJobTableRow[],
+                        sortColumn?: SortableColumns,
+                        sortDirection?: SortDirections)
+        : UploadJobTableRow[] => {
+        if (sortColumn && sortDirection === "ASC") {
+            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
+                `${a[sortColumn]}`.localeCompare(`${b[sortColumn]}`)
+            );
+        }
+        if (sortColumn && sortDirection === "DESC") {
+            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
+                `${b[sortColumn]}`.localeCompare(`${a[sortColumn]}`)
+            );
+        }
+        return this.props.uploads;
+    }
+
+    private selectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
+        const files = rows.map((r) => r.row.file);
+        this.setState({ selectedFiles: [...this.state.selectedFiles, ...files] });
+    }
+
+    private deselectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
+        const files = rows.map((r) => r.row.file);
+        const selectedFiles = without(this.state.selectedFiles, ...files);
+        this.setState({ selectedFiles });
+    }
+
     private renderButtons = () => {
-        const {
-            canRedo,
-            canUndo,
-        } = this.props;
-        const {selectedFiles} = this.state;
+        const { canRedo, canUndo } = this.props;
+        const { selectedFiles } = this.state;
 
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.deleteButton}>
-                    <Button onClick={this.removeUploads} disabled={isEmpty(selectedFiles)}>
+                    <Button onClick={this.removeSelectedUploads} disabled={isEmpty(selectedFiles)}>
                         Remove Selected
                     </Button>
                 </div>
@@ -167,55 +221,26 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         this.props.goForward();
     }
 
-    private removeUploads = (): void => {
-        this.setState({selectedFiles: []});
+    private removeSelectedUploads = (): void => {
         this.props.removeUploads(this.state.selectedFiles);
+        this.setState({ selectedFiles: [] });
     }
 
-    private onRow = (record: UploadJobTableRow): TableEventListeners => {
-        const className = this.state.dragEnterCounts[record.file] && styles.rowHighlight;
-        return {
-            className,
-            onDragEnter: (e: React.DragEvent<HTMLDivElement>) => this.onDragEnter(record, e),
-            onDragLeave: (e: React.DragEvent<HTMLDivElement>) => this.onDragLeave(record, e),
-            onDrop: (e: React.DragEvent<HTMLDivElement>) => this.onDrop(record, e),
-        };
-    }
-
-    private onDrop = async (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
-        this.saveNotes(record, notes);
-        this.setState({ dragEnterCounts: {} });
-    }
-
-    private onDragEnter = (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
-        e.preventDefault();
-        this.setState({
-            dragEnterCounts: {
-                ...this.state.dragEnterCounts,
-                [record.file]: (this.state.dragEnterCounts[record.file] || 0) + 1,
-            },
-        });
-    }
-
-    private onDragLeave = (record: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>): void => {
-        e.preventDefault();
-        this.setState({
-            dragEnterCounts: {
-                ...this.state.dragEnterCounts,
-                [record.file]: this.state.dragEnterCounts[record.file] - 1,
-            },
-        });
-    }
+    private onDrop = (row: UploadJobTableRow) => (
+        async (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
+            this.saveNotes(row, notes);
+        }
+    )
 
     // Not allowing lambdas in JSX attributes resulted in this (perhaps there is a better way?)
-    private saveNotesByRecord = (record: UploadJobTableRow): (notes: string | undefined) => void => {
-        return (notes: string | undefined) => this.saveNotes(record, notes);
+    private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
+        return (notes: string | undefined) => this.saveNotes(row, notes);
     }
 
-    private saveNotes = (record: UploadJobTableRow, notes: string | undefined) => {
-        this.props.updateUpload({ ...record, notes });
+    private saveNotes = (row: UploadJobTableRow, notes: string | undefined) => {
+        this.props.updateUpload({ ...row, notes });
     }
 
     private handleError = (error: string) => {
@@ -223,12 +248,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             message: error,
             type: AlertType.WARN,
         });
-    }
-
-    private onSelectChange = (selectedFiles: string[] | number[]): void => {
-        // keys are always defined on the rows as a string so we can safely cast this:
-        const files = selectedFiles as string[];
-        this.setState({selectedFiles: files});
     }
 
     private undo = (): void => {

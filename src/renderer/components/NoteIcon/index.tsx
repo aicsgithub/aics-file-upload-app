@@ -7,6 +7,8 @@ import * as React from "react";
 import { DragAndDropFileList } from "../../state/selection/types";
 import DragAndDrop from "../DragAndDrop";
 
+const styles = require("./styles.pcss");
+
 const readFileAsync = (file: string) => {
     return new Promise((resolve) => {
         resolve(readFileSync(file));
@@ -144,7 +146,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
                 >
                     {this.renderNotes()}
                 </Modal>
-                <div ref={this.iconRef}>
+                <div className={styles.alignCenter} ref={this.iconRef}>
                     {this.state.notes ?
                         <Icon onClick={this.openModal} type="file-text" />
                         :
@@ -160,6 +162,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
             return (
                 <>
                     <TextArea
+                        className={styles.useFullWidth}
                         onChange={this.updateNotes}
                         placeholder="Type notes for file here or drag/drop a file below"
                         autosize={{ minRows: 4, maxRows: 12 }}

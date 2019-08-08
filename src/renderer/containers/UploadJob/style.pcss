@@ -15,3 +15,19 @@
     background-color: var(--drag-and-drop-background-color);
     color: var(--brand-primary);
 }
+
+.data-grid {
+    flex: 1;
+
+    & :global(.react-grid-Grid) :global(.react-grid-Viewport) :global(.react-grid-Canvas) {
+        overflow: auto !important;
+    }
+
+    & :global(.react-grid-HeaderRow) {
+        overflow: hidden !important;
+    }
+}
+
+.align-center {
+    text-align: center;
+}
