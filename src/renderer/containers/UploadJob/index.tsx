@@ -5,13 +5,13 @@ import ReactDataGrid from "react-data-grid";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { State } from "../../state/types";
 import FormPage from "../../components/FormPage";
 import NoteIcon from "../../components/NoteIcon";
 import { setAlert } from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction } from "../../state/selection/types";
+import { State } from "../../state/types";
 import { initiateUpload, jumpToUpload, removeUploads, updateUpload } from "../../state/upload/actions";
 import { getCanRedoUpload, getCanUndoUpload, getUploadSummaryRows } from "../../state/upload/selectors";
 import {
@@ -23,6 +23,9 @@ import {
 } from "../../state/upload/types";
 
 const styles = require("./style.pcss");
+
+type SortableColumns = "barcode" | "file" | "wellLabels";
+type SortDirections = "ASC" | "DESC" | "NONE";
 
 interface Props {
     canRedo: boolean;
@@ -40,28 +43,29 @@ interface Props {
 
 interface UploadJobState {
     selectedRows: number[];
-    sortColumn?: 'barcode' | 'file' | 'wellLabels';
-    sortDirection?: 'ASC' | 'DESC' | 'NONE'
+    sortColumn?: SortableColumns;
+    sortDirection?: SortDirections;
 }
 
 class UploadJob extends React.Component<Props, UploadJobState> {
-    // Necessary to allow drag and dropping on row rather than just the NoteIcon
-    private dragAndDropFormatter = ({ row, value }: any) => (
-        <div onDrop={(e: React.DragEvent<HTMLDivElement>) => this.onDrop(row, e)}>
-            {value}
-        </div>
-    );
-
     private UPLOAD_JOB_COLUMNS: Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> = [
         {
-            formatter: this.dragAndDropFormatter,
+            formatter: ({ row, value }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    {value}
+                </div>
+            ),
             key: "file",
             name: "File",
             resizable: true,
             sortable: true,
         },
         {
-            formatter: this.dragAndDropFormatter,
+            formatter: ({ row, value }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    {value}
+                </div>
+            ),
             key: "barcode",
             name: "Barcode",
             resizable: true,
@@ -69,14 +73,18 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             width: 135,
         },
         {
-            formatter: this.dragAndDropFormatter,
+            formatter: ({ row, value }: any) => (
+                <div onDrop={this.onDrop(row)}>
+                    {value}
+                </div>
+            ),
             key: "wellLabels",
             name: "Well(s)",
             sortable: true,
         },
         {
             formatter: ({ row }: any) => (
-                <div onDrop={(e: React.DragEvent<HTMLDivElement>) => this.onDrop(row, e)}>
+                <div onDrop={this.onDrop(row)}>
                     <NoteIcon
                         handleError={this.handleError}
                         notes={row.notes}
@@ -98,7 +106,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     public render() {
-        const { className, uploads,} = this.props;
+        const { className, uploads} = this.props;
         const { selectedRows } = this.state;
         // Saving rows to the state seems to significantly complicate things due to actions like undo/redo while
         // having notes & sorted (or in the future edited/filtered) rows. At the moment, I went with this solution of
@@ -148,21 +156,28 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     // indexing of objects with a key of type: string since TS7017: Element implicitly has an 'any' type because type
     // 'UploadJobTableRow' has no index signature. Can update this to include more columns or search inside an array
     // of "editableColumns"
-    private determineSort = (sortColumn: string, sortDirection: 'ASC' | 'DESC' | 'NONE') => {
-        if (sortColumn !== 'barcode' && sortColumn !== 'file' && sortColumn !== 'wellLabels') {
-            this.handleError(`Invalid column sort attempted with column: ${sortColumn}`)
+    private determineSort = (sortColumn: string, sortDirection: SortDirections) => {
+        if (sortColumn !== "barcode" && sortColumn !== "file" && sortColumn !== "wellLabels") {
+            this.handleError(`Invalid column sort attempted with column: ${sortColumn}`);
         } else {
             this.setState({ sortColumn, sortDirection });
         }
     }
 
     // This method converts the value at the key to string to allow this sort of generic comparison with localCompare
-    private sortRows = (rows: UploadJobTableRow[], sortColumn?: 'barcode' | 'file' | 'wellLabels', sortDirection?: 'ASC' | 'DESC' | 'NONE'): UploadJobTableRow[] => {
-        if (sortColumn && sortDirection === 'ASC') {
-            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) => `${a[sortColumn]}`.localeCompare(`${b[sortColumn]}`));
+    private sortRows = (rows: UploadJobTableRow[],
+                        sortColumn?: SortableColumns,
+                        sortDirection?: SortDirections)
+        : UploadJobTableRow[] => {
+        if (sortColumn && sortDirection === "ASC") {
+            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
+                `${a[sortColumn]}`.localeCompare(`${b[sortColumn]}`)
+            );
         }
-        if (sortColumn && sortDirection === 'DESC') {
-            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) => `${b[sortColumn]}`.localeCompare(`${a[sortColumn]}`));
+        if (sortColumn && sortDirection === "DESC") {
+            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
+                `${b[sortColumn]}`.localeCompare(`${a[sortColumn]}`)
+            );
         }
         return this.props.uploads;
     }
@@ -205,16 +220,18 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     private removeSelectedUploads = (): void => {
         // Need the sorted rows to get the file at the right index
         const sortedRows = this.sortRows(this.props.uploads, this.state.sortColumn, this.state.sortDirection);
-        const uploadsToRemove = this.state.selectedRows.map(rowIndex => sortedRows[rowIndex].file);
+        const uploadsToRemove = this.state.selectedRows.map((rowIndex) => sortedRows[rowIndex].file);
         this.setState({ selectedRows: [] });
         this.props.removeUploads(uploadsToRemove);
     }
 
-    private onDrop = async (row: UploadJobTableRow, e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
-        this.saveNotes(row, notes);
-    }
+    private onDrop = (row: UploadJobTableRow) => (
+        async (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
+            this.saveNotes(row, notes);
+        }
+    )
 
     // Not allowing lambdas in JSX attributes resulted in this (perhaps there is a better way?)
     private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
