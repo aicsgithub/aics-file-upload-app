@@ -1,5 +1,6 @@
 import { Button } from "antd";
 import { isEmpty, without } from "lodash";
+import Logger from "js-logger";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { connect } from "react-redux";
@@ -42,7 +43,7 @@ interface Props {
 }
 
 interface UploadJobState {
-    selectedRows: number[];
+    selectedFiles: string[];
     sortColumn?: SortableColumns;
     sortDirection?: SortDirections;
 }
@@ -101,13 +102,13 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            selectedRows: [],
+            selectedFiles: [],
         };
     }
 
     public render() {
         const { className, uploads} = this.props;
-        const { selectedRows } = this.state;
+        const { selectedFiles } = this.state;
         // Saving rows to the state seems to significantly complicate things due to actions like undo/redo while
         // having notes & sorted (or in the future edited/filtered) rows. At the moment, I went with this solution of
         // sorting on each render
@@ -140,12 +141,15 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                                 onRowsDeselected: this.deselectRows,
                                 onRowsSelected: this.selectRows,
                                 selectBy: {
-                                    indexes: selectedRows,
+                                    keys: {
+                                        rowKey: "file",
+                                        values: selectedFiles,
+                                    }
                                 },
                             }}
                         />
                         :
-                        <p style={{ textAlign: "center" }}>No Uploads</p>
+                        <p className={styles.alignCenter}>No Uploads</p>
                     }
                 </div>
             </FormPage>
@@ -158,7 +162,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     // of "editableColumns"
     private determineSort = (sortColumn: string, sortDirection: SortDirections) => {
         if (sortColumn !== "barcode" && sortColumn !== "file" && sortColumn !== "wellLabels") {
-            this.handleError(`Invalid column sort attempted with column: ${sortColumn}`);
+            Logger.error(`Invalid column sort attempted with column: ${sortColumn}`);
         } else {
             this.setState({ sortColumn, sortDirection });
         }
@@ -182,25 +186,25 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         return this.props.uploads;
     }
 
-    private selectRows = (rows: Array<{rowIdx: number}>) => {
-        const indexes = rows.map((r) => r.rowIdx);
-        this.setState({ selectedRows: [...this.state.selectedRows, ...indexes] });
+    private selectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
+        const files = rows.map((r) => r.row.file);
+        this.setState({ selectedFiles: [...this.state.selectedFiles, ...files] });
     }
 
-    private deselectRows = (rows: Array<{rowIdx: number}>) => {
-        const indexes = rows.map((r) => r.rowIdx);
-        const selectedRows = without(this.state.selectedRows, ...indexes);
-        this.setState({ selectedRows });
+    private deselectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
+        const files = rows.map((r) => r.row.file);
+        const selectedFiles = without(this.state.selectedFiles, ...files);
+        this.setState({ selectedFiles });
     }
 
     private renderButtons = () => {
         const { canRedo, canUndo } = this.props;
-        const { selectedRows } = this.state;
+        const { selectedFiles } = this.state;
 
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.deleteButton}>
-                    <Button onClick={this.removeSelectedUploads} disabled={isEmpty(selectedRows)}>
+                    <Button onClick={this.removeSelectedUploads} disabled={isEmpty(selectedFiles)}>
                         Remove Selected
                     </Button>
                 </div>
@@ -218,11 +222,8 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     private removeSelectedUploads = (): void => {
-        // Need the sorted rows to get the file at the right index
-        const sortedRows = this.sortRows(this.props.uploads, this.state.sortColumn, this.state.sortDirection);
-        const uploadsToRemove = this.state.selectedRows.map((rowIndex) => sortedRows[rowIndex].file);
-        this.setState({ selectedRows: [] });
-        this.props.removeUploads(uploadsToRemove);
+        this.props.removeUploads(this.state.selectedFiles);
+        this.setState({ selectedFiles: [] });
     }
 
     private onDrop = (row: UploadJobTableRow) => (
