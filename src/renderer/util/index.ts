@@ -1,4 +1,5 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
+import { existsSync, readFileSync } from "fs";
 import {
     forOwn,
     isFunction,
@@ -12,6 +13,18 @@ export function bindAll<T>(obj: T, methods: Array<() => any>) {
         }
     });
 }
+
+export const readFileAsync = (file: string): Promise<Buffer> => {
+    return new Promise((resolve) => {
+        resolve(readFileSync(file));
+    });
+};
+
+export const checkFileExistsAsync = (file: string): Promise<Boolean> => {
+    return new Promise((resolve) => {
+        resolve(existsSync(file))
+    })
+};
 
 const MAX_ROWS = 26;
 

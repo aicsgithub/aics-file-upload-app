@@ -1,19 +1,14 @@
 import { Icon, Modal } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { clipboard, OpenDialogOptions, remote } from "electron";
-import { readFileSync } from "fs";
 import * as React from "react";
 
 import { DragAndDropFileList } from "../../state/selection/types";
+import { readFileAsync } from "../../util";
 import DragAndDrop from "../DragAndDrop";
 
 const styles = require("./styles.pcss");
 
-const readFileAsync = (file: string) => {
-    return new Promise((resolve) => {
-        resolve(readFileSync(file));
-    });
-};
 
 interface NoteIconProps {
     handleError: (error: string) => void;
