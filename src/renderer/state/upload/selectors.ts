@@ -13,6 +13,11 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
+
+export const getSchemaFile = createSelector([getUpload], (uploads: UploadStateBranch): string | undefined =>
+    Object.keys(uploads).length ? uploads[Object.keys(uploads)[0]].schemaFile : undefined
+);
+
 export const getCanRedoUpload = createSelector([getUploadFuture], (future: UploadStateBranch[]) => {
     return !isEmpty(future);
 });
@@ -22,12 +27,13 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
 });
 
 export const getUploadSummaryRows = createSelector([getUpload], (uploads: UploadStateBranch): UploadJobTableRow[] =>
-    map(uploads, ({ barcode, notes, wellLabels }: UploadMetadata, fullPath: string) => ({
+    map(uploads, ({ barcode, notes, wellLabels, ...schemaProps }: UploadMetadata, fullPath: string) => ({
         barcode,
         file: fullPath,
         key: fullPath,
         notes,
         wellLabels: wellLabels.sort().join(", "),
+        ...schemaProps
     }))
 );
 

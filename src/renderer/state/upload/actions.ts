@@ -6,6 +6,7 @@ import {
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
+    UPDATE_SCHEMA,
     UPDATE_UPLOAD
 } from "./constants";
 import {
@@ -16,9 +17,11 @@ import {
     JumpToUploadAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
+    UpdateSchemaAction,
     UpdateUploadAction,
-    UploadJobTableRow
+    UploadMetadata
 } from "./types";
+import {SchemaDefinition} from "../setting/types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
     : AssociateFilesAndWellsAction {
@@ -78,9 +81,23 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-export function updateUpload(upload: UploadJobTableRow): UpdateUploadAction {
+export function updateSchema(schema?: SchemaDefinition, schemaFile?: string): UpdateSchemaAction {
     return {
-        payload: upload,
+        payload: {
+            schema,
+            schemaFile,
+            uploads: {}
+        },
+        type: UPDATE_SCHEMA,
+    };
+}
+
+export function updateUpload(filePath: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
+    return {
+        payload: {
+            filePath,
+            upload
+        },
         type: UPDATE_UPLOAD,
     };
 }

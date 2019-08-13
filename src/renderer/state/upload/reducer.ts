@@ -11,12 +11,14 @@ import {
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
+    UPDATE_SCHEMA,
     UPDATE_UPLOAD
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
+    UpdateSchemaAction,
     UpdateUploadAction,
     UploadStateBranch
 } from "./types";
@@ -63,13 +65,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOAD,
         perform: (state: UploadStateBranch, action: RemoveUploadsAction) => omit(state, action.payload),
     },
+    [UPDATE_SCHEMA]: {
+        accepts: (action: AnyAction): action is UpdateSchemaAction => action.type === UPDATE_SCHEMA,
+        perform: (state: UploadStateBranch, action: UpdateSchemaAction) => ({
+            ...state,
+            ...action.payload.uploads
+        }),
+    },
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
         perform: (state: UploadStateBranch, action: UpdateUploadAction) => ({
             ...state,
-            [action.payload.file]: {
-                ...state[action.payload.file],
-                notes: action.payload.notes,
+            [action.payload.filePath]: {
+                ...state[action.payload.filePath],
+                ...action.payload.upload,
             },
         }),
     },
