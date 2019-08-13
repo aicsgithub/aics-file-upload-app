@@ -1,0 +1,62 @@
+.button-row {
+  display: flex;
+  margin-bottom: 1em;
+}
+
+.delete-button {
+  flex: 1;
+}
+
+.undo-redo-buttons {
+  flex: 0 0 auto;
+}
+
+.row-highlight {
+    background-color: var(--drag-and-drop-background-color);
+    color: var(--brand-primary);
+}
+
+.data-grid {
+    flex: 1;
+
+    & :global(.react-grid-Grid) :global(.react-grid-Viewport) :global(.react-grid-Canvas) {
+        overflow: auto !important;
+    }
+
+    & :global(.react-grid-HeaderRow) {
+        overflow: hidden !important;
+    }
+}
+
+.align-center {
+    text-align: center;
+}
+
+.create-schema-button {
+    margin-left: 1em;
+    margin-top: 1.6em;
+}
+
+.apply-schema-width {
+    width: 100%;
+}
+
+.true {
+    background-color: lightgreen;
+    height: 100%;
+    padding-top: 3px;
+    text-align: center;
+    width: 100%;
+}
+
+.false {
+    background-color: pink;
+    height: 100%;
+    padding-top: 3px;
+    text-align: center;
+    width: 100%;
+}
+
+.required {
+    color: red;
+}
