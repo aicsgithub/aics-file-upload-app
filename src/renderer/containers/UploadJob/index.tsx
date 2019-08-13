@@ -1,103 +1,107 @@
+import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
 import { Button } from "antd";
-import { isEmpty, without } from "lodash";
-import Logger from "js-logger";
+import { ipcRenderer, OpenDialogOptions, remote } from "electron";
 import * as React from "react";
-import ReactDataGrid from "react-data-grid";
 import { connect } from "react-redux";
-import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
-import NoteIcon from "../../components/NoteIcon";
-import { setAlert } from "../../state/feedback/actions";
+import { setAlert} from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
-import { initiateUpload, jumpToUpload, removeUploads, updateUpload } from "../../state/upload/actions";
-import { getCanRedoUpload, getCanUndoUpload, getUploadSummaryRows } from "../../state/upload/selectors";
+import {
+    initiateUpload,
+    jumpToUpload,
+    removeUploads,
+    updateSchema,
+    updateUpload
+} from "../../state/upload/actions";
+import {
+    getCanRedoUpload,
+    getCanUndoUpload,
+    getSchemaFile,
+    getUploadSummaryRows
+} from "../../state/upload/selectors";
 import {
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
+    SchemaFileOption,
+    UpdateSchemaAction,
     UpdateUploadAction,
-    UploadJobTableRow
+    UploadJobTableRow,
 } from "../../state/upload/types";
+import { checkFileExistsAsync, readFileAsync } from "../../util";
+import { isSchemaDefinition } from "../App/util";
+import {
+    AddSchemaFilepathAction,
+    RemoveSchemaFilepathAction,
+    SchemaDefinition
+} from "../../state/setting/types";
+import { getSchemaFileOptions } from "../../state/setting/selectors";
+import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
+import UploadJobGrid from "../../components/UploadJobGrid";
+import { OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 
 const styles = require("./style.pcss");
 
-type SortableColumns = "barcode" | "file" | "wellLabels";
-type SortDirections = "ASC" | "DESC" | "NONE";
+const { ActionCreator } = React;
 
+// TODO: NEXT STEPS:
+// TODO: Sortable on new columns
+// TODO: Rearrangable columns
+
+// TODO: TESTING:
+// TODO: Test ondrop
+// TODO: Make Undo/Redo work
+// TODO: Editing all types
+// TODO: Tabbing, sorting
+// TODO: Organize imports
+
+// TODO: DEV:
+// TODO: Readonly mode for dates (OnBlur!!!)
+// TODO: Required
+// TODO: Is it worrisome I don't control the state of the Dates or Dropdown?
 interface Props {
+    addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
+    filepath?: string;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
+    removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
+    schemaFile?: string;
+    schemaFileOptions: SchemaFileOption[];
     setAlert: ActionCreator<SetAlertAction>;
+    updateSchema: ActionCreator<UpdateSchemaAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploads: UploadJobTableRow[];
 }
 
 interface UploadJobState {
+    schema?: SchemaDefinition;
     selectedFiles: string[];
-    sortColumn?: SortableColumns;
-    sortDirection?: SortDirections;
 }
 
+const openDialogOptions: OpenDialogOptions = {
+    filters: [
+        { name: "JSON", extensions: ["json"] },
+    ],
+    properties: ["openFile"],
+    title: "Select JSON file",
+};
+
+const BROWSE_FOR_EXISTING_SCHEMA = "...Browse for existing schema";
+
 class UploadJob extends React.Component<Props, UploadJobState> {
-    private UPLOAD_JOB_COLUMNS: Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> = [
-        {
-            formatter: ({ row, value }: any) => (
-                <div onDrop={this.onDrop(row)}>
-                    {value}
-                </div>
-            ),
-            key: "file",
-            name: "File",
-            resizable: true,
-            sortable: true,
-        },
-        {
-            formatter: ({ row, value }: any) => (
-                <div onDrop={this.onDrop(row)}>
-                    {value}
-                </div>
-            ),
-            key: "barcode",
-            name: "Barcode",
-            resizable: true,
-            sortable: true,
-            width: 135,
-        },
-        {
-            formatter: ({ row, value }: any) => (
-                <div onDrop={this.onDrop(row)}>
-                    {value}
-                </div>
-            ),
-            key: "wellLabels",
-            name: "Well(s)",
-            sortable: true,
-        },
-        {
-            formatter: ({ row }: any) => (
-                <div onDrop={this.onDrop(row)}>
-                    <NoteIcon
-                        handleError={this.handleError}
-                        notes={row.notes}
-                        saveNotes={this.saveNotesByRow(row)}
-                    />
-                </div>
-            ),
-            key: "notes",
-            name: "Notes",
-            width: 80,
-        },
-    ];
+    private static openSchemaCreator() {
+        ipcRenderer.send(OPEN_CREATE_SCHEMA_MODAL);
+    }
 
     constructor(props: Props) {
         super(props);
@@ -107,13 +111,20 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     public render() {
-        const { className, uploads} = this.props;
-        const { selectedFiles } = this.state;
-        // Saving rows to the state seems to significantly complicate things due to actions like undo/redo while
-        // having notes & sorted (or in the future edited/filtered) rows. At the moment, I went with this solution of
-        // sorting on each render
-        const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
-        const rowGetter = (idx: number) => sortedRows[idx];
+        const {
+            canRedo,
+            canUndo,
+            className,
+            goBack,
+            removeSchemaFilepath,
+            removeUploads,
+            setAlert,
+            schemaFile,
+            schemaFileOptions,
+            updateUpload,
+            uploads
+        } = this.props;
+        const { schema } = this.state;
 
         return (
             <FormPage
@@ -121,99 +132,109 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={!this.props.uploads.length}
+                saveButtonDisabled={!uploads.length}
                 saveButtonName="Upload"
-                onBack={this.props.goBack}
+                onBack={goBack}
             >
                 {this.renderButtons()}
-                <div className={styles.dataGrid}>
-                    {sortedRows.length ?
-                        <ReactDataGrid
-                            cellNavigationMode="changeRow"
-                            columns={this.UPLOAD_JOB_COLUMNS}
-                            enableCellSelect={true}
-                            enableDragAndDrop={true}
-                            onGridSort={this.determineSort}
-                            rowGetter={rowGetter}
-                            rowsCount={sortedRows.length}
-                            rowSelection={{
-                                enableShiftSelect: true,
-                                onRowsDeselected: this.deselectRows,
-                                onRowsSelected: this.selectRows,
-                                selectBy: {
-                                    keys: {
-                                        rowKey: "file",
-                                        values: selectedFiles,
-                                    }
-                                },
-                            }}
-                        />
-                        :
-                        <p className={styles.alignCenter}>No Uploads</p>
-                    }
-                </div>
+                <UploadJobGrid
+                    canRedo={canRedo}
+                    canUndo={canUndo}
+                    redo={this.redo}
+                    removeSchemaFilepath={removeSchemaFilepath}
+                    removeUploads={removeUploads}
+                    schema={schema}
+                    setAlert={setAlert}
+                    selectSchema={this.selectSchema}
+                    schemaFile={schemaFile}
+                    schemaFileOptions={schemaFileOptions}
+                    undo={this.undo}
+                    updateUpload={updateUpload}
+                    uploads={uploads}
+                />
             </FormPage>
         );
     }
 
-    // This method currently only supports file, barcode, and wellLabels due to typescript constraints on allowing
-    // indexing of objects with a key of type: string since TS7017: Element implicitly has an 'any' type because type
-    // 'UploadJobTableRow' has no index signature. Can update this to include more columns or search inside an array
-    // of "editableColumns"
-    private determineSort = (sortColumn: string, sortDirection: SortDirections) => {
-        if (sortColumn !== "barcode" && sortColumn !== "file" && sortColumn !== "wellLabels") {
-            Logger.error(`Invalid column sort attempted with column: ${sortColumn}`);
-        } else {
-            this.setState({ sortColumn, sortDirection });
-        }
-    }
-
-    // This method converts the value at the key to string to allow this sort of generic comparison with localCompare
-    private sortRows = (rows: UploadJobTableRow[],
-                        sortColumn?: SortableColumns,
-                        sortDirection?: SortDirections)
-        : UploadJobTableRow[] => {
-        if (sortColumn && sortDirection === "ASC") {
-            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
-                `${a[sortColumn]}`.localeCompare(`${b[sortColumn]}`)
-            );
-        }
-        if (sortColumn && sortDirection === "DESC") {
-            return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
-                `${b[sortColumn]}`.localeCompare(`${a[sortColumn]}`)
-            );
-        }
-        return this.props.uploads;
-    }
-
-    private selectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
-        const files = rows.map((r) => r.row.file);
-        this.setState({ selectedFiles: [...this.state.selectedFiles, ...files] });
-    }
-
-    private deselectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
-        const files = rows.map((r) => r.row.file);
-        const selectedFiles = without(this.state.selectedFiles, ...files);
-        this.setState({ selectedFiles });
-    }
-
     private renderButtons = () => {
-        const { canRedo, canUndo } = this.props;
-        const { selectedFiles } = this.state;
+        const {
+            schemaFile,
+            schemaFileOptions,
+        } = this.props;
 
         return (
             <div className={styles.buttonRow}>
-                <div className={styles.deleteButton}>
-                    <Button onClick={this.removeSelectedUploads} disabled={isEmpty(selectedFiles)}>
-                        Remove Selected
-                    </Button>
+                <div className={styles.applySchemaWidth}>
+                    <LabKeyOptionSelector
+                        label="Apply Schema"
+                        optionIdKey="filepath"
+                        optionNameKey="filepath"
+                        selected={schemaFile ? { filepath: schemaFile } : undefined}
+                        onOptionSelection={this.selectSchema}
+                        options={schemaFileOptions}
+                        placeholder="Select a schema file"
+                    />
                 </div>
-                <div className={styles.undoRedoButtons}>
-                    <Button className={styles.undoButton} onClick={this.undo} disabled={!canUndo}>Undo</Button>
-                    <Button className={styles.redoButton} onClick={this.redo} disabled={!canRedo}>Redo</Button>
-                </div>
+                <Button className={styles.createSchemaButton} onClick={UploadJob.openSchemaCreator}>
+                    Create Schema
+                </Button>
             </div>
         );
+    }
+
+    private readFile = async (schemaFile: string, newFile?: boolean) => {
+        try {
+            const fileBuffer = await readFileAsync(schemaFile);
+            const fileString = fileBuffer.toString();
+            const schema = JSON.parse(fileString);
+            if (!isSchemaDefinition(schema)) {
+                this.props.updateSchema();
+                this.handleError("Invalid schema JSON", schemaFile);
+                return;
+            }
+            this.props.updateSchema(schema, schemaFile);
+            if (newFile) {
+                this.props.addSchemaFilepath(schemaFile);
+            }
+            this.setState({ schema });
+        } catch (e) {
+            // It is possible for a user to select a directory
+            this.props.updateSchema();
+            this.handleError("Invalid file or directory selected (.json only)", schemaFile);
+        }
+    }
+
+    private findSchema = async () => {
+        remote.dialog.showOpenDialog(openDialogOptions, async (filepaths?: string[]) => {
+            if (filepaths && filepaths.length) {
+                // This shouldn't be possible with current window config
+                if (filepaths.length > 1) {
+                    this.props.updateSchema();
+                    this.handleError("Only one file may be selected");
+                } else {
+                    await this.readFile(filepaths[0], true);
+                }
+            }
+        });
+    }
+
+    private selectSchema = async (option: SchemaFileOption | null) => {
+        if (option && option.filepath !== this.props.schemaFile) {
+            if (option.filepath === BROWSE_FOR_EXISTING_SCHEMA) {
+                await this.findSchema();
+            } else {
+                const fileExists = await checkFileExistsAsync(option.filepath);
+                if (!fileExists) {
+                    this.props.updateSchema();
+                    this.handleError(`File cannot be found ${option.filepath}.`, option.filepath);
+                    return;
+                }
+                await this.readFile(option.filepath);
+            }
+        } else {
+            this.props.updateSchema();
+            this.setState({ schema: undefined });
+        }
     }
 
     private upload = (): void => {
@@ -221,29 +242,10 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         this.props.goForward();
     }
 
-    private removeSelectedUploads = (): void => {
-        this.props.removeUploads(this.state.selectedFiles);
-        this.setState({ selectedFiles: [] });
-    }
-
-    private onDrop = (row: UploadJobTableRow) => (
-        async (e: React.DragEvent<HTMLDivElement>) => {
-            e.preventDefault();
-            const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
-            this.saveNotes(row, notes);
+    private handleError = (error: string, errorFile?: string) => {
+        if (errorFile) {
+            this.props.removeSchemaFilepath(errorFile);
         }
-    )
-
-    // Not allowing lambdas in JSX attributes resulted in this (perhaps there is a better way?)
-    private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
-        return (notes: string | undefined) => this.saveNotes(row, notes);
-    }
-
-    private saveNotes = (row: UploadJobTableRow, notes: string | undefined) => {
-        this.props.updateUpload({ ...row, notes });
-    }
-
-    private handleError = (error: string) => {
         this.props.setAlert({
             message: error,
             type: AlertType.WARN,
@@ -263,17 +265,22 @@ function mapStateToProps(state: State) {
     return {
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
+        schemaFile: getSchemaFile(state),
+        schemaFileOptions: getSchemaFileOptions(state),
         uploads: getUploadSummaryRows(state),
     };
 }
 
 const dispatchToPropsMap = {
+    addSchemaFilepath,
     goBack,
     goForward,
     initiateUpload,
     jumpToUpload,
+    removeSchemaFilepath,
     removeUploads,
     setAlert,
+    updateSchema,
     updateUpload,
 };
 
