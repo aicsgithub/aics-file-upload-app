@@ -26,9 +26,10 @@ import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
 import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
-import { gatherSettings, updateSettings } from "../../state/setting/actions";
+import { addSchemaFilepath, gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
+    AddSchemaFilepathAction,
     GatherSettingsAction,
     SchemaDefinition,
     UpdateSettingsAction,
@@ -49,6 +50,7 @@ const styles = require("./styles.pcss");
 const ALERT_DURATION = 2;
 
 interface AppProps {
+    addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
     copyInProgress: boolean;
@@ -164,6 +166,9 @@ class App extends React.Component<AppProps, AppState> {
                 this.setState({showCreateSchemaModal: true});
             }
         });
+        remote.ipcMain.on(OPEN_CREATE_SCHEMA_MODAL, () => {
+            this.setState({showCreateSchemaModal: true});
+        });
 
     }
 
@@ -195,6 +200,7 @@ class App extends React.Component<AppProps, AppState> {
 
     public render() {
         const {
+            addSchemaFilepath,
             fileToTags,
             files,
             getFilesInFolder,
@@ -231,6 +237,7 @@ class App extends React.Component<AppProps, AppState> {
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
                     close={this.closeCreateSchemaModal}
+                    onSchemaFileCreated={addSchemaFilepath}
                     visible={showCreateSchemaModal}
                     schema={schema}
                     setAlert={setAlert}
@@ -258,6 +265,7 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
+    addSchemaFilepath,
     clearAlert,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
