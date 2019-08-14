@@ -3,7 +3,6 @@ import Logger from "js-logger";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import { ChangeEvent } from "react";
 import { ColumnType } from "../../../state/setting/types";
 
 const styles = require("./styles.pcss");
@@ -125,7 +124,7 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
         this.setState({ value: !this.state.value });
     }
 
-    private handleInputOnChange = (e: ChangeEvent<HTMLInputElement>) => {
+    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ value: e.target.value });
     }
 
