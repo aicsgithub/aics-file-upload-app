@@ -218,7 +218,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         if (schema) {
             return !schema.columns.every(({label, type: { type }, required}: ColumnDefinition) => {
                 if (required && type !== ColumnType.BOOLEAN) {
-                    return this.props.uploads.every((upload: UploadJobTableRow) => {
+                    return this.props.uploads.every((upload: any) => {
                         return Boolean(upload[label]);
                     });
                 }
