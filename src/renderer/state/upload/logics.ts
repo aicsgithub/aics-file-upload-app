@@ -17,7 +17,7 @@ import {
 import { batchActions } from "../util";
 import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, UPDATE_SCHEMA } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
-import { UploadStateBranch } from "./types";
+import { UploadMetadata, UploadStateBranch } from "./types";
 
 const associateFileAndWellLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -34,6 +34,7 @@ const associateFileAndWellLogic = createLogic({
     type: ASSOCIATE_FILES_AND_WELLS,
 });
 
+// This logic is to add new user-defined columns to each upload row, and remove any old columns
 const updateSchemaLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { schema, schemaFile } = action.payload;
@@ -42,7 +43,7 @@ const updateSchemaLogic = createLogic({
         Object.keys(uploads).forEach((filepath: string): void => {
             const upload = uploads[filepath];
             // By only grabbing the initial fields of the upload we can remove old schema columns
-            const uploadData = {
+            const uploadData: UploadMetadata = {
                 barcode: upload.barcode,
                 notes: upload.notes,
                 schemaFile,
@@ -55,7 +56,6 @@ const updateSchemaLogic = createLogic({
                 // However, boolean fields need to be false by default because otherwise we would have null === false
                 // which isn't necessarily true (except to javascript)
                 schema.columns.forEach((column: ColumnDefinition) => {
-                    // @ts-ignore Want to generically be able to add to the UploadMetadata object
                     uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
                 });
             }

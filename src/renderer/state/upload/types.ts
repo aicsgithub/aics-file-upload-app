@@ -11,6 +11,7 @@ export interface UploadMetadata {
     schemaFile?: string;
     wellIds: number[];
     wellLabels: string[];
+    [genericKey: string]: any;
 }
 
 export interface UpdateSchemaAction {
