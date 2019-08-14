@@ -1,8 +1,7 @@
 import { Button } from "antd";
 import * as classNames from "classnames";
-import { without, isEmpty } from "lodash";
+import { isEmpty, without } from "lodash";
 import Logger from "js-logger";
-import { Moment } from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
@@ -13,7 +12,7 @@ import {
     RemoveUploadsAction,
     SchemaFileOption,
     UpdateUploadAction,
-    UploadJobTableRow,
+    UploadJobTableRow
 } from "../../state/upload/types";
 import {
     ColumnDefinition,
@@ -21,6 +20,7 @@ import {
     RemoveSchemaFilepathAction,
     SchemaDefinition
 } from "../../state/setting/types";
+import FormControl from "../FormControl";
 import Editor from "./Editor";
 
 const styles = require("./style.pcss");
@@ -52,31 +52,22 @@ interface UploadJobState {
 }
 
 interface FormatterProps {
+    isScrollable?: boolean;
     row: any;
-    value: any;
+    value?: any;
 }
 
 class UploadJobGrid extends React.Component<Props, UploadJobState> {
     private readonly UPLOAD_JOB_COLUMNS: Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> = [
         {
-            formatter: ({ row, value }: any) => (
-                this.renderFormat(
-                    false,
-                    row,
-                    value)
-            ),
+            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "file",
             name: "File",
             resizable: true,
             sortable: true,
         },
         {
-            formatter: ({ row, value }: any) => (
-                this.renderFormat(
-                    false,
-                    row,
-                    value)
-            ),
+            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "barcode",
             name: "Barcode",
             resizable: true,
@@ -84,20 +75,14 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
             width: 135,
         },
         {
-            formatter: ({ row, value }: any) => (
-                this.renderFormat(
-                    false,
-                    row,
-                    value)
-            ),
+            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "wellLabels",
             name: "Well(s)",
             sortable: true,
         },
         {
-            formatter: ({ row, value }: any) => (
+            formatter: ({ row, value }: FormatterProps) => (
                 this.renderFormat(
-                    false,
                     row,
                     value,
                     <NoteIcon
@@ -132,9 +117,6 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
         const rowGetter = (idx: number) => sortedRows[idx];
-        // red border
-        // icon
-        // tooltip
 
         return (
             <>
@@ -182,72 +164,27 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         );
     }
 
-    private removeSelectedRows = (): void => {
-        this.props.removeUploads(this.state.selectedFiles);
-        this.setState({ selectedFiles: [] });
-    }
-
-    private datePicker = (label: string, row: UploadJobTableRow) => {
-        return (time: Moment) => this.props.updateUpload(row.file, { [label]: time });
-    }
-
-    // This method allows us to more consistently apply things to our cells like required classes and onDrop
-    // Note: I cannot encompass the ({row, value}) => {} because we need the determineFormatter to tell us what to use
-    // for the value or className
-    private renderFormat = (required: boolean,
-                         row: UploadJobTableRow,
-                         value: any,
-                         children?: React.ReactNode | React.ReactNodeArray,
-                         className?: string): React.ReactElement => {
-        const requiredStyle = required && value === null && styles.required;
-        return (
-            <div className={classNames(requiredStyle, className)} onDrop={this.onDrop(row)}>
-                {children ? children : value}
-            </div>
-        );
-    }
-
-    private determineFormatter = (label: string,
-                                  type: ColumnType,
-                                  required: boolean): ((arg0: FormatterProps) => React.ReactElement) => {
-        if (type === ColumnType.BOOLEAN) {
-            return ({ row, value }: any) => (
-                this.renderFormat(
-                    required,
-                    row,
-                    value ? "Yes" : "No",
-                    undefined,
-                    value ? styles.true : styles.false)
-            );
-        // } else if (type === ColumnType.DATE) {
-        //     return ({ row, value }: any) => (
-        //         this.renderFormat(
-        //             required,
-        //             row,
-        //             value,
-        //             <DatePicker
-        //                 onChange={this.datePicker(label, row)}
-        //             />)
-        //     );
-        // } else if (type === ColumnType.DATETIME) {
-        //     return ({ row, value }: any) => (
-        //         this.renderFormat(
-        //             required,
-        //             row,
-        //             value,
-        //             <DatePicker
-        //                 onChange={this.datePicker(label, row)}
-        //                 showTime={true}
-        //             />)
-        //     );
-        } else {
-            return ({ row, value }: any) => (
-                this.renderFormat(
-                    required,
-                    row,
-                    value)
+    private renderFormat = (row: UploadJobTableRow,
+                            value: any,
+                            children?: React.ReactNode | React.ReactNodeArray,
+                            required?: boolean,
+                            label?: string,
+                            className?: string): React.ReactElement => {
+        let childElement = children;
+        if (required && !value && value !== false) {
+            childElement = (
+                <FormControl
+                    className={classNames(styles.formatterContainer, className)}
+                    error={`${label} is required, current value is: ${value}`}>
+                    {children}
+                </FormControl>
             );
         }
+        return (
+            <div className={classNames(styles.formatterContainer, className)} onDrop={this.onDrop(row)}>
+                {childElement ? childElement : value}
+            </div>
+        );
     }
 
     private getColumns = (): Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> => {
@@ -256,19 +193,43 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         }
         const schemaColumns = this.props.schema.columns.map((column: ColumnDefinition) => {
             const { label, type: { type, dropdownValues }, required } = column;
-            return {
-                // cellClass TODO: Uses?
+            let columns: AdazzleReactDataGrid.Column<UploadJobTableRow> = {
+                cellClass: styles.formatterContainer,
+                // @ts-ignore We want to pass dropdownValues to the editor
                 dropdownValues,
-                // Currently unable to support read and edit modes for dates, just using edit
-                // editable: type !== ColumnType.DATE && type !== ColumnType.DATETIME,
-                // We want the default editor for TEXT types
-                editor: type === ColumnType.TEXT ? undefined : Editor,
-                formatter: this.determineFormatter(label, type, required),
+                editable: true,
                 key: label,
                 name: label,
                 resizable: true,
-                type
+                type,
+            };
+            // We want the default editor for TEXT types
+            if (type !== ColumnType.TEXT) {
+                columns.editor = Editor;
             }
+            // The date selectors need a certain width to function, this helps the grid start off in an initially
+            // acceptable width for them
+            if (type === ColumnType.DATE) {
+                columns.width = 170;
+            } else if (type === ColumnType.DATETIME) {
+                columns.width = 250;
+            }
+            if (type === ColumnType.BOOLEAN) {
+                columns.formatter = ({ row, value }: FormatterProps) => (
+                    this.renderFormat(
+                        row,
+                        value ? "Yes" : "No",
+                        undefined,
+                        required,
+                        label,
+                        value ? styles.true : styles.false)
+                );
+            } else {
+                columns.formatter = ({ row, value }: FormatterProps) => (
+                    this.renderFormat(row, value, undefined, required, label)
+                );
+            }
+            return columns;
         });
         return this.UPLOAD_JOB_COLUMNS.concat(schemaColumns);
     }
@@ -316,16 +277,24 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
 
     private updateRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>) => {
         const { fromRow, toRow, updated } = e;
-        for (let i = fromRow; i <= toRow; i++) {
-            this.props.updateUpload(this.props.uploads[i].file, updated)
+        // Updated is a { key: value }
+        if (updated) {
+            for (let i = fromRow; i <= toRow; i++) {
+                this.props.updateUpload(this.props.uploads[i].file, updated)
+            }
         }
+    }
+
+    private removeSelectedRows = (): void => {
+        this.props.removeUploads(this.state.selectedFiles);
+        this.setState({ selectedFiles: [] });
     }
 
     private onDrop = (row: UploadJobTableRow) => (
         async (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
             const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
-            this.props.updateUpload(row, { notes })
+            this.props.updateUpload(row.file, { notes })
         }
     )
 

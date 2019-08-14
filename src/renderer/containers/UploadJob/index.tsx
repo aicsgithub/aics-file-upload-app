@@ -3,7 +3,9 @@ import { Button } from "antd";
 import { ipcRenderer, OpenDialogOptions, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
+import { ActionCreator } from "redux";
 
+import { OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import FormPage from "../../components/FormPage";
 import { setAlert} from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
@@ -32,8 +34,6 @@ import {
     UpdateUploadAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
-import { checkFileExistsAsync, readFileAsync } from "../../util";
-import { isSchemaDefinition } from "../App/util";
 import {
     AddSchemaFilepathAction,
     RemoveSchemaFilepathAction,
@@ -42,27 +42,11 @@ import {
 import { getSchemaFileOptions } from "../../state/setting/selectors";
 import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
 import UploadJobGrid from "../../components/UploadJobGrid";
-import { OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
+import { checkFileExistsAsync, readFileAsync } from "../../util";
+import { isSchemaDefinition } from "../App/util";
 
 const styles = require("./style.pcss");
 
-const { ActionCreator } = React;
-
-// TODO: NEXT STEPS:
-// TODO: Sortable on new columns
-// TODO: Rearrangable columns
-
-// TODO: TESTING:
-// TODO: Test ondrop
-// TODO: Make Undo/Redo work
-// TODO: Editing all types
-// TODO: Tabbing, sorting
-// TODO: Organize imports
-
-// TODO: DEV:
-// TODO: Readonly mode for dates (OnBlur!!!)
-// TODO: Required
-// TODO: Is it worrisome I don't control the state of the Dates or Dropdown?
 interface Props {
     addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     canRedo: boolean;

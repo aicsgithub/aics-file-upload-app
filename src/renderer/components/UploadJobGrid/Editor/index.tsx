@@ -1,11 +1,10 @@
-import {DatePicker, InputNumber, Select} from "antd";
+import { InputNumber, Select } from "antd";
 import Logger from "js-logger";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
 import { ColumnType } from "../../../state/setting/types";
-import {Moment} from "moment";
-import ReactDOM from "react-dom";
+import { ChangeEvent } from "react";
 
 const styles = require("./styles.pcss");
 
@@ -15,9 +14,13 @@ interface EditorState {
     value?: any;
 }
 
-// TODO: Docstring
+/*
+    This is the editor for the UploadJobGrid, the purpose of this is to dynamically determine the editor based on
+    which `type` the Editor is supplied and use that to render an appropriate form.
+    Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
+ */
 class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, EditorState> {
-    // TODO: Maybe actually use this ref?
+    // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
 
     constructor(props: AdazzleReactDataGrid.EditorBaseProps) {
@@ -31,97 +34,86 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
         // @ts-ignore Type IS something I am allowed to include in the column object this receives
         const { column: { dropdownValues, type }, height, width } = this.props;
         const { value } = this.state;
-        return (
-            <div ref={this.input}>
-                <input
-                    onChange={this.onChange}
-                    type="datetime-local"
-                    value={this.state.value}
-                />
-            </div>);
 
+        let input;
         switch(type) {
             case ColumnType.DROPDOWN:
-                return (
-                    <div ref={this.input}>
-                        <Select
-                            allowClear={true}
-                            // value={this.state.value}
-                            onChange={this.handleOnChange}
-                            style={{ width: "100%" }}
-                        >
-                            {dropdownValues.map((dropdownValue: string) => (
-                                <Option key={dropdownValue}>{dropdownValue}</Option>
-                            ))}
-                        </Select>
-                    </div>
+                input = (
+                    <Select
+                        allowClear={true}
+                        autoFocus={true}
+                        onChange={this.handleOnChange}
+                        style={{ width: "100%" }}
+                    >
+                        {dropdownValues.map((dropdownValue: string) => (
+                            <Option key={dropdownValue}>{dropdownValue}</Option>
+                        ))}
+                    </Select>
                 );
+                break;
             case ColumnType.BOOLEAN:
-                return (
-                    <div>
-                        <div
-                            className={value ? styles.true : styles.false}
-                            onClick={this.toggleBoolValue}
-                            ref={this.input}
-                            style={{ height, width }}
-                        >
-                            {value ? "Yes" : "No"}
-                        </div>
+                input = (
+                    <div
+                        className={value ? styles.true : styles.false}
+                        onClick={this.toggleBoolValue}
+                        ref={this.input}
+                        style={{ height, width }}
+                    >
+                        {value ? "Yes" : "No"}
                     </div>
                 );
+                break;
             case ColumnType.NUMBER:
-                return (
-                    <div ref={this.input}>
-                        <InputNumber
-                            onChange={this.handleOnChange}
-                            type="number"
-                            style={{ width }}
-                            value={this.state.value}
-                        />
-                    </div>
+                input = (
+                    <InputNumber
+                        autoFocus={true}
+                        onChange={this.handleOnChange}
+                        type="number"
+                        style={{ width: "100%" }}
+                        value={this.state.value}
+                    />
                 );
+                break;
             case ColumnType.DATE:
-                return (
-                    <div ref={this.input}>
-                        <DatePicker
-                            onBlur={this.onBlur}
-                            onOk={(time: Moment) => console.log(time)}
-                            onChange={this.handleOnChange}
-                            open={true}
-                        />
-                    </div>
+                input = (
+                    <input
+                        autoFocus={true}
+                        className={styles.dateMinWidth}
+                        onChange={this.handleInputOnChange}
+                        type="date"
+                        style={{ width: "100%" }}
+                        value={this.state.value || undefined}
+                    />
                 );
+                break;
             case ColumnType.DATETIME:
-                return (
-                    <div ref={this.input}>
-                        <DatePicker
-                            onBlur={this.onBlur}
-                            onChange={(time: Moment) => console.log(time)}
-                            onOk={(time: Moment) => console.log(time)}
-                            open={true}
-                            showTime={true}
-                        />
-                    </div>
+                input = (
+                    <input
+                        autoFocus={true}
+                        className={styles.dateTimeMinWidth}
+                        onChange={this.handleInputOnChange}
+                        type="datetime-local"
+                        value={this.state.value || undefined}
+                    />
                 );
+                break;
             default:
                 Logger.error("Invalid column type supplied");
-                return (
-                    <div className={styles.error} ref={this.input}>
-                        ERROR
-                    </div>
-                );
+                input = "ERROR";
         }
-    }
-
-    private onBlur = (e: any) => {
-        e.preventDefault();
-        console.log(e);
-        console.log(e.target);
-        console.log(e.target.value);
+        return (
+            <div ref={this.input}>
+                {input}
+            </div>
+        );
     }
 
     private toggleBoolValue = () => {
         this.setState({ value: !this.state.value })
+    }
+
+    private handleInputOnChange = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({ value: e.target.value });
     }
 
     private handleOnChange = (value: any) => {
@@ -130,19 +122,11 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
 
     // Should return an object of key/value pairs to be merged back to the row
     public getValue = () => {
-        console.log(ReactDOM.findDOMNode(this)!.getElementsByTagName("input")[0]);
-        console.log(ReactDOM.findDOMNode(this)!.getElementsByTagName("input")[0].value);
         return { [this.props.column.key]: this.state.value };
     }
 
-    // public getInputNode = (): Element | Text | null => {
-    //     return this.input.current;
-    // }
-
-    public getInputNode() {
-        console.log(ReactDOM.findDOMNode(this)!.getElementsByTagName("input")[0]);
-        console.log(ReactDOM.findDOMNode(this)!.getElementsByTagName("input")[0].value);
-        return ReactDOM.findDOMNode(this)!.getElementsByTagName("input")[0];
+    public getInputNode = (): Element | Text | null => {
+        return this.input.current;
     }
 }
 
