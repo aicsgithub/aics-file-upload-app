@@ -18,6 +18,7 @@ interface EditorState {
     This is the editor for the UploadJobGrid, the purpose of this is to dynamically determine the editor based on
     which `type` the Editor is supplied and use that to render an appropriate form.
     Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
+    additionally, the element you return must contain an Input element
  */
 class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, EditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
@@ -53,13 +54,14 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                 break;
             case ColumnType.BOOLEAN:
                 input = (
-                    <div
+                    <input
                         className={value ? styles.true : styles.false}
                         onClick={this.toggleBoolValue}
+                        readOnly={true}
                         style={{ height, width }}
-                    >
-                        {value ? "Yes" : "No"}
-                    </div>
+                        type="text"
+                        value={value ? "Yes" : "No"}
+                    />
                 );
                 break;
             case ColumnType.NUMBER:
@@ -73,6 +75,10 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                     />
                 );
                 break;
+            // TODO: Make Date & DateTime use either better style or a better component for date selection
+            // Here I am using the input date element because the components I tried thus far did not register
+            // a change of input before the focus changed back to the formatter thereby losing the selection
+            // - Sean M 8/14/19
             case ColumnType.DATE:
                 input = (
                     <input
