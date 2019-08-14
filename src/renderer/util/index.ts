@@ -20,10 +20,10 @@ export const readFileAsync = (file: string): Promise<Buffer> => {
     });
 };
 
-export const checkFileExistsAsync = (file: string): Promise<Boolean> => {
+export const checkFileExistsAsync = (file: string): Promise<boolean> => {
     return new Promise((resolve) => {
-        resolve(existsSync(file))
-    })
+        resolve(existsSync(file));
+    });
 };
 
 const MAX_ROWS = 26;

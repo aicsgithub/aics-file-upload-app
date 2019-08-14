@@ -9,7 +9,6 @@ import DragAndDrop from "../DragAndDrop";
 
 const styles = require("./styles.pcss");
 
-
 interface NoteIconProps {
     handleError: (error: string) => void;
     notes?: string;

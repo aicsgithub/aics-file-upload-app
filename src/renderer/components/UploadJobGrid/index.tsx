@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import * as classNames from "classnames";
-import { isEmpty, without } from "lodash";
 import Logger from "js-logger";
+import { isEmpty, without } from "lodash";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
@@ -9,17 +9,17 @@ import { ActionCreator } from "redux";
 import NoteIcon from "../../components/NoteIcon";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import {
-    RemoveUploadsAction,
-    SchemaFileOption,
-    UpdateUploadAction,
-    UploadJobTableRow
-} from "../../state/upload/types";
-import {
     ColumnDefinition,
     ColumnType,
     RemoveSchemaFilepathAction,
     SchemaDefinition
 } from "../../state/setting/types";
+import {
+    RemoveUploadsAction,
+    SchemaFileOption,
+    UpdateUploadAction,
+    UploadJobTableRow
+} from "../../state/upload/types";
 import FormControl from "../FormControl";
 import Editor from "./Editor";
 
@@ -85,11 +85,13 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                 this.renderFormat(
                     row,
                     value,
-                    <NoteIcon
-                        handleError={this.handleError}
-                        notes={row.notes}
-                        saveNotes={this.saveNotesByRow(row)}
-                    />)
+                    (
+                        <NoteIcon
+                            handleError={this.handleError}
+                            notes={row.notes}
+                            saveNotes={this.saveNotesByRow(row)}
+                        />
+                    ))
             ),
             key: "notes",
             name: "Notes",
@@ -111,7 +113,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
             canRedo,
             redo,
             undo,
-            uploads
+            uploads,
         } = this.props;
         const { selectedFiles } = this.state;
 
@@ -152,7 +154,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                                     keys: {
                                         rowKey: "file",
                                         values: selectedFiles,
-                                    }
+                                    },
                                 },
                             }}
                         />
@@ -175,7 +177,8 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
             childElement = (
                 <FormControl
                     className={classNames(styles.formatterContainer, className)}
-                    error={`${label} is required, current value is: ${value}`}>
+                    error={`${label} is required, current value is: ${value}`}
+                >
                     {children}
                 </FormControl>
             );
@@ -188,13 +191,13 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
     }
 
     private getColumns = (): Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> => {
-        if (!this.props.schema) {
+        if  (!this.props.schema) {
             return this.UPLOAD_JOB_COLUMNS;
         }
         const schemaColumns = this.props.schema.columns.map((column: ColumnDefinition) => {
-            const { label, type: { type, dropdownValues }, required } = column;
-            let columns: AdazzleReactDataGrid.Column<UploadJobTableRow> = {
-                cellClass: styles.formatterContainer,
+            const {label,  type: {type,  dropdownValues }, required } = column;
+            const columns: AdazzleReactDataGrid.Column<UploadJobTableRow> = {
+                cellClass:  styles.formatterContainer,
                 // @ts-ignore We want to pass dropdownValues to the editor
                 dropdownValues,
                 editable: true,
@@ -239,7 +242,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
     // 'UploadJobTableRow' has no index signature. Can update this to include more columns or search inside an array
     // of "editableColumns"
     private determineSort = (sortColumn: string, sortDirection: SortDirections) => {
-        if (sortColumn !== "barcode" && sortColumn !== "file" && sortColumn !== "wellLabels") {
+        if  (sortColumn !== "barcode" && sortColumn !== "file" && sortColumn !== "wellLabels") {
             Logger.error(`Invalid column sort attempted with column: ${sortColumn}`);
         } else {
             this.setState({ sortColumn, sortDirection });
@@ -251,7 +254,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                         sortColumn?: SortableColumns,
                         sortDirection?: SortDirections)
         : UploadJobTableRow[] => {
-        if (sortColumn && sortDirection === "ASC") {
+        if  (sortColumn && sortDirection === "ASC") {
             return rows.sort((a: UploadJobTableRow, b: UploadJobTableRow) =>
                 `${a[sortColumn]}`.localeCompare(`${b[sortColumn]}`)
             );
@@ -266,48 +269,48 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
 
     private selectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
         const files = rows.map((r) => r.row.file);
-        this.setState({ selectedFiles: [...this.state.selectedFiles, ...files] });
+        this.setState({selectedFiles:  [...this.state.selectedFiles, ...files] });
     }
 
     private deselectRows = (rows: Array<{row: UploadJobTableRow, rowIdx: number}>) => {
         const files = rows.map((r) => r.row.file);
         const selectedFiles = without(this.state.selectedFiles, ...files);
-        this.setState({ selectedFiles });
+        this.setState({selectedFiles});
     }
 
     private updateRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>) => {
-        const { fromRow, toRow, updated } = e;
-        // Updated is a { key: value }
+        const {fromRow,  toRow, updated } = e;
+        // Updated is a {key:  value }
         if (updated) {
-            for (let i = fromRow; i <= toRow; i++) {
-                this.props.updateUpload(this.props.uploads[i].file, updated)
+            for  (let i = fromRow; i <=  toRow; i++) {
+                this.props.updateUpload(this.props.uploads[i].file, updated);
             }
         }
     }
 
     private removeSelectedRows = (): void => {
         this.props.removeUploads(this.state.selectedFiles);
-        this.setState({ selectedFiles: [] });
+        this.setState({selectedFiles:  [] });
     }
 
     private onDrop = (row: UploadJobTableRow) => (
         async (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
             const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
-            this.props.updateUpload(row.file, { notes })
+            this.props.updateUpload(row.file, {notes});
         }
     )
 
     private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
-        return (notes: string | undefined) => this.props.updateUpload(row.file, { notes });
+        return (notes: string | undefined) => this.props.updateUpload(row.file, {notes});
     }
 
     private handleError = (error: string, errorFile?: string) => {
-        if (errorFile) {
+        if  (errorFile) {
             this.props.removeSchemaFilepath(errorFile);
         }
         this.props.setAlert({
-            message: error,
+            message:  error,
             type: AlertType.WARN,
         });
     }

@@ -1,3 +1,4 @@
+import { SchemaDefinition } from "../setting/types";
 import {
     ASSOCIATE_FILES_AND_WELLS,
     CLEAR_UPLOAD_HISTORY,
@@ -21,7 +22,6 @@ import {
     UpdateUploadAction,
     UploadMetadata
 } from "./types";
-import {SchemaDefinition} from "../setting/types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
     : AssociateFilesAndWellsAction {
@@ -86,7 +86,7 @@ export function updateSchema(schema?: SchemaDefinition, schemaFile?: string): Up
         payload: {
             schema,
             schemaFile,
-            uploads: {}
+            uploads: {},
         },
         type: UPDATE_SCHEMA,
     };
@@ -96,7 +96,7 @@ export function updateUpload(filePath: string, upload: Partial<UploadMetadata>):
     return {
         payload: {
             filePath,
-            upload
+            upload,
         },
         type: UPDATE_UPLOAD,
     };

@@ -200,7 +200,6 @@ class App extends React.Component<AppProps, AppState> {
 
     public render() {
         const {
-            addSchemaFilepath,
             fileToTags,
             files,
             getFilesInFolder,
@@ -237,7 +236,7 @@ class App extends React.Component<AppProps, AppState> {
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
                     close={this.closeCreateSchemaModal}
-                    onSchemaFileCreated={addSchemaFilepath}
+                    onSchemaFileCreated={this.props.addSchemaFilepath}
                     visible={showCreateSchemaModal}
                     schema={schema}
                     setAlert={setAlert}

@@ -69,7 +69,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UpdateSchemaAction => action.type === UPDATE_SCHEMA,
         perform: (state: UploadStateBranch, action: UpdateSchemaAction) => ({
             ...state,
-            ...action.payload.uploads
+            ...action.payload.uploads,
         }),
     },
     [UPDATE_UPLOAD]: {

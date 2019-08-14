@@ -75,6 +75,7 @@ export const mockState: State = {
         limsHost: "localhost",
         limsPort: "8080",
         limsProtocol: "http",
+        schemaFilepaths: [],
     },
     upload: getMockStateWithHistory(mockUpload),
 };

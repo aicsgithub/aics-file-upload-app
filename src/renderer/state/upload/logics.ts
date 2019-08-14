@@ -34,7 +34,7 @@ const associateFileAndWellLogic = createLogic({
     type: ASSOCIATE_FILES_AND_WELLS,
 });
 
-const updateSchema = createLogic({
+const updateSchemaLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { schema, schemaFile } = action.payload;
         const state = getState();
@@ -42,12 +42,12 @@ const updateSchema = createLogic({
         Object.keys(uploads).forEach((filepath: string): void => {
             const upload = uploads[filepath];
             // By only grabbing the initial fields of the upload we can remove old schema columns
-            let uploadData = {
-                barcode: upload["barcode"],
-                notes: upload["notes"],
+            const uploadData = {
+                barcode: upload.barcode,
+                notes: upload.notes,
                 schemaFile,
-                wellIds: upload["wellIds"],
-                wellLabels: upload["wellLabels"],
+                wellIds: upload.wellIds,
+                wellLabels: upload.wellLabels,
             };
             if (schema) {
                 // We want to have all values consistently be either null or false so we can detect them in the upload
@@ -122,5 +122,5 @@ const initiateUploadLogic = createLogic({
 export default [
     associateFileAndWellLogic,
     initiateUploadLogic,
-    updateSchema,
+    updateSchemaLogic,
 ];

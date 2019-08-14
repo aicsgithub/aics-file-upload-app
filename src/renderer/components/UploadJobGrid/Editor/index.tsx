@@ -3,8 +3,8 @@ import Logger from "js-logger";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import { ColumnType } from "../../../state/setting/types";
 import { ChangeEvent } from "react";
+import { ColumnType } from "../../../state/setting/types";
 
 const styles = require("./styles.pcss");
 
@@ -26,7 +26,7 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
     constructor(props: AdazzleReactDataGrid.EditorBaseProps) {
         super(props);
         this.state = {
-            value: this.props.value
+            value: this.props.value,
         };
     }
 
@@ -36,7 +36,7 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
         const { value } = this.state;
 
         let input;
-        switch(type) {
+        switch (type) {
             case ColumnType.DROPDOWN:
                 input = (
                     <Select
@@ -56,7 +56,6 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                     <div
                         className={value ? styles.true : styles.false}
                         onClick={this.toggleBoolValue}
-                        ref={this.input}
                         style={{ height, width }}
                     >
                         {value ? "Yes" : "No"}
@@ -81,7 +80,6 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                         className={styles.dateMinWidth}
                         onChange={this.handleInputOnChange}
                         type="date"
-                        style={{ width: "100%" }}
                         value={this.state.value || undefined}
                     />
                 );
@@ -108,8 +106,17 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
         );
     }
 
+    // Should return an object of key/value pairs to be merged back to the row
+    public getValue = () => {
+        return { [this.props.column.key]: this.state.value };
+    }
+
+    public getInputNode = (): Element | Text | null => {
+        return this.input.current;
+    }
+
     private toggleBoolValue = () => {
-        this.setState({ value: !this.state.value })
+        this.setState({ value: !this.state.value });
     }
 
     private handleInputOnChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -118,15 +125,6 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
 
     private handleOnChange = (value: any) => {
         this.setState({ value });
-    }
-
-    // Should return an object of key/value pairs to be merged back to the row
-    public getValue = () => {
-        return { [this.props.column.key]: this.state.value };
-    }
-
-    public getInputNode = (): Element | Text | null => {
-        return this.input.current;
     }
 }
 

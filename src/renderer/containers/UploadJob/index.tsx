@@ -7,10 +7,18 @@ import { ActionCreator } from "redux";
 
 import { OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import FormPage from "../../components/FormPage";
-import { setAlert} from "../../state/feedback/actions";
+import UploadJobGrid from "../../components/UploadJobGrid";
+import { setAlert } from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction } from "../../state/selection/types";
+import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
+import { getSchemaFileOptions } from "../../state/setting/selectors";
+import {
+    AddSchemaFilepathAction,
+    RemoveSchemaFilepathAction,
+    SchemaDefinition
+} from "../../state/setting/types";
 import { State } from "../../state/types";
 import {
     initiateUpload,
@@ -34,14 +42,6 @@ import {
     UpdateUploadAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
-import {
-    AddSchemaFilepathAction,
-    RemoveSchemaFilepathAction,
-    SchemaDefinition
-} from "../../state/setting/types";
-import { getSchemaFileOptions } from "../../state/setting/selectors";
-import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
-import UploadJobGrid from "../../components/UploadJobGrid";
 import { checkFileExistsAsync, readFileAsync } from "../../util";
 import { isSchemaDefinition } from "../App/util";
 
@@ -95,46 +95,31 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     public render() {
-        const {
-            canRedo,
-            canUndo,
-            className,
-            goBack,
-            removeSchemaFilepath,
-            removeUploads,
-            setAlert,
-            schemaFile,
-            schemaFileOptions,
-            updateUpload,
-            uploads
-        } = this.props;
-        const { schema } = this.state;
-
         return (
             <FormPage
-                className={className}
+                className={this.props.className}
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={!uploads.length}
+                saveButtonDisabled={!this.props.uploads.length}
                 saveButtonName="Upload"
-                onBack={goBack}
+                onBack={this.props.goBack}
             >
                 {this.renderButtons()}
                 <UploadJobGrid
-                    canRedo={canRedo}
-                    canUndo={canUndo}
+                    canRedo={this.props.canRedo}
+                    canUndo={this.props.canUndo}
                     redo={this.redo}
-                    removeSchemaFilepath={removeSchemaFilepath}
-                    removeUploads={removeUploads}
-                    schema={schema}
-                    setAlert={setAlert}
+                    removeSchemaFilepath={this.props.removeSchemaFilepath}
+                    removeUploads={this.props.removeUploads}
+                    schema={this.state.schema}
+                    setAlert={this.props.setAlert}
                     selectSchema={this.selectSchema}
-                    schemaFile={schemaFile}
-                    schemaFileOptions={schemaFileOptions}
+                    schemaFile={this.props.schemaFile}
+                    schemaFileOptions={this.props.schemaFileOptions}
                     undo={this.undo}
-                    updateUpload={updateUpload}
-                    uploads={uploads}
+                    updateUpload={this.props.updateUpload}
+                    uploads={this.props.uploads}
                 />
             </FormPage>
         );

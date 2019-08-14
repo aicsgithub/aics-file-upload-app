@@ -13,7 +13,6 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-
 export const getSchemaFile = createSelector([getUpload], (uploads: UploadStateBranch): string | undefined =>
     Object.keys(uploads).length ? uploads[Object.keys(uploads)[0]].schemaFile : undefined
 );
@@ -33,7 +32,7 @@ export const getUploadSummaryRows = createSelector([getUpload], (uploads: Upload
         key: fullPath,
         notes,
         wellLabels: wellLabels.sort().join(", "),
-        ...schemaProps
+        ...schemaProps,
     }))
 );
 

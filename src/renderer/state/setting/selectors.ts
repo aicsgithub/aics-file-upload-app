@@ -1,8 +1,8 @@
 import { createSelector } from "reselect";
 
-import { SchemaFileOption } from "../upload/types";
-import { State } from "../types";
 import { BROWSE_FOR_EXISTING_SCHEMA } from "../constants";
+import { State } from "../types";
+import { SchemaFileOption } from "../upload/types";
 
 export const getLimsHost = (state: State) => state.setting.limsHost;
 export const getLimsPort = (state: State) => state.setting.limsPort;
@@ -17,7 +17,8 @@ export const getLimsUrl = createSelector([
     return `${protocol}://${host}:${port}`;
 });
 
-export const getSchemaFileOptions = createSelector([getSchemaFilepaths], (schemaFilepaths: string[]): SchemaFileOption[] => {
+export const getSchemaFileOptions = createSelector([getSchemaFilepaths], (schemaFilepaths: string[]):
+                                                   SchemaFileOption[] => {
     const schemaFileOptions = schemaFilepaths.map((filepath: string) => ({ filepath }));
     schemaFileOptions.push({ filepath: BROWSE_FOR_EXISTING_SCHEMA });
     return schemaFileOptions;

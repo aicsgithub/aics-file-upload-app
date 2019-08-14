@@ -24,7 +24,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is AddSchemaFilepathAction => action.type === ADD_SCHEMA_FILE_PATH,
         perform: (state: SettingStateBranch, action: AddSchemaFilepathAction) => ({
             ...state,
-            schemaFilepaths: uniq([...state.schemaFilepaths, action.payload])
+            schemaFilepaths: uniq([...state.schemaFilepaths, action.payload]),
         }),
     },
     [REMOVE_SCHEMA_FILE_PATH]: {
