@@ -54,13 +54,13 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
 
 export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
     let result = {};
-    map(uploads, ({wellIds, notes}: UploadMetadata, fullPath: string) => {
+    map(uploads, ({wellIds, barcode, wellLabels, plateId, ...etc}: any, fullPath: string) => {
         result = {
             ...result,
             [fullPath]: {
                 file: {
+                    ...etc,
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
-                    notes,
                     originalPath: fullPath,
                 },
                 microscopy: {
