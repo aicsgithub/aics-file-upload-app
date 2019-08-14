@@ -16,6 +16,8 @@ import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/act
 import { getSchemaFileOptions } from "../../state/setting/selectors";
 import {
     AddSchemaFilepathAction,
+    ColumnDefinition,
+    ColumnType,
     RemoveSchemaFilepathAction,
     SchemaDefinition
 } from "../../state/setting/types";
@@ -101,7 +103,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={!this.props.uploads.length}
+                saveButtonDisabled={!this.props.uploads.length || this.requiredValuesMissing()}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
             >
@@ -209,6 +211,21 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     private upload = (): void => {
         this.props.initiateUpload();
         this.props.goForward();
+    }
+
+    private requiredValuesMissing = (): boolean => {
+        const {schema} = this.state;
+        if (schema) {
+            return !schema.columns.every(({label, type: { type }, required}: ColumnDefinition) => {
+                if (required && type !== ColumnType.BOOLEAN) {
+                    return this.props.uploads.every((upload: UploadJobTableRow) => {
+                        return Boolean(upload[label]);
+                    });
+                }
+                return true;
+            });
+        }
+        return false;
     }
 
     private handleError = (error: string, errorFile?: string) => {
