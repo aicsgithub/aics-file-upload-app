@@ -6,6 +6,7 @@ import { editors } from "react-data-grid";
 import { ColumnType } from "../../../state/setting/types";
 
 const styles = require("./styles.pcss");
+const uploadJobGridStyles = require("../style.pcss");
 
 const { Option } = Select;
 
@@ -54,7 +55,7 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
             case ColumnType.BOOLEAN:
                 input = (
                     <input
-                        className={value ? styles.true : styles.false}
+                        className={value ? uploadJobGridStyles.true : uploadJobGridStyles.false}
                         onClick={this.toggleBoolValue}
                         readOnly={true}
                         style={{ height, width }}
