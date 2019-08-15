@@ -150,9 +150,16 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     private readFile = async (schemaFile: string, newFile?: boolean) => {
+        let fileString = "";
         try {
             const fileBuffer = await readFileAsync(schemaFile);
-            const fileString = fileBuffer.toString();
+            fileString = fileBuffer.toString();
+        } catch (e) {
+            this.props.updateSchema();
+            this.handleError("Invalid file or directory selected (.json only)", schemaFile);
+            return;
+        }
+        try {
             const schema = JSON.parse(fileString);
             if (!isSchemaDefinition(schema)) {
                 this.props.updateSchema();
@@ -167,7 +174,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         } catch (e) {
             // It is possible for a user to select a directory
             this.props.updateSchema();
-            this.handleError("Invalid file or directory selected (.json only)", schemaFile);
+            this.handleError("Unable to parse JSON", schemaFile);
         }
     }
 
