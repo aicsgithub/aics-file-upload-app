@@ -206,7 +206,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                 resizable: true,
                 type,
             };
-            // We want the default editor for TEXT types
+            // Use custom editor for everything except TEXT types which will use the default editor
             if (type !== ColumnType.TEXT) {
                 columns.editor = Editor;
             }
