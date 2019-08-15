@@ -19,7 +19,8 @@ export const getLimsUrl = createSelector([
 
 export const getSchemaFileOptions = createSelector([getSchemaFilepaths], (schemaFilepaths: string[]):
                                                    SchemaFileOption[] => {
-    const schemaFileOptions = schemaFilepaths.map((filepath: string) => ({ filepath }));
-    schemaFileOptions.push({ filepath: BROWSE_FOR_EXISTING_SCHEMA });
-    return schemaFileOptions;
+    return [
+        ...schemaFilepaths.map((filepath: string) => ({ filepath })),
+        { filepath: BROWSE_FOR_EXISTING_SCHEMA }
+    ];
 });
