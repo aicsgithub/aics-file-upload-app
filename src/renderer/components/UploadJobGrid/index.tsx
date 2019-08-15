@@ -20,6 +20,7 @@ import {
     UpdateUploadAction,
     UploadJobTableRow
 } from "../../state/upload/types";
+import { onDrop } from "../../util";
 import FormControl from "../FormControl";
 import Editor from "./Editor";
 
@@ -296,7 +297,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
     private onDrop = (row: UploadJobTableRow) => (
         async (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
-            const notes = await NoteIcon.onDrop(e.dataTransfer.files, this.handleError);
+            const notes = await onDrop(e.dataTransfer.files, this.handleError);
             this.props.updateUpload(row.file, {notes});
         }
     )

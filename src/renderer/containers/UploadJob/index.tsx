@@ -5,6 +5,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import { promises } from "fs";
 import FormPage from "../../components/FormPage";
 import UploadJobGrid from "../../components/UploadJobGrid";
 import { setAlert } from "../../state/feedback/actions";
@@ -43,7 +44,6 @@ import {
     UpdateUploadAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
-import { checkFileExistsAsync, readFileAsync } from "../../util";
 import { isSchemaDefinition } from "../App/util";
 
 const styles = require("./style.pcss");
@@ -152,7 +152,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     private readFile = async (schemaFile: string, newFile?: boolean) => {
         let fileString = "";
         try {
-            const fileBuffer = await readFileAsync(schemaFile);
+            const fileBuffer = await promises.readFile(schemaFile);
             fileString = fileBuffer.toString();
         } catch (e) {
             this.props.updateSchema();
@@ -197,8 +197,8 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             if (option.filepath === BROWSE_FOR_EXISTING_SCHEMA) {
                 await this.findSchema();
             } else {
-                const fileExists = await checkFileExistsAsync(option.filepath);
-                if (!fileExists) {
+                const fileExists = await promises.stat(option.filepath);
+                if (!fileExists || !fileExists.isFile()) {
                     this.props.updateSchema();
                     this.handleError(`File cannot be found ${option.filepath}.`, option.filepath);
                     return;
