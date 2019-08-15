@@ -23,7 +23,9 @@ import {
 } from "./constants";
 import {
     AddStageFilesAction,
+    CloseSchemaCreatorAction,
     DeselectFilesAction,
+    OpenSchemaCreatorAction,
     Page,
     SelectBarcodeAction,
     SelectFileAction,
@@ -35,6 +37,7 @@ import {
     SetWellsAction,
     UpdateStagedFilesAction,
 } from "./types";
+import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 
 export const initialState = {
     barcode: undefined,
@@ -43,6 +46,7 @@ export const initialState = {
     imagingSessionIds: [],
     page: Page.UploadSummary,
     selectedWells: [],
+    showCreateSchemaModal: false,
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
@@ -128,6 +132,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
             selectedWells: action.payload,
         }),
     },
+    [OPEN_CREATE_SCHEMA_MODAL]: {
+        accepts: (action: AnyAction): action is OpenSchemaCreatorAction => action.type === OPEN_CREATE_SCHEMA_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            showCreateSchemaModal: true,
+        }),
+    },
+    [CLOSE_CREATE_SCHEMA_MODAL]: {
+        accepts: (action: AnyAction): action is CloseSchemaCreatorAction => action.type === CLOSE_CREATE_SCHEMA_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            showCreateSchemaModal: false,
+        }),
+    }
 };
 
 const selection = makeReducer<SelectionStateBranch>(actionToConfigMap, initialState);

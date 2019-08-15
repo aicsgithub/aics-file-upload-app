@@ -21,6 +21,7 @@ import {
 import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
+    CloseSchemaCreatorAction,
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
@@ -29,6 +30,7 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     NextPageAction,
+    OpenSchemaCreatorAction,
     Page,
     PlateResponse,
     SelectBarcodeAction,
@@ -41,6 +43,7 @@ import {
     UploadFile,
     WellResponse,
 } from "./types";
+import {CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL} from "../../../shared/constants";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
     return {
@@ -127,6 +130,18 @@ export function selectWells(wells: GridCell[]): SelectWellsAction {
         payload: wells,
         type: SELECT_WELLS,
     };
+}
+
+export function closeSchemaCreator(): CloseSchemaCreatorAction {
+    return {
+        type: CLOSE_CREATE_SCHEMA_MODAL,
+    };
+}
+
+export function openSchemaCreator(): OpenSchemaCreatorAction {
+    return {
+        type: OPEN_CREATE_SCHEMA_MODAL,
+    }
 }
 
 export function goBack(): GoBackAction {

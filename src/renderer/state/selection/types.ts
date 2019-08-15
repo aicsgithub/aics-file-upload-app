@@ -24,6 +24,7 @@ export interface SelectionStateBranch {
     wells: WellResponse[];
     selectedWells: GridCell[];
     page: Page;
+    showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
 }
 
@@ -174,6 +175,14 @@ export interface SetWellsAction {
 
 export interface SelectWellsAction {
     payload: GridCell[];
+    type: string;
+}
+
+export interface CloseSchemaCreatorAction {
+    type: string;
+}
+
+export interface OpenSchemaCreatorAction {
     type: string;
 }
 

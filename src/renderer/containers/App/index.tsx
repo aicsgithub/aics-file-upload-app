@@ -24,8 +24,22 @@ import {
 import { getIsUnsafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
-import { getPage, getSelectedFiles, getStagedFiles } from "../../state/selection/selectors";
-import { AppPageConfig, GetFilesInFolderAction, Page, SelectFileAction, UploadFile } from "../../state/selection/types";
+import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
+import {
+    getPage,
+    getSelectedFiles,
+    getShowCreateSchemaModal,
+    getStagedFiles
+} from "../../state/selection/selectors";
+import {
+    AppPageConfig,
+    CloseSchemaCreatorAction,
+    GetFilesInFolderAction,
+    OpenSchemaCreatorAction,
+    Page,
+    SelectFileAction,
+    UploadFile
+} from "../../state/selection/types";
 import { addSchemaFilepath, gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
@@ -53,6 +67,7 @@ interface AppProps {
     addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
+    closeSchemaCreator: ActionCreator<CloseSchemaCreatorAction>;
     copyInProgress: boolean;
     fileToTags: Map<string, FileTag[]>;
     files: UploadFile[];
@@ -60,11 +75,13 @@ interface AppProps {
     getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
     limsUrl: string;
     loading: boolean;
+    openSchemaCreator: ActionCreator<OpenSchemaCreatorAction>;
     recentEvent?: AppEvent;
     requestMetadata: ActionCreator<RequestMetadataAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
+    showCreateSchemaModal: boolean;
     page: Page;
     updateSettings: ActionCreator<UpdateSettingsAction>;
 }
@@ -72,7 +89,6 @@ interface AppProps {
 interface AppState {
     schema?: SchemaDefinition;
     schemaFilepath?: string;
-    showCreateSchemaModal: boolean;
 }
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
@@ -104,7 +120,6 @@ message.config({
 
 class App extends React.Component<AppProps, AppState> {
     public state: AppState = {
-        showCreateSchemaModal: false,
     };
 
     public componentDidMount() {
@@ -145,8 +160,8 @@ class App extends React.Component<AppProps, AppState> {
                                 this.setState({
                                     schema: json,
                                     schemaFilepath,
-                                    showCreateSchemaModal: true,
                                 });
+                                this.props.openSchemaCreator();
                             } else {
                                 this.props.setAlert({
                                     message: "Invalid schema JSON",
@@ -163,11 +178,8 @@ class App extends React.Component<AppProps, AppState> {
                     }
                 });
             } else {
-                this.setState({showCreateSchemaModal: true});
+                this.props.openSchemaCreator();
             }
-        });
-        remote.ipcMain.on(OPEN_CREATE_SCHEMA_MODAL, () => {
-            this.setState({showCreateSchemaModal: true});
         });
 
     }
@@ -208,9 +220,10 @@ class App extends React.Component<AppProps, AppState> {
             recentEvent,
             selectFile,
             selectedFiles,
+            showCreateSchemaModal,
             page,
         } = this.props;
-        const { schema, schemaFilepath, showCreateSchemaModal } = this.state;
+        const { schema, schemaFilepath } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
 
         if (!pageConfig) {
@@ -235,7 +248,7 @@ class App extends React.Component<AppProps, AppState> {
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
-                    close={this.closeCreateSchemaModal}
+                    close={this.props.closeSchemaCreator}
                     onSchemaFileCreated={this.props.addSchemaFilepath}
                     visible={showCreateSchemaModal}
                     schema={schema}
@@ -245,8 +258,6 @@ class App extends React.Component<AppProps, AppState> {
             </div>
         );
     }
-
-    private closeCreateSchemaModal = () => this.setState({showCreateSchemaModal: false});
 }
 
 function mapStateToProps(state: State) {
@@ -260,14 +271,17 @@ function mapStateToProps(state: State) {
         page: getPage(state),
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
+        showCreateSchemaModal: getShowCreateSchemaModal(state),
     };
 }
 
 const dispatchToPropsMap = {
     addSchemaFilepath,
     clearAlert,
+    closeSchemaCreator,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
+    openSchemaCreator,
     requestMetadata,
     selectFile: selection.actions.selectFile,
     setAlert,
