@@ -29,6 +29,7 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionIds: [],
     page: Page.DragAndDrop,
     selectedWells: [],
+    showCreateSchemaModal: false,
     stagedFiles: [],
     wells: [],
 };

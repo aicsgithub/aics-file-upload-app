@@ -1,5 +1,6 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
 
+import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -43,7 +44,6 @@ import {
     UploadFile,
     WellResponse,
 } from "./types";
-import {CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL} from "../../../shared/constants";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
     return {
@@ -141,7 +141,7 @@ export function closeSchemaCreator(): CloseSchemaCreatorAction {
 export function openSchemaCreator(): OpenSchemaCreatorAction {
     return {
         type: OPEN_CREATE_SCHEMA_MODAL,
-    }
+    };
 }
 
 export function goBack(): GoBackAction {

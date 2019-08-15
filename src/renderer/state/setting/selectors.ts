@@ -21,6 +21,6 @@ export const getSchemaFileOptions = createSelector([getSchemaFilepaths], (schema
                                                    SchemaFileOption[] => {
     return [
         ...schemaFilepaths.map((filepath: string) => ({ filepath })),
-        { filepath: BROWSE_FOR_EXISTING_SCHEMA }
+        { filepath: BROWSE_FOR_EXISTING_SCHEMA },
     ];
 });

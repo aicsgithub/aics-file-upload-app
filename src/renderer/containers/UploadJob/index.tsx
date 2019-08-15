@@ -125,7 +125,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
 
     private renderButtons = () => {
         const {
-            openSchemaCreator,
             schemaFile,
             schemaFileOptions,
         } = this.props;
@@ -143,7 +142,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                         placeholder="Select a schema file"
                     />
                 </div>
-                <Button className={styles.createSchemaButton} onClick={openSchemaCreator}>
+                <Button className={styles.createSchemaButton} onClick={this.props.openSchemaCreator}>
                     Create Schema
                 </Button>
             </div>

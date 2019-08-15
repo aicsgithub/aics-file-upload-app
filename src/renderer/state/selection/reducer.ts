@@ -8,6 +8,7 @@ import undoable, {
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
+import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     DESELECT_FILES,
@@ -37,7 +38,6 @@ import {
     SetWellsAction,
     UpdateStagedFilesAction,
 } from "./types";
-import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 
 export const initialState = {
     barcode: undefined,
@@ -145,7 +145,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             ...state,
             showCreateSchemaModal: false,
         }),
-    }
+    },
 };
 
 const selection = makeReducer<SelectionStateBranch>(actionToConfigMap, initialState);
