@@ -45,6 +45,11 @@ interface UploadJobState {
     sortDirection?: SortDirections;
 }
 
+interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
+    dropdownValues?: string[];
+    type?: ColumnType;
+}
+
 interface FormatterProps {
     isScrollable?: boolean;
     row: any;
@@ -52,7 +57,7 @@ interface FormatterProps {
 }
 
 class UploadJobGrid extends React.Component<Props, UploadJobState> {
-    private readonly UPLOAD_JOB_COLUMNS: Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> = [
+    private readonly UPLOAD_JOB_COLUMNS: Array<UploadJobColumn> = [
         {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "file",
@@ -184,15 +189,14 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         );
     }
 
-    private getColumns = (): Array<AdazzleReactDataGrid.Column<UploadJobTableRow>> => {
+    private getColumns = (): Array<UploadJobColumn> => {
         if  (!this.props.schema) {
             return this.UPLOAD_JOB_COLUMNS;
         }
         const schemaColumns = this.props.schema.columns.map((column: ColumnDefinition) => {
             const {label,  type: {type,  dropdownValues }, required } = column;
-            const columns: AdazzleReactDataGrid.Column<UploadJobTableRow> = {
+            const columns: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
-                // @ts-ignore We want to pass dropdownValues to the editor
                 dropdownValues,
                 editable: true,
                 key: label,

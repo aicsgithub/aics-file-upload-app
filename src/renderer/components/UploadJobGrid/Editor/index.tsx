@@ -10,6 +10,16 @@ const uploadJobGridStyles = require("../style.pcss");
 
 const { Option } = Select;
 
+interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
+    dropdownValues?: string[];
+    type?: ColumnType;
+}
+
+interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
+    column: EditorColumn;
+    width?: string;
+}
+
 interface EditorState {
     value?: any;
 }
@@ -20,7 +30,7 @@ interface EditorState {
     Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
     additionally, the element you return must contain an Input element
  */
-class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, EditorState> {
+class Editor extends editors.EditorBase<EditorProps, EditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
 
@@ -32,7 +42,6 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
     }
 
     public render() {
-        // @ts-ignore Type IS something I am allowed to include in the column object this receives
         const { column: { dropdownValues, type }, height, width } = this.props;
         const { value } = this.state;
 
@@ -46,7 +55,7 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
                     >
-                        {dropdownValues.map((dropdownValue: string) => (
+                        {dropdownValues && dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue}>{dropdownValue}</Option>
                         ))}
                     </Select>
