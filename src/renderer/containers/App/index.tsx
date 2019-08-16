@@ -23,7 +23,8 @@ import {
 } from "../../state/feedback/types";
 import { getIsUnsafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { RequestMetadataAction } from "../../state/metadata/types";
+import { getDatabaseMetadata } from "../../state/metadata/selectors";
+import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
 import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
 import {
     getPage,
@@ -83,6 +84,7 @@ interface AppProps {
     setAlert: ActionCreator<SetAlertAction>;
     showCreateSchemaModal: boolean;
     page: Page;
+    tables?: DatabaseMetadata;
     updateSettings: ActionCreator<UpdateSettingsAction>;
 }
 
@@ -222,6 +224,7 @@ class App extends React.Component<AppProps, AppState> {
             selectedFiles,
             showCreateSchemaModal,
             page,
+            tables,
         } = this.props;
         const { schema, schemaFilepath } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
@@ -254,6 +257,7 @@ class App extends React.Component<AppProps, AppState> {
                     schema={schema}
                     setAlert={setAlert}
                     filepath={schemaFilepath}
+                    tables={tables}
                 />
             </div>
         );
@@ -272,6 +276,7 @@ function mapStateToProps(state: State) {
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
         showCreateSchemaModal: getShowCreateSchemaModal(state),
+        tables: getDatabaseMetadata(state),
     };
 }
 
