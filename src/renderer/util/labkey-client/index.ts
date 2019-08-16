@@ -138,13 +138,13 @@ class Get {
                     })),
             ];
         });
-        // If any duplicate table name are present append the schemaName as a prefix
+        // If any duplicate table name are present append the schemaName as a suffix
         return tables.reduce((acc: DatabaseMetadata, table: Table) => {
             const matchingTable = tables.find(({ name, schemaName }: Table) => (
                 table.name === name && table.schemaName !== schemaName)
             );
             if (matchingTable) {
-                const displayName = `${table.schemaName}.${table.name}`;
+                const displayName = `${table.name} (${table.schemaName})`;
                 return {
                     ...acc,
                     [displayName]: {
