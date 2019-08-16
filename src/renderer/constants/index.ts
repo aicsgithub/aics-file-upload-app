@@ -28,5 +28,5 @@ export const SCHEMAS = [
     "assayscustom",
     "celllines",
     LK_MICROSCOPY_SCHEMA,
-    "processing"
+    "processing",
 ];

@@ -1,15 +1,15 @@
 import axios, { AxiosPromise, AxiosResponse } from "axios";
 import { map } from "lodash";
 
-import { DatabaseMetadata, Table } from "../../state/metadata/types";
-import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
-import { HttpClient } from "../../state/types";
 import {
     LABKEY_GET_TABLES_URL,
     LABKEY_SELECT_ROWS_URL,
     LK_MICROSCOPY_SCHEMA,
     SCHEMAS,
 } from "../../constants";
+import { DatabaseMetadata, Table } from "../../state/metadata/types";
+import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
+import { HttpClient } from "../../state/types";
 
 interface LabkeyPlate {
     BarCode: string;
@@ -118,17 +118,16 @@ class Get {
      * @param httpClient
      */
     public static async databaseMetadata(httpClient: HttpClient): Promise<DatabaseMetadata> {
-        const requests: AxiosPromise<GetTablesResponse>[] = SCHEMAS.map((schemaName: string) =>
+        const requests: Array<AxiosPromise<GetTablesResponse>> = SCHEMAS.map((schemaName: string) =>
             httpClient.post(LABKEY_GET_TABLES_URL(), { schemaName })
         );
-        const responses: AxiosResponse<GetTablesResponse>[] = await Promise.all(requests);
-        console.log(responses);
+        const responses: Array<AxiosResponse<GetTablesResponse>> = await Promise.all(requests);
         let tables: Table[] = [];
         responses.forEach(({ data: { schemaName, queries } }: AxiosResponse<GetTablesResponse>) => {
             tables = [
                 ...tables,
                 ...queries
-                    // User defined queries have been broken in production before, we want to avoid breaking out app
+                    // User defined queries have been broken in production before, we want to avoid breaking the app
                     // because of them -- also it doesn't seem like we want to let the user to associate with a view
                     .filter(({ isUserDefined }: GetTablesResponseQuery) => !isUserDefined)
                     .map(({ columns, name }: GetTablesResponseQuery) => ({
@@ -137,7 +136,7 @@ class Get {
                         name,
                         schemaName,
                     })),
-            ]
+            ];
         });
         // If any duplicate table name are present append the schemaName as a prefix
         return tables.reduce((acc: DatabaseMetadata, table: Table) => {
@@ -150,7 +149,7 @@ class Get {
                     ...acc,
                     [displayName]: {
                         ...table,
-                        displayName
+                        displayName,
                     },
                 };
             }

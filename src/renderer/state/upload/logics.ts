@@ -17,7 +17,7 @@ import {
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { batchActions} from "../util";
+import { batchActions } from "../util";
 import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, UPDATE_SCHEMA } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
@@ -64,7 +64,10 @@ const updateSchemaLogic = createLogic({
                     uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
                     if (column.type.type === ColumnType.LOOKUP && tables) {
                         const { name, schemaName }: Table = tables[column.type.table];
-                        column.type.dropdownValues = await LabkeyClient.Get.ColumnValues(httpClient, schemaName, name, column.type.column);
+                        column.type.dropdownValues = await LabkeyClient.Get.ColumnValues(httpClient,
+                                                                                         schemaName,
+                                                                                         name,
+                                                                                         column.type.column);
                     }
                 }));
             }

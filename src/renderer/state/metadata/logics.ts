@@ -32,16 +32,16 @@ const createBarcode = createLogic({
 
 const requestMetadata = createLogic({
     process: async ({httpClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
-              done: () => void) => {
+                    done: () => void) => {
         try {
             const [ units, databaseMetadata ] = await Promise.all([
                 LabkeyClient.Get.units(httpClient),
                 LabkeyClient.Get.databaseMetadata(httpClient),
             ]);
             dispatch(receiveMetadata({
-                units,
                 databaseMetadata,
-            }))
+                units,
+            }));
         } catch (reason) {
             console.log(reason); // tslint:disable-line:no-console
             dispatch(setAlert({

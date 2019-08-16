@@ -39,9 +39,13 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
 
 export interface ColumnTypeValue {
     column?: string; // only applicable if ColumnType is a lookup
-    type: ColumnType,
+    type: ColumnType;
     dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
     table?: string; // only applicable if ColumnType is a lookup
+}
+
+interface ColumnTypeColumn extends AdazzleReactDataGrid.Column<ColumnDefinitionDraft> {
+    tables?: DatabaseMetadata;
 }
 
 interface Props {
@@ -137,7 +141,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
     }
 
     // `tables` isn't guaranteed to have loaded by the time this is clicked, need to allow this to update with the props
-    private schemaEditorColumns = (): Array<AdazzleReactDataGrid.Column<ColumnDefinitionDraft>> => ([
+    private schemaEditorColumns = (): ColumnTypeColumn[] => ([
         {
             editable: true,
             formatter: ({value}: {value: string}) => {
@@ -158,7 +162,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             key: "label",
             name: "Column Name",
             resizable: true,
-            // @ts-ignore TODO:
             tables: this.props.tables,
             width: 300,
         },
@@ -168,7 +171,6 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             formatter: ColumnTypeFormatter,
             key: "type",
             name: "Data Type",
-            // @ts-ignore TODO:
             tables: this.props.tables,
         },
         {
@@ -177,13 +179,12 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
             key: "required",
             name: "Required?",
-            // @ts-ignore TODO:
             tables: this.props.tables,
             width: 100,
         },
-    ]);
+    ])
 
-    private getRow = (i: number) => this.state.columns[i];
+    private getRow = (i: number): ColumnDefinitionDraft => this.state.columns[i];
 
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
         const columns: ColumnDefinitionDraft[] = schema ? schema.columns : [DEFAULT_COLUMN];

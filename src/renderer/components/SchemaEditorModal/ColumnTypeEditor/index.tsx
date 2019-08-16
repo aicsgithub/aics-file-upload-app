@@ -4,15 +4,21 @@ import { map } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import { ColumnType } from "../../../state/setting/types";
 import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
+import { DatabaseMetadata } from "../../../state/metadata/types";
+import { ColumnType } from "../../../state/setting/types";
 
 const styles = require("./styles.pcss");
 
 const { Option } = Select;
 
+interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
+    tables?: DatabaseMetadata;
+}
+
 interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     className?: string;
+    column: EditorColumn;
     value: ColumnTypeValue;
 }
 
@@ -74,7 +80,6 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
     }
 
     public renderAdditionalInputForType = (): React.ReactElement | null => {
-        // @ts-ignore TODO: Talk to Lisa or Gabe
         const { tables } = this.props.column;
 
         if (this.state.newType === ColumnType.DROPDOWN) {
@@ -112,12 +117,12 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
                         showSearch={true}
                         value={this.state.newColumn}
                     >
-                        {tables && tables[this.state.newTable].columns.map((column : string) => (
+                        {tables && tables[this.state.newTable].columns.map((column: string) => (
                             <Option key={column} value={column}>{column}</Option>
                         ))}
                     </Select>}
                 </>
-            )
+            );
         }
         return null;
     }

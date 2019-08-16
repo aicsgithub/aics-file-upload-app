@@ -116,7 +116,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     <Select
                         allowClear={true}
                         autoFocus={true}
-                        loading={!dropdownValues.length}
+                        loading={!dropdownValues || !dropdownValues.length}
                         onChange={this.handleOnChange}
                         onBlur={this.props.onCommit}
                         placeholder="Column Values"
@@ -124,7 +124,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         style={{ width: "100%" }}
                         value={this.state.value}
                     >
-                        {dropdownValues.map((dropdownValue: string) => (
+                        {dropdownValues && dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue} value={dropdownValue}>{dropdownValue}</Option>
                         ))}
                     </Select>
