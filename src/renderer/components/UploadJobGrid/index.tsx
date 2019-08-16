@@ -57,7 +57,7 @@ interface FormatterProps {
 }
 
 class UploadJobGrid extends React.Component<Props, UploadJobState> {
-    private readonly UPLOAD_JOB_COLUMNS: Array<UploadJobColumn> = [
+    private readonly UPLOAD_JOB_COLUMNS: UploadJobColumn[] = [
         {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "file",
@@ -189,7 +189,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         );
     }
 
-    private getColumns = (): Array<UploadJobColumn> => {
+    private getColumns = (): UploadJobColumn[] => {
         if  (!this.props.schema) {
             return this.UPLOAD_JOB_COLUMNS;
         }

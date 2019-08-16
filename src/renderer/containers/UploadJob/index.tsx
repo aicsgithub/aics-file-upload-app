@@ -87,7 +87,7 @@ const openDialogOptions: OpenDialogOptions = {
 class UploadJob extends React.Component<Props, UploadJobState> {
     private readonly SCHEMA_FILE_OPTIONS: SchemaFileOption[] = [
         ...this.props.schemaFilepaths.map((filepath: string) => ({ filepath })),
-        { filepath: BROWSE_FOR_EXISTING_SCHEMA }
+        { filepath: BROWSE_FOR_EXISTING_SCHEMA },
     ];
 
     constructor(props: Props) {
