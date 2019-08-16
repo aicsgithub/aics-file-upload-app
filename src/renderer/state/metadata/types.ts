@@ -1,5 +1,6 @@
 export interface MetadataStateBranch {
     barcode?: string;
+    databaseMetadata?: DatabaseMetadata;
     imagingSessions: ImagingSession[];
     barcodePrefixes: BarcodePrefix[];
     units: Unit[];
@@ -73,4 +74,15 @@ export interface LabkeyUnit {
     Description: string;
     UnitsId: number;
     Name: string;
+}
+
+export interface DatabaseMetadata {
+    [displayName: string]: Table;
+}
+
+export interface Table {
+    name: string;
+    schemaName: string;
+    displayName: string; // name with schema prefixed if duplicate
+    columns: string[];
 }
