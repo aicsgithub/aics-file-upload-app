@@ -1,4 +1,4 @@
-import { remove, uniq } from "lodash";
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
@@ -31,7 +31,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is RemoveSchemaFilepathAction => action.type === REMOVE_SCHEMA_FILE_PATH,
         perform: (state: SettingStateBranch, action: RemoveSchemaFilepathAction) => ({
             ...state,
-            schemaFilepaths: remove(state.schemaFilepaths, (filepath) => action.payload === filepath),
+            schemaFilepaths: without(state.schemaFilepaths, action.payload),
         }),
     },
     [UPDATE_SETTINGS]: {
