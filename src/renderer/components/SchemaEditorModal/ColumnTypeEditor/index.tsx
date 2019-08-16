@@ -2,38 +2,39 @@ import { Select } from "antd";
 import * as classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
-import { ChangeEvent } from "react";
 import { editors } from "react-data-grid";
 
 import { ColumnType } from "../../../state/setting/types";
-
-import { COLUMN_TYPE_DISPLAY_MAP } from "../";
+import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
 
 const styles = require("./styles.pcss");
 
+const { Option } = Select;
+
 interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     className?: string;
-    value: {
-        dropdownValues: string[];
-        type: ColumnType;
-    };
+    value: ColumnTypeValue;
 }
 
 interface ColumnTypeEditorState {
+    newColumn?: string;
     newType?: ColumnType;
     newDropdownValues?: string[];
+    newTable?: string;
 }
 
 // This component is for use in the ReactDataGrid component for editing column type.
 // If the user selects dropdown as a column type, they will also be able to define
 // the dropdown values.
 class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> {
-    public input = React.createRef<HTMLSelectElement>();
+    public input = React.createRef<HTMLDivElement>();
 
     constructor(props: Props) {
         super(props);
         this.state = {
+            newColumn: props.value ? props.value.column : undefined,
             newDropdownValues: props.value ? props.value.dropdownValues : [],
+            newTable: props.value ? props.value.table : undefined,
             newType: props.value ? props.value.type : undefined,
         };
     }
@@ -49,41 +50,85 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
 
     public render() {
         const {className} = this.props;
-        const {newDropdownValues, newType} = this.state;
+        const {newType} = this.state;
 
         return (
             <div
                 className={classNames(className, styles.container)}
+                ref={this.input}
             >
-                <select
+                <Select
+                    autoFocus={true}
                     className={styles.columnTypeSelect}
-                    value={newType}
                     onChange={this.setColumnType}
                     placeholder="Column Type"
-                    ref={this.input}
+                    value={`${newType}`}
                 >
                     {map(COLUMN_TYPE_DISPLAY_MAP, (display: string, key: ColumnType) => (
-                        <option value={key} key={key}>{display}</option>
+                        <Option value={key} key={key}>{display}</Option>
                     ))}
-                </select>
-                {newType === ColumnType.DROPDOWN && <Select
-                    value={newDropdownValues}
+                </Select>
+                {this.renderAdditionalInputForType()}
+            </div>
+        );
+    }
+
+    public renderAdditionalInputForType = (): React.ReactElement | null => {
+        // @ts-ignore TODO: Talk to Lisa or Gabe
+        const { tables } = this.props.column;
+
+        if (this.state.newType === ColumnType.DROPDOWN) {
+            return (
+                <Select
+                    value={this.state.newDropdownValues}
                     className={styles.dropdownValuesSelect}
                     mode="tags"
                     placeholder="Dropdown values"
                     onChange={this.setDropdownValues}
                     onBlur={this.props.onCommit}
                     onInputKeyDown={this.onDropdownValuesKeydown}
-                />}
-            </div>
-        );
+                />);
+        }
+        if (this.state.newType === ColumnType.LOOKUP) {
+            return (
+                <>
+                    <Select
+                        className={styles.dropdownValuesSelect}
+                        loading={!tables}
+                        onChange={this.setTable}
+                        placeholder="Tables"
+                        showSearch={true}
+                        value={this.state.newTable}
+                    >
+                        {tables && Object.keys(tables).sort().map((table: string) => (
+                            <Option key={table} value={table}>{table}</Option>
+                        ))}
+                    </Select>
+                    {this.state.newTable && <Select
+                        className={styles.dropdownValuesSelect}
+                        onChange={this.setColumn}
+                        onBlur={this.props.onCommit}
+                        placeholder="Columns"
+                        showSearch={true}
+                        value={this.state.newColumn}
+                    >
+                        {tables && tables[this.state.newTable].columns.map((column : string) => (
+                            <Option key={column} value={column}>{column}</Option>
+                        ))}
+                    </Select>}
+                </>
+            )
+        }
+        return null;
     }
 
     public getValue = () => {
         // should return an object of key/value pairs to be merged back to the row
         return {
             [this.props.column.key]: {
+                column: this.state.newColumn,
                 dropdownValues: this.state.newDropdownValues,
+                table: this.state.newTable,
                 type: this.state.newType,
             },
         };
@@ -97,8 +142,16 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
         this.setState({newDropdownValues: selectOption});
     }
 
-    private setColumnType = (e: ChangeEvent<HTMLSelectElement>) => {
-        const newType = parseInt(e.target.value, 10) || ColumnType.TEXT;
+    private setTable = (value: string) => {
+        this.setState({ newColumn: undefined, newTable: value });
+    }
+
+    private setColumn = (value: string) => {
+        this.setState({ newColumn: value });
+    }
+
+    private setColumnType = (value: string) => {
+        const newType = parseInt(value, 10) || ColumnType.TEXT;
         const columnTypeIsDropdown = newType === ColumnType.DROPDOWN;
         this.setState({newType, newDropdownValues: columnTypeIsDropdown ? [] : undefined});
     }
