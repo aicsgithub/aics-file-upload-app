@@ -1,7 +1,6 @@
 import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
-    // todo add more settings here
     schemaFilepaths: string[];
 }
 
