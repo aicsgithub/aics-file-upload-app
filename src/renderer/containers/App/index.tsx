@@ -1,11 +1,12 @@
 import "@aics/aics-react-labkey/dist/styles.css";
+import { FileManagementSystem } from "@aics/aicsfiles";
 import { message } from "antd";
 import { ipcRenderer, remote } from "electron";
 import { readFile } from "fs";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
+import { LIMS_HOST, OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
@@ -105,7 +106,7 @@ class App extends React.Component<AppProps, AppState> {
         showCreateSchemaModal: false,
     };
 
-    public componentDidMount() {
+    public async componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
         ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
@@ -164,7 +165,30 @@ class App extends React.Component<AppProps, AppState> {
                 this.setState({showCreateSchemaModal: true});
             }
         });
-
+        const fms = new FileManagementSystem({host: LIMS_HOST, logLevel: "debug"});
+        try {
+            await fms.uploadFiles({
+                "/home/lisah/git/aics-file-upload-app/.gitignore": {
+                    file: {
+                        fileType: "Other",
+                        notes: undefined,
+                        originalPath: "/home/lisah/git/aics-file-upload-app/.gitignore",
+                    },
+                    microscopy: {
+                        wellIds: [46590],
+                    },
+                },
+            }, (new Date()).toLocaleString());
+            this.props.setAlert({
+                message: "Upload Succeeded",
+                type: AlertType.SUCCESS,
+            });
+        } catch (e) {
+            this.props.setAlert({
+                message: "Upload Failed",
+                type: AlertType.ERROR,
+            });
+        }
     }
 
     public componentDidUpdate() {
