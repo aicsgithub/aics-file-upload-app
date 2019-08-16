@@ -8,6 +8,7 @@ import undoable, {
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
+import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     DESELECT_FILES,
@@ -23,7 +24,9 @@ import {
 } from "./constants";
 import {
     AddStageFilesAction,
+    CloseSchemaCreatorAction,
     DeselectFilesAction,
+    OpenSchemaCreatorAction,
     Page,
     SelectBarcodeAction,
     SelectFileAction,
@@ -43,6 +46,7 @@ export const initialState = {
     imagingSessionIds: [],
     page: Page.UploadSummary,
     selectedWells: [],
+    showCreateSchemaModal: false,
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
@@ -126,6 +130,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
             ...state,
             selectedWells: action.payload,
+        }),
+    },
+    [OPEN_CREATE_SCHEMA_MODAL]: {
+        accepts: (action: AnyAction): action is OpenSchemaCreatorAction => action.type === OPEN_CREATE_SCHEMA_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            showCreateSchemaModal: true,
+        }),
+    },
+    [CLOSE_CREATE_SCHEMA_MODAL]: {
+        accepts: (action: AnyAction): action is CloseSchemaCreatorAction => action.type === CLOSE_CREATE_SCHEMA_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            showCreateSchemaModal: false,
         }),
     },
 };

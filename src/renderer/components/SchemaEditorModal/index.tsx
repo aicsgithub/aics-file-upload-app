@@ -39,6 +39,7 @@ interface Props {
     className?: string;
     close: () => void;
     filepath?: string;
+    onSchemaFileCreated?: (filepath: string) => void;
     schema?: SchemaDefinition;
     setAlert: ActionCreator<SetAlertAction>;
     visible: boolean;
@@ -210,6 +211,9 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                     type: AlertType.ERROR,
                 });
             } else {
+                if (this.props.onSchemaFileCreated) {
+                    this.props.onSchemaFileCreated(filename);
+                }
                 this.props.close();
             }
         });

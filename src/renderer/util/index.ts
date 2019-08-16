@@ -1,8 +1,10 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
+import { promises } from "fs";
 import {
     forOwn,
     isFunction,
 } from "lodash";
+import { DragAndDropFileList } from "../state/selection/types";
 
 export function bindAll<T>(obj: T, methods: Array<() => any>) {
     const setOfMethods = new Set(methods);
@@ -11,6 +13,41 @@ export function bindAll<T>(obj: T, methods: Array<() => any>) {
             Object.assign(obj, { [key]: value.bind(obj) });
         }
     });
+}
+
+export async function onDrop(files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> {
+    if (files.length > 1) {
+        throw new Error(`Unexpected number of files dropped: ${files.length}.`);
+    }
+    if (files.length < 1) {
+        return "";
+    }
+    return await readTxtFile(files[0].path, handleError);
+}
+
+export async function onOpen(files: string[], handleError: (error: string) => void): Promise<string> {
+    if (files.length > 1) {
+        throw new Error(`Unexpected number of files opened: ${files.length}.`);
+    }
+    if (files.length < 1) {
+        return "";
+    }
+    return await readTxtFile(files[0], handleError);
+}
+
+export async function readTxtFile(file: string, handleError: (error: string) => void): Promise<string> {
+    try {
+        const notesBuffer = await promises.readFile(file);
+        const notes = notesBuffer.toString();
+        if (!notes) {
+            handleError("No notes found in file.");
+        }
+        return notes;
+    } catch (e) {
+        // It is possible for a user to select a directory
+        handleError("Invalid file or directory selected (.txt only)");
+        return "";
+    }
 }
 
 const MAX_ROWS = 26;

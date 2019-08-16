@@ -5,9 +5,10 @@ import { stub } from "sinon";
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
+import { ColumnType, SchemaDefinition } from "../../setting/types";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
-import { associateFilesAndWells, initiateUpload } from "../actions";
+import { associateFilesAndWells, initiateUpload, updateSchema } from "../actions";
 import { getUpload } from "../selectors";
 
 describe("Upload logics", () => {
@@ -22,6 +23,37 @@ describe("Upload logics", () => {
             expect(getSelectedFiles(store.getState())).to.be.empty;
 
             const upload = getUpload(store.getState());
+            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+        });
+    });
+
+    describe("updateSchemaLogic", () => {
+        it("updates uploads with a schema", () => {
+            const store = createMockReduxStore(mockState);
+            const file1 = "/path1";
+            const file2 = "/path2";
+            const wellId = 1;
+            const schemaFile = "some/file/path/that-goes/somewhere.json";
+            const schema: SchemaDefinition = {
+                columns: [{
+                    label: "newColumn",
+                    required: false,
+                    type: {
+                        dropdownValues: [],
+                        type: ColumnType.TEXT,
+                    },
+                }],
+                notes: "some notes that don't really matter for this logic",
+            };
+            store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
+            store.dispatch(updateSchema(schema, schemaFile));
+
+            const upload = getUpload(store.getState());
+            expect(get(upload, [file1, "schemaFile"])).to.equal(schemaFile);
+            expect(get(upload, [file2, "schemaFile"])).to.equal(schemaFile);
+            expect(get(upload, [file1, "newColumn"])).to.equal(null);
+            expect(get(upload, [file2, "newColumn"])).to.equal(null);
             expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
             expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
         });

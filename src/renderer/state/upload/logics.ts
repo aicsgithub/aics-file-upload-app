@@ -7,6 +7,7 @@ import { AlertType } from "../feedback/types";
 import { addPendingJob, removePendingJobs } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
+import { ColumnDefinition, ColumnType } from "../setting/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -14,8 +15,9 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD } from "./constants";
-import { getUploadJobName, getUploadPayload } from "./selectors";
+import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, UPDATE_SCHEMA } from "./constants";
+import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
+import { UploadMetadata, UploadStateBranch } from "./types";
 
 const associateFileAndWellLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -30,6 +32,38 @@ const associateFileAndWellLogic = createLogic({
         ]));
     },
     type: ASSOCIATE_FILES_AND_WELLS,
+});
+
+// This logic is to add new user-defined columns to each upload row, and remove any old columns
+const updateSchemaLogic = createLogic({
+    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const { schema, schemaFile } = action.payload;
+        const state = getState();
+        const uploads: UploadStateBranch = getUpload(state);
+        Object.keys(uploads).forEach((filepath: string): void => {
+            const upload = uploads[filepath];
+            // By only grabbing the initial fields of the upload we can remove old schema columns
+            const uploadData: UploadMetadata = {
+                barcode: upload.barcode,
+                notes: upload.notes,
+                schemaFile,
+                wellIds: upload.wellIds,
+                wellLabels: upload.wellLabels,
+            };
+            if (schema) {
+                // We want to have all values consistently be either null or false so we can detect them in the upload
+                // especially for cases where null is a distinct value that we would have otherwise ignored
+                // However, boolean fields need to be false by default because otherwise we would have null === false
+                // which isn't necessarily true (except to javascript)
+                schema.columns.forEach((column: ColumnDefinition) => {
+                    uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
+                });
+            }
+            action.payload.uploads[filepath] = uploadData;
+        });
+        next(action);
+    },
+    type: UPDATE_SCHEMA,
 });
 
 const initiateUploadLogic = createLogic({
@@ -88,4 +122,5 @@ const initiateUploadLogic = createLogic({
 export default [
     associateFileAndWellLogic,
     initiateUploadLogic,
+    updateSchemaLogic,
 ];

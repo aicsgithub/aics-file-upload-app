@@ -1,5 +1,6 @@
 import { GridCell } from "../../containers/AssociateWells/grid-cell";
 
+import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -21,6 +22,7 @@ import {
 import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
+    CloseSchemaCreatorAction,
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
@@ -29,6 +31,7 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     NextPageAction,
+    OpenSchemaCreatorAction,
     Page,
     PlateResponse,
     SelectBarcodeAction,
@@ -126,6 +129,18 @@ export function selectWells(wells: GridCell[]): SelectWellsAction {
     return {
         payload: wells,
         type: SELECT_WELLS,
+    };
+}
+
+export function closeSchemaCreator(): CloseSchemaCreatorAction {
+    return {
+        type: CLOSE_CREATE_SCHEMA_MODAL,
+    };
+}
+
+export function openSchemaCreator(): OpenSchemaCreatorAction {
+    return {
+        type: OPEN_CREATE_SCHEMA_MODAL,
     };
 }
 
