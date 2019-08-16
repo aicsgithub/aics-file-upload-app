@@ -45,6 +45,7 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                         autoFocus={true}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
+                        value={this.state.value}
                     >
                         {dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue}>{dropdownValue}</Option>
@@ -99,6 +100,25 @@ class Editor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, Ed
                         type="datetime-local"
                         value={this.state.value || undefined}
                     />
+                );
+                break;
+            case ColumnType.LOOKUP:
+                input = (
+                    <Select
+                        allowClear={true}
+                        autoFocus={true}
+                        loading={!dropdownValues.length}
+                        onChange={this.handleOnChange}
+                        onBlur={this.props.onCommit}
+                        placeholder="Column Values"
+                        showSearch={true}
+                        style={{ width: "100%" }}
+                        value={this.state.value}
+                    >
+                        {dropdownValues.map((dropdownValue: string) => (
+                            <Option key={dropdownValue} value={dropdownValue}>{dropdownValue}</Option>
+                        ))}
+                    </Select>
                 );
                 break;
             default:
