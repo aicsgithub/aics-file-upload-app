@@ -31,8 +31,10 @@ export interface SchemaDefinition {
 export interface ColumnDefinition {
     label: string;
     type: {
-        type: ColumnType;
+        column: string;
         dropdownValues: string[];
+        table: string; // table display name
+        type: ColumnType;
     };
     required: boolean;
 }
@@ -44,4 +46,5 @@ export enum ColumnType {
     NUMBER = 4,
     DATE = 5,
     DATETIME = 6,
+    LOOKUP = 7,
 }
