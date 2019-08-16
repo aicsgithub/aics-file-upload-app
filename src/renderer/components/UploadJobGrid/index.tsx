@@ -14,12 +14,7 @@ import {
     RemoveSchemaFilepathAction,
     SchemaDefinition
 } from "../../state/setting/types";
-import {
-    RemoveUploadsAction,
-    SchemaFileOption,
-    UpdateUploadAction,
-    UploadJobTableRow
-} from "../../state/upload/types";
+import { RemoveUploadsAction, UpdateUploadAction, UploadJobTableRow } from "../../state/upload/types";
 import { onDrop } from "../../util";
 import FormControl from "../FormControl";
 import Editor from "./Editor";
@@ -36,9 +31,7 @@ interface Props {
     redo: () => void;
     removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
-    selectSchema: (option: SchemaFileOption | null) => void;
     schemaFile?: string;
-    schemaFileOptions: SchemaFileOption[];
     schema?: SchemaDefinition;
     setAlert: ActionCreator<SetAlertAction>;
     undo: () => void;

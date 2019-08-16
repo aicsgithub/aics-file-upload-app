@@ -13,7 +13,7 @@ import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward, openSchemaCreator } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction, OpenSchemaCreatorAction } from "../../state/selection/types";
 import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
-import { getSchemaFileOptions } from "../../state/setting/selectors";
+import { getSchemaFilepaths } from "../../state/setting/selectors";
 import {
     AddSchemaFilepathAction,
     ColumnDefinition,
@@ -48,6 +48,8 @@ import { isSchemaDefinition } from "../App/util";
 
 const styles = require("./style.pcss");
 
+const BROWSE_FOR_EXISTING_SCHEMA = "...Browse for existing schema";
+
 interface Props {
     addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     canRedo: boolean;
@@ -62,7 +64,7 @@ interface Props {
     openSchemaCreator: ActionCreator<OpenSchemaCreatorAction>;
     removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
     schemaFile?: string;
-    schemaFileOptions: SchemaFileOption[];
+    schemaFilepaths: string[];
     setAlert: ActionCreator<SetAlertAction>;
     updateSchema: ActionCreator<UpdateSchemaAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
@@ -82,9 +84,12 @@ const openDialogOptions: OpenDialogOptions = {
     title: "Select JSON file",
 };
 
-const BROWSE_FOR_EXISTING_SCHEMA = "...Browse for existing schema";
-
 class UploadJob extends React.Component<Props, UploadJobState> {
+    private readonly SCHEMA_FILE_OPTIONS: SchemaFileOption[] = [
+        ...this.props.schemaFilepaths.map((filepath: string) => ({ filepath })),
+        { filepath: BROWSE_FOR_EXISTING_SCHEMA }
+    ];
+
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -112,9 +117,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                     removeUploads={this.props.removeUploads}
                     schema={this.state.schema}
                     setAlert={this.props.setAlert}
-                    selectSchema={this.selectSchema}
-                    schemaFile={this.props.schemaFile}
-                    schemaFileOptions={this.props.schemaFileOptions}
                     undo={this.undo}
                     updateUpload={this.props.updateUpload}
                     uploads={this.props.uploads}
@@ -126,7 +128,6 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     private renderButtons = () => {
         const {
             schemaFile,
-            schemaFileOptions,
         } = this.props;
 
         return (
@@ -138,7 +139,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                         optionNameKey="filepath"
                         selected={schemaFile ? { filepath: schemaFile } : undefined}
                         onOptionSelection={this.selectSchema}
-                        options={schemaFileOptions}
+                        options={this.SCHEMA_FILE_OPTIONS}
                         placeholder="Select a schema file"
                     />
                 </div>
@@ -255,7 +256,7 @@ function mapStateToProps(state: State) {
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
         schemaFile: getSchemaFile(state),
-        schemaFileOptions: getSchemaFileOptions(state),
+        schemaFilepaths: getSchemaFilepaths(state),
         uploads: getUploadSummaryRows(state),
     };
 }
