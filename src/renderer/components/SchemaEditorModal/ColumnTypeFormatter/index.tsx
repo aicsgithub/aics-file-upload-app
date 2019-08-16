@@ -6,15 +6,12 @@ import { ColumnType } from "../../../state/setting/types";
 
 import FormControl from "../../FormControl";
 
-import { COLUMN_TYPE_DISPLAY_MAP } from "../";
+import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
 
 const styles = require("./styles.pcss");
 
 interface Props {
-    value?: {
-        dropdownValues: string[];
-        type: ColumnType;
-    };
+    value?: ColumnTypeValue;
 }
 
 const ColumnTypeFormatter: React.FunctionComponent<Props> = ({value}: Props) => {
@@ -22,34 +19,57 @@ const ColumnTypeFormatter: React.FunctionComponent<Props> = ({value}: Props) => 
         return <FormControl error="Column Type is required"/>;
     }
 
-    const { type, dropdownValues } = value;
+    const {
+        column,
+        dropdownValues,
+        table,
+        type,
+    } = value;
     const isDropdown = type === ColumnType.DROPDOWN;
-
-    const popoverContent = !isEmpty(dropdownValues) && (
-        <div className={styles.popoverBody}>
-            {dropdownValues.map((option) => (
-                <div className={styles.dropdownValue} key={option}>{option}</div>
-            ))}
-        </div>
-    );
+    const isLookup = type === ColumnType.LOOKUP;
 
     let error;
+    let popoverContent;
     if (!type) {
         error = "Column Type is required";
     }
 
-    if (isDropdown && isEmpty(dropdownValues)) {
-        error = "Dropdown values are required";
+    if (isDropdown) {
+        if (dropdownValues && !isEmpty(dropdownValues)) {
+            popoverContent = dropdownValues.map((option) => (
+                <div className={styles.dropdownValue} key={option}>{option}</div>
+            ));
+        } else {
+            error = "Dropdown values are required";
+        }
     }
+
+    if (isLookup) {
+        if (table && column) {
+            popoverContent = (
+                <div className={styles.dropdownValue}>
+                    <strong>Table</strong>: {table} <strong>Column</strong>: {column}
+                </div>
+            );
+        } else {
+            error = "Table and Column are required";
+        }
+    }
+
+    const popover = (
+        <div className={styles.popoverBody}>
+            {popoverContent}
+        </div>
+    );
 
     return (
         <FormControl className={styles.container} error={error}>
             {COLUMN_TYPE_DISPLAY_MAP[type]}
 
-            {isDropdown && popoverContent && <Popover
+            {popoverContent && <Popover
                 className={styles.popover}
-                content={popoverContent}
-                title="Dropdown values"
+                content={popover}
+                title="Value"
                 trigger="hover"
             >
                 <Icon type="info-circle"/>
