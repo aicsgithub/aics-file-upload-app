@@ -47,9 +47,9 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
         });
     }
 
-    const error = job.serviceFields && job.serviceFields.error ? (
+    const error = job.serviceFields && job.serviceFields.error && (
             <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
-        ) : undefined;
+        );
     return (
         <div className={className}>
             {error}

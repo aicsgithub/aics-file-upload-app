@@ -122,7 +122,7 @@ class App extends React.Component<AppProps, AppState> {
     public state: AppState = {
     };
 
-    public async componentDidMount() {
+    public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
         ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
@@ -181,6 +181,7 @@ class App extends React.Component<AppProps, AppState> {
                 this.props.openSchemaCreator();
             }
         });
+
     }
 
     public componentDidUpdate() {

@@ -99,7 +99,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             retrying,
         } = this.props;
         const { selectedJobId } = this.state;
-        const selectedJob = selectedJobId ? jobs.find((j) => j.jobId === selectedJobId) : undefined;
+        const selectedJob = this.getSelectedJob();
         return (
             <FormPage
                 className={className}
@@ -127,10 +127,14 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         );
     }
 
-    private retryUpload = (): void => {
+    private getSelectedJob = (): UploadSummaryTableRow | undefined => {
         const {jobs} = this.props;
         const {selectedJobId} = this.state;
-        this.props.retryUpload(jobs.find((j) => j.jobId === selectedJobId));
+        return jobs.find((j) => j.jobId === selectedJobId);
+    }
+
+    private retryUpload = (): void => {
+        this.props.retryUpload(this.getSelectedJob());
     }
 
     private goToDragAndDrop = (): void => {
