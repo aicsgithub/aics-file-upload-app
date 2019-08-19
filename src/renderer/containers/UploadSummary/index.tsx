@@ -114,10 +114,10 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     dataSource={jobs}
                     onRow={this.onRow}
                 />
-                {selectedJob !== undefined && <Modal
+                {selectedJob && <Modal
                     title="Upload Job"
                     width="90%"
-                    visible={!!selectedJobId}
+                    visible={!!selectedJob}
                     footer={null}
                     onCancel={this.closeModal}
                 >

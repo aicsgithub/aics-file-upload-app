@@ -23,8 +23,8 @@ import {
     UndoFileWellAssociationAction,
     UpdateSchemaAction,
     UpdateUploadAction,
-    UploadMetadata,
     UploadJobTableRow,
+    UploadMetadata,
 } from "./types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
