@@ -1,3 +1,5 @@
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
 }
@@ -71,6 +73,11 @@ export interface RemoveUploadsAction {
 }
 
 export interface InitiateUploadAction {
+    type: string;
+}
+
+export interface RetryUploadAction {
+    payload: UploadSummaryTableRow;
     type: string;
 }
 

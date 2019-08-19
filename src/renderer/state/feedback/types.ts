@@ -45,6 +45,7 @@ export interface ClearAlertAction {
 export enum AsyncRequest {
     GET_PLATE = "GET_PLATE",
     GET_JOBS = "GET_JOBS",
+    RETRY_UPLOAD = "RETRY_UPLOAD",
 }
 
 export interface AddRequestInProgressAction {

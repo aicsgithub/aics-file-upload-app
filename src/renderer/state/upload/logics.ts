@@ -1,10 +1,11 @@
 import Logger from "js-logger";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
-import { addEvent, setAlert } from "../feedback/actions";
-import { AlertType } from "../feedback/types";
-import { addPendingJob, removePendingJobs } from "../job/actions";
+import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { AlertType, AsyncRequest } from "../feedback/types";
+import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import {
@@ -14,7 +15,7 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD } from "./constants";
+import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, RETRY_UPLOAD } from "./constants";
 import { getUploadJobName, getUploadPayload } from "./selectors";
 
 const associateFileAndWellLogic = createLogic({
@@ -85,7 +86,52 @@ const initiateUploadLogic = createLogic({
     type: INITIATE_UPLOAD,
 });
 
+const retryUploadLogic = createLogic({
+    process: async ({action, ctx, fms, getState}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const uploadJob: UploadSummaryTableRow = action.payload;
+
+        dispatch(setAlert({
+            message: `Retry upload ${uploadJob.jobName}`,
+            type: AlertType.INFO,
+        }));
+        dispatch(addRequestToInProgress(AsyncRequest.RETRY_UPLOAD));
+
+        try {
+            await fms.retryUpload(action.payload);
+            dispatch(setAlert({
+                message: `Retry upload ${uploadJob.jobName} succeeded!`,
+                type: AlertType.SUCCESS,
+            }));
+            dispatch(retrieveJobs());
+        } catch (e) {
+            Logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
+            dispatch(setAlert({
+                message: `Retry upload ${uploadJob.jobName} failed: ${e.message}`,
+                type: AlertType.ERROR,
+            }));
+        }
+
+        dispatch(removeRequestFromInProgress(AsyncRequest.RETRY_UPLOAD));
+        done();
+    },
+    transform: ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const uploadJob: UploadSummaryTableRow = action.payload;
+        if (!uploadJob) {
+            next(setAlert({
+                message: "Cannot retry undefined upload job",
+                type: AlertType.ERROR,
+            }));
+        } else {
+            next(action);
+        }
+    },
+    type: RETRY_UPLOAD,
+});
+
 export default [
     associateFileAndWellLogic,
     initiateUploadLogic,
+    retryUploadLogic,
 ];

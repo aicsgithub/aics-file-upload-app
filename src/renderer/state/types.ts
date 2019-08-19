@@ -40,6 +40,7 @@ export interface ReduxLogicExtraDependencies {
         ): number;
     };
     fms: {
+        retryUpload: (uploadJob: JSSJob) => Promise<UploadResponse>;
         uploadFiles: (uploads: Uploads, jobName: string) => Promise<UploadResponse>;
         validateMetadata: (metadata: Uploads) => Promise<void>;
     };

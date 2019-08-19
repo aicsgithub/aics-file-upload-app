@@ -1,3 +1,4 @@
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
     ASSOCIATE_FILES_AND_WELLS,
     CLEAR_UPLOAD_HISTORY,
@@ -5,8 +6,9 @@ import {
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
+    RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
-    UPDATE_UPLOAD
+    UPDATE_UPLOAD,
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
@@ -15,9 +17,10 @@ import {
     JumpToPastUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
+    RetryUploadAction,
     UndoFileWellAssociationAction,
     UpdateUploadAction,
-    UploadJobTableRow
+    UploadJobTableRow,
 } from "./types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
@@ -75,6 +78,13 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
 export function initiateUpload(): InitiateUploadAction {
     return {
         type: INITIATE_UPLOAD,
+    };
+}
+
+export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
+    return {
+        payload: job,
+        type: RETRY_UPLOAD,
     };
 }
 
