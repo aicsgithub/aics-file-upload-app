@@ -1,5 +1,7 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
+import { SchemaDefinition } from "../setting/types";
+
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
 }
@@ -8,12 +10,26 @@ export interface UploadStateBranch {
 export interface UploadMetadata {
     barcode: string;
     notes?: string;
+    schemaFile?: string;
     wellIds: number[];
     wellLabels: string[];
+    [genericKey: string]: any;
+}
+
+export interface UpdateSchemaAction {
+    payload: {
+        schema?: SchemaDefinition;
+        schemaFile?: string;
+        uploads: UploadStateBranch;
+    };
+    type: string;
 }
 
 export interface UpdateUploadAction {
-    payload: UploadJobTableRow;
+    payload: {
+        filePath: string;
+        upload: Partial<UploadMetadata>;
+    };
     type: string;
 }
 
@@ -27,11 +43,15 @@ export interface UploadJobTableRow {
     // also fullpath of file - used by ant.d Table to identify rows
     key: string;
 
-    // human readable identifier of well, such as "A1"
-    wellLabels: string;
-
     // notes associated with the file
     notes?: string;
+
+    // human readable identifier of well, such as "A1"
+    wellLabels: string;
+}
+
+export interface SchemaFileOption {
+    filepath: string;
 }
 
 export interface AssociateFilesAndWellsAction {

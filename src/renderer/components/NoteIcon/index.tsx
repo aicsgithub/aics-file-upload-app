@@ -1,19 +1,13 @@
 import { Icon, Modal } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { clipboard, OpenDialogOptions, remote } from "electron";
-import { readFileSync } from "fs";
 import * as React from "react";
 
 import { DragAndDropFileList } from "../../state/selection/types";
+import { onDrop, onOpen } from "../../util";
 import DragAndDrop from "../DragAndDrop";
 
 const styles = require("./styles.pcss");
-
-const readFileAsync = (file: string) => {
-    return new Promise((resolve) => {
-        resolve(readFileSync(file));
-    });
-};
 
 interface NoteIconProps {
     handleError: (error: string) => void;
@@ -41,43 +35,6 @@ const openDialogOptions: OpenDialogOptions = {
     It also contains static methods for reading .txt files from drag or drop events.
  */
 class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
-
-    public static onDrop = async (
-        files: DragAndDropFileList,
-        handleError: (error: string
-    ) => void): Promise<string> => {
-        if (files.length > 1) {
-            throw new Error(`Unexpected number of files dropped: ${files.length}.`);
-        } else if (files.length < 1) {
-            return "";
-        }
-        return await NoteIcon.readFile(files[0].path, handleError);
-    }
-
-    public static onOpen = async (files: string[], handleError: (error: string) => void): Promise<string> => {
-        if (files.length > 1) {
-            throw new Error(`Unexpected number of files opened: ${files.length}.`);
-        } else if (files.length < 1) {
-            return "";
-        }
-        return await NoteIcon.readFile(files[0], handleError);
-    }
-
-    private static readFile = async (file: string, handleError: (error: string) => void): Promise<string> => {
-        try {
-            const notesBuffer = await readFileAsync(file);
-            const notes = notesBuffer.toString();
-            if (!notes) {
-                handleError("No notes found in file.");
-            }
-            return notes;
-        } catch (e) {
-            // It is possible for a user to select a directory
-            handleError("Invalid file or directory selected (.txt only)");
-            return "";
-        }
-    }
-
     private readonly iconRef = React.createRef<HTMLDivElement>();
     private readonly paste = {
         click: () => {
@@ -204,12 +161,12 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
     }
 
     private handleOnDrop = async (files: DragAndDropFileList) => {
-        const notes = await NoteIcon.onDrop(files, this.props.handleError);
+        const notes = await onDrop(files, this.props.handleError);
         this.setState({ notes });
     }
 
     private handleOnOpen = async (files: string[]) => {
-        const notes = await NoteIcon.onOpen(files, this.props.handleError);
+        const notes = await onOpen(files, this.props.handleError);
         this.setState({ notes });
     }
 

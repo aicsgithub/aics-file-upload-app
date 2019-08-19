@@ -1,4 +1,5 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { SchemaDefinition } from "../setting/types";
 import {
     ASSOCIATE_FILES_AND_WELLS,
     CLEAR_UPLOAD_HISTORY,
@@ -8,6 +9,7 @@ import {
     JUMP_TO_UPLOAD,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
+    UPDATE_SCHEMA,
     UPDATE_UPLOAD,
 } from "./constants";
 import {
@@ -19,7 +21,9 @@ import {
     RemoveUploadsAction,
     RetryUploadAction,
     UndoFileWellAssociationAction,
+    UpdateSchemaAction,
     UpdateUploadAction,
+    UploadMetadata,
     UploadJobTableRow,
 } from "./types";
 
@@ -81,16 +85,30 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
+export function updateSchema(schema?: SchemaDefinition, schemaFile?: string): UpdateSchemaAction {
+    return {
+        payload: {
+            schema,
+            schemaFile,
+            uploads: {},
+        },
+        type: UPDATE_SCHEMA,
+    };
+}
+
+export function updateUpload(filePath: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
+    return {
+        payload: {
+            filePath,
+            upload,
+        },
+        type: UPDATE_UPLOAD,
+    };
+}
+
 export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
     return {
         payload: job,
         type: RETRY_UPLOAD,
-    };
-}
-
-export function updateUpload(upload: UploadJobTableRow): UpdateUploadAction {
-    return {
-        payload: upload,
-        type: UPDATE_UPLOAD,
     };
 }

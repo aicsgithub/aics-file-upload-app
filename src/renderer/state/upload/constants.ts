@@ -9,5 +9,6 @@ export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOAD = makeConstant(BRANCH_NAME, "delete-upload");
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");
+export const UPDATE_SCHEMA = makeConstant(BRANCH_NAME, "update-schema");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
 export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
