@@ -80,7 +80,7 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
         );
     }
 
-    public renderAdditionalInputForType = (): React.ReactElement | null => {
+    public renderAdditionalInputForType = (): React.ReactNode => {
         if (this.state.newType === ColumnType.DROPDOWN) {
             return (
                 <Select
