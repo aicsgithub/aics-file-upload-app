@@ -101,8 +101,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UndoFileWorkflowAssociationAction =>
             action.type === UNDO_FILE_WORKFLOW_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWorkflowAssociationAction) => {
+            const currentWorkflows = state[action.payload.fullPath].workflows;
+            if (!currentWorkflows) {
+                return state;
+            }
             const unwantedWorkflowIds = action.payload.workflows.map((workflow: Workflow) => workflow.workflowId);
-            const workflows = state[action.payload.fullPath].workflows.filter((workflow: Workflow) => (
+            const workflows = currentWorkflows.filter((workflow: Workflow) => (
                 !unwantedWorkflowIds.includes(workflow.workflowId)
             ));
             if (!workflows.length) {
