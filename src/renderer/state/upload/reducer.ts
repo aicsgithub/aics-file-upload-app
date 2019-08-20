@@ -71,8 +71,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 ...accum,
                 [fullPath]: {
                     ...accum[fullPath],
-                    workflows: accum[fullPath] ?
-                        uniqBy([...accum[fullPath].workflows, ...workflows], "workflowId") : workflows,
+                    workflows: accum[fullPath] && accum[fullPath].workflows ?
+                        uniqBy([...accum[fullPath].workflows!, ...workflows], "workflowId") : workflows,
                 },
             }), nextState);
         },
