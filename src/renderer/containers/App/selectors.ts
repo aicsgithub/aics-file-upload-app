@@ -26,13 +26,13 @@ export const getFileToTags = createSelector([
         if (upload.hasOwnProperty(fullPath)) {
             const metadata = upload[fullPath];
             let tags;
-            if (metadata.wellIds) {
-                tags = metadata.wellIds.map((wellId) => (
-                    new FileTag(wellIdToWellLabel.get(wellId) || "")
-                ));
-            } else {
+            if (metadata.workflows) {
                 tags = metadata.workflows.map(({ name }: Workflow) => (
                     new FileTag(name)
+                ));
+            } else {
+                tags = metadata.wellIds.map((wellId) => (
+                    new FileTag(wellIdToWellLabel.get(wellId) || "")
                 ));
             }
             fullPathToTags.set(fullPath, tags);

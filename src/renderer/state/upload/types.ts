@@ -12,7 +12,7 @@ export interface UploadMetadata {
     schemaFile?: string;
     wellIds: number[];
     wellLabels: string[];
-    workflows: Workflow[];
+    workflows?: Workflow[];
     [genericKey: string]: any;
 }
 

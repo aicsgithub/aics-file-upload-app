@@ -78,6 +78,9 @@ export const getMutualFilesForWorkflows = createSelector([
     const selectedWorkflowIds = workflows.map((workflow: Workflow) => workflow.workflowId);
 
     return reduce(upload, (files: string[], metadata: UploadMetadata, filepath: string) => {
+        if (!metadata.workflows) {
+            return files;
+        }
         const workflowIds = metadata.workflows.map((workflow: Workflow) => workflow.workflowId);
         const allWorkflowsFound = isEmpty(difference(selectedWorkflowIds, workflowIds));
         const accum = [...files];
