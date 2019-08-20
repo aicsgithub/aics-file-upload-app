@@ -50,7 +50,7 @@ export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
 export function requestWorkflows(): RequestWorkflowOptionsAction {
     return {
         type: REQUEST_WORKFLOW_OPTIONS,
-    }
+    };
 }
 export function createBarcode(barcodePrefix: BarcodePrefix): CreateBarcodeAction {
     return {

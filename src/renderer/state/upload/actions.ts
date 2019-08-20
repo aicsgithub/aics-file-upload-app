@@ -1,3 +1,4 @@
+import { Workflow } from "../selection/types";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { SchemaDefinition } from "../setting/types";
 import {
@@ -29,7 +30,6 @@ import {
     UpdateUploadAction,
     UploadMetadata,
 } from "./types";
-import { Workflow } from "../selection/types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
     : AssociateFilesAndWellsAction {

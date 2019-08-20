@@ -84,7 +84,6 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         },
     ];
 
-
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -202,7 +201,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
             name: "Notes",
             width: 80,
         },
-    ]);
+    ])
 
     private getColumns = (): UploadJobColumn[] => {
         if (!this.props.uploads.length) {

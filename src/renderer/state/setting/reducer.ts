@@ -49,7 +49,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is AssociateByWorkflowAction => action.type === ASSOCIATE_BY_WORKFLOW,
         perform: (state: SettingStateBranch, action: AssociateByWorkflowAction) =>
             ({ ...state, associateByWorkflow: action.payload }),
-    }
+    },
 };
 
 export default makeReducer<SettingStateBranch>(actionToConfigMap, initialState);

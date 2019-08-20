@@ -54,8 +54,8 @@ const updateSchemaLogic = createLogic({
                 notes: upload.notes,
                 schemaFile,
                 wellIds: upload.wellIds,
-                workflows: upload.workflows,
                 wellLabels: upload.wellLabels,
+                workflows: upload.workflows,
             };
             if (schema) {
                 // We want to have all values consistently be either null or false so we can detect them in the upload

@@ -7,6 +7,7 @@ import {
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
+import { Workflow } from "../selection/types";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
@@ -31,7 +32,6 @@ import {
     UpdateUploadAction,
     UploadStateBranch
 } from "./types";
-import { Workflow } from "../selection/types";
 
 export const initialState = {
 
@@ -95,7 +95,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
                     wellLabels: without(state[action.payload.fullPath].wellLabels, ...action.payload.wellLabels),
                 },
             };
-        }
+        },
     },
     [UNDO_FILE_WORKFLOW_ASSOCIATION]: {
         accepts: (action: AnyAction): action is UndoFileWorkflowAssociationAction =>
@@ -116,7 +116,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
                     ...state[action.payload.fullPath],
                     workflows,
                 },
-            }
+            };
         },
     },
     [DELETE_UPLOAD]: {

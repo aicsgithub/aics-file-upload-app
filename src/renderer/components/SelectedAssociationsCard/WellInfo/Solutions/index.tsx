@@ -3,8 +3,8 @@ import * as React from "react";
 
 import { Solution } from "../../../../state/selection/types";
 
-import { NULL_TEXT } from "../index";
 import KeyValueDisplay from "../../KeyValueDisplay";
+import { NULL_TEXT } from "../index";
 
 const styles = require("../style.pcss");
 

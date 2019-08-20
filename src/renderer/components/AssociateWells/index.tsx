@@ -14,8 +14,8 @@ import {
 } from "../../state/upload/types";
 import { getWellLabel } from "../../util";
 
-import { GridCell } from "./grid-cell";
 import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
+import { GridCell } from "./grid-cell";
 
 const styles = require("./style.pcss");
 

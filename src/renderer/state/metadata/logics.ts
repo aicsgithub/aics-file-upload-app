@@ -14,9 +14,9 @@ import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
     GET_BARCODE_PREFIXES,
-    REQUEST_WORKFLOW_OPTIONS,
     GET_IMAGING_SESSIONS,
-    REQUEST_METADATA
+    REQUEST_METADATA,
+    REQUEST_WORKFLOW_OPTIONS
 } from "./constants";
 import { LabkeyUnit, Unit } from "./types";
 

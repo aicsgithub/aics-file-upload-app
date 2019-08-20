@@ -5,9 +5,9 @@ import { createSelector } from "reselect";
 import { getUploadJobNames } from "../job/selectors";
 import { getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
+import { Workflow } from "../selection/types";
 import { State } from "../types";
 import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
-import { Workflow } from "../selection/types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;

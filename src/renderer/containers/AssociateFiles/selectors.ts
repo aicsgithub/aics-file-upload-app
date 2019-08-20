@@ -1,7 +1,7 @@
 import { difference, isEmpty, reduce, uniq } from "lodash";
 import { createSelector } from "reselect";
 
-import {getSelectedWellsWithData, getSelectedWorkflows} from "../../state/selection/selectors";
+import { getSelectedWellsWithData, getSelectedWorkflows } from "../../state/selection/selectors";
 import { Well, Workflow } from "../../state/selection/types";
 import { getUpload } from "../../state/upload/selectors";
 import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
