@@ -28,7 +28,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               job,
                                                                               retrying,
                                                                               retryUpload,
-}: UploadJobDisplayProps) => {
+                                                                          }: UploadJobDisplayProps) => {
     const { serviceFields } = job;
     const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
         && !isEmpty(serviceFields.files);
@@ -48,8 +48,8 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     }
 
     const error = job.serviceFields && job.serviceFields.error && (
-            <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
-        );
+        <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
+    );
     return (
         <div className={className}>
             {error}
