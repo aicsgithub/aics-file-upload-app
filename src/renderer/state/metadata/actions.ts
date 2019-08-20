@@ -4,6 +4,7 @@ import {
     GET_IMAGING_SESSIONS,
     RECEIVE_METADATA,
     REQUEST_METADATA,
+    REQUEST_WORKFLOW_OPTIONS,
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
@@ -15,6 +16,7 @@ import {
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
+    RequestWorkflowOptionsAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -45,6 +47,11 @@ export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
     };
 }
 
+export function requestWorkflows(): RequestWorkflowOptionsAction {
+    return {
+        type: REQUEST_WORKFLOW_OPTIONS,
+    }
+}
 export function createBarcode(barcodePrefix: BarcodePrefix): CreateBarcodeAction {
     return {
         payload: barcodePrefix,
