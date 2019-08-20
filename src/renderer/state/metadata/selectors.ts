@@ -7,5 +7,6 @@ export const getImagingSessions = (state: State) => state.metadata.imagingSessio
 export const getBarcodePrefixes = (state: State) => state.metadata.barcodePrefixes;
 export const getSelectionHistory = (state: State) => state.metadata.history.selection;
 export const getUploadHistory = (state: State) => state.metadata.history.upload;
+export const getWorkflowOptions = (state: State) => state.metadata.workflowOptions;
 
 // COMPOSED SELECTORS

@@ -18,6 +18,7 @@ export const initialState = {
     },
     imagingSessions: [],
     units: [],
+    workflowOptions: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {

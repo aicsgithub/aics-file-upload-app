@@ -1,3 +1,5 @@
+import { Workflow } from "../selection/types";
+
 export interface MetadataStateBranch {
     barcode?: string;
     imagingSessions: ImagingSession[];
@@ -9,6 +11,7 @@ export interface MetadataStateBranch {
         selection: PageToIndexMap;
         upload: PageToIndexMap;
     };
+    workflowOptions: Workflow[];
 }
 
 export interface BarcodePrefix {
@@ -54,6 +57,10 @@ export interface CreateBarcodeAction {
 }
 
 export interface GetImagingSessionsAction {
+    type: string;
+}
+
+export interface RequestWorkflowOptionsAction {
     type: string;
 }
 
