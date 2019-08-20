@@ -4,9 +4,10 @@ import { map } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
 import { DatabaseMetadata } from "../../../state/metadata/types";
 import { ColumnType } from "../../../state/setting/types";
+
+import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
 
 const styles = require("./styles.pcss");
 
