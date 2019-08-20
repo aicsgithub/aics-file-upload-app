@@ -1,3 +1,4 @@
+import { map } from "lodash";
 import Logger from "js-logger";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
@@ -45,8 +46,7 @@ const updateSchemaLogic = createLogic({
         const uploads: UploadStateBranch = getUpload(state);
         const tables: DatabaseMetadata | undefined = getDatabaseMetadata(state);
 
-        await Promise.all(Object.keys(uploads).map(async (filepath: string): Promise<void> => {
-            const upload = uploads[filepath];
+        await Promise.all(map(uploads, (async (upload: UploadMetadata, filepath: string): Promise<void> => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
             const uploadData: UploadMetadata = {
                 barcode: upload.barcode,
@@ -72,7 +72,7 @@ const updateSchemaLogic = createLogic({
                 }));
             }
             action.payload.uploads[filepath] = uploadData;
-        }));
+        })));
         next(action);
     },
     type: UPDATE_SCHEMA,
