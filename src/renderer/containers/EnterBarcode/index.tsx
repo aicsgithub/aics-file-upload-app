@@ -1,5 +1,5 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import { Button, Col, Radio, Row } from "antd";
+import { Button, Col, Radio, Row} from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
@@ -26,15 +26,17 @@ import {
     GetImagingSessionsAction,
     ImagingSession
 } from "../../state/metadata/types";
-import { goBack, selectBarcode } from "../../state/selection/actions";
+import {goBack, goForward, selectBarcode} from "../../state/selection/actions";
 import {
     getSelectedBarcode,
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds
 } from "../../state/selection/selectors";
-import { GoBackAction, SelectBarcodeAction } from "../../state/selection/types";
+import { GoBackAction, SelectBarcodeAction, NextPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import LabkeyQueryService from "../../util/labkey-client";
+import { AssociateByWorkflowAction } from "../../state/setting/types";
+import { associateByWorkflow } from "../../state/setting/actions";
 
 const styles = require("./style.pcss");
 
@@ -49,6 +51,7 @@ interface LabkeyPlateResponse {
 }
 
 interface EnterBarcodeProps {
+    associateByWorkflow: ActionCreator<AssociateByWorkflowAction>;
     barcodePrefixes: BarcodePrefix[];
     className?: string;
     createBarcode: ActionCreator<CreateBarcodeAction>;
@@ -56,6 +59,7 @@ interface EnterBarcodeProps {
     getImagingSessions: ActionCreator<GetImagingSessionsAction>;
     getBarcodePrefixes: ActionCreator<GetBarcodePrefixesAction>;
     goBack: ActionCreator<GoBackAction>;
+    goForward: ActionCreator<NextPageAction>;
     imagingSessions: ImagingSession[];
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
@@ -143,7 +147,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 onBack={this.props.goBack}
             >
                 <LabKeyOptionSelector
-                    autofocus={true}
+                    autoFocus={true}
                     required={true}
                     async={true}
                     // id="plate-barcode-selector" Adding an id to fix propType here throws an error - Sean M 7/2/19
@@ -157,6 +161,9 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 />
                 <a href="#" className={styles.createBarcodeLink} onClick={this.showCreateBarcodeForm}>
                     I don't have a barcode
+                </a>
+                <a href="#" className={styles.createBarcodeLink} onClick={this.continueToWorkflowForm}>
+                    Associate by Workflow instead of Plate
                 </a>
                 {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : null}
                 {this.renderPlateOptions()}
@@ -220,6 +227,11 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         );
     }
 
+    private continueToWorkflowForm = () => {
+        this.props.associateByWorkflow(true);
+        this.props.goForward();
+    }
+
     private onImagingSessionChanged = (event: RadioChangeEvent) => {
         const imagingSessionId = event.target.value;
         this.setState({imagingSessionId});
@@ -277,6 +289,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const { barcodePrefix } = this.state;
         if (barcodePrefix) {
             this.setState({showCreateBarcodeForm: false});
+            this.props.associateByWorkflow(false);
             this.props.createBarcode(barcodePrefix);
         }
     }
@@ -284,6 +297,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private saveAndContinue(): void {
         const { barcode, imagingSessionId, imagingSessionIds} = this.state;
         if (barcode) {
+            this.props.associateByWorkflow(false);
             this.props.selectBarcode(barcode, imagingSessionIds, imagingSessionId);
         }
     }
@@ -309,10 +323,12 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
+    associateByWorkflow,
     createBarcode,
     getBarcodePrefixes: requestBarcodePrefixes,
     getImagingSessions: requestImagingSessions,
     goBack,
+    goForward,
     selectBarcode,
     setAlert,
 };
