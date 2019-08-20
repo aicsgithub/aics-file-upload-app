@@ -9,7 +9,7 @@ import { ColumnType, SchemaDefinition } from "../../setting/types";
 import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
 import { associateFilesAndWells, initiateUpload, updateSchema } from "../actions";
-import { getUpload } from "../selectors";
+import { getSchemaFile, getUpload } from "../selectors";
 
 describe("Upload logics", () => {
     describe("associateFileAndWellLogic", () => {
@@ -29,7 +29,7 @@ describe("Upload logics", () => {
     });
 
     describe("updateSchemaLogic", () => {
-        it("updates uploads with a schema", () => {
+        it("updates uploads with a schema", (done) => {
             const store = createMockReduxStore(mockState);
             const file1 = "/path1";
             const file2 = "/path2";
@@ -40,22 +40,35 @@ describe("Upload logics", () => {
                     label: "newColumn",
                     required: false,
                     type: {
+                        column: "",
                         dropdownValues: [],
+                        table: "",
                         type: ColumnType.TEXT,
                     },
                 }],
                 notes: "some notes that don't really matter for this logic",
             };
+            let state = store.getState();
+            expect(getSchemaFile(state)).to.be.undefined;
+
             store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
             store.dispatch(updateSchema(schema, schemaFile));
 
-            const upload = getUpload(store.getState());
-            expect(get(upload, [file1, "schemaFile"])).to.equal(schemaFile);
-            expect(get(upload, [file2, "schemaFile"])).to.equal(schemaFile);
-            expect(get(upload, [file1, "newColumn"])).to.equal(null);
-            expect(get(upload, [file2, "newColumn"])).to.equal(null);
-            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
-            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+            let doneCalled = false;
+            store.subscribe(() => {
+                if (!doneCalled) {
+                    state = store.getState();
+                    const upload = getUpload(store.getState());
+                    expect(get(upload, [file1, "schemaFile"])).to.equal(schemaFile);
+                    expect(get(upload, [file2, "schemaFile"])).to.equal(schemaFile);
+                    expect(get(upload, [file1, "newColumn"])).to.equal(null);
+                    expect(get(upload, [file2, "newColumn"])).to.equal(null);
+                    expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+                    expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+                    done();
+                    doneCalled = true;
+                }
+            });
         });
     });
 

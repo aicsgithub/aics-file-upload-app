@@ -12,7 +12,8 @@ export const isColumnDefinition = (json: any): json is ColumnDefinition => {
     // the following properties: type and dropdownValues.
     const typeIsValid = json.type && json.type.type && json.type.type in ColumnType;
     const dropdownValuesValid = json.type && (json.type !== ColumnType.DROPDOWN || !isEmpty(json.type.dropdownValues));
-    return Boolean(labelIsValid && typeIsValid && dropdownValuesValid);
+    const lookupValuesValid = json.type && (json.type !== ColumnType.LOOKUP || (json.type.table && json.type.column));
+    return Boolean(labelIsValid && typeIsValid && dropdownValuesValid && lookupValuesValid);
 };
 
 export const isSchemaDefinition = (json: any): json is SchemaDefinition => {

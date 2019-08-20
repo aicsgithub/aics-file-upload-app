@@ -7,8 +7,9 @@ import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
-import { AlertType, SetAlertAction } from "../../state/feedback/types";
 
+import { AlertType, SetAlertAction } from "../../state/feedback/types";
+import { DatabaseMetadata } from "../../state/metadata/types";
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 
 import CheckboxEditor from "../CheckboxEditor";
@@ -33,7 +34,19 @@ export const COLUMN_TYPE_DISPLAY_MAP: {[id in ColumnType]: string} = {
   [ColumnType.DATETIME]: "Date and Time",
   [ColumnType.DATE]: "Date",
   [ColumnType.NUMBER]: "Number",
+  [ColumnType.LOOKUP]: "LabKey Lookup",
 };
+
+export interface ColumnTypeValue {
+    column?: string; // only applicable if ColumnType is a lookup
+    type: ColumnType;
+    dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
+    table?: string; // only applicable if ColumnType is a lookup
+}
+
+interface ColumnTypeColumn extends AdazzleReactDataGrid.Column<ColumnDefinitionDraft> {
+    tables?: DatabaseMetadata;
+}
 
 interface Props {
     className?: string;
@@ -42,15 +55,13 @@ interface Props {
     onSchemaFileCreated?: (filepath: string) => void;
     schema?: SchemaDefinition;
     setAlert: ActionCreator<SetAlertAction>;
+    tables?: DatabaseMetadata;
     visible: boolean;
 }
 
 interface ColumnDefinitionDraft {
     label?: string;
-    type: {
-        type: ColumnType,
-        dropdownValues?: string[]; // only applicable if ColumnType is a dropdown
-    };
+    type: ColumnTypeValue;
     required?: boolean;
 }
 
@@ -61,45 +72,6 @@ interface SchemaEditorModalState {
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
-    private SCHEMA_EDITOR_COLUMNS: Array<AdazzleReactDataGrid.Column<ColumnDefinitionDraft>> = [
-        {
-            editable: true,
-            formatter: ({value}: {value: string}) => {
-                let error;
-                if (!value) {
-                    error = "This field is required";
-                } else if (this.state.columns.filter((c) => c.label === value).length > 1) {
-                    error = "Column names must be unique";
-                }
-                return (
-                    <FormControl
-                        error={error}
-                    >
-                        {value}
-                    </FormControl>
-                );
-            },
-            key: "label",
-            name: "Column Name",
-            resizable: true,
-            width: 300,
-        },
-        {
-            editable: true,
-            editor: ColumnTypeEditor,
-            formatter: ColumnTypeFormatter,
-            key: "type",
-            name: "Data Type",
-        },
-        {
-            editable: true,
-            editor: CheckboxEditor,
-            formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
-            key: "required",
-            name: "Required?",
-            width: 100,
-        },
-    ];
     constructor(props: Props) {
         super(props);
         this.state = this.getInitialState(props.schema);
@@ -136,7 +108,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
                         <ReactDataGrid
-                            columns={this.SCHEMA_EDITOR_COLUMNS}
+                            columns={this.schemaEditorColumns()}
                             rowGetter={this.getRow}
                             rowsCount={columns.length}
                             cellNavigationMode="changeRow"
@@ -168,7 +140,51 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         );
     }
 
-    private getRow = (i: number) => this.state.columns[i];
+    // `tables` isn't guaranteed to have loaded by the time this is clicked, need to allow this to update with the props
+    private schemaEditorColumns = (): ColumnTypeColumn[] => ([
+        {
+            editable: true,
+            formatter: ({value}: {value: string}) => {
+                let error;
+                if (!value) {
+                    error = "This field is required";
+                } else if (this.state.columns.filter((c) => c.label === value).length > 1) {
+                    error = "Column names must be unique";
+                }
+                return (
+                    <FormControl
+                        error={error}
+                    >
+                        {value}
+                    </FormControl>
+                );
+            },
+            key: "label",
+            name: "Column Name",
+            resizable: true,
+            tables: this.props.tables,
+            width: 300,
+        },
+        {
+            editable: true,
+            editor: ColumnTypeEditor,
+            formatter: ColumnTypeFormatter,
+            key: "type",
+            name: "Data Type",
+            tables: this.props.tables,
+        },
+        {
+            editable: true,
+            editor: CheckboxEditor,
+            formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
+            key: "required",
+            name: "Required?",
+            tables: this.props.tables,
+            width: 100,
+        },
+    ])
+
+    private getRow = (i: number): ColumnDefinitionDraft => this.state.columns[i];
 
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
         const columns: ColumnDefinitionDraft[] = schema ? schema.columns : [DEFAULT_COLUMN];
@@ -187,8 +203,14 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         const columnWithNoLabelFound: boolean = !!columns.find(({label}) => !label);
         const dropdownValuesMissing: boolean = !!columns
             .find(({type}) => type.type === ColumnType.DROPDOWN && isEmpty(type.dropdownValues));
+        const lookupValuesMissing: boolean = !!columns
+            .find(({type}) => type.type === ColumnType.LOOKUP && (!type.table || !type.column));
 
-        return !duplicateNamesFound && !columnWithNoLabelFound && !dropdownValuesMissing && ! columnWithNoTypeFound;
+        return !duplicateNamesFound &&
+               !columnWithNoLabelFound &&
+               !dropdownValuesMissing &&
+               !columnWithNoTypeFound &&
+               !lookupValuesMissing;
     }
 
     private duplicateNamesFound = (): boolean => {

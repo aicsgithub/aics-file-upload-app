@@ -194,10 +194,10 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     private selectSchema = async (option: SchemaFileOption | null) => {
-        if (option && option.filepath !== this.props.schemaFile) {
+        if (option) {
             if (option.filepath === BROWSE_FOR_EXISTING_SCHEMA) {
                 await this.findSchema();
-            } else {
+            } else if (option.filepath !== this.props.schemaFile) {
                 const fileExists = await promises.stat(option.filepath);
                 if (!fileExists || !fileExists.isFile()) {
                     this.props.updateSchema();
