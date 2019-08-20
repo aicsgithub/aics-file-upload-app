@@ -1,3 +1,5 @@
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+
 import { SchemaDefinition } from "../setting/types";
 
 export interface UploadStateBranch {
@@ -91,6 +93,11 @@ export interface RemoveUploadsAction {
 }
 
 export interface InitiateUploadAction {
+    type: string;
+}
+
+export interface RetryUploadAction {
+    payload: UploadSummaryTableRow;
     type: string;
 }
 

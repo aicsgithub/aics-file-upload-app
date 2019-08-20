@@ -1,5 +1,5 @@
 import { UploadMetadata } from "@aics/aicsfiles/type-declarations/types";
-import { Collapse, Descriptions } from "antd";
+import { Alert, Collapse, Descriptions } from "antd";
 import CollapsePanel from "antd/lib/collapse/CollapsePanel";
 import { get, isEmpty, map } from "lodash";
 import * as React from "react";
@@ -13,6 +13,8 @@ const styles = require("./styles.pcss");
 interface UploadJobDisplayProps {
     className?: string;
     job: UploadSummaryTableRow;
+    retrying: boolean;
+    retryUpload: () => void;
 }
 
 interface ResultFile {
@@ -21,7 +23,12 @@ interface ResultFile {
     readPath: string;
 }
 
-const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({className, job}: UploadJobDisplayProps) => {
+const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
+                                                                              className,
+                                                                              job,
+                                                                              retrying,
+                                                                              retryUpload,
+                                                                          }: UploadJobDisplayProps) => {
     const { serviceFields } = job;
     const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
         && !isEmpty(serviceFields.files);
@@ -40,9 +47,13 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({class
         });
     }
 
+    const error = job.serviceFields && job.serviceFields.error && (
+        <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
+    );
     return (
         <div className={className}>
-            <JobOverviewDisplay job={job}/>
+            {error}
+            <JobOverviewDisplay job={job} retryUpload={retryUpload} retrying={retrying}/>
 
             {showFiles && (
                 <>

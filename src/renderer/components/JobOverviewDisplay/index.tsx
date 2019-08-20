@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { Descriptions } from "antd";
+import { Button, Descriptions } from "antd";
 import * as React from "react";
 
 const Item = Descriptions.Item;
@@ -7,9 +7,11 @@ const Item = Descriptions.Item;
 interface Props {
     className?: string;
     job: JSSJob;
+    retrying: boolean;
+    retryUpload: () => void;
 }
 
-const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job}: Props) => {
+const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job, retrying, retryUpload}: Props) => {
     const {
         created,
         currentStage,
@@ -30,7 +32,11 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job}: Pr
         >
             <Item label="Job Id">{jobId}</Item>
             <Item label="Job Name">{jobName}</Item>
-            <Item label="Status">{status}</Item>
+            <Item label="Status">{status} {status === "FAILED" && (
+                <Button onClick={retryUpload} type="primary" loading={retrying}>
+                    Retry
+                </Button>
+            )}</Item>
             <Item label="Created">{created.toLocaleString()}</Item>
             <Item label="Created By">{user}</Item>
             <Item label="Origination Host">{originationHost}</Item>

@@ -1,12 +1,13 @@
 import { Button, Icon, Spin } from "antd";
 import * as classNames from "classnames";
+import { ReactNode, ReactNodeArray } from "react";
 import * as React from "react";
 
 const styles = require("./style.pcss");
 
 interface FormPageProps {
     backButtonDisabled?: boolean;
-    children: JSX.Element | Array<JSX.Element | null | undefined> | null | undefined;
+    children: ReactNode | ReactNodeArray;
     className?: string;
     formTitle: string;
     formPrompt: string;

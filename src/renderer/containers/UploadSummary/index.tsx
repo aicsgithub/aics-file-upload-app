@@ -8,12 +8,16 @@ import { ActionCreator } from "redux";
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
+import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AsyncRequest } from "../../state/feedback/types";
 import { retrieveJobs } from "../../state/job/actions";
 import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
+import { retryUpload } from "../../state/upload/actions";
+import { RetryUploadAction } from "../../state/upload/types";
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
@@ -29,11 +33,13 @@ interface Props {
     className?: string;
     jobs: UploadSummaryTableRow[];
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
+    retrying: boolean;
+    retryUpload: ActionCreator<RetryUploadAction>;
     selectPage: ActionCreator<SelectPageAction>;
 }
 
 interface UploadSummaryState {
-    selectedJob?: UploadSummaryTableRow;
+    selectedJobId?: string;
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
@@ -90,8 +96,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         const {
             className,
             jobs,
+            retrying,
         } = this.props;
-        const { selectedJob } = this.state;
+        const selectedJob = this.getSelectedJob();
         return (
             <FormPage
                 className={className}
@@ -113,10 +120,20 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     footer={null}
                     onCancel={this.closeModal}
                 >
-                   <UploadJobDisplay job={selectedJob}/>
+                   <UploadJobDisplay job={selectedJob} retryUpload={this.retryUpload} retrying={retrying}/>
                 </Modal>}
             </FormPage>
         );
+    }
+
+    private getSelectedJob = (): UploadSummaryTableRow | undefined => {
+        const {jobs} = this.props;
+        const {selectedJobId} = this.state;
+        return jobs.find((j) => j.jobId === selectedJobId);
+    }
+
+    private retryUpload = (): void => {
+        this.props.retryUpload(this.getSelectedJob());
     }
 
     private goToDragAndDrop = (): void => {
@@ -126,13 +143,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     private onRow = (record: UploadSummaryTableRow) => {
         return {
             onClick: () => {
-                this.setState({selectedJob: record});
+                this.setState({selectedJobId: record.jobId});
             },
         };
     }
 
     private closeModal = () => {
-        this.setState({selectedJob: undefined});
+        this.setState({selectedJobId: undefined});
     }
 }
 
@@ -140,11 +157,13 @@ function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
         jobs: getJobsForTable(state),
+        retrying: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD),
     };
 }
 
 const dispatchToPropsMap = {
     retrieveJobs,
+    retryUpload,
     selectPage,
 };
 

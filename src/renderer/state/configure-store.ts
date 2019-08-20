@@ -46,7 +46,7 @@ const logics = [
 
 export const reduxLogicDependencies = {
     dialog: remote.dialog,
-    fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT}),
+    fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT, logLevel: "debug"}),
     httpClient: axios,
     ipcRenderer,
     jssClient: new JobStatusClient({

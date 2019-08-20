@@ -1,3 +1,4 @@
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { SchemaDefinition } from "../setting/types";
 import {
     ASSOCIATE_FILES_AND_WELLS,
@@ -6,9 +7,10 @@ import {
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
+    RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_SCHEMA,
-    UPDATE_UPLOAD
+    UPDATE_UPLOAD,
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
@@ -17,10 +19,11 @@ import {
     JumpToPastUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
+    RetryUploadAction,
     UndoFileWellAssociationAction,
     UpdateSchemaAction,
     UpdateUploadAction,
-    UploadMetadata
+    UploadMetadata,
 } from "./types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
@@ -99,5 +102,12 @@ export function updateUpload(filePath: string, upload: Partial<UploadMetadata>):
             upload,
         },
         type: UPDATE_UPLOAD,
+    };
+}
+
+export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
+    return {
+        payload: job,
+        type: RETRY_UPLOAD,
     };
 }
