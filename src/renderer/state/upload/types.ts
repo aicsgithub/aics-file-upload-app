@@ -1,5 +1,5 @@
-import { SchemaDefinition } from "../setting/types";
 import { Workflow } from "../selection/types";
+import { SchemaDefinition } from "../setting/types";
 
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
@@ -68,7 +68,7 @@ export interface AssociateFilesAndWorkflowsAction {
     payload: {
         fullPaths: string[],
         workflows: Workflow[],
-    },
+    };
     type: string;
 }
 
@@ -85,7 +85,7 @@ export interface UndoFileWorkflowAssociationAction {
     payload: {
         fullPath: string,
         workflows: Workflow[],
-    },
+    };
     type: string;
 }
 

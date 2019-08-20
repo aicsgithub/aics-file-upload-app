@@ -3,13 +3,13 @@ import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
+import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
+import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
 import { GoBackAction, NextPageAction, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
     UndoFileWorkflowAssociationAction
 } from "../../state/upload/types";
-import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
-import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
 import FormPage from "../FormPage";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 
@@ -35,7 +35,7 @@ interface Props {
 }
 
 class AssociateWorkflows extends React.Component<Props, {}> {
-    componentDidMount() {
+    public componentDidMount() {
         this.props.loadWorkflows();
     }
 

@@ -3,6 +3,11 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import AssociateWells from "../../components/AssociateWells";
+import AssociateWorkflows from "../../components/AssociateWorkflows";
+import { requestWorkflows } from "../../state/metadata/actions";
+import { getWorkflowOptions } from "../../state/metadata/selectors";
+import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
 import {
     goBack,
     goForward,
@@ -25,6 +30,7 @@ import {
     Well,
     Workflow,
 } from "../../state/selection/types";
+import { getAssociateByWorkflow } from "../../state/setting/selectors";
 import { State } from "../../state/types";
 import {
     associateFilesAndWells,
@@ -41,9 +47,6 @@ import {
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
-import AssociateWells from "../../components/AssociateWells";
-import AssociateWorkflows from "../../components/AssociateWorkflows";
-import { getAssociateByWorkflow } from "../../state/setting/selectors";
 import {
     getMutualFilesForWells,
     getMutualFilesForWorkflows,
@@ -51,9 +54,6 @@ import {
     getWorkflowIdToFiles,
     IdToFilesMap
 } from "./selectors";
-import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
-import { getWorkflowOptions } from "../../state/metadata/selectors";
-import { requestWorkflows } from "../../state/metadata/actions";
 
 interface AssociateFilesProps {
     associateWorkflows: boolean;
@@ -105,7 +105,7 @@ class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
                     undoAssociation={this.props.undoFileWorkflowAssociation}
                     workflowOptions={this.props.workflowOptions}
                 />
-            )
+            );
         }
         return (
             <AssociateWells
@@ -152,8 +152,8 @@ function mapStateToProps(state: State) {
         selectedWellsData: getSelectedWellsWithData(state),
         selectedWorkflows: getSelectedWorkflows(state),
         wellIdToFiles: getWellIdToFiles(state),
-        workflowIdToFiles: getWorkflowIdToFiles(state),
         wells: getWellsWithUnitsAndModified(state),
+        workflowIdToFiles: getWorkflowIdToFiles(state),
         workflowOptions: getWorkflowOptions(state),
     };
 }

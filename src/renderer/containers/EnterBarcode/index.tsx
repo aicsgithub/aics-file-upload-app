@@ -1,5 +1,5 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import { Button, Col, Radio, Row} from "antd";
+import { Button, Col, Radio, Row } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
@@ -26,17 +26,17 @@ import {
     GetImagingSessionsAction,
     ImagingSession
 } from "../../state/metadata/types";
-import {goBack, goForward, selectBarcode} from "../../state/selection/actions";
+import { goBack, goForward, selectBarcode } from "../../state/selection/actions";
 import {
     getSelectedBarcode,
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds
 } from "../../state/selection/selectors";
-import { GoBackAction, SelectBarcodeAction, NextPageAction } from "../../state/selection/types";
+import { GoBackAction, NextPageAction, SelectBarcodeAction } from "../../state/selection/types";
+import { associateByWorkflow } from "../../state/setting/actions";
+import { AssociateByWorkflowAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 import LabkeyQueryService from "../../util/labkey-client";
-import { AssociateByWorkflowAction } from "../../state/setting/types";
-import { associateByWorkflow } from "../../state/setting/actions";
 
 const styles = require("./style.pcss");
 

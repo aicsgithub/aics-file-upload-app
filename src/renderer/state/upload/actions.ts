@@ -1,3 +1,4 @@
+import { Workflow } from "../selection/types";
 import { SchemaDefinition } from "../setting/types";
 import {
     ASSOCIATE_FILES_AND_WELLS,
@@ -26,7 +27,6 @@ import {
     UpdateUploadAction,
     UploadMetadata
 } from "./types";
-import { Workflow } from "../selection/types";
 
 export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
     : AssociateFilesAndWellsAction {

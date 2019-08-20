@@ -41,9 +41,9 @@ export function gatherSettings(): GatherSettingsAction {
     };
 }
 
-export function associateByWorkflow(associateByWorkflow: boolean): AssociateByWorkflowAction {
+export function associateByWorkflow(shouldAssociateByWorkflow: boolean): AssociateByWorkflowAction {
     return {
-        payload: associateByWorkflow,
-        type: ASSOCIATE_BY_WORKFLOW
-    }
+        payload: shouldAssociateByWorkflow,
+        type: ASSOCIATE_BY_WORKFLOW,
+    };
 }
