@@ -1,10 +1,14 @@
 import Logger from "js-logger";
+import { map } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 
+import LabkeyClient from "../../util/labkey-client";
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 import { addPendingJob, removePendingJobs } from "../job/actions";
+import { getDatabaseMetadata } from "../metadata/selectors";
+import { DatabaseMetadata, Table } from "../metadata/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { ColumnDefinition, ColumnType } from "../setting/types";
@@ -36,12 +40,13 @@ const associateFileAndWellLogic = createLogic({
 
 // This logic is to add new user-defined columns to each upload row, and remove any old columns
 const updateSchemaLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({action, getState, httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { schema, schemaFile } = action.payload;
         const state = getState();
         const uploads: UploadStateBranch = getUpload(state);
-        Object.keys(uploads).forEach((filepath: string): void => {
-            const upload = uploads[filepath];
+        const tables: DatabaseMetadata | undefined = getDatabaseMetadata(state);
+
+        await Promise.all(map(uploads, (async (upload: UploadMetadata, filepath: string): Promise<void> => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
             const uploadData: UploadMetadata = {
                 barcode: upload.barcode,
@@ -55,12 +60,19 @@ const updateSchemaLogic = createLogic({
                 // especially for cases where null is a distinct value that we would have otherwise ignored
                 // However, boolean fields need to be false by default because otherwise we would have null === false
                 // which isn't necessarily true (except to javascript)
-                schema.columns.forEach((column: ColumnDefinition) => {
+                await Promise.all(schema.columns.map(async (column: ColumnDefinition): Promise<void> => {
                     uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
-                });
+                    if (column.type.type === ColumnType.LOOKUP && tables) {
+                        const { name, schemaName }: Table = tables[column.type.table];
+                        column.type.dropdownValues = await LabkeyClient.Get.ColumnValues(httpClient,
+                                                                                         schemaName,
+                                                                                         name,
+                                                                                         column.type.column);
+                    }
+                }));
             }
             action.payload.uploads[filepath] = uploadData;
-        });
+        })));
         next(action);
     },
     type: UPDATE_SCHEMA,
