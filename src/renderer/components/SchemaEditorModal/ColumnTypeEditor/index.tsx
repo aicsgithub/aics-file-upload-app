@@ -81,8 +81,6 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
     }
 
     public renderAdditionalInputForType = (): React.ReactElement | null => {
-        const { tables } = this.props.column;
-
         if (this.state.newType === ColumnType.DROPDOWN) {
             return (
                 <Select
@@ -96,6 +94,7 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
                 />);
         }
         if (this.state.newType === ColumnType.LOOKUP) {
+            const { tables } = this.props.column;
             return (
                 <>
                     <Select
