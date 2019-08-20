@@ -14,7 +14,7 @@ interface WellFileAssociationsProps {
     undoAssociation: (file: string) => void;
 }
 
-class WellFileAssociations extends React.Component<WellFileAssociationsProps, {}> {
+class FileAssociations extends React.Component<WellFileAssociationsProps, {}> {
     constructor(props: WellFileAssociationsProps) {
         super(props);
         this.undoAssociation = this.undoAssociation.bind(this);
@@ -25,7 +25,7 @@ class WellFileAssociations extends React.Component<WellFileAssociationsProps, {}
 
         return (
             <div className={classNames(styles.cardContent, className)}>
-                <div className={styles.mutualFiles}>
+                <div className={styles.files}>
                     {this.renderFiles()}
                 </div>
                 <div className={styles.addRow}>
@@ -70,4 +70,4 @@ class WellFileAssociations extends React.Component<WellFileAssociationsProps, {}
     }
 }
 
-export default WellFileAssociations;
+export default FileAssociations;
