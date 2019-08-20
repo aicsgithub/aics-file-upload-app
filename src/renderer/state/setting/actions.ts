@@ -1,11 +1,13 @@
 import {
     ADD_SCHEMA_FILE_PATH,
+    ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
     REMOVE_SCHEMA_FILE_PATH,
     UPDATE_SETTINGS
 } from "./constants";
 import {
     AddSchemaFilepathAction,
+    AssociateByWorkflowAction,
     GatherSettingsAction,
     RemoveSchemaFilepathAction,
     SettingStateBranch,
@@ -37,4 +39,11 @@ export function gatherSettings(): GatherSettingsAction {
     return {
         type: GATHER_SETTINGS,
     };
+}
+
+export function associateByWorkflow(associateByWorkflow: boolean): AssociateByWorkflowAction {
+    return {
+        payload: associateByWorkflow,
+        type: ASSOCIATE_BY_WORKFLOW
+    }
 }
