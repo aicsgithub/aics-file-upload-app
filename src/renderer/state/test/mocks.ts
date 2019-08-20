@@ -3,7 +3,7 @@ import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client";
 import { JobStateBranch, PendingJob } from "../job/types";
 
-import { GridCell } from "../../containers/AssociateWells/grid-cell";
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { Unit } from "../metadata/types";
 import { Page, SelectionStateBranch, Well } from "../selection/types";
 import { State } from "../types";
