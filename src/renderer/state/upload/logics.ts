@@ -1,5 +1,5 @@
-import { map } from "lodash";
 import Logger from "js-logger";
+import { map } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 
