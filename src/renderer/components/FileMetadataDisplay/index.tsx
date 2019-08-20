@@ -33,6 +33,9 @@ const FileMetadataDisplay: React.FunctionComponent<MetadataDisplayProps> =
                     }
                     return <FileMetadataDisplay title={key} metadata={value} key={key}/>;
                 }
+                if (value === true || value === false) {
+                    return <Item label={key} key={key}>{value ? "Yes" : "No"}</Item>;
+                }
 
                 return <Item label={key} key={key}>{value}</Item>;
             })}
