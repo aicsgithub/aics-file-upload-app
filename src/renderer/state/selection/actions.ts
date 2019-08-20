@@ -1,4 +1,4 @@
-import { GridCell } from "../../containers/AssociateWells/grid-cell";
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 
 import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import {
@@ -15,6 +15,7 @@ import {
     SELECT_FILE,
     SELECT_PAGE,
     SELECT_WELLS,
+    SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
     UPDATE_STAGED_FILES,
@@ -38,11 +39,13 @@ import {
     SelectFileAction,
     SelectPageAction,
     SelectWellsAction,
+    SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
     UpdateStagedFilesAction,
     UploadFile,
     WellResponse,
+    Workflow,
 } from "./types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
@@ -108,6 +111,13 @@ export function selectBarcode(
     return {
         payload: { barcode, imagingSessionId, imagingSessionIds },
         type: SELECT_BARCODE,
+    };
+}
+
+export function selectWorkflows(workflows: Workflow[]): SelectWorkflowsAction {
+    return {
+        payload: workflows,
+        type: SELECT_WORKFLOWS,
     };
 }
 

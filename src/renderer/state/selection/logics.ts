@@ -273,7 +273,7 @@ const selectBarcodeLogic = createLogic({
 const pageOrder: Page[] = [
     Page.DragAndDrop,
     Page.EnterBarcode,
-    Page.AssociateWells,
+    Page.AssociateFiles,
     Page.UploadJobs,
     Page.UploadSummary,
 ];
