@@ -16,8 +16,8 @@ describe("App selectors", () => {
                     wells: mockWells,
                 }),
                 upload: getMockStateWithHistory({
-                    [filePath1]: { barcode: "test_barcode", wellIds: [1, 3], wellLabels: ["A1", "A3"]},
-                    [filePath2]: { barcode: "test_barcode", wellIds: [4], wellLabels: ["A4"]},
+                    [filePath1]: { barcode: "test_barcode", wellIds: [1, 3], wellLabels: ["A1", "A3"], workflows: [] },
+                    [filePath2]: { barcode: "test_barcode", wellIds: [4], wellLabels: ["A4"], workflows: [] },
                 }),
             });
 

@@ -49,9 +49,9 @@ import {
     UpdateSettingsAction,
 } from "../../state/setting/types";
 import { State } from "../../state/types";
-import { FileTag } from "../../state/upload/types";
+import { FileTagType } from "../../state/upload/types";
 
-import AssociateWells from "../AssociateWells";
+import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import EnterBarcode from "../EnterBarcode";
 import UploadJobs from "../UploadJob";
@@ -69,7 +69,7 @@ interface AppProps {
     clearAlert: ActionCreator<ClearAlertAction>;
     closeSchemaCreator: ActionCreator<CloseSchemaCreatorAction>;
     copyInProgress: boolean;
-    fileToTags: Map<string, FileTag[]>;
+    fileToTags: Map<string, FileTagType[]>;
     files: UploadFile[];
     gatherSettings: ActionCreator<GatherSettingsAction>;
     getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
@@ -100,8 +100,8 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
         folderTreeVisible: true,
     }],
-    [Page.AssociateWells, {
-        container:  <AssociateWells key="associateWells" className={styles.mainContent}/>,
+    [Page.AssociateFiles, {
+        container:  <AssociateFiles key="associateFiles" className={styles.mainContent}/>,
         folderTreeVisible: true,
     }],
     [Page.UploadJobs, {
