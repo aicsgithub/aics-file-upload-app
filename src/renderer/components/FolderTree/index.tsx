@@ -3,7 +3,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 
 import { GetFilesInFolderAction, SelectFileAction, UploadFile } from "../../state/selection/types";
-import { FileTag } from "../../state/upload/types";
+import { FileTagType } from "../../state/upload/types";
 import Resizable from "../Resizable";
 
 const styles = require("./style.pcss");
@@ -15,7 +15,7 @@ interface FolderTreeProps {
     isLoading?: boolean;
     onCheck: (files: string[]) => SelectFileAction;
     selectedKeys: string[];
-    fileToTags: Map<string, FileTag[]>;
+    fileToTags: Map<string, FileTagType[]>;
 }
 
 interface FolderTreeState {
@@ -123,12 +123,12 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         if (!file.isDirectory) {
             const {fileToTags} = this.props;
             const fileName: JSX.Element = <span className={styles.fileName}>{file.name}</span>;
-            const tags: FileTag[] | undefined = fileToTags.get(file.fullPath);
+            const tags: FileTagType[] | undefined = fileToTags.get(file.fullPath);
             let tagEls;
             if (tags) {
                 tagEls = tags.map(
                     (tag: { title: string, color: string }) => (
-                        <Tag color={tag.color} key={tag.title}>{tag.title}</Tag>
+                        <Tag className={styles.tagSpacing} color={tag.color} key={tag.title}>{tag.title}</Tag>
                     ));
             }
 
