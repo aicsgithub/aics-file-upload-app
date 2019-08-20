@@ -1,5 +1,8 @@
 # Version Notes
 
+## 1.0.9
+- Feature: Allow users to retry uploads
+
 ## 1.0.8
 - Feature: Updated fields displayed in upload summary page
 - Feature: Added job details modal that appears on click of an upload on the upload summary page

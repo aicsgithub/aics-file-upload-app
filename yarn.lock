@@ -24,16 +24,17 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^1.0.8":
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-1.0.8.tgz#6a0b61d230242076c7262239633b8f7bf17c1bdd"
-  integrity sha512-c5Pz8hYBdvNvebza/NeB5hfLeKOmILNRwou5DzR0PCQmJiILPBgi0taM1w5pGwWySigCcZZwqOguuqFhJ5HnnA==
+"@aics/aicsfiles@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.0.0.tgz#6f4526712594b96cef95be36e244c362eaf46297"
+  integrity sha512-HVUCEIIkEL3oiPh1ijzEUYk+XZn654U5DaAYGgyoDeEfIyCY7mPj5z+XfApKP4bRXnLijd7OmamNXyZrmMIwzg==
   dependencies:
     "@aics/job-status-client" "^1.0.7"
     "@babel/polyfill" "^7.4.4"
     axios "^0.19.0"
     humps "^2.0.1"
     lodash "^4.17.11"
+    uuid "^3.3.2"
 
 "@aics/job-status-client@^1.0.6":
   version "1.0.6"
