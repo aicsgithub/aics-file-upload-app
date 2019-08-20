@@ -1,4 +1,9 @@
-import { omit, uniq, without } from "lodash";
+import {
+    omit,
+    uniq,
+    uniqBy,
+    without,
+} from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
@@ -6,22 +11,27 @@ import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
     ASSOCIATE_FILES_AND_WELLS,
+    ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
+    UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_SCHEMA,
     UPDATE_UPLOAD
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
+    AssociateFilesAndWorkflowsAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
+    UndoFileWorkflowAssociationAction,
     UpdateSchemaAction,
     UpdateUploadAction,
     UploadStateBranch
 } from "./types";
+import { Workflow } from "../selection/types";
 
 export const initialState = {
 
@@ -49,17 +59,65 @@ const actionToConfigMap: TypeToDescriptionMap = {
             }), nextState);
         },
     },
+    [ASSOCIATE_FILES_AND_WORKFLOWS]: {
+        accepts: (action: AnyAction): action is AssociateFilesAndWorkflowsAction =>
+            action.type === ASSOCIATE_FILES_AND_WORKFLOWS,
+        perform: (state: UploadStateBranch, action: AssociateFilesAndWorkflowsAction) => {
+            const nextState = {...state};
+
+            const { fullPaths, workflows } = action.payload;
+
+            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => ({
+                ...accum,
+                [fullPath]: {
+                    ...accum[fullPath],
+                    workflows: accum[fullPath] ?
+                        uniqBy([...accum[fullPath].workflows, ...workflows], "workflowId") : workflows,
+                },
+            }), nextState);
+        },
+    },
     [UNDO_FILE_WELL_ASSOCIATION]: {
         accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
             action.type === UNDO_FILE_WELL_ASSOCIATION,
-        perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => ({
-            ...state,
-            [action.payload.fullPath]: {
-                ...state[action.payload.fullPath],
-                wellIds: without(state[action.payload.fullPath].wellIds, ...action.payload.wellIds),
-                wellLabels: without(state[action.payload.fullPath].wellLabels, ...action.payload.wellLabels),
-            },
-        }),
+        perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => {
+            const wellIds = without(state[action.payload.fullPath].wellIds, ...action.payload.wellIds);
+            if (!wellIds.length) {
+                const stateWithoutFile = { ...state };
+                delete stateWithoutFile[action.payload.fullPath];
+                return stateWithoutFile;
+            }
+            return {
+                ...state,
+                [action.payload.fullPath]: {
+                    ...state[action.payload.fullPath],
+                    wellIds,
+                    wellLabels: without(state[action.payload.fullPath].wellLabels, ...action.payload.wellLabels),
+                },
+            };
+        }
+    },
+    [UNDO_FILE_WORKFLOW_ASSOCIATION]: {
+        accepts: (action: AnyAction): action is UndoFileWorkflowAssociationAction =>
+            action.type === UNDO_FILE_WORKFLOW_ASSOCIATION,
+        perform: (state: UploadStateBranch, action: UndoFileWorkflowAssociationAction) => {
+            const unwantedWorkflowIds = action.payload.workflows.map((workflow: Workflow) => workflow.workflowId);
+            const workflows = state[action.payload.fullPath].workflows.filter((workflow: Workflow) => (
+                !unwantedWorkflowIds.includes(workflow.workflowId)
+            ));
+            if (!workflows.length) {
+                const stateWithoutFile = { ...state };
+                delete stateWithoutFile[action.payload.fullPath];
+                return stateWithoutFile;
+            }
+            return {
+                ...state,
+                [action.payload.fullPath]: {
+                    ...state[action.payload.fullPath],
+                    workflows,
+                },
+            }
+        },
     },
     [DELETE_UPLOAD]: {
         accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOAD,

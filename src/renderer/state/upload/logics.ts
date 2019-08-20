@@ -48,6 +48,7 @@ const updateSchemaLogic = createLogic({
                 notes: upload.notes,
                 schemaFile,
                 wellIds: upload.wellIds,
+                workflows: upload.workflows,
                 wellLabels: upload.wellLabels,
             };
             if (schema) {

@@ -1,4 +1,5 @@
 import { SchemaDefinition } from "../setting/types";
+import { Workflow } from "../selection/types";
 
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
@@ -11,6 +12,7 @@ export interface UploadMetadata {
     schemaFile?: string;
     wellIds: number[];
     wellLabels: string[];
+    workflows: Workflow[];
     [genericKey: string]: any;
 }
 
@@ -62,12 +64,28 @@ export interface AssociateFilesAndWellsAction {
     type: string;
 }
 
+export interface AssociateFilesAndWorkflowsAction {
+    payload: {
+        fullPaths: string[],
+        workflows: Workflow[],
+    },
+    type: string;
+}
+
 export interface UndoFileWellAssociationAction {
     payload: {
         fullPath: string,
         wellIds: number[],
         wellLabels: string[]
     };
+    type: string;
+}
+
+export interface UndoFileWorkflowAssociationAction {
+    payload: {
+        fullPath: string,
+        workflows: Workflow[],
+    },
     type: string;
 }
 
@@ -96,7 +114,7 @@ export interface InitiateUploadAction {
 
 // Represents information needed to display an Antd Tag next to a file on the FolderTree.
 // There will be a tag for each piece of metadata associated with a file.
-export interface FileTag {
+export interface FileTagType {
     // Tag text
     title: string;
     // Tag background color
