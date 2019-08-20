@@ -23,7 +23,6 @@ import {
     UndoFileWellAssociationAction,
     UpdateSchemaAction,
     UpdateUploadAction,
-    UploadJobTableRow,
     UploadMetadata,
 } from "./types";
 

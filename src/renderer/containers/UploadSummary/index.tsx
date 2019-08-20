@@ -98,7 +98,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             jobs,
             retrying,
         } = this.props;
-        const { selectedJobId } = this.state;
         const selectedJob = this.getSelectedJob();
         return (
             <FormPage
