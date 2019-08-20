@@ -10,10 +10,10 @@ import {
     SelectionStateBranch,
     Well,
     Workflow
-} from "../selection/types"
-import { getUploadPayload } from "../upload/selectors";
-import { UploadStateBranch } from "../upload/types";;
+} from "../selection/types";
 import { State } from "../types";
+import { getUploadPayload } from "../upload/selectors";
+import { UploadStateBranch } from "../upload/types";
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
