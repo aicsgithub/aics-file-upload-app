@@ -53,7 +53,7 @@ class SelectedAssociationsCard extends React.Component<SelectedAssociationsProps
         } else {
             title = (
                 <div className={styles.title}>
-                    Selected Workflow(s):
+                    Selected Workflow(s):&nbsp;
                     {selectedWorkflows ?
                         selectedWorkflows.map((workflow: Workflow) => workflow.name).sort().join(", ")
                         :
