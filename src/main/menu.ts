@@ -1,5 +1,5 @@
 import electron, { dialog, Menu, shell } from "electron";
-import { OPEN_CREATE_SCHEMA_MODAL, SET_LIMS_URL } from "../shared/constants";
+import { OPEN_CREATE_SCHEMA_MODAL, SCHEMA_SYNONYM, SET_LIMS_URL } from "../shared/constants";
 import { LimsUrl } from "../shared/types";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
@@ -38,7 +38,7 @@ export const setMenu = (webContents: WebContents) => {
                     submenu: [
                         {
                             click: () => webContents.send(OPEN_CREATE_SCHEMA_MODAL),
-                            label: "Schema",
+                            label: SCHEMA_SYNONYM,
                         },
                     ],
                 },
