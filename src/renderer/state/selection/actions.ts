@@ -15,6 +15,7 @@ import {
     SELECT_FILE,
     SELECT_PAGE,
     SELECT_WELLS,
+    SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
@@ -39,6 +40,7 @@ import {
     SelectFileAction,
     SelectPageAction,
     SelectWellsAction,
+    SelectWorkflowPathAction,
     SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
@@ -111,6 +113,12 @@ export function selectBarcode(
     return {
         payload: { barcode, imagingSessionId, imagingSessionIds },
         type: SELECT_BARCODE,
+    };
+}
+
+export function selectWorkflowPath(): SelectWorkflowPathAction {
+    return {
+        type: SELECT_WORKFLOW_PATH,
     };
 }
 

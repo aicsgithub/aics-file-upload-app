@@ -170,6 +170,10 @@ export interface SelectBarcodeAction {
     type: string;
 }
 
+export interface SelectWorkflowPathAction {
+    type: string;
+}
+
 export interface SelectWorkflowsAction {
     payload: Workflow[];
     type: string;

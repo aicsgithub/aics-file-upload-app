@@ -26,15 +26,23 @@ import {
     GetImagingSessionsAction,
     ImagingSession
 } from "../../state/metadata/types";
-import { goBack, goForward, selectBarcode } from "../../state/selection/actions";
+import {
+    goBack,
+    goForward,
+    selectBarcode,
+    selectWorkflowPath
+} from "../../state/selection/actions";
 import {
     getSelectedBarcode,
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds
 } from "../../state/selection/selectors";
-import { GoBackAction, NextPageAction, SelectBarcodeAction } from "../../state/selection/types";
-import { associateByWorkflow } from "../../state/setting/actions";
-import { AssociateByWorkflowAction } from "../../state/setting/types";
+import {
+    GoBackAction,
+    NextPageAction,
+    SelectBarcodeAction,
+    SelectWorkflowPathAction
+} from "../../state/selection/types";
 import { State } from "../../state/types";
 import LabkeyQueryService from "../../util/labkey-client";
 
@@ -51,7 +59,6 @@ interface LabkeyPlateResponse {
 }
 
 interface EnterBarcodeProps {
-    associateByWorkflow: ActionCreator<AssociateByWorkflowAction>;
     barcodePrefixes: BarcodePrefix[];
     className?: string;
     createBarcode: ActionCreator<CreateBarcodeAction>;
@@ -69,6 +76,7 @@ interface EnterBarcodeProps {
     selectedImagingSessionId?: number | null;
     // all imaging session ids that are associated with the selectedBarcode
     selectedImagingSessionIds: Array<number | null>;
+    selectWorkflowPath: ActionCreator<SelectWorkflowPathAction>;
     setAlert: ActionCreator<SetAlertAction>;
 }
 
@@ -162,7 +170,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 <a href="#" className={styles.createBarcodeLink} onClick={this.showCreateBarcodeForm}>
                     I don't have a barcode
                 </a>
-                <a href="#" className={styles.createBarcodeLink} onClick={this.continueToWorkflowForm}>
+                <a href="#" className={styles.createBarcodeLink} onClick={this.props.selectWorkflowPath}>
                     Associate by Workflow instead of Plate
                 </a>
                 {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : null}
@@ -227,11 +235,6 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         );
     }
 
-    private continueToWorkflowForm = () => {
-        this.props.associateByWorkflow(true);
-        this.props.goForward();
-    }
-
     private onImagingSessionChanged = (event: RadioChangeEvent) => {
         const imagingSessionId = event.target.value;
         this.setState({imagingSessionId});
@@ -289,7 +292,6 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         const { barcodePrefix } = this.state;
         if (barcodePrefix) {
             this.setState({showCreateBarcodeForm: false});
-            this.props.associateByWorkflow(false);
             this.props.createBarcode(barcodePrefix);
         }
     }
@@ -297,7 +299,6 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private saveAndContinue(): void {
         const { barcode, imagingSessionId, imagingSessionIds} = this.state;
         if (barcode) {
-            this.props.associateByWorkflow(false);
             this.props.selectBarcode(barcode, imagingSessionIds, imagingSessionId);
         }
     }
@@ -323,13 +324,13 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
-    associateByWorkflow,
     createBarcode,
     getBarcodePrefixes: requestBarcodePrefixes,
     getImagingSessions: requestImagingSessions,
     goBack,
     goForward,
     selectBarcode,
+    selectWorkflowPath,
     setAlert,
 };
 

@@ -7,8 +7,6 @@ import { promisify } from "util";
 
 import MmsClient from "../../util/mms-client";
 
-import { API_WAIT_TIME_SECONDS } from "../constants";
-
 import {
     addRequestToInProgress,
     clearAlert,
@@ -20,7 +18,10 @@ import {
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
-
+import { associateByWorkflow } from "../setting/actions";
+import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
+import { getCurrentUploadIndex } from "../upload/selectors";
+import { API_WAIT_TIME_SECONDS } from "../constants";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
@@ -29,8 +30,6 @@ import {
     ReduxLogicTransformDependencies,
     State
 } from "../types";
-import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
-import { getCurrentUploadIndex } from "../upload/selectors";
 import { batchActions, getActionFromBatch } from "../util";
 
 import {
@@ -50,6 +49,7 @@ import {
     OPEN_FILES,
     SELECT_BARCODE,
     SELECT_PAGE,
+    SELECT_WORKFLOW_PATH,
 } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
 import { getCurrentSelectionIndex, getPage, getStagedFiles } from "./selectors";
@@ -215,6 +215,7 @@ const selectBarcodeLogic = createLogic({
                         setWells(wells),
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         action,
+                        associateByWorkflow(false),
                     ];
                     actions.push(...getGoForwardActions(Page.EnterBarcode, deps.getState()));
                     dispatch(batchActions(actions));
@@ -268,6 +269,24 @@ const selectBarcodeLogic = createLogic({
         ]));
     },
     type: SELECT_BARCODE,
+});
+
+const selectWorkflowPathLogic = createLogic({
+    process: async (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const action = getActionFromBatch(deps.action, SELECT_WORKFLOW_PATH);
+
+        if (!action) {
+            done();
+        } else {
+            const actions = [
+                action,
+                ...getGoForwardActions(Page.EnterBarcode, deps.getState()),
+                associateByWorkflow(true),
+            ];
+            dispatch(batchActions(actions));
+        }
+    },
+    type: SELECT_WORKFLOW_PATH,
 });
 
 const pageOrder: Page[] = [
@@ -413,4 +432,5 @@ export default [
     getFilesInFolderLogic,
     selectBarcodeLogic,
     selectPageLogic,
+    selectWorkflowPathLogic,
 ];
