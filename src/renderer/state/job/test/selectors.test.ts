@@ -130,6 +130,11 @@ describe("Job selectors", () => {
     });
 
     describe("getAreAllJobsComplete", () => {
+        it("returns true if no jobs exist", () => {
+            const complete = getAreAllJobsComplete(mockState);
+            expect(complete).to.be.true;
+        });
+
         it("returns false if pending jobs exist", () => {
             const complete = getAreAllJobsComplete({
                 ...mockState,
