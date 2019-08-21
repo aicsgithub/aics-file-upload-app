@@ -1,5 +1,5 @@
-import { Workflow } from "../selection/types";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { Workflow } from "../selection/types";
 import { SchemaDefinition } from "../setting/types";
 import {
     ASSOCIATE_FILES_AND_WELLS,
