@@ -7,6 +7,7 @@ import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
+
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
