@@ -55,6 +55,7 @@ describe("App selectors", () => {
             const file1Tags = map.get(filePath1) || [];
             expect(file1Tags.length).to.equal(2);
             expect(get(file1Tags, [0, "title"])).to.equal("work3");
+            expect(get(file1Tags, [1, "title"])).to.equal("work4");
 
             const file2Tags = map.get(filePath2) || [];
             expect(file2Tags.length).to.equal(1);
