@@ -7,6 +7,7 @@ import { promisify } from "util";
 
 import MmsClient from "../../util/mms-client";
 
+import { API_WAIT_TIME_SECONDS } from "../constants";
 import {
     addRequestToInProgress,
     clearAlert,
@@ -19,9 +20,6 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
-import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
-import { getCurrentUploadIndex } from "../upload/selectors";
-import { API_WAIT_TIME_SECONDS } from "../constants";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
@@ -30,6 +28,8 @@ import {
     ReduxLogicTransformDependencies,
     State
 } from "../types";
+import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
+import { getCurrentUploadIndex } from "../upload/selectors";
 import { batchActions, getActionFromBatch } from "../util";
 
 import {
