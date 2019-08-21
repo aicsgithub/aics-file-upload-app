@@ -42,6 +42,11 @@ describe("Job selectors", () => {
     });
 
     describe("getIsUnsafeToExit", () => {
+        it("returns false if no jobs", () => {
+            const isUnsafeToExit = getIsUnsafeToExit(mockState);
+            expect(isUnsafeToExit).to.be.false;
+        });
+
         it("returns true if there are any pending jobs", () => {
             const isUnsafeToExit = getIsUnsafeToExit({
                 ...mockState,
