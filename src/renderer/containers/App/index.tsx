@@ -21,7 +21,7 @@ import {
     ClearAlertAction,
     SetAlertAction,
 } from "../../state/feedback/types";
-import { getIsUnsafeToExit } from "../../state/job/selectors";
+import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getDatabaseMetadata } from "../../state/metadata/selectors";
 import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
@@ -267,7 +267,7 @@ class App extends React.Component<AppProps, AppState> {
 function mapStateToProps(state: State) {
     return {
         alert: getAlert(state),
-        copyInProgress: getIsUnsafeToExit(state),
+        copyInProgress: !getIsSafeToExit(state),
         fileToTags: getFileToTags(state),
         files: getStagedFiles(state),
         limsUrl: getLimsUrl(state),
