@@ -18,7 +18,6 @@ import {
     REQUEST_METADATA,
     REQUEST_WORKFLOW_OPTIONS
 } from "./constants";
-import { LabkeyUnit, Unit } from "./types";
 
 const createBarcode = createLogic({
     transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
