@@ -7,10 +7,11 @@ import { FileTagType, UploadStateBranch } from "../../state/upload/types";
 // All tags representing wells should share the same color
 export class FileTag implements FileTagType {
     public title: string;
-    public readonly color: string = "magenta";
+    public color: string;
 
-    constructor(title: string) {
+    constructor(title: string, color: "magenta" | "blue") {
         this.title = title;
+        this.color = color;
     }
 }
 
@@ -28,11 +29,11 @@ export const getFileToTags = createSelector([
             let tags;
             if (metadata.workflows) {
                 tags = metadata.workflows.map(({ name }: Workflow) => (
-                    new FileTag(name)
+                    new FileTag(name, "blue")
                 ));
             } else {
                 tags = metadata.wellIds.map((wellId) => (
-                    new FileTag(wellIdToWellLabel.get(wellId) || "")
+                    new FileTag(wellIdToWellLabel.get(wellId) || "", "magenta")
                 ));
             }
             fullPathToTags.set(fullPath, tags);
