@@ -1,9 +1,10 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { isEmpty, sortBy } from "lodash";
 import { createSelector } from "reselect";
-import { getWellLabel } from "../../util";
 
+import { getWellLabel } from "../../util";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
+
 import { getUnits } from "../metadata/selectors";
 import { Unit } from "../metadata/types";
 import { State } from "../types";
