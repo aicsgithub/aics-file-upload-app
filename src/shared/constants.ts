@@ -1,3 +1,6 @@
+// Misc
+export const SCHEMA_SYNONYM = "Column Template";
+
 // Event channels
 
 // emitted by main process when user clicks link to create plate standalone

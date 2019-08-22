@@ -16,7 +16,7 @@ import {
     nonEmptyJobStateBranch,
 } from "../../test/mocks";
 
-import { getAreAllJobsComplete, getIsUnsafeToExit, getJobsForTable } from "../selectors";
+import { getAreAllJobsComplete, getIsSafeToExit, getJobsForTable } from "../selectors";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
@@ -41,17 +41,22 @@ describe("Job selectors", () => {
         });
     });
 
-    describe("getIsUnsafeToExit", () => {
-        it("returns true if there are any pending jobs", () => {
-            const isUnsafeToExit = getIsUnsafeToExit({
+    describe("getIsSafeToExit", () => {
+        it("returns true if no jobs", () => {
+            const isSafeToExit = getIsSafeToExit(mockState);
+            expect(isSafeToExit).to.be.true;
+        });
+
+        it("returns false if there are any pending jobs", () => {
+            const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {...mockState.job, pendingJobs: [mockPendingJob]},
             });
-            expect(isUnsafeToExit).to.be.true;
+            expect(isSafeToExit).to.be.false;
         });
 
-        it("returns true if an upload job is in progress and its copy job is in progress", () => {
-            const isUnsafeToExit = getIsUnsafeToExit({
+        it("returns false if an upload job is in progress and its copy job is in progress", () => {
+            const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -59,11 +64,11 @@ describe("Job selectors", () => {
                     uploadJobs: [mockWorkingUploadJob],
                 },
             });
-            expect(isUnsafeToExit).to.be.true;
+            expect(isSafeToExit).to.be.false;
         });
 
-        it("returns false if an upload job is failed and its copy job is in progress", () => {
-            const isUnsafeToExit = getIsUnsafeToExit({
+        it("returns true if an upload job is failed and its copy job is in progress", () => {
+            const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -77,11 +82,11 @@ describe("Job selectors", () => {
                     }],
                 },
             });
-            expect(isUnsafeToExit).to.be.false;
+            expect(isSafeToExit).to.be.true;
         });
 
-        it("returns false if an upload job is in progress and its copy job is in complete", () => {
-            const isUnsafeToExit = getIsUnsafeToExit({
+        it("returns true if an upload job is in progress and its copy job is in complete", () => {
+            const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -95,11 +100,11 @@ describe("Job selectors", () => {
                     }],
                 },
             });
-            expect(isUnsafeToExit).to.be.false;
+            expect(isSafeToExit).to.be.true;
         });
 
-        it("returns false if an upload job is in progress and its copy job is in failed", () => {
-            const isUnsafeToExit = getIsUnsafeToExit({
+        it("returns true if an upload job is in progress and its copy job is failed", () => {
+            const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -113,11 +118,11 @@ describe("Job selectors", () => {
                     }],
                 },
             });
-            expect(isUnsafeToExit).to.be.false;
+            expect(isSafeToExit).to.be.true;
         });
 
-        it("returns false if an upload job is complete", () => {
-            const isUnsafeToExit = getIsUnsafeToExit({
+        it("returns true if an upload job is complete", () => {
+            const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -125,11 +130,16 @@ describe("Job selectors", () => {
                     uploadJobs: [mockSuccessfulUploadJob],
                 },
             });
-            expect(isUnsafeToExit).to.be.false;
+            expect(isSafeToExit).to.be.true;
         });
     });
 
     describe("getAreAllJobsComplete", () => {
+        it("returns true if no jobs exist", () => {
+            const complete = getAreAllJobsComplete(mockState);
+            expect(complete).to.be.true;
+        });
+
         it("returns false if pending jobs exist", () => {
             const complete = getAreAllJobsComplete({
                 ...mockState,

@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, get, includes, orderBy, some } from "lodash";
+import { every, isEmpty, get, includes, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -44,15 +44,15 @@ export const getJobsForTable = createSelector([
         .map((job) => ({...job, key: job.jobId}));
 });
 
-export const getIsUnsafeToExit = createSelector([
+export const getIsSafeToExit = createSelector([
     getUploadJobsWithCopyJob,
     getNumberOfPendingJobs,
 ], (jobs: JSSJob[], numberPendingJobs: number): boolean => {
     if (numberPendingJobs > 0) {
-        return true;
+        return false;
     }
 
-    return some(jobs, ({status, serviceFields}) => {
+    return isEmpty(jobs) || some(jobs, ({status, serviceFields}) => {
         const { copyJob } = serviceFields;
         if (!copyJob) {
             return false;
@@ -60,7 +60,7 @@ export const getIsUnsafeToExit = createSelector([
 
         const uploadInProgress = includes(IN_PROGRESS_STATUSES, status);
         const copyInProgress = includes(IN_PROGRESS_STATUSES, copyJob.status);
-        return uploadInProgress && copyInProgress;
+        return !uploadInProgress || !copyInProgress;
     });
 });
 

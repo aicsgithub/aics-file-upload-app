@@ -8,6 +8,8 @@ import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
+import { SCHEMA_SYNONYM } from "../../../shared/constants";
+
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { DatabaseMetadata } from "../../state/metadata/types";
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
@@ -96,7 +98,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
             <Modal
                 width="90%"
                 className={className}
-                title={schema ? "Edit Schema" : "New Schema"}
+                title={schema ? `Edit ${SCHEMA_SYNONYM}` : `New ${SCHEMA_SYNONYM}`}
                 visible={visible}
                 onOk={this.saveAndClose}
                 onCancel={close}
@@ -249,7 +251,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 filters: [
                     {name: "JSON", extensions: ["json"]},
                 ],
-                title: "Save Schema",
+                title: `Save ${SCHEMA_SYNONYM}`,
             }, (filename?: string) => {
                 if (filename) {
                     if (!filename.endsWith(".json")) {

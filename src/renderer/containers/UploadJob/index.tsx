@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { promises } from "fs";
+import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import FormPage from "../../components/FormPage";
 import UploadJobGrid from "../../components/UploadJobGrid";
 import { setAlert } from "../../state/feedback/actions";
@@ -48,7 +49,7 @@ import { isSchemaDefinition } from "../App/util";
 
 const styles = require("./style.pcss");
 
-const BROWSE_FOR_EXISTING_SCHEMA = "...Browse for existing schema";
+const BROWSE_FOR_EXISTING_SCHEMA = `...Browse for existing ${SCHEMA_SYNONYM.toLowerCase()}`;
 
 interface Props {
     addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
@@ -134,17 +135,17 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             <div className={styles.buttonRow}>
                 <div className={styles.applySchemaWidth}>
                     <LabKeyOptionSelector
-                        label="Apply Schema"
+                        label={`Apply ${SCHEMA_SYNONYM}`}
                         optionIdKey="filepath"
                         optionNameKey="filepath"
                         selected={schemaFile ? { filepath: schemaFile } : undefined}
                         onOptionSelection={this.selectSchema}
                         options={this.SCHEMA_FILE_OPTIONS}
-                        placeholder="Select a schema file"
+                        placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} file`}
                     />
                 </div>
                 <Button className={styles.createSchemaButton} onClick={this.props.openSchemaCreator}>
-                    Create Schema
+                    Create {SCHEMA_SYNONYM}
                 </Button>
             </div>
         );
@@ -164,7 +165,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             const schema = JSON.parse(fileString);
             if (!isSchemaDefinition(schema)) {
                 this.props.updateSchema();
-                this.handleError("Invalid schema JSON", schemaFile);
+                this.handleError(`Invalid ${SCHEMA_SYNONYM} JSON`, schemaFile);
                 return;
             }
             this.props.updateSchema(schema, schemaFile);
