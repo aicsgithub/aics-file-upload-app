@@ -59,6 +59,7 @@ export interface ReduxLogicExtraDependencies {
         get: (key: string) => any,
         has: (key: string) => boolean;
         set: (key: string, value: any) => void;
+        path: string;
     };
 }
 

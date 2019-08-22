@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Event, ipcMain } from "electron";
 import { autoUpdater } from "electron-updater";
+import * as Logger from "js-logger";
 import * as path from "path";
 import { format as formatUrl } from "url";
 
@@ -98,6 +99,7 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, prefix: s
     });
     const plateView = `/labkey/aics_microscopy/AICS/plateStandalone.view?Barcode=${barcode}`;
     let modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}${plateView}`;
+    Logger.info(modalUrl);
     if (prefix === "AX" || prefix === "AD") {
         modalUrl = `${modalUrl}&TeamMode=AssayDev`;
     }

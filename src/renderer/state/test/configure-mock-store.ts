@@ -44,6 +44,7 @@ export interface ReduxLogicDependencies {
     storage: {
         get: SinonStub,
         has: SinonStub;
+        path: string;
         set: SinonStub;
     };
 }
@@ -74,6 +75,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     storage: {
         get: stub(),
         has: stub(),
+        path: "anything",
         set: stub(),
     },
 };

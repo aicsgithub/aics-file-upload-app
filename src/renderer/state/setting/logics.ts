@@ -1,3 +1,4 @@
+import * as Logger from "js-logger";
 import { map } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -39,6 +40,7 @@ const gatherSettingsLogic = createLogic({
    transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
        try {
            const settings = storage.get(USER_SETTINGS_KEY);
+           Logger.info(storage.path);
            next(updateSettings(settings));
 
        } catch (e) {
