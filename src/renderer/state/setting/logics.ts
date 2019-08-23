@@ -4,6 +4,8 @@ import { createLogic } from "redux-logic";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
+import { retrieveJobs } from "../job/actions";
+import { requestMetadata } from "../metadata/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -27,7 +29,8 @@ const updateSettingsLogic = createLogic({
             jssClient.host = host;
             fms.port = port;
             jssClient.port = port;
-            // TODO: FMS-695 re-trigger GET-requests for jobs and metadata
+            dispatch(requestMetadata());
+            dispatch(retrieveJobs());
         }
 
         done();
