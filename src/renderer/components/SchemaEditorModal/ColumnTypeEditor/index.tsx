@@ -31,12 +31,12 @@ interface ColumnTypeEditorState {
 }
 
 interface SelectorTarget extends EventTarget {
-    value?: string
+    value?: string;
 }
 
 // Needed to convince typescript that the event target will have a value
 interface TabEvent extends React.KeyboardEvent<HTMLInputElement> {
-    target: SelectorTarget
+    target: SelectorTarget;
 }
 
 // This component is for use in the ReactDataGrid component for editing column type.
