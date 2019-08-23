@@ -4,7 +4,6 @@ import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
-import LabkeyClient from "../../util/labkey-client";
 import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
@@ -41,7 +40,7 @@ const associateFileAndWellLogic = createLogic({
 
 // This logic is to add new user-defined columns to each upload row, and remove any old columns
 const updateSchemaLogic = createLogic({
-    transform: async ({action, getState, httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({action, getState, labkeyClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { schema, schemaFile } = action.payload;
         const state = getState();
         const uploads: UploadStateBranch = getUpload(state);
@@ -65,10 +64,9 @@ const updateSchemaLogic = createLogic({
                     uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
                     if (column.type.type === ColumnType.LOOKUP && tables) {
                         const { name, schemaName }: Table = tables[column.type.table];
-                        column.type.dropdownValues = await LabkeyClient.Get.ColumnValues(httpClient,
-                                                                                         schemaName,
-                                                                                         name,
-                                                                                         column.type.column);
+                        column.type.dropdownValues = await labkeyClient.getColumnValues(schemaName,
+                                                                                        name,
+                                                                                        column.type.column);
                     }
                 }));
             }

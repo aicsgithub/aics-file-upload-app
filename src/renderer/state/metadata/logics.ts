@@ -2,7 +2,6 @@ import { ipcRenderer } from "electron";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import LabkeyClient from "../../util/labkey-client";
 import MMSClient from "../../util/mms-client";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
@@ -31,15 +30,15 @@ const createBarcode = createLogic({
 });
 
 const requestMetadata = createLogic({
-    process: async ({httpClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
+    process: async ({labkeyClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
                     done: () => void) => {
         try {
-            const [ units, databaseMetadata ] = await Promise.all([
-                LabkeyClient.Get.units(httpClient),
-                LabkeyClient.Get.databaseMetadata(httpClient),
+            const [ units ] = await Promise.all([
+                labkeyClient.getUnits(),
+                // labkeyClient.getDatabaseMetadata(),
             ]);
             dispatch(receiveMetadata({
-                databaseMetadata,
+                // databaseMetadata,
                 units,
             }));
         } catch (reason) {
@@ -55,9 +54,9 @@ const requestMetadata = createLogic({
 });
 
 const requestImagingSessions = createLogic({
-    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({labkeyClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const imagingSessions = await LabkeyClient.Get.imagingSessions(httpClient);
+            const imagingSessions = await labkeyClient.getImagingSessions();
             next(receiveMetadata({
                 imagingSessions,
             }));
@@ -72,9 +71,9 @@ const requestImagingSessions = createLogic({
 });
 
 const requestBarcodePrefixes = createLogic({
-    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({labkeyClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const barcodePrefixes = await LabkeyClient.Get.barcodePrefixes(httpClient);
+            const barcodePrefixes = await labkeyClient.getBarcodePrefixes();
             next(receiveMetadata({
                 barcodePrefixes,
             }));

@@ -62,6 +62,11 @@ export interface GetBarcodePrefixesAction {
     type: string;
 }
 
+export interface GetPlatesByBarcodeAction {
+    payload: string;
+    type: string;
+}
+
 export interface Unit {
     description: string;
     name: string;

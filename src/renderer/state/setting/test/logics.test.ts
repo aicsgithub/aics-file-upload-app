@@ -67,6 +67,14 @@ describe("Setting logics", () => {
             expect(jssPortSetterSpy.called).to.be.true;
         });
 
+        it("Retrieves metadata and jobs if host or port changed", () => {
+            // const store = createMockReduxStore(mockState);
+        });
+
+        it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
+
+        });
+
         it("updates settings in memory and sets warning alert if data persistance failure", () => {
             const deps = {
                 ...mockReduxLogicDeps,

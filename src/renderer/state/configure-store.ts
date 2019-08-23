@@ -10,6 +10,7 @@ import {
     createStore,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
+import LabkeyClient from "../util/labkey-client";
 
 import {
     enableBatching,
@@ -22,7 +23,7 @@ import {
 } from "./";
 import { State } from "./types";
 
-import { LIMS_HOST, LIMS_PORT } from "../../shared/constants";
+import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../shared/constants";
 
 const storage = new Store();
 
@@ -54,6 +55,11 @@ export const reduxLogicDependencies = {
         logLevel: "debug",
         port: LIMS_PORT,
         username: userInfo().username,
+    }),
+    labkeyClient: new LabkeyClient({
+        host: LIMS_HOST,
+        port: LIMS_PORT,
+        protocol: LIMS_PROTOCOL,
     }),
     storage,
 };

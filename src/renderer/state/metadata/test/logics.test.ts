@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { get } from "lodash";
-import * as sinon from "sinon";
+import { stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
@@ -12,7 +12,7 @@ import { getBarcodePrefixes, getImagingSessions } from "../selectors";
 describe("Metadata logics", () => {
     describe("requestImagingSessions", () => {
         it("sets imaging session given OK response", (done) => {
-            const getStub = sinon.stub().resolves({
+            const getStub = stub().resolves({
                 data: {
                     rows: mockImagingSessions,
                 },
@@ -40,12 +40,12 @@ describe("Metadata logics", () => {
         });
 
         it("sets alert given non-OK response", (done) => {
-            const getStub = sinon.stub().rejects();
+            const getStub = stub().rejects();
             const reduxLogicDeps = {
                 ...mockReduxLogicDeps,
-                httpClient: {
-                    ...mockReduxLogicDeps.httpClient,
-                    get: getStub,
+                labkeyClient: {
+                    ...mockReduxLogicDeps.labkeyClient,
+                    getImagingSessions: getStub,
                 },
             };
             const store = createMockReduxStore(mockState, reduxLogicDeps);
@@ -69,7 +69,7 @@ describe("Metadata logics", () => {
 
     describe("requestBarcodePrefixes", () => {
         it("sets barcode prefix given OK response", (done) => {
-            const getStub = sinon.stub().resolves({
+            const getStub = stub().resolves({
                 data: {
                     rows: mockBarcodePrefixes,
                 },
@@ -97,12 +97,12 @@ describe("Metadata logics", () => {
         });
 
         it("sets alert given non-OK response", (done) => {
-            const getStub = sinon.stub().rejects();
+            const getBarcodePrefixesStub = stub().rejects();
             const reduxLogicDeps = {
                 ...mockReduxLogicDeps,
-                httpClient: {
-                    ...mockReduxLogicDeps.httpClient,
-                    get: getStub,
+                labkeyClient: {
+                    ...mockReduxLogicDeps.labkeyClient,
+                    getBarcodePrefixes: getBarcodePrefixesStub,
                 },
             };
             const store = createMockReduxStore(mockState, reduxLogicDeps);

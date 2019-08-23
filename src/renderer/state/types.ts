@@ -8,7 +8,7 @@ import { StateWithHistory } from "redux-undo";
 
 import { FeedbackStateBranch } from "./feedback/types";
 import { JobStateBranch } from "./job/types";
-import { MetadataStateBranch } from "./metadata/types";
+import { BarcodePrefix, DatabaseMetadata, ImagingSession, MetadataStateBranch, Unit } from "./metadata/types";
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
 import { UploadStateBranch } from "./upload/types";
@@ -46,6 +46,13 @@ export interface ReduxLogicExtraDependencies {
         send: (channel: string, ...args: any[]) => void;
     };
     jssClient: IJobStatusClient;
+    labkeyClient: {
+        getBarcodePrefixes: () => Promise<BarcodePrefix[]>;
+        getColumnValues: (schema: string, table: string, columnName: string) => Promise<string[]>;
+        getDatabaseMetadata: () => Promise<DatabaseMetadata>;
+        getImagingSessions: () => Promise<ImagingSession[]>;
+        getUnits: () => Promise<Unit[]>;
+    };
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;
