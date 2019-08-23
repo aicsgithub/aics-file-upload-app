@@ -275,9 +275,7 @@ const selectWorkflowPathLogic = createLogic({
     process: async (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const action = getActionFromBatch(deps.action, SELECT_WORKFLOW_PATH);
 
-        if (!action) {
-            done();
-        } else {
+        if (action) {
             const actions = [
                 action,
                 ...getGoForwardActions(Page.EnterBarcode, deps.getState()),
@@ -285,6 +283,7 @@ const selectWorkflowPathLogic = createLogic({
             ];
             dispatch(batchActions(actions));
         }
+        done();
     },
     type: SELECT_WORKFLOW_PATH,
 });
