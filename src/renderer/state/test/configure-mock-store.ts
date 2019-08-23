@@ -23,6 +23,8 @@ export interface ReduxLogicDependencies {
         showMessageBox: SinonStub;
     };
     fms: {
+        host: string;
+        port: string;
         retryUpload: SinonStub;
         uploadFiles: SinonStub;
         validateMetadata: SinonStub;
@@ -39,6 +41,8 @@ export interface ReduxLogicDependencies {
         createJob: SinonStub;
         getJob: SinonStub;
         getJobs: SinonStub;
+        host: string;
+        port: string;
         updateJob: SinonStub;
     };
     storage: {
@@ -53,6 +57,8 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         showMessageBox: stub(),
     },
     fms: {
+        host: "localhost",
+        port: "80",
         retryUpload: stub().resolves(),
         uploadFiles: stub().resolves(),
         validateMetadata: stub().resolves(),
@@ -69,6 +75,8 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         createJob: stub().resolves(mockSuccessfulUploadJob),
         getJob: stub(),
         getJobs: stub().resolves([mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob]),
+        host: "localhost",
+        port: "80",
         updateJob: stub().resolves(mockSuccessfulUploadJob),
     },
     storage: {
