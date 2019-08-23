@@ -17,22 +17,29 @@ import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
 import { getLimsHost, getLimsPort } from "./selectors";
 
 const updateSettingsLogic = createLogic({
-    process: ({fms, getState, jssClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: ({ctx, fms, getState, jssClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
               done: ReduxLogicDoneCb) => {
         const host = getLimsHost(getState());
         const port = getLimsPort(getState());
-        fms.host = host;
-        jssClient.host = host;
-        fms.port = port;
-        jssClient.port = port;
+
+        if (ctx.host !== host || ctx.port !== port) {
+            fms.host = host;
+            jssClient.host = host;
+            fms.port = port;
+            jssClient.port = port;
+            // TODO: FMS-695 re-trigger GET-requests for jobs and metadata
+        }
 
         done();
     },
-    transform: ({action, getState, storage}: ReduxLogicTransformDependencies,
+    transform: ({action, ctx, getState, storage}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         try {
             // payload is a partial of the Setting State branch so it could be undefined.
             if (action.payload) {
+                ctx.host = getLimsHost(getState());
+                ctx.port = getLimsPort(getState());
+
                 map(action.payload, (value: any, key: string) => {
                     storage.set(`${USER_SETTINGS_KEY}.${key}`, value);
                 });
