@@ -1,4 +1,5 @@
 import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
+import { Tabs } from "antd";
 import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
@@ -10,8 +11,10 @@ import {
     AssociateFilesAndWorkflowsAction,
     UndoFileWorkflowAssociationAction
 } from "../../state/upload/types";
+
 import FormPage from "../FormPage";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
+import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";
 
 const styles = require("./style.pcss");
 
@@ -53,6 +56,9 @@ class AssociateWorkflows extends React.Component<Props, {}> {
             workflowOptions,
         } = this.props;
 
+        const workflowNames = selectedWorkflows.map((workflow: Workflow) => workflow.name).sort().join(", ");
+        const associationsTitle = `Selected Workflow(s): ${workflowNames}`;
+
         return (
             <FormPage
                 className={className}
@@ -63,7 +69,6 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                 saveButtonDisabled={!this.canContinue()}
             >
                 <SelectedAssociationsCard
-                    selectedWorkflows={selectedWorkflows}
                     files={mutualFiles}
                     selectedFilesCount={selectedFiles.length}
                     associate={this.associate}
@@ -73,7 +78,24 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                     redo={redo}
                     canRedo={canRedo}
                     canUndoLastAssociation={canUndo}
-                />
+                    title={associationsTitle}
+                >
+                    {selectedWorkflows && selectedWorkflows.map(({ description,
+                                                                      name,
+                                                                      workflowId }: Workflow) => (
+                        <Tabs.TabPane
+                            key={`${workflowId}`}
+                            tab={name}
+                        >
+                            <KeyValueDisplay className={styles.workflowInfo} keyName="Name" value={name}/>
+                            <KeyValueDisplay
+                                className={styles.workflowInfo}
+                                keyName="Description"
+                                value={description}
+                            />
+                        </Tabs.TabPane>
+                    ))}
+                </SelectedAssociationsCard>
                     <div className={styles.workflowSelector}>
                         <LabKeyOptionSelector
                             autoFocus={true}

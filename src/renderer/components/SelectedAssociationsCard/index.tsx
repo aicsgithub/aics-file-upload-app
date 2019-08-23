@@ -1,19 +1,14 @@
 import { Button, Card, Tabs } from "antd";
 import * as React from "react";
 
-import { Well, Workflow } from "../../state/selection/types";
 import FileAssociations from "./FileAssociations/index";
-import KeyValueDisplay from "./KeyValueDisplay";
-import WellInfo from "./WellInfo/index";
 
 const styles = require("./style.pcss");
 
 interface SelectedAssociationsProps {
+    children: React.ReactNode | React.ReactNodeArray;
     className?: string;
     selectedFilesCount: number;
-    selectedWellLabels?: string[];
-    selectedWells?: Well[];
-    selectedWorkflows?: Workflow[];
     wellLabels?: string[];
     files: string[];
     associate: () => void;
@@ -23,6 +18,7 @@ interface SelectedAssociationsProps {
     canAssociate: boolean;
     canUndoLastAssociation: boolean;
     canRedo: boolean;
+    title: string;
     useWells?: boolean;
 }
 
@@ -33,38 +29,19 @@ class SelectedAssociationsCard extends React.Component<SelectedAssociationsProps
             canAssociate,
             canRedo,
             canUndoLastAssociation,
+            children,
             className,
             files,
             redo,
             selectedFilesCount,
+            title,
             undoAssociation,
             undoLastAssociation,
-            selectedWellLabels,
-            selectedWells,
-            selectedWorkflows,
-            wellLabels,
         } = this.props;
-
-        let title;
-        if (this.props.useWells) {
-            title = (
-                <div className={styles.title}>Selected Well(s): {wellLabels ? wellLabels.sort().join(", ") : []}
-                </div>);
-        } else {
-            title = (
-                <div className={styles.title}>
-                    Selected Workflow(s):&nbsp;
-                    {selectedWorkflows ?
-                        selectedWorkflows.map((workflow: Workflow) => workflow.name).sort().join(", ")
-                        :
-                        []
-                    }
-                </div>);
-        }
 
         const titleBar = (
             <div className={styles.titleRow}>
-                {title}
+                <div className={styles.title}>{title}</div>
 
                 <div className={styles.titleButtons}>
                     <Button
@@ -95,31 +72,7 @@ class SelectedAssociationsCard extends React.Component<SelectedAssociationsProps
                             undoAssociation={undoAssociation}
                         />
                     </Tabs.TabPane>
-                    {selectedWells && selectedWells.map((well, i) => (
-                        <Tabs.TabPane
-                            className={styles.tabPane}
-                            key={selectedWellLabels && selectedWellLabels[i]}
-                            tab={selectedWellLabels && selectedWellLabels[i]}
-                        >
-                            <WellInfo className={styles.tabPane} well={well}/>
-                        </Tabs.TabPane>
-                    ))}
-                    {selectedWorkflows && selectedWorkflows.map(({ description,
-                                                                   name,
-                                                                   workflowId }: Workflow) => (
-                        <Tabs.TabPane
-                            className={styles.tabPane}
-                            key={`${workflowId}`}
-                            tab={name}
-                        >
-                            <KeyValueDisplay className={styles.workflowInfo} keyName="Name" value={name}/>
-                            <KeyValueDisplay
-                                className={styles.workflowInfo}
-                                keyName="Description"
-                                value={description}
-                            />
-                        </Tabs.TabPane>
-                    ))}
+                    {children}
                 </Tabs>
             </Card>
         );

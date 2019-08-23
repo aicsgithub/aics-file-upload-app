@@ -1,12 +1,10 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
+import { Tabs } from "antd";
 import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import FormPage from "../FormPage";
-import Plate from "../Plate";
-import SelectedAssociationsCard from "../SelectedAssociationsCard";
-
+import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
 import { GoBackAction, NextPageAction, SelectWellsAction, Well } from "../../state/selection/types";
 import {
     AssociateFilesAndWellsAction,
@@ -14,7 +12,11 @@ import {
 } from "../../state/upload/types";
 import { getWellLabel } from "../../util";
 
-import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
+import FormPage from "../FormPage";
+import Plate from "../Plate";
+import SelectedAssociationsCard from "../SelectedAssociationsCard";
+import WellInfo from "../SelectedAssociationsCard/WellInfo";
+
 import { GridCell } from "./grid-cell";
 
 const styles = require("./style.pcss");
@@ -58,6 +60,8 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
             wellIdToFiles,
         } = this.props;
 
+        const associationsTitle = `Selected Well(s): ${selectedWellLabels.sort().join(", ")}`;
+
         return (
             <FormPage
                 className={className}
@@ -69,9 +73,6 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
             >
                 <SelectedAssociationsCard
                     className={styles.wellInfo}
-                    selectedWellLabels={selectedWellLabels}
-                    selectedWells={selectedWellsData}
-                    wellLabels={selectedWellLabels}
                     files={mutualFilesForWells}
                     selectedFilesCount={selectedFiles.length}
                     associate={this.associate}
@@ -82,7 +83,17 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                     canRedo={canRedo}
                     canUndoLastAssociation={canUndo}
                     useWells={true}
-                />
+                    title={associationsTitle}
+                >
+                    {selectedWellsData && selectedWellsData.map((well, i) => (
+                        <Tabs.TabPane
+                            key={selectedWellLabels[i]}
+                            tab={selectedWellLabels[i]}
+                        >
+                            <WellInfo className={styles.tabPane} well={well}/>
+                        </Tabs.TabPane>
+                    ))}
+                </SelectedAssociationsCard>
                 {wells ? (
                         <Plate
                             wells={wells}
