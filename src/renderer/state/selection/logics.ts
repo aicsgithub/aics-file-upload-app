@@ -1,4 +1,4 @@
-import { stat as fsStat, Stats } from "fs";
+import { access as fsAccess, constants, stat as fsStat, Stats } from "fs";
 import { isEmpty, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
@@ -59,6 +59,7 @@ import {
     UploadFile
 } from "./types";
 
+const access = promisify(fsAccess);
 const stat = promisify(fsStat);
 
 const mergeChildPaths = (filePaths: string[]): string[] => {
@@ -71,14 +72,18 @@ const mergeChildPaths = (filePaths: string[]): string[] => {
 };
 
 const getUploadFilePromise = async (name: string, path: string): Promise<UploadFile> => {
-    const stats: Stats = await stat(resolvePath(path, name));
+    const fullPath = resolvePath(path, name);
+    const stats: Stats = await stat(fullPath);
     const isDirectory = stats.isDirectory();
     const file = new UploadFileImpl(name, path, isDirectory);
-
+    try {
+        await access(fullPath, constants.R_OK);
+    } catch (permissionError) {
+        throw new Error(`You do not have permission to view this file/directory: ${fullPath}.`);
+    }
     if (isDirectory) {
         file.files = await Promise.all(await file.loadFiles());
     }
-
     return file;
 };
 
@@ -99,7 +104,7 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
         dispatch(batchActions([
             stopLoading(),
             setAlert({
-                message: "Encountered error while resolving files",
+                message: `Encountered error while resolving files: ${e}`,
                 type: AlertType.ERROR,
             }),
         ]));
@@ -181,6 +186,11 @@ const getFilesInFolderLogic = createLogic({
         } catch (e) {
             // tslint:disable-next-line
            console.log(e);
+
+           next(setAlert({
+               message: `Encountered error while resolving files: ${e}`,
+               type: AlertType.ERROR,
+           }));
         }
 
     },
