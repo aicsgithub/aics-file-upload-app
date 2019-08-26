@@ -16,7 +16,13 @@ import {
     upload,
 } from "../";
 import { State } from "../types";
-import { mockFailedUploadJob, mockSuccessfulUploadJob, mockWorkingUploadJob } from "./mocks";
+import {
+    mockFailedUploadJob,
+    mockImagingSession,
+    mockSuccessfulUploadJob,
+    mockUnit,
+    mockWorkingUploadJob,
+} from "./mocks";
 
 export interface ReduxLogicDependencies {
     dialog: {
@@ -44,6 +50,14 @@ export interface ReduxLogicDependencies {
         host: string;
         port: string;
         updateJob: SinonStub;
+    };
+    labkeyClient: {
+        getBarcodePrefixes: SinonStub;
+        getColumnValues: SinonStub;
+        getDatabaseMetadata: SinonStub;
+        getImagingSessions: SinonStub;
+        getPlatesByBarcode: SinonStub;
+        getUnits: SinonStub;
     };
     storage: {
         get: SinonStub,
@@ -78,6 +92,14 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         host: "localhost",
         port: "80",
         updateJob: stub().resolves(mockSuccessfulUploadJob),
+    },
+    labkeyClient: {
+        getBarcodePrefixes: stub().resolves(["AD", "AX", "GE", "GX"]),
+        getColumnValues: stub().resolves(["id", "name"]),
+        getDatabaseMetadata: stub(),
+        getImagingSessions: stub().resolves([mockImagingSession]),
+        getPlatesByBarcode: stub(),
+        getUnits: stub().resolves([mockUnit]),
     },
     storage: {
         get: stub(),

@@ -4,10 +4,12 @@ import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
 import { debounce, get, uniqBy } from "lodash";
+import * as memoize from "memoizee";
 import { ReactNodeArray } from "react";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
+
 import { PLATE_CREATED } from "../../../shared/constants";
 
 import FormPage from "../../components/FormPage";
@@ -77,7 +79,7 @@ interface EnterBarcodeState {
     showCreateBarcodeForm: boolean;
 }
 
-export const createOptionsFromGetPlatesResponse = (allPlates: LabkeyPlateResponse[]) => {
+export const createOptionsFromGetPlatesResponse = memoize((allPlates: LabkeyPlateResponse[]) => {
     const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
     return  uniquePlateBarcodes.map((plate) => {
         const imagingSessionIds = allPlates
@@ -88,9 +90,13 @@ export const createOptionsFromGetPlatesResponse = (allPlates: LabkeyPlateRespons
             imagingSessionIds,
         };
     });
-};
+});
 
 class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState> {
+    private searchForPlates = memoize((barcodeFragment: string, limsUrl: string): Promise<LabkeyPlateResponse[]> =>
+        LabkeyClient.getPlatesByBarcode(`${limsUrl}/labkey`, barcodeFragment)
+    );
+
     constructor(props: EnterBarcodeProps) {
         super(props);
         this.state = {
@@ -104,15 +110,32 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         this.onBarcodeChange = this.onBarcodeChange.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
         this.setAlert = debounce(this.setAlert.bind(this), 2000);
+        this.onBarcodeInput = debounce(this.onBarcodeInput, 500);
 
         ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, imagingSessionId: number | null) => {
             this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
+            this.searchForPlates.clear(); // clear all cached barcodes in order for plate to be searchable
         });
     }
 
     public componentDidMount() {
         this.props.getImagingSessions();
         this.props.getBarcodePrefixes();
+    }
+
+    public componentDidUpdate(prevProps: Readonly<EnterBarcodeProps>): void {
+        if (prevProps.limsUrl !== this.props.limsUrl) {
+            this.setState({
+                barcode: undefined,
+                barcodes: [],
+                imagingSessionId: undefined,
+                imagingSessionIds: [],
+                loading: false,
+                showCreateBarcodeForm: false,
+            });
+            this.props.getImagingSessions();
+            this.props.getBarcodePrefixes();
+        }
     }
 
     public render() {
@@ -144,7 +167,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     autoFocus={true}
                     autoClearSearchValue={true}
                     onChange={this.onBarcodeChange}
-                    onSearch={this.handleSearch}
+                    onSearch={this.onBarcodeInput}
                     loading={loading}
                     defaultActiveFirstOption={false}
                 >
@@ -191,22 +214,25 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         );
     }
 
-    private handleSearch = (input: string): void => {
-        const { limsUrl } = this.props;
-        if (!input) {
-            this.setState({barcodes: []});
-        } else {
+    private onBarcodeInput = async (input: string): Promise<void> => {
+        if (input) {
+            const { limsUrl } = this.props;
             this.setState({loading: true});
-            LabkeyClient.getPlatesByBarcode(`${limsUrl}/labkey`, input)
-                .then(createOptionsFromGetPlatesResponse)
-                .then((barcodes) => this.setState({barcodes, loading: false}))
-                .catch((err: any) => {
-                    this.props.setAlert({
-                        message: err,
-                        type: AlertType.ERROR,
-                    });
-                    this.setState({loading: false});
+
+            try {
+                const plates = await this.searchForPlates(input, limsUrl);
+                const barcodes = createOptionsFromGetPlatesResponse(plates);
+                this.setState({barcodes, loading: false});
+            } catch (e) {
+                this.props.setAlert({
+                    message: e,
+                    type: AlertType.ERROR,
                 });
+                this.setState({loading: false});
+            }
+
+        } else {
+            this.setState({barcodes: []});
         }
     }
 

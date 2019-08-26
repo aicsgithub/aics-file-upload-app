@@ -2,6 +2,7 @@ import {
     CREATE_BARCODE,
     GET_BARCODE_PREFIXES,
     GET_IMAGING_SESSIONS,
+    GET_PLATES_BY_BARCODE,
     RECEIVE_METADATA,
     REQUEST_METADATA,
     UPDATE_PAGE_HISTORY,
@@ -12,6 +13,7 @@ import {
     CreateBarcodeAction,
     GetBarcodePrefixesAction,
     GetImagingSessionsAction,
+    GetPlatesByBarcodeAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
@@ -42,6 +44,13 @@ export function requestImagingSessions(): GetImagingSessionsAction {
 export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
     return {
         type: GET_BARCODE_PREFIXES,
+    };
+}
+
+export function requestPlatesByBarcode(barcode: string): GetPlatesByBarcodeAction {
+    return {
+        payload: barcode,
+        type: GET_PLATES_BY_BARCODE,
     };
 }
 

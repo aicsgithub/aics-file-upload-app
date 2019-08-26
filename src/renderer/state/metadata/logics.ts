@@ -33,12 +33,12 @@ const requestMetadata = createLogic({
     process: async ({labkeyClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
                     done: () => void) => {
         try {
-            const [ units ] = await Promise.all([
+            const [ units, databaseMetadata ] = await Promise.all([
                 labkeyClient.getUnits(),
-                // labkeyClient.getDatabaseMetadata(),
+                labkeyClient.getDatabaseMetadata(),
             ]);
             dispatch(receiveMetadata({
-                // databaseMetadata,
+                databaseMetadata,
                 units,
             }));
         } catch (reason) {
