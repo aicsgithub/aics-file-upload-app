@@ -17,10 +17,10 @@ export const getWellIdToFiles = createSelector([getUpload], (upload: UploadState
         }
         return {
             ...result,
-            ...reduce(wellIds, (accum2: IdToFilesMap, wellId: number) => {
-                const files = accum2[wellId] || [];
+            ...reduce(wellIds, (accum: IdToFilesMap, wellId: number) => {
+                const files = accum[wellId] || [];
                 return {
-                    ...accum2,
+                    ...accum,
                     [wellId]: uniq([...files, filePath]),
                 };
             }, {}),
