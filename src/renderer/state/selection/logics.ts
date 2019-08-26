@@ -1,4 +1,4 @@
-import { access as fsAccess, constants, stat as fsStat, Stats } from "fs";
+import { constants, promises, stat as fsStat, Stats } from "fs";
 import { isEmpty, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
@@ -59,7 +59,7 @@ import {
     UploadFile
 } from "./types";
 
-const access = promisify(fsAccess);
+const { access } = promises;
 const stat = promisify(fsStat);
 
 const mergeChildPaths = (filePaths: string[]): string[] => {
@@ -75,13 +75,13 @@ const getUploadFilePromise = async (name: string, path: string): Promise<UploadF
     const fullPath = resolvePath(path, name);
     const stats: Stats = await stat(fullPath);
     const isDirectory = stats.isDirectory();
-    const file = new UploadFileImpl(name, path, isDirectory);
+    let canRead = false;
     try {
         await access(fullPath, constants.R_OK);
-    } catch (permissionError) {
-        throw new Error(`You do not have permission to view this file/directory: ${fullPath}.`);
-    }
-    if (isDirectory) {
+        canRead = true;
+    } catch (e) {}
+    const file = new UploadFileImpl(name, path, isDirectory, canRead);
+    if (isDirectory && canRead) {
         file.files = await Promise.all(await file.loadFiles());
     }
     return file;

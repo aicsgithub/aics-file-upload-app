@@ -138,11 +138,19 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     {tagEls}
                 </React.Fragment>
             );
-            return <Tree.TreeNode className={styles.treeNode} title={fileDisplay} key={file.fullPath} isLeaf={true}/>;
+            return <Tree.TreeNode
+                className={styles.treeNode}
+                selectable={file.canRead}
+                disabled={!file.canRead}
+                isLeaf={true}
+                key={file.fullPath}
+                title={fileDisplay}
+            />;
         }
 
         return (
             <Tree.TreeNode
+                disabled={!file.canRead}
                 title={file.name}
                 key={FolderTree.getFolderKey(file.fullPath)}
                 isLeaf={false}

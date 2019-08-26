@@ -1,6 +1,6 @@
 import {
-    access as fsAccess,
     constants,
+    promises,
     readdir as fsReaddir,
     stat as fsStat,
     Stats
@@ -10,7 +10,7 @@ import { promisify } from "util";
 
 import { UploadFile } from "../types";
 
-const access = promisify(fsAccess);
+const { access } = promises;
 const readdir = promisify(fsReaddir);
 const stat = promisify(fsStat);
 
@@ -20,11 +20,13 @@ export class UploadFileImpl implements UploadFile {
     // this will get populated once the folder is expanded
     public files: UploadFile[] = [];
     public readonly isDirectory: boolean;
+    public readonly canRead: boolean;
 
-    constructor(name: string, path: string, isDirectory: boolean) {
+    constructor(name: string, path: string, isDirectory: boolean, canRead: boolean) {
         this.name = name;
         this.path = path;
         this.isDirectory = isDirectory;
+        this.canRead = canRead;
     }
 
     get fullPath(): string {
@@ -36,17 +38,20 @@ export class UploadFileImpl implements UploadFile {
             return Promise.reject("Not a directory");
         }
         const fullPath = resolvePath(this.path, this.name);
-        try {
-            await access(fullPath, constants.R_OK);
-        } catch (permissionError) {
-            throw new Error(`You do not have permission to view this file/directory: ${fullPath}.`);
+        if (!this.canRead) {
+            return Promise.reject(`You do not have permission to view this file/directory: ${fullPath}.`)
         }
 
         const files: string[] = await readdir(this.fullPath);
         return files.map(async (file: string) => {
             const filePath = resolvePath(this.fullPath, file);
             const stats: Stats = await stat(filePath);
-            return new UploadFileImpl(basename(filePath), dirname(filePath), stats.isDirectory());
+            let canRead = false;
+            try {
+                await access(fullPath, constants.R_OK);
+                canRead = true;
+            } catch (e) {}
+            return new UploadFileImpl(basename(filePath), dirname(filePath), stats.isDirectory(), canRead);
         });
     }
 }
