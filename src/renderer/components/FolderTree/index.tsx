@@ -25,10 +25,19 @@ interface FolderTreeState {
 
 // Added to the keys used for Tree.TreeNode in order to quickly identify folders from files.
 const FOLDER_TAG = "(folder)";
+const CANT_READ_TAG = "(cant read)";
 
 class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
-    public static getFolderKey(path: string): string {
-        return `${path}${FOLDER_TAG}`;
+    public static getKey(file: UploadFile): string {
+        let key = file.fullPath;
+        if (file.isDirectory) {
+            key += FOLDER_TAG;
+        }
+        console.log(file.canRead);
+        if (!file.canRead) {
+            key += CANT_READ_TAG;
+        }
+        return key;
     }
 
     // Recursively searches files and the child files for the first folder whose full path is equivalent to path
@@ -85,7 +94,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     {!isLoading && <Tree.DirectoryTree
                         checkable={false}
                         multiple={true}
-                        defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getFolderKey(file.fullPath))}
+                        defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getKey(file))}
                         onSelect={this.onSelect}
                         onExpand={this.onExpand}
                         selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
@@ -98,9 +107,13 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         );
     }
 
+    // Select files; Excludes any folders and any files the user doesn't have permission to read
     private onSelect(files: string[]) {
-        const filesExcludingFolders = files.filter((file: string) => !file.includes(FOLDER_TAG));
-        this.props.onCheck(filesExcludingFolders);
+        const selectableFiles = files.filter((file: string) =>
+            !file.includes(FOLDER_TAG) && !file.includes(CANT_READ_TAG));
+        if (selectableFiles.length) {
+            this.props.onCheck(selectableFiles);
+        }
     }
 
     private onExpand(expandedKeys: string[]): void {
@@ -143,7 +156,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                 selectable={file.canRead}
                 disabled={!file.canRead}
                 isLeaf={true}
-                key={file.fullPath}
+                key={FolderTree.getKey(file)}
                 title={fileDisplay}
             />;
         }
@@ -152,7 +165,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             <Tree.TreeNode
                 disabled={!file.canRead}
                 title={file.name}
-                key={FolderTree.getFolderKey(file.fullPath)}
+                key={FolderTree.getKey(file)}
                 isLeaf={false}
                 className={styles.treeNode}
             >
