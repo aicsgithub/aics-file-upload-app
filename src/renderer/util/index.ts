@@ -1,5 +1,5 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { promises } from "fs";
+import { constants, promises } from "fs";
 import {
     forOwn,
     isFunction,
@@ -93,4 +93,13 @@ export const alphaOrderComparator = (a: string, b: string): number => {
     }
 
     return -1;
+};
+
+export const canUserRead = async (filePath: string): Promise<boolean> => {
+    try {
+        await promises.access(filePath, constants.R_OK);
+        return true;
+    } catch (permissionError) {
+        return false;
+    }
 };

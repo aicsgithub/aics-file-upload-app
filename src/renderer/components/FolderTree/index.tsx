@@ -33,7 +33,6 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         if (file.isDirectory) {
             key += FOLDER_TAG;
         }
-        console.log(file.canRead);
         if (!file.canRead) {
             key += CANT_READ_TAG;
         }
@@ -151,14 +150,16 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     {tagEls}
                 </React.Fragment>
             );
-            return <Tree.TreeNode
-                className={styles.treeNode}
-                selectable={file.canRead}
-                disabled={!file.canRead}
-                isLeaf={true}
-                key={FolderTree.getKey(file)}
-                title={fileDisplay}
-            />;
+            return (
+                <Tree.TreeNode
+                    className={styles.treeNode}
+                    selectable={file.canRead}
+                    disabled={!file.canRead}
+                    isLeaf={true}
+                    key={FolderTree.getKey(file)}
+                    title={fileDisplay}
+                />
+            );
         }
 
         return (
