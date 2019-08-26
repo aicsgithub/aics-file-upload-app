@@ -301,9 +301,9 @@ describe("Selection logics", () => {
 
     describe("getFilesInFolderLogic", () => {
         it("should add child files to folder", (done) => {
-            const folder = new UploadFileImpl(FOLDER_NAME, dirname(FOLDER_FULL_PATH), true);
+            const folder = new UploadFileImpl(FOLDER_NAME, dirname(FOLDER_FULL_PATH), true, true);
             const stagedFiles = [
-                new UploadFileImpl(FILE_NAME, dirname(FILE_FULL_PATH), false),
+                new UploadFileImpl(FILE_NAME, dirname(FILE_FULL_PATH), false, true),
                 folder,
             ];
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
