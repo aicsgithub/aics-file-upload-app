@@ -5,8 +5,8 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
 
-import MmsClient from "../../util/mms-client";
 import { canUserRead } from "../../util";
+import MmsClient from "../../util/mms-client";
 
 import { API_WAIT_TIME_SECONDS } from "../constants";
 

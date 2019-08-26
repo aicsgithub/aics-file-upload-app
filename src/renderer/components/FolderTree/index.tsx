@@ -1,7 +1,9 @@
 import { Icon, Spin, Tag, Tree } from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
+import { ActionCreator } from "redux";
 
+import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { GetFilesInFolderAction, SelectFileAction, UploadFile } from "../../state/selection/types";
 import { FileTag } from "../../state/upload/types";
 import Resizable from "../Resizable";
@@ -12,6 +14,7 @@ interface FolderTreeProps {
     className?: string;
     files: UploadFile[];
     getFilesInFolder: (folderToExpand: UploadFile) => GetFilesInFolderAction;
+    setAlert: ActionCreator<SetAlertAction>;
     isLoading?: boolean;
     onCheck: (files: string[]) => SelectFileAction;
     selectedKeys: string[];
@@ -108,6 +111,13 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
 
     // Select files; Excludes any folders and any files the user doesn't have permission to read
     private onSelect(files: string[]) {
+        const nonReadableFiles = files.filter((file: string) => !file.includes(CANT_READ_TAG));
+        if (nonReadableFiles.length) {
+            this.props.setAlert({
+                message: `You have selected files that you do not have permission for: ${nonReadableFiles}`,
+                type: AlertType.WARN,
+            });
+        }
         const selectableFiles = files.filter((file: string) =>
             !file.includes(FOLDER_TAG) && !file.includes(CANT_READ_TAG));
         if (selectableFiles.length) {
@@ -153,8 +163,6 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             return (
                 <Tree.TreeNode
                     className={styles.treeNode}
-                    selectable={file.canRead}
-                    disabled={!file.canRead}
                     isLeaf={true}
                     key={FolderTree.getKey(file)}
                     title={fileDisplay}
