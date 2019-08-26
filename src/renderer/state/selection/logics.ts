@@ -98,9 +98,6 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
         done();
 
     } catch (e) {
-        // tslint:disable-next-line
-        console.log(e);
-
         dispatch(batchActions([
             stopLoading(),
             setAlert({
@@ -184,9 +181,6 @@ const getFilesInFolderLogic = createLogic({
             const stagedFiles = [...getStagedFiles(getState())];
             next(updateStagedFiles(getNewStagedFiles(stagedFiles, folder)));
         } catch (e) {
-            // tslint:disable-next-line
-           console.log(e);
-
            next(setAlert({
                message: `Encountered error while resolving files: ${e}`,
                type: AlertType.ERROR,
