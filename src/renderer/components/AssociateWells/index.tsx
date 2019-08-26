@@ -123,6 +123,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
         }
     }
 
+    // If we have wells & files selected then allow the user to Associate them
     private canAssociate = (): boolean => {
         const { selectedFiles, selectedWells } = this.props;
         return selectedWells.length > 0 && selectedFiles.length > 0;
@@ -139,6 +140,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
         }
     }
 
+    // If we at least one well associated with at least one file then we can continue the upload
     private canContinue = (): boolean => {
         return keys(this.props.wellIdToFiles).length > 0;
     }

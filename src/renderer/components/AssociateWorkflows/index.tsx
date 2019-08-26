@@ -118,6 +118,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
         this.props.undoAssociation(file, this.props.selectedWorkflows);
     }
 
+    // If we have workflows & files selected then allow the user to Associate them
     private canAssociate = (): boolean => {
         return this.props.selectedWorkflows.length > 0 && this.props.selectedFiles.length > 0;
     }
@@ -126,6 +127,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
         this.props.associateFilesAndWorkflows(this.props.selectedFiles, this.props.selectedWorkflows);
     }
 
+    // If we at least one workflow associated with at least one file then we can continue the upload
     private canContinue = (): boolean => {
         return keys(this.props.workflowIdToFiles).length > 0;
     }
