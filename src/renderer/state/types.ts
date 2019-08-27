@@ -1,5 +1,5 @@
-import { IFileManagementSystem } from "@aics/aicsfiles/type-declarations/types";
-import { IJobStatusClient } from "@aics/job-status-client/type-declarations/types";
+import { FileManagementSystem } from "@aics/aicsfiles";
+import { JobStatusClient } from "@aics/job-status-client";
 import { AxiosPromise, AxiosRequestConfig } from "axios";
 import { MessageBoxOptions } from "electron";
 import { AnyAction } from "redux";
@@ -39,13 +39,13 @@ export interface ReduxLogicExtraDependencies {
             callback?: (response: number, checkboxChecked: boolean) => void
         ): number;
     };
-    fms: IFileManagementSystem;
+    fms: FileManagementSystem;
     httpClient: HttpClient;
     ipcRenderer: {
         on: (channel: string, listener: (...args: any[]) => void) => void;
         send: (channel: string, ...args: any[]) => void;
     };
-    jssClient: IJobStatusClient;
+    jssClient: JobStatusClient;
     labkeyClient: {
         getBarcodePrefixes: () => Promise<BarcodePrefix[]>;
         getColumnValues: (schema: string, table: string, columnName: string) => Promise<string[]>;
