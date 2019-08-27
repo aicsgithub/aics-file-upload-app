@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, isEmpty, get, includes, orderBy, some } from "lodash";
+import { every, get, includes, isEmpty, orderBy, some } from "lodash";
 import { createSelector } from "reselect";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";

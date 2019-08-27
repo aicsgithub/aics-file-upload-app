@@ -46,11 +46,13 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
         };
     }
 
+    // If the type changes to something that doesn't need more input we want to exit the editor
     public componentDidUpdate(prevProps: Readonly<Props & AdazzleReactDataGrid.EditorBaseProps>,
                               prevState: Readonly<ColumnTypeEditorState>): void {
-        const typeChanged = prevState.newType !== this.state.newType;
-        const typeIsNotDropdown = this.state.newType !== ColumnType.DROPDOWN;
-        if ((typeChanged && typeIsNotDropdown)) {
+        const { newType } = this.state;
+        const typeChanged = prevState.newType !== newType;
+        const typeIsNotDropdownOrLookup = newType !== ColumnType.DROPDOWN && newType !== ColumnType.LOOKUP;
+        if (typeChanged && typeIsNotDropdownOrLookup) {
             this.props.onCommit();
         }
     }
@@ -98,7 +100,9 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
             return (
                 <>
                     <Select
+                        autoFocus={!this.state.newTable}
                         className={styles.dropdownValuesSelect}
+                        defaultOpen={!this.state.newTable}
                         loading={!tables}
                         onChange={this.setTable}
                         placeholder="Tables"
@@ -109,18 +113,21 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
                             <Option key={table} value={table}>{table}</Option>
                         ))}
                     </Select>
-                    {this.state.newTable && <Select
-                        className={styles.dropdownValuesSelect}
-                        onChange={this.setColumn}
-                        onBlur={this.props.onCommit}
-                        placeholder="Columns"
-                        showSearch={true}
-                        value={this.state.newColumn}
-                    >
-                        {tables && tables[this.state.newTable].columns.map((column: string) => (
-                            <Option key={column} value={column}>{column}</Option>
-                        ))}
-                    </Select>}
+                    {this.state.newTable && (
+                        <Select
+                            autoFocus={!!this.state.newTable && !this.state.newColumn}
+                            className={styles.dropdownValuesSelect}
+                            defaultOpen={!!this.state.newTable && !this.state.newColumn}
+                            onChange={this.setColumn}
+                            placeholder="Columns"
+                            showSearch={true}
+                            value={this.state.newColumn}
+                        >
+                            {tables && tables[this.state.newTable].columns.map((column: string) => (
+                                <Option key={column} value={column}>{column}</Option>
+                            ))}
+                        </Select>
+                    )}
                 </>
             );
         }
@@ -158,7 +165,12 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
     private setColumnType = (value: string) => {
         const newType = parseInt(value, 10) || ColumnType.TEXT;
         const columnTypeIsDropdown = newType === ColumnType.DROPDOWN;
-        this.setState({newType, newDropdownValues: columnTypeIsDropdown ? [] : undefined});
+        this.setState({
+            newColumn: undefined,
+            newDropdownValues: columnTypeIsDropdown ? [] : undefined,
+            newTable: undefined,
+            newType,
+        });
     }
 
     private onDropdownValuesKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => e.stopPropagation();
