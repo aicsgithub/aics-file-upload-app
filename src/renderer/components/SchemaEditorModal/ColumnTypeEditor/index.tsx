@@ -30,11 +30,23 @@ interface ColumnTypeEditorState {
     newTable?: string;
 }
 
+interface SelectorTarget extends EventTarget {
+    value?: string;
+}
+
+// Needed to convince typescript that the event target will have a value
+interface TabEvent extends React.KeyboardEvent<HTMLInputElement> {
+    target: SelectorTarget;
+}
+
 // This component is for use in the ReactDataGrid component for editing column type.
 // If the user selects dropdown as a column type, they will also be able to define
 // the dropdown values.
 class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> {
     public input = React.createRef<HTMLDivElement>();
+    // We need an input to focus on when TAB is pressed to keep the editor engaged, we are not able to focus
+    // on the actual selector we use in the dropdown unfortunately
+    private hiddenDropdownRef = React.createRef<HTMLInputElement>();
 
     constructor(props: Props) {
         super(props);
@@ -85,15 +97,23 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
     public renderAdditionalInputForType = (): React.ReactNode => {
         if (this.state.newType === ColumnType.DROPDOWN) {
             return (
-                <Select
-                    value={this.state.newDropdownValues}
-                    className={styles.dropdownValuesSelect}
-                    mode="tags"
-                    placeholder="Dropdown values"
-                    onChange={this.setDropdownValues}
-                    onBlur={this.props.onCommit}
-                    onInputKeyDown={this.onDropdownValuesKeydown}
-                />);
+                <>
+                    <input
+                        className={styles.hiddenDropdown}
+                        readOnly={true}
+                        ref={this.hiddenDropdownRef}
+                        type="text"
+                    />
+                    <Select
+                        autoFocus={true}
+                        className={styles.dropdownValuesSelect}
+                        mode="tags"
+                        onChange={this.setDropdownValues}
+                        onInputKeyDown={this.onDropdownValuesKeydown}
+                        placeholder="Dropdown values"
+                        value={this.state.newDropdownValues}
+                    />
+                </>);
         }
         if (this.state.newType === ColumnType.LOOKUP) {
             const { tables } = this.props.column;
@@ -173,7 +193,20 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
         });
     }
 
-    private onDropdownValuesKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => e.stopPropagation();
+    private onDropdownValuesKeydown = (e: TabEvent) => {
+        // We need to have some custom logic to get the dropdown to save the input on tab and remain editing
+        if (e.key === "Tab" && e.type === "keydown" && this.state.newDropdownValues) {
+            const newValue = e.target.value;
+            // We don't want to stop propagation if there is no new value because that way we can move to the next cell
+            if (newValue && !this.state.newDropdownValues.includes(newValue)) {
+                e.stopPropagation(); // Needed to get value to save
+                this.hiddenDropdownRef.current!.focus();
+                this.setState({ newDropdownValues: [...this.state.newDropdownValues, newValue]});
+            }
+        } else {
+            e.stopPropagation(); // Needed allow Select to save values on Enter
+        }
+    }
 }
 
 export default ColumnTypeEditor;
