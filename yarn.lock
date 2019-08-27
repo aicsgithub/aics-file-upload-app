@@ -24,33 +24,22 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.0.0.tgz#6f4526712594b96cef95be36e244c362eaf46297"
-  integrity sha512-HVUCEIIkEL3oiPh1ijzEUYk+XZn654U5DaAYGgyoDeEfIyCY7mPj5z+XfApKP4bRXnLijd7OmamNXyZrmMIwzg==
+"@aics/aicsfiles@^2.0.1":
+  version "2.0.1"
+  resolved "https://artifactory.corp.alleninstitute.org:443/artifactory/api/npm/npm-virtual/@aics/aicsfiles/-/aicsfiles-2.0.1.tgz#84f15faa9873e8a9ec24854a818202b49972369d"
+  integrity sha1-hPFfqphz6KnsJIVKgYICtJlyNp0=
   dependencies:
-    "@aics/job-status-client" "^1.0.7"
+    "@aics/job-status-client" "^1.0.8"
     "@babel/polyfill" "^7.4.4"
     axios "^0.19.0"
     humps "^2.0.1"
     lodash "^4.17.11"
     uuid "^3.3.2"
 
-"@aics/job-status-client@^1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@aics/job-status-client/-/job-status-client-1.0.6.tgz#74480e388a1f0e5e19cb0a1367fe73b27f9626c2"
-  integrity sha512-JQZFLy/ehjWvv2jR/yaImtA6a5///h3qqWpMiYhBwBG6VHpbwg0ob2GP5NqsCjvYJ9+4sVG7n5jxdHYcY4bO0g==
-  dependencies:
-    "@babel/polyfill" "^7.4.4"
-    axios "^0.19.0"
-    humps "^2.0.1"
-    js-logger "^1.6.0"
-    lodash "^4.17.11"
-
-"@aics/job-status-client@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@aics/job-status-client/-/job-status-client-1.0.7.tgz#8f9df61dce680cbe42b54a84cc988ea59c2236b9"
-  integrity sha512-wCM/Is0k2S6VENFvWs2NIysU49dJ6ArBK/Vi8Fj2/lIUGCjcaY3e4dbiQn0mWIJq0zklydgjUlYqxib7g9Xwpw==
+"@aics/job-status-client@^1.0.8":
+  version "1.0.8"
+  resolved "https://artifactory.corp.alleninstitute.org:443/artifactory/api/npm/npm-virtual/@aics/job-status-client/-/job-status-client-1.0.8.tgz#74b35a4062b696e7786f97d4cd4e9bb45b364fde"
+  integrity sha1-dLNaQGK2lud4b5fUzU6btFs2T94=
   dependencies:
     "@babel/polyfill" "^7.4.4"
     axios "^0.19.0"
