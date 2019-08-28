@@ -167,11 +167,11 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 saveInProgress={saveInProgress}
                 onBack={this.props.goBack}
             >
-                <div>Plate Barcode</div>
+                <div>Plate Barcode <span className={styles.asterisk}>*</span></div>
                 <Select
                     suffixIcon={<Icon type="search"/>}
                     allowClear={true}
-                    style={{width: "100%"}}
+                    className={styles.select}
                     showSearch={true}
                     showArrow={false}
                     notFoundContent={null}
@@ -205,14 +205,17 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
         return (
             <Row className={styles.createBarcodeForm}>
                 <Col xs={16} md={20}>
-                    <div>Barcode Prefix</div>
+                    <div>Barcode Prefix <span className={styles.asterisk}>*</span></div>
                     <Select
+                        className={styles.select}
                         value={barcodePrefix}
                         onSelect={this.setBarcodePrefixOption}
                         placeholder="Select Barcode Prefix"
                     >
                         {barcodePrefixes.map((prefix) => (
-                            <Select.Option value={prefix.prefixId}>{prefix.description}</Select.Option>
+                            <Select.Option value={prefix.prefixId} key={prefix.prefixId}>
+                                {prefix.description}
+                            </Select.Option>
                         ))}
                     </Select>
                 </Col>
