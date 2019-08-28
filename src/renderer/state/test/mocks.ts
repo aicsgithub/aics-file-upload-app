@@ -4,7 +4,7 @@ import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labke
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { DatabaseMetadata, ImagingSession, Unit } from "../metadata/types";
+import { DatabaseMetadata, Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
@@ -265,12 +265,6 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
         TeamName: "Microscopy",
     },
 ];
-
-export const mockImagingSession: ImagingSession = {
-    description: "description",
-    imagingSessionId: 1,
-    name: "name",
-};
 
 export const mockUnit: Unit = {
     description: "description",
