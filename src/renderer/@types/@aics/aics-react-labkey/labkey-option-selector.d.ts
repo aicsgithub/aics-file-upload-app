@@ -1,7 +1,7 @@
 // todo lisah 11/15/18 DT-51 create npm module so this can be shared
 declare module "@aics/aics-react-labkey" {
     export interface LabkeyOptionSelectorCommonProps<T> {
-        autofocus?: boolean;
+        autoFocus?: boolean;
         id?: string;
         label: string;
         optionIdKey: string;

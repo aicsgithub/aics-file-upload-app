@@ -1,6 +1,6 @@
 import { AicsGrid, AicsGridCell } from "@aics/aics-react-labkey";
 import * as React from "react";
-import { WellIdToFilesMap } from "../../containers/AssociateWells/selectors";
+import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
 
 import { Well } from "../../state/selection/types";
 
@@ -16,7 +16,7 @@ interface PlateProps {
     onWellClick: (cells: AicsGridCell[]) => void;
     selectedWells: AicsGridCell[];
     wells: Well[][];
-    wellIdToFiles: WellIdToFilesMap;
+    wellIdToFiles: IdToFilesMap;
 }
 
 class Plate extends React.Component<PlateProps, {}> {

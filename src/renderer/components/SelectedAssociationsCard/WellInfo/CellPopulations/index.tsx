@@ -4,7 +4,7 @@ import * as React from "react";
 import { CellPopulation } from "../../../../state/selection/types";
 
 import { NULL_TEXT } from "..";
-import KeyValueDisplay from "../KeyValueDisplay";
+import KeyValueDisplay from "../../KeyValueDisplay";
 
 const styles = require("../style.pcss");
 

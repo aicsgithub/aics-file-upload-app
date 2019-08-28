@@ -448,7 +448,7 @@ describe("Selection logics", () => {
                 store.subscribe(() => {
                     const state = store.getState();
                     expect(getWells(state)).to.not.be.empty;
-                    expect(getPage(state)).to.equal(Page.AssociateWells);
+                    expect(getPage(state)).to.equal(Page.AssociateFiles);
                     expect(getSelectedBarcode(state)).to.equal(barcode);
                     expect(getSelectedPlateId(state)).to.equal(plateId);
                     done();
@@ -557,7 +557,7 @@ describe("Selection logics", () => {
                 if (okResponseReturned) {
                     const state = store.getState();
                     expect(getWells(state)).to.not.be.empty;
-                    expect(getPage(state)).to.equal(Page.AssociateWells);
+                    expect(getPage(state)).to.equal(Page.AssociateFiles);
                     expect(getSelectedBarcode(state)).to.equal(barcode);
                     expect(getSelectedPlateId(state)).to.equal(plateId);
                     okResponseReturned = false; // prevent more calls to done

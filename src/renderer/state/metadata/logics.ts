@@ -11,7 +11,13 @@ import { ReduxLogicNextCb, ReduxLogicProcessDependencies, ReduxLogicTransformDep
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { receiveMetadata } from "./actions";
-import { CREATE_BARCODE, GET_BARCODE_PREFIXES, GET_IMAGING_SESSIONS, REQUEST_METADATA } from "./constants";
+import {
+    CREATE_BARCODE,
+    GET_BARCODE_PREFIXES,
+    GET_IMAGING_SESSIONS,
+    REQUEST_METADATA,
+    REQUEST_WORKFLOW_OPTIONS
+} from "./constants";
 
 const createBarcode = createLogic({
     transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -88,9 +94,27 @@ const requestBarcodePrefixes = createLogic({
     type: GET_BARCODE_PREFIXES,
 });
 
+const requestWorkflows = createLogic({
+    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const workflowOptions = await LabkeyClient.Get.workflows(httpClient);
+            next(receiveMetadata({
+                workflowOptions,
+            }));
+        } catch (ex) {
+            next(setAlert({
+                message: "Could not retrieve workflow metadata",
+                type: AlertType.ERROR,
+            }));
+        }
+    },
+    type: REQUEST_WORKFLOW_OPTIONS,
+});
+
 export default [
     createBarcode,
     requestMetadata,
     requestImagingSessions,
     requestBarcodePrefixes,
+    requestWorkflows,
 ];

@@ -1,4 +1,4 @@
-import { GridCell } from "../../containers/AssociateWells/grid-cell";
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
 import { Audited } from "../types";
 
@@ -23,6 +23,7 @@ export interface SelectionStateBranch {
     plate?: PlateResponse;
     wells: WellResponse[];
     selectedWells: GridCell[];
+    selectedWorkflows: Workflow[];
     page: Page;
     showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
@@ -121,6 +122,12 @@ export interface Well {
     solutions: Solution[];
 }
 
+export interface Workflow {
+    workflowId: number;
+    name: string;
+    description: string;
+}
+
 export interface LoadFilesFromDragAndDropAction {
     payload: DragAndDropFileList;
     type: string;
@@ -163,6 +170,15 @@ export interface SelectBarcodeAction {
     type: string;
 }
 
+export interface SelectWorkflowPathAction {
+    type: string;
+}
+
+export interface SelectWorkflowsAction {
+    payload: Workflow[];
+    type: string;
+}
+
 export interface SetPlateAction {
     payload: PlateResponse;
     type: string;
@@ -199,7 +215,7 @@ export interface DragAndDropFile {
 export enum Page {
     DragAndDrop = "DragAndDrop",
     EnterBarcode = "EnterBarcode",
-    AssociateWells = "AssociateWells",
+    AssociateFiles = "AssociateFiles",
     UploadJobs = "UploadJobs",
     UploadSummary = "UploadSummary",
 }

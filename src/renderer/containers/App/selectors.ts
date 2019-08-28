@@ -1,15 +1,17 @@
 import { createSelector } from "reselect";
 import { getWellIdToWellLabelMap } from "../../state/selection/selectors";
+import { Workflow } from "../../state/selection/types";
 import { getUpload } from "../../state/upload/selectors";
-import { FileTag, UploadStateBranch } from "../../state/upload/types";
+import { FileTagType, UploadStateBranch } from "../../state/upload/types";
 
 // All tags representing wells should share the same color
-export class WellFileTag implements FileTag {
+export class FileTag implements FileTagType {
     public title: string;
-    public readonly color: string = "magenta";
+    public color: string;
 
-    constructor(title: string) {
+    constructor(title: string, color: "magenta" | "blue") {
         this.title = title;
+        this.color = color;
     }
 }
 
@@ -17,18 +19,23 @@ export class WellFileTag implements FileTag {
 export const getFileToTags = createSelector([
     getUpload,
     getWellIdToWellLabelMap,
-], (upload: UploadStateBranch, wellIdToWellLabel: Map<number, string>):
-Map<string, FileTag[]> => {
+], (upload: UploadStateBranch, wellIdToWellLabel: Map<number, string>): Map<string, FileTagType[]> => {
 
-    const fullPathToTags = new Map<string, FileTag[]>();
+    const fullPathToTags = new Map<string, FileTagType[]>();
     for (const fullPath in upload) {
         // Don't include JavaScript object meta properties
         if (upload.hasOwnProperty(fullPath)) {
             const metadata = upload[fullPath];
-            const tags = metadata.wellIds.map((wellId) => (
-                new WellFileTag(wellIdToWellLabel.get(wellId) || "")
-            ));
-
+            let tags;
+            if (metadata.workflows) {
+                tags = metadata.workflows.map(({ name }: Workflow) => (
+                    new FileTag(name, "blue")
+                ));
+            } else {
+                tags = metadata.wellIds.map((wellId) => (
+                    new FileTag(wellIdToWellLabel.get(wellId) || "", "magenta")
+                ));
+            }
             fullPathToTags.set(fullPath, tags);
         }
     }

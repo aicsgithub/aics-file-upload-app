@@ -9,6 +9,7 @@ import {
 } from "../../constants";
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
+import { Workflow } from "../../state/selection/types";
 import { HttpClient } from "../../state/types";
 
 interface LabkeyPlate {
@@ -49,6 +50,12 @@ export interface LabKeyPlateBarcodePrefix {
     PlateBarcodePrefixId: number;
     Prefix: string;
     TeamName: string;
+}
+
+export interface LabKeyWorkflow {
+    Description: string;
+    Name: string;
+    WorkflowId: number;
 }
 
 class Get {
@@ -95,6 +102,20 @@ class Get {
             description: `${barcodePrefix.Prefix} - ${barcodePrefix.TeamName}`,
             prefix: barcodePrefix.Prefix,
             prefixId: barcodePrefix.PlateBarcodePrefixId,
+        }));
+    }
+
+    /**
+     * Retrieves all workflows
+     * @param httpClient
+     */
+    public static async workflows(httpClient: HttpClient): Promise<Workflow[]> {
+        const query = LABKEY_SELECT_ROWS_URL(LK_MICROSCOPY_SCHEMA, "Workflow");
+        const response = await httpClient.get(query);
+        return response.data.rows.map((workflow: LabKeyWorkflow) => ({
+            description: workflow.Description,
+            name: workflow.Name,
+            workflowId: workflow.WorkflowId,
         }));
     }
 
