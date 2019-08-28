@@ -1,7 +1,6 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
-import { AxiosPromise, AxiosRequestConfig } from "axios";
-import { MessageBoxOptions } from "electron";
+import { Menu } from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -16,6 +15,7 @@ import { SettingStateBranch } from "./setting/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
+import MessageBoxOptions = Electron.MessageBoxOptions;
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;
@@ -28,19 +28,8 @@ export interface BatchedAction {
     payload: AnyAction[];
 }
 
-export interface HttpClient {
-    get<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>;
-    post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>;
-}
-
 export interface ReduxLogicExtraDependencies {
     ctx?: any;
-    dialog: {
-        showMessageBox(
-            options: MessageBoxOptions,
-            callback?: (response: number, checkboxChecked: boolean) => void
-        ): number;
-    };
     fms: FileManagementSystem;
     ipcRenderer: {
         on: (channel: string, listener: (...args: any[]) => void) => void;
@@ -49,6 +38,17 @@ export interface ReduxLogicExtraDependencies {
     jssClient: JobStatusClient;
     labkeyClient: LabkeyClient;
     mmsClient: MMSClient;
+    remote: {
+        Menu: {
+            getApplicationMenu: () => Menu | null;
+        };
+        dialog: {
+            showMessageBox(
+                options: MessageBoxOptions,
+                callback?: (response: number, checkboxChecked: boolean) => void
+            ): number;
+        };
+    };
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;
@@ -74,17 +74,6 @@ export interface State {
 
 export interface TypeToDescriptionMap {
     [propName: string ]: ActionDescription;
-}
-
-export interface AicsResponse {
-    responseType: "SUCCESS" | "SERVER_ERROR" | "CLIENT_ERROR";
-}
-
-export interface AicsSuccessResponse<T> extends AicsResponse {
-    data: T[];
-    totalCount: number;
-    hasMore?: boolean;
-    offset: number;
 }
 
 export interface Audited {

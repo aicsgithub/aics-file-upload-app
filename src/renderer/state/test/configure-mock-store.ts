@@ -23,9 +23,6 @@ import {
 import { State } from "../types";
 
 export interface ReduxLogicDependencies {
-    dialog: {
-        showMessageBox: SinonStub;
-    };
     fms: FileManagementSystem;
     ipcRenderer: {
         on: SinonStub;
@@ -34,6 +31,14 @@ export interface ReduxLogicDependencies {
     jssClient: JobStatusClient;
     labkeyClient: LabkeyClient;
     mmsClient: MMSClient;
+    remote: {
+        Menu: {
+            getApplicationMenu: SinonStub;
+        };
+        dialog: {
+            showMessageBox: SinonStub;
+        };
+    };
     storage: {
         get: SinonStub,
         has: SinonStub;
@@ -52,9 +57,6 @@ export const labkeyClient = new LabkeyClient({host, port, protocol});
 export const mmsClient = new MMSClient({host, port, protocol, username});
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
-    dialog: {
-        showMessageBox: stub(),
-    },
     fms,
     ipcRenderer: {
         on: stub(),
@@ -63,6 +65,14 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     jssClient,
     labkeyClient,
     mmsClient,
+    remote: {
+        Menu: {
+            getApplicationMenu: stub(),
+        },
+        dialog: {
+            showMessageBox: stub(),
+        },
+    },
     storage: {
         get: stub(),
         has: stub(),
