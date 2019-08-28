@@ -1,4 +1,3 @@
-import { Remote } from "electron";
 import { stat as fsStat, Stats } from "fs";
 import * as Logger from "js-logger";
 import { isEmpty, uniq } from "lodash";
@@ -206,13 +205,13 @@ const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
             if (switchEnvironmentMenuItem) {
                 switchEnvironmentMenuItem.enabled = ![Page.AssociateFiles, Page.UploadJobs].includes(nextPage);
             } else {
-                Logger.warn("Could not get switch environment menu item");
+                Logger.warn("Could not update application menu");
             }
         } else {
-            Logger.warn("Could not get file menu");
+            Logger.warn("Could not update application menu");
         }
     } else {
-        Logger.warn("Could not get application menu");
+        Logger.warn("Could not update application menu");
     }
 };
 

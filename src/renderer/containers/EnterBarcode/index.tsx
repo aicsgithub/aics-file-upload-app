@@ -88,7 +88,7 @@ interface EnterBarcodeState {
     barcodePrefix?: BarcodePrefix;
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
-    loading: boolean;
+    loadingBarcodes: boolean;
     showCreateBarcodeForm: boolean;
 }
 
@@ -117,7 +117,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             barcodes: [],
             imagingSessionId: props.selectedImagingSessionId,
             imagingSessionIds: props.selectedImagingSessionIds,
-            loading: false,
+            loadingBarcodes: false,
             showCreateBarcodeForm: false,
         };
         this.onBarcodeChange = this.onBarcodeChange.bind(this);
@@ -143,7 +143,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 barcodes: [],
                 imagingSessionId: undefined,
                 imagingSessionIds: [],
-                loading: false,
+                loadingBarcodes: false,
                 showCreateBarcodeForm: false,
             });
             this.props.getImagingSessions();
@@ -152,7 +152,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     }
 
     public render() {
-        const {barcode, barcodes, loading} = this.state;
+        const {barcode, barcodes, loadingBarcodes} = this.state;
         const {className, saveInProgress} = this.props;
         const options: ReactNodeArray = barcodes.map((option: LabkeyBarcodeSelectorOption) => (
             <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
@@ -181,7 +181,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     autoClearSearchValue={true}
                     onChange={this.onBarcodeChange}
                     onSearch={this.onBarcodeInput}
-                    loading={loading}
+                    loading={loadingBarcodes}
                     defaultActiveFirstOption={false}
                 >
                     {options}
@@ -236,18 +236,18 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     private onBarcodeInput = async (input: string): Promise<void> => {
         if (input) {
             const { limsUrl } = this.props;
-            this.setState({loading: true});
+            this.setState({loadingBarcodes: true});
 
             try {
                 const plates = await this.searchForPlates(input, limsUrl);
                 const barcodes = createOptionsFromGetPlatesResponse(plates);
-                this.setState({barcodes, loading: false});
+                this.setState({barcodes, loadingBarcodes: false});
             } catch (e) {
                 this.props.setAlert({
                     message: e,
                     type: AlertType.ERROR,
                 });
-                this.setState({loading: false});
+                this.setState({loadingBarcodes: false});
             }
 
         } else {
