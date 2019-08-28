@@ -307,7 +307,7 @@ const selectPageLogic = createLogic({
                 const switchEnvironmentMenuItem = fileMenu.submenu.items
                     .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
                 if (switchEnvironmentMenuItem) {
-                    switchEnvironmentMenuItem.enabled = [Page.AssociateWells, Page.UploadJobs].includes(nextPage);
+                    switchEnvironmentMenuItem.enabled = ![Page.AssociateWells, Page.UploadJobs].includes(nextPage);
                 } else {
                     Logger.warn("Could not get switch environment menu item");
                 }
