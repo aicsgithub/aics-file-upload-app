@@ -4,7 +4,7 @@ import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labke
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { ImagingSession, Unit } from "../metadata/types";
+import { DatabaseMetadata, ImagingSession, Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
@@ -277,4 +277,13 @@ export const mockUnit: Unit = {
     name: "name",
     type: "type",
     unitsId: 1,
+};
+
+export const mockDatabaseMetadata: DatabaseMetadata = {
+    "Table Name": {
+        columns: [],
+        displayName: "Table Name",
+        name: "table_name",
+        schemaName: "microscopy",
+    },
 };

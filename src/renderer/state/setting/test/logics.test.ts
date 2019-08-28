@@ -1,13 +1,14 @@
 import { expect } from "chai";
-import { SinonSpy, spy, stub } from "sinon";
+import { createSandbox, SinonSpy, spy, stub } from "sinon";
 import * as sinon from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import {
     createMockReduxStore,
+    labkeyClient,
     mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
-import { mockState } from "../../test/mocks";
+import { mockDatabaseMetadata, mockState, mockUnit } from "../../test/mocks";
 
 import { gatherSettings, updateSettings } from "../actions";
 import { getLimsHost } from "../selectors";
@@ -15,8 +16,15 @@ import { getLimsHost } from "../selectors";
 describe("Setting logics", () => {
     const localhost = "localhost";
     const stagingHost = "staging";
+    const sandbox = createSandbox();
+
+    afterEach(() => {
+        sandbox.restore();
+    });
 
     describe("updateSettingsLogic", () => {
+        const getUnitsStub = stub().resolves([mockUnit]);
+        const getDatabaseMetadataStub = stub().resolves([mockDatabaseMetadata]);
         let fmsHostSetterSpy: SinonSpy;
         let fmsPortSetterSpy: SinonSpy;
         let jssHostSetterSpy: SinonSpy;
@@ -36,7 +44,7 @@ describe("Setting logics", () => {
             mmsClientHostSetterSpy = spy();
             mmsClientPortSetterSpy = spy();
 
-            const { fms, jssClient, labkeyClient, mmsClient } = mockReduxLogicDeps;
+            const { fms, jssClient, mmsClient } = mockReduxLogicDeps;
             stub(fms, "host").set(fmsHostSetterSpy);
             stub(fms, "port").set(fmsPortSetterSpy);
 
@@ -48,6 +56,8 @@ describe("Setting logics", () => {
 
             stub(mmsClient, "host").set(mmsClientHostSetterSpy);
             stub(mmsClient, "port").set(mmsClientPortSetterSpy);
+            sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
+            sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
         });
 
         it("updates settings if data persisted correctly", () => {
@@ -63,7 +73,7 @@ describe("Setting logics", () => {
             expect(getLimsHost(store.getState())).to.equal(stagingHost);
         });
 
-        it("sets host and port on FMS and JSS clients", () => {
+        it("sets host and port on all LIMS clients", () => {
             const store = createMockReduxStore(mockState);
 
             // before
@@ -82,12 +92,13 @@ describe("Setting logics", () => {
             expect(jssPortSetterSpy.called).to.be.true;
         });
 
-        it("Retrieves metadata and jobs if host or port changed", () => {
-            // const store = createMockReduxStore(mockState);
-        });
-
         it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
-
+            const store = createMockReduxStore(mockState);
+            store.dispatch(updateSettings({associateByWorkflow: true}));
+            expect(fmsHostSetterSpy.called).to.be.false;
+            expect(fmsPortSetterSpy.called).to.be.false;
+            expect(jssHostSetterSpy.called).to.be.false;
+            expect(jssPortSetterSpy.called).to.be.false;
         });
 
         it("updates settings in memory and sets warning alert if data persistance failure", () => {
