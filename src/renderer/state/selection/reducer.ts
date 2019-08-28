@@ -18,6 +18,7 @@ import {
     SELECT_METADATA,
     SELECT_PAGE,
     SELECT_WELLS,
+    SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
     UPDATE_STAGED_FILES,
@@ -34,6 +35,7 @@ import {
     SelectMetadataAction,
     SelectPageAction,
     SelectWellsAction,
+    SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
     UpdateStagedFilesAction,
@@ -46,6 +48,7 @@ export const initialState = {
     imagingSessionIds: [],
     page: Page.UploadSummary,
     selectedWells: [],
+    selectedWorkflows: [],
     showCreateSchemaModal: false,
     stagedFiles: [],
     startHistoryIndex: {
@@ -95,6 +98,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectPageAction) => ({
             ...state,
             page: action.payload.nextPage,
+        }),
+    },
+    [SELECT_WORKFLOWS]: {
+        accepts: (action: AnyAction): action is SelectWorkflowsAction => action.type === SELECT_WORKFLOWS,
+        perform: (state: SelectionStateBranch, action: SelectWorkflowsAction) => ({
+            ...state,
+            selectedWorkflows: action.payload,
         }),
     },
     [SET_WELLS]: {

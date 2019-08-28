@@ -23,6 +23,9 @@ const FileMetadataDisplay: React.FunctionComponent<MetadataDisplayProps> =
             column={{xs: 1}}
         >
             {map(metadata, (value: any, key: string) => {
+                if (typeof value === "boolean") {
+                    return <Item label={key} key={key}>{value ? "Yes" : "No"}</Item>;
+                }
                 if (typeof value === "object") {
                     if (Array.isArray(value)) {
                         if (value[0] && typeof value[0] === "object") {

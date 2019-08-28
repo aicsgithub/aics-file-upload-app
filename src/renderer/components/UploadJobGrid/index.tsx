@@ -57,14 +57,7 @@ interface FormatterProps {
 }
 
 class UploadJobGrid extends React.Component<Props, UploadJobState> {
-    private readonly UPLOAD_JOB_COLUMNS: UploadJobColumn[] = [
-        {
-            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
-            key: "file",
-            name: "File",
-            resizable: true,
-            sortable: true,
-        },
+    private readonly WELL_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "barcode",
@@ -77,24 +70,17 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
             key: "wellLabels",
             name: "Well(s)",
+            resizable: true,
             sortable: true,
         },
+    ];
+
+    private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps) => (
-                this.renderFormat(
-                    row,
-                    value,
-                    (
-                        <NoteIcon
-                            handleError={this.handleError}
-                            notes={row.notes}
-                            saveNotes={this.saveNotesByRow(row)}
-                        />
-                    ))
-            ),
-            key: "notes",
-            name: "Notes",
-            width: 80,
+            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
+            key: "workflows",
+            name: "Workflow(s)",
+            resizable: true,
         },
     ];
 
@@ -189,9 +175,46 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         );
     }
 
+    private uploadColumns = (innerColumns: UploadJobColumn[]): UploadJobColumn[] => ([
+        {
+            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
+            key: "file",
+            name: "File",
+            resizable: true,
+            sortable: true,
+        },
+        ...innerColumns,
+        {
+            formatter: ({ row, value }: FormatterProps) => (
+                this.renderFormat(
+                    row,
+                    value,
+                    (
+                        <NoteIcon
+                            handleError={this.handleError}
+                            notes={row.notes}
+                            saveNotes={this.saveNotesByRow(row)}
+                        />
+                    ))
+            ),
+            key: "notes",
+            name: "Notes",
+            width: 80,
+        },
+    ])
+
     private getColumns = (): UploadJobColumn[] => {
+        if (!this.props.uploads.length) {
+            return [];
+        }
+        let basicColumns;
+        if (this.props.uploads[0].barcode) {
+            basicColumns = this.uploadColumns(this.WELL_UPLOAD_COLUMNS);
+        } else {
+            basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
+        }
         if  (!this.props.schema) {
-            return this.UPLOAD_JOB_COLUMNS;
+            return basicColumns;
         }
         const schemaColumns = this.props.schema.columns.map((column: ColumnDefinition) => {
             const {label,  type: {type,  dropdownValues }, required } = column;
@@ -232,7 +255,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
             }
             return columns;
         });
-        return this.UPLOAD_JOB_COLUMNS.concat(schemaColumns);
+        return basicColumns.concat(schemaColumns);
     }
 
     // This method currently only supports file, barcode, and wellLabels due to typescript constraints on allowing

@@ -3,9 +3,14 @@ import { StateWithHistory } from "redux-undo";
 import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client";
 import { JobStateBranch, PendingJob } from "../job/types";
 
-import { GridCell } from "../../containers/AssociateWells/grid-cell";
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { Unit } from "../metadata/types";
-import { Page, SelectionStateBranch, Well } from "../selection/types";
+import {
+    Page,
+    SelectionStateBranch,
+    Well,
+    Workflow
+} from "../selection/types";
 import { State } from "../types";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
@@ -29,11 +34,13 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionIds: [],
     page: Page.DragAndDrop,
     selectedWells: [],
+    selectedWorkflows: [],
     showCreateSchemaModal: false,
     stagedFiles: [],
     wells: [],
 };
-export const mockUpload: UploadStateBranch = {
+
+export const mockWellUpload: UploadStateBranch = {
     "/path/to/file1": {
         barcode: "1234",
         wellIds: [1],
@@ -70,15 +77,17 @@ export const mockState: State = {
         },
         imagingSessions: [],
         units: [],
+        workflowOptions: [],
     },
     selection: getMockStateWithHistory(mockSelection),
     setting: {
+        associateByWorkflow: false,
         limsHost: "localhost",
         limsPort: "8080",
         limsProtocol: "http",
         schemaFilepaths: [],
     },
-    upload: getMockStateWithHistory(mockUpload),
+    upload: getMockStateWithHistory(mockWellUpload),
 };
 
 export const mockUnits: Unit[] = [
@@ -128,6 +137,13 @@ export const mockSelectedWells: GridCell[] = [
     new GridCell(0, 1),
     new GridCell(1, 0),
     new GridCell(1, 1),
+];
+
+export const mockSelectedWorkflows: Workflow[] = [
+    { workflowId: 1, name: "name1", description: "cool workflow"},
+    { workflowId: 2, name: "name2", description: "cool workflow"},
+    { workflowId: 3, name: "name3", description: "cool workflow"},
+    { workflowId: 4, name: "name4", description: "cool workflow"},
 ];
 
 export const mockSuccessfulUploadJob: JSSJob = {

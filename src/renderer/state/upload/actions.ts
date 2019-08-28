@@ -1,7 +1,9 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { Workflow } from "../selection/types";
 import { SchemaDefinition } from "../setting/types";
 import {
     ASSOCIATE_FILES_AND_WELLS,
+    ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOAD,
     INITIATE_UPLOAD,
@@ -9,11 +11,13 @@ import {
     JUMP_TO_UPLOAD,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
+    UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_SCHEMA,
     UPDATE_UPLOAD,
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
+    AssociateFilesAndWorkflowsAction,
     ClearUploadHistoryAction,
     InitiateUploadAction,
     JumpToPastUploadAction,
@@ -21,6 +25,7 @@ import {
     RemoveUploadsAction,
     RetryUploadAction,
     UndoFileWellAssociationAction,
+    UndoFileWorkflowAssociationAction,
     UpdateSchemaAction,
     UpdateUploadAction,
     UploadMetadata,
@@ -48,6 +53,28 @@ export function undoFileWellAssociation(fullPath: string, wellIds: number[], wel
             wellLabels,
         },
         type: UNDO_FILE_WELL_ASSOCIATION,
+    };
+}
+
+export function associateFilesAndWorkflows(fullPaths: string[], workflows: Workflow[])
+    : AssociateFilesAndWorkflowsAction {
+    return {
+        payload: {
+            fullPaths,
+            workflows,
+        },
+        type: ASSOCIATE_FILES_AND_WORKFLOWS,
+    };
+}
+
+export function undoFileWorkflowAssociation(fullPath: string, workflows: Workflow[])
+    : UndoFileWorkflowAssociationAction {
+    return {
+        payload: {
+            fullPath,
+            workflows,
+        },
+        type: UNDO_FILE_WORKFLOW_ASSOCIATION,
     };
 }
 

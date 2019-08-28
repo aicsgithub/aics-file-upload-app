@@ -26,13 +26,23 @@ import {
     GetImagingSessionsAction,
     ImagingSession
 } from "../../state/metadata/types";
-import { goBack, selectBarcode } from "../../state/selection/actions";
+import {
+    goBack,
+    goForward,
+    selectBarcode,
+    selectWorkflowPath
+} from "../../state/selection/actions";
 import {
     getSelectedBarcode,
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds
 } from "../../state/selection/selectors";
-import { GoBackAction, SelectBarcodeAction } from "../../state/selection/types";
+import {
+    GoBackAction,
+    NextPageAction,
+    SelectBarcodeAction,
+    SelectWorkflowPathAction
+} from "../../state/selection/types";
 import { State } from "../../state/types";
 import LabkeyQueryService from "../../util/labkey-client";
 
@@ -56,6 +66,7 @@ interface EnterBarcodeProps {
     getImagingSessions: ActionCreator<GetImagingSessionsAction>;
     getBarcodePrefixes: ActionCreator<GetBarcodePrefixesAction>;
     goBack: ActionCreator<GoBackAction>;
+    goForward: ActionCreator<NextPageAction>;
     imagingSessions: ImagingSession[];
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
@@ -65,6 +76,7 @@ interface EnterBarcodeProps {
     selectedImagingSessionId?: number | null;
     // all imaging session ids that are associated with the selectedBarcode
     selectedImagingSessionIds: Array<number | null>;
+    selectWorkflowPath: ActionCreator<SelectWorkflowPathAction>;
     setAlert: ActionCreator<SetAlertAction>;
 }
 
@@ -143,7 +155,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 onBack={this.props.goBack}
             >
                 <LabKeyOptionSelector
-                    autofocus={true}
+                    autoFocus={true}
                     required={true}
                     async={true}
                     // id="plate-barcode-selector" Adding an id to fix propType here throws an error - Sean M 7/2/19
@@ -157,6 +169,9 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 />
                 <a href="#" className={styles.createBarcodeLink} onClick={this.showCreateBarcodeForm}>
                     I don't have a barcode
+                </a>
+                <a href="#" className={styles.createBarcodeLink} onClick={this.props.selectWorkflowPath}>
+                    Associate by Workflow instead of Plate
                 </a>
                 {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : null}
                 {this.renderPlateOptions()}
@@ -313,7 +328,9 @@ const dispatchToPropsMap = {
     getBarcodePrefixes: requestBarcodePrefixes,
     getImagingSessions: requestImagingSessions,
     goBack,
+    goForward,
     selectBarcode,
+    selectWorkflowPath,
     setAlert,
 };
 
