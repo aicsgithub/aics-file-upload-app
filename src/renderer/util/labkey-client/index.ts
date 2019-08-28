@@ -168,7 +168,7 @@ export default class LabkeyClient {
     /**
      * Retrieves all workflows
      */
-    public async workflows(): Promise<Workflow[]> {
+    public async getWorkflows(): Promise<Workflow[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Workflow");
         const response = await this.httpClient.get(query);
         return response.data.rows.map((workflow: LabKeyWorkflow) => ({

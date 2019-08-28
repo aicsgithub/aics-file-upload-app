@@ -93,9 +93,9 @@ const requestBarcodePrefixes = createLogic({
 });
 
 const requestWorkflows = createLogic({
-    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({labkeyClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const workflowOptions = await LabkeyClient.Get.workflows(httpClient);
+            const workflowOptions = await labkeyClient.getWorkflows();
             next(receiveMetadata({
                 workflowOptions,
             }));
