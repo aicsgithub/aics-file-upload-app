@@ -194,6 +194,28 @@ const getFilesInFolderLogic = createLogic({
     type: GET_FILES_IN_FOLDER,
 });
 
+const updateAppMenu = (nextPage: Page) => {
+    const menu = remote.Menu.getApplicationMenu();
+    if (menu) {
+        // have to cast here because Electron's typings for MenuItem is incomplete
+        const fileMenu: MenuItemWithSubMenu = menu.items
+            .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu;
+        if (fileMenu.submenu) {
+            const switchEnvironmentMenuItem = fileMenu.submenu.items
+                .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
+            if (switchEnvironmentMenuItem) {
+                switchEnvironmentMenuItem.enabled = ![Page.AssociateFiles, Page.UploadJobs].includes(nextPage);
+            } else {
+                Logger.warn("Could not get switch environment menu item");
+            }
+        } else {
+            Logger.warn("Could not get file menu");
+        }
+    } else {
+        Logger.warn("Could not get application menu");
+    }
+};
+
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
@@ -315,25 +337,7 @@ const selectPageLogic = createLogic({
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
         const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
-        const menu = remote.Menu.getApplicationMenu();
-        if (menu) {
-            // have to cast here because Electron's typings for MenuItem is incomplete
-            const fileMenu: MenuItemWithSubMenu = menu.items
-                .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu;
-            if (fileMenu.submenu) {
-                const switchEnvironmentMenuItem = fileMenu.submenu.items
-                    .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
-                if (switchEnvironmentMenuItem) {
-                    switchEnvironmentMenuItem.enabled = ![Page.AssociateFiles, Page.UploadJobs].includes(nextPage);
-                } else {
-                    Logger.warn("Could not get switch environment menu item");
-                }
-            } else {
-                Logger.warn("Could not get file menu");
-            }
-        } else {
-            Logger.warn("Could not get application menu");
-        }
+        updateAppMenu(nextPage);
 
         // going back - rewind selections and uploads to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
@@ -445,6 +449,7 @@ const getGoForwardActions = (lastPage: Page, state: State): AnyAction[] => {
 
     const nextPage = getNextPage(lastPage, 1);
     if (nextPage) {
+        updateAppMenu(nextPage);
         actions.push(selectPage(lastPage, nextPage));
     }
 

@@ -19,8 +19,8 @@ import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
 import { getLimsHost, getLimsPort } from "./selectors";
 
 const updateSettingsLogic = createLogic({
-    process: ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
-              done: ReduxLogicDoneCb) => {
+    process: ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
+              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const host = getLimsHost(getState());
         const port = getLimsPort(getState());
 
