@@ -1,5 +1,4 @@
-import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import { Tabs } from "antd";
+import { Select, Tabs } from "antd";
 import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
@@ -17,6 +16,8 @@ import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";
 
 const styles = require("./style.pcss");
+
+const { Option } = Select;
 
 interface Props {
     associateFilesAndWorkflows: ActionCreator<AssociateFilesAndWorkflowsAction>;
@@ -51,7 +52,6 @@ class AssociateWorkflows extends React.Component<Props, {}> {
             redo,
             selectedFiles,
             selectedWorkflows,
-            selectWorkflows,
             undo,
             workflowOptions,
         } = this.props;
@@ -97,21 +97,28 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                     ))}
                 </SelectedAssociationsCard>
                     <div className={styles.workflowSelector}>
-                        <LabKeyOptionSelector
+                        <p className={styles.workflowLabel}>Workflows</p>
+                        <Select
+                            allowClear={true}
                             autoFocus={true}
-                            label="Workflow"
-                            multiSelect={true}
-                            onOptionSelection={selectWorkflows}
-                            optionIdKey="workflowId"
-                            optionNameKey="name"
-                            options={workflowOptions}
+                            onChange={this.selectWorkflows}
                             placeholder="Select Workflow(s)"
-                            required={true}
-                            selected={selectedWorkflows}
-                        />
+                            mode="tags"
+                            style={{ width: "100%" }}
+                            value={selectedWorkflows.map(workflow => workflow.name)}
+                        >
+                            {workflowOptions.map((workflow: Workflow) => (
+                                <Option key={workflow.name} value={workflow.name}>{workflow.name}</Option>
+                            ))}
+                        </Select>
                     </div>
             </FormPage>
         );
+    }
+
+    private selectWorkflows = (names: string[]): void => {
+        const workflows = this.props.workflowOptions.filter(workflow => names.includes(workflow.name));
+        this.props.selectWorkflows(workflows);
     }
 
     private undoAssociation = (file: string): void => {
