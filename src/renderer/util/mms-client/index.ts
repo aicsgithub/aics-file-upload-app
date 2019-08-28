@@ -43,6 +43,6 @@ export default class MMSClient {
     }
 
     private get baseURL(): string {
-        return `${this.protocol}://${this.host}:${this.port}/labkey`;
+        return `${this.protocol}://${this.host}:${this.port}/metadata-management-service`;
     }
 }
