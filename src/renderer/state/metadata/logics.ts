@@ -2,7 +2,6 @@ import { ipcRenderer } from "electron";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import MMSClient from "../../util/mms-client";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 
@@ -13,10 +12,10 @@ import { receiveMetadata } from "./actions";
 import { CREATE_BARCODE, GET_BARCODE_PREFIXES, GET_IMAGING_SESSIONS, REQUEST_METADATA } from "./constants";
 
 const createBarcode = createLogic({
-    transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             const { prefixId, prefix } = action.payload;
-            const barcode = await MMSClient.Create.barcode(httpClient, prefixId);
+            const barcode = await mmsClient.createBarcode(prefixId);
             ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, prefix);
             next(action);
         } catch (ex) {

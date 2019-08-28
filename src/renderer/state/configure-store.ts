@@ -11,6 +11,7 @@ import {
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 import LabkeyClient from "../util/labkey-client";
+import MMSClient from "../util/mms-client";
 
 import {
     enableBatching,
@@ -60,6 +61,12 @@ export const reduxLogicDependencies = {
         host: LIMS_HOST,
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
+    }),
+    mmsClient: new MMSClient({
+        host: LIMS_HOST,
+        port: LIMS_PORT,
+        protocol: LIMS_PROTOCOL,
+        username: userInfo().username,
     }),
     storage,
 };

@@ -21,18 +21,33 @@ describe("Setting logics", () => {
         let fmsPortSetterSpy: SinonSpy;
         let jssHostSetterSpy: SinonSpy;
         let jssPortSetterSpy: SinonSpy;
+        let labkeyClientHostSetterSpy: SinonSpy;
+        let labkeyClientPortSetterSpy: SinonSpy;
+        let mmsClientHostSetterSpy: SinonSpy;
+        let mmsClientPortSetterSpy: SinonSpy;
 
         beforeEach(() => {
             fmsHostSetterSpy = spy();
             fmsPortSetterSpy = spy();
             jssHostSetterSpy = spy();
             jssPortSetterSpy = spy();
+            labkeyClientHostSetterSpy = spy();
+            labkeyClientPortSetterSpy = spy();
+            mmsClientHostSetterSpy = spy();
+            mmsClientPortSetterSpy = spy();
 
-            const { fms, jssClient } = mockReduxLogicDeps;
-            stub(jssClient, "host").set(jssHostSetterSpy);
-            stub(jssClient, "port").set(jssPortSetterSpy);
+            const { fms, jssClient, labkeyClient, mmsClient } = mockReduxLogicDeps;
             stub(fms, "host").set(fmsHostSetterSpy);
             stub(fms, "port").set(fmsPortSetterSpy);
+
+            stub(jssClient, "host").set(jssHostSetterSpy);
+            stub(jssClient, "port").set(jssPortSetterSpy);
+
+            stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
+            stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
+
+            stub(mmsClient, "host").set(mmsClientHostSetterSpy);
+            stub(mmsClient, "port").set(mmsClientPortSetterSpy);
         });
 
         it("updates settings if data persisted correctly", () => {

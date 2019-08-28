@@ -1,3 +1,5 @@
+import { FileManagementSystem } from "@aics/aicsfiles";
+import { JobStatusClient } from "@aics/job-status-client";
 import {
     applyMiddleware,
     combineReducers,
@@ -5,6 +7,9 @@ import {
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 import { SinonStub, stub } from "sinon";
+
+import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 
 import {
     enableBatching,
@@ -16,49 +21,19 @@ import {
     upload,
 } from "../";
 import { State } from "../types";
-import {
-    mockFailedUploadJob,
-    mockImagingSession,
-    mockSuccessfulUploadJob,
-    mockUnit,
-    mockWorkingUploadJob,
-} from "./mocks";
 
 export interface ReduxLogicDependencies {
     dialog: {
         showMessageBox: SinonStub;
     };
-    fms: {
-        host: string;
-        port: string;
-        retryUpload: SinonStub;
-        uploadFiles: SinonStub;
-        validateMetadata: SinonStub;
-    };
-    httpClient: {
-        get: SinonStub;
-        post: SinonStub;
-    };
+    fms: FileManagementSystem;
     ipcRenderer: {
         on: SinonStub;
         send: SinonStub;
     };
-    jssClient: {
-        createJob: SinonStub;
-        getJob: SinonStub;
-        getJobs: SinonStub;
-        host: string;
-        port: string;
-        updateJob: SinonStub;
-    };
-    labkeyClient: {
-        getBarcodePrefixes: SinonStub;
-        getColumnValues: SinonStub;
-        getDatabaseMetadata: SinonStub;
-        getImagingSessions: SinonStub;
-        getPlatesByBarcode: SinonStub;
-        getUnits: SinonStub;
-    };
+    jssClient: JobStatusClient;
+    labkeyClient: LabkeyClient;
+    mmsClient: MMSClient;
     storage: {
         get: SinonStub,
         has: SinonStub;
@@ -66,41 +41,28 @@ export interface ReduxLogicDependencies {
     };
 }
 
+const host = "localhost";
+const port = "80";
+const protocol = "http";
+const username = "foo";
+
+export const fms = new FileManagementSystem({host, port});
+export const jssClient = new JobStatusClient({host, port, username});
+export const labkeyClient = new LabkeyClient({host, port, protocol});
+export const mmsClient = new MMSClient({host, port, protocol, username});
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     dialog: {
         showMessageBox: stub(),
     },
-    fms: {
-        host: "localhost",
-        port: "80",
-        retryUpload: stub().resolves(),
-        uploadFiles: stub().resolves(),
-        validateMetadata: stub().resolves(),
-    },
-    httpClient: {
-        get: stub(),
-        post: stub(),
-    },
+    fms,
     ipcRenderer: {
         on: stub(),
         send: stub(),
     },
-    jssClient: {
-        createJob: stub().resolves(mockSuccessfulUploadJob),
-        getJob: stub(),
-        getJobs: stub().resolves([mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob]),
-        host: "localhost",
-        port: "80",
-        updateJob: stub().resolves(mockSuccessfulUploadJob),
-    },
-    labkeyClient: {
-        getBarcodePrefixes: stub().resolves(["AD", "AX", "GE", "GX"]),
-        getColumnValues: stub().resolves(["id", "name"]),
-        getDatabaseMetadata: stub(),
-        getImagingSessions: stub().resolves([mockImagingSession]),
-        getPlatesByBarcode: stub(),
-        getUnits: stub().resolves([mockUnit]),
-    },
+    jssClient,
+    labkeyClient,
+    mmsClient,
     storage: {
         get: stub(),
         has: stub(),

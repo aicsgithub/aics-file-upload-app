@@ -1,15 +1,21 @@
 import { expect } from "chai";
 import { get } from "lodash";
-import { stub } from "sinon";
+import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockBarcodePrefixes, mockImagingSessions, mockState } from "../../test/mocks";
 import { requestBarcodePrefixes, requestImagingSessions } from "../actions";
 import { getBarcodePrefixes, getImagingSessions } from "../selectors";
 
 describe("Metadata logics", () => {
+    const sandbox = createSandbox();
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
     describe("requestImagingSessions", () => {
         it("sets imaging session given OK response", (done) => {
             const getStub = stub().resolves({
@@ -17,14 +23,8 @@ describe("Metadata logics", () => {
                     rows: mockImagingSessions,
                 },
             });
-            const reduxLogicDeps = {
-                ...mockReduxLogicDeps,
-                httpClient: {
-                    ...mockReduxLogicDeps.httpClient,
-                    get: getStub,
-                },
-            };
-            const store = createMockReduxStore(mockState, reduxLogicDeps);
+            sandbox.replace(labkeyClient, "getImagingSessions", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getImagingSessions(store.getState())).to.be.empty;
@@ -41,14 +41,8 @@ describe("Metadata logics", () => {
 
         it("sets alert given non-OK response", (done) => {
             const getStub = stub().rejects();
-            const reduxLogicDeps = {
-                ...mockReduxLogicDeps,
-                labkeyClient: {
-                    ...mockReduxLogicDeps.labkeyClient,
-                    getImagingSessions: getStub,
-                },
-            };
-            const store = createMockReduxStore(mockState, reduxLogicDeps);
+            sandbox.replace(labkeyClient, "getImagingSessions", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getAlert(store.getState())).to.be.undefined;
@@ -69,19 +63,9 @@ describe("Metadata logics", () => {
 
     describe("requestBarcodePrefixes", () => {
         it("sets barcode prefix given OK response", (done) => {
-            const getStub = stub().resolves({
-                data: {
-                    rows: mockBarcodePrefixes,
-                },
-            });
-            const reduxLogicDeps = {
-                ...mockReduxLogicDeps,
-                httpClient: {
-                    ...mockReduxLogicDeps.httpClient,
-                    get: getStub,
-                },
-            };
-            const store = createMockReduxStore(mockState, reduxLogicDeps);
+            const getStub = stub().resolves(mockBarcodePrefixes);
+            sandbox.replace(labkeyClient, "getBarcodePrefixes", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getBarcodePrefixes(store.getState())).to.be.empty;
@@ -98,14 +82,8 @@ describe("Metadata logics", () => {
 
         it("sets alert given non-OK response", (done) => {
             const getBarcodePrefixesStub = stub().rejects();
-            const reduxLogicDeps = {
-                ...mockReduxLogicDeps,
-                labkeyClient: {
-                    ...mockReduxLogicDeps.labkeyClient,
-                    getBarcodePrefixes: getBarcodePrefixesStub,
-                },
-            };
-            const store = createMockReduxStore(mockState, reduxLogicDeps);
+            sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getAlert(store.getState())).to.be.undefined;

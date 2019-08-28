@@ -7,8 +7,6 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
 
-import MmsClient from "../../util/mms-client";
-
 import { API_WAIT_TIME_SECONDS } from "../constants";
 
 import {
@@ -201,8 +199,9 @@ export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is r
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
 
 const selectBarcodeLogic = createLogic({
-    process: async (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const action = getActionFromBatch(deps.action, SELECT_BARCODE);
+    process: async ({ action: batchedAction, getState, mmsClient }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const action = getActionFromBatch(batchedAction, SELECT_BARCODE);
 
         if (!action) {
             done();
@@ -217,7 +216,7 @@ const selectBarcodeLogic = createLogic({
             while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
             && !receivedNonGatewayError) {
                 try {
-                    const { plate, wells } = await MmsClient.Get.plate(deps.httpClient, barcode, imagingSessionId);
+                    const { plate, wells } = await mmsClient.getPlate(barcode, imagingSessionId);
                     receivedSuccessfulResponse = true;
                     const actions = [
                         setPlate(plate),
@@ -225,7 +224,7 @@ const selectBarcodeLogic = createLogic({
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         action,
                     ];
-                    actions.push(...getGoForwardActions(Page.EnterBarcode, deps.getState()));
+                    actions.push(...getGoForwardActions(Page.EnterBarcode, getState()));
                     dispatch(batchActions(actions));
                 } catch (e) {
                     if (e.response && e.response.status === HTTP_STATUS.BAD_GATEWAY) {

@@ -60,7 +60,7 @@ export default class LabkeyClient {
 
     private get httpClient(): AxiosInstance {
         return axios.create({
-            baseURL: this.labkeyURL,
+            baseURL: this.baseURL,
         });
     }
 
@@ -101,8 +101,6 @@ export default class LabkeyClient {
      */
     public async getUnits(): Promise<Unit[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Units");
-        console.log(this.labkeyURL);
-        console.log(query);
         const response = await this.httpClient.get(query);
         return response.data.rows.map((unit: LabkeyUnit) => ({
             description: unit.Description,
@@ -166,7 +164,7 @@ export default class LabkeyClient {
         return response.data.rows.map((columnValue: any) => columnValue[columnName]);
     }
 
-    private get labkeyURL(): string {
+    private get baseURL(): string {
         return `${this.protocol}://${this.host}:${this.port}/labkey`;
     }
 }

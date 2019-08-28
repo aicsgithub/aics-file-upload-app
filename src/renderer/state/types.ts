@@ -5,10 +5,12 @@ import { MessageBoxOptions } from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
+import LabkeyClient from "../util/labkey-client";
+import MMSClient from "../util/mms-client";
 
 import { FeedbackStateBranch } from "./feedback/types";
 import { JobStateBranch } from "./job/types";
-import { BarcodePrefix, DatabaseMetadata, ImagingSession, MetadataStateBranch, Unit } from "./metadata/types";
+import { MetadataStateBranch } from "./metadata/types";
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
 import { UploadStateBranch } from "./upload/types";
@@ -40,19 +42,13 @@ export interface ReduxLogicExtraDependencies {
         ): number;
     };
     fms: FileManagementSystem;
-    httpClient: HttpClient;
     ipcRenderer: {
         on: (channel: string, listener: (...args: any[]) => void) => void;
         send: (channel: string, ...args: any[]) => void;
     };
     jssClient: JobStatusClient;
-    labkeyClient: {
-        getBarcodePrefixes: () => Promise<BarcodePrefix[]>;
-        getColumnValues: (schema: string, table: string, columnName: string) => Promise<string[]>;
-        getDatabaseMetadata: () => Promise<DatabaseMetadata>;
-        getImagingSessions: () => Promise<ImagingSession[]>;
-        getUnits: () => Promise<Unit[]>;
-    };
+    labkeyClient: LabkeyClient;
+    mmsClient: MMSClient;
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;

@@ -1,16 +1,22 @@
 import { expect } from "chai";
-import { stub } from "sinon";
+import { createSandbox, stub } from "sinon";
 import { getAlert } from "../../feedback/selectors";
 
-import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { mockState } from "../../test/mocks";
+import { createMockReduxStore, jssClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { mockState, mockSuccessfulUploadJob } from "../../test/mocks";
 import { retrieveJobs } from "../actions";
 import { getUploadJobs } from "../selectors";
 
 describe("Job logics", () => {
+    const sandbox = createSandbox();
+
+    afterEach(() => {
+        sandbox.restore();
+    });
 
     describe("retrieveJobsLogic", () => {
         it("Sets jobs given successful JSS query", (done) => {
+            sandbox.replace(jssClient, "getJobs", stub().resolves([mockSuccessfulUploadJob]));
             const store = createMockReduxStore({
                 ...mockState,
             });
@@ -31,12 +37,11 @@ describe("Job logics", () => {
         });
 
         it("Sets an alert given a non OK response from JSS", (done) => {
-            const jssClient = {...mockReduxLogicDeps.jssClient};
-            jssClient.getJobs = stub().rejects();
+            sandbox.replace(jssClient, "getJobs", stub().rejects());
 
             const store = createMockReduxStore({
                 ...mockState,
-            }, {...mockReduxLogicDeps, jssClient});
+            }, mockReduxLogicDeps);
 
             // before
             let alert = getAlert(store.getState());

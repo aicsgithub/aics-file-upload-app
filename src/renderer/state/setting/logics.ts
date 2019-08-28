@@ -19,7 +19,7 @@ import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
 import { getLimsHost, getLimsPort } from "./selectors";
 
 const updateSettingsLogic = createLogic({
-    process: ({ctx, fms, getState, jssClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
               done: ReduxLogicDoneCb) => {
         const host = getLimsHost(getState());
         const port = getLimsPort(getState());
@@ -27,8 +27,14 @@ const updateSettingsLogic = createLogic({
         if (ctx.host !== host || ctx.port !== port) {
             fms.host = host;
             jssClient.host = host;
+            labkeyClient.host = host;
+            mmsClient.host = host;
+
             fms.port = port;
             jssClient.port = port;
+            labkeyClient.port = port;
+            mmsClient.port = port;
+
             dispatch(requestMetadata());
             dispatch(retrieveJobs());
         }
