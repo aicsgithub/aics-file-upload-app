@@ -1,18 +1,15 @@
 import { Button, Card, Tabs } from "antd";
 import * as React from "react";
 
-import { Well } from "../../state/selection/types";
-import WellFileAssociations from "./WellFileAssociations/index";
-import WellInfo from "./WellInfo/index";
+import FileAssociations from "./FileAssociations/index";
 
 const styles = require("./style.pcss");
 
-interface WellInfoProps {
+interface SelectedAssociationsProps {
+    children: React.ReactNode | React.ReactNodeArray;
     className?: string;
     selectedFilesCount: number;
-    selectedWellLabels: string[];
-    selectedWells: Well[];
-    wellLabels: string[];
+    wellLabels?: string[];
     files: string[];
     associate: () => void;
     undoAssociation: (file: string) => void;
@@ -21,29 +18,30 @@ interface WellInfoProps {
     canAssociate: boolean;
     canUndoLastAssociation: boolean;
     canRedo: boolean;
+    title: string;
+    useWells?: boolean;
 }
 
-class SelectedWellsCard extends React.Component<WellInfoProps, {}> {
+class SelectedAssociationsCard extends React.Component<SelectedAssociationsProps, {}> {
     public render() {
         const {
             associate,
             canAssociate,
             canRedo,
             canUndoLastAssociation,
+            children,
             className,
             files,
             redo,
             selectedFilesCount,
+            title,
             undoAssociation,
             undoLastAssociation,
-            selectedWellLabels,
-            selectedWells,
-            wellLabels,
         } = this.props;
 
-        const title = (
+        const titleBar = (
             <div className={styles.titleRow}>
-                <div className={styles.title}>Selected Well(s): {wellLabels.sort().join(", ")}</div>
+                <div className={styles.title}>{title}</div>
 
                 <div className={styles.titleButtons}>
                     <Button
@@ -62,10 +60,10 @@ class SelectedWellsCard extends React.Component<WellInfoProps, {}> {
             </div>
         );
         return (
-            <Card className={className} title={title}>
+            <Card className={className} title={titleBar}>
                 <Tabs type="card">
                     <Tabs.TabPane tab="Associated Files" key="associations">
-                        <WellFileAssociations
+                        <FileAssociations
                             className={styles.tabPane}
                             associate={associate}
                             canAssociate={canAssociate}
@@ -74,19 +72,11 @@ class SelectedWellsCard extends React.Component<WellInfoProps, {}> {
                             undoAssociation={undoAssociation}
                         />
                     </Tabs.TabPane>
-                    {selectedWells.map((well, i) => (
-                        <Tabs.TabPane
-                            className={styles.tabPane}
-                            key={selectedWellLabels[i]}
-                            tab={selectedWellLabels[i]}
-                        >
-                            <WellInfo className={styles.tabPane} well={well}/>
-                        </Tabs.TabPane>
-                    ))}
+                    {children}
                 </Tabs>
             </Card>
         );
     }
 }
 
-export default SelectedWellsCard;
+export default SelectedAssociationsCard;

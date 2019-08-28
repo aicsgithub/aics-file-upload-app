@@ -3,6 +3,7 @@ import { isEmpty, map } from "lodash";
 
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
+import { Workflow } from "../../state/selection/types";
 import {
     GetBarcodesResponse,
     GetTablesResponse,
@@ -11,7 +12,7 @@ import {
     LabkeyImagingSession,
     LabkeyPlate,
     LabKeyPlateBarcodePrefix,
-    LabkeyPlateResponse,
+    LabkeyPlateResponse, LabKeyWorkflow,
 } from "./types";
 
 const LABKEY_GET_TABLES_URL = `/AICS/query-getQueries.api`;
@@ -53,7 +54,7 @@ export default class LabkeyClient {
 
         return base;
     }
-    
+
     public protocol: string;
     public host: string;
     public port: string;
@@ -162,6 +163,19 @@ export default class LabkeyClient {
         const query = LabkeyClient.getSelectRowsURL(schemaName, queryName, [`query.columns=${columnName}`]);
         const response = await this.httpClient.get(query);
         return response.data.rows.map((columnValue: any) => columnValue[columnName]);
+    }
+
+    /**
+     * Retrieves all workflows
+     */
+    public async workflows(): Promise<Workflow[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Workflow");
+        const response = await this.httpClient.get(query);
+        return response.data.rows.map((workflow: LabKeyWorkflow) => ({
+            description: workflow.Description,
+            name: workflow.Name,
+            workflowId: workflow.WorkflowId,
+        }));
     }
 
     private get baseURL(): string {

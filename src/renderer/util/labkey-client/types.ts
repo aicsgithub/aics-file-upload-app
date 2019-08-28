@@ -42,3 +42,9 @@ export interface LabkeyPlateResponse {
     barcode: string;
     imagingSessionId: number | null;
 }
+
+export interface LabKeyWorkflow {
+    Description: string;
+    Name: string;
+    WorkflowId: number;
+}

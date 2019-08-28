@@ -1,11 +1,16 @@
 import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
+    associateByWorkflow: boolean;
     schemaFilepaths: string[];
 }
 
 export interface AddSchemaFilepathAction {
     payload: string;
+    type: string;
+}
+export interface AssociateByWorkflowAction {
+    payload: boolean;
     type: string;
 }
 
