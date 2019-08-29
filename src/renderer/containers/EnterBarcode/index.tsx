@@ -94,7 +94,7 @@ interface EnterBarcodeState {
 
 export const createOptionsFromGetPlatesResponse = memoize((allPlates: LabkeyPlateResponse[]) => {
     const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
-    return  uniquePlateBarcodes.map((plate) => {
+    return uniquePlateBarcodes.map((plate) => {
         const imagingSessionIds = allPlates
             .filter((otherPlate) => otherPlate.barcode === plate.barcode)
             .map((p) => p.imagingSessionId);
