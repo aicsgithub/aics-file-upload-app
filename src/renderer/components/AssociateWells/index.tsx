@@ -82,7 +82,6 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                     redo={redo}
                     canRedo={canRedo}
                     canUndoLastAssociation={canUndo}
-                    useWells={true}
                     title={associationsTitle}
                 >
                     {selectedWellsData && selectedWellsData.map((well, i) => (
