@@ -1,4 +1,10 @@
-import { Icon, Spin, Tag, Tree } from "antd";
+import {
+    Icon,
+    Spin,
+    Tag,
+    Tooltip,
+    Tree
+} from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
 import { ActionCreator } from "redux";
@@ -142,6 +148,13 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
     }
 
     private renderChildDirectories(file: UploadFile): React.ReactNode {
+        const wrapNoPermissionTooltip = (children: React.ReactNode | React.ReactNodeArray) => (
+            <Tooltip key={FolderTree.getKey(file)} title="You do not have permissions for this file/directory">
+                <span>
+                    {children}
+                </span>
+            </Tooltip>
+        );
         if (!file.isDirectory) {
             const {fileToTags} = this.props;
             const fileName: JSX.Element = <span className={styles.fileName}>{file.name}</span>;
@@ -155,28 +168,29 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             }
 
             const fileDisplay = (
-                <React.Fragment>
+                <>
                     <span>{fileName}</span>
                     {tagEls}
-                </React.Fragment>
+                </>
             );
             return (
                 <Tree.TreeNode
                     className={styles.treeNode}
+                    disabled={!file.canRead}
                     isLeaf={true}
                     key={FolderTree.getKey(file)}
-                    title={fileDisplay}
+                    title={file.canRead ? fileDisplay : wrapNoPermissionTooltip(fileDisplay)}
                 />
             );
         }
 
         return (
             <Tree.TreeNode
-                disabled={!file.canRead}
-                title={file.name}
-                key={FolderTree.getKey(file)}
-                isLeaf={false}
                 className={styles.treeNode}
+                disabled={!file.canRead}
+                isLeaf={false}
+                key={FolderTree.getKey(file)}
+                title={file.canRead ? file.name : wrapNoPermissionTooltip(file.name)}
             >
                 {file.files.map((child: UploadFile) => this.renderChildDirectories(child))}
             </Tree.TreeNode>

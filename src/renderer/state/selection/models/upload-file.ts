@@ -41,7 +41,7 @@ export class UploadFileImpl implements UploadFile {
         return files.map(async (file: string) => {
             const filePath = resolvePath(this.fullPath, file);
             const stats: Stats = await stat(filePath);
-            const canRead = await canUserRead(fullPath);
+            const canRead = await canUserRead(filePath);
             return new UploadFileImpl(basename(filePath), dirname(filePath), stats.isDirectory(), canRead);
         });
     }
