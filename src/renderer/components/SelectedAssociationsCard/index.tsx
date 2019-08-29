@@ -9,7 +9,6 @@ interface SelectedAssociationsProps {
     children: React.ReactNode | React.ReactNodeArray;
     className?: string;
     selectedFilesCount: number;
-    wellLabels?: string[];
     files: string[];
     associate: () => void;
     undoAssociation: (file: string) => void;
@@ -19,7 +18,6 @@ interface SelectedAssociationsProps {
     canUndoLastAssociation: boolean;
     canRedo: boolean;
     title: string;
-    useWells?: boolean;
 }
 
 class SelectedAssociationsCard extends React.Component<SelectedAssociationsProps, {}> {

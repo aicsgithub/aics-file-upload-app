@@ -86,7 +86,7 @@ export interface CellPopulation {
 export interface Solution {
     solutionLot: SolutionLot;
     volume: string;
-    volumeUnitId: number;
+    volumeUnitsId: number;
     volumeUnitDisplay?: string;
 }
 

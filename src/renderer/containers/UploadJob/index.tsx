@@ -99,29 +99,32 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     public render() {
+        const disableSaveButton = !this.props.uploads.length || !this.props.schemaFile || this.requiredValuesMissing();
         return (
             <FormPage
                 className={this.props.className}
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={!this.props.uploads.length || this.requiredValuesMissing()}
+                saveButtonDisabled={disableSaveButton}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
-                <UploadJobGrid
-                    canRedo={this.props.canRedo}
-                    canUndo={this.props.canUndo}
-                    redo={this.redo}
-                    removeSchemaFilepath={this.props.removeSchemaFilepath}
-                    removeUploads={this.props.removeUploads}
-                    schema={this.state.schema}
-                    setAlert={this.props.setAlert}
-                    undo={this.undo}
-                    updateUpload={this.props.updateUpload}
-                    uploads={this.props.uploads}
-                />
+                {this.props.schemaFile && (
+                    <UploadJobGrid
+                        canRedo={this.props.canRedo}
+                        canUndo={this.props.canUndo}
+                        redo={this.redo}
+                        removeSchemaFilepath={this.props.removeSchemaFilepath}
+                        removeUploads={this.props.removeUploads}
+                        schema={this.state.schema}
+                        setAlert={this.props.setAlert}
+                        undo={this.undo}
+                        updateUpload={this.props.updateUpload}
+                        uploads={this.props.uploads}
+                    />
+                )}
             </FormPage>
         );
     }
