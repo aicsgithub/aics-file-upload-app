@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { get } from "lodash";
-import { stub } from "sinon";
+import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { ColumnType, SchemaDefinition } from "../../setting/types";
-import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
 import { associateFilesAndWells, initiateUpload, updateSchema } from "../actions";
 import { getSchemaFile, getUpload } from "../selectors";
@@ -73,7 +73,15 @@ describe("Upload logics", () => {
     });
 
     describe("initiateUploadLogic", () => {
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
         it("adds an info alert given valid metadata", (done) => {
+            sandbox.replace(fms, "uploadFiles", stub().resolves());
+            sandbox.replace(fms, "validateMetadata", stub().resolves());
             const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
@@ -99,13 +107,8 @@ describe("Upload logics", () => {
             });
         });
         it("does not add job given invalid metadata", (done) => {
-            const store = createMockReduxStore(mockState, {
-                ...mockReduxLogicDeps,
-                fms: {
-                    ...mockReduxLogicDeps.fms,
-                    validateMetadata: stub().rejects(),
-                },
-            });
+            sandbox.replace(fms, "validateMetadata", stub().rejects());
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             let state = store.getState();

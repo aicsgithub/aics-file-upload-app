@@ -48,7 +48,7 @@ const retrieveJobsLogic = createLogic({
 
             const [uploadJobs, copyJobs] = await Promise.all([getUploadJobsPromise, getCopyJobsPromise]);
 
-            const uploadJobNames = uploadJobs.map((job) => job.jobName);
+            const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
             const pendingJobNames = getPendingJobNames(getState());
             const pendingJobsToRemove: string[] = intersection(uploadJobNames, pendingJobNames)
                 .filter((name) => !!name) as string[];

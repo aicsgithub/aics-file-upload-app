@@ -1,4 +1,5 @@
 import { stat as fsStat, Stats } from "fs";
+import * as Logger from "js-logger";
 import { isEmpty, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
@@ -6,7 +7,6 @@ import { createLogic } from "redux-logic";
 import { promisify } from "util";
 
 import { canUserRead } from "../../util";
-import MmsClient from "../../util/mms-client";
 
 import { API_WAIT_TIME_SECONDS } from "../constants";
 import {
@@ -18,7 +18,7 @@ import {
     stopLoading
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { updatePageHistory } from "../metadata/actions";
+import { receiveMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
 import {
@@ -60,7 +60,14 @@ import {
     UploadFile
 } from "./types";
 
+import MenuItem = Electron.MenuItem;
+import Menu = Electron.Menu;
+
 const stat = promisify(fsStat);
+
+interface MenuItemWithSubMenu extends MenuItem {
+    submenu?: Menu;
+}
 
 const mergeChildPaths = (filePaths: string[]): string[] => {
     filePaths = uniq(filePaths);
@@ -105,11 +112,12 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
     }
 };
 
-const openFilesTransformLogic = ({ action, getState }: ReduxLogicProcessDependencies, next: ReduxLogicNextCb) => {
+const openFilesTransformLogic = ({ action, getState, remote }: ReduxLogicProcessDependencies,
+                                 next: ReduxLogicNextCb) => {
     const actions = [action, startLoading()];
     const page: Page = getPage(getState());
     if (page === Page.DragAndDrop) {
-        actions.push(...getGoForwardActions(page, getState()));
+        actions.push(...getGoForwardActions(page, getState(), remote.Menu.getApplicationMenu()));
     }
     next(batchActions(actions));
 };
@@ -187,13 +195,36 @@ const getFilesInFolderLogic = createLogic({
     type: GET_FILES_IN_FOLDER,
 });
 
+const pagesToAllowSwitchingEnvironments = [Page.UploadJobs, Page.DragAndDrop];
+const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
+    if (menu) {
+        // have to cast here because Electron's typings for MenuItem is incomplete
+        const fileMenu: MenuItemWithSubMenu = menu.items
+            .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu;
+        if (fileMenu.submenu) {
+            const switchEnvironmentMenuItem = fileMenu.submenu.items
+                .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
+            if (switchEnvironmentMenuItem) {
+                switchEnvironmentMenuItem.enabled = pagesToAllowSwitchingEnvironments.includes(nextPage);
+            } else {
+                Logger.error("Could not update application menu");
+            }
+        } else {
+            Logger.error("Could not update application menu");
+        }
+    } else {
+        Logger.error("Could not update application menu");
+    }
+};
+
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";
 export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
 
 const selectBarcodeLogic = createLogic({
-    process: async (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const action = getActionFromBatch(deps.action, SELECT_BARCODE);
+    process: async ({ action: batchedAction, getState, mmsClient, remote }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const action = getActionFromBatch(batchedAction, SELECT_BARCODE);
 
         if (!action) {
             done();
@@ -208,7 +239,7 @@ const selectBarcodeLogic = createLogic({
             while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
             && !receivedNonGatewayError) {
                 try {
-                    const { plate, wells } = await MmsClient.Get.plate(deps.httpClient, barcode, imagingSessionId);
+                    const { plate, wells } = await mmsClient.getPlate(barcode, imagingSessionId);
                     receivedSuccessfulResponse = true;
                     const actions = [
                         setPlate(plate),
@@ -216,8 +247,9 @@ const selectBarcodeLogic = createLogic({
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         action,
                         associateByWorkflow(false),
+                        receiveMetadata({barcodeSearchResults: []}),
+                        ...getGoForwardActions(Page.EnterBarcode, getState(), remote.Menu.getApplicationMenu()),
                     ];
-                    actions.push(...getGoForwardActions(Page.EnterBarcode, deps.getState()));
                     dispatch(batchActions(actions));
                 } catch (e) {
                     if (e.response && e.response.status === HTTP_STATUS.BAD_GATEWAY) {
@@ -278,7 +310,7 @@ const selectWorkflowPathLogic = createLogic({
         if (action) {
             const actions = [
                 action,
-                ...getGoForwardActions(Page.EnterBarcode, deps.getState()),
+                ...getGoForwardActions(Page.EnterBarcode, deps.getState(), deps.remote.Menu.getApplicationMenu()),
                 associateByWorkflow(true),
             ];
             dispatch(batchActions(actions));
@@ -297,7 +329,7 @@ const pageOrder: Page[] = [
 ];
 const selectPageLogic = createLogic({
     process: (
-        {action, getState}: ReduxLogicProcessDependencies,
+        {action, getState, remote}: ReduxLogicProcessDependencies,
         dispatch: ReduxLogicNextCb,
         done: ReduxLogicDoneCb
     ) => {
@@ -306,6 +338,8 @@ const selectPageLogic = createLogic({
 
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
         const currentPageOrder: number = pageOrder.indexOf(currentPage);
+
+        updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
 
         // going back - rewind selections and uploads to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
@@ -346,14 +380,14 @@ const selectPageLogic = createLogic({
 });
 
 const goBackLogic = createLogic({
-    transform: ({getState, action, dialog}: ReduxLogicTransformDependencies,
+    transform: ({getState, action, remote}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb, reject: () => void) => {
         const state = getState();
         const currentPage = getPage(state);
         const nextPage = getNextPage(currentPage, -1);
 
         if (nextPage) {
-            dialog.showMessageBox({
+            remote.dialog.showMessageBox({
                 buttons: ["Cancel", "Yes"],
                 cancelId: 0,
                 defaultId: 1,
@@ -408,7 +442,7 @@ const getNextPage = (currentPage: Page, direction: number): Page | null => {
 };
 
 // For batching only. Returns new actions
-const getGoForwardActions = (lastPage: Page, state: State): AnyAction[] => {
+const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): AnyAction[] => {
     const actions = [];
 
     const currentSelectionIndex = getCurrentSelectionIndex(state);
@@ -417,6 +451,7 @@ const getGoForwardActions = (lastPage: Page, state: State): AnyAction[] => {
 
     const nextPage = getNextPage(lastPage, 1);
     if (nextPage) {
+        updateAppMenu(nextPage, menu);
         actions.push(selectPage(lastPage, nextPage));
     }
 

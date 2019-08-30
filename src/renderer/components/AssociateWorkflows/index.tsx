@@ -4,7 +4,6 @@ import * as React from "react";
 import { ActionCreator } from "redux";
 
 import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
-import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
 import { GoBackAction, NextPageAction, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
@@ -24,7 +23,6 @@ interface Props {
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
-    loadWorkflows: ActionCreator<RequestWorkflowOptionsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
     mutualFiles: string[];
@@ -39,10 +37,6 @@ interface Props {
 }
 
 class AssociateWorkflows extends React.Component<Props, {}> {
-    public componentDidMount() {
-        this.props.loadWorkflows();
-    }
-
     public render() {
         const {
             canRedo,

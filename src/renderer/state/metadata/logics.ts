@@ -2,28 +2,30 @@ import { ipcRenderer } from "electron";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import LabkeyClient from "../../util/labkey-client";
-import MMSClient from "../../util/mms-client";
-import { setAlert } from "../feedback/actions";
-import { AlertType } from "../feedback/types";
-
-import { ReduxLogicNextCb, ReduxLogicProcessDependencies, ReduxLogicTransformDependencies } from "../types";
-
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
+
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { AlertType, AsyncRequest } from "../feedback/types";
+
+import {
+    ReduxLogicDoneCb,
+    ReduxLogicNextCb,
+    ReduxLogicProcessDependencies,
+    ReduxLogicTransformDependencies,
+} from "../types";
+import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
-    GET_BARCODE_PREFIXES,
-    GET_IMAGING_SESSIONS,
+    GET_BARCODE_SEARCH_RESULTS,
     REQUEST_METADATA,
-    REQUEST_WORKFLOW_OPTIONS
 } from "./constants";
 
 const createBarcode = createLogic({
-    transform: async ({httpClient, getState, action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             const { prefixId, prefix } = action.payload;
-            const barcode = await MMSClient.Create.barcode(httpClient, prefixId);
+            const barcode = await mmsClient.createBarcode(prefixId);
             ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, prefix);
             next(action);
         } catch (ex) {
@@ -37,16 +39,29 @@ const createBarcode = createLogic({
 });
 
 const requestMetadata = createLogic({
-    process: async ({httpClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
+    process: async ({labkeyClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
                     done: () => void) => {
         try {
-            const [ units, databaseMetadata ] = await Promise.all([
-                LabkeyClient.Get.units(httpClient),
-                LabkeyClient.Get.databaseMetadata(httpClient),
+            const [
+                barcodePrefixes,
+                databaseMetadata,
+                imagingSessions,
+                units,
+                workflowOptions,
+            ] = await Promise.all([
+                labkeyClient.getBarcodePrefixes(),
+                labkeyClient.getDatabaseMetadata(),
+                labkeyClient.getImagingSessions(),
+                labkeyClient.getUnits(),
+                labkeyClient.getWorkflows(),
+
             ]);
             dispatch(receiveMetadata({
+                barcodePrefixes,
                 databaseMetadata,
+                imagingSessions,
                 units,
+                workflowOptions,
             }));
         } catch (reason) {
             console.log(reason); // tslint:disable-line:no-console
@@ -60,61 +75,41 @@ const requestMetadata = createLogic({
     type: REQUEST_METADATA,
 });
 
-const requestImagingSessions = createLogic({
-    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        try {
-            const imagingSessions = await LabkeyClient.Get.imagingSessions(httpClient);
-            next(receiveMetadata({
-                imagingSessions,
+const requestBarcodes = createLogic({
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const { payload: searchStr } = action;
+        if (!searchStr) {
+            dispatch(receiveMetadata({
+                barcodeSearchResults: [],
             }));
-        } catch (ex) {
-            next(setAlert({
-                message: "Could not retrieve imaging session metadata",
-                type: AlertType.ERROR,
-            }));
-        }
-    },
-    type: GET_IMAGING_SESSIONS,
-});
+            done();
+        } else {
+            dispatch(addRequestToInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
+            try {
+                const searchResults = await labkeyClient.getPlatesByBarcode(action.payload);
+                dispatch(batchActions([
+                    receiveMetadata({barcodeSearchResults: searchResults}),
+                    removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
+                ]));
 
-const requestBarcodePrefixes = createLogic({
-    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        try {
-            const barcodePrefixes = await LabkeyClient.Get.barcodePrefixes(httpClient);
-            next(receiveMetadata({
-                barcodePrefixes,
-            }));
-        } catch (ex) {
-            next(setAlert({
-                message: "Could not retrieve barcode prefix metadata",
-                type: AlertType.ERROR,
-            }));
+            } catch (e) {
+                dispatch(batchActions([
+                    removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
+                    setAlert({
+                        message: e.message || "Could not retrieve barcode search results",
+                        type: AlertType.ERROR,
+                    }),
+                ]));
+            }
+            done();
         }
     },
-    type: GET_BARCODE_PREFIXES,
-});
-
-const requestWorkflows = createLogic({
-    transform: async ({httpClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        try {
-            const workflowOptions = await LabkeyClient.Get.workflows(httpClient);
-            next(receiveMetadata({
-                workflowOptions,
-            }));
-        } catch (ex) {
-            next(setAlert({
-                message: "Could not retrieve workflow metadata",
-                type: AlertType.ERROR,
-            }));
-        }
-    },
-    type: REQUEST_WORKFLOW_OPTIONS,
+    type: GET_BARCODE_SEARCH_RESULTS,
 });
 
 export default [
     createBarcode,
+    requestBarcodes,
     requestMetadata,
-    requestImagingSessions,
-    requestBarcodePrefixes,
-    requestWorkflows,
 ];

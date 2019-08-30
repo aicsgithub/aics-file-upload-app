@@ -1,10 +1,10 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client";
+import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { Unit } from "../metadata/types";
+import { DatabaseMetadata, Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
@@ -71,6 +71,7 @@ export const mockState: State = {
     },
     metadata: {
         barcodePrefixes: [],
+        barcodeSearchResults: [],
         history: {
             selection: {},
             upload: {},
@@ -265,3 +266,19 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
         TeamName: "Microscopy",
     },
 ];
+
+export const mockUnit: Unit = {
+    description: "description",
+    name: "name",
+    type: "type",
+    unitsId: 1,
+};
+
+export const mockDatabaseMetadata: DatabaseMetadata = {
+    "Table Name": {
+        columns: [],
+        displayName: "Table Name",
+        name: "table_name",
+        schemaName: "microscopy",
+    },
+};

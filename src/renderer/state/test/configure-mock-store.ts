@@ -1,3 +1,5 @@
+import { FileManagementSystem } from "@aics/aicsfiles";
+import { JobStatusClient } from "@aics/job-status-client";
 import {
     applyMiddleware,
     combineReducers,
@@ -5,6 +7,9 @@ import {
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 import { SinonStub, stub } from "sinon";
+
+import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 
 import {
     enableBatching,
@@ -16,30 +21,23 @@ import {
     upload,
 } from "../";
 import { State } from "../types";
-import { mockFailedUploadJob, mockSuccessfulUploadJob, mockWorkingUploadJob } from "./mocks";
 
 export interface ReduxLogicDependencies {
-    dialog: {
-        showMessageBox: SinonStub;
-    };
-    fms: {
-        retryUpload: SinonStub;
-        uploadFiles: SinonStub;
-        validateMetadata: SinonStub;
-    };
-    httpClient: {
-        get: SinonStub;
-        post: SinonStub;
-    };
+    fms: FileManagementSystem;
     ipcRenderer: {
         on: SinonStub;
         send: SinonStub;
     };
-    jssClient: {
-        createJob: SinonStub;
-        getJob: SinonStub;
-        getJobs: SinonStub;
-        updateJob: SinonStub;
+    jssClient: JobStatusClient;
+    labkeyClient: LabkeyClient;
+    mmsClient: MMSClient;
+    remote: {
+        Menu: {
+            getApplicationMenu: SinonStub;
+        };
+        dialog: {
+            showMessageBox: SinonStub;
+        };
     };
     storage: {
         get: SinonStub,
@@ -48,28 +46,32 @@ export interface ReduxLogicDependencies {
     };
 }
 
+const host = "localhost";
+const port = "80";
+const protocol = "http";
+const username = "foo";
+
+export const fms = new FileManagementSystem({host, port});
+export const jssClient = new JobStatusClient({host, port, username});
+export const labkeyClient = new LabkeyClient({host, port, protocol});
+export const mmsClient = new MMSClient({host, port, protocol, username});
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
-    dialog: {
-        showMessageBox: stub(),
-    },
-    fms: {
-        retryUpload: stub().resolves(),
-        uploadFiles: stub().resolves(),
-        validateMetadata: stub().resolves(),
-    },
-    httpClient: {
-        get: stub(),
-        post: stub(),
-    },
+    fms,
     ipcRenderer: {
         on: stub(),
         send: stub(),
     },
-    jssClient: {
-        createJob: stub().resolves(mockSuccessfulUploadJob),
-        getJob: stub(),
-        getJobs: stub().resolves([mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob]),
-        updateJob: stub().resolves(mockSuccessfulUploadJob),
+    jssClient,
+    labkeyClient,
+    mmsClient,
+    remote: {
+        Menu: {
+            getApplicationMenu: stub(),
+        },
+        dialog: {
+            showMessageBox: stub(),
+        },
     },
     storage: {
         get: stub(),

@@ -5,9 +5,7 @@ import { ActionCreator } from "redux";
 
 import AssociateWells from "../../components/AssociateWells";
 import AssociateWorkflows from "../../components/AssociateWorkflows";
-import { requestWorkflows } from "../../state/metadata/actions";
 import { getWorkflowOptions } from "../../state/metadata/selectors";
-import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
 import {
     goBack,
     goForward,
@@ -66,7 +64,6 @@ interface AssociateFilesProps {
     mutualFilesForWorkflows: string[];
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
-    requestWorkflows: ActionCreator<RequestWorkflowOptionsAction>;
     selectedFiles: string[];
     selectedWellLabels: string[];
     selectedWells: AicsGridCell[];
@@ -93,7 +90,6 @@ class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
                     canUndo={this.props.canUndo}
                     className={this.props.className}
                     mutualFiles={this.props.mutualFilesForWorkflows}
-                    loadWorkflows={this.props.requestWorkflows}
                     goBack={this.props.goBack}
                     goForward={this.props.goForward}
                     redo={this.redo}
@@ -165,7 +161,6 @@ const dispatchToPropsMap = {
     goBack,
     goForward,
     jumpToUpload,
-    requestWorkflows,
     selectWells,
     selectWorkflows,
     undoFileWellAssociation,
