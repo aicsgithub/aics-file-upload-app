@@ -207,13 +207,13 @@ const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
             if (switchEnvironmentMenuItem) {
                 switchEnvironmentMenuItem.enabled = pagesToAllowSwitchingEnvironments.includes(nextPage);
             } else {
-                Logger.warn("Could not update application menu");
+                Logger.error("Could not update application menu");
             }
         } else {
-            Logger.warn("Could not update application menu");
+            Logger.error("Could not update application menu");
         }
     } else {
-        Logger.warn("Could not update application menu");
+        Logger.error("Could not update application menu");
     }
 };
 
