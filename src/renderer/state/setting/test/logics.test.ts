@@ -8,7 +8,14 @@ import {
     labkeyClient,
     mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
-import { mockDatabaseMetadata, mockState, mockUnit } from "../../test/mocks";
+import {
+    mockBarcodePrefixes,
+    mockDatabaseMetadata,
+    mockImagingSessions,
+    mockSelectedWorkflows,
+    mockState,
+    mockUnit,
+} from "../../test/mocks";
 
 import { gatherSettings, updateSettings } from "../actions";
 import { getLimsHost } from "../selectors";
@@ -18,47 +25,56 @@ describe("Setting logics", () => {
     const stagingHost = "staging";
     const sandbox = createSandbox();
 
+    let fmsHostSetterSpy: SinonSpy;
+    let fmsPortSetterSpy: SinonSpy;
+    let jssHostSetterSpy: SinonSpy;
+    let jssPortSetterSpy: SinonSpy;
+    let labkeyClientHostSetterSpy: SinonSpy;
+    let labkeyClientPortSetterSpy: SinonSpy;
+    let mmsClientHostSetterSpy: SinonSpy;
+    let mmsClientPortSetterSpy: SinonSpy;
+
+    beforeEach(() => {
+        fmsHostSetterSpy = spy();
+        fmsPortSetterSpy = spy();
+        jssHostSetterSpy = spy();
+        jssPortSetterSpy = spy();
+        labkeyClientHostSetterSpy = spy();
+        labkeyClientPortSetterSpy = spy();
+        mmsClientHostSetterSpy = spy();
+        mmsClientPortSetterSpy = spy();
+
+        const { fms, jssClient, mmsClient } = mockReduxLogicDeps;
+        stub(fms, "host").set(fmsHostSetterSpy);
+        stub(fms, "port").set(fmsPortSetterSpy);
+
+        stub(jssClient, "host").set(jssHostSetterSpy);
+        stub(jssClient, "port").set(jssPortSetterSpy);
+
+        stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
+        stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
+
+        stub(mmsClient, "host").set(mmsClientHostSetterSpy);
+        stub(mmsClient, "port").set(mmsClientPortSetterSpy);
+
+        const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
+        const getDatabaseMetadataStub = stub().resolves(mockDatabaseMetadata);
+        const getImagingSessionsStub = stub().resolves(mockImagingSessions);
+        const getUnitsStub = stub().resolves([mockUnit]);
+        const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
+
+        sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
+        sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
+        sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
+        sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
+        sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+    });
+
     afterEach(() => {
         sandbox.restore();
     });
 
     describe("updateSettingsLogic", () => {
-        const getUnitsStub = stub().resolves([mockUnit]);
-        const getDatabaseMetadataStub = stub().resolves([mockDatabaseMetadata]);
-        let fmsHostSetterSpy: SinonSpy;
-        let fmsPortSetterSpy: SinonSpy;
-        let jssHostSetterSpy: SinonSpy;
-        let jssPortSetterSpy: SinonSpy;
-        let labkeyClientHostSetterSpy: SinonSpy;
-        let labkeyClientPortSetterSpy: SinonSpy;
-        let mmsClientHostSetterSpy: SinonSpy;
-        let mmsClientPortSetterSpy: SinonSpy;
-
-        beforeEach(() => {
-            fmsHostSetterSpy = spy();
-            fmsPortSetterSpy = spy();
-            jssHostSetterSpy = spy();
-            jssPortSetterSpy = spy();
-            labkeyClientHostSetterSpy = spy();
-            labkeyClientPortSetterSpy = spy();
-            mmsClientHostSetterSpy = spy();
-            mmsClientPortSetterSpy = spy();
-
-            const { fms, jssClient, mmsClient } = mockReduxLogicDeps;
-            stub(fms, "host").set(fmsHostSetterSpy);
-            stub(fms, "port").set(fmsPortSetterSpy);
-
-            stub(jssClient, "host").set(jssHostSetterSpy);
-            stub(jssClient, "port").set(jssPortSetterSpy);
-
-            stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
-            stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
-
-            stub(mmsClient, "host").set(mmsClientHostSetterSpy);
-            stub(mmsClient, "port").set(mmsClientPortSetterSpy);
-            sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
-            sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
-        });
 
         it("updates settings if data persisted correctly", () => {
             const store = createMockReduxStore(mockState);
