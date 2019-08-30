@@ -18,7 +18,7 @@ import {
     stopLoading
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { updatePageHistory } from "../metadata/actions";
+import { receiveMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
 import {
@@ -247,6 +247,7 @@ const selectBarcodeLogic = createLogic({
                         removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                         action,
                         associateByWorkflow(false),
+                        receiveMetadata({barcodeSearchResults: []}),
                         ...getGoForwardActions(Page.EnterBarcode, getState(), remote.Menu.getApplicationMenu()),
                     ];
                     dispatch(batchActions(actions));
