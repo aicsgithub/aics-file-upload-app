@@ -51,14 +51,14 @@ import { State } from "../../state/types";
 
 const styles = require("./style.pcss");
 
-export interface LabkeyBarcodeSelectorOption {
+export interface BarcodeSelectorOption {
     barcode: string;
     imagingSessionIds: Array<number | null>;
 }
 
 interface EnterBarcodeProps {
     barcodePrefixes: BarcodePrefix[];
-    barcodeSearchResults: LabkeyBarcodeSelectorOption[];
+    barcodeSearchResults: BarcodeSelectorOption[];
     className?: string;
     createBarcode: ActionCreator<CreateBarcodeAction>;
     getBarcodeSearchResults: ActionCreator<GetBarcodeSearchResultsAction>;
@@ -111,7 +111,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
     public render() {
         const {barcode} = this.state;
         const {barcodeSearchResults, className, loadingBarcodes, saveInProgress} = this.props;
-        const options: ReactNodeArray = barcodeSearchResults.map((option: LabkeyBarcodeSelectorOption) => (
+        const options: ReactNodeArray = barcodeSearchResults.map((option: BarcodeSelectorOption) => (
             <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
         ));
         return (
@@ -164,6 +164,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 <Col xs={16} md={20}>
                     <div>Barcode Prefix <span className={styles.asterisk}>*</span></div>
                     <Select
+                        autoFocus={true}
                         className={styles.select}
                         value={barcodePrefix}
                         onSelect={this.setBarcodePrefixOption}
@@ -253,10 +254,14 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 
     private onBarcodeChange(value: SelectValue): void {
         if (value) {
+            const matchingResult = this.props.barcodeSearchResults
+                .filter((r: BarcodeSelectorOption) => r.barcode === value);
+            const imagingSessionIds = matchingResult.length > 0 ? matchingResult[0].imagingSessionIds : [];
             this.setState({
                 barcode: value as string,
                 barcodePrefix: undefined,
                 imagingSessionId: undefined,
+                imagingSessionIds,
                 showCreateBarcodeForm: false,
             });
         } else {

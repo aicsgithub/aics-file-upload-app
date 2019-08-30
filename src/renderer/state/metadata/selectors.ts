@@ -1,6 +1,6 @@
 import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
-import { LabkeyBarcodeSelectorOption } from "../../containers/EnterBarcode";
+import { BarcodeSelectorOption } from "../../containers/EnterBarcode";
 
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
 import { State } from "../types";
@@ -18,7 +18,7 @@ export const getBarcodeSearchResults = (state: State) => state.metadata.barcodeS
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([
     getBarcodeSearchResults,
-], (allPlates: LabkeyPlateResponse[]): LabkeyBarcodeSelectorOption[] => {
+], (allPlates: LabkeyPlateResponse[]): BarcodeSelectorOption[] => {
     const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
     return uniquePlateBarcodes.map((plate) => {
         const imagingSessionIds = allPlates
