@@ -105,7 +105,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
     }
 
     public render() {
-        const disableSaveButton = !this.props.uploads.length || !this.props.schemaFile || this.requiredValuesMissing();
+        const disableSaveButton = !(this.props.uploads.length && this.props.schemaFile && this.requiredValuesPresent());
         return (
             <FormPage
                 className={this.props.className}
@@ -227,7 +227,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         this.props.goForward();
     }
 
-    private requiredValuesMissing = (): boolean => {
+    private requiredValuesPresent = (): boolean => {
         const {schema} = this.state;
         if (schema) {
             return !schema.columns.every(({label, type: { type }, required}: ColumnDefinition) => {
@@ -236,10 +236,10 @@ class UploadJob extends React.Component<Props, UploadJobState> {
                         return Boolean(upload[label]);
                     });
                 }
-                return true;
+                return false;
             });
         }
-        return false;
+        return true;
     }
 
     private handleError = (error: string, errorFile?: string) => {
