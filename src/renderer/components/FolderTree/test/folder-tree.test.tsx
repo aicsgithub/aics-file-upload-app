@@ -7,6 +7,7 @@ import * as sinon from "sinon";
 
 import FolderTree from "../";
 import { selection } from "../../../state";
+import { setAlert } from "../../../state/feedback/actions";
 import { UploadFileImpl } from "../../../state/selection/models/upload-file";
 import { UploadFile } from "../../../state/selection/types";
 
@@ -22,11 +23,11 @@ describe("<FolderTree/>", () => {
     let testFolderKey: string;
 
     beforeEach(() => {
-        testFolder = new UploadFileImpl(FOLDER_NAME, TEST_DIRNAME, true);
+        testFolder = new UploadFileImpl(FOLDER_NAME, TEST_DIRNAME, true, true);
         files = [
             testFolder,
         ];
-        testFolderKey = FolderTree.getFolderKey(testFolder.fullPath);
+        testFolderKey = FolderTree.getKey(testFolder);
     });
 
     describe("onExpand", () => {
@@ -36,11 +37,12 @@ describe("<FolderTree/>", () => {
             const getFilesInFolder = sinon.fake();
             const wrapper = shallow(
                 <FolderTree
-                        files={files}
-                        getFilesInFolder={getFilesInFolder}
-                        onCheck={ON_CHECK}
-                        selectedKeys={[]}
-                        fileToTags={new Map()}
+                    files={files}
+                    getFilesInFolder={getFilesInFolder}
+                    onCheck={ON_CHECK}
+                    selectedKeys={[]}
+                    fileToTags={new Map()}
+                    setAlert={setAlert}
                 />
             );
 
@@ -65,6 +67,7 @@ describe("<FolderTree/>", () => {
                     onCheck={ON_CHECK}
                     selectedKeys={[]}
                     fileToTags={new Map()}
+                    setAlert={setAlert}
                 />
             );
 
@@ -98,9 +101,9 @@ describe("<FolderTree/>", () => {
         });
 
         it("should return folder if it exists within another folder", () => {
-            const targetFolder = new UploadFileImpl("secrets", testFolder.fullPath, true);
+            const targetFolder = new UploadFileImpl("secrets", testFolder.fullPath, true, true);
             testFolder.files = [
-                new UploadFileImpl("animals", testFolder.fullPath, true),
+                new UploadFileImpl("animals", testFolder.fullPath, true, true),
                 targetFolder,
             ];
             const result = FolderTree.getMatchingFolderFromPath([testFolder], targetFolder.fullPath);
