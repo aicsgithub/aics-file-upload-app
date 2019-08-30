@@ -50,7 +50,7 @@ describe("Selections selectors", () => {
                 solutionName: "testSolution",
             },
             volume: "100",
-            volumeUnitId: 1,
+            volumeUnitsId: 1,
         };
 
         const mockWell: WellResponse = {

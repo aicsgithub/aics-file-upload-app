@@ -14,7 +14,7 @@ import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { DatabaseMetadata } from "../../state/metadata/types";
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 
-import CheckboxEditor from "../CheckboxEditor";
+import CheckboxEditor from "../CheckBoxEditor";
 import FormControl from "../FormControl";
 
 import ColumnTypeEditor from "./ColumnTypeEditor";
