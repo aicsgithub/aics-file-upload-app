@@ -27,25 +27,6 @@ const SCHEMAS = [
 ];
 
 export default class LabkeyClient {
-    /**
-     * Searches plates where the barcode contains searchString
-     * @param labkeyUrl (includes protocol and port if necessary)
-     * @param searchString fragment of a barcode
-     */
-    public static async getPlatesByBarcode(labkeyUrl: string, searchString: string):
-        Promise<LabkeyPlateResponse[]> {
-        const query = LabkeyClient.getSelectRowsURL("microscopy", "Plate", [
-            `query.barcode~contains=${searchString}`,
-        ]);
-
-        const response: GetBarcodesResponse = await axios.get(`${labkeyUrl}${query}`);
-        const plates: LabkeyPlate[] = response.data.rows;
-        return map(plates, (p) => ({
-            barcode: p.BarCode,
-            imagingSessionId: p.ImagingSessionId,
-        }));
-    }
-
     private static getSelectRowsURL = (schema: string, table: string, additionalQueries: string[] = []) => {
         const base = `/AICS/query-selectRows.api?schemaName=${schema}&query.queryName=${table}`;
         if (!isEmpty(additionalQueries)) {
@@ -69,6 +50,24 @@ export default class LabkeyClient {
         this.protocol = protocol;
         this.host = host;
         this.port = port;
+    }
+
+    /**
+     * Searches plates where the barcode contains searchString
+     * @param searchString fragment of a barcode
+     */
+    public async getPlatesByBarcode(searchString: string):
+        Promise<LabkeyPlateResponse[]> {
+        const query = LabkeyClient.getSelectRowsURL("microscopy", "Plate", [
+            `query.barcode~contains=${searchString}`,
+        ]);
+
+        const response: GetBarcodesResponse = await this.httpClient.get(query);
+        const plates: LabkeyPlate[] = response.data.rows;
+        return map(plates, (p) => ({
+            barcode: p.BarCode,
+            imagingSessionId: p.ImagingSessionId,
+        }));
     }
 
     /**

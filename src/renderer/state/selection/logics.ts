@@ -195,6 +195,7 @@ const getFilesInFolderLogic = createLogic({
     type: GET_FILES_IN_FOLDER,
 });
 
+const pagesToAllowSwitchingEnvironments = [Page.UploadJobs, Page.DragAndDrop];
 const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
     if (menu) {
         // have to cast here because Electron's typings for MenuItem is incomplete
@@ -204,7 +205,7 @@ const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
             const switchEnvironmentMenuItem = fileMenu.submenu.items
                 .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
             if (switchEnvironmentMenuItem) {
-                switchEnvironmentMenuItem.enabled = ![Page.AssociateFiles, Page.UploadJobs].includes(nextPage);
+                switchEnvironmentMenuItem.enabled = pagesToAllowSwitchingEnvironments.includes(nextPage);
             } else {
                 Logger.warn("Could not update application menu");
             }

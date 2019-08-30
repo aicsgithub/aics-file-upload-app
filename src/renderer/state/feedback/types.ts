@@ -43,6 +43,7 @@ export interface ClearAlertAction {
 }
 
 export enum AsyncRequest {
+    GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
     GET_PLATE = "GET_PLATE",
     GET_JOBS = "GET_JOBS",
     RETRY_UPLOAD = "RETRY_UPLOAD",

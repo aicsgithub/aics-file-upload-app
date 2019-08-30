@@ -3,8 +3,7 @@ import { SelectValue } from "antd/es/select";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
-import { debounce, get, uniqBy } from "lodash";
-import * as memoize from "memoizee";
+import { debounce, get } from "lodash";
 import { ReactNodeArray } from "react";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -18,16 +17,17 @@ import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import {
     createBarcode,
-    requestBarcodePrefixes,
-    requestImagingSessions,
-    requestPlatesByBarcode,
+    requestBarcodeSearchResults,
 } from "../../state/metadata/actions";
-import { getBarcodePrefixes, getImagingSessions } from "../../state/metadata/selectors";
+import {
+    getBarcodePrefixes,
+    getImagingSessions,
+    getUniqueBarcodeSearchResults,
+} from "../../state/metadata/selectors";
 import {
     BarcodePrefix,
     CreateBarcodeAction,
-    GetBarcodePrefixesAction,
-    GetImagingSessionsAction,
+    GetBarcodeSearchResultsAction,
     ImagingSession,
 } from "../../state/metadata/types";
 import {
@@ -47,29 +47,25 @@ import {
     SelectBarcodeAction,
     SelectWorkflowPathAction
 } from "../../state/selection/types";
-import { getLimsUrl } from "../../state/setting/selectors";
 import { State } from "../../state/types";
-import LabkeyClient from "../../util/labkey-client";
-import { LabkeyPlateResponse } from "../../util/labkey-client/types";
 
 const styles = require("./style.pcss");
 
-interface LabkeyBarcodeSelectorOption {
+export interface LabkeyBarcodeSelectorOption {
     barcode: string;
     imagingSessionIds: Array<number | null>;
 }
 
 interface EnterBarcodeProps {
     barcodePrefixes: BarcodePrefix[];
+    barcodeSearchResults: LabkeyBarcodeSelectorOption[];
     className?: string;
     createBarcode: ActionCreator<CreateBarcodeAction>;
-    // get the most recent list of all imaging sessions in the db
-    getImagingSessions: ActionCreator<GetImagingSessionsAction>;
-    getBarcodePrefixes: ActionCreator<GetBarcodePrefixesAction>;
+    getBarcodeSearchResults: ActionCreator<GetBarcodeSearchResultsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
     imagingSessions: ImagingSession[];
-    limsUrl: string;
+    loadingBarcodes: boolean;
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     selectedBarcode?: string;
@@ -84,77 +80,38 @@ interface EnterBarcodeProps {
 
 interface EnterBarcodeState {
     barcode?: string;
-    barcodes: LabkeyBarcodeSelectorOption[];
     barcodePrefix?: BarcodePrefix;
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
-    loadingBarcodes: boolean;
     showCreateBarcodeForm: boolean;
 }
 
-export const createOptionsFromGetPlatesResponse = memoize((allPlates: LabkeyPlateResponse[]) => {
-    const uniquePlateBarcodes = uniqBy(allPlates, "barcode");
-    return uniquePlateBarcodes.map((plate) => {
-        const imagingSessionIds = allPlates
-            .filter((otherPlate) => otherPlate.barcode === plate.barcode)
-            .map((p) => p.imagingSessionId);
-        return {
-            barcode: plate.barcode,
-            imagingSessionIds,
-        };
-    });
-});
-
 class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState> {
-    private searchForPlates = memoize((barcodeFragment: string, limsUrl: string): Promise<LabkeyPlateResponse[]> =>
-        LabkeyClient.getPlatesByBarcode(`${limsUrl}/labkey`, barcodeFragment)
-    );
+    private onBarcodeInput = debounce((input: string): void => {
+        this.props.getBarcodeSearchResults(input);
+    }, 500);
 
     constructor(props: EnterBarcodeProps) {
         super(props);
         this.state = {
             barcode: props.selectedBarcode,
-            barcodes: [],
             imagingSessionId: props.selectedImagingSessionId,
             imagingSessionIds: props.selectedImagingSessionIds,
-            loadingBarcodes: false,
             showCreateBarcodeForm: false,
         };
         this.onBarcodeChange = this.onBarcodeChange.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
         this.setAlert = debounce(this.setAlert.bind(this), 2000);
-        this.onBarcodeInput = debounce(this.onBarcodeInput, 500);
 
         ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, imagingSessionId: number | null) => {
             this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
-            this.searchForPlates.clear(); // clear all cached barcodes in order for plate to be searchable
         });
     }
 
-    public componentDidMount() {
-        this.props.getImagingSessions();
-        this.props.getBarcodePrefixes();
-    }
-
-    public componentDidUpdate(prevProps: Readonly<EnterBarcodeProps>): void {
-        if (prevProps.limsUrl !== this.props.limsUrl) {
-            this.setState({
-                barcode: undefined,
-                barcodes: [],
-                imagingSessionId: undefined,
-                imagingSessionIds: [],
-                loadingBarcodes: false,
-                showCreateBarcodeForm: false,
-            });
-            this.props.getImagingSessions();
-            this.props.getBarcodePrefixes();
-        }
-    }
-
     public render() {
-        const {barcode, barcodes, loadingBarcodes} = this.state;
-        const {className, saveInProgress} = this.props;
-        const options: ReactNodeArray = barcodes.map((option: LabkeyBarcodeSelectorOption) => (
+        const {barcode} = this.state;
+        const {barcodeSearchResults, className, loadingBarcodes, saveInProgress} = this.props;
+        const options: ReactNodeArray = barcodeSearchResults.map((option: LabkeyBarcodeSelectorOption) => (
             <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
         ));
         return (
@@ -231,28 +188,6 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 </Col>
             </Row>
         );
-    }
-
-    private onBarcodeInput = async (input: string): Promise<void> => {
-        if (input) {
-            const { limsUrl } = this.props;
-            this.setState({loadingBarcodes: true});
-
-            try {
-                const plates = await this.searchForPlates(input, limsUrl);
-                const barcodes = createOptionsFromGetPlatesResponse(plates);
-                this.setState({barcodes, loadingBarcodes: false});
-            } catch (e) {
-                this.props.setAlert({
-                    message: e,
-                    type: AlertType.ERROR,
-                });
-                this.setState({loadingBarcodes: false});
-            }
-
-        } else {
-            this.setState({barcodes: []});
-        }
     }
 
     private renderPlateOptions = (): JSX.Element | null => {
@@ -359,8 +294,9 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 function mapStateToProps(state: State) {
     return {
         barcodePrefixes: getBarcodePrefixes(state),
+        barcodeSearchResults: getUniqueBarcodeSearchResults(state),
         imagingSessions: getImagingSessions(state),
-        limsUrl: getLimsUrl(state),
+        loadingBarcodes: getRequestsInProgressContains(state, AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
         selectedBarcode: getSelectedBarcode(state),
         selectedImagingSessionId: getSelectedImagingSessionId(state),
@@ -370,9 +306,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     createBarcode,
-    getBarcodePrefixes: requestBarcodePrefixes,
-    getImagingSessions: requestImagingSessions,
-    getPlatesByBarcode: requestPlatesByBarcode,
+    getBarcodeSearchResults: requestBarcodeSearchResults,
     goBack,
     goForward,
     selectBarcode,

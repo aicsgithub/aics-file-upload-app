@@ -71,6 +71,7 @@ export const mockState: State = {
     },
     metadata: {
         barcodePrefixes: [],
+        barcodeSearchResults: [],
         history: {
             selection: {},
             upload: {},

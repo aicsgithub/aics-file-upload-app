@@ -12,6 +12,7 @@ import {
 
 export const initialState = {
     barcodePrefixes: [],
+    barcodeSearchResults: [],
     barcodes: [],
     history: {
         selection: {},
