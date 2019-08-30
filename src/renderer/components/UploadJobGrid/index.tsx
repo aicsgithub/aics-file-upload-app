@@ -185,6 +185,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         },
         ...innerColumns,
         {
+            editable: true,
             formatter: ({ row, value }: FormatterProps) => (
                 this.renderFormat(
                     row,
