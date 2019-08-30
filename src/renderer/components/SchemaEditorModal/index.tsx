@@ -1,6 +1,5 @@
 import { Button, Modal } from "antd";
 import TextArea from "antd/lib/input/TextArea";
-import classNames from "classnames";
 import { remote } from "electron";
 import { writeFile } from "fs";
 import { isEmpty, uniqBy, without } from "lodash";
@@ -15,9 +14,9 @@ import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { DatabaseMetadata } from "../../state/metadata/types";
 import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 
+import CheckboxEditor from "../CheckBoxEditor";
 import FormControl from "../FormControl";
 
-import BooleanEditor from "./BooleanEditor";
 import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
 
@@ -178,12 +177,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         },
         {
             editable: true,
-            editor: BooleanEditor,
-            formatter: ({ value }: any) => (
-                <div className={classNames(styles.required, value ? styles.true : styles.false)}>
-                    {value ? "True" : "False"}
-                </div>
-            ),
+            editor: CheckboxEditor,
+            formatter: ({ value }: any) => <div className={styles.required}>{value ? "True" : "False"}</div>,
             key: "required",
             name: "Required?",
             tables: this.props.tables,

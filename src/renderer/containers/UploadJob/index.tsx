@@ -98,9 +98,9 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         };
     }
 
-    public async componentDidMount() {
+    public componentDidMount() {
         if (this.props.schemaFile) {
-            await this.readFile(this.props.schemaFile);
+            this.readFile(this.props.schemaFile);
         }
     }
 
