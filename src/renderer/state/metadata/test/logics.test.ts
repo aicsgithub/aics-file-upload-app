@@ -5,9 +5,23 @@ import { createSandbox, stub } from "sinon";
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { createMockReduxStore, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { mockBarcodePrefixes, mockImagingSessions, mockState } from "../../test/mocks";
-import { requestBarcodePrefixes, requestImagingSessions } from "../actions";
-import { getBarcodePrefixes, getImagingSessions } from "../selectors";
+import {
+    mockBarcodePrefixes,
+    mockDatabaseMetadata,
+    mockImagingSessions,
+    mockSelectedWorkflows,
+    mockState,
+    mockUnit,
+} from "../../test/mocks";
+import { requestMetadata } from "../actions";
+
+import {
+    getBarcodePrefixes,
+    getDatabaseMetadata,
+    getImagingSessions,
+    getUnits,
+    getWorkflowOptions,
+} from "../selectors";
 
 describe("Metadata logics", () => {
     const sandbox = createSandbox();
@@ -16,87 +30,58 @@ describe("Metadata logics", () => {
         sandbox.restore();
     });
 
-    describe("requestImagingSessions", () => {
-        it("sets imaging session given OK response", (done) => {
-            const getStub = stub().resolves({
-                data: {
-                    rows: mockImagingSessions,
-                },
-            });
-            sandbox.replace(labkeyClient, "getImagingSessions", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+    describe("requestMetadata", () => {
+        it("sets metadata given OK response", (done) => {
+            const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
+            const getDatabaseMetadataStub = stub().resolves(mockDatabaseMetadata);
+            const getImagingSessionsStub = stub().resolves(mockImagingSessions);
+            const getUnitsStub = stub().resolves([mockUnit]);
+            const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
 
-            // before
-            expect(getImagingSessions(store.getState())).to.be.empty;
-
-            // apply
-            store.dispatch(requestImagingSessions());
-
-            // after
-            store.subscribe(() => {
-                expect(getImagingSessions(store.getState())).to.not.be.empty;
-                done();
-            });
-        });
-
-        it("sets alert given non-OK response", (done) => {
-            const getStub = stub().rejects();
-            sandbox.replace(labkeyClient, "getImagingSessions", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
-
-            // before
-            expect(getAlert(store.getState())).to.be.undefined;
-
-            // apply
-            store.dispatch(requestImagingSessions());
-
-            // after
-            store.subscribe(() => {
-                const alert = getAlert(store.getState());
-                expect(alert).to.not.be.undefined;
-                expect(get(alert, "type")).to.equal(AlertType.ERROR);
-                expect(get(alert, "message")).to.equal("Could not retrieve imaging session metadata");
-                done();
-            });
-        });
-    });
-
-    describe("requestBarcodePrefixes", () => {
-        it("sets barcode prefix given OK response", (done) => {
-            const getStub = stub().resolves(mockBarcodePrefixes);
-            sandbox.replace(labkeyClient, "getBarcodePrefixes", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
-
-            // before
-            expect(getBarcodePrefixes(store.getState())).to.be.empty;
-
-            // apply
-            store.dispatch(requestBarcodePrefixes());
-
-            // after
-            store.subscribe(() => {
-                expect(getBarcodePrefixes(store.getState())).to.not.be.empty;
-                done();
-            });
-        });
-
-        it("sets alert given non-OK response", (done) => {
-            const getBarcodePrefixesStub = stub().rejects();
             sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
+            sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
+            sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
+            sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
+            sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getBarcodePrefixes(state)).to.be.empty;
+            expect(getDatabaseMetadata(state)).to.be.undefined;
+            expect(getImagingSessions(state)).to.be.empty;
+            expect(getUnits(state)).to.be.empty;
+            expect(getWorkflowOptions(state)).to.be.empty;
+
+            store.dispatch(requestMetadata());
+
+            store.subscribe(() => {
+                state = store.getState();
+                expect(getBarcodePrefixes(state)).to.not.be.empty;
+                expect(getDatabaseMetadata(state)).to.not.be.undefined;
+                expect(getImagingSessions(state)).to.not.be.empty;
+                expect(getUnits(state)).to.not.be.empty;
+                expect(getWorkflowOptions(state)).to.not.be.empty;
+                done();
+            });
+        });
+        it("sets alert given non-OK response", (done) => {
+            const getImagingSessionsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
             const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getAlert(store.getState())).to.be.undefined;
 
             // apply
-            store.dispatch(requestBarcodePrefixes());
+            store.dispatch(requestMetadata());
 
             // after
             store.subscribe(() => {
                 const alert = getAlert(store.getState());
                 expect(alert).to.not.be.undefined;
                 expect(get(alert, "type")).to.equal(AlertType.ERROR);
-                expect(get(alert, "message")).to.equal("Could not retrieve barcode prefix metadata");
+                expect(get(alert, "message")).to.equal("Failed to retrieve metadata.");
                 done();
             });
         });

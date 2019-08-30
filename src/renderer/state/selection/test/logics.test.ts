@@ -30,6 +30,7 @@ import {
 } from "../types";
 
 describe("Selection logics", () => {
+    const sandbox = createSandbox();
     const FILE_NAME = "cells.txt";
     const TEST_FILES_DIR = "files";
     const FOLDER_NAME = "a_directory";
@@ -52,6 +53,10 @@ describe("Selection logics", () => {
         expect(folder.fullPath).to.equal(FOLDER_FULL_PATH);
         expect(folder.files.length).to.equal(2);
     };
+
+    afterEach(() => {
+        sandbox.restore();
+    });
 
     describe("loadFilesLogic", () => {
         let fileList: DragAndDropFileList;
@@ -124,7 +129,8 @@ describe("Selection logics", () => {
             store.subscribe(() => {
                 // after
                 const stagedFiles = selections.selectors.getStagedFiles(store.getState());
-                expect(stagedFiles.length).to.equal(fileList.length);
+                expect(stagedFiles.length === fileList.length).to.be.true;
+                // expect(stagedFiles.length).to.equal(fileList.length);
 
                 testStagedFilesCreated(stagedFiles);
                 done();
@@ -347,7 +353,6 @@ describe("Selection logics", () => {
     });
 
     describe("selectBarcodeLogic", () => {
-        const sandbox = createSandbox();
         const barcode = "1234";
         const plateId = 1;
         let mockOkGetPlateResponse: GetPlateResponse;
@@ -391,10 +396,6 @@ describe("Selection logics", () => {
                     statusText: "Bad Gateway",
                 },
             };
-        });
-
-        afterEach(() => {
-            sandbox.restore();
         });
 
         it("Adds GET wells request to requests in progress", (done) => {
