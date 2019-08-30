@@ -98,6 +98,12 @@ class UploadJob extends React.Component<Props, UploadJobState> {
         };
     }
 
+    public async componentDidMount() {
+        if (this.props.schemaFile) {
+            await this.readFile(this.props.schemaFile);
+        }
+    }
+
     public render() {
         const disableSaveButton = !this.props.uploads.length || !this.props.schemaFile || this.requiredValuesMissing();
         return (
