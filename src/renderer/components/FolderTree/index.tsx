@@ -1,7 +1,15 @@
-import { Icon, Spin, Tag, Tree } from "antd";
+import {
+    Icon,
+    Spin,
+    Tag,
+    Tooltip,
+    Tree
+} from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
+import { ActionCreator } from "redux";
 
+import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { GetFilesInFolderAction, SelectFileAction, UploadFile } from "../../state/selection/types";
 import { FileTagType } from "../../state/upload/types";
 import Resizable from "../Resizable";
@@ -12,6 +20,7 @@ interface FolderTreeProps {
     className?: string;
     files: UploadFile[];
     getFilesInFolder: (folderToExpand: UploadFile) => GetFilesInFolderAction;
+    setAlert: ActionCreator<SetAlertAction>;
     isLoading?: boolean;
     onCheck: (files: string[]) => SelectFileAction;
     selectedKeys: string[];
@@ -25,10 +34,18 @@ interface FolderTreeState {
 
 // Added to the keys used for Tree.TreeNode in order to quickly identify folders from files.
 const FOLDER_TAG = "(folder)";
+const CANT_READ_TAG = "(cant read)";
 
 class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
-    public static getFolderKey(path: string): string {
-        return `${path}${FOLDER_TAG}`;
+    public static getKey(file: UploadFile): string {
+        let key = file.fullPath;
+        if (file.isDirectory) {
+            key += FOLDER_TAG;
+        }
+        if (!file.canRead) {
+            key += CANT_READ_TAG;
+        }
+        return key;
     }
 
     // Recursively searches files and the child files for the first folder whose full path is equivalent to path
@@ -85,7 +102,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     {!isLoading && <Tree.DirectoryTree
                         checkable={false}
                         multiple={true}
-                        defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getFolderKey(file.fullPath))}
+                        defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getKey(file))}
                         onSelect={this.onSelect}
                         onExpand={this.onExpand}
                         selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
@@ -98,9 +115,20 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         );
     }
 
+    // Select files; Excludes any folders and any files the user doesn't have permission to read
     private onSelect(files: string[]) {
-        const filesExcludingFolders = files.filter((file: string) => !file.includes(FOLDER_TAG));
-        this.props.onCheck(filesExcludingFolders);
+        const nonReadableFiles = files.filter((file: string) => !file.includes(CANT_READ_TAG));
+        if (nonReadableFiles.length) {
+            this.props.setAlert({
+                message: `You have selected files that you do not have permission for: ${nonReadableFiles}`,
+                type: AlertType.WARN,
+            });
+        }
+        const selectableFiles = files.filter((file: string) =>
+            !file.includes(FOLDER_TAG) && !file.includes(CANT_READ_TAG));
+        if (selectableFiles.length) {
+            this.props.onCheck(selectableFiles);
+        }
     }
 
     private onExpand(expandedKeys: string[]): void {
@@ -120,6 +148,13 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
     }
 
     private renderChildDirectories(file: UploadFile): React.ReactNode {
+        const wrapNoPermissionTooltip = (children: React.ReactNode | React.ReactNodeArray) => (
+            <Tooltip key={FolderTree.getKey(file)} title="You do not have permissions for this file/directory">
+                <span>
+                    {children}
+                </span>
+            </Tooltip>
+        );
         if (!file.isDirectory) {
             const {fileToTags} = this.props;
             const fileName: JSX.Element = <span className={styles.fileName}>{file.name}</span>;
@@ -133,20 +168,29 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             }
 
             const fileDisplay = (
-                <React.Fragment>
+                <>
                     <span>{fileName}</span>
                     {tagEls}
-                </React.Fragment>
+                </>
             );
-            return <Tree.TreeNode className={styles.treeNode} title={fileDisplay} key={file.fullPath} isLeaf={true}/>;
+            return (
+                <Tree.TreeNode
+                    className={styles.treeNode}
+                    disabled={!file.canRead}
+                    isLeaf={true}
+                    key={FolderTree.getKey(file)}
+                    title={file.canRead ? fileDisplay : wrapNoPermissionTooltip(fileDisplay)}
+                />
+            );
         }
 
         return (
             <Tree.TreeNode
-                title={file.name}
-                key={FolderTree.getFolderKey(file.fullPath)}
-                isLeaf={false}
                 className={styles.treeNode}
+                disabled={!file.canRead}
+                isLeaf={false}
+                key={FolderTree.getKey(file)}
+                title={file.canRead ? file.name : wrapNoPermissionTooltip(file.name)}
             >
                 {file.files.map((child: UploadFile) => this.renderChildDirectories(child))}
             </Tree.TreeNode>

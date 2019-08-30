@@ -244,6 +244,7 @@ class App extends React.Component<AppProps, AppState> {
                            isLoading={loading}
                            onCheck={selectFile}
                            selectedKeys={selectedFiles}
+                           setAlert={setAlert}
                            fileToTags={fileToTags}
                        />
                     }

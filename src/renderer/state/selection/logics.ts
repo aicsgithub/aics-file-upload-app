@@ -6,6 +6,8 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
 
+import { canUserRead } from "../../util";
+
 import { API_WAIT_TIME_SECONDS } from "../constants";
 import {
     addRequestToInProgress,
@@ -77,14 +79,14 @@ const mergeChildPaths = (filePaths: string[]): string[] => {
 };
 
 const getUploadFilePromise = async (name: string, path: string): Promise<UploadFile> => {
-    const stats: Stats = await stat(resolvePath(path, name));
+    const fullPath = resolvePath(path, name);
+    const stats: Stats = await stat(fullPath);
     const isDirectory = stats.isDirectory();
-    const file = new UploadFileImpl(name, path, isDirectory);
-
-    if (isDirectory) {
+    const canRead = await canUserRead(fullPath);
+    const file = new UploadFileImpl(name, path, isDirectory, canRead);
+    if (isDirectory && canRead) {
         file.files = await Promise.all(await file.loadFiles());
     }
-
     return file;
 };
 
@@ -99,13 +101,10 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
         done();
 
     } catch (e) {
-        // tslint:disable-next-line
-        console.log(e);
-
         dispatch(batchActions([
             stopLoading(),
             setAlert({
-                message: "Encountered error while resolving files",
+                message: `Encountered error while resolving files: ${e}`,
                 type: AlertType.ERROR,
             }),
         ]));
@@ -186,8 +185,10 @@ const getFilesInFolderLogic = createLogic({
             const stagedFiles = [...getStagedFiles(getState())];
             next(updateStagedFiles(getNewStagedFiles(stagedFiles, folder)));
         } catch (e) {
-            // tslint:disable-next-line
-           console.log(e);
+           next(setAlert({
+               message: `Encountered error while resolving files: ${e}`,
+               type: AlertType.ERROR,
+           }));
         }
 
     },
