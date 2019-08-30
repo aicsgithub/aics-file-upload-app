@@ -185,6 +185,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         },
         ...innerColumns,
         {
+            editable: true,
             formatter: ({ row, value }: FormatterProps) => (
                 this.renderFormat(
                     row,
@@ -193,7 +194,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                         <NoteIcon
                             handleError={this.handleError}
                             notes={row.notes}
-                            saveNotes={this.saveNotesByRow(row)}
+                            saveNotes={this.saveNotesByRowAndSelectedFiles(row)}
                         />
                     ))
             ),
@@ -322,8 +323,16 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
         }
     )
 
-    private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
-        return (notes: string | undefined) => this.props.updateUpload(row.file, {notes});
+    private saveNotesByRowAndSelectedFiles = (row: UploadJobTableRow): (notes: string | undefined) => void => {
+        return (notes: string | undefined) => {
+            const fileSet = new Set(this.state.selectedFiles);
+            fileSet.add(row.file);
+            // Users expect every row that is currently selected to also get updated when they update a row of notes
+            fileSet.forEach((file: string) => {
+                console.log(`File: ${file}, notes: ${notes}`);
+                this.props.updateUpload(file, {notes});
+            });
+        }
     }
 
     private handleError = (error: string, errorFile?: string) => {
