@@ -7,6 +7,7 @@ const styles = require("./style.pcss");
 
 interface FormPageProps {
     backButtonDisabled?: boolean;
+    buttonsHidden?: boolean;
     children: ReactNode | ReactNodeArray;
     className?: string;
     formTitle: string;
@@ -44,6 +45,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
         const {
             backButtonDisabled,
             backButtonName,
+            buttonsHidden,
             children,
             className,
             formPrompt,
@@ -67,7 +69,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {children}
                     </div>
                 </div>
-                <div className={styles.buttonContainer}>
+                {!buttonsHidden && <div className={styles.buttonContainer}>
                     {onBack ? <Button
                         size="large"
                         onClick={this.onBack}
@@ -84,7 +86,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {saveInProgress ? "Loading" : saveButtonName}
                         {FormPage.renderSpinner(saveInProgress)}
                     </Button> : <div/>}
-                </div>
+                </div>}
             </div>
         );
     }

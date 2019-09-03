@@ -1,7 +1,9 @@
 import "@aics/aics-react-labkey/dist/styles.css";
-import { message } from "antd";
+import { message, Radio } from "antd";
+import { RadioChangeEvent } from "antd/es/radio";
 import { ipcRenderer, remote } from "electron";
 import { readFile } from "fs";
+import { startCase } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -89,6 +91,10 @@ interface AppProps {
 }
 
 interface AppState {
+    // We want to separate the idea of the actual page and the view we are showing
+    // The actual page we are on is the page in props, but we might want to show
+    // a different page (like UploadSummary) in some event
+    view: Page;
     schema?: SchemaDefinition;
     schemaFilepath?: string;
 }
@@ -97,22 +103,27 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop"/>,
         folderTreeVisible: false,
+        summaryPageVisible: false,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
         folderTreeVisible: true,
+        summaryPageVisible: true,
     }],
     [Page.AssociateFiles, {
         container:  <AssociateFiles key="associateFiles" className={styles.mainContent}/>,
         folderTreeVisible: true,
+        summaryPageVisible: true,
     }],
     [Page.UploadJobs, {
         container: <UploadJobs key="uploadJobs" className={styles.mainContent}/>,
         folderTreeVisible: true,
+        summaryPageVisible: true,
     }],
     [Page.UploadSummary, {
         container: <UploadSummary key="uploadSummary" className={styles.mainContent}/>,
         folderTreeVisible: false,
+        summaryPageVisible: false,
     }],
 ]);
 
@@ -122,6 +133,7 @@ message.config({
 
 class App extends React.Component<AppProps, AppState> {
     public state: AppState = {
+        view: this.props.page,
     };
 
     public componentDidMount() {
@@ -186,8 +198,8 @@ class App extends React.Component<AppProps, AppState> {
 
     }
 
-    public componentDidUpdate() {
-        const { alert, clearAlert: dispatchClearAlert } = this.props;
+    public componentDidUpdate(prevProps: AppProps) {
+        const { alert, clearAlert: dispatchClearAlert, page } = this.props;
         if (alert) {
             const { message: alertText, manualClear, type} = alert;
             const alertBody = <div>{alertText}</div>;
@@ -210,6 +222,10 @@ class App extends React.Component<AppProps, AppState> {
 
             dispatchClearAlert();
         }
+        // This will happen when the user proceeds to the next page (or previous page)
+        if (page !== prevProps.page) {
+            this.setState({ view: page });
+        }
     }
 
     public render() {
@@ -226,10 +242,11 @@ class App extends React.Component<AppProps, AppState> {
             page,
             tables,
         } = this.props;
-        const { schema, schemaFilepath } = this.state;
+        const { schema, schemaFilepath, view } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
+        const pageToShow = APP_PAGE_TO_CONFIG_MAP.get(view);
 
-        if (!pageConfig) {
+        if (!pageConfig || !pageToShow) {
             return null;
         }
 
@@ -248,7 +265,21 @@ class App extends React.Component<AppProps, AppState> {
                            fileToTags={fileToTags}
                        />
                     }
-                    {pageConfig.container}
+                    <span className={styles.pageViewContainer}>
+                        {pageConfig.summaryPageVisible &&
+                            <Radio.Group
+                                buttonStyle="solid"
+                                className={styles.pageViewButtons}
+                                defaultValue={page}
+                                onChange={this.onPageViewChange}
+                                value={view}
+                            >
+                                <Radio.Button value={page}>{startCase(page)}</Radio.Button>
+                                <Radio.Button value={Page.UploadSummary}>{startCase(Page.UploadSummary)}</Radio.Button>
+                            </Radio.Group>
+                        }
+                        {pageToShow.container}
+                    </span>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
@@ -262,6 +293,10 @@ class App extends React.Component<AppProps, AppState> {
                 />
             </div>
         );
+    }
+
+    private onPageViewChange = (e: RadioChangeEvent) => {
+        this.setState({ view: e.target.value });
     }
 }
 

@@ -224,6 +224,7 @@ export enum Page {
 export interface AppPageConfig {
     container: JSX.Element;
     folderTreeVisible: boolean;
+    summaryPageVisible: boolean;
 }
 
 export interface GoBackAction {

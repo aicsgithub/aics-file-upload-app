@@ -14,6 +14,7 @@ import { retrieveJobs } from "../../state/job/actions";
 import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage } from "../../state/selection/actions";
+import { getPage } from "../../state/selection/selectors";
 import { Page, SelectPageAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { retryUpload } from "../../state/upload/actions";
@@ -32,6 +33,7 @@ interface Props {
     allJobsComplete: boolean;
     className?: string;
     jobs: UploadSummaryTableRow[];
+    page: Page;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     retrying: boolean;
     retryUpload: ActionCreator<RetryUploadAction>;
@@ -96,11 +98,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         const {
             className,
             jobs,
+            page,
             retrying,
         } = this.props;
         const selectedJob = this.getSelectedJob();
         return (
             <FormPage
+                buttonsHidden={page !== Page.UploadSummary}
                 className={className}
                 formTitle="YOUR UPLOADS"
                 formPrompt=""
@@ -157,6 +161,7 @@ function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
         jobs: getJobsForTable(state),
+        page: getPage(state),
         retrying: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD),
     };
 }
