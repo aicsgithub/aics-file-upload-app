@@ -65,7 +65,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
             case ColumnType.BOOLEAN:
                 input = (
                     <BooleanFormatter
-                        saveValue={this.saveValue}
+                        saveValue={this.handleOnChange}
                         value={value}
                     />
                 );
@@ -144,10 +144,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     public getInputNode = (): Element | Text | null => {
         return this.input.current;
-    }
-
-    private saveValue = (value: any) => {
-        this.setState({ value });
     }
 
     private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {

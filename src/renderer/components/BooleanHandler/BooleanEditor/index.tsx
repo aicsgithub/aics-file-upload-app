@@ -16,8 +16,8 @@ class BooleanEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBasePr
     public constructor(props: AdazzleReactDataGrid.EditorBaseProps) {
         super(props);
         this.state = {
-            newValue: false,
-        }
+            newValue: this.props.value,
+        };
     }
 
     public render() {
@@ -38,7 +38,7 @@ class BooleanEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBasePr
     // Returns object of key/value pairs to be merged back to the row
     public getValue = () => {
         return {
-            [this.props.column.key]: this.props.value,
+            [this.props.column.key]: this.state.newValue,
         };
     }
 

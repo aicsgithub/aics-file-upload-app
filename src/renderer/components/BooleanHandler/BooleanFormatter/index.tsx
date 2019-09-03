@@ -15,13 +15,21 @@ interface Props {
 const BooleanFormatter: React.FunctionComponent<Props> = ({className, row, value, key, saveValue}: Props) => {
     const onClickHandler = () => saveValue(!value, key, row);
     return (
-        <div
-            className={classNames(className, styles.boolean, value ? styles.true : styles.false)}
+        <input
+            readOnly={true}
+            className={classNames(styles.boolean, value ? styles.true : styles.false, className)}
             onClick={onClickHandler}
-        >
-            {value ? "Yes" : "No"}
-        </div>
+            value={value ? "Yes" : "No"}
+        />
     );
+    // return (
+    //     <div
+    //         className={classNames(styles.boolean, value ? styles.true : styles.false, className)}
+    //         onClick={onClickHandler}
+    //     >
+    //         {value ? "Yes" : "No"}
+    //     </div>
+    // );
 };
 
 export default BooleanFormatter;

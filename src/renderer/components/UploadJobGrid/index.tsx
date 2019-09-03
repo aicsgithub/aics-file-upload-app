@@ -16,8 +16,8 @@ import {
 } from "../../state/setting/types";
 import { RemoveUploadsAction, UpdateUploadAction, UploadJobTableRow } from "../../state/upload/types";
 import { onDrop } from "../../util";
-import FormControl from "../FormControl";
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
+import FormControl from "../FormControl";
 import Editor from "./Editor";
 
 const styles = require("./style.pcss");
@@ -241,7 +241,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                 columns.width = 250;
             }
             if (type === ColumnType.BOOLEAN) {
-                columns.formatter = (props) => BooleanFormatter({...props, key: label, saveValue: this.saveByRow})
+                columns.formatter = (props) => BooleanFormatter({...props, key: label, saveValue: this.saveByRow});
             } else {
                 columns.formatter = ({ row, value }: FormatterProps) => (
                     this.renderFormat(row, value, undefined, required, label)
