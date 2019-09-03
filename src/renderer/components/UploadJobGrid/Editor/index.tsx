@@ -4,9 +4,9 @@ import * as React from "react";
 import { editors } from "react-data-grid";
 
 import { ColumnType } from "../../../state/setting/types";
+import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const styles = require("./styles.pcss");
-const uploadJobGridStyles = require("../style.pcss");
 
 const { Option } = Select;
 
@@ -42,7 +42,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     }
 
     public render() {
-        const { column: { dropdownValues, type }, height, width } = this.props;
+        const { column: { dropdownValues, type } } = this.props;
         const { value } = this.state;
 
         let input;
@@ -54,7 +54,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         autoFocus={true}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
-                        value={this.state.value}
+                        value={value}
                     >
                         {dropdownValues && dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue}>{dropdownValue}</Option>
@@ -64,13 +64,9 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 break;
             case ColumnType.BOOLEAN:
                 input = (
-                    <input
-                        className={value ? uploadJobGridStyles.true : uploadJobGridStyles.false}
-                        onClick={this.toggleBoolValue}
-                        readOnly={true}
-                        style={{ height, width }}
-                        type="text"
-                        value={value ? "Yes" : "No"}
+                    <BooleanFormatter
+                        saveValue={this.saveValue}
+                        value={value}
                     />
                 );
                 break;
@@ -81,7 +77,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         onChange={this.handleOnChange}
                         type="number"
                         style={{ width: "100%" }}
-                        value={this.state.value}
+                        value={value}
                     />
                 );
                 break;
@@ -96,7 +92,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         className={styles.dateMinWidth}
                         onChange={this.handleInputOnChange}
                         type="date"
-                        value={this.state.value || undefined}
+                        value={value || undefined}
                     />
                 );
                 break;
@@ -107,7 +103,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         className={styles.dateTimeMinWidth}
                         onChange={this.handleInputOnChange}
                         type="datetime-local"
-                        value={this.state.value || undefined}
+                        value={value || undefined}
                     />
                 );
                 break;
@@ -122,7 +118,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         placeholder="Column Values"
                         showSearch={true}
                         style={{ width: "100%" }}
-                        value={this.state.value}
+                        value={value}
                     >
                         {dropdownValues && dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue} value={dropdownValue}>{dropdownValue}</Option>
@@ -150,8 +146,8 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         return this.input.current;
     }
 
-    private toggleBoolValue = () => {
-        this.setState({ value: !this.state.value });
+    private saveValue = (value: any) => {
+        this.setState({ value });
     }
 
     private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
