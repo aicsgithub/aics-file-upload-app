@@ -4,17 +4,52 @@ import { createLogic } from "redux-logic";
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { setAlert } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
-import { ReduxLogicNextCb, ReduxLogicRejectCb, ReduxLogicTransformDependencies } from "../types";
+import { retrieveJobs } from "../job/actions";
+import { requestMetadata } from "../metadata/actions";
+import {
+    ReduxLogicDoneCb,
+    ReduxLogicNextCb,
+    ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
+    ReduxLogicTransformDependencies,
+} from "../types";
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
 import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
+import { getLimsHost, getLimsPort } from "./selectors";
 
 const updateSettingsLogic = createLogic({
-    transform: ({action, storage}: ReduxLogicTransformDependencies,
+    process: ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
+              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const state = getState();
+        const host = getLimsHost(state);
+        const port = getLimsPort(state);
+
+        if (ctx.host !== host || ctx.port !== port) {
+            fms.host = host;
+            jssClient.host = host;
+            labkeyClient.host = host;
+            mmsClient.host = host;
+
+            fms.port = port;
+            jssClient.port = port;
+            labkeyClient.port = port;
+            mmsClient.port = port;
+
+            dispatch(requestMetadata());
+            dispatch(retrieveJobs());
+        }
+
+        done();
+    },
+    transform: ({action, ctx, getState, storage}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         try {
             // payload is a partial of the Setting State branch so it could be undefined.
             if (action.payload) {
+                ctx.host = getLimsHost(getState());
+                ctx.port = getLimsPort(getState());
+
                 map(action.payload, (value: any, key: string) => {
                     storage.set(`${USER_SETTINGS_KEY}.${key}`, value);
                 });

@@ -125,6 +125,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
                         autosize={{ minRows: 4, maxRows: 12 }}
                         value={this.state.notes}
                     />
+                    <p className={styles.dragAndDropNote}><strong>Note:</strong> Notes must be file type .txt</p>
                     <DragAndDrop
                         onDrop={this.handleOnDrop}
                         onOpen={this.handleOnOpen}

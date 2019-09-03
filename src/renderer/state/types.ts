@@ -1,10 +1,11 @@
-import { UploadResponse, Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { CreateJobRequest, JobQuery, JSSJob, UpdateJobRequest } from "@aics/job-status-client/type-declarations/types";
-import { AxiosPromise, AxiosRequestConfig } from "axios";
-import { MessageBoxOptions } from "electron";
+import { FileManagementSystem } from "@aics/aicsfiles";
+import { JobStatusClient } from "@aics/job-status-client";
+import { Menu } from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
+import LabkeyClient from "../util/labkey-client";
+import MMSClient from "../util/mms-client";
 
 import { FeedbackStateBranch } from "./feedback/types";
 import { JobStateBranch } from "./job/types";
@@ -14,6 +15,7 @@ import { SettingStateBranch } from "./setting/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
+import MessageBoxOptions = Electron.MessageBoxOptions;
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;
@@ -26,34 +28,26 @@ export interface BatchedAction {
     payload: AnyAction[];
 }
 
-export interface HttpClient {
-    get<T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>;
-    post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>;
-}
-
 export interface ReduxLogicExtraDependencies {
     ctx?: any;
-    dialog: {
-        showMessageBox(
-            options: MessageBoxOptions,
-            callback?: (response: number, checkboxChecked: boolean) => void
-        ): number;
-    };
-    fms: {
-        retryUpload: (uploadJob: JSSJob) => Promise<UploadResponse>;
-        uploadFiles: (uploads: Uploads, jobName: string) => Promise<UploadResponse>;
-        validateMetadata: (metadata: Uploads) => Promise<void>;
-    };
-    httpClient: HttpClient;
+    fms: FileManagementSystem;
     ipcRenderer: {
         on: (channel: string, listener: (...args: any[]) => void) => void;
         send: (channel: string, ...args: any[]) => void;
     };
-    jssClient: { // todo replace with IJobStatusClient once it stops exposing constructor and JSSConnection
-        createJob(job: CreateJobRequest): Promise<JSSJob>;
-        updateJob(jobId: string, job: UpdateJobRequest, patch?: boolean): Promise<JSSJob>;
-        getJob(jobId: string): Promise<JSSJob>;
-        getJobs(query: JobQuery): Promise<JSSJob[]>;
+    jssClient: JobStatusClient;
+    labkeyClient: LabkeyClient;
+    mmsClient: MMSClient;
+    remote: {
+        Menu: {
+            getApplicationMenu: () => Menu | null;
+        };
+        dialog: {
+            showMessageBox(
+                options: MessageBoxOptions,
+                callback?: (response: number, checkboxChecked: boolean) => void
+            ): number;
+        };
     };
     storage: {
         get: (key: string) => any,
@@ -80,17 +74,6 @@ export interface State {
 
 export interface TypeToDescriptionMap {
     [propName: string ]: ActionDescription;
-}
-
-export interface AicsResponse {
-    responseType: "SUCCESS" | "SERVER_ERROR" | "CLIENT_ERROR";
-}
-
-export interface AicsSuccessResponse<T> extends AicsResponse {
-    data: T[];
-    totalCount: number;
-    hasMore?: boolean;
-    offset: number;
 }
 
 export interface Audited {

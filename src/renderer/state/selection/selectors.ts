@@ -64,7 +64,7 @@ export const getWellsWithUnitsAndModified = createSelector([
 ], (wells: Well[][], units: Unit[]): Well[][] => {
     return wells.map((wellRow: Well[]) => wellRow.map((well) => {
         const solutions: Solution[] = well.solutions.map((s: Solution) => {
-            const volumeUnit: Unit | undefined = units.find((u) => u.unitsId === s.volumeUnitId);
+            const volumeUnit: Unit | undefined = units.find((u) => u.unitsId === s.volumeUnitsId);
             const concentrationUnit: Unit | undefined = units
                 .find((u) => u.unitsId === s.solutionLot.concentrationUnitsId);
             const solutionLot: SolutionLot = {
@@ -108,7 +108,7 @@ export const getSelectedWellLabels = createSelector([
 
 export const getSelectedWellsWithData = createSelector([
     getSelectedWells,
-    getWellsWithModified,
+    getWellsWithUnitsAndModified,
 ], (selectedWells: GridCell[], wells: Well[][]): Well[] => {
     if (!wells || !wells.length || !selectedWells.length) {
         return [];

@@ -1,10 +1,10 @@
-import { AxiosError, AxiosResponse } from "axios";
+import { AxiosError } from "axios";
 import { expect } from "chai";
 import { isEmpty } from "lodash";
 import { dirname, resolve } from "path";
 import { StateWithHistory } from "redux-undo";
 import * as sinon from "sinon";
-import { SinonStub } from "sinon";
+import { createSandbox } from "sinon";
 
 import selections from "../";
 
@@ -12,9 +12,9 @@ import { feedback } from "../../";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
-import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { getMockStateWithHistory, mockSelection, mockState } from "../../test/mocks";
-import { AicsSuccessResponse, HTTP_STATUS } from "../../types";
+import { HTTP_STATUS } from "../../types";
 import { selectBarcode } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
@@ -30,6 +30,7 @@ import {
 } from "../types";
 
 describe("Selection logics", () => {
+    const sandbox = createSandbox();
     const FILE_NAME = "cells.txt";
     const TEST_FILES_DIR = "files";
     const FOLDER_NAME = "a_directory";
@@ -52,6 +53,10 @@ describe("Selection logics", () => {
         expect(folder.fullPath).to.equal(FOLDER_FULL_PATH);
         expect(folder.files.length).to.equal(2);
     };
+
+    afterEach(() => {
+        sandbox.restore();
+    });
 
     describe("loadFilesLogic", () => {
         let fileList: DragAndDropFileList;
@@ -124,7 +129,8 @@ describe("Selection logics", () => {
             store.subscribe(() => {
                 // after
                 const stagedFiles = selections.selectors.getStagedFiles(store.getState());
-                expect(stagedFiles.length).to.equal(fileList.length);
+                expect(stagedFiles.length === fileList.length).to.be.true;
+                // expect(stagedFiles.length).to.equal(fileList.length);
 
                 testStagedFilesCreated(stagedFiles);
                 done();
@@ -349,15 +355,8 @@ describe("Selection logics", () => {
     describe("selectBarcodeLogic", () => {
         const barcode = "1234";
         const plateId = 1;
-        let mockOkGetPlateResponse: AxiosResponse<AicsSuccessResponse<GetPlateResponse>>;
+        let mockOkGetPlateResponse: GetPlateResponse;
         let mockBadGatewayResponse: AxiosError;
-        const createMockReduxLogicDeps = (getStub: SinonStub) => ({
-            ...mockReduxLogicDeps,
-            httpClient: {
-                ...mockReduxLogicDeps.httpClient,
-                get: getStub,
-            },
-        });
 
         beforeEach(() => {
             const mockEmptyWell: Well = {
@@ -381,19 +380,8 @@ describe("Selection logics", () => {
                 seededOn: "2018-02-14 23:03:52",
             };
             mockOkGetPlateResponse = {
-                config: {},
-                data: {
-                    data: [{
-                        plate: mockPlate,
-                        wells: [mockEmptyWell],
-                    }],
-                    offset: 0,
-                    responseType: "SUCCESS",
-                    totalCount: 1,
-                },
-                headers: {},
-                status: HTTP_STATUS.OK,
-                statusText: "OK",
+                plate: mockPlate,
+                wells: [mockEmptyWell],
             };
             mockBadGatewayResponse = {
                 config: {},
@@ -401,8 +389,9 @@ describe("Selection logics", () => {
                 message: "Bad Gateway",
                 name: "",
                 response: {
-                    ...mockOkGetPlateResponse,
+                    config: {},
                     data: [],
+                    headers: {},
                     status: HTTP_STATUS.BAD_GATEWAY,
                     statusText: "Bad Gateway",
                 },
@@ -410,9 +399,10 @@ describe("Selection logics", () => {
         });
 
         it("Adds GET wells request to requests in progress", (done) => {
-            const getStub = sinon.stub()
-                .onFirstCall().resolves(mockOkGetPlateResponse);
-            const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
+            const getStub = sinon.stub().onFirstCall().resolves(mockOkGetPlateResponse);
+            sandbox.replace(mmsClient, "getPlate", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
             expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
             let storeUpdates = 0;
             store.subscribe(() => {
@@ -436,7 +426,9 @@ describe("Selection logics", () => {
                 });
                 return Promise.resolve(mockOkGetPlateResponse);
             });
-            const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
+            sandbox.replace(mmsClient, "getPlate", getStub);
+
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             store.dispatch(selectBarcode(barcode));
         });
@@ -456,10 +448,10 @@ describe("Selection logics", () => {
 
                 return Promise.resolve(mockOkGetPlateResponse);
             });
-            const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
+            sandbox.replace(mmsClient, "getPlate", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             store.dispatch(selectBarcode(barcode));
-
         });
 
         it("Does not retry GET wells request if response is non-Bad Gateway error", (done) => {
@@ -485,8 +477,9 @@ describe("Selection logics", () => {
                     status: HTTP_STATUS.BAD_REQUEST,
                 });
             });
+            sandbox.replace(mmsClient, "getPlate", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
-            const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
             store.dispatch(selectBarcode(barcode));
         });
 
@@ -515,7 +508,8 @@ describe("Selection logics", () => {
 
                 return Promise.reject(mockBadGatewayResponse);
             });
-            const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
+            sandbox.replace(mmsClient, "getPlate", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             store.subscribe(() => {
                 if (secondsPassed >= API_WAIT_TIME_SECONDS) {
@@ -552,7 +546,9 @@ describe("Selection logics", () => {
                     okResponseReturned = true;
                     return Promise.resolve(mockOkGetPlateResponse);
                 });
-            const store = createMockReduxStore(mockState, createMockReduxLogicDeps(getStub));
+            sandbox.replace(mmsClient, "getPlate", getStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
             store.subscribe(() => {
                 if (okResponseReturned) {
                     const state = store.getState();

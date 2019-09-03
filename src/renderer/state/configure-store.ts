@@ -10,6 +10,8 @@ import {
     createStore,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
+import LabkeyClient from "../util/labkey-client";
+import MMSClient from "../util/mms-client";
 
 import {
     enableBatching,
@@ -22,7 +24,7 @@ import {
 } from "./";
 import { State } from "./types";
 
-import { LIMS_HOST, LIMS_PORT } from "../../shared/constants";
+import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../shared/constants";
 
 const storage = new Store();
 
@@ -45,7 +47,6 @@ const logics = [
 ];
 
 export const reduxLogicDependencies = {
-    dialog: remote.dialog,
     fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT, logLevel: "debug"}),
     httpClient: axios,
     ipcRenderer,
@@ -55,6 +56,18 @@ export const reduxLogicDependencies = {
         port: LIMS_PORT,
         username: userInfo().username,
     }),
+    labkeyClient: new LabkeyClient({
+        host: LIMS_HOST,
+        port: LIMS_PORT,
+        protocol: LIMS_PROTOCOL,
+    }),
+    mmsClient: new MMSClient({
+        host: LIMS_HOST,
+        port: LIMS_PORT,
+        protocol: LIMS_PROTOCOL,
+        username: userInfo().username,
+    }),
+    remote,
     storage,
 };
 

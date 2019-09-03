@@ -4,7 +4,6 @@ import * as React from "react";
 import { ActionCreator } from "redux";
 
 import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
-import { RequestWorkflowOptionsAction } from "../../state/metadata/types";
 import { GoBackAction, NextPageAction, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
@@ -24,7 +23,6 @@ interface Props {
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
-    loadWorkflows: ActionCreator<RequestWorkflowOptionsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
     mutualFiles: string[];
@@ -39,10 +37,6 @@ interface Props {
 }
 
 class AssociateWorkflows extends React.Component<Props, {}> {
-    public componentDidMount() {
-        this.props.loadWorkflows();
-    }
-
     public render() {
         const {
             canRedo,
@@ -105,7 +99,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                             placeholder="Select Workflow(s)"
                             mode="tags"
                             style={{ width: "100%" }}
-                            value={selectedWorkflows.map(workflow => workflow.name)}
+                            value={selectedWorkflows.map((workflow) => workflow.name)}
                         >
                             {workflowOptions.map((workflow: Workflow) => (
                                 <Option key={workflow.name} value={workflow.name}>{workflow.name}</Option>
@@ -117,7 +111,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
     }
 
     private selectWorkflows = (names: string[]): void => {
-        const workflows = this.props.workflowOptions.filter(workflow => names.includes(workflow.name));
+        const workflows = this.props.workflowOptions.filter((workflow) => names.includes(workflow.name));
         this.props.selectWorkflows(workflows);
     }
 

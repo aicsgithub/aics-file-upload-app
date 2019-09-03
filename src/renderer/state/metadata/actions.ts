@@ -1,22 +1,18 @@
 import {
     CREATE_BARCODE,
-    GET_BARCODE_PREFIXES,
-    GET_IMAGING_SESSIONS,
+    GET_BARCODE_SEARCH_RESULTS,
     RECEIVE_METADATA,
     REQUEST_METADATA,
-    REQUEST_WORKFLOW_OPTIONS,
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
 import {
     BarcodePrefix,
     CreateBarcodeAction,
-    GetBarcodePrefixesAction,
-    GetImagingSessionsAction,
+    GetBarcodeSearchResultsAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
-    RequestWorkflowOptionsAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -33,25 +29,13 @@ export function requestMetadata(): RequestMetadataAction {
     };
 }
 
-// Imaging Sessions may be created if the user creates a plate during the upload process so this is expected to be
-// called more frequently than requestMetadata
-export function requestImagingSessions(): GetImagingSessionsAction {
+export function requestBarcodeSearchResults(searchStr: string): GetBarcodeSearchResultsAction {
     return {
-        type: GET_IMAGING_SESSIONS,
+        payload: searchStr,
+        type: GET_BARCODE_SEARCH_RESULTS,
     };
 }
 
-export function requestBarcodePrefixes(): GetBarcodePrefixesAction {
-    return {
-        type: GET_BARCODE_PREFIXES,
-    };
-}
-
-export function requestWorkflows(): RequestWorkflowOptionsAction {
-    return {
-        type: REQUEST_WORKFLOW_OPTIONS,
-    };
-}
 export function createBarcode(barcodePrefix: BarcodePrefix): CreateBarcodeAction {
     return {
         payload: barcodePrefix,
