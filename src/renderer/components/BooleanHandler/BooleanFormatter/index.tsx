@@ -22,14 +22,6 @@ const BooleanFormatter: React.FunctionComponent<Props> = ({className, row, value
             value={value ? "Yes" : "No"}
         />
     );
-    // return (
-    //     <div
-    //         className={classNames(styles.boolean, value ? styles.true : styles.false, className)}
-    //         onClick={onClickHandler}
-    //     >
-    //         {value ? "Yes" : "No"}
-    //     </div>
-    // );
 };
 
 export default BooleanFormatter;
