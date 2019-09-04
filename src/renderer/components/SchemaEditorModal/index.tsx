@@ -21,8 +21,8 @@ import FormControl from "../FormControl";
 import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
 
-const DEFAULT_COLUMN = (idx: number): ColumnDefinitionDraft => ({
-    idx,
+const DEFAULT_COLUMN = (index: number): ColumnDefinitionDraft => ({
+    index,
     label: "",
     required: false,
     type: {
@@ -64,7 +64,7 @@ interface Props {
 }
 
 interface ColumnDefinitionDraft {
-    idx: number;
+    index: number;
     label?: string;
     type: ColumnTypeValue;
     required?: boolean;
@@ -77,8 +77,8 @@ interface SchemaEditorModalState {
 }
 
 class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
-    private static updateIndex(arr: any[]): any[] {
-        return arr.map((element: any, idx: number) => ({ ...element, idx }));
+    private static addIndexToElements(arr: any[]): any[] {
+        return arr.map((element: any, index: number) => ({ ...element, index }));
     }
 
     constructor(props: Props) {
@@ -185,7 +185,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         {
             editable: true,
             editor: BooleanEditor,
-            formatter: (props) => BooleanFormatter({...props, key: "required", saveValue: this.saveValueByRow}),
+            formatter: (props) => <BooleanFormatter {...props} rowKey="required" saveValue={this.saveValueByRow} />,
             key: "required",
             name: "Required?",
             tables: this.props.tables,
@@ -195,8 +195,8 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private saveValueByRow = (value: any, key: string, row: ColumnDefinitionDraft): void => {
         const columns = [...this.state.columns];
-        columns[row.idx] = {
-            ...columns[row.idx],
+        columns[row.index] = {
+            ...columns[row.index],
             [key]: value,
         };
         this.setState({columns});
@@ -206,7 +206,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
 
     private getInitialState = (schema?: SchemaDefinition): SchemaEditorModalState => {
         const columns: ColumnDefinitionDraft[] = schema ?
-            SchemaEditorModal.updateIndex(schema.columns)
+            SchemaEditorModal.addIndexToElements(schema.columns)
             :
             [DEFAULT_COLUMN(0)];
 
@@ -313,7 +313,7 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         selectedRows.forEach((row) => {
             columns.splice(row, 1);
         });
-        this.setState({ columns: SchemaEditorModal.updateIndex(columns), selectedRows: [] });
+        this.setState({ columns: SchemaEditorModal.addIndexToElements(columns), selectedRows: [] });
     }
 
     private selectRows = (rows: Array<{rowIdx: number}>) => {

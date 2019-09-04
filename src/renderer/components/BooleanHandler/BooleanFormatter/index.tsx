@@ -6,14 +6,14 @@ const styles = require("./styles.pcss");
 
 interface Props {
     className?: string;
-    key?: string;
+    rowKey?: string;
     saveValue: (value: boolean, key?: string, row?: any) => void;
     row?: any;
     value?: boolean;
 }
 
-const BooleanFormatter: React.FunctionComponent<Props> = ({className, row, value, key, saveValue}: Props) => {
-    const onClickHandler = () => saveValue(!value, key, row);
+const BooleanFormatter: React.FunctionComponent<Props> = ({className, row, value, rowKey, saveValue}: Props) => {
+    const onClickHandler = () => saveValue(!value, rowKey, row);
     return (
         <input
             readOnly={true}
