@@ -16,6 +16,7 @@ import {
 } from "../../state/setting/types";
 import { RemoveUploadsAction, UpdateUploadAction, UploadJobTableRow } from "../../state/upload/types";
 import { onDrop } from "../../util";
+import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import FormControl from "../FormControl";
 import Editor from "./Editor";
 
@@ -240,15 +241,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                 columns.width = 250;
             }
             if (type === ColumnType.BOOLEAN) {
-                columns.formatter = ({ row, value }: FormatterProps) => (
-                    this.renderFormat(
-                        row,
-                        value ? "Yes" : "No",
-                        undefined,
-                        required,
-                        label,
-                        value ? styles.true : styles.false)
-                );
+                columns.formatter = (props) => BooleanFormatter({...props, key: label, saveValue: this.saveByRow});
             } else {
                 columns.formatter = ({ row, value }: FormatterProps) => (
                     this.renderFormat(row, value, undefined, required, label)
@@ -324,7 +317,11 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
     )
 
     private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
-        return (notes: string | undefined) => this.props.updateUpload(row.file, {notes});
+        return (notes: string | undefined) => this.saveByRow(notes, "notes", row);
+    }
+
+    private saveByRow = (value: any, key: string, row: UploadJobTableRow) => {
+        this.props.updateUpload(row.file, { [key]: value });
     }
 
     private handleError = (error: string, errorFile?: string) => {
