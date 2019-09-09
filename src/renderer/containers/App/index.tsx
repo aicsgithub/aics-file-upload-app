@@ -104,27 +104,22 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop"/>,
         folderTreeVisible: false,
-        summaryPageVisible: false,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
         folderTreeVisible: true,
-        summaryPageVisible: true,
     }],
     [Page.AssociateFiles, {
         container:  <AssociateFiles key="associateFiles" className={styles.mainContent}/>,
         folderTreeVisible: true,
-        summaryPageVisible: true,
     }],
     [Page.UploadJobs, {
         container: <UploadJobs key="uploadJobs" className={styles.mainContent}/>,
         folderTreeVisible: true,
-        summaryPageVisible: true,
     }],
     [Page.UploadSummary, {
         container: <UploadSummary key="uploadSummary" className={styles.mainContent}/>,
         folderTreeVisible: false,
-        summaryPageVisible: false,
     }],
 ]);
 
@@ -314,8 +309,8 @@ const dispatchToPropsMap = {
     openSchemaCreator,
     requestMetadata,
     selectFile: selection.actions.selectFile,
-    setAlert,
     selectView,
+    setAlert,
     updateSettings,
 };
 

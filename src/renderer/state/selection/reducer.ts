@@ -17,10 +17,10 @@ import {
     SELECT_FILE,
     SELECT_METADATA,
     SELECT_PAGE,
+    SELECT_VIEW,
     SELECT_WELLS,
     SELECT_WORKFLOWS,
     SET_PLATE,
-    SELECT_VIEW,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -35,10 +35,10 @@ import {
     SelectionStateBranch,
     SelectMetadataAction,
     SelectPageAction,
+    SelectViewAction,
     SelectWellsAction,
     SelectWorkflowsAction,
     SetPlateAction,
-    SelectViewAction,
     SetWellsAction,
     UpdateStagedFilesAction,
 } from "./types";

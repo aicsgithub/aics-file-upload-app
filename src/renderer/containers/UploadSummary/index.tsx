@@ -105,7 +105,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         const selectedJob = this.getSelectedJob();
         return (
             <FormPage
-                buttonsHidden={page !== Page.UploadSummary}
                 className={className}
                 formTitle="YOUR UPLOADS"
                 formPrompt=""
