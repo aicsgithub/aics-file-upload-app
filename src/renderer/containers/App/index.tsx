@@ -249,7 +249,7 @@ class App extends React.Component<AppProps, AppState> {
                        selectedKeys={selectedFiles}
                        setAlert={setAlert}
                        fileToTags={fileToTags}
-                   />
+                    />
                     <div className={styles.tabContainer}>
                         <Tabs activeKey={view} className={styles.tab} onChange={this.props.selectView} type="card">
                             <TabPane className={styles.tabContent} tab="Summary" key={Page.UploadSummary}>
