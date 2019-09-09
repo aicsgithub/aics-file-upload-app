@@ -102,7 +102,7 @@ interface AppState {
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
-        container: <DragAndDropSquare key="dragAndDrop"/>,
+        container: <DragAndDropSquare key="dragAndDrop" className={styles.dragAndDropSquare}/>,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
@@ -251,13 +251,15 @@ class App extends React.Component<AppProps, AppState> {
                        fileToTags={fileToTags}
                    />
                     <div className={styles.tabContainer}>
-                        <Tabs activeKey={view} onChange={this.props.selectView}>
-                            <TabPane tab="Summary" key={Page.UploadSummary}>
+                        <Tabs activeKey={view} className={styles.tab} onChange={this.props.selectView} type="card">
+                            <TabPane className={styles.tabContent} tab="Summary" key={Page.UploadSummary}>
                                 {uploadSummaryConfig.container}
                             </TabPane>
-                            {page !== Page.UploadSummary && <TabPane tab="Current Job" key={page}>
-                                {pageConfig.container}
-                            </TabPane>}
+                            {page !== Page.UploadSummary && (
+                                <TabPane className={styles.tabContent} tab="Current Job" key={page}>
+                                    {pageConfig.container}
+                                </TabPane>
+                            )}
                         </Tabs>
                     </div>
                 </div>

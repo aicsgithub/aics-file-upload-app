@@ -46,8 +46,22 @@
 
   & .tab-container {
     flex: 1;
+    height: 100%;
+    padding: 1em 0 0 0.5em;
     width: 100%;
-    overflow-y: auto;
+    user-select: none;
+  }
+
+  & .tab {
+    height: 100%;
+    padding: 1em 0 0 0.5em;
+    user-select: auto;
+
+    & .tab-content {
+      overflow-y: auto;
+      /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom */
+      max-height: calc(100vh - 64px - 56px);
+    }
   }
 }
 
@@ -55,4 +69,8 @@
   flex: 0 0 auto;
   width: 100%;
   border-top: 1px solid var(--border-color);
+}
+
+.drag-and-drop-square {
+  margin-top: 18em;
 }
