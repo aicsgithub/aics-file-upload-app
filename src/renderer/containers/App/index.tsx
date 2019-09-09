@@ -1,9 +1,7 @@
 import "@aics/aics-react-labkey/dist/styles.css";
-import { message, Radio } from "antd";
-import { RadioChangeEvent } from "antd/es/radio";
+import { message, Tabs } from "antd";
 import { ipcRenderer, remote } from "electron";
 import { readFile } from "fs";
-import { startCase } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -27,12 +25,13 @@ import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getDatabaseMetadata } from "../../state/metadata/selectors";
 import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
-import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
+import { closeSchemaCreator, openSchemaCreator, selectView } from "../../state/selection/actions";
 import {
     getPage,
     getSelectedFiles,
     getShowCreateSchemaModal,
-    getStagedFiles
+    getStagedFiles,
+    getView,
 } from "../../state/selection/selectors";
 import {
     AppPageConfig,
@@ -41,6 +40,7 @@ import {
     OpenSchemaCreatorAction,
     Page,
     SelectFileAction,
+    SelectViewAction,
     UploadFile
 } from "../../state/selection/types";
 import { addSchemaFilepath, gatherSettings, updateSettings } from "../../state/setting/actions";
@@ -64,6 +64,9 @@ import { getFileToTags } from "./selectors";
 import { isSchemaDefinition } from "./util";
 
 const styles = require("./styles.pcss");
+
+const { TabPane } = Tabs;
+
 const ALERT_DURATION = 2;
 
 interface AppProps {
@@ -84,17 +87,15 @@ interface AppProps {
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
+    selectView: ActionCreator<SelectViewAction>;
     showCreateSchemaModal: boolean;
     page: Page;
     tables?: DatabaseMetadata;
     updateSettings: ActionCreator<UpdateSettingsAction>;
+    view: Page;
 }
 
 interface AppState {
-    // We want to separate the idea of the actual page and the view we are showing
-    // The actual page we are on is the page in props, but we might want to show
-    // a different page (like UploadSummary) in some event
-    view: Page;
     schema?: SchemaDefinition;
     schemaFilepath?: string;
 }
@@ -133,7 +134,6 @@ message.config({
 
 class App extends React.Component<AppProps, AppState> {
     public state: AppState = {
-        view: this.props.page,
     };
 
     public componentDidMount() {
@@ -199,7 +199,7 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     public componentDidUpdate(prevProps: AppProps) {
-        const { alert, clearAlert: dispatchClearAlert, page } = this.props;
+        const { alert, clearAlert: dispatchClearAlert } = this.props;
         if (alert) {
             const { message: alertText, manualClear, type} = alert;
             const alertBody = <div>{alertText}</div>;
@@ -222,10 +222,6 @@ class App extends React.Component<AppProps, AppState> {
 
             dispatchClearAlert();
         }
-        // This will happen when the user proceeds to the next page (or previous page)
-        if (page !== prevProps.page) {
-            this.setState({ view: page });
-        }
     }
 
     public render() {
@@ -241,12 +237,13 @@ class App extends React.Component<AppProps, AppState> {
             showCreateSchemaModal,
             page,
             tables,
+            view,
         } = this.props;
-        const { schema, schemaFilepath, view } = this.state;
+        const { schema, schemaFilepath } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
-        const pageToShow = APP_PAGE_TO_CONFIG_MAP.get(view);
+        const uploadSummaryConfig = APP_PAGE_TO_CONFIG_MAP.get(Page.UploadSummary);
 
-        if (!pageConfig || !pageToShow) {
+        if (!pageConfig || !uploadSummaryConfig) {
             return null;
         }
 
@@ -265,21 +262,16 @@ class App extends React.Component<AppProps, AppState> {
                            fileToTags={fileToTags}
                        />
                     }
-                    <span className={styles.pageViewContainer}>
-                        {pageConfig.summaryPageVisible &&
-                            <Radio.Group
-                                buttonStyle="solid"
-                                className={styles.pageViewButtons}
-                                defaultValue={page}
-                                onChange={this.onPageViewChange}
-                                value={view}
-                            >
-                                <Radio.Button value={page}>{startCase(page)}</Radio.Button>
-                                <Radio.Button value={Page.UploadSummary}>{startCase(Page.UploadSummary)}</Radio.Button>
-                            </Radio.Group>
-                        }
-                        {pageToShow.container}
-                    </span>
+                    <div className={styles.tabContainer}>
+                        <Tabs activeKey={view} onChange={this.props.selectView}>
+                            <TabPane tab="Summary" key={Page.UploadSummary}>
+                                {uploadSummaryConfig.container}
+                            </TabPane>
+                            {page !== Page.UploadSummary && <TabPane tab="Current Job" key={page}>
+                                {pageConfig.container}
+                            </TabPane>}
+                        </Tabs>
+                    </div>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
@@ -293,10 +285,6 @@ class App extends React.Component<AppProps, AppState> {
                 />
             </div>
         );
-    }
-
-    private onPageViewChange = (e: RadioChangeEvent) => {
-        this.setState({ view: e.target.value });
     }
 }
 
@@ -313,6 +301,7 @@ function mapStateToProps(state: State) {
         selectedFiles: getSelectedFiles(state),
         showCreateSchemaModal: getShowCreateSchemaModal(state),
         tables: getDatabaseMetadata(state),
+        view: getView(state),
     };
 }
 
@@ -326,6 +315,7 @@ const dispatchToPropsMap = {
     requestMetadata,
     selectFile: selection.actions.selectFile,
     setAlert,
+    selectView,
     updateSettings,
 };
 
