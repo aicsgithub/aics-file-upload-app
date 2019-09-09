@@ -37,6 +37,7 @@ export const mockSelection: SelectionStateBranch = {
     selectedWorkflows: [],
     showCreateSchemaModal: false,
     stagedFiles: [],
+    view: Page.DragAndDrop,
     wells: [],
 };
 

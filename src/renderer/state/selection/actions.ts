@@ -18,6 +18,7 @@ import {
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
     SET_PLATE,
+    SELECT_VIEW,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -43,6 +44,7 @@ import {
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
     SetPlateAction,
+    SelectViewAction,
     SetWellsAction,
     UpdateStagedFilesAction,
     UploadFile,
@@ -159,6 +161,13 @@ export function closeSchemaCreator(): CloseSchemaCreatorAction {
 export function openSchemaCreator(): OpenSchemaCreatorAction {
     return {
         type: OPEN_CREATE_SCHEMA_MODAL,
+    };
+}
+
+export function selectView(view: string): SelectViewAction {
+    return {
+        payload: view,
+        type: SELECT_VIEW,
     };
 }
 

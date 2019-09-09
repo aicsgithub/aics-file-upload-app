@@ -28,6 +28,7 @@ export interface SelectionStateBranch {
     page: Page;
     showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
+    view: Page;
 }
 
 export interface SelectFileAction {
@@ -182,6 +183,11 @@ export interface SelectWorkflowsAction {
 
 export interface SetPlateAction {
     payload: PlateResponse;
+    type: string;
+}
+
+export interface SelectViewAction {
+    payload: string;
     type: string;
 }
 

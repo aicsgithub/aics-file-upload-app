@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { map } from "lodash";
+import { isNil, map } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -62,12 +62,16 @@ const updateSchemaLogic = createLogic({
                 // However, boolean fields need to be false by default because otherwise we would have null === false
                 // which isn't necessarily true (except to javascript)
                 await Promise.all(schema.columns.map(async (column: ColumnDefinition): Promise<void> => {
-                    uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
-                    if (column.type.type === ColumnType.LOOKUP && tables) {
-                        const { name, schemaName }: Table = tables[column.type.table];
-                        column.type.dropdownValues = await labkeyClient.getColumnValues(schemaName,
-                                                                                        name,
-                                                                                        column.type.column);
+                    if (!isNil(upload[column.label])) {
+                        uploadData[column.label] = upload[column.label];
+                    } else {
+                        uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
+                        if (column.type.type === ColumnType.LOOKUP && tables) {
+                            const { name, schemaName }: Table = tables[column.type.table];
+                            column.type.dropdownValues = await labkeyClient.getColumnValues(schemaName,
+                                                                                            name,
+                                                                                            column.type.column);
+                        }
                     }
                 }));
             }

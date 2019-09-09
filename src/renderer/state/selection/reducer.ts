@@ -20,6 +20,7 @@ import {
     SELECT_WELLS,
     SELECT_WORKFLOWS,
     SET_PLATE,
+    SELECT_VIEW,
     SET_WELLS,
     UPDATE_STAGED_FILES,
 } from "./constants";
@@ -37,6 +38,7 @@ import {
     SelectWellsAction,
     SelectWorkflowsAction,
     SetPlateAction,
+    SelectViewAction,
     SetWellsAction,
     UpdateStagedFilesAction,
 } from "./types";
@@ -54,6 +56,7 @@ export const initialState = {
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
+    view: Page.UploadSummary,
     wells: [],
 };
 
@@ -98,6 +101,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectPageAction) => ({
             ...state,
             page: action.payload.nextPage,
+            view: action.payload.nextPage,
+        }),
+    },
+    [SELECT_VIEW]: {
+        accepts: (action: AnyAction): action is SelectViewAction => action.type === SELECT_VIEW,
+        perform: (state: SelectionStateBranch, action: SelectViewAction) => ({
+            ...state,
+            view: action.payload,
         }),
     },
     [SELECT_WORKFLOWS]: {
