@@ -103,23 +103,18 @@ interface AppState {
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop"/>,
-        folderTreeVisible: false,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
-        folderTreeVisible: true,
     }],
     [Page.AssociateFiles, {
         container:  <AssociateFiles key="associateFiles" className={styles.mainContent}/>,
-        folderTreeVisible: true,
     }],
     [Page.UploadJobs, {
         container: <UploadJobs key="uploadJobs" className={styles.mainContent}/>,
-        folderTreeVisible: true,
     }],
     [Page.UploadSummary, {
         container: <UploadSummary key="uploadSummary" className={styles.mainContent}/>,
-        folderTreeVisible: false,
     }],
 ]);
 
@@ -245,18 +240,16 @@ class App extends React.Component<AppProps, AppState> {
         return (
             <div className={styles.container}>
                 <div className={styles.mainContentContainer}>
-                    {pageConfig.folderTreeVisible &&
-                       <FolderTree
-                           className={styles.folderTree}
-                           files={files}
-                           getFilesInFolder={getFilesInFolder}
-                           isLoading={loading}
-                           onCheck={selectFile}
-                           selectedKeys={selectedFiles}
-                           setAlert={setAlert}
-                           fileToTags={fileToTags}
-                       />
-                    }
+                    <FolderTree
+                       className={styles.folderTree}
+                       files={files}
+                       getFilesInFolder={getFilesInFolder}
+                       isLoading={loading}
+                       onCheck={selectFile}
+                       selectedKeys={selectedFiles}
+                       setAlert={setAlert}
+                       fileToTags={fileToTags}
+                   />
                     <div className={styles.tabContainer}>
                         <Tabs activeKey={view} onChange={this.props.selectView}>
                             <TabPane tab="Summary" key={Page.UploadSummary}>
