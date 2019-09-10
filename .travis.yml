@@ -46,4 +46,4 @@ before_cache:
 
 branches:
   only:
-    - /^\d+\.\d+\.\d+(-\S*)?$/
+    - /^v*\d+\.\d+\.\d+(-\S*)?$/
