@@ -24,10 +24,10 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.0.1":
-  version "2.0.1"
-  resolved "https://artifactory.corp.alleninstitute.org:443/artifactory/api/npm/npm-virtual/@aics/aicsfiles/-/aicsfiles-2.0.1.tgz#84f15faa9873e8a9ec24854a818202b49972369d"
-  integrity sha1-hPFfqphz6KnsJIVKgYICtJlyNp0=
+"@aics/aicsfiles@^2.0.2":
+  version "2.0.2"
+  resolved "https://artifactory.corp.alleninstitute.org:443/artifactory/api/npm/npm-virtual/@aics/aicsfiles/-/aicsfiles-2.0.2.tgz#c1e74aac8df44ab670e51fc18735ea923dfebca4"
+  integrity sha1-wedKrI30SrZw5R/BhzXqkj3+vKQ=
   dependencies:
     "@aics/job-status-client" "^1.0.8"
     "@babel/polyfill" "^7.4.4"
