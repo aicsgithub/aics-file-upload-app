@@ -1,6 +1,6 @@
 # Version Notes
 
-## 1.0.9
+## 1.0.10
 - Feature: Allow users to retry uploads
 - Bugfix: Added more validation to upload process and fixed copies for Windows clients
 - Bugfix: Allow LIMS host to be changed at runtime
