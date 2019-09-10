@@ -65,6 +65,10 @@ import Menu = Electron.Menu;
 
 const stat = promisify(fsStat);
 
+interface MenuItemWithSubMenu extends MenuItem {
+    submenu?: Menu;
+}
+
 const mergeChildPaths = (filePaths: string[]): string[] => {
     filePaths = uniq(filePaths);
 
@@ -194,7 +198,7 @@ const getFilesInFolderLogic = createLogic({
 const pagesToAllowSwitchingEnvironments = [Page.UploadJobs, Page.DragAndDrop];
 const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
     if (menu) {
-        const fileMenu: MenuItem = menu.items
+        const fileMenu: MenuItemWithSubMenu = menu.items
             .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItem;
         if (fileMenu.submenu) {
             const switchEnvironmentMenuItem = fileMenu.submenu.items
