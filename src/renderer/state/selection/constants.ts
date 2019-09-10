@@ -15,6 +15,7 @@ export const SELECT_PAGE = makeConstant(BRANCH_NAME, "select-page");
 export const SELECT_WORKFLOW_PATH = makeConstant(BRANCH_NAME, "select-workflow-path");
 export const UPDATE_STAGED_FILES = makeConstant(BRANCH_NAME, "update-staged-files");
 export const GET_FILES_IN_FOLDER = makeConstant(BRANCH_NAME, "get-files-in-folder");
+export const SELECT_VIEW = makeConstant(BRANCH_NAME, "select-view");
 export const SET_WELLS = makeConstant(BRANCH_NAME, "set-wells");
 export const SELECT_WELLS = makeConstant(BRANCH_NAME, "select-wells");
 export const GO_BACK = makeConstant(BRANCH_NAME, "go-back");

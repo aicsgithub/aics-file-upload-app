@@ -13,8 +13,9 @@ import { AsyncRequest } from "../../state/feedback/types";
 import { retrieveJobs } from "../../state/job/actions";
 import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
 import { RetrieveJobsAction } from "../../state/job/types";
-import { selectPage } from "../../state/selection/actions";
-import { Page, SelectPageAction } from "../../state/selection/types";
+import { selectPage, selectView } from "../../state/selection/actions";
+import { getPage } from "../../state/selection/selectors";
+import { Page, SelectPageAction, SelectViewAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { retryUpload } from "../../state/upload/actions";
 import { RetryUploadAction } from "../../state/upload/types";
@@ -32,10 +33,12 @@ interface Props {
     allJobsComplete: boolean;
     className?: string;
     jobs: UploadSummaryTableRow[];
+    page: Page;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     retrying: boolean;
     retryUpload: ActionCreator<RetryUploadAction>;
     selectPage: ActionCreator<SelectPageAction>;
+    selectView: ActionCreator<SelectViewAction>;
 }
 
 interface UploadSummaryState {
@@ -96,6 +99,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         const {
             className,
             jobs,
+            page,
             retrying,
         } = this.props;
         const selectedJob = this.getSelectedJob();
@@ -104,8 +108,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 className={className}
                 formTitle="YOUR UPLOADS"
                 formPrompt=""
-                onSave={this.goToDragAndDrop}
-                saveButtonName="Create New Upload Job"
+                onSave={this.onFormSave}
+                saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
             >
                 <Table
                     className={styles.jobTable}
@@ -136,8 +140,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.props.retryUpload(this.getSelectedJob());
     }
 
-    private goToDragAndDrop = (): void => {
-        this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
+    private onFormSave = (): void => {
+        // If the current page is UploadSummary we must just be a view
+        if (this.props.page !== Page.UploadSummary) {
+            this.props.selectView(this.props.page);
+        } else {
+            this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
+        }
     }
 
     private onRow = (record: UploadSummaryTableRow) => {
@@ -157,6 +166,7 @@ function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
         jobs: getJobsForTable(state),
+        page: getPage(state),
         retrying: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD),
     };
 }
@@ -165,6 +175,7 @@ const dispatchToPropsMap = {
     retrieveJobs,
     retryUpload,
     selectPage,
+    selectView,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);

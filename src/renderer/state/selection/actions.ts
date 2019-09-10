@@ -14,6 +14,7 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_PAGE,
+    SELECT_VIEW,
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
@@ -39,6 +40,7 @@ import {
     SelectBarcodeAction,
     SelectFileAction,
     SelectPageAction,
+    SelectViewAction,
     SelectWellsAction,
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
@@ -159,6 +161,13 @@ export function closeSchemaCreator(): CloseSchemaCreatorAction {
 export function openSchemaCreator(): OpenSchemaCreatorAction {
     return {
         type: OPEN_CREATE_SCHEMA_MODAL,
+    };
+}
+
+export function selectView(view: string): SelectViewAction {
+    return {
+        payload: view,
+        type: SELECT_VIEW,
     };
 }
 

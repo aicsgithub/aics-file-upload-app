@@ -28,6 +28,7 @@ export interface SelectionStateBranch {
     page: Page;
     showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
+    view: Page;
 }
 
 export interface SelectFileAction {
@@ -185,6 +186,11 @@ export interface SetPlateAction {
     type: string;
 }
 
+export interface SelectViewAction {
+    payload: string;
+    type: string;
+}
+
 export interface SetWellsAction {
     payload: WellResponse[];
     type: string;
@@ -223,7 +229,6 @@ export enum Page {
 
 export interface AppPageConfig {
     container: JSX.Element;
-    folderTreeVisible: boolean;
 }
 
 export interface GoBackAction {

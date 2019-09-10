@@ -1,4 +1,5 @@
 import {
+    Empty,
     Icon,
     Spin,
     Tag,
@@ -81,13 +82,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
     }
 
     public render() {
-        const {
-            className,
-            files,
-            isLoading,
-            selectedKeys,
-        } = this.props;
-
+        const { className, files } = this.props;
         if (!files) {
             return null;
         }
@@ -99,19 +94,35 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
                 </div>
                 <div className={styles.fileTree}>
-                    {!isLoading && <Tree.DirectoryTree
-                        checkable={false}
-                        multiple={true}
-                        defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getKey(file))}
-                        onSelect={this.onSelect}
-                        onExpand={this.onExpand}
-                        selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
-                    >
-                        {files.map((file: UploadFile) => this.renderChildDirectories(file))}
-                    </Tree.DirectoryTree>}
-                    {isLoading && <Spin size="large"/>}
+                    {this.renderFolderTree()}
                 </div>
             </Resizable>
+        );
+    }
+
+    private renderFolderTree = () => {
+        const {
+            files,
+            isLoading,
+            selectedKeys,
+        } = this.props;
+        if (isLoading) {
+            return <Spin size="large"/>;
+        }
+        if (!files.length) {
+            return <Empty className={styles.empty} description="No Files"/>;
+        }
+        return (
+            <Tree.DirectoryTree
+                checkable={false}
+                multiple={true}
+                defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getKey(file))}
+                onSelect={this.onSelect}
+                onExpand={this.onExpand}
+                selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
+            >
+                {files.map((file: UploadFile) => this.renderChildDirectories(file))}
+            </Tree.DirectoryTree>
         );
     }
 

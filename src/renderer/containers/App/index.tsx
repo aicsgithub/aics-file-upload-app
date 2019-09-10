@@ -1,5 +1,5 @@
 import "@aics/aics-react-labkey/dist/styles.css";
-import { message } from "antd";
+import { message, Tabs } from "antd";
 import { ipcRenderer, remote } from "electron";
 import { readFile } from "fs";
 import * as React from "react";
@@ -25,12 +25,13 @@ import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getDatabaseMetadata } from "../../state/metadata/selectors";
 import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
-import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
+import { closeSchemaCreator, openSchemaCreator, selectView } from "../../state/selection/actions";
 import {
     getPage,
     getSelectedFiles,
     getShowCreateSchemaModal,
-    getStagedFiles
+    getStagedFiles,
+    getView,
 } from "../../state/selection/selectors";
 import {
     AppPageConfig,
@@ -39,6 +40,7 @@ import {
     OpenSchemaCreatorAction,
     Page,
     SelectFileAction,
+    SelectViewAction,
     UploadFile
 } from "../../state/selection/types";
 import { addSchemaFilepath, gatherSettings, updateSettings } from "../../state/setting/actions";
@@ -62,6 +64,9 @@ import { getFileToTags } from "./selectors";
 import { isSchemaDefinition } from "./util";
 
 const styles = require("./styles.pcss");
+
+const { TabPane } = Tabs;
+
 const ALERT_DURATION = 2;
 
 interface AppProps {
@@ -82,10 +87,12 @@ interface AppProps {
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
+    selectView: ActionCreator<SelectViewAction>;
     showCreateSchemaModal: boolean;
     page: Page;
     tables?: DatabaseMetadata;
     updateSettings: ActionCreator<UpdateSettingsAction>;
+    view: Page;
 }
 
 interface AppState {
@@ -95,24 +102,19 @@ interface AppState {
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
-        container: <DragAndDropSquare key="dragAndDrop"/>,
-        folderTreeVisible: false,
+        container: <DragAndDropSquare key="dragAndDrop" className={styles.dragAndDropSquare}/>,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
-        folderTreeVisible: true,
     }],
     [Page.AssociateFiles, {
         container:  <AssociateFiles key="associateFiles" className={styles.mainContent}/>,
-        folderTreeVisible: true,
     }],
     [Page.UploadJobs, {
         container: <UploadJobs key="uploadJobs" className={styles.mainContent}/>,
-        folderTreeVisible: true,
     }],
     [Page.UploadSummary, {
         container: <UploadSummary key="uploadSummary" className={styles.mainContent}/>,
-        folderTreeVisible: false,
     }],
 ]);
 
@@ -225,30 +227,41 @@ class App extends React.Component<AppProps, AppState> {
             showCreateSchemaModal,
             page,
             tables,
+            view,
         } = this.props;
         const { schema, schemaFilepath } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
+        const uploadSummaryConfig = APP_PAGE_TO_CONFIG_MAP.get(Page.UploadSummary);
 
-        if (!pageConfig) {
+        if (!pageConfig || !uploadSummaryConfig) {
             return null;
         }
 
         return (
             <div className={styles.container}>
                 <div className={styles.mainContentContainer}>
-                    {pageConfig.folderTreeVisible &&
-                       <FolderTree
-                           className={styles.folderTree}
-                           files={files}
-                           getFilesInFolder={getFilesInFolder}
-                           isLoading={loading}
-                           onCheck={selectFile}
-                           selectedKeys={selectedFiles}
-                           setAlert={setAlert}
-                           fileToTags={fileToTags}
-                       />
-                    }
-                    {pageConfig.container}
+                    <FolderTree
+                       className={styles.folderTree}
+                       files={files}
+                       getFilesInFolder={getFilesInFolder}
+                       isLoading={loading}
+                       onCheck={selectFile}
+                       selectedKeys={selectedFiles}
+                       setAlert={setAlert}
+                       fileToTags={fileToTags}
+                    />
+                    <div className={styles.tabContainer}>
+                        <Tabs activeKey={view} className={styles.tab} onChange={this.props.selectView} type="card">
+                            <TabPane className={styles.tabContent} tab="Summary" key={Page.UploadSummary}>
+                                {uploadSummaryConfig.container}
+                            </TabPane>
+                            {page !== Page.UploadSummary && (
+                                <TabPane className={styles.tabContent} tab="Current Job" key={page}>
+                                    {pageConfig.container}
+                                </TabPane>
+                            )}
+                        </Tabs>
+                    </div>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
@@ -278,6 +291,7 @@ function mapStateToProps(state: State) {
         selectedFiles: getSelectedFiles(state),
         showCreateSchemaModal: getShowCreateSchemaModal(state),
         tables: getDatabaseMetadata(state),
+        view: getView(state),
     };
 }
 
@@ -290,6 +304,7 @@ const dispatchToPropsMap = {
     openSchemaCreator,
     requestMetadata,
     selectFile: selection.actions.selectFile,
+    selectView,
     setAlert,
     updateSettings,
 };
