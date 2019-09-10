@@ -106,11 +106,11 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             isLoading,
             selectedKeys,
         } = this.props;
-        if (!files.length) {
-            return <Empty className={styles.empty} description="No Files"/>;
-        }
         if (isLoading) {
             return <Spin size="large"/>;
+        }
+        if (!files.length) {
+            return <Empty className={styles.empty} description="No Files"/>;
         }
         return (
             <Tree.DirectoryTree

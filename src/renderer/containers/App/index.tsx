@@ -188,7 +188,7 @@ class App extends React.Component<AppProps, AppState> {
 
     }
 
-    public componentDidUpdate(prevProps: AppProps) {
+    public componentDidUpdate() {
         const { alert, clearAlert: dispatchClearAlert } = this.props;
         if (alert) {
             const { message: alertText, manualClear, type} = alert;
