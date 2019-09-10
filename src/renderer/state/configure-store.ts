@@ -2,12 +2,14 @@ import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import axios from "axios";
 import { ipcRenderer, remote } from "electron";
-import Store from "electron-store";
+import LocalStorage from "electron-store";
 import { userInfo } from "os";
 import {
+    AnyAction,
     applyMiddleware,
     combineReducers,
     createStore,
+    Store,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 import LabkeyClient from "../util/labkey-client";
@@ -26,7 +28,7 @@ import { State } from "./types";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../shared/constants";
 
-const storage = new Store();
+const storage = new LocalStorage();
 
 const reducers = {
     feedback: feedback.reducer,
@@ -71,7 +73,7 @@ export const reduxLogicDependencies = {
     storage,
 };
 
-export default function createReduxStore(initialState?: State) {
+export default function createReduxStore(initialState?: State): Store<State, AnyAction> {
     const logicMiddleware = createLogicMiddleware(logics, reduxLogicDependencies);
     const middleware = applyMiddleware(logicMiddleware);
     const rootReducer = enableBatching<State>(combineReducers(reducers));
