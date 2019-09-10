@@ -2,6 +2,11 @@
 
 ## 1.0.9
 - Feature: Allow users to retry uploads
+- Bugfix: Added more validation to upload process and fixed copies for Windows clients
+- Bugfix: Allow LIMS host to be changed at runtime
+- Feature: Make loading schema required
+- Bugfix: Make notes easier to spread across rows
+- Bugfix: Don't allow users to select readonly files for upload
 
 ## 1.0.8
 - Feature: Updated fields displayed in upload summary page
