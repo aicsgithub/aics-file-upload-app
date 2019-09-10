@@ -199,7 +199,7 @@ const pagesToAllowSwitchingEnvironments = [Page.UploadJobs, Page.DragAndDrop];
 const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
     if (menu) {
         const fileMenu: MenuItemWithSubMenu = menu.items
-            .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItem;
+            .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu;
         if (fileMenu.submenu) {
             const switchEnvironmentMenuItem = fileMenu.submenu.items
                 .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
