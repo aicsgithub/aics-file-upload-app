@@ -198,6 +198,7 @@ const getFilesInFolderLogic = createLogic({
 const pagesToAllowSwitchingEnvironments = [Page.UploadJobs, Page.DragAndDrop];
 const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
     if (menu) {
+        // have to cast here because Electron's typings for MenuItem is incomplete
         const fileMenu: MenuItemWithSubMenu = menu.items
             .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu;
         if (fileMenu.submenu) {
