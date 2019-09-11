@@ -9,10 +9,11 @@ import { DragAndDropFileList } from "../../state/selection/types";
 const styles = require("../../components/DragAndDrop/style.pcss");
 
 interface DragAndDropProps {
+    children?: React.ReactNode | React.ReactNodeArray;
     openDialogOptions: OpenDialogOptions;
     className?: string;
     onDrop: (files: DragAndDropFileList) => void;
-    onOpen: (files: string[]) => void;
+    onOpen?: (files: string[]) => void;
 }
 
 interface DragAndDropState {
@@ -43,6 +44,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
 
     public render() {
         const {
+            children,
             className,
         } = this.props;
 
@@ -55,24 +57,32 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
                 onDrop={this.onDrop}
                 onDragOver={DragAndDrop.onDragOver}
             >
-                <div className={styles.content}>
-                    <Icon type="upload" className={styles.uploadIcon} />
-                    <div>Drag&nbsp;and&nbsp;Drop</div>
-                    <div>- or -</div>
-                    <Button type="primary" size="large" onClick={this.onBrowse} className={styles.button}>
-                        Browse
-                    </Button>
-                </div>
+                {children ? children : (
+                    <div className={styles.content}>
+                            <>
+                                <Icon type="upload" className={styles.uploadIcon} />
+                                <div>Drag&nbsp;and&nbsp;Drop</div>
+                                <div>- or -</div>
+                                <Button type="primary" size="large" onClick={this.onBrowse} className={styles.button}>
+                                    Browse
+                                </Button>
+                            </>
+                    </div>
+                )}
             </div>
         );
     }
 
     // Opens native file explorer
     private onBrowse(): void {
+        const { onOpen } = this.props;
+        if (!onOpen) {
+            throw new Error("Browsing for a file is not configured. Contact Software");
+        }
         remote.dialog.showOpenDialog(this.props.openDialogOptions, (filenames?: string[]) => {
             // If cancel is clicked, this callback gets called and filenames is undefined
             if (filenames && !isEmpty(filenames)) {
-                this.props.onOpen(filenames);
+                onOpen(filenames);
             }
         });
     }

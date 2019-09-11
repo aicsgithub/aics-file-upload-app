@@ -25,7 +25,14 @@ import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getDatabaseMetadata } from "../../state/metadata/selectors";
 import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
-import { closeSchemaCreator, openSchemaCreator, selectView } from "../../state/selection/actions";
+import {
+    clearStagedFiles,
+    closeSchemaCreator,
+    loadFilesFromDragAndDrop,
+    openFilesFromDialog,
+    openSchemaCreator,
+    selectView
+} from "../../state/selection/actions";
 import {
     getPage,
     getSelectedFiles,
@@ -35,8 +42,11 @@ import {
 } from "../../state/selection/selectors";
 import {
     AppPageConfig,
+    ClearStagedFilesAction,
     CloseSchemaCreatorAction,
     GetFilesInFolderAction,
+    LoadFilesFromDragAndDropAction,
+    LoadFilesFromOpenDialogAction,
     OpenSchemaCreatorAction,
     Page,
     SelectFileAction,
@@ -73,6 +83,7 @@ interface AppProps {
     addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
+    clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
     closeSchemaCreator: ActionCreator<CloseSchemaCreatorAction>;
     copyInProgress: boolean;
     fileToTags: Map<string, FileTagType[]>;
@@ -80,6 +91,8 @@ interface AppProps {
     gatherSettings: ActionCreator<GatherSettingsAction>;
     getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
     limsUrl: string;
+    loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
+    openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
     loading: boolean;
     openSchemaCreator: ActionCreator<OpenSchemaCreatorAction>;
     recentEvent?: AppEvent;
@@ -242,9 +255,12 @@ class App extends React.Component<AppProps, AppState> {
                 <div className={styles.mainContentContainer}>
                     <FolderTree
                        className={styles.folderTree}
+                       clearStagedFiles={this.props.clearStagedFiles}
                        files={files}
                        getFilesInFolder={getFilesInFolder}
                        isLoading={loading}
+                       loadFilesFromDragAndDropAction={this.props.loadFilesFromDragAndDrop}
+                       loadFilesFromOpenDialogAction={this.props.openFilesFromDialog}
                        onCheck={selectFile}
                        selectedKeys={selectedFiles}
                        setAlert={setAlert}
@@ -298,9 +314,12 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     addSchemaFilepath,
     clearAlert,
+    clearStagedFiles,
     closeSchemaCreator,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
+    loadFilesFromDragAndDrop,
+    openFilesFromDialog,
     openSchemaCreator,
     requestMetadata,
     selectFile: selection.actions.selectFile,

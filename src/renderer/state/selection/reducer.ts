@@ -11,6 +11,7 @@ import { makeReducer } from "../util";
 import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
+    CLEAR_STAGED_FILES,
     DESELECT_FILES,
     JUMP_TO_PAST_SELECTION,
     SELECT_BARCODE,
@@ -26,6 +27,7 @@ import {
 } from "./constants";
 import {
     AddStageFilesAction,
+    ClearStagedFilesAction,
     CloseSchemaCreatorAction,
     DeselectFilesAction,
     OpenSchemaCreatorAction,
@@ -137,6 +139,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: UpdateStagedFilesAction) => ({
             ...state,
             stagedFiles: action.payload,
+        }),
+    },
+    [CLEAR_STAGED_FILES]: {
+        accepts: (action: AnyAction): action is ClearStagedFilesAction => action.type === CLEAR_STAGED_FILES,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            stagedFiles: [],
         }),
     },
     [SET_WELLS]: {

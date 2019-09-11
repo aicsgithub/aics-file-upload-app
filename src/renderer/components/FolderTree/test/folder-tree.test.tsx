@@ -34,11 +34,17 @@ describe("<FolderTree/>", () => {
         // This test was working until we upgraded antd from 3.10.4 to 3.13.5
         // TODO fix test
         xit("should get children if folder has not been expanded", (done) => {
+            const clearStagedFiles = sinon.fake();
             const getFilesInFolder = sinon.fake();
+            const loadFilesFromDragAndDropAction = sinon.fake();
+            const loadFilesFromOpenDialogAction = sinon.fake();
             const wrapper = shallow(
                 <FolderTree
+                    clearStagedFiles={clearStagedFiles}
                     files={files}
                     getFilesInFolder={getFilesInFolder}
+                    loadFilesFromDragAndDropAction={loadFilesFromDragAndDropAction}
+                    loadFilesFromOpenDialogAction={loadFilesFromOpenDialogAction}
                     onCheck={ON_CHECK}
                     selectedKeys={[]}
                     fileToTags={new Map()}
@@ -59,11 +65,17 @@ describe("<FolderTree/>", () => {
         });
 
         it("should not get children if folder has been expanded", (done) => {
+            const clearStagedFiles = sinon.fake();
             const getFilesInFolder = sinon.fake();
+            const loadFilesFromDragAndDropAction = sinon.fake();
+            const loadFilesFromOpenDialogAction = sinon.fake();
             const wrapper = shallow(
                 <FolderTree
+                    clearStagedFiles={clearStagedFiles}
                     files={files}
                     getFilesInFolder={getFilesInFolder}
+                    loadFilesFromDragAndDropAction={loadFilesFromDragAndDropAction}
+                    loadFilesFromOpenDialogAction={loadFilesFromOpenDialogAction}
                     onCheck={ON_CHECK}
                     selectedKeys={[]}
                     fileToTags={new Map()}

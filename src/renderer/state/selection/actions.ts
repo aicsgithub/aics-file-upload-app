@@ -4,6 +4,7 @@ import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../sh
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
+    CLEAR_STAGED_FILES,
     DESELECT_FILES,
     GET_FILES_IN_FOLDER,
     GO_BACK,
@@ -25,6 +26,7 @@ import {
 import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
+    ClearStagedFilesAction,
     CloseSchemaCreatorAction,
     DeselectFilesAction,
     DragAndDropFileList,
@@ -83,6 +85,12 @@ export function stageFiles(files: UploadFile[]): AddStageFilesAction {
     return {
         payload: files,
         type: ADD_STAGE_FILES,
+    };
+}
+
+export function clearStagedFiles(): ClearStagedFilesAction {
+    return {
+        type: CLEAR_STAGED_FILES,
     };
 }
 
