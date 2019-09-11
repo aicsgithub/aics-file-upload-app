@@ -223,7 +223,7 @@ export enum Page {
     DragAndDrop = "DragAndDrop",
     EnterBarcode = "EnterBarcode",
     AssociateFiles = "AssociateFiles",
-    UploadJobs = "UploadJobs",
+    AddCustomData = "AddCustomData",
     UploadSummary = "UploadSummary",
 }
 

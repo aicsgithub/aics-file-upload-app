@@ -195,7 +195,7 @@ const getFilesInFolderLogic = createLogic({
     type: GET_FILES_IN_FOLDER,
 });
 
-const pagesToAllowSwitchingEnvironments = [Page.UploadJobs, Page.DragAndDrop];
+const pagesToAllowSwitchingEnvironments = [Page.AddCustomData, Page.DragAndDrop];
 const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
     if (menu) {
         // have to cast here because Electron's typings for MenuItem is incomplete
@@ -324,7 +324,7 @@ const pageOrder: Page[] = [
     Page.DragAndDrop,
     Page.EnterBarcode,
     Page.AssociateFiles,
-    Page.UploadJobs,
+    Page.AddCustomData,
     Page.UploadSummary,
 ];
 const selectPageLogic = createLogic({

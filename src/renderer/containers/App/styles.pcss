@@ -29,7 +29,6 @@
 .main-content-container {
   display: flex;
   flex: 1;
-  overflow-y: auto;
 
   & .folder-tree {
     flex: 0 0 350px;
@@ -38,39 +37,40 @@
 
   & .main-content {
     flex: 1;
-    min-height: 0;
     overflow-y: auto;
-    width: 100%;
     padding: var(--main-content-padding);
   }
+}
 
-  & .tab-container {
-    flex: 1;
-    height: 100%;
-    padding: 1em 0 0 0.5em;
-    width: 100%;
-    user-select: none;
-  }
+.tab-container {
+  flex: 1;
+  height: calc(100% - var(--progress-bar-height));
+  padding-top: 0.5em;
+  width: 100%;
+  user-select: none;
 
-  & .tab {
-    height: 100%;
-    padding: 1em 0 0 0.5em;
-    user-select: auto;
+  & .tab-content {
+    /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom - statusBarHeight */
+    max-height: calc(100vh - 64px - 56px - 30px);
+    overflow-y: auto;
+    padding: 0 0.5em 0 0.5em; /* top right bottom left */
 
-    & .tab-content {
-      overflow-y: auto;
-      /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom */
-      max-height: calc(100vh - 64px - 56px);
+    & .drag-and-drop-square {
+      margin-top: 30vh;
     }
   }
+}
+
+.progress-bar {
+  height: var(--progress-bar-height);
+  flex: 0 0 auto;
+  padding: 0.5em;
+  user-select: none;
+  width: 100%;
 }
 
 .status-bar {
   flex: 0 0 auto;
   width: 100%;
   border-top: 1px solid var(--border-color);
-}
-
-.drag-and-drop-square {
-  margin-top: 18em;
 }
