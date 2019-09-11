@@ -52,6 +52,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     <Select
                         allowClear={true}
                         autoFocus={true}
+                        defaultOpen={true}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
                         value={value}
@@ -112,6 +113,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     <Select
                         allowClear={true}
                         autoFocus={true}
+                        defaultOpen={true}
                         loading={!dropdownValues || !dropdownValues.length}
                         onChange={this.handleOnChange}
                         onBlur={this.props.onCommit}

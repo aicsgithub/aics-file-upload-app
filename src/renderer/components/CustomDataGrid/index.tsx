@@ -241,7 +241,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 columns.width = 250;
             }
             if (type === ColumnType.BOOLEAN) {
-                columns.formatter = (props) => BooleanFormatter({...props, key: label, saveValue: this.saveByRow});
+                columns.formatter = (props) => BooleanFormatter({...props, rowKey: label, saveValue: this.saveByRow});
             } else {
                 columns.formatter = ({ row, value }: FormatterProps) => (
                     this.renderFormat(row, value, undefined, required, label)
