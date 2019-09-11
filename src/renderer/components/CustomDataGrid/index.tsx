@@ -40,7 +40,7 @@ interface Props {
     uploads: UploadJobTableRow[];
 }
 
-interface UploadJobState {
+interface CustomDataState {
     selectedFiles: string[];
     sortColumn?: SortableColumns;
     sortDirection?: SortDirections;
@@ -57,7 +57,7 @@ interface FormatterProps {
     value?: any;
 }
 
-class UploadJobGrid extends React.Component<Props, UploadJobState> {
+class CustomDataGrid extends React.Component<Props, CustomDataState> {
     private readonly WELL_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
@@ -335,4 +335,4 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
     }
 }
 
-export default UploadJobGrid;
+export default CustomDataGrid;
