@@ -118,9 +118,9 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     <Icon type="cloud-upload" className={styles.logo}/>
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
                     <div className={styles.fileButtons}>
-                        {!!files.length && <Button className={styles.clearButton} onClick={clearStagedFiles}>
+                        <Button className={styles.clearButton} disabled={!files.length} onClick={clearStagedFiles}>
                             Clear
-                        </Button>}
+                        </Button>
                         <Button onClick={this.onBrowse} type="primary">
                             <Icon type="upload"/>
                         </Button>
