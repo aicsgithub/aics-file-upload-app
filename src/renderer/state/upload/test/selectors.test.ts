@@ -81,91 +81,109 @@ describe("Upload selectors", () => {
                 "/path/to.dot/image.tiff": {
                     file: {
                         fileType: FileType.IMAGE,
-                        notes: undefined,
                         originalPath: "/path/to.dot/image.tiff",
                     },
                     microscopy: {
                         wellIds: [6],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/image.czi": {
                     file: {
                         fileType: FileType.IMAGE,
-                        notes: undefined,
                         originalPath: "/path/to/image.czi",
                     },
                     microscopy: {
                         wellIds: [1],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/image.ome.tiff": {
                     file: {
                         fileType: FileType.IMAGE,
-                        notes: undefined,
                         originalPath: "/path/to/image.ome.tiff",
                     },
                     microscopy: {
                         wellIds: [2],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/image.png": {
                     file: {
                         fileType: FileType.IMAGE,
-                        notes: undefined,
                         originalPath: "/path/to/image.png",
                     },
                     microscopy: {
                         wellIds: [3],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/image.tiff": {
                     file: {
                         fileType: FileType.IMAGE,
-                        notes: undefined,
                         originalPath: "/path/to/image.tiff",
                     },
                     microscopy: {
                         wellIds: [4],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/multi-well.txt": {
                     file: {
                         fileType: FileType.TEXT,
-                        notes: undefined,
                         originalPath: "/path/to/multi-well.txt",
                     },
                     microscopy: {
                         wellIds: [5, 6, 7],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/no-extension": {
                     file: {
                         fileType: FileType.OTHER,
-                        notes: undefined,
                         originalPath: "/path/to/no-extension",
                     },
                     microscopy: {
                         wellIds: [7],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/not-image.csv": {
                     file: {
                         fileType: FileType.CSV,
-                        notes: undefined,
                         originalPath: "/path/to/not-image.csv",
                     },
                     microscopy: {
                         wellIds: [8],
                     },
+                    userData: {
+                        notes: undefined,
+                    },
                 },
                 "/path/to/not-image.txt": {
                     file: {
                         fileType: FileType.TEXT,
-                        notes: undefined,
                         originalPath: "/path/to/not-image.txt",
                     },
                     microscopy: {
                         wellIds: [5],
+                    },
+                    userData: {
+                        notes: undefined,
                     },
                 },
             };
