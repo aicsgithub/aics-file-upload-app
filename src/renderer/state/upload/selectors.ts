@@ -56,13 +56,12 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
 
 export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
     let result = {};
-    map(uploads, ({wellIds, barcode, wellLabels, plateId, workflows, ...etc}: any, fullPath: string) => {
+    map(uploads, ({wellIds, barcode, wellLabels, plateId, workflows, ...userData}: any, fullPath: string) => {
         const workflowNames = workflows && workflows.map((workflow: Workflow) => workflow.name);
         result = {
             ...result,
             [fullPath]: {
                 file: {
-                    ...etc,
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     originalPath: fullPath,
                 },
@@ -70,6 +69,7 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                     ...wellIds && { wellIds },
                     ...workflows && { workflows: workflowNames },
                 },
+                userData
             },
         };
     });
