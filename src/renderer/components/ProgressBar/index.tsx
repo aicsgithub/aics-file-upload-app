@@ -24,7 +24,7 @@ const stepOrder: StepInfo = {
         icon: <Icon type="upload" />,
     },
     [Page.EnterBarcode]: {
-        description: "Enter the Barcode of the Plate to associate with",
+        description: "Enter the plate barcode associated with your files",
         icon: <Icon type="barcode" />,
     },
     [Page.AssociateFiles]: {
