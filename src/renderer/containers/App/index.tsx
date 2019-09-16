@@ -9,6 +9,7 @@ import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
+import ProgressBar from "../../components/ProgressBar";
 import SchemaEditorModal from "../../components/SchemaEditorModal";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
@@ -54,10 +55,10 @@ import {
 import { State } from "../../state/types";
 import { FileTagType } from "../../state/upload/types";
 
+import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import EnterBarcode from "../EnterBarcode";
-import UploadJobs from "../UploadJob";
 import UploadSummary from "../UploadSummary";
 
 import { getFileToTags } from "./selectors";
@@ -105,16 +106,16 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
         container: <DragAndDropSquare key="dragAndDrop" className={styles.dragAndDropSquare}/>,
     }],
     [Page.EnterBarcode, {
-        container:  <EnterBarcode key="enterBarcode" className={styles.mainContent}/>,
+        container:  <EnterBarcode key="enterBarcode"/>,
     }],
     [Page.AssociateFiles, {
-        container:  <AssociateFiles key="associateFiles" className={styles.mainContent}/>,
+        container:  <AssociateFiles key="associateFiles"/>,
     }],
-    [Page.UploadJobs, {
-        container: <UploadJobs key="uploadJobs" className={styles.mainContent}/>,
+    [Page.AddCustomData, {
+        container: <AddCustomData key="addCustomData"/>,
     }],
     [Page.UploadSummary, {
-        container: <UploadSummary key="uploadSummary" className={styles.mainContent}/>,
+        container: <UploadSummary key="uploadSummary"/>,
     }],
 ]);
 
@@ -250,17 +251,26 @@ class App extends React.Component<AppProps, AppState> {
                        setAlert={setAlert}
                        fileToTags={fileToTags}
                     />
-                    <div className={styles.tabContainer}>
-                        <Tabs activeKey={view} className={styles.tab} onChange={this.props.selectView} type="card">
+                    <div className={styles.mainContent}>
+                        <Tabs
+                            activeKey={view}
+                            className={styles.tabContainer}
+                            onChange={this.props.selectView}
+                            type="card"
+                        >
                             <TabPane className={styles.tabContent} tab="Summary" key={Page.UploadSummary}>
                                 {uploadSummaryConfig.container}
                             </TabPane>
                             {page !== Page.UploadSummary && (
-                                <TabPane className={styles.tabContent} tab="Current Job" key={page}>
+                                <TabPane className={styles.tabContent} tab="Current Upload" key={page}>
                                     {pageConfig.container}
                                 </TabPane>
                             )}
                         </Tabs>
+                        {view !== Page.UploadSummary && <ProgressBar
+                            className={styles.progressBar}
+                            page={page}
+                        />}
                     </div>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>

@@ -7,8 +7,8 @@ import { ActionCreator } from "redux";
 
 import { promises } from "fs";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
+import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
-import UploadJobGrid from "../../components/UploadJobGrid";
 import { setAlert } from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward, openSchemaCreator } from "../../state/selection/actions";
@@ -72,7 +72,7 @@ interface Props {
     uploads: UploadJobTableRow[];
 }
 
-interface UploadJobState {
+interface AddCustomDataState {
     schema?: SchemaDefinition;
     selectedFiles: string[];
 }
@@ -85,7 +85,7 @@ const openDialogOptions: OpenDialogOptions = {
     title: "Select JSON file",
 };
 
-class UploadJob extends React.Component<Props, UploadJobState> {
+class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private readonly SCHEMA_FILE_OPTIONS: SchemaFileOption[] = [
         ...this.props.schemaFilepaths.map((filepath: string) => ({ filepath })),
         { filepath: BROWSE_FOR_EXISTING_SCHEMA },
@@ -118,7 +118,7 @@ class UploadJob extends React.Component<Props, UploadJobState> {
             >
                 {this.renderButtons()}
                 {this.props.schemaFile && (
-                    <UploadJobGrid
+                    <CustomDataGrid
                         canRedo={this.props.canRedo}
                         canUndo={this.props.canUndo}
                         redo={this.redo}
@@ -285,4 +285,4 @@ const dispatchToPropsMap = {
     updateUpload,
 };
 
-export default connect(mapStateToProps, dispatchToPropsMap)(UploadJob);
+export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);

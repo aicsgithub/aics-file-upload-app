@@ -40,7 +40,7 @@ interface Props {
     uploads: UploadJobTableRow[];
 }
 
-interface UploadJobState {
+interface CustomDataState {
     selectedFiles: string[];
     sortColumn?: SortableColumns;
     sortDirection?: SortDirections;
@@ -57,7 +57,7 @@ interface FormatterProps {
     value?: any;
 }
 
-class UploadJobGrid extends React.Component<Props, UploadJobState> {
+class CustomDataGrid extends React.Component<Props, CustomDataState> {
     private readonly WELL_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, value),
@@ -241,7 +241,7 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
                 columns.width = 250;
             }
             if (type === ColumnType.BOOLEAN) {
-                columns.formatter = (props) => BooleanFormatter({...props, key: label, saveValue: this.saveByRow});
+                columns.formatter = (props) => BooleanFormatter({...props, rowKey: label, saveValue: this.saveByRow});
             } else {
                 columns.formatter = ({ row, value }: FormatterProps) => (
                     this.renderFormat(row, value, undefined, required, label)
@@ -335,4 +335,4 @@ class UploadJobGrid extends React.Component<Props, UploadJobState> {
     }
 }
 
-export default UploadJobGrid;
+export default CustomDataGrid;
