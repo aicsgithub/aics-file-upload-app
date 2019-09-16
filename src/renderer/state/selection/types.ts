@@ -247,3 +247,7 @@ export interface JumpToPastSelectionAction {
 export interface ClearSelectionHistoryAction {
     type: string;
 }
+
+export interface ClearStagedFilesAction {
+    type: string;
+}

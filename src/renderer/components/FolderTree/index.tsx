@@ -1,4 +1,5 @@
 import {
+    Button,
     Empty,
     Icon,
     Spin,
@@ -7,20 +8,34 @@ import {
     Tree
 } from "antd";
 import * as classNames from "classnames";
+import { OpenDialogOptions, remote } from "electron";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
-import { GetFilesInFolderAction, SelectFileAction, UploadFile } from "../../state/selection/types";
+import {
+    ClearStagedFilesAction,
+    DragAndDropFileList,
+    GetFilesInFolderAction,
+    LoadFilesFromDragAndDropAction,
+    LoadFilesFromOpenDialogAction,
+    SelectFileAction,
+    UploadFile
+} from "../../state/selection/types";
 import { FileTagType } from "../../state/upload/types";
+import DragAndDrop from "../DragAndDrop";
 import Resizable from "../Resizable";
 
 const styles = require("./style.pcss");
 
 interface FolderTreeProps {
     className?: string;
+    clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
     files: UploadFile[];
     getFilesInFolder: (folderToExpand: UploadFile) => GetFilesInFolderAction;
+    loadFilesFromDragAndDropAction: (files: DragAndDropFileList) => LoadFilesFromDragAndDropAction;
+    loadFilesFromOpenDialogAction: (files: string[]) => LoadFilesFromOpenDialogAction;
     setAlert: ActionCreator<SetAlertAction>;
     isLoading?: boolean;
     onCheck: (files: string[]) => SelectFileAction;
@@ -36,6 +51,11 @@ interface FolderTreeState {
 // Added to the keys used for Tree.TreeNode in order to quickly identify folders from files.
 const FOLDER_TAG = "(folder)";
 const CANT_READ_TAG = "(cant read)";
+
+const openDialogOptions: OpenDialogOptions = {
+    properties: ["openFile", "openDirectory", "multiSelections"],
+    title: "Open files",
+};
 
 class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
     public static getKey(file: UploadFile): string {
@@ -82,7 +102,12 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
     }
 
     public render() {
-        const { className, files } = this.props;
+        const {
+            className,
+            clearStagedFiles,
+            files,
+            loadFilesFromDragAndDropAction,
+        } = this.props;
         if (!files) {
             return null;
         }
@@ -92,12 +117,35 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                 <div className={styles.logoContainer}>
                     <Icon type="cloud-upload" className={styles.logo}/>
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
+                    <div className={styles.fileButtons}>
+                        <Button className={styles.clearButton} disabled={!files.length} onClick={clearStagedFiles}>
+                            Clear
+                        </Button>
+                        <Button onClick={this.onBrowse} type="primary">
+                            <Icon type="upload"/>
+                        </Button>
+                    </div>
+
                 </div>
-                <div className={styles.fileTree}>
+                <DragAndDrop
+                    className={styles.dragAndDrop}
+                    openDialogOptions={openDialogOptions}
+                    onDrop={loadFilesFromDragAndDropAction}
+                >
                     {this.renderFolderTree()}
-                </div>
+                </DragAndDrop>
             </Resizable>
         );
+    }
+
+    // Opens native file explorer
+    private onBrowse = () => {
+        remote.dialog.showOpenDialog(openDialogOptions, (filenames?: string[]) => {
+            // If cancel is clicked, this callback gets called and filenames is undefined
+            if (filenames && !isEmpty(filenames)) {
+                this.props.loadFilesFromOpenDialogAction(filenames);
+            }
+        });
     }
 
     private renderFolderTree = () => {
@@ -113,16 +161,18 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             return <Empty className={styles.empty} description="No Files"/>;
         }
         return (
-            <Tree.DirectoryTree
-                checkable={false}
-                multiple={true}
-                defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getKey(file))}
-                onSelect={this.onSelect}
-                onExpand={this.onExpand}
-                selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
-            >
-                {files.map((file: UploadFile) => this.renderChildDirectories(file))}
-            </Tree.DirectoryTree>
+            <div className={styles.fileTree}>
+                <Tree.DirectoryTree
+                    checkable={false}
+                    multiple={true}
+                    defaultExpandedKeys={files.map((file: UploadFile) => FolderTree.getKey(file))}
+                    onSelect={this.onSelect}
+                    onExpand={this.onExpand}
+                    selectedKeys={selectedKeys.filter((file) => !file.includes(FOLDER_TAG))}
+                >
+                    {files.map((file: UploadFile) => this.renderChildDirectories(file))}
+                </Tree.DirectoryTree>
+            </div>
         );
     }
 

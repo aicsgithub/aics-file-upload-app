@@ -31,39 +31,18 @@ describe("<FolderTree/>", () => {
     });
 
     describe("onExpand", () => {
-        // This test was working until we upgraded antd from 3.10.4 to 3.13.5
-        // TODO fix test
-        xit("should get children if folder has not been expanded", (done) => {
-            const getFilesInFolder = sinon.fake();
-            const wrapper = shallow(
-                <FolderTree
-                    files={files}
-                    getFilesInFolder={getFilesInFolder}
-                    onCheck={ON_CHECK}
-                    selectedKeys={[]}
-                    fileToTags={new Map()}
-                    setAlert={setAlert}
-                />
-            );
-
-            // update
-            expect(wrapper.find(DirectoryTree).dive().exists()).to.equal(true);
-            wrapper.find(DirectoryTree).dive()
-                .simulate("expand", [testFolderKey]);
-
-            setTimeout(() => {
-                // after
-                expect(getFilesInFolder.called).to.equal(true);
-                done();
-            }, 500);
-        });
-
         it("should not get children if folder has been expanded", (done) => {
+            const clearStagedFiles = sinon.fake();
             const getFilesInFolder = sinon.fake();
+            const loadFilesFromDragAndDropAction = sinon.fake();
+            const loadFilesFromOpenDialogAction = sinon.fake();
             const wrapper = shallow(
                 <FolderTree
+                    clearStagedFiles={clearStagedFiles}
                     files={files}
                     getFilesInFolder={getFilesInFolder}
+                    loadFilesFromDragAndDropAction={loadFilesFromDragAndDropAction}
+                    loadFilesFromOpenDialogAction={loadFilesFromOpenDialogAction}
                     onCheck={ON_CHECK}
                     selectedKeys={[]}
                     fileToTags={new Map()}
