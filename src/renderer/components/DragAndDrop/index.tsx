@@ -57,7 +57,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
                 onDrop={this.onDrop}
                 onDragOver={DragAndDrop.onDragOver}
             >
-                {children ? children : (
+                {children || (
                     <div className={styles.content}>
                             <>
                                 <Icon type="upload" className={styles.uploadIcon} />
