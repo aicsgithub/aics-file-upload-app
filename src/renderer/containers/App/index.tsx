@@ -251,7 +251,7 @@ class App extends React.Component<AppProps, AppState> {
                        setAlert={setAlert}
                        fileToTags={fileToTags}
                     />
-                    <span className={styles.mainContent} style={{ width: "100%" }}>
+                    <div className={styles.mainContent}>
                         <Tabs
                             activeKey={view}
                             className={styles.tabContainer}
@@ -271,7 +271,7 @@ class App extends React.Component<AppProps, AppState> {
                             className={styles.progressBar}
                             page={page}
                         />}
-                    </span>
+                    </div>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <SchemaEditorModal
