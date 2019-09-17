@@ -1,5 +1,10 @@
 # Version Notes
 
+## 1.0.12
+- Bugfix: Move custom metadata to new location on upload complete request
+- Feature: Upload wizard status bar
+- Feature: Allow additional files to be dropped on folder tree
+
 ## 1.0.11
 - Feature: Allow users to retry uploads
 - Bugfix: Added more validation to upload process and fixed copies for Windows clients
