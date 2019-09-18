@@ -69,7 +69,7 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                     ...wellIds && { wellIds },
                     ...workflows && { workflows: workflowNames },
                 },
-                userData
+                userData,
             },
         };
     });
