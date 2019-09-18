@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import * as classNames from "classnames";
 import Logger from "js-logger";
-import { isEmpty, without } from "lodash";
+import { isEmpty, isNil, without } from "lodash";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
@@ -159,7 +159,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             label?: string,
                             className?: string): React.ReactElement => {
         let childElement = children;
-        if (required && !value && value !== false) {
+        if (required && isNil(value)) {
             childElement = (
                 <FormControl
                     className={classNames(styles.formatterContainer, className)}
