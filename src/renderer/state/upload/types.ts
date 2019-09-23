@@ -52,10 +52,6 @@ export interface UploadJobTableRow {
     wellLabels: string;
 }
 
-export interface SchemaFileOption {
-    filepath: string;
-}
-
 export interface AssociateFilesAndWellsAction {
     payload: {
         barcode: string,

@@ -37,7 +37,10 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     constructor(props: AdazzleReactDataGrid.EditorBaseProps) {
         super(props);
         this.state = {
-            value: this.props.value,
+            // When the user starts typing into a cell with a numeric input the value
+            // that they start typing with is sent as a prop to this component, however then the component
+            // registers the same key being pressed twice leading to a a double entry ex. '4' -> '44', '1' -> '11'
+            value: this.props.column.type === ColumnType.NUMBER ? null : props.value,
         };
     }
 

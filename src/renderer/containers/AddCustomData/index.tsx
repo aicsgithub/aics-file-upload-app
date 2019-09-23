@@ -1,5 +1,4 @@
-import { LabKeyOptionSelector } from "@aics/aics-react-labkey";
-import { Button } from "antd";
+import { Button, Select } from "antd";
 import { OpenDialogOptions, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -40,7 +39,6 @@ import {
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
-    SchemaFileOption,
     UpdateSchemaAction,
     UpdateUploadAction,
     UploadJobTableRow,
@@ -48,6 +46,8 @@ import {
 import { isSchemaDefinition } from "../App/util";
 
 const styles = require("./style.pcss");
+
+const { Option } = Select;
 
 const BROWSE_FOR_EXISTING_SCHEMA = `...Browse for existing ${SCHEMA_SYNONYM.toLowerCase()}`;
 
@@ -86,11 +86,6 @@ const openDialogOptions: OpenDialogOptions = {
 };
 
 class AddCustomData extends React.Component<Props, AddCustomDataState> {
-    private readonly SCHEMA_FILE_OPTIONS: SchemaFileOption[] = [
-        ...this.props.schemaFilepaths.map((filepath: string) => ({ filepath })),
-        { filepath: BROWSE_FOR_EXISTING_SCHEMA },
-    ];
-
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -136,22 +131,24 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderButtons = () => {
-        const {
-            schemaFile,
-        } = this.props;
+        const { schemaFile, schemaFilepaths } = this.props;
 
+        const schemaOptions = [...schemaFilepaths, BROWSE_FOR_EXISTING_SCHEMA];
         return (
             <div className={styles.buttonRow}>
-                <div className={styles.applySchemaWidth}>
-                    <LabKeyOptionSelector
-                        label={`Apply ${SCHEMA_SYNONYM}`}
-                        optionIdKey="filepath"
-                        optionNameKey="filepath"
-                        selected={schemaFile ? { filepath: schemaFile } : undefined}
-                        onOptionSelection={this.selectSchema}
-                        options={this.SCHEMA_FILE_OPTIONS}
+                <div className={styles.schemaSelector}>
+                <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
+                    <Select
+                        autoFocus={true}
+                        className={styles.schemaSelector}
+                        onChange={this.selectSchema}
                         placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} file`}
-                    />
+                        value={schemaFile}
+                    >
+                        {schemaOptions.map((dropdownValue: string) => (
+                            <Option key={dropdownValue}>{dropdownValue}</Option>
+                        ))}
+                    </Select>
                 </div>
                 <Button className={styles.createSchemaButton} onClick={this.props.openSchemaCreator}>
                     Create {SCHEMA_SYNONYM}
@@ -203,18 +200,18 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         });
     }
 
-    private selectSchema = async (option: SchemaFileOption | null) => {
-        if (option) {
-            if (option.filepath === BROWSE_FOR_EXISTING_SCHEMA) {
+    private selectSchema = async (filepath: string | null) => {
+        if (filepath) {
+            if (filepath === BROWSE_FOR_EXISTING_SCHEMA) {
                 await this.findSchema();
-            } else if (option.filepath !== this.props.schemaFile) {
-                const fileExists = await promises.stat(option.filepath);
+            } else if (filepath !== this.props.schemaFile) {
+                const fileExists = await promises.stat(filepath);
                 if (!fileExists || !fileExists.isFile()) {
                     this.props.updateSchema();
-                    this.handleError(`File cannot be found ${option.filepath}.`, option.filepath);
+                    this.handleError(`File cannot be found ${filepath}.`, filepath);
                     return;
                 }
-                await this.readFile(option.filepath);
+                await this.readFile(filepath);
             }
         } else {
             this.props.updateSchema();
