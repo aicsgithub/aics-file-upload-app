@@ -1,5 +1,6 @@
-import axios, { AxiosInstance } from "axios";
+import axios from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
+import HttpAndCacheClient from "../http-and-cache-client";
 
 export default class MMSClient {
     public protocol: string;
@@ -7,10 +8,10 @@ export default class MMSClient {
     public port: string;
     private username: string;
 
-    private get httpClient(): AxiosInstance {
-        return axios.create({
+    private get httpClient(): HttpAndCacheClient {
+        return new HttpAndCacheClient(axios.create({
             baseURL: this.baseURL,
-        });
+        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
     }
 
     constructor({host, port, protocol, username}: {host: string, port: string, protocol: string, username: string}) {
@@ -28,7 +29,7 @@ export default class MMSClient {
         const url = "/1.0/plate/barcode";
         const body = { prefixId, quantity: 1 };
         const response = await this.httpClient.post(url, body, { headers: { "X-User-Id": this.username } });
-        return response.data.data[0];
+        return response.data[0];
     }
 
     /**
@@ -39,7 +40,7 @@ export default class MMSClient {
     public async getPlate(barcode: string, imagingSessionId?: number): Promise<GetPlateResponse> {
         const url = `/1.0/plate/query?barcode=${barcode}`;
         const response = await this.httpClient.get(url);
-        return response.data.data[0];
+        return response.data[0];
     }
 
     private get baseURL(): string {
