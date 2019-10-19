@@ -3,7 +3,7 @@ import { isEmpty, isNil, isNumber } from "lodash";
 import { basename } from "path";
 import * as React from "react";
 
-import { Channel } from "../../../state/selection/types";
+import { Channel } from "../../../state/metadata/types";
 
 import LabeledInput from "../../LabeledInput";
 import { FormatterProps } from "../index";
