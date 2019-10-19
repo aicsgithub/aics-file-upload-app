@@ -51,7 +51,7 @@ interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow>
     type?: ColumnType;
 }
 
-interface FormatterProps {
+export interface FormatterProps {
     isScrollable?: boolean;
     row: any;
     value?: any;
