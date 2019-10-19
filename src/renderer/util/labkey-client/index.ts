@@ -1,9 +1,10 @@
-import axios, { AxiosInstance, AxiosPromise, AxiosResponse } from "axios";
+import axios from "axios";
 import { isEmpty, map } from "lodash";
 
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
+import HttpAndCacheClient from "../http-and-cache-client";
 import {
     GetBarcodesResponse,
     GetTablesResponse,
@@ -40,10 +41,11 @@ export default class LabkeyClient {
     public host: string;
     public port: string;
 
-    private get httpClient(): AxiosInstance {
-        return axios.create({
+    private get httpClient(): HttpAndCacheClient {
+        // todo something more efficient?
+        return new HttpAndCacheClient(axios.create({
             baseURL: this.baseURL,
-        });
+        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
     }
 
     constructor({host, port, protocol}: {host: string, port: string, protocol: string}) {
@@ -63,7 +65,7 @@ export default class LabkeyClient {
         ]);
 
         const response: GetBarcodesResponse = await this.httpClient.get(query);
-        const plates: LabkeyPlate[] = response.data.rows;
+        const plates: LabkeyPlate[] = response.rows;
         return map(plates, (p) => ({
             barcode: p.BarCode,
             imagingSessionId: p.ImagingSessionId,
@@ -76,7 +78,7 @@ export default class LabkeyClient {
     public async getImagingSessions(): Promise<ImagingSession[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "ImagingSession");
         const response = await this.httpClient.get(query);
-        return response.data.rows.map((imagingSession: LabkeyImagingSession) => ({
+        return response.rows.map((imagingSession: LabkeyImagingSession) => ({
             description: imagingSession.Description,
             imagingSessionId: imagingSession.ImagingSessionId,
             name: imagingSession.Name,
@@ -89,7 +91,7 @@ export default class LabkeyClient {
     public async getBarcodePrefixes(): Promise<BarcodePrefix[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "PlateBarcodePrefix");
         const response = await this.httpClient.get(query);
-        return response.data.rows.map((barcodePrefix: LabKeyPlateBarcodePrefix) => ({
+        return response.rows.map((barcodePrefix: LabKeyPlateBarcodePrefix) => ({
             description: `${barcodePrefix.Prefix} - ${barcodePrefix.TeamName}`,
             prefix: barcodePrefix.Prefix,
             prefixId: barcodePrefix.PlateBarcodePrefixId,
@@ -102,7 +104,7 @@ export default class LabkeyClient {
     public async getUnits(): Promise<Unit[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Units");
         const response = await this.httpClient.get(query);
-        return response.data.rows.map((unit: LabkeyUnit) => ({
+        return response.rows.map((unit: LabkeyUnit) => ({
             description: unit.Description,
             name: unit.Name,
             type: unit.Type,
@@ -114,12 +116,12 @@ export default class LabkeyClient {
      * Retrieves all Table names and Table Column names for each Schema defined in the constant SCHEMAS
      */
     public async getDatabaseMetadata(): Promise<DatabaseMetadata> {
-        const requests: Array<AxiosPromise<GetTablesResponse>> = SCHEMAS.map((schemaName: string) =>
+        const requests = SCHEMAS.map((schemaName: string) =>
             this.httpClient.post(LABKEY_GET_TABLES_URL, { schemaName })
         );
-        const responses: Array<AxiosResponse<GetTablesResponse>> = await Promise.all(requests);
+        const responses: GetTablesResponse[] = await Promise.all(requests);
         let tables: Table[] = [];
-        responses.forEach(({ data: { schemaName, queries } }: AxiosResponse<GetTablesResponse>) => {
+        responses.forEach(({ schemaName, queries }: GetTablesResponse) => {
             tables = [
                 ...tables,
                 ...queries
@@ -161,7 +163,7 @@ export default class LabkeyClient {
                                  columnName: string): Promise<string[]> {
         const query = LabkeyClient.getSelectRowsURL(schemaName, queryName, [`query.columns=${columnName}`]);
         const response = await this.httpClient.get(query);
-        return response.data.rows.map((columnValue: any) => columnValue[columnName]);
+        return response.rows.map((columnValue: any) => columnValue[columnName]);
     }
 
     /**
@@ -170,7 +172,7 @@ export default class LabkeyClient {
     public async getWorkflows(): Promise<Workflow[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Workflow");
         const response = await this.httpClient.get(query);
-        return response.data.rows.map((workflow: LabKeyWorkflow) => ({
+        return response.rows.map((workflow: LabKeyWorkflow) => ({
             description: workflow.Description,
             name: workflow.Name,
             workflowId: workflow.WorkflowId,
