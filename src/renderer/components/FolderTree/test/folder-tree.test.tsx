@@ -58,12 +58,8 @@ describe("<FolderTree/>", () => {
             });
             wrapper.find(DirectoryTree).dive()
                 .simulate("expand", [testFolderKey]);
-
-            setTimeout(() => {
-                // after
-                expect(getFilesInFolder.called).to.equal(false);
-                done();
-            }, 500);
+            expect(getFilesInFolder.called).to.equal(false);
+            done();
         });
     });
 
