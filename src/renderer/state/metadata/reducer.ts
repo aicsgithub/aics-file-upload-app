@@ -14,6 +14,7 @@ export const initialState = {
     barcodePrefixes: [],
     barcodeSearchResults: [],
     barcodes: [],
+    channels: [],
     history: {
         selection: {},
         upload: {},

@@ -1,15 +1,17 @@
 import axios from "axios";
 import { isEmpty, map } from "lodash";
 
-import { DatabaseMetadata, Table } from "../../state/metadata/types";
+import { Channel, DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
+import { LocalStorage } from "../../state/types";
 import HttpAndCacheClient from "../http-and-cache-client";
 import {
     GetBarcodesResponse,
     GetTablesResponse,
     GetTablesResponseColumn,
     GetTablesResponseQuery,
+    LabkeyChannel,
     LabkeyImagingSession,
     LabkeyPlate,
     LabKeyPlateBarcodePrefix,
@@ -18,13 +20,14 @@ import {
 
 const LABKEY_GET_TABLES_URL = `/AICS/query-getQueries.api`;
 const LK_MICROSCOPY_SCHEMA = "microscopy";
+const LK_PROCESSING_SCHEMA = "processing";
 
 // There are more schemas, but these are the only ones (AFAIK) that users use
 const SCHEMAS = [
     "assayscustom",
     "celllines",
     LK_MICROSCOPY_SCHEMA,
-    "processing",
+    LK_PROCESSING_SCHEMA,
 ];
 
 export default class LabkeyClient {
@@ -40,18 +43,21 @@ export default class LabkeyClient {
     public protocol: string;
     public host: string;
     public port: string;
+    public localStorage: LocalStorage;
 
     private get httpClient(): HttpAndCacheClient {
         // todo something more efficient?
         return new HttpAndCacheClient(axios.create({
             baseURL: this.baseURL,
-        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
+        }), this.localStorage, Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
     }
 
-    constructor({host, port, protocol}: {host: string, port: string, protocol: string}) {
+    constructor({host, localStorage, port, protocol}:
+                    {host: string, localStorage: LocalStorage, port: string, protocol: string}) {
         this.protocol = protocol;
         this.host = host;
         this.port = port;
+        this.localStorage = localStorage;
     }
 
     /**
@@ -176,6 +182,16 @@ export default class LabkeyClient {
             description: workflow.Description,
             name: workflow.Name,
             workflowId: workflow.WorkflowId,
+        }));
+    }
+
+    public async getChannels(): Promise<Channel[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_PROCESSING_SCHEMA, "ContentType");
+        const response = await this.httpClient.get(query);
+        return response.rows.map((channel: LabkeyChannel) => ({
+            channelId: channel.ContentTypeId,
+            description: channel.Description,
+            name: channel.Name,
         }));
     }
 

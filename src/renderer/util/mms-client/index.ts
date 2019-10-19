@@ -1,24 +1,28 @@
 import axios from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
+import { LocalStorage } from "../../state/types";
 import HttpAndCacheClient from "../http-and-cache-client";
 
 export default class MMSClient {
     public protocol: string;
     public host: string;
     public port: string;
+    private localStorage: LocalStorage;
     private username: string;
 
     private get httpClient(): HttpAndCacheClient {
         return new HttpAndCacheClient(axios.create({
             baseURL: this.baseURL,
-        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
+        }), this.localStorage, Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
     }
 
-    constructor({host, port, protocol, username}: {host: string, port: string, protocol: string, username: string}) {
+    constructor({host, localStorage, port, protocol, username}:
+                    {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
         this.protocol = protocol;
         this.host = host;
         this.port = port;
         this.username = username;
+        this.localStorage = localStorage;
     }
 
     /**

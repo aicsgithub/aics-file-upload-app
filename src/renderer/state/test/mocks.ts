@@ -1,6 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
+import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
@@ -73,6 +73,7 @@ export const mockState: State = {
     metadata: {
         barcodePrefixes: [],
         barcodeSearchResults: [],
+        channels: [],
         history: {
             selection: {},
             upload: {},
@@ -265,6 +266,14 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
         PlateBarcodePrefixId: 2,
         Prefix: "MX",
         TeamName: "Microscopy",
+    },
+];
+
+export const mockChannels: LabkeyChannel[] = [
+    {
+        ContentTypeId: 1,
+        Description: "a channel",
+        Name: "Raw 468nm",
     },
 ];
 

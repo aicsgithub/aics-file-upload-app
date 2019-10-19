@@ -46,3 +46,9 @@ export interface LabKeyWorkflow {
     Name: string;
     WorkflowId: number;
 }
+
+export interface LabkeyChannel {
+    ContentTypeId: number;
+    Description: string;
+    Name: string;
+}

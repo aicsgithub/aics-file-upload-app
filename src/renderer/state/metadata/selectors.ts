@@ -14,6 +14,7 @@ export const getUploadHistory = (state: State) => state.metadata.history.upload;
 export const getWorkflowOptions = (state: State) => state.metadata.workflowOptions;
 export const getDatabaseMetadata = (state: State) => state.metadata.databaseMetadata;
 export const getBarcodeSearchResults = (state: State) => state.metadata.barcodeSearchResults;
+export const getChannels = (state: State) => state.metadata.channels;
 
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([

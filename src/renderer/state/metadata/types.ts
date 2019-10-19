@@ -5,6 +5,7 @@ export interface MetadataStateBranch {
     barcode?: string;
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
+    channels: Channel[];
     databaseMetadata?: DatabaseMetadata;
     imagingSessions: ImagingSession[];
     units: Unit[];
@@ -21,6 +22,12 @@ export interface BarcodePrefix {
     description: string;
     prefixId: number;
     prefix: string;
+}
+
+export interface Channel {
+    channelId: number;
+    name: string;
+    description: string;
 }
 
 export interface ImagingSession {

@@ -44,12 +44,14 @@ const requestMetadata = createLogic({
         try {
             const [
                 barcodePrefixes,
+                channels,
                 databaseMetadata,
                 imagingSessions,
                 units,
                 workflowOptions,
             ] = await Promise.all([
                 labkeyClient.getBarcodePrefixes(),
+                labkeyClient.getChannels(),
                 labkeyClient.getDatabaseMetadata(),
                 labkeyClient.getImagingSessions(),
                 labkeyClient.getUnits(),
@@ -58,6 +60,7 @@ const requestMetadata = createLogic({
             ]);
             dispatch(receiveMetadata({
                 barcodePrefixes,
+                channels,
                 databaseMetadata,
                 imagingSessions,
                 units,

@@ -83,6 +83,11 @@ export interface Audited {
     modifiedBy: number;
 }
 
+export interface LocalStorage {
+    get: (key: string) => void;
+    set: (key: string, value: any) => void;
+}
+
 export enum HTTP_STATUS {
     BAD_GATEWAY = 502,
     BAD_REQUEST = 400,

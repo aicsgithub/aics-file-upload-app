@@ -1,12 +1,14 @@
 import { AxiosInstance, AxiosRequestConfig } from "axios";
-import * as ElectronStore from "electron-store";
+
+import { LocalStorage } from "../../state/types";
 
 export default class HttpAndCacheClient {
     private httpClient: AxiosInstance;
-    private localStorage: ElectronStore = new ElectronStore();
+    private localStorage: LocalStorage;
 
-    constructor(httpClient: AxiosInstance, useCache: boolean) {
+    constructor(httpClient: AxiosInstance, localStorage: LocalStorage, useCache: boolean) {
         this.httpClient = httpClient;
+        this.localStorage = localStorage;
 
         if (useCache) {
             this.get = this.getAndReturnCache;
@@ -32,7 +34,7 @@ export default class HttpAndCacheClient {
 
     private getAndReturnCache = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
         const key = `GET ${url}`;
-        const cachedResponse: T = this.localStorage.get(key) as T;
+        const cachedResponse: T = this.localStorage.get(key) as any as T;
         if (cachedResponse) {
             return cachedResponse;
         }
@@ -47,7 +49,7 @@ export default class HttpAndCacheClient {
     private postAndReturnCache = async <T = any>(url: string, request: any,
                                                  config?: AxiosRequestConfig): Promise<T> => {
         const key = `POST ${url}`;
-        const cachedResponse: T = this.localStorage.get(key) as T;
+        const cachedResponse: T = this.localStorage.get(key) as any as T;
         if (cachedResponse) {
             return cachedResponse;
         }
@@ -62,7 +64,7 @@ export default class HttpAndCacheClient {
     private putAndReturnCache = async <T = any>(url: string, request: any,
                                                 config?: AxiosRequestConfig): Promise<T> => {
         const key = `PUT ${url}`;
-        const cachedResponse: T = this.localStorage.get(key) as T;
+        const cachedResponse: T = this.localStorage.get(key) as any as T;
         if (cachedResponse) {
             return cachedResponse;
         }
