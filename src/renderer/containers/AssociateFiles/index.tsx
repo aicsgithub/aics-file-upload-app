@@ -49,7 +49,7 @@ import {
     getMutualFilesForWells,
     getMutualFilesForWorkflows,
     getWellIdToFiles,
-    getWorkflowIdToFiles,
+    getWorkflowNameToFiles,
     IdToFilesMap
 } from "./selectors";
 
@@ -149,7 +149,7 @@ function mapStateToProps(state: State) {
         selectedWorkflows: getSelectedWorkflows(state),
         wellIdToFiles: getWellIdToFiles(state),
         wells: getWellsWithUnitsAndModified(state),
-        workflowIdToFiles: getWorkflowIdToFiles(state),
+        workflowIdToFiles: getWorkflowNameToFiles(state),
         workflowOptions: getWorkflowOptions(state),
     };
 }

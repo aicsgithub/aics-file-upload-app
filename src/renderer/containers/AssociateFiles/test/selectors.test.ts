@@ -13,7 +13,7 @@ import {
     getMutualFilesForWells,
     getMutualFilesForWorkflows,
     getWellIdToFiles,
-    getWorkflowIdToFiles
+    getWorkflowNameToFiles
 } from "../selectors";
 
 describe("AssociateFiles selectors", () => {
@@ -72,10 +72,10 @@ describe("AssociateFiles selectors", () => {
             const map = getWellIdToFiles({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    "/path1": {barcode, wellIds: [wellId], wellLabels: [wellLabel], workflows: []},
-                    "/path2": {barcode, wellIds: [wellId], wellLabels: [wellLabel], workflows: []},
-                    "/path3": {barcode, wellIds: [wellId], wellLabels: [wellLabel], workflows: []},
-                    "/path4": {barcode, wellIds: [wellId2], wellLabels: [wellLabel2], workflows: []},
+                    "/path1": {barcode, file: "/path1", wellIds: [wellId], wellLabels: [wellLabel], workflows: []},
+                    "/path2": {barcode, file: "/path2", wellIds: [wellId], wellLabels: [wellLabel], workflows: []},
+                    "/path3": {barcode, file: "/path3", wellIds: [wellId], wellLabels: [wellLabel], workflows: []},
+                    "/path4": {barcode, file: "/path4", wellIds: [wellId2], wellLabels: [wellLabel2], workflows: []},
                 }),
             });
 
@@ -119,9 +119,9 @@ describe("AssociateFiles selectors", () => {
             expect(arr).to.be.empty;
         });
     });
-    describe("getWorkflowIdToFiles", () => {
+    describe("getWorkflowNameToFiles", () => {
         it("returns an empty map given no uploads", () => {
-            const map = getWorkflowIdToFiles({
+            const map = getWorkflowNameToFiles({
                 ...mockState,
                 upload: getMockStateWithHistory({}),
             });
@@ -131,15 +131,15 @@ describe("AssociateFiles selectors", () => {
 
         it("aggregates all files associated with a workflow given multiple files", () => {
             const barcode = "test_barcode";
-            const workflow = { workflowId: 2, name: "name1", description: "idk"};
-            const workflow2 = { workflowId: 5, name: "name2", description: "idk"};
-            const map = getWorkflowIdToFiles({
+            const workflow = "name1";
+            const workflow2 = "name2";
+            const map = getWorkflowNameToFiles({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    "/path1": {barcode, wellIds: [], wellLabels: [], workflows: [workflow]},
-                    "/path2": {barcode, wellIds: [], wellLabels: [], workflows: [workflow]},
-                    "/path3": {barcode, wellIds: [], wellLabels: [], workflows: [workflow]},
-                    "/path4": {barcode, wellIds: [], wellLabels: [], workflows: [workflow2]},
+                    "/path1": {barcode, file: "/path1", wellIds: [], wellLabels: [], workflows: [workflow]},
+                    "/path2": {barcode, file: "/path2", wellIds: [], wellLabels: [], workflows: [workflow]},
+                    "/path3": {barcode, file: "/path3", wellIds: [], wellLabels: [], workflows: [workflow]},
+                    "/path4": {barcode, file: "/path4", wellIds: [], wellLabels: [], workflows: [workflow2]},
                 }),
             });
 

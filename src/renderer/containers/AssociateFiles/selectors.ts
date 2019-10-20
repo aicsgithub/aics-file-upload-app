@@ -8,6 +8,7 @@ import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
 export interface IdToFilesMap {
     [Id: number]: string[]; // filePaths
+    [name: string]: string[]; // filePaths
 }
 
 export const getWellIdToFiles = createSelector([getUpload], (upload: UploadStateBranch): IdToFilesMap => {
@@ -28,19 +29,18 @@ export const getWellIdToFiles = createSelector([getUpload], (upload: UploadState
     }, {});
 });
 
-export const getWorkflowIdToFiles = createSelector([getUpload], (upload: UploadStateBranch): IdToFilesMap => {
+export const getWorkflowNameToFiles = createSelector([getUpload], (upload: UploadStateBranch): IdToFilesMap => {
     return reduce(upload, (result: IdToFilesMap, {workflows}: UploadMetadata, filePath: string) => {
         if (!workflows) {
             return {};
         }
-        const workflowIds = workflows.map((workflow: Workflow) => workflow.workflowId);
         return {
             ...result,
-            ...reduce(workflowIds, (accum: IdToFilesMap, workflowId: number) => {
-                const files = accum[workflowId] || [];
+            ...reduce(workflows, (accum: IdToFilesMap, workflow: string) => {
+                const files = accum[workflow] || [];
                 return {
                     ...accum,
-                    [workflowId]: uniq([...files, filePath]),
+                    [workflow]: uniq([...files, filePath]),
                 };
             }, {}),
         };
@@ -75,14 +75,13 @@ export const getMutualFilesForWorkflows = createSelector([
         return [];
     }
 
-    const selectedWorkflowIds = workflows.map((workflow: Workflow) => workflow.workflowId);
+    const selectedWorkflowNames = workflows.map((workflow: Workflow) => workflow.name);
 
     return reduce(upload, (files: string[], metadata: UploadMetadata, filepath: string) => {
         if (!metadata.workflows) {
             return files;
         }
-        const workflowIds = metadata.workflows.map((workflow: Workflow) => workflow.workflowId);
-        const allWorkflowsFound = isEmpty(difference(selectedWorkflowIds, workflowIds));
+        const allWorkflowsFound = isEmpty(difference(selectedWorkflowNames, metadata.workflows));
         const accum = [...files];
         if (allWorkflowsFound) {
             accum.push(filepath);

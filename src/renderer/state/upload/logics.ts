@@ -50,6 +50,7 @@ const updateSchemaLogic = createLogic({
             // By only grabbing the initial fields of the upload we can remove old schema columns
             const uploadData: UploadMetadata = {
                 barcode: upload.barcode,
+                file: upload.file,
                 notes: upload.notes,
                 schemaFile,
                 wellIds: upload.wellIds,

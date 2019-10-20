@@ -1,6 +1,5 @@
 import { createSelector } from "reselect";
 import { getWellIdToWellLabelMap } from "../../state/selection/selectors";
-import { Workflow } from "../../state/selection/types";
 import { getUpload } from "../../state/upload/selectors";
 import { FileTagType, UploadStateBranch } from "../../state/upload/types";
 
@@ -28,8 +27,8 @@ export const getFileToTags = createSelector([
             const metadata = upload[fullPath];
             let tags;
             if (metadata.workflows) {
-                tags = metadata.workflows.map(({ name }: Workflow) => (
-                    new FileTag(name, "blue")
+                tags = metadata.workflows.map((workflow: string) => (
+                    new FileTag(workflow, "blue")
                 ));
             } else {
                 tags = metadata.wellIds.map((wellId) => (

@@ -45,16 +45,19 @@ export const mockSelection: SelectionStateBranch = {
 export const mockWellUpload: UploadStateBranch = {
     "/path/to/file1": {
         barcode: "1234",
+        file: "/path/to/file1",
         wellIds: [1],
         wellLabels: ["A1"],
     },
     "/path/to/file2": {
         barcode: "1235",
+        file: "/path/to/file2",
         wellIds: [2],
         wellLabels: ["A2"],
     },
     "/path/to/file3": {
         barcode: "1236",
+        file: "/path/to/file3",
         wellIds: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
     },

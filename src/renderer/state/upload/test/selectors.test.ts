@@ -14,6 +14,7 @@ describe("Upload selectors", () => {
                 upload: getMockStateWithHistory({
                     "/path/to.dot/image.tiff": {
                         barcode: "452",
+                        file: "/path/to.dot/image.tiff",
                         notes: undefined,
                         plateId: 4,
                         wellIds: [6],
@@ -21,6 +22,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.czi": {
                         barcode: "567",
+                        file: "/path/to/image.czi",
                         notes: undefined,
                         plateId: 4,
                         wellIds: [1],
@@ -28,6 +30,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.ome.tiff": {
                         barcode: "123",
+                        file: "/path/to/image.ome.tiff",
                         notes: undefined,
                         plateId: 2,
                         wellIds: [2],
@@ -35,6 +38,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.png": {
                         barcode: "345",
+                        file: "/path/to/image.png",
                         notes: undefined,
                         plateId: 5,
                         wellIds: [3],
@@ -42,6 +46,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.tiff": {
                         barcode: "234",
+                        file: "/path/to/image.tiff",
                         notes: undefined,
                         plateId: 3,
                         wellIds: [4],
@@ -49,6 +54,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/multi-well.txt": {
                         barcode: "456",
+                        file: "/path/to/multi-well.txt",
                         notes: undefined,
                         plateId: 7,
                         wellIds: [5, 6, 7],
@@ -56,6 +62,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/no-extension": {
                         barcode: "888",
+                        file: "/path/to/no-extension",
                         notes: undefined,
                         plateId: 7,
                         wellIds: [7],
@@ -63,6 +70,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/not-image.csv": {
                         barcode: "578",
+                        file: "/path/to/not-image.csv",
                         notes: undefined,
                         plateId: 7,
                         wellIds: [8],
@@ -70,6 +78,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/not-image.txt": {
                         barcode: "456",
+                        file: "/path/to/not-image.txt",
                         notes: undefined,
                         plateId: 7,
                         wellIds: [5],
