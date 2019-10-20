@@ -21,6 +21,7 @@ import {
     SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
+    TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -48,6 +49,7 @@ import {
     SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
+    ToggleExpandedUploadJobRowAction,
     UpdateStagedFilesAction,
     UploadFile,
     WellResponse,
@@ -201,5 +203,12 @@ export function jumpToPastSelection(index: number): JumpToPastSelectionAction {
 export function clearSelectionHistory(): ClearSelectionHistoryAction {
     return {
         type: CLEAR_SELECTION_HISTORY,
+    };
+}
+
+export function toggleExpandedUploadJobRow(rowKey: string): ToggleExpandedUploadJobRowAction {
+    return {
+        payload: rowKey,
+        type: TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
     };
 }

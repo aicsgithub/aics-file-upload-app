@@ -10,6 +10,7 @@ import {
 } from "../../test/configure-mock-store";
 import {
     mockBarcodePrefixes,
+    mockChannels,
     mockDatabaseMetadata,
     mockImagingSessions,
     mockSelectedWorkflows,
@@ -58,12 +59,14 @@ describe("Setting logics", () => {
         stub(mmsClient, "port").set(mmsClientPortSetterSpy);
 
         const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
+        const getChannelsStub = stub().resolves(mockChannels);
         const getDatabaseMetadataStub = stub().resolves(mockDatabaseMetadata);
         const getImagingSessionsStub = stub().resolves(mockImagingSessions);
         const getUnitsStub = stub().resolves([mockUnit]);
         const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
 
         sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
+        sandbox.replace(labkeyClient, "getChannels", getChannelsStub);
         sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
         sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
         sandbox.replace(labkeyClient, "getUnits", getUnitsStub);

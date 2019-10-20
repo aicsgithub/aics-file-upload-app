@@ -29,6 +29,7 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
 
 export const mockSelection: SelectionStateBranch = {
     barcode: undefined,
+    expandedUploadJobRows: {},
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],

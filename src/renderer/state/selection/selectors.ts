@@ -1,12 +1,12 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { isEmpty, sortBy } from "lodash";
+import { isEmpty, isNil, sortBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { getWellLabel } from "../../util";
 
-import { getUnits } from "../metadata/selectors";
-import { Unit } from "../metadata/types";
+import { getImagingSessions, getUnits } from "../metadata/selectors";
+import { ImagingSession, Unit } from "../metadata/types";
 import { State } from "../types";
 import {
     Solution,
@@ -30,6 +30,7 @@ export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
 export const getShowCreateSchemaModal = (state: State) => state.selection.present.showCreateSchemaModal;
+export const getExpandedUploadJobRows = (state: State) => state.selection.present.expandedUploadJobRows;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
@@ -116,4 +117,12 @@ export const getSelectedWellsWithData = createSelector([
     }
 
     return selectedWells.map((well) => wells[well.row][well.col]);
+});
+
+export const getSelectedImagingSession = createSelector([
+    getImagingSessions,
+    getSelectedImagingSessionId,
+], (imagingSessions: ImagingSession[], imagingSessionId?: number): ImagingSession | undefined => {
+    return isNil(imagingSessionId) ? undefined :
+        imagingSessions.find((is) => is.imagingSessionId === imagingSessionId);
 });

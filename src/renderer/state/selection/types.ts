@@ -18,8 +18,9 @@ export interface DeselectFilesAction {
 
 export interface SelectionStateBranch {
     barcode?: string;
+    expandedUploadJobRows: ExpandedRows;
     files: string[];
-    imagingSessionId?: number | null;
+    imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
     plate?: PlateResponse;
     wells: WellResponse[];
@@ -29,6 +30,10 @@ export interface SelectionStateBranch {
     showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
     view: Page;
+}
+
+export interface ExpandedRows {
+    [rowKey: string]: boolean;
 }
 
 export interface SelectFileAction {
@@ -249,5 +254,10 @@ export interface ClearSelectionHistoryAction {
 }
 
 export interface ClearStagedFilesAction {
+    type: string;
+}
+
+export interface ToggleExpandedUploadJobRowAction {
+    payload: string;
     type: string;
 }
