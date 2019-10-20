@@ -22,6 +22,20 @@ import Editor from "./Editor";
 
 const styles = require("./style.pcss");
 
+// todo could do hash eventually but we're being safe for now
+export const getUploadRowKey = (file: string, positionIndex?: number, channelId?: number) => {
+    let key = file;
+    if (positionIndex) {
+        key += `scene:${positionIndex}`;
+    }
+
+    if (channelId) {
+        key += `channel:${channelId}`;
+    }
+
+    return key;
+};
+
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
