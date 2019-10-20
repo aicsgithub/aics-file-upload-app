@@ -144,14 +144,14 @@ describe("AssociateFiles selectors", () => {
             });
 
             expect(keys(map).length).to.equal(2);
-            const filesForWorkflow1 = map[2];
+            const filesForWorkflow1 = map[workflow];
             expect(filesForWorkflow1).to.not.be.undefined;
 
             if (filesForWorkflow1) {
                 expect(difference(filesForWorkflow1, ["/path1", "/path2", "/path3"]).length).to.equal(0);
             }
 
-            const filesForWorkflow2 = map[5];
+            const filesForWorkflow2 = map[workflow2];
             expect(filesForWorkflow2).to.not.be.undefined;
 
             if (filesForWorkflow2) {

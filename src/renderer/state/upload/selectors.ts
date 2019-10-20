@@ -1,5 +1,5 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { isEmpty, map } from "lodash";
+import { isEmpty, map, omit } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
 import { getUploadJobNames } from "../job/selectors";
@@ -33,7 +33,7 @@ export const getUploadSummaryRows = createSelector([getUpload], (uploads: Upload
         key: fullPath,
         notes,
         wellLabels: wellLabels ? wellLabels.sort().join(", ") : "",
-        workflows: workflows ? workflows.map((workflow) => workflow.name).join(", ") : [],
+        workflows: workflows ? workflows.join(", ") : [],
         ...schemaProps,
     }))
 );
@@ -69,7 +69,7 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                     ...wellIds && { wellIds },
                     ...workflows && { workflows: workflowNames },
                 },
-                userData,
+                userData: omit(userData, "file"),
             },
         };
     });
