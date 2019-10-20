@@ -1,4 +1,5 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { Channel } from "../metadata/types";
 
 import { Workflow } from "../selection/types";
 import { SchemaDefinition } from "../setting/types";
@@ -112,6 +113,20 @@ export interface InitiateUploadAction {
 
 export interface RetryUploadAction {
     payload: UploadSummaryTableRow;
+    type: string;
+}
+
+export interface UpdateUploadsAction {
+    payload: Partial<UploadMetadata>;
+    type: string;
+}
+
+export interface UpdateScenesAction {
+    payload: {
+        channels: Channel[];
+        positionIndexes: number[];
+        row: UploadJobTableRow;
+    };
     type: string;
 }
 

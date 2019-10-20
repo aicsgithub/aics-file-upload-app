@@ -1,4 +1,5 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
 import { SchemaDefinition } from "../setting/types";
 import {
@@ -12,8 +13,10 @@ import {
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
+    UPDATE_SCENES,
     UPDATE_SCHEMA,
     UPDATE_UPLOAD,
+    UPDATE_UPLOADS,
 } from "./constants";
 import {
     AssociateFilesAndWellsAction,
@@ -26,8 +29,11 @@ import {
     RetryUploadAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
+    UpdateScenesAction,
     UpdateSchemaAction,
     UpdateUploadAction,
+    UpdateUploadsAction,
+    UploadJobTableRow,
     UploadMetadata,
 } from "./types";
 
@@ -136,5 +142,24 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
     return {
         payload: job,
         type: RETRY_UPLOAD,
+    };
+}
+
+export function updateUploads(upload: Partial<UploadMetadata>): UpdateUploadsAction {
+    return {
+        payload: upload,
+        type: UPDATE_UPLOADS,
+    };
+}
+
+export function updateScenes(row: UploadJobTableRow, positionIndexes: number[], channels: Channel[]):
+    UpdateScenesAction {
+    return {
+        payload: {
+            channels,
+            positionIndexes,
+            row,
+        },
+        type: UPDATE_SCENES,
     };
 }
