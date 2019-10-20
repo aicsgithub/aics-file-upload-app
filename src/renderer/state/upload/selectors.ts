@@ -1,12 +1,13 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { isEmpty, map, omit } from "lodash";
+import { forEach, groupBy, isEmpty, isNil, keys, map, omit, uniq, values, without } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
 import { getUploadJobNames } from "../job/selectors";
-import { getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
+import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
-import { Workflow } from "../selection/types";
+import { ExpandedRows, Workflow } from "../selection/types";
 import { State } from "../types";
+import { getUploadRowKey } from "./constants";
 import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
@@ -26,17 +27,115 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
     return !isEmpty(past);
 });
 
-export const getUploadSummaryRows = createSelector([getUpload], (uploads: UploadStateBranch): UploadJobTableRow[] =>
-    map(uploads, ({ barcode, notes, wellLabels, workflows, ...schemaProps }: UploadMetadata, fullPath: string) => ({
-        barcode,
-        file: fullPath,
-        key: fullPath,
-        notes,
-        wellLabels: wellLabels ? wellLabels.sort().join(", ") : "",
-        workflows: workflows ? workflows.join(", ") : [],
-        ...schemaProps,
-    }))
-);
+const convertToUploadJobRow = (metadata: UploadMetadata,
+                               numberSiblings: number, siblingIndex: number,
+                               treeDepth: number, group?: boolean,
+                               channelIds: number[] = [], positionIndexes: number[] = []): UploadJobTableRow => ({
+    ...metadata,
+    channelIds,
+    group,
+    key: getUploadRowKey(metadata.file, metadata.positionIndex,
+        metadata.channel ? metadata.channel.channelId : undefined),
+    numberSiblings,
+    positionIndexes,
+    siblingIndex,
+    treeDepth,
+    wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(", ") : "",
+    workflows: metadata.workflows ? metadata.workflows.join(", ") : "",
+});
+
+// there will be metadata for files, each scene in a file, each channel in a file, and every combo
+// of scenes + channels
+const getFileToMetadataMap = createSelector([
+    getUpload,
+], (uploads: UploadStateBranch): {[file: string]: UploadMetadata[]} => {
+    return groupBy(values(uploads), ({file}: UploadMetadata) => file);
+});
+
+export const getUploadSummaryRows = createSelector([
+    getUpload,
+    getExpandedUploadJobRows,
+    getFileToMetadataMap,
+], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
+    metadataGroupedByFile: {[file: string]: UploadMetadata[]}): UploadJobTableRow[] => {
+
+    // contains only rows that are visible (i.e. rows whose parents are expanded)
+    const visibleRows: UploadJobTableRow[] = [];
+
+    // populate visibleRows
+    let fileSiblingIndex = -1;
+    forEach(metadataGroupedByFile, (metadata: UploadMetadata[], file: string) => {
+        fileSiblingIndex++;
+        const fileMetadata = metadata.find((m) => isNil(m.channel) && isNil(m.positionIndex));
+
+        if (fileMetadata) {
+            const channelMetadata = metadata.filter((m) => !isNil(m.channel) && isNil(m.positionIndex));
+            const channelRows = channelMetadata.map((c: UploadMetadata, siblingIndex: number) =>
+                convertToUploadJobRow(c, channelMetadata.length, siblingIndex, 1));
+
+            const sceneMetadata = metadata.filter((m) => !isNil(m.positionIndex));
+            const sceneRows: UploadJobTableRow[] = [];
+            const metadataGroupedByScene = groupBy(sceneMetadata, ({positionIndex}: UploadMetadata) => positionIndex);
+
+            forEach(values(metadataGroupedByScene),
+                (allMetadataForPositionIndex: UploadMetadata[], sceneIndex: number) => {
+                    const sceneParentMetadata = allMetadataForPositionIndex.find((m) => isNil(m.channel));
+                    if (sceneParentMetadata) {
+                        const sceneRow = convertToUploadJobRow(sceneParentMetadata, keys(metadataGroupedByScene).length,
+                            sceneIndex, 1, allMetadataForPositionIndex.length > 1);
+                        sceneRows.push(sceneRow);
+
+                        if (expandedRows[getUploadRowKey(file, sceneParentMetadata.positionIndex)]) {
+                            const sceneChannelMetadata = without(allMetadataForPositionIndex, sceneParentMetadata);
+                            const sceneChannelRows = sceneChannelMetadata
+                                .map((u: UploadMetadata, sceneChannelSiblingIndex: number) =>
+                                    convertToUploadJobRow(u, sceneChannelMetadata.length,
+                                        sceneChannelSiblingIndex, 2));
+                            sceneRows.push(...sceneChannelRows);
+                        }
+                    }
+                    // todo else?
+                });
+
+            // file rows are always visible
+            const group = channelRows.length + sceneRows.length > 0;
+            const channels = uniq(metadata
+                .filter((m: UploadMetadata) => !!m.channel)
+                .map((m: UploadMetadata) => m.channel!.channelId));
+            const positionIndexes: number[] = uniq(metadata
+                .filter((m: UploadMetadata) => !isNil(m.positionIndex))
+                .map((m: UploadMetadata) => m.positionIndex)) as number[];
+            const fileRow = convertToUploadJobRow(fileMetadata, keys(metadataGroupedByFile).length, fileSiblingIndex,
+                0, group, channels, positionIndexes);
+            visibleRows.push(fileRow);
+
+            if (expandedRows[getUploadRowKey(file)]) {
+                visibleRows.push(
+                    ...channelRows,
+                    ...sceneRows
+                );
+            }
+        }
+    });
+
+    return visibleRows;
+});
+
+export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataMap],
+    (metadataGroupedByFile: {[file: string]: UploadMetadata[]}) => {
+        const result: {[file: string]: {[key: string]: boolean}} = {};
+        forEach(metadataGroupedByFile, (allMetadata: UploadMetadata[], file: string) => {
+            result[file] = allMetadata.reduce((accum: {[key: string]: boolean}, curr: UploadMetadata) => {
+                forEach(curr, (value: any, key: string) => {
+                    accum[key] = accum[key] || !isEmpty(value);
+                });
+
+                return accum;
+            }, {});
+        });
+
+        return result;
+    });
 
 const extensionToFileTypeMap: {[index: string]: FileType} = {
     ".csv": FileType.CSV,

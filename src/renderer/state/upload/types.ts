@@ -11,7 +11,10 @@ export interface UploadStateBranch {
 // Metadata associated with a file
 export interface UploadMetadata {
     barcode: string;
+    channel?: Channel;
+    file: string;
     notes?: string;
+    positionIndex?: number;
     schemaFile?: string;
     wellIds: number[];
     wellLabels: string[];
@@ -40,17 +43,42 @@ export interface UploadJobTableRow {
     // plate barcode associated with well and file
     barcode: string;
 
+    channel?: Channel;
+
+    channelIds?: number[];
+
     // fullpath of file
     file: string;
 
-    // also fullpath of file - used by ant.d Table to identify rows
+    // react-data-grid property needed for nested rows. if true, row will show expander
+    group?: boolean;
+
+    // composed of the fullpath + scene + channel of file - used by ant.d Table to identify rows
     key: string;
 
     // notes associated with the file
     notes?: string;
 
+    // react-data-grid property needed for nested rows
+    numberSiblings?: number;
+
+    positionIndex?: number;
+
+    positionIndexes?: number[];
+
+    // react-data-grid property needed for nested rows
+    siblingIndex?: number;
+
+    // react-data-grid property needed for nested rows
+    treeDepth?: number;
+
+    // todo replace wellIds and wellLabels with wells and use selectors
+    wellIds?: number[];
+
     // human readable identifier of well, such as "A1"
-    wellLabels: string;
+    wellLabels?: string;
+
+    workflows?: string;
 }
 
 export interface AssociateFilesAndWellsAction {
