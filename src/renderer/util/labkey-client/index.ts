@@ -1,10 +1,9 @@
-import axios from "axios";
 import { isEmpty, map } from "lodash";
 
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
-import HttpCacheClient from "../http-cache-client";
+import BaseServiceClient from "../base-service-client";
 import {
     GetBarcodesResponse,
     GetTablesResponse,
@@ -27,7 +26,7 @@ const SCHEMAS = [
     "processing",
 ];
 
-export default class LabkeyClient {
+export default class LabkeyClient extends BaseServiceClient {
     private static getSelectRowsURL = (schema: string, table: string, additionalQueries: string[] = []) => {
         const base = `/AICS/query-selectRows.api?schemaName=${schema}&query.queryName=${table}`;
         if (!isEmpty(additionalQueries)) {
@@ -37,21 +36,8 @@ export default class LabkeyClient {
         return base;
     }
 
-    public protocol: string;
-    public host: string;
-    public port: string;
-
-    private get httpClient(): HttpCacheClient {
-        // todo something more efficient?
-        return new HttpCacheClient(axios.create({
-            baseURL: this.baseURL,
-        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
-    }
-
-    constructor({host, port, protocol}: {host: string, port: string, protocol: string}) {
-        this.protocol = protocol;
-        this.host = host;
-        this.port = port;
+    constructor(config: {host: string, port: string, protocol: string}) {
+        super(config);
     }
 
     /**
@@ -179,7 +165,7 @@ export default class LabkeyClient {
         }));
     }
 
-    private get baseURL(): string {
+    protected get baseURL(): string {
         return `${this.protocol}://${this.host}:${this.port}/labkey`;
     }
 }
