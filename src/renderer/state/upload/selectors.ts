@@ -82,7 +82,6 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[], expandedRows: Expand
             }
         });
 
-    console.log(sceneRows)
     return sceneRows;
 };
 

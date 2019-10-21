@@ -256,6 +256,7 @@ describe("Upload selectors", () => {
     });
 
     describe("getUploadSummaryRows", () => {
+        const mockChannel = {channelId: 1, description: "", name: "name" };
         it("handles files without scenes or channels", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,
@@ -413,7 +414,7 @@ describe("Upload selectors", () => {
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
                         barcode: "1234",
-                        channel: {channelId: 1, description: "", name: "name" },
+                        channel: mockChannel,
                         file: "/path/to/file1",
                         positionIndex: undefined,
                         wellIds: [],
@@ -432,18 +433,19 @@ describe("Upload selectors", () => {
                 positionIndexes: [],
                 siblingIndex: 0,
                 treeDepth: 0,
-                wellIds: [2],
-                wellLabels: "A2",
+                wellIds: [1],
+                wellLabels: "A1",
                 workflows: "",
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
+                channel: mockChannel,
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey("/path/to/file1", undefined, 1),
                 numberSiblings: 1,
-                positionIndex: 1,
+                positionIndex: undefined,
                 positionIndexes: [],
                 siblingIndex: 0,
                 treeDepth: 1,
@@ -453,7 +455,85 @@ describe("Upload selectors", () => {
             });
         });
         it("handles files with scenes and channels", () => {
-
+            const rows = getUploadSummaryRows({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    expandedUploadJobRows: {
+                        [getUploadRowKey("/path/to/file1")]: true,
+                        [getUploadRowKey("/path/to/file1", 1)]: true,
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey("/path/to/file1")]: {
+                        barcode: "1234",
+                        file: "/path/to/file1",
+                        wellIds: [],
+                        wellLabels: [],
+                    },
+                    [getUploadRowKey("/path/to/file1", 1)]: {
+                        barcode: "1234",
+                        file: "/path/to/file1",
+                        positionIndex: 1,
+                        wellIds: [],
+                        wellLabels: [],
+                    },
+                    [getUploadRowKey("/path/to/file1", 1, 1)]: {
+                        barcode: "1234",
+                        channel: mockChannel,
+                        file: "/path/to/file1",
+                        positionIndex: 1,
+                        wellIds: [1],
+                        wellLabels: ["A1"],
+                    },
+                }),
+            });
+            expect(rows.length).to.equal(3);
+            expect(rows).to.deep.include({
+                barcode: "1234",
+                channelIds: [1],
+                file: "/path/to/file1",
+                group: true,
+                key: getUploadRowKey("/path/to/file1"),
+                numberSiblings: 1,
+                positionIndexes: [1],
+                siblingIndex: 0,
+                treeDepth: 0,
+                wellIds: [],
+                wellLabels: "",
+                workflows: "",
+            });
+            expect(rows).to.deep.include({
+                barcode: "1234",
+                channelIds: [],
+                file: "/path/to/file1",
+                group: true,
+                key: getUploadRowKey("/path/to/file1", 1),
+                numberSiblings: 1,
+                positionIndex: 1,
+                positionIndexes: [],
+                siblingIndex: 0,
+                treeDepth: 1,
+                wellIds: [],
+                wellLabels: "",
+                workflows: "",
+            });
+            expect(rows).to.deep.include({
+                barcode: "1234",
+                channel: mockChannel,
+                channelIds: [],
+                file: "/path/to/file1",
+                group: false,
+                key: getUploadRowKey("/path/to/file1", 1, 1),
+                numberSiblings: 1,
+                positionIndex: 1,
+                positionIndexes: [],
+                siblingIndex: 0,
+                treeDepth: 2,
+                wellIds: [1],
+                wellLabels: "A1",
+                workflows: "",
+            });
         });
     });
 
