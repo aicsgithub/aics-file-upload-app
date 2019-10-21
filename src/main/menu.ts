@@ -50,13 +50,13 @@ export const setMenu = (webContents: WebContents) => {
                                 dialog.showOpenDialog({
                                     filters: [{name: "JSON", extensions: ["json"]}],
                                     properties: ["openFile"],
-                                    title: "Open Schema"}, (filePaths?: string[]) => {
+                                    title: `Open ${SCHEMA_SYNONYM}`}, (filePaths?: string[]) => {
                                     if (filePaths) {
                                         webContents.send(OPEN_CREATE_SCHEMA_MODAL, filePaths[0]);
                                     }
                                 });
                             },
-                            label: "Schema",
+                            label: SCHEMA_SYNONYM,
                         },
                     ],
                 },
