@@ -143,9 +143,9 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
                 return accum;
             }, {});
         });
-
         return result;
-    });
+    }
+);
 
 const extensionToFileTypeMap: {[index: string]: FileType} = {
     ".csv": FileType.CSV,

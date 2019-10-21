@@ -10,7 +10,7 @@ import {
 import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 
-import { getUploadJobName, getUploadPayload, getUploadSummaryRows } from "../selectors";
+import { getFileToAnnotationHasValueMap, getUploadJobName, getUploadPayload, getUploadSummaryRows } from "../selectors";
 import { FileType } from "../types";
 
 describe("Upload selectors", () => {
@@ -538,6 +538,63 @@ describe("Upload selectors", () => {
     });
 
     describe("getFileToAnnotationHasValueMap", () => {
+        const file = "/path/to/file1";
+        it("sets annotations with empty arrays or nil values as false", () => {
+            const result = getFileToAnnotationHasValueMap({
+                ...mockState,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey(file)]: {
+                        age: undefined,
+                        barcode: "abcd",
+                        file,
+                        wellIds: [],
+                        wellLabels: [],
+                    },
+                }),
+            });
+            expect(result[getUploadRowKey(file)]).to.deep.equal({
+                age: false,
+                barcode: true,
+                file: true,
+                wellIds: false,
+                wellLabels: false,
+            });
+        });
 
+        it("sets annotation to true if one of the dimensions has that annotation set for a file", () => {
+            const result = getFileToAnnotationHasValueMap({
+                ...mockState,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey(file)]: {
+                        age: undefined,
+                        barcode: "abcd",
+                        file,
+                        wellIds: [],
+                        wellLabels: [],
+                    },
+                    [getUploadRowKey(file, 1)]: {
+                        age: undefined,
+                        barcode: "abcd",
+                        file,
+                        wellIds: [1],
+                        wellLabels: ["A1"],
+                    },
+                    [getUploadRowKey(file, 1, 1)]: {
+                        age: 19,
+                        barcode: "abcd",
+                        file,
+                        wellIds: [],
+                        wellLabels: [],
+                    },
+                }),
+            });
+            expect(result[getUploadRowKey(file)]).to.deep.equal({
+                age: true,
+                barcode: true,
+                file: true,
+                wellIds: true,
+                wellLabels: true,
+            });
+        });
     });
 });
