@@ -4,8 +4,8 @@ export interface LabkeyPlate {
 }
 
 export interface GetBarcodesResponse {
-    rowCount: number,
-    rows: LabkeyPlate[],
+    rowCount: number;
+    rows: LabkeyPlate[];
 }
 
 export interface GetTablesResponseColumn {
