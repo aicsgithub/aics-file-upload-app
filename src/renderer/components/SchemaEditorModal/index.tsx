@@ -1,10 +1,10 @@
-import { Button, Modal } from "antd";
+import { Button, Icon, Input, Modal, Select } from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { remote } from "electron";
 import { writeFile } from "fs";
 import { isEmpty, uniqBy, without } from "lodash";
 import * as React from "react";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNodeArray } from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
@@ -17,6 +17,8 @@ import { ColumnType, SchemaDefinition } from "../../state/setting/types";
 import BooleanEditor from "../BooleanHandler/BooleanEditor";
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import FormControl from "../FormControl";
+import FormPage from "../FormPage";
+import LabeledInput from "../LabeledInput";
 
 import ColumnTypeEditor from "./ColumnTypeEditor";
 import ColumnTypeFormatter from "./ColumnTypeFormatter";
@@ -55,6 +57,7 @@ interface ColumnTypeColumn extends AdazzleReactDataGrid.Column<ColumnDefinitionD
 interface Props {
     className?: string;
     close: () => void;
+    columnNameSearchResults: string[];
     filepath?: string;
     onSchemaFileCreated?: (filepath: string) => void;
     schema?: SchemaDefinition;
@@ -71,6 +74,7 @@ interface ColumnDefinitionDraft {
 }
 
 interface SchemaEditorModalState {
+    columnName?: string;
     columns: ColumnDefinitionDraft[];
     notes?: string;
     selectedRows: number[];
@@ -96,10 +100,14 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
         const {
             className,
             close,
+            columnNameSearchResults,
             schema,
             visible,
         } = this.props;
-        const { columns, notes, selectedRows } = this.state;
+        const { columnName, columns, notes, selectedRows } = this.state;
+        const options: ReactNodeArray = columnNameSearchResults.map((option: Annotation) => (
+            <Select.Option key={option.name}>{option.name}</Select.Option>
+        ));
 
         return (
             <Modal
@@ -114,6 +122,26 @@ class SchemaEditorModal extends React.Component<Props, SchemaEditorModalState> {
                 maskClosable={false}
                 afterClose={this.afterClose}
             >
+                <LabeledInput label="Column Name">
+                    <Select
+                        suffixIcon={<Icon type="search"/>}
+                        allowClear={true}
+                        className={styles.select}
+                        showSearch={true}
+                        showArrow={false}
+                        notFoundContent={null}
+                        value={columnName}
+                        placeholder="Barcode"
+                        autoFocus={true}
+                        autoClearSearchValue={true}
+                        onChange={this.onBarcodeChange}
+                        onSearch={this.onBarcodeInput}
+                        loading={loadingAnnotations}
+                        defaultActiveFirstOption={false}
+                    >
+                        {options}
+                    </Select>
+                </LabeledInput>
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.gridAndNotes}>
                         <ReactDataGrid
