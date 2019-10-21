@@ -1,28 +1,14 @@
-import axios from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
 import { LocalStorage } from "../../state/types";
-import HttpAndCacheClient from "../http-and-cache-client";
 
-export default class MMSClient {
-    public protocol: string;
-    public host: string;
-    public port: string;
-    private localStorage: LocalStorage;
-    private username: string;
+import BaseServiceClient from "../base-service-client";
 
-    private get httpClient(): HttpAndCacheClient {
-        return new HttpAndCacheClient(axios.create({
-            baseURL: this.baseURL,
-        }), this.localStorage, Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
-    }
+export default class MMSClient extends BaseServiceClient {
+    private readonly username: string;
 
-    constructor({host, localStorage, port, protocol, username}:
-                    {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
-        this.protocol = protocol;
-        this.host = host;
-        this.port = port;
-        this.username = username;
-        this.localStorage = localStorage;
+    constructor(config: {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
+        super(config);
+        this.username = config.username;
     }
 
     /**
@@ -47,7 +33,7 @@ export default class MMSClient {
         return response.data[0];
     }
 
-    private get baseURL(): string {
+    protected get baseURL(): string {
         return `${this.protocol}://${this.host}:${this.port}/metadata-management-service`;
     }
 }

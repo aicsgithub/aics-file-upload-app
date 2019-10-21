@@ -1,7 +1,7 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
-import Store, { default as ElectronStore } from "electron-store";
+import Store from "electron-store";
 import { userInfo } from "os";
 import {
     applyMiddleware,
@@ -56,13 +56,13 @@ export const reduxLogicDependencies = {
     }),
     labkeyClient: new LabkeyClient({
         host: LIMS_HOST,
-        localStorage: new ElectronStore(),
+        localStorage: storage,
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
     }),
     mmsClient: new MMSClient({
         host: LIMS_HOST,
-        localStorage: new ElectronStore(),
+        localStorage: storage,
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
         username: userInfo().username,
