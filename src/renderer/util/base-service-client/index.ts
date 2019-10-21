@@ -1,4 +1,5 @@
 import axios from "axios";
+import { LocalStorage } from "../../state/types";
 import HttpCacheClient from "../http-cache-client";
 
 export default abstract class BaseServiceClient {
@@ -6,6 +7,7 @@ export default abstract class BaseServiceClient {
     private protocolPrivate: string;
     private hostPrivate: string;
     private portPrivate: string;
+    private readonly localStorage: LocalStorage;
 
     public get protocol() {
         return this.protocolPrivate;
@@ -34,10 +36,12 @@ export default abstract class BaseServiceClient {
         this.httpClient = this.createHttpClient();
     }
 
-    protected constructor({host, port, protocol}: {host: string, port: string, protocol: string}) {
+    protected constructor({host, localStorage, port, protocol}:
+                              {host: string, localStorage: LocalStorage, port: string, protocol: string}) {
         this.protocolPrivate = protocol;
         this.hostPrivate = host;
         this.portPrivate = port;
+        this.localStorage = localStorage;
         this.httpClient = this.createHttpClient();
     }
 
@@ -46,6 +50,6 @@ export default abstract class BaseServiceClient {
     private createHttpClient = (): HttpCacheClient => {
         return new HttpCacheClient(axios.create({
             baseURL: this.baseURL,
-        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
+        }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false, this.localStorage);
     }
 }

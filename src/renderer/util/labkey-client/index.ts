@@ -3,6 +3,7 @@ import { isEmpty, map } from "lodash";
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
+import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
     GetBarcodesResponse,
@@ -36,7 +37,7 @@ export default class LabkeyClient extends BaseServiceClient {
         return base;
     }
 
-    constructor(config: {host: string, port: string, protocol: string}) {
+    constructor(config: {host: string, localStorage: LocalStorage, port: string, protocol: string}) {
         super(config);
     }
 

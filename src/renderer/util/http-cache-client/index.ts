@@ -1,12 +1,13 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import * as ElectronStore from "electron-store";
+import { LocalStorage } from "../../state/types";
 
 export default class HttpCacheClient {
     private httpClient: AxiosInstance;
-    private localStorage: ElectronStore = new ElectronStore();
+    private localStorage: LocalStorage;
 
-    constructor(httpClient: AxiosInstance, useCache: boolean) {
+    constructor(httpClient: AxiosInstance, useCache: boolean, electronStore: LocalStorage) {
         this.httpClient = httpClient;
+        this.localStorage = electronStore;
 
         if (useCache) {
             this.get = this.getAndReturnCache;
@@ -51,7 +52,7 @@ export default class HttpCacheClient {
     }
 
     private checkCache = async <T = any>(key: string, action: () => Promise<AxiosResponse<T>>): Promise<T> => {
-        const cachedResponse: T = this.localStorage.get(key) as T;
+        const cachedResponse: T = this.localStorage.get(key) as any as T;
         if (cachedResponse) {
             return cachedResponse;
         }

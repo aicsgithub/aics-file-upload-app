@@ -56,11 +56,13 @@ export const reduxLogicDependencies = {
     }),
     labkeyClient: new LabkeyClient({
         host: LIMS_HOST,
+        localStorage: storage,
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
     }),
     mmsClient: new MMSClient({
         host: LIMS_HOST,
+        localStorage: storage,
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
         username: userInfo().username,
