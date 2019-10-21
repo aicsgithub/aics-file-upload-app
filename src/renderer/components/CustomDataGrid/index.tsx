@@ -143,7 +143,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             uploads,
         } = this.props;
         const { selectedRows } = this.state;
-        console.log(uploads);
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
         const rowGetter = (idx: number) => sortedRows[idx];
