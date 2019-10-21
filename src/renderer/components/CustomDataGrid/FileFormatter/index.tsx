@@ -178,7 +178,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     private getOkButtonDisabled = () => {
         const { channels, isEditing, positionIndexes } = this.state;
-        return !isEditing && (isEmpty(positionIndexes) || isEmpty(channels));
+        return !isEditing && isEmpty(positionIndexes) && isEmpty(channels);
     }
 }
 

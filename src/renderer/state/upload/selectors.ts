@@ -1,5 +1,5 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { forEach, groupBy, isEmpty, isNil, keys, map, omit, uniq, values, without } from "lodash";
+import { forEach, groupBy, isArray, isEmpty, isNil, keys, map, omit, uniq, values, without } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
 import { getUploadJobNames } from "../job/selectors";
@@ -127,7 +127,8 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
         forEach(metadataGroupedByFile, (allMetadata: UploadMetadata[], file: string) => {
             result[file] = allMetadata.reduce((accum: {[key: string]: boolean}, curr: UploadMetadata) => {
                 forEach(curr, (value: any, key: string) => {
-                    accum[key] = accum[key] || !isEmpty(value);
+                    const currentValueIsEmpty = isArray(value) ? isEmpty(value) : isNil(value);
+                    accum[key] = accum[key] || !currentValueIsEmpty;
                 });
 
                 return accum;

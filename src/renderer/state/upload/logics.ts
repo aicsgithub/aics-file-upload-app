@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { isNil, map } from "lodash";
+import { includes, isNil, map, values } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -8,7 +8,7 @@ import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
 import { getDatabaseMetadata } from "../metadata/selectors";
-import { DatabaseMetadata, Table } from "../metadata/types";
+import { Channel, DatabaseMetadata, Table } from "../metadata/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { ColumnDefinition, ColumnType } from "../setting/types";
@@ -19,7 +19,15 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, RETRY_UPLOAD, UPDATE_SCHEMA } from "./constants";
+import { removeUploads, updateUploads } from "./actions";
+import {
+    ASSOCIATE_FILES_AND_WELLS,
+    getUploadRowKey,
+    INITIATE_UPLOAD,
+    RETRY_UPLOAD,
+    UPDATE_SCENES,
+    UPDATE_SCHEMA,
+} from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
 
@@ -70,8 +78,8 @@ const updateSchemaLogic = createLogic({
                         if (column.type.type === ColumnType.LOOKUP && tables) {
                             const { name, schemaName }: Table = tables[column.type.table];
                             column.type.dropdownValues = await labkeyClient.getColumnValues(schemaName,
-                                                                                            name,
-                                                                                            column.type.column);
+                                name,
+                                column.type.column);
                         }
                     }
                 }));
@@ -180,9 +188,106 @@ const retryUploadLogic = createLogic({
     type: RETRY_UPLOAD,
 });
 
+const updateScenesLogic = createLogic({
+    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const uploads = getUpload(getState());
+        const {channels, positionIndexes, row} = action.payload;
+        const update: Partial<UploadStateBranch> = {};
+
+        const existingUploadsForFile = values(uploads).filter((u) => u.file === row.file);
+        const fileUpload: UploadMetadata | undefined = existingUploadsForFile
+            .find((u) => isNil(u.channelId) && isNil(u.positionIndex));
+
+        if (!fileUpload) {
+            throw new Error(""); // todo
+        }
+
+        // if there are positions for a file, remove the well association from the file row
+        const fileRowKey = getUploadRowKey(row.file);
+        update[fileRowKey] = {
+            ...uploads[fileRowKey],
+            wellIds: [],
+            wellLabels: [],
+        };
+
+        // add channel rows that are new
+        const oldChannelIds = row.channelIds || [];
+        channels.filter((c: Channel) => !includes(oldChannelIds, c.channelId))
+            .forEach((channel: Channel) => {
+                const key = getUploadRowKey(row.file, undefined, channel.channelId);
+                update[key] = {
+                    barcode: row.barcode,
+                    channel,
+                    file: row.file,
+                    key,
+                    notes: undefined,
+                    positionIndex: undefined,
+                    wellIds: [],
+                    wellLabels: [],
+                    workflows: row.workflows.split(", "),
+                }; // todo additional custom fields?
+            });
+
+        // add uploads that are new
+        positionIndexes.forEach((positionIndex: number) => {
+            const matchingSceneRow = existingUploadsForFile
+                .find((u: UploadMetadata) => !isNil(u.positionIndex) && isNil(u.channelId));
+
+            if (!matchingSceneRow) {
+                update[getUploadRowKey(row.file, positionIndex)] = {
+                    barcode: row.barcode,
+                    channel: undefined,
+                    file: row.file,
+                    key: getUploadRowKey(row.file, positionIndex),
+                    notes: undefined,
+                    positionIndex,
+                    wellIds: [],
+                    wellLabels: [],
+                    workflows: row.workflows.split(", "),
+                }; // todo additional custom fields
+            }
+
+            channels.forEach((channel: Channel) => {
+                const matchingChannelRow = existingUploadsForFile
+                    .find((u: UploadMetadata) => !isNil(u.positionIndex) && !isNil(u.channelId));
+
+                if (!matchingChannelRow) {
+                    const key = getUploadRowKey(row.file, positionIndex, channel.channelId);
+                    update[key] = {
+                        barcode: row.barcode,
+                        channel,
+                        file: row.file,
+                        key,
+                        notes: undefined,
+                        positionIndex,
+                        wellIds: [],
+                        wellLabels: [],
+                        workflows: row.workflows.split(", "),
+                    };
+                }
+            });
+        });
+
+        // delete the uploads that don't exist anymore
+        const channelIds = channels.map((c: Channel) => c.channelId);
+        const rowsToDelete = existingUploadsForFile
+            .filter((u) => (!isNil(u.positionIndex) && !includes(positionIndexes, u.positionIndex)) ||
+                (!isNil(u.channel) && !includes(channelIds, u.channelId)));
+        const rowKeysToDelete = rowsToDelete.map(({file, positionIndex, channel}: UploadMetadata) =>
+            getUploadRowKey(file, positionIndex, channel ? channel.channelId : undefined));
+
+        next(batchActions([
+            updateUploads(update),
+            removeUploads(rowKeysToDelete),
+        ]));
+    },
+    type: UPDATE_SCENES,
+});
+
 export default [
     associateFileAndWellLogic,
     initiateUploadLogic,
-    updateSchemaLogic,
     retryUploadLogic,
+    updateScenesLogic,
+    updateSchemaLogic,
 ];

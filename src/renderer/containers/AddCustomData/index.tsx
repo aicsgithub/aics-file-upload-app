@@ -10,8 +10,23 @@ import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
 import { setAlert } from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
-import { goBack, goForward, openSchemaCreator } from "../../state/selection/actions";
-import { GoBackAction, NextPageAction, OpenSchemaCreatorAction } from "../../state/selection/types";
+import { getChannels } from "../../state/metadata/selectors";
+import { Channel, ImagingSession } from "../../state/metadata/types";
+import { goBack, goForward, openSchemaCreator, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import {
+    getExpandedUploadJobRows,
+    getSelectedBarcode,
+    getSelectedImagingSession,
+    getWellsWithUnitsAndModified,
+} from "../../state/selection/selectors";
+import {
+    ExpandedRows,
+    GoBackAction,
+    NextPageAction,
+    OpenSchemaCreatorAction,
+    ToggleExpandedUploadJobRowAction,
+    Well,
+} from "../../state/selection/types";
 import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
 import { getSchemaFilepaths } from "../../state/setting/selectors";
 import {
@@ -25,22 +40,22 @@ import { State } from "../../state/types";
 import {
     initiateUpload,
     jumpToUpload,
-    removeUploads,
+    removeUploads, updateScenes,
     updateSchema,
-    updateUpload
+    updateUpload, updateUploads,
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
-    getCanUndoUpload,
+    getCanUndoUpload, getFileToAnnotationHasValueMap,
     getSchemaFile,
-    getUploadSummaryRows
+    getUploadSummaryRows,
 } from "../../state/upload/selectors";
 import {
     InitiateUploadAction,
     JumpToUploadAction,
-    RemoveUploadsAction,
+    RemoveUploadsAction, UpdateScenesAction,
     UpdateSchemaAction,
-    UpdateUploadAction,
+    UpdateUploadAction, UpdateUploadsAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
 import { isSchemaDefinition } from "../App/util";
@@ -53,10 +68,14 @@ const BROWSE_FOR_EXISTING_SCHEMA = `...Browse for existing ${SCHEMA_SYNONYM.toLo
 
 interface Props {
     addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
+    allWellsForSelectedPlate: Well[][];
     canRedo: boolean;
     canUndo: boolean;
+    channels: Channel[];
     className?: string;
+    expandedRows: ExpandedRows;
     filepath?: string;
+    fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     removeUploads: ActionCreator<RemoveUploadsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
@@ -66,9 +85,14 @@ interface Props {
     removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
     schemaFile?: string;
     schemaFilepaths: string[];
+    selectedBarcode?: string;
+    selectedImagingSession?: ImagingSession;
     setAlert: ActionCreator<SetAlertAction>;
+    toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
+    updateScenes: ActionCreator<UpdateScenesAction>;
     updateSchema: ActionCreator<UpdateSchemaAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
+    updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
 }
 
@@ -112,21 +136,43 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
+                {this.props.schemaFile && this.renderPlateInfo()}
                 {this.props.schemaFile && (
                     <CustomDataGrid
+                        allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                         canRedo={this.props.canRedo}
                         canUndo={this.props.canUndo}
+                        channels={this.props.channels}
+                        expandedRows={this.props.expandedRows}
+                        fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
                         redo={this.redo}
                         removeSchemaFilepath={this.props.removeSchemaFilepath}
                         removeUploads={this.props.removeUploads}
                         schema={this.state.schema}
                         setAlert={this.props.setAlert}
+                        toggleRowExpanded={this.props.toggleRowExpanded}
                         undo={this.undo}
+                        updateScenes={this.props.updateScenes}
                         updateUpload={this.props.updateUpload}
+                        updateUploads={this.props.updateUploads}
                         uploads={this.props.uploads}
                     />
                 )}
             </FormPage>
+        );
+    }
+
+    private renderPlateInfo = () => {
+        const { selectedBarcode, selectedImagingSession } = this.props;
+        if (!selectedBarcode) {
+            return null;
+        }
+
+        return (
+            <div className={styles.plateInfo}>
+                <div>Plate Barcode: {selectedBarcode}</div>
+                {selectedImagingSession && <div>Imaging Session: {selectedImagingSession.name}</div>}
+            </div>
         );
     }
 
@@ -137,7 +183,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.schemaSelector}>
-                <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
+                    <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
                     <Select
                         autoFocus={true}
                         className={styles.schemaSelector}
@@ -260,10 +306,16 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
 function mapStateToProps(state: State) {
     return {
+        allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
+        channels: getChannels(state),
+        expandedRows: getExpandedUploadJobRows(state),
+        fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
         schemaFile: getSchemaFile(state),
         schemaFilepaths: getSchemaFilepaths(state),
+        selectedBarcode: getSelectedBarcode(state),
+        selectedImagingSession: getSelectedImagingSession(state),
         uploads: getUploadSummaryRows(state),
     };
 }
@@ -278,8 +330,11 @@ const dispatchToPropsMap = {
     removeSchemaFilepath,
     removeUploads,
     setAlert,
+    toggleRowExpanded: toggleExpandedUploadJobRow,
+    updateScenes,
     updateSchema,
     updateUpload,
+    updateUploads,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);
