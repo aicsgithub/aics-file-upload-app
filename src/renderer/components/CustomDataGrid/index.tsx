@@ -202,7 +202,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             childElement?: React.ReactNode | React.ReactNodeArray,
                             required?: boolean,
                             className?: string): React.ReactElement => {
-        console.log(this.props.fileToAnnotationHasValueMap[row.file])
         if (required && !this.props.fileToAnnotationHasValueMap[row.file][label]) {
             childElement = (
                 <FormControl

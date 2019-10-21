@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { includes, isNil, map, values } from "lodash";
+import { includes, isEmpty, isNil, map, values } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -193,6 +193,7 @@ const updateScenesLogic = createLogic({
         const uploads = getUpload(getState());
         const {channels, positionIndexes, row} = action.payload;
         const update: Partial<UploadStateBranch> = {};
+        const workflows = row.workflows.split(", ").filter((w: string) => !isEmpty(w));
 
         const existingUploadsForFile = values(uploads).filter((u) => u.file === row.file);
         const fileUpload: UploadMetadata | undefined = existingUploadsForFile
@@ -204,11 +205,13 @@ const updateScenesLogic = createLogic({
 
         // if there are positions for a file, remove the well association from the file row
         const fileRowKey = getUploadRowKey(row.file);
-        update[fileRowKey] = {
-            ...uploads[fileRowKey],
-            wellIds: [],
-            wellLabels: [],
-        };
+        if (!isEmpty(positionIndexes)) {
+            update[fileRowKey] = {
+                ...uploads[fileRowKey],
+                wellIds: [],
+                wellLabels: [],
+            };
+        }
 
         // add channel rows that are new
         const oldChannelIds = row.channelIds || [];
@@ -224,7 +227,7 @@ const updateScenesLogic = createLogic({
                     positionIndex: undefined,
                     wellIds: [],
                     wellLabels: [],
-                    workflows: row.workflows.split(", "),
+                    workflows,
                 }; // todo additional custom fields?
             });
 
@@ -234,16 +237,17 @@ const updateScenesLogic = createLogic({
                 .find((u: UploadMetadata) => !isNil(u.positionIndex) && isNil(u.channelId));
 
             if (!matchingSceneRow) {
-                update[getUploadRowKey(row.file, positionIndex)] = {
+                const sceneOnlyRowKey = getUploadRowKey(row.file, positionIndex);
+                update[sceneOnlyRowKey] = {
                     barcode: row.barcode,
                     channel: undefined,
                     file: row.file,
-                    key: getUploadRowKey(row.file, positionIndex),
+                    key: sceneOnlyRowKey,
                     notes: undefined,
                     positionIndex,
                     wellIds: [],
                     wellLabels: [],
-                    workflows: row.workflows.split(", "),
+                    workflows,
                 }; // todo additional custom fields
             }
 
@@ -262,7 +266,7 @@ const updateScenesLogic = createLogic({
                         positionIndex,
                         wellIds: [],
                         wellLabels: [],
-                        workflows: row.workflows.split(", "),
+                        workflows,
                     };
                 }
             });
