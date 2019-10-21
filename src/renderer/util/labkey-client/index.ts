@@ -4,7 +4,7 @@ import { isEmpty, map } from "lodash";
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
-import HttpAndCacheClient from "../http-and-cache-client";
+import HttpCacheClient from "../http-cache-client";
 import {
     GetBarcodesResponse,
     GetTablesResponse,
@@ -41,9 +41,9 @@ export default class LabkeyClient {
     public host: string;
     public port: string;
 
-    private get httpClient(): HttpAndCacheClient {
+    private get httpClient(): HttpCacheClient {
         // todo something more efficient?
-        return new HttpAndCacheClient(axios.create({
+        return new HttpCacheClient(axios.create({
             baseURL: this.baseURL,
         }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
     }

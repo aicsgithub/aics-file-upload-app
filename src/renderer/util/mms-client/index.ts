@@ -1,6 +1,6 @@
 import axios from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
-import HttpAndCacheClient from "../http-and-cache-client";
+import HttpCacheClient from "../http-cache-client";
 
 export default class MMSClient {
     public protocol: string;
@@ -8,8 +8,8 @@ export default class MMSClient {
     public port: string;
     private username: string;
 
-    private get httpClient(): HttpAndCacheClient {
-        return new HttpAndCacheClient(axios.create({
+    private get httpClient(): HttpCacheClient {
+        return new HttpCacheClient(axios.create({
             baseURL: this.baseURL,
         }), Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false);
     }
