@@ -45,13 +45,13 @@ export interface UploadJobTableRow {
 
     channel?: Channel;
 
-    channelIds?: number[];
+    channelIds: number[];
 
     // fullpath of file
     file: string;
 
     // react-data-grid property needed for nested rows. if true, row will show expander
-    group?: boolean;
+    group: boolean;
 
     // composed of the fullpath + scene + channel of file - used by ant.d Table to identify rows
     key: string;
@@ -60,11 +60,11 @@ export interface UploadJobTableRow {
     notes?: string;
 
     // react-data-grid property needed for nested rows
-    numberSiblings?: number;
+    numberSiblings: number;
 
     positionIndex?: number;
 
-    positionIndexes?: number[];
+    positionIndexes: number[];
 
     // react-data-grid property needed for nested rows
     siblingIndex?: number;

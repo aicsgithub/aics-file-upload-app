@@ -1,4 +1,7 @@
+import { isNil } from "lodash";
+
 import { makeConstant } from "../util";
+import { UploadMetadata } from "./types";
 
 const BRANCH_NAME = "upload";
 
@@ -30,3 +33,7 @@ export const getUploadRowKey = (file: string, positionIndex?: number, channelId?
 
     return key;
 };
+
+export const isFileRow = ({channel, positionIndex}: UploadMetadata) => isNil(channel) && isNil(positionIndex);
+export const isChannelOnlyRow = ({channel, positionIndex}: UploadMetadata) => !isNil(channel) && isNil(positionIndex);
+export const isSceneRow = ({channel, positionIndex}: UploadMetadata) => !isNil(positionIndex);
