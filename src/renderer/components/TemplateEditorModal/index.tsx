@@ -22,7 +22,7 @@ import { getTemplateDraft } from "../../state/template/selectors";
 import {
     Annotation,
     AnnotationDraft,
-    AnnotationType, SaveTemplateAction,
+    AnnotationType, ColumnType, SaveTemplateAction,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "../../state/template/types";
@@ -132,8 +132,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                     </Select>
                 </LabeledInput>
                 <div className={styles.buttons}>
-                    <Button icon="plus" onClick={this.addColumn} disabled={isEmpty(annotationNameSearchStr)}/>
-                    <Button icon="minus" onClick={this.removeColumns} disabled={isEmpty(selectedRows)}/>
+                    <Button icon="plus" onClick={this.addAnnotation} disabled={isEmpty(annotationNameSearchStr)}/>
+                    <Button icon="minus" onClick={this.removeAnnotations} disabled={isEmpty(selectedRows)}/>
                 </div>
                 <div className={styles.columnDefinitionForm}>
                     <div className={styles.grid}>
@@ -211,26 +211,28 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         // todo add allow multiple values
     ])
 
+    // todo do this in logics?
     private saveValueByRow = (value: any, key: string, row: AnnotationDraft): void => {
-        const columns = [...this.props.template.annotations];
-        columns[row.index] = {
-            ...columns[row.index],
+        const annotations = [...this.props.template.annotations];
+        annotations[row.index] = {
+            ...annotations[row.index],
             [key]: value,
         };
-        this.setState({columns});
+        this.props.updateTemplateDraft({annotations});
     }
 
-    private getRow = (i: number): ColumnDefinitionDraft => this.state.columns[i];
+    private getRow = (i: number): AnnotationDraft => this.props.template.annotations[i];
 
+    // todo: add this to a selector
     private canSave = (): boolean => {
-        const { columns } = this.state;
-        const columnWithNoTypeFound: boolean = !!columns.find(({type}) => !type || !type.type);
+        const { template: { annotations } } = this.props;
+        const columnWithNoTypeFound: boolean = !!annotations.find(({type}) => !type || !type.annotationTypeId);
         const duplicateNamesFound: boolean = this.duplicateNamesFound();
-        const columnWithNoLabelFound: boolean = !!columns.find(({label}) => !label);
-        const dropdownValuesMissing: boolean = !!columns
-            .find(({type}) => type.type === ColumnType.DROPDOWN && isEmpty(type.dropdownValues));
-        const lookupValuesMissing: boolean = !!columns
-            .find(({type}) => type.type === ColumnType.LOOKUP && (!type.table || !type.column));
+        const columnWithNoLabelFound: boolean = !!annotations.find(({name}) => !name);
+        const dropdownValuesMissing: boolean = !!annotations
+            .find(({type}) => type.name === ColumnType.DROPDOWN && isEmpty(type.annotationOptions));
+        const lookupValuesMissing: boolean = !!annotations
+            .find(({type}) => type.name === ColumnType.LOOKUP && !type.lookupTable);
 
         return !duplicateNamesFound &&
                !columnWithNoLabelFound &&
@@ -239,10 +241,11 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                !lookupValuesMissing;
     }
 
+    // todo selector?
     private duplicateNamesFound = (): boolean => {
-        let { columns } = this.state;
-        columns = columns.filter((c) => !!c.label);
-        return uniqBy(columns, "label").length !== columns.length;
+        let { template: { annotations } } = this.props;
+        annotations = annotations.filter((c: AnnotationDraft) => !!c.name);
+        return uniqBy(annotations, "name").length !== annotations.length;
     }
 
     private saveAndClose = () => {
@@ -251,33 +254,38 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         this.props.saveTemplate(templateId);
     }
 
-    private setNotes = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        this.setState({notes: e.target.value});
-    }
-
-    private updateGridRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<ColumnDefinitionDraft>) => {
+    // todo logics
+    private updateGridRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<AnnotationDraft>) => {
         const { fromRow, toRow, updated } = e;
-        const columns = [...this.state.columns];
+        const annotations = [...this.props.template.annotations];
         for (let i = fromRow; i <= toRow; i++) {
-            columns[i] = {
-                ...columns[i],
+            annotations[i] = {
+                ...annotations[i],
                 ...updated,
             };
         }
-        this.setState({columns});
+        this.props.updateTemplateDraft({annotations});
     }
 
-    private addColumn = () => {
-        this.setState({columns: [...this.state.columns, this.DEFAULT_COLUMN]});
+    // todo expose as props + logics
+    private addAnnotation = () => {
+        const { template: {annotations}} = this.props;
+        const annotation = {
+            ...this.DEFAULT_COLUMN,
+            name: this.state.annotationNameSearchStr,
+        };
+        this.props.updateTemplateDraft({annotations: [...annotations, annotation]});
     }
 
-    private removeColumns = () => {
+    // todo expose as props + logics
+    private removeAnnotations = () => {
         const { selectedRows } = this.state;
-        const columns = [...this.state.columns];
+        const { template: {annotations}} = this.props;
+        const annotations = [...annotations];
         selectedRows.forEach((row) => {
-            columns.splice(row, 1);
+            annotations.splice(row, 1);
         });
-        this.setState({ columns, selectedRows: [] });
+        this.setState({ columns: annotations, selectedRows: [] });
     }
 
     private selectRows = (rows: Array<{rowIdx: number}>) => {
@@ -291,10 +299,13 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         this.setState({selectedRows});
     }
 
+    // todo expose as prop and add logics
     private onColumnNameChange = (columnName: string) => {
+        // todo this is not correct
         this.props.updateTemplateDraft({columnName});
     }
 
+    // todo expose as prop and add logics
     private addExistingAnnotation = (name: string) => {
         const { allAnnotations, template: { annotations } } = this.props;
         const annotation = allAnnotations.find((a: Annotation) => a.name === name);
@@ -305,6 +316,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         }
     }
 
+    // todo
     private get DEFAULT_COLUMN(): AnnotationDraft {
         return {
             annotationType: this.props.annotationTypes.find((at: AnnotationType) => at.name === ColumnType.TEXT)

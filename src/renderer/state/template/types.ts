@@ -18,21 +18,22 @@ export interface Annotation extends Audited {
 }
 
 export interface AnnotationDraft {
-    annotationOptions?: string[];
-    type: AnnotationType;
     canHaveMany: boolean;
     description?: string;
+    index: number;
     name?: string;
     required: boolean;
-    lookupColumn?: string;
-    lookupSchema?: string;
-    lookupTable?: string;
+    type: AnnotationType;
 }
 
 export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number };
 
 export interface AnnotationType {
+    annotationOptions?: string[];
     annotationTypeId: number;
+    lookupColumn?: string;
+    lookupSchema?: string;
+    lookupTable?: string;
     name: string;
 }
 
