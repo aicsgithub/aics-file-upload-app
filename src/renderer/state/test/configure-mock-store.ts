@@ -20,7 +20,7 @@ import {
     setting,
     upload,
 } from "../";
-import { State } from "../types";
+import { LocalStorage, State } from "../types";
 
 export interface ReduxLogicDependencies {
     fms: FileManagementSystem;
@@ -50,11 +50,15 @@ const host = "localhost";
 const port = "80";
 const protocol = "http";
 const username = "foo";
+const localStorage: LocalStorage = {
+    get: stub(),
+    set: stub(),
+};
 
 export const fms = new FileManagementSystem({host, port});
 export const jssClient = new JobStatusClient({host, port, username});
-export const labkeyClient = new LabkeyClient({host, port, protocol});
-export const mmsClient = new MMSClient({host, port, protocol, username});
+export const labkeyClient = new LabkeyClient({host, localStorage, port, protocol});
+export const mmsClient = new MMSClient({host, localStorage, port, protocol, username});
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     fms,

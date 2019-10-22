@@ -1,23 +1,13 @@
-import axios, { AxiosInstance } from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
+import { LocalStorage } from "../../state/types";
+import BaseServiceClient from "../base-service-client";
 
-export default class MMSClient {
-    public protocol: string;
-    public host: string;
-    public port: string;
-    private username: string;
+export default class MMSClient extends BaseServiceClient {
+    private readonly username: string;
 
-    private get httpClient(): AxiosInstance {
-        return axios.create({
-            baseURL: this.baseURL,
-        });
-    }
-
-    constructor({host, port, protocol, username}: {host: string, port: string, protocol: string, username: string}) {
-        this.protocol = protocol;
-        this.host = host;
-        this.port = port;
-        this.username = username;
+    constructor(config: {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
+        super(config);
+        this.username = config.username;
     }
 
     /**
@@ -28,7 +18,7 @@ export default class MMSClient {
         const url = "/1.0/plate/barcode";
         const body = { prefixId, quantity: 1 };
         const response = await this.httpClient.post(url, body, { headers: { "X-User-Id": this.username } });
-        return response.data.data[0];
+        return response.data[0];
     }
 
     /**
@@ -39,10 +29,10 @@ export default class MMSClient {
     public async getPlate(barcode: string, imagingSessionId?: number): Promise<GetPlateResponse> {
         const url = `/1.0/plate/query?barcode=${barcode}`;
         const response = await this.httpClient.get(url);
-        return response.data.data[0];
+        return response.data[0];
     }
 
-    private get baseURL(): string {
+    protected get baseURL(): string {
         return `${this.protocol}://${this.host}:${this.port}/metadata-management-service`;
     }
 }

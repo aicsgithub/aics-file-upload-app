@@ -63,6 +63,10 @@ task devStg(type: YarnTask) {
     args = ["compile-stage", "dev"]
 }
 
+task devCache(type: YarnTask) {
+    args = ["compile-cache", "dev"]
+}
+
 ///////////////////////////
 // Build and publish
 //////////////////////////
