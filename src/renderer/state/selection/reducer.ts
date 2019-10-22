@@ -28,9 +28,9 @@ import {
 import {
     AddStageFilesAction,
     ClearStagedFilesAction,
-    CloseSchemaCreatorAction,
+    CloseTemplateEditorAction,
     DeselectFilesAction,
-    OpenSchemaCreatorAction,
+    OpenTemplateEditorAction,
     Page,
     SelectBarcodeAction,
     SelectFileAction,
@@ -163,14 +163,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         }),
     },
     [OPEN_CREATE_SCHEMA_MODAL]: {
-        accepts: (action: AnyAction): action is OpenSchemaCreatorAction => action.type === OPEN_CREATE_SCHEMA_MODAL,
+        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_CREATE_SCHEMA_MODAL,
         perform: (state: SelectionStateBranch) => ({
             ...state,
             showCreateSchemaModal: true,
         }),
     },
     [CLOSE_CREATE_SCHEMA_MODAL]: {
-        accepts: (action: AnyAction): action is CloseSchemaCreatorAction => action.type === CLOSE_CREATE_SCHEMA_MODAL,
+        accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_CREATE_SCHEMA_MODAL,
         perform: (state: SelectionStateBranch) => ({
             ...state,
             showCreateSchemaModal: false,

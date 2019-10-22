@@ -11,11 +11,11 @@ import FormPage from "../../components/FormPage";
 import { setAlert } from "../../state/feedback/actions";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { goBack, goForward, openSchemaCreator } from "../../state/selection/actions";
-import { GoBackAction, NextPageAction, OpenSchemaCreatorAction } from "../../state/selection/types";
-import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
+import { GoBackAction, NextPageAction, OpenTemplateEditorAction } from "../../state/selection/types";
+import { addTemplateIdToSettings, removeSchemaFilepath } from "../../state/setting/actions";
 import { getSchemaFilepaths } from "../../state/setting/selectors";
 import {
-    AddSchemaFilepathAction,
+    AddTemplateIdToSettingsAction,
     ColumnDefinition,
     ColumnType,
     RemoveSchemaFilepathAction,
@@ -52,7 +52,7 @@ const { Option } = Select;
 const BROWSE_FOR_EXISTING_SCHEMA = `...Browse for existing ${SCHEMA_SYNONYM.toLowerCase()}`;
 
 interface Props {
-    addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
+    addSchemaFilepath: ActionCreator<AddTemplateIdToSettingsAction>;
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
@@ -62,7 +62,7 @@ interface Props {
     goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
-    openSchemaCreator: ActionCreator<OpenSchemaCreatorAction>;
+    openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
     removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
     schemaFile?: string;
     schemaFilepaths: string[];
@@ -269,7 +269,7 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
-    addSchemaFilepath,
+    addSchemaFilepath: addTemplateIdToSettings,
     goBack,
     goForward,
     initiateUpload,

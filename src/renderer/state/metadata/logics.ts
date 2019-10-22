@@ -15,11 +15,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
-import {
-    CREATE_BARCODE,
-    GET_BARCODE_SEARCH_RESULTS,
-    REQUEST_METADATA,
-} from "./constants";
+import { CREATE_BARCODE, GET_ANNOTATIONS, GET_BARCODE_SEARCH_RESULTS, REQUEST_METADATA } from "./constants";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -43,12 +39,14 @@ const requestMetadata = createLogic({
                     done: () => void) => {
         try {
             const [
+                annotationTypes,
                 barcodePrefixes,
                 databaseMetadata,
                 imagingSessions,
                 units,
                 workflowOptions,
             ] = await Promise.all([
+                labkeyClient.getAnnotationTypes(),
                 labkeyClient.getBarcodePrefixes(),
                 labkeyClient.getDatabaseMetadata(),
                 labkeyClient.getImagingSessions(),
@@ -57,6 +55,7 @@ const requestMetadata = createLogic({
 
             ]);
             dispatch(receiveMetadata({
+                annotationTypes,
                 barcodePrefixes,
                 databaseMetadata,
                 imagingSessions,
@@ -87,7 +86,7 @@ const requestBarcodes = createLogic({
         } else {
             dispatch(addRequestToInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
             try {
-                const searchResults = await labkeyClient.getPlatesByBarcode(action.payload);
+                const searchResults = await labkeyClient.getPlatesByBarcode(searchStr);
                 dispatch(batchActions([
                     receiveMetadata({barcodeSearchResults: searchResults}),
                     removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
@@ -108,8 +107,33 @@ const requestBarcodes = createLogic({
     type: GET_BARCODE_SEARCH_RESULTS,
 });
 
+const requestAnnotations = createLogic({
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.GET_ANNOTATIONS));
+        try {
+            const annotations = await labkeyClient.getAnnotations();
+            dispatch(batchActions([
+                receiveMetadata({annotations}),
+                removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
+            ]));
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
+                setAlert({
+                    message: e.message || "Could not retrieve annotations",
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: GET_ANNOTATIONS,
+});
+
 export default [
     createBarcode,
+    requestAnnotations,
     requestBarcodes,
     requestMetadata,
 ];

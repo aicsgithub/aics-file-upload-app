@@ -1,5 +1,6 @@
 import {
     CREATE_BARCODE,
+    GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
     RECEIVE_METADATA,
     REQUEST_METADATA,
@@ -9,12 +10,19 @@ import { initialState } from "./reducer";
 import {
     BarcodePrefix,
     CreateBarcodeAction,
+    GetAnnotationsAction,
     GetBarcodeSearchResultsAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
     UpdatePageHistoryMapAction,
 } from "./types";
+
+export function requestAnnotations(): GetAnnotationsAction {
+    return {
+        type: GET_ANNOTATIONS,
+    };
+}
 
 export function receiveMetadata(payload: Partial<MetadataStateBranch> = initialState): ReceiveMetadataAction {
     return {

@@ -5,13 +5,13 @@ import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
-    ADD_SCHEMA_FILE_PATH,
+    ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     REMOVE_SCHEMA_FILE_PATH,
     UPDATE_SETTINGS,
 } from "./constants";
 import {
-    AddSchemaFilepathAction,
+    AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     RemoveSchemaFilepathAction,
     SettingStateBranch,
@@ -27,9 +27,9 @@ const initialState: SettingStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [ADD_SCHEMA_FILE_PATH]: {
-        accepts: (action: AnyAction): action is AddSchemaFilepathAction => action.type === ADD_SCHEMA_FILE_PATH,
-        perform: (state: SettingStateBranch, action: AddSchemaFilepathAction) => ({
+    [ADD_TEMPLATE_ID_TO_SETTINGS]: {
+        accepts: (action: AnyAction): action is AddTemplateIdToSettingsAction => action.type === ADD_TEMPLATE_ID_TO_SETTINGS,
+        perform: (state: SettingStateBranch, action: AddTemplateIdToSettingsAction) => ({
             ...state,
             schemaFilepaths: uniq([...state.schemaFilepaths, action.payload]),
         }),

@@ -10,10 +10,10 @@ import {
     UpdatePageHistoryMapAction,
 } from "./types";
 
-export const initialState = {
+export const initialState: MetadataStateBranch = {
+    annotations: [],
     barcodePrefixes: [],
     barcodeSearchResults: [],
-    barcodes: [],
     history: {
         selection: {},
         upload: {},

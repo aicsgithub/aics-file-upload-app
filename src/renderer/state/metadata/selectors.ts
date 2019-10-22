@@ -6,6 +6,8 @@ import { LabkeyPlateResponse } from "../../util/labkey-client/types";
 import { State } from "../types";
 
 // BASIC SELECTORS
+export const getAnnotations = (state: State) => state.metadata.annotations;
+export const getAnnotationTypes = (state: State) => state.metadata.annotationTypes;
 export const getUnits = (state: State) => state.metadata.units;
 export const getImagingSessions = (state: State) => state.metadata.imagingSessions;
 export const getBarcodePrefixes = (state: State) => state.metadata.barcodePrefixes;

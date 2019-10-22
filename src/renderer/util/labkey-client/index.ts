@@ -3,20 +3,23 @@ import { isEmpty, map } from "lodash";
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
+import { Annotation, AnnotationType } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
-    GetBarcodesResponse,
     GetTablesResponse,
     GetTablesResponseColumn,
-    GetTablesResponseQuery,
+    GetTablesResponseQuery, LabkeyAnnotation, LabkeyAnnotationType,
     LabkeyImagingSession,
     LabkeyPlate,
     LabKeyPlateBarcodePrefix,
-    LabkeyPlateResponse, LabKeyWorkflow,
+    LabkeyPlateResponse,
+    LabkeyResponse,
+    LabKeyWorkflow,
 } from "./types";
 
 const LABKEY_GET_TABLES_URL = `/AICS/query-getQueries.api`;
+const LK_FILEMETADATA_SCHEMA = "filemetadata";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
 
 // There are more schemas, but these are the only ones (AFAIK) that users use
@@ -42,6 +45,48 @@ export default class LabkeyClient extends BaseServiceClient {
     }
 
     /**
+     * Gets all annotation types
+     */
+    public async getAnnotationTypes(): Promise<AnnotationType[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationType");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map(({
+            AnnotationTypeId: annotationTypeId,
+            Name: name,
+        }: LabkeyAnnotationType) => ({
+            annotationTypeId,
+            name,
+        }));
+    }
+
+    /**
+     * Gets all annotations
+     */
+    public async getAnnotations(): Promise<Annotation[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Annotation");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map(({
+                                    AnnotationId: annotationId,
+                                    AnnotationTypeId: annotationTypeId,
+                                    Created: created,
+                                    CreatedBy: createdBy,
+                                    Description: description,
+                                    Modified: modified,
+                                    ModifiedBy: modifiedBy,
+                                    Name: name,
+        }: LabkeyAnnotation) => ({
+            annotationId,
+            annotationTypeId,
+            created,
+            createdBy,
+            description,
+            modified,
+            modifiedBy,
+            name,
+        }));
+    }
+
+    /**
      * Searches plates where the barcode contains searchString
      * @param searchString fragment of a barcode
      */
@@ -51,7 +96,7 @@ export default class LabkeyClient extends BaseServiceClient {
             `query.barcode~contains=${searchString}`,
         ]);
 
-        const response: GetBarcodesResponse = await this.httpClient.get(query);
+        const response: LabkeyResponse<LabkeyPlate> = await this.httpClient.get(query);
         const plates: LabkeyPlate[] = response.rows;
         return map(plates, (p) => ({
             barcode: p.BarCode,

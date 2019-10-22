@@ -1,11 +1,30 @@
+export interface LabkeyAudited {
+    Created: string; // Date string
+    CreatedBy: number;
+    Modified: string; // Date string
+    ModifiedBy: number;
+}
+
+export interface LabkeyAnnotation extends LabkeyAudited {
+    AnnotationId: number;
+    AnnotationTypeId: number;
+    Description: string;
+    Name: string;
+}
+
+export interface LabkeyAnnotationType extends LabkeyAudited {
+    AnnotationTypeId: number;
+    Name: string;
+}
+
 export interface LabkeyPlate {
     BarCode: string;
     ImagingSessionId: number;
 }
 
-export interface GetBarcodesResponse {
+export interface LabkeyResponse<T> {
     rowCount: number;
-    rows: LabkeyPlate[];
+    rows: T[];
 }
 
 export interface GetTablesResponseColumn {

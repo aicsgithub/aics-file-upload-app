@@ -1,7 +1,10 @@
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
+import { Annotation, AnnotationType } from "../template/types";
 
 export interface MetadataStateBranch {
+    annotations: Annotation[];
+    annotationTypes: AnnotationType[];
     barcode?: string;
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
@@ -27,6 +30,10 @@ export interface ImagingSession {
     imagingSessionId: number;
     name: string;
     description: string;
+}
+
+export interface GetAnnotationsAction {
+    type: string;
 }
 
 export interface PageToIndexMap {

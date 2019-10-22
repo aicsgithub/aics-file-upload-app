@@ -1,12 +1,12 @@
 import {
-    ADD_SCHEMA_FILE_PATH,
+    ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
     REMOVE_SCHEMA_FILE_PATH,
     UPDATE_SETTINGS
 } from "./constants";
 import {
-    AddSchemaFilepathAction,
+    AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     GatherSettingsAction,
     RemoveSchemaFilepathAction,
@@ -14,10 +14,10 @@ import {
     UpdateSettingsAction,
 } from "./types";
 
-export function addSchemaFilepath(payload: string): AddSchemaFilepathAction {
+export function addTemplateIdToSettings(payload: string): AddTemplateIdToSettingsAction {
     return {
         payload,
-        type: ADD_SCHEMA_FILE_PATH,
+        type: ADD_TEMPLATE_ID_TO_SETTINGS,
     };
 }
 

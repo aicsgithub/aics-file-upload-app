@@ -201,11 +201,12 @@ export interface SelectWellsAction {
     type: string;
 }
 
-export interface CloseSchemaCreatorAction {
+export interface CloseTemplateEditorAction {
     type: string;
 }
 
-export interface OpenSchemaCreatorAction {
+export interface OpenTemplateEditorAction {
+    payload?: number;
     type: string;
 }
 

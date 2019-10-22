@@ -27,7 +27,7 @@ import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
     ClearStagedFilesAction,
-    CloseSchemaCreatorAction,
+    CloseTemplateEditorAction,
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
@@ -36,7 +36,7 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     NextPageAction,
-    OpenSchemaCreatorAction,
+    OpenTemplateEditorAction,
     Page,
     PlateResponse,
     SelectBarcodeAction,
@@ -160,14 +160,15 @@ export function selectWells(wells: GridCell[]): SelectWellsAction {
     };
 }
 
-export function closeSchemaCreator(): CloseSchemaCreatorAction {
+export function closeSchemaCreator(): CloseTemplateEditorAction {
     return {
         type: CLOSE_CREATE_SCHEMA_MODAL,
     };
 }
 
-export function openSchemaCreator(): OpenSchemaCreatorAction {
+export function openSchemaCreator(templateId?: number): OpenTemplateEditorAction {
     return {
+        payload: templateId,
         type: OPEN_CREATE_SCHEMA_MODAL,
     };
 }

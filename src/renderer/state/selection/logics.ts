@@ -5,6 +5,7 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
+import { OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
 
 import { canUserRead } from "../../util";
 
@@ -21,6 +22,7 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
+import { getTemplate } from "../template/actions";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
@@ -458,10 +460,22 @@ const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): A
     return actions;
 };
 
+const openCreateSchemaModalLogic = createLogic({
+    process: ({action}: ReduxLogicTransformDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        if (action.payload) {
+            dispatch(getTemplate(action.payload));
+        }
+
+        done();
+    },
+    type: OPEN_CREATE_SCHEMA_MODAL,
+});
+
 export default [
     goBackLogic,
     goForwardLogic,
     loadFilesLogic,
+    openCreateSchemaModalLogic,
     openFilesLogic,
     getFilesInFolderLogic,
     selectBarcodeLogic,

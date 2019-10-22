@@ -1,4 +1,5 @@
 import { GetPlateResponse } from "../../state/selection/types";
+import { Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 
@@ -28,6 +29,13 @@ export default class MMSClient extends BaseServiceClient {
      */
     public async getPlate(barcode: string, imagingSessionId?: number): Promise<GetPlateResponse> {
         const url = `/1.0/plate/query?barcode=${barcode}`;
+        const response = await this.httpClient.get(url);
+        return response.data[0];
+    }
+
+    // todo description
+    public async getTemplate(templateId: number): Promise<Template> {
+        const url = `/1.0/template/${templateId}`;
         const response = await this.httpClient.get(url);
         return response.data[0];
     }

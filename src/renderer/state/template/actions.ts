@@ -1,21 +1,31 @@
-import { CREATE_TEMPLATE, EDIT_TEMPLATE, GET_ANNOTATIONS } from "./constants";
+import { CREATE_TEMPLATE, EDIT_TEMPLATE, GET_TEMPLATE, SAVE_TEMPLATE, UPDATE_TEMPLATE_DRAFT } from "./constants";
+import {
+    CreateTemplateAction,
+    CreateTemplateRequest,
+    EditTemplateAction, GetTemplateAction, SaveTemplateAction,
+    Template, TemplateDraft, UpdateTemplateDraftAction,
+} from "./types";
 
-export function getAllAnnotations(): GetAnnotationsAction {
+export function getTemplate(templateId: number, editTemplate: boolean = false): GetTemplateAction {
     return {
-        type: GET_ANNOTATIONS,
+        payload: {
+            editTemplate,
+            templateId,
+        },
+        type: GET_TEMPLATE,
     };
 }
 
-export function createTemplate(template: CreateTemplateRequest): CreateTemplateAction {
+export function saveTemplate(templateId?: number): SaveTemplateAction {
     return {
-        template,
-        type: CREATE_TEMPLATE,
+        payload: templateId,
+        type: SAVE_TEMPLATE,
     };
 }
 
-export function editTemplate(template: Template): EditTemplateAction {
+export function updateTemplateDraft(draft: TemplateDraft): UpdateTemplateDraftAction {
     return {
-        template,
-        type: EDIT_TEMPLATE,
+        payload: draft,
+        type: UPDATE_TEMPLATE_DRAFT,
     };
 }
