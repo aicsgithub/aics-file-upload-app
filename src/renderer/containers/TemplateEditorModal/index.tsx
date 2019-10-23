@@ -10,7 +10,7 @@ import { ActionCreator } from "redux";
 import { OPEN_CREATE_SCHEMA_MODAL, SCHEMA_SYNONYM } from "../../../shared/constants";
 
 import { requestAnnotations } from "../../state/metadata/actions";
-import { getAnnotations, getAnnotationTypes, getDatabaseMetadata } from "../../state/metadata/selectors";
+import { getAnnotations, getAnnotationTypes, getLookups } from "../../state/metadata/selectors";
 import { GetAnnotationsAction } from "../../state/metadata/types";
 import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
 import { getShowCreateSchemaModal } from "../../state/selection/selectors";
@@ -177,6 +177,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         {
             editable: true,
             formatter: ({value}: {value: string}) => {
+                console.log(value)
                 let error;
                 if (!value) {
                     error = "This field is required";
@@ -294,7 +295,7 @@ function mapStateToProps(state: State) {
         allAnnotations: getAnnotations(state),
         annotationTypes: getAnnotationTypes(state),
         canSave: getCanSaveTemplate(state),
-        tables: getDatabaseMetadata(state),
+        tables: getLookups(state),
         template: getTemplateDraft(state),
         visible: getShowCreateSchemaModal(state),
     };

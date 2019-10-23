@@ -24,6 +24,9 @@ import { Annotation, AnnotationDraft } from "./types";
 
 const addAnnotationLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        // todo action.payload is currently either a string or an existing annotation
+        // handle those differently
+
         const { annotations: oldAnnotations } = getTemplateDraft(getState());
         const annotationType = getTextAnnotationType(getState());
         if (!annotationType) {
