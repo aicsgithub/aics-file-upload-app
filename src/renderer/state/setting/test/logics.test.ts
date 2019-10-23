@@ -9,11 +9,12 @@ import {
     mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
+    mockAnnotationLookups, mockAnnotationTypes,
     mockBarcodePrefixes,
-    mockDatabaseMetadata,
     mockImagingSessions,
+    mockLookups,
     mockSelectedWorkflows,
-    mockState,
+    mockState, mockTemplates,
     mockUnit,
 } from "../../test/mocks";
 
@@ -57,17 +58,24 @@ describe("Setting logics", () => {
         stub(mmsClient, "host").set(mmsClientHostSetterSpy);
         stub(mmsClient, "port").set(mmsClientPortSetterSpy);
 
+        const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
+        const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
         const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
-        const getDatabaseMetadataStub = stub().resolves(mockDatabaseMetadata);
         const getImagingSessionsStub = stub().resolves(mockImagingSessions);
+        const getLookupsStub = stub().resolves(mockLookups);
+        const getTemplatesStub = stub().resolves(mockTemplates);
         const getUnitsStub = stub().resolves([mockUnit]);
         const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
 
+        sandbox.replace(labkeyClient, "getAnnotationLookups", getAnnotationLookupsStub);
+        sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
         sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
-        sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
         sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
+        sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
+        sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
         sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
         sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+
     });
 
     afterEach(() => {

@@ -11,7 +11,7 @@ import { OPEN_CREATE_SCHEMA_MODAL, SCHEMA_SYNONYM } from "../../../shared/consta
 
 import { requestAnnotations } from "../../state/metadata/actions";
 import { getAnnotations, getAnnotationTypes, getDatabaseMetadata } from "../../state/metadata/selectors";
-import { DatabaseMetadata, GetAnnotationsAction } from "../../state/metadata/types";
+import { GetAnnotationsAction } from "../../state/metadata/types";
 import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
 import { getShowCreateSchemaModal } from "../../state/selection/selectors";
 import { CloseTemplateEditorAction, OpenTemplateEditorAction } from "../../state/selection/types";
@@ -23,7 +23,7 @@ import {
     AddAnnotationAction,
     Annotation,
     AnnotationDraft,
-    AnnotationType,
+    AnnotationType, Lookup,
     RemoveAnnotationsAction,
     SaveTemplateAction,
     TemplateDraft,
@@ -42,7 +42,7 @@ import LabeledInput from "../../components/LabeledInput/index";
 const styles = require("./styles.pcss");
 
 interface ColumnTypeColumn extends AdazzleReactDataGrid.Column<AnnotationDraft> {
-    tables?: DatabaseMetadata;
+    tables?: Lookup[];
 }
 
 interface Props {
@@ -57,7 +57,7 @@ interface Props {
     openModal: ActionCreator<OpenTemplateEditorAction>;
     removeAnnotations: ActionCreator<RemoveAnnotationsAction>;
     saveTemplate: ActionCreator<SaveTemplateAction>;
-    tables?: DatabaseMetadata; // todo
+    tables?: Lookup[]; // todo
     template: TemplateDraft;
     updateTemplateDraft: ActionCreator<UpdateTemplateDraftAction>;
     visible: boolean;

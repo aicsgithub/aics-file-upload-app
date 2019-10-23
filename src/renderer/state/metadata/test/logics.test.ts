@@ -6,18 +6,20 @@ import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { createMockReduxStore, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
+    mockAnnotationLookups,
+    mockAnnotationTypes,
     mockBarcodePrefixes,
-    mockDatabaseMetadata,
     mockImagingSessions,
+    mockLookups,
     mockSelectedWorkflows,
     mockState,
+    mockTemplates,
     mockUnit,
 } from "../../test/mocks";
 import { requestMetadata } from "../actions";
 
 import {
     getBarcodePrefixes,
-    getDatabaseMetadata,
     getImagingSessions,
     getUnits,
     getWorkflowOptions,
@@ -32,15 +34,21 @@ describe("Metadata logics", () => {
 
     describe("requestMetadata", () => {
         it("sets metadata given OK response", (done) => {
+            const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
+            const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
             const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
-            const getDatabaseMetadataStub = stub().resolves(mockDatabaseMetadata);
             const getImagingSessionsStub = stub().resolves(mockImagingSessions);
+            const getLookupsStub = stub().resolves(mockLookups);
+            const getTemplatesStub = stub().resolves(mockTemplates);
             const getUnitsStub = stub().resolves([mockUnit]);
             const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
 
+            sandbox.replace(labkeyClient, "getAnnotationLookups", getAnnotationLookupsStub);
+            sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
             sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
-            sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
             sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
+            sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
+            sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
             sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
             sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
 
@@ -48,7 +56,6 @@ describe("Metadata logics", () => {
 
             let state = store.getState();
             expect(getBarcodePrefixes(state)).to.be.empty;
-            expect(getDatabaseMetadata(state)).to.be.undefined;
             expect(getImagingSessions(state)).to.be.empty;
             expect(getUnits(state)).to.be.empty;
             expect(getWorkflowOptions(state)).to.be.empty;
@@ -58,7 +65,6 @@ describe("Metadata logics", () => {
             store.subscribe(() => {
                 state = store.getState();
                 expect(getBarcodePrefixes(state)).to.not.be.empty;
-                expect(getDatabaseMetadata(state)).to.not.be.undefined;
                 expect(getImagingSessions(state)).to.not.be.empty;
                 expect(getUnits(state)).to.not.be.empty;
                 expect(getWorkflowOptions(state)).to.not.be.empty;

@@ -39,6 +39,7 @@ export interface LabkeyResponse<T> {
     rows: T[];
 }
 
+// todo add audit columns and expose?
 export interface LabkeyTemplate {
     Name: string;
     TemplateId: number;

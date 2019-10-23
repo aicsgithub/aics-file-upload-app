@@ -9,7 +9,6 @@ export interface MetadataStateBranch {
     barcode?: string;
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
-    databaseMetadata?: DatabaseMetadata;
     imagingSessions: ImagingSession[];
     lookups: Lookup[];
     templates: LabkeyTemplate[];
@@ -90,15 +89,4 @@ export interface LabkeyUnit {
     Description: string;
     UnitsId: number;
     Name: string;
-}
-
-export interface DatabaseMetadata {
-    [displayName: string]: Table;
-}
-
-export interface Table {
-    name: string;
-    schemaName: string;
-    displayName: string; // name with schema prefixed if duplicate
-    columns: string[];
 }

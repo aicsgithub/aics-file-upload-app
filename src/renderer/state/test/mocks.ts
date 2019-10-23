@@ -1,17 +1,17 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
+import { LabkeyImagingSession, LabKeyPlateBarcodePrefix, LabkeyTemplate } from "../../util/labkey-client/types";
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { DatabaseMetadata, Unit } from "../metadata/types";
+import { Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
     Well,
     Workflow
 } from "../selection/types";
-import { TemplateStateBranch } from "../template/types";
+import { AnnotationLookup, AnnotationType, Lookup, TemplateStateBranch } from "../template/types";
 import { State } from "../types";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
@@ -255,6 +255,20 @@ export const nonEmptyJobStateBranch: JobStateBranch = {
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
+export const mockAnnotationLookups: AnnotationLookup[] = [
+    {
+        annotationId: 1,
+        lookupId: 1,
+    },
+];
+
+export const mockAnnotationTypes: AnnotationType[] = [
+    {
+        annotationTypeId: 1,
+        name: "Text",
+    },
+];
+
 export const mockImagingSessions: LabkeyImagingSession[] = [
     {
         Description: "",
@@ -281,6 +295,13 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
     },
 ];
 
+export const mockTemplates: LabkeyTemplate[] = [
+    {
+        Name: "MyTemplate",
+        TemplateId: 1,
+    },
+];
+
 export const mockUnit: Unit = {
     description: "description",
     name: "name",
@@ -288,11 +309,16 @@ export const mockUnit: Unit = {
     unitsId: 1,
 };
 
-export const mockDatabaseMetadata: DatabaseMetadata = {
-    "Table Name": {
-        columns: [],
-        displayName: "Table Name",
-        name: "table_name",
-        schemaName: "microscopy",
+export const mockLookups: Lookup[] = [
+    {
+        columnName: "columnname",
+        created: "",
+        createdBy: 1,
+        descriptionColumn: "description",
+        lookupId: 1,
+        modified: "",
+        modifiedBy: 1,
+        schemaName: "schema",
+        tableName: "tablename",
     },
-};
+];

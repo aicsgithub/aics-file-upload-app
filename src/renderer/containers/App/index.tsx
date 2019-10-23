@@ -22,8 +22,7 @@ import {
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { getDatabaseMetadata } from "../../state/metadata/selectors";
-import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
+import { RequestMetadataAction } from "../../state/metadata/types";
 import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
@@ -91,7 +90,6 @@ interface AppProps {
     setAlert: ActionCreator<SetAlertAction>;
     selectView: ActionCreator<SelectViewAction>;
     page: Page;
-    tables?: DatabaseMetadata;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     view: Page;
 }
@@ -246,7 +244,6 @@ function mapStateToProps(state: State) {
         page: getPage(state),
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
-        tables: getDatabaseMetadata(state),
         view: getView(state),
     };
 }

@@ -1,16 +1,12 @@
 import { camelizeKeys } from "humps";
 import { isEmpty, map, pick } from "lodash";
 
-import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
 import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
-    GetTablesResponse,
-    GetTablesResponseColumn,
-    GetTablesResponseQuery,
     LabkeyAnnotation,
     LabkeyAnnotationLookup,
     LabkeyAnnotationType,
@@ -23,18 +19,9 @@ import {
     LabKeyWorkflow,
 } from "./types";
 
-const LABKEY_GET_TABLES_URL = `/AICS/query-getQueries.api`;
 const LK_FILEMETADATA_SCHEMA = "filemetadata";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
 const LK_UPLOADER_SCHEMA = "uploader";
-
-// There are more schemas, but these are the only ones (AFAIK) that users use
-const SCHEMAS = [
-    "assayscustom",
-    "celllines",
-    LK_MICROSCOPY_SCHEMA,
-    "processing",
-];
 
 export default class LabkeyClient extends BaseServiceClient {
     private static getSelectRowsURL = (schema: string, table: string, additionalQueries: string[] = []) => {
@@ -146,52 +133,6 @@ export default class LabkeyClient extends BaseServiceClient {
             type: unit.Type,
             unitsId: unit.UnitsId,
         }));
-    }
-
-    /**
-     * Retrieves all Table names and Table Column names for each Schema defined in the constant SCHEMAS
-     */
-    public async getDatabaseMetadata(): Promise<DatabaseMetadata> {
-        const requests = SCHEMAS.map((schemaName: string) =>
-            this.httpClient.post(LABKEY_GET_TABLES_URL, { schemaName })
-        );
-        const responses: GetTablesResponse[] = await Promise.all(requests);
-        let tables: Table[] = [];
-        responses.forEach(({ schemaName, queries }: GetTablesResponse) => {
-            tables = [
-                ...tables,
-                ...queries
-                // User defined queries have been broken in production before, we want to avoid breaking the app
-                // because of them -- also it doesn't seem like we want to let the user to associate with a view
-                    .filter(({ isUserDefined }: GetTablesResponseQuery) => !isUserDefined)
-                    .map(({ columns, name }: GetTablesResponseQuery) => ({
-                        columns: columns.map((column: GetTablesResponseColumn) => column.caption),
-                        displayName: name,
-                        name,
-                        schemaName,
-                    })),
-            ];
-        });
-        // If any duplicate table name are present append the schemaName as a suffix
-        return tables.reduce((acc: DatabaseMetadata, table: Table) => {
-            const matchingTable = tables.find(({ name, schemaName }: Table) => (
-                table.name === name && table.schemaName !== schemaName)
-            );
-            if (matchingTable) {
-                const displayName = `${table.name} (${table.schemaName})`;
-                return {
-                    ...acc,
-                    [displayName]: {
-                        ...table,
-                        displayName,
-                    },
-                };
-            }
-            return {
-                ...acc,
-                [table.name]: table,
-            };
-        }, {});
     }
 
     public async getColumnValues(schemaName: string,
