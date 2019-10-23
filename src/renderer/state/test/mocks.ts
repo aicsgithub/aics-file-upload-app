@@ -11,6 +11,7 @@ import {
     Well,
     Workflow
 } from "../selection/types";
+import { TemplateStateBranch } from "../template/types";
 import { State } from "../types";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
@@ -39,6 +40,12 @@ export const mockSelection: SelectionStateBranch = {
     stagedFiles: [],
     view: Page.DragAndDrop,
     wells: [],
+};
+
+export const mockTemplate: TemplateStateBranch = {
+    draft: {
+        annotations: [],
+    },
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -71,6 +78,9 @@ export const mockState: State = {
         uploadJobs: [],
     },
     metadata: {
+        annotationLookups: [],
+        annotationTypes: [],
+        annotations: [],
         barcodePrefixes: [],
         barcodeSearchResults: [],
         history: {
@@ -78,6 +88,8 @@ export const mockState: State = {
             upload: {},
         },
         imagingSessions: [],
+        lookups: [],
+        templates: [],
         units: [],
         workflowOptions: [],
     },
@@ -87,8 +99,9 @@ export const mockState: State = {
         limsHost: "localhost",
         limsPort: "8080",
         limsProtocol: "http",
-        schemaFilepaths: [],
+        templateIds: [],
     },
+    template: getMockStateWithHistory(mockTemplate),
     upload: getMockStateWithHistory(mockWellUpload),
 };
 

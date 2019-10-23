@@ -1,7 +1,6 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 
 import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
-import { Template } from "../template/types";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -15,7 +14,7 @@ import {
     OPEN_FILES,
     SELECT_BARCODE,
     SELECT_FILE,
-    SELECT_PAGE, SELECT_TEMPLATE,
+    SELECT_PAGE,
     SELECT_VIEW,
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
@@ -42,7 +41,7 @@ import {
     PlateResponse,
     SelectBarcodeAction,
     SelectFileAction,
-    SelectPageAction, SelectTemplateAction,
+    SelectPageAction,
     SelectViewAction,
     SelectWellsAction,
     SelectWorkflowPathAction,
@@ -178,13 +177,6 @@ export function selectView(view: string): SelectViewAction {
     return {
         payload: view,
         type: SELECT_VIEW,
-    };
-}
-
-export function selectTemplate(template: Template): SelectTemplateAction {
-    return {
-        payload: template,
-        type: SELECT_TEMPLATE,
     };
 }
 

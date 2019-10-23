@@ -1,7 +1,8 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { LabkeyTemplate } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
-import { SchemaDefinition } from "../setting/types";
 import {
+    APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
@@ -12,10 +13,10 @@ import {
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
-    UPDATE_SCHEMA,
     UPDATE_UPLOAD,
 } from "./constants";
 import {
+    ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     ClearUploadHistoryAction,
@@ -26,7 +27,6 @@ import {
     RetryUploadAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
-    UpdateSchemaAction,
     UpdateUploadAction,
     UploadMetadata,
 } from "./types";
@@ -111,14 +111,13 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-export function updateSchema(schema?: SchemaDefinition, schemaFile?: string): UpdateSchemaAction {
+export function applyTemplate(template?: LabkeyTemplate): ApplyTemplateAction {
     return {
         payload: {
-            schema,
-            schemaFile,
+            template,
             uploads: {},
         },
-        type: UPDATE_SCHEMA,
+        type: APPLY_TEMPLATE,
     };
 }
 

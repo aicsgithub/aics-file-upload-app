@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import { sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -39,26 +40,35 @@ const requestMetadata = createLogic({
                     done: () => void) => {
         try {
             const [
+                annotationLookups,
                 annotationTypes,
                 barcodePrefixes,
                 databaseMetadata,
                 imagingSessions,
+                lookups,
+                templates,
                 units,
                 workflowOptions,
             ] = await Promise.all([
+                labkeyClient.getAnnotationLookups(),
                 labkeyClient.getAnnotationTypes(),
                 labkeyClient.getBarcodePrefixes(),
                 labkeyClient.getDatabaseMetadata(),
                 labkeyClient.getImagingSessions(),
+                labkeyClient.getLookups(),
+                labkeyClient.getTemplates(),
                 labkeyClient.getUnits(),
                 labkeyClient.getWorkflows(),
 
             ]);
             dispatch(receiveMetadata({
+                annotationLookups,
                 annotationTypes,
                 barcodePrefixes,
                 databaseMetadata,
                 imagingSessions,
+                lookups,
+                templates,
                 units,
                 workflowOptions,
             }));
@@ -112,7 +122,7 @@ const requestAnnotations = createLogic({
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.GET_ANNOTATIONS));
         try {
-            const annotations = await labkeyClient.getAnnotations();
+            const annotations = sortBy(await labkeyClient.getAnnotations(), ["name"]);
             dispatch(batchActions([
                 receiveMetadata({annotations}),
                 removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),

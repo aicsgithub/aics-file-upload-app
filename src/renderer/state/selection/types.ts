@@ -1,6 +1,5 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
-import { Template } from "../template/types";
 import { Audited } from "../types";
 
 export interface UploadFile {
@@ -29,7 +28,6 @@ export interface SelectionStateBranch {
     page: Page;
     showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
-    template?: Template;
     view: Page;
 }
 
@@ -190,11 +188,6 @@ export interface SetPlateAction {
 
 export interface SelectViewAction {
     payload: string;
-    type: string;
-}
-
-export interface SelectTemplateAction {
-    payload?: Template;
     type: string;
 }
 

@@ -8,13 +8,25 @@ export interface LabkeyAudited {
 export interface LabkeyAnnotation extends LabkeyAudited {
     AnnotationId: number;
     AnnotationTypeId: number;
-    Description: string;
     Name: string;
 }
 
-export interface LabkeyAnnotationType extends LabkeyAudited {
+export interface LabkeyAnnotationLookup {
+    AnnotationId: number;
+    LookupId: number;
+}
+
+export interface LabkeyAnnotationType {
     AnnotationTypeId: number;
     Name: string;
+}
+
+export interface LabkeyLookup {
+    ColumnName: string;
+    DescriptionColumn: string;
+    LookupId: number;
+    SchemaName: string;
+    TableName: string;
 }
 
 export interface LabkeyPlate {
@@ -25,6 +37,11 @@ export interface LabkeyPlate {
 export interface LabkeyResponse<T> {
     rowCount: number;
     rows: T[];
+}
+
+export interface LabkeyTemplate {
+    Name: string;
+    TemplateId: number;
 }
 
 export interface GetTablesResponseColumn {

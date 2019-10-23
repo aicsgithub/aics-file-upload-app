@@ -17,7 +17,7 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_METADATA,
-    SELECT_PAGE, SELECT_TEMPLATE,
+    SELECT_PAGE,
     SELECT_VIEW,
     SELECT_WELLS,
     SELECT_WORKFLOWS,
@@ -36,7 +36,7 @@ import {
     SelectFileAction,
     SelectionStateBranch,
     SelectMetadataAction,
-    SelectPageAction, SelectTemplateAction,
+    SelectPageAction,
     SelectViewAction,
     SelectWellsAction,
     SelectWorkflowsAction,
@@ -160,13 +160,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
             ...state,
             selectedWells: action.payload,
-        }),
-    },
-    [SELECT_TEMPLATE]: {
-        accepts: (action: AnyAction): action is SelectTemplateAction => action.type === SELECT_TEMPLATE,
-        perform: (state: SelectionStateBranch, action: SelectTemplateAction) => ({
-            ...state,
-            template: action.payload,
         }),
     },
     [OPEN_CREATE_SCHEMA_MODAL]: {

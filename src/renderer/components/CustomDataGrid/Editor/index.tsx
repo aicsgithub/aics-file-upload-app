@@ -2,8 +2,8 @@ import { InputNumber, Select } from "antd";
 import Logger from "js-logger";
 import * as React from "react";
 import { editors } from "react-data-grid";
+import { ColumnType } from "../../../state/template/types";
 
-import { ColumnType } from "../../../state/setting/types";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const styles = require("./styles.pcss");
@@ -100,17 +100,17 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     />
                 );
                 break;
-            case ColumnType.DATETIME:
-                input = (
-                    <input
-                        autoFocus={true}
-                        className={styles.dateTimeMinWidth}
-                        onChange={this.handleInputOnChange}
-                        type="datetime-local"
-                        value={value || undefined}
-                    />
-                );
-                break;
+            // case ColumnType.DATETIME:
+            //     input = (
+            //         <input
+            //             autoFocus={true}
+            //             className={styles.dateTimeMinWidth}
+            //             onChange={this.handleInputOnChange}
+            //             type="datetime-local"
+            //             value={value || undefined}
+            //         />
+            //     );
+            //     break;
             case ColumnType.LOOKUP:
                 input = (
                     <Select

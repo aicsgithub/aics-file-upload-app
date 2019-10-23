@@ -1,16 +1,26 @@
 import {
+    ADD_ANNOTATION,
     CLEAR_TEMPLATE_DRAFT,
     GET_TEMPLATE,
+    REMOVE_ANNOTATIONS,
     SAVE_TEMPLATE,
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import {
+    AddAnnotationAction,
     ClearTemplateDraftAction,
-    GetTemplateAction,
+    GetTemplateAction, RemoveAnnotationsAction,
     SaveTemplateAction,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "./types";
+
+export function addAnnotation(name: string): AddAnnotationAction {
+    return {
+        payload: name,
+        type: ADD_ANNOTATION,
+    };
+}
 
 export function clearTemplateDraft(): ClearTemplateDraftAction {
     return {
@@ -18,13 +28,17 @@ export function clearTemplateDraft(): ClearTemplateDraftAction {
     };
 }
 
-export function getTemplate(templateId: number, editTemplate: boolean = false): GetTemplateAction {
+export function getTemplate(templateId: number): GetTemplateAction {
     return {
-        payload: {
-            editTemplate,
-            templateId,
-        },
+        payload: templateId,
         type: GET_TEMPLATE,
+    };
+}
+
+export function removeAnnotations(indexes: number[]): RemoveAnnotationsAction {
+    return {
+        payload: indexes,
+        type: REMOVE_ANNOTATIONS,
     };
 }
 

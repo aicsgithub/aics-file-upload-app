@@ -23,4 +23,3 @@ export const GO_FORWARD = makeConstant(BRANCH_NAME, "go-forward");
 export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");
 export const CLEAR_SELECTION_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const CLEAR_STAGED_FILES = makeConstant(BRANCH_NAME, "clear-staged-files");
-export const SELECT_TEMPLATE = makeConstant(BRANCH_NAME, "select-template");

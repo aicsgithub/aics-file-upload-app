@@ -1,26 +1,32 @@
-import { isEmpty, map } from "lodash";
+import { camelizeKeys } from "humps";
+import { isEmpty, map, pick } from "lodash";
 
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
-import { Annotation, AnnotationTypeDraft } from "../../state/template/types";
+import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
     GetTablesResponse,
     GetTablesResponseColumn,
-    GetTablesResponseQuery, LabkeyAnnotation, LabkeyAnnotationType,
+    GetTablesResponseQuery,
+    LabkeyAnnotation,
+    LabkeyAnnotationLookup,
+    LabkeyAnnotationType,
     LabkeyImagingSession,
+    LabkeyLookup,
     LabkeyPlate,
     LabKeyPlateBarcodePrefix,
     LabkeyPlateResponse,
-    LabkeyResponse,
+    LabkeyResponse, LabkeyTemplate,
     LabKeyWorkflow,
 } from "./types";
 
 const LABKEY_GET_TABLES_URL = `/AICS/query-getQueries.api`;
 const LK_FILEMETADATA_SCHEMA = "filemetadata";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
+const LK_UPLOADER_SCHEMA = "uploader";
 
 // There are more schemas, but these are the only ones (AFAIK) that users use
 const SCHEMAS = [
@@ -47,16 +53,10 @@ export default class LabkeyClient extends BaseServiceClient {
     /**
      * Gets all annotation types
      */
-    public async getAnnotationTypes(): Promise<AnnotationTypeDraft[]> {
-        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationTypeDraft");
+    public async getAnnotationTypes(): Promise<AnnotationType[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationType");
         const { rows } = await this.httpClient.get(query);
-        return rows.map(({
-            AnnotationTypeId: annotationTypeId,
-            Name: name,
-        }: LabkeyAnnotationType) => ({
-            annotationTypeId,
-            name,
-        }));
+        return rows.map((r: LabkeyAnnotationType) => camelizeKeys(pick(r, ["AnnotationTypeId", "Name"])));
     }
 
     /**
@@ -65,25 +65,15 @@ export default class LabkeyClient extends BaseServiceClient {
     public async getAnnotations(): Promise<Annotation[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Annotation");
         const { rows } = await this.httpClient.get(query);
-        return rows.map(({
-                                    AnnotationId: annotationId,
-                                    AnnotationTypeId: annotationTypeId,
-                                    Created: created,
-                                    CreatedBy: createdBy,
-                                    Description: description,
-                                    Modified: modified,
-                                    ModifiedBy: modifiedBy,
-                                    Name: name,
-        }: LabkeyAnnotation) => ({
-            annotationId,
-            annotationTypeId,
-            created,
-            createdBy,
-            description,
-            modified,
-            modifiedBy,
-            name,
-        }));
+        return rows.map((r: LabkeyAnnotation) => camelizeKeys(pick(r,
+            ["AnnotationId", "AnnotationTypeId", "Name", "CreatedBy", "Created", "ModifiedBy", "Modified"]
+        )));
+    }
+
+    public async getAnnotationLookups(): Promise<AnnotationLookup[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationLookup");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyAnnotationLookup) => camelizeKeys(pick(r, ["AnnotationId", "LookupId"])));
     }
 
     /**
@@ -128,6 +118,20 @@ export default class LabkeyClient extends BaseServiceClient {
             prefix: barcodePrefix.Prefix,
             prefixId: barcodePrefix.PlateBarcodePrefixId,
         }));
+    }
+
+    public async getLookups(): Promise<Lookup[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Lookup");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyLookup) => camelizeKeys(pick(r,
+            ["LookupId", "ColumnName", "DescriptionColumn", "SchemaName", "TableName"]
+        )));
+    }
+
+    public async getTemplates(): Promise<LabkeyTemplate[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_UPLOADER_SCHEMA, "Template");
+        const response = await this.httpClient.get(query);
+        return response.rows;
     }
 
     /**

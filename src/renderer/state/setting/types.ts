@@ -2,11 +2,11 @@ import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
-    schemaFilepaths: string[];
+    templateIds: number[];
 }
 
 export interface AddTemplateIdToSettingsAction {
-    payload: string;
+    payload: number;
     type: string;
 }
 export interface AssociateByWorkflowAction {
@@ -14,8 +14,8 @@ export interface AssociateByWorkflowAction {
     type: string;
 }
 
-export interface RemoveSchemaFilepathAction {
-    payload: string;
+export interface RemoveTemplateIdFromSettingsAction {
+    payload: number;
     type: string;
 }
 

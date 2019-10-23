@@ -1,15 +1,18 @@
-import { LabkeyPlateResponse } from "../../util/labkey-client/types";
+import { LabkeyPlateResponse, LabkeyTemplate } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
-import { Annotation, AnnotationTypeDraft } from "../template/types";
+import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../template/types";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
-    annotationTypes: AnnotationTypeDraft[];
+    annotationLookups: AnnotationLookup[];
+    annotationTypes: AnnotationType[];
     barcode?: string;
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
     databaseMetadata?: DatabaseMetadata;
     imagingSessions: ImagingSession[];
+    lookups: Lookup[];
+    templates: LabkeyTemplate[];
     units: Unit[];
     // Gets updated every time app changes pages.
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
@@ -68,6 +71,10 @@ export interface CreateBarcodeAction {
 
 export interface GetBarcodeSearchResultsAction {
     payload: string;
+    type: string;
+}
+
+export interface GetTemplatesAction {
     type: string;
 }
 

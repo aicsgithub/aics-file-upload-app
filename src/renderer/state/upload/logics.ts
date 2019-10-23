@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { isNil, map } from "lodash";
+import { map } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
@@ -7,11 +7,10 @@ import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
-import { getDatabaseMetadata } from "../metadata/selectors";
-import { DatabaseMetadata, Table } from "../metadata/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
-import { ColumnDefinition, ColumnType } from "../setting/types";
+import { addTemplateIdToSettings } from "../setting/actions";
+import { getTemplate } from "../template/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -19,7 +18,7 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, RETRY_UPLOAD, UPDATE_SCHEMA } from "./constants";
+import { APPLY_TEMPLATE, ASSOCIATE_FILES_AND_WELLS, INITIATE_UPLOAD, RETRY_UPLOAD } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
 
@@ -39,47 +38,43 @@ const associateFileAndWellLogic = createLogic({
 });
 
 // This logic is to add new user-defined columns to each upload row, and remove any old columns
-const updateSchemaLogic = createLogic({
-    transform: async ({action, getState, labkeyClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const { schema, schemaFile } = action.payload;
+const applyTemplateLogic = createLogic({
+    process: async ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        if (ctx.templateId) {
+            // this needs to be dispatched separately to go through getTemplateLogic
+            dispatch(getTemplate(ctx.templateId));
+            dispatch(addTemplateIdToSettings(ctx.templateId));
+        }
+
+        done();
+    },
+    transform: async ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
+                      next: ReduxLogicNextCb) => {
+        const {template} = action.payload;
         const state = getState();
         const uploads: UploadStateBranch = getUpload(state);
-        const tables: DatabaseMetadata | undefined = getDatabaseMetadata(state);
 
-        await Promise.all(map(uploads, (async (upload: UploadMetadata, filepath: string): Promise<void> => {
+        map(uploads,  (upload: UploadMetadata, filepath: string) => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
+            // We're also apply the new templateId now
+            const { barcode, notes, wellIds, wellLabels, workflows } = upload;
             const uploadData: UploadMetadata = {
-                barcode: upload.barcode,
-                notes: upload.notes,
-                schemaFile,
-                wellIds: upload.wellIds,
-                wellLabels: upload.wellLabels,
-                workflows: upload.workflows,
+                barcode,
+                notes,
+                templateId: template ? template.templateId : undefined,
+                wellIds,
+                wellLabels,
+                workflows,
             };
-            if (schema) {
-                // We want to have all values consistently be either null or false so we can detect them in the upload
-                // especially for cases where null is a distinct value that we would have otherwise ignored
-                // However, boolean fields need to be false by default because otherwise we would have null === false
-                // which isn't necessarily true (except to javascript)
-                await Promise.all(schema.columns.map(async (column: ColumnDefinition): Promise<void> => {
-                    if (!isNil(upload[column.label])) {
-                        uploadData[column.label] = upload[column.label];
-                    } else {
-                        uploadData[column.label] = column.type.type === ColumnType.BOOLEAN ? false : null;
-                        if (column.type.type === ColumnType.LOOKUP && tables) {
-                            const { name, schemaName }: Table = tables[column.type.table];
-                            column.type.dropdownValues = await labkeyClient.getColumnValues(schemaName,
-                                                                                            name,
-                                                                                            column.type.column);
-                        }
-                    }
-                }));
+            if (template) {
+                ctx.templateId = template.templateId;
             }
             action.payload.uploads[filepath] = uploadData;
-        })));
+        });
         next(action);
     },
-    type: UPDATE_SCHEMA,
+    type: APPLY_TEMPLATE,
 });
 
 const initiateUploadLogic = createLogic({
@@ -182,6 +177,6 @@ const retryUploadLogic = createLogic({
 export default [
     associateFileAndWellLogic,
     initiateUploadLogic,
-    updateSchemaLogic,
+    applyTemplateLogic,
     retryUploadLogic,
 ];

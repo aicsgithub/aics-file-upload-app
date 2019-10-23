@@ -19,7 +19,7 @@ import {
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
-    UPDATE_SCHEMA,
+    APPLY_TEMPLATE,
     UPDATE_UPLOAD
 } from "./constants";
 import {
@@ -28,7 +28,7 @@ import {
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
-    UpdateSchemaAction,
+    ApplyTemplateAction,
     UpdateUploadAction,
     UploadStateBranch
 } from "./types";
@@ -127,9 +127,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOAD,
         perform: (state: UploadStateBranch, action: RemoveUploadsAction) => omit(state, action.payload),
     },
-    [UPDATE_SCHEMA]: {
-        accepts: (action: AnyAction): action is UpdateSchemaAction => action.type === UPDATE_SCHEMA,
-        perform: (state: UploadStateBranch, action: UpdateSchemaAction) => ({
+    [APPLY_TEMPLATE]: {
+        accepts: (action: AnyAction): action is ApplyTemplateAction => action.type === APPLY_TEMPLATE,
+        perform: (state: UploadStateBranch, action: ApplyTemplateAction) => ({
             ...state,
             ...action.payload.uploads,
         }),

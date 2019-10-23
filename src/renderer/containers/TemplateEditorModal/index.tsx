@@ -1,6 +1,6 @@
 import { Button, Icon, Input, Modal, Select } from "antd";
 import { ipcRenderer } from "electron";
-import { isEmpty, uniqBy, without } from "lodash";
+import { isEmpty, without } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import ReactDataGrid from "react-data-grid";
@@ -17,12 +17,15 @@ import { getShowCreateSchemaModal } from "../../state/selection/selectors";
 import { CloseTemplateEditorAction, OpenTemplateEditorAction } from "../../state/selection/types";
 import { addTemplateIdToSettings } from "../../state/setting/actions";
 import { AddTemplateIdToSettingsAction } from "../../state/setting/types";
-import { saveTemplate, updateTemplateDraft } from "../../state/template/actions";
+import { addAnnotation, removeAnnotations, saveTemplate, updateTemplateDraft } from "../../state/template/actions";
 import { getCanSaveTemplate, getTemplateDraft } from "../../state/template/selectors";
 import {
+    AddAnnotationAction,
     Annotation,
     AnnotationDraft,
-    AnnotationTypeDraft, ColumnType, SaveTemplateAction,
+    AnnotationType,
+    RemoveAnnotationsAction,
+    SaveTemplateAction,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "../../state/template/types";
@@ -33,8 +36,8 @@ import BooleanFormatter from "../../components/BooleanHandler/BooleanFormatter/i
 import FormControl from "../../components/FormControl/index";
 import LabeledInput from "../../components/LabeledInput/index";
 
-import ColumnTypeEditor from "./ColumnTypeEditor/index";
-import ColumnTypeFormatter from "./ColumnTypeFormatter/index";
+// import ColumnTypeEditor from "./ColumnTypeEditor/index";
+// import ColumnTypeFormatter from "./ColumnTypeFormatter/index";
 
 const styles = require("./styles.pcss");
 
@@ -43,14 +46,16 @@ interface ColumnTypeColumn extends AdazzleReactDataGrid.Column<AnnotationDraft> 
 }
 
 interface Props {
+    addAnnotation: ActionCreator<AddAnnotationAction>;
     addTemplateIdToSettings: ActionCreator<AddTemplateIdToSettingsAction>;
     allAnnotations: Annotation[];
-    annotationTypes: AnnotationTypeDraft[];
+    annotationTypes: AnnotationType[];
     canSave: boolean;
     className?: string;
     closeModal: ActionCreator<CloseTemplateEditorAction>;
     getAnnotations: ActionCreator<GetAnnotationsAction>;
     openModal: ActionCreator<OpenTemplateEditorAction>;
+    removeAnnotations: ActionCreator<RemoveAnnotationsAction>;
     saveTemplate: ActionCreator<SaveTemplateAction>;
     tables?: DatabaseMetadata; // todo
     template: TemplateDraft;
@@ -120,7 +125,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         className={styles.search}
                         defaultActiveFirstOption={false}
                         notFoundContent={null}
-                        onChange={this.onColumnNameChange}
+                        onChange={this.onAnnotationNameSearchStrChange}
                         onSelect={this.addExistingAnnotation}
                         placeholder="Annotation Name"
                         showSearch={true}
@@ -192,14 +197,14 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             tables: this.props.tables,
             width: 300,
         },
-        {
-            editable: true,
-            editor: ColumnTypeEditor,
-            formatter: ColumnTypeFormatter,
-            key: "type",
-            name: "Data Type",
-            tables: this.props.tables,
-        },
+        // {
+        //     editable: true,
+        //     editor: ColumnTypeEditor,
+        //     formatter: ColumnTypeFormatter,
+        //     key: "type",
+        //     name: "Data Type",
+        //     tables: this.props.tables,
+        // },
         // todo add description
         {
             editable: true,
@@ -222,7 +227,6 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         // todo add allow multiple values
     ])
 
-    // todo do this in logics?
     private saveValueByRow = (value: any, key: string, row: AnnotationDraft): void => {
         const annotations = [...this.props.template.annotations];
         annotations[row.index] = {
@@ -253,25 +257,12 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         this.props.updateTemplateDraft({annotations});
     }
 
-    // todo expose as props + logics
-    private addAnnotation = () => {
-        const { template: {annotations}} = this.props;
-        const annotation = {
-            ...this.DEFAULT_COLUMN,
-            name: this.state.annotationNameSearchStr,
-        };
-        this.props.updateTemplateDraft({annotations: [...annotations, annotation]});
-    }
+    private addAnnotation = () => this.props.addAnnotation(this.state.annotationNameSearchStr);
 
-    // todo expose as props + logics
     private removeAnnotations = () => {
         const { selectedRows } = this.state;
-        const { template: {annotations}} = this.props;
-        const annotations = [...annotations];
-        selectedRows.forEach((row) => {
-            annotations.splice(row, 1);
-        });
-        this.setState({ columns: annotations, selectedRows: [] });
+        this.props.removeAnnotations(selectedRows);
+        this.setState({ selectedRows: [] });
     }
 
     private selectRows = (rows: Array<{rowIdx: number}>) => {
@@ -285,32 +276,16 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         this.setState({selectedRows});
     }
 
-    // todo expose as prop and add logics
-    private onColumnNameChange = (columnName: string) => {
-        // todo this is not correct
-        this.props.updateTemplateDraft({columnName});
+    private onAnnotationNameSearchStrChange = (columnName: string) => {
+        this.setState({annotationNameSearchStr: columnName});
     }
 
-    // todo expose as prop and add logics
     private addExistingAnnotation = (name: string) => {
-        const { allAnnotations, template: { annotations } } = this.props;
+        const { allAnnotations }  = this.props;
         const annotation = allAnnotations.find((a: Annotation) => a.name === name);
         if (annotation) {
-            this.props.updateTemplateDraft({
-                annotations: [...annotations, annotation],
-            });
+            this.props.addAnnotation(annotation);
         }
-    }
-
-    // todo
-    private get DEFAULT_COLUMN(): AnnotationDraft {
-        return {
-            annotationType: this.props.annotationTypes.find((at: AnnotationTypeDraft) => at.name === ColumnType.TEXT)
-                || { annotationTypeId: 1, name: "Text"},
-            canHaveMany: false,
-            name: "",
-            required: false,
-        };
     }
 }
 
@@ -320,16 +295,18 @@ function mapStateToProps(state: State) {
         annotationTypes: getAnnotationTypes(state),
         canSave: getCanSaveTemplate(state),
         tables: getDatabaseMetadata(state),
-        template: getTemplateDraft(state), // todo handle undefined
+        template: getTemplateDraft(state),
         visible: getShowCreateSchemaModal(state),
     };
 }
 
 const dispatchToPropsMap = {
+    addAnnotation,
     addTemplateIdToSettings,
     closeModal: closeSchemaCreator,
     getAnnotations: requestAnnotations,
     openModal: openSchemaCreator,
+    removeAnnotations,
     saveTemplate,
     updateTemplateDraft,
 };

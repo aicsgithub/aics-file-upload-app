@@ -7,13 +7,13 @@ import { makeReducer } from "../util";
 import {
     ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
-    REMOVE_SCHEMA_FILE_PATH,
+    REMOVE_TEMPLATE_ID_FROM_SETTINGS,
     UPDATE_SETTINGS,
 } from "./constants";
 import {
     AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
-    RemoveSchemaFilepathAction,
+    RemoveTemplateIdFromSettingsAction,
     SettingStateBranch,
     UpdateSettingsAction
 } from "./types";
@@ -23,22 +23,24 @@ const initialState: SettingStateBranch = {
     limsHost: LIMS_HOST,
     limsPort: LIMS_PORT,
     limsProtocol: LIMS_PROTOCOL,
-    schemaFilepaths: [],
+    templateIds: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
     [ADD_TEMPLATE_ID_TO_SETTINGS]: {
-        accepts: (action: AnyAction): action is AddTemplateIdToSettingsAction => action.type === ADD_TEMPLATE_ID_TO_SETTINGS,
+        accepts: (action: AnyAction): action is AddTemplateIdToSettingsAction =>
+            action.type === ADD_TEMPLATE_ID_TO_SETTINGS,
         perform: (state: SettingStateBranch, action: AddTemplateIdToSettingsAction) => ({
             ...state,
-            schemaFilepaths: uniq([...state.schemaFilepaths, action.payload]),
+            templateIds: uniq([...state.templateIds, action.payload]),
         }),
     },
-    [REMOVE_SCHEMA_FILE_PATH]: {
-        accepts: (action: AnyAction): action is RemoveSchemaFilepathAction => action.type === REMOVE_SCHEMA_FILE_PATH,
-        perform: (state: SettingStateBranch, action: RemoveSchemaFilepathAction) => ({
+    [REMOVE_TEMPLATE_ID_FROM_SETTINGS]: {
+        accepts: (action: AnyAction): action is RemoveTemplateIdFromSettingsAction =>
+            action.type === REMOVE_TEMPLATE_ID_FROM_SETTINGS,
+        perform: (state: SettingStateBranch, action: RemoveTemplateIdFromSettingsAction) => ({
             ...state,
-            schemaFilepaths: without(state.schemaFilepaths, action.payload),
+            templateIds: without(state.templateIds, action.payload),
         }),
     },
     [UPDATE_SETTINGS]: {

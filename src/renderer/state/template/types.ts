@@ -5,6 +5,11 @@ export interface TemplateStateBranch {
     draft: TemplateDraft;
 }
 
+export interface AddAnnotationAction {
+    payload: string | Annotation; // new annotation name or existing annotation
+    type: string;
+}
+
 export interface Annotation extends Audited {
     annotationId: number;
     annotationOptions?: string[];
@@ -28,7 +33,17 @@ export interface AnnotationDraft {
     type: AnnotationTypeDraft;
 }
 
+export interface AnnotationLookup {
+    annotationId: number;
+    lookupId: number;
+}
+
 export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number };
+
+export interface AnnotationType {
+    annotationTypeId: number;
+    name: string;
+}
 
 export interface AnnotationTypeDraft {
     annotationOptions?: string[];
@@ -66,10 +81,20 @@ export interface CreateAnnotationRequest {
 }
 
 export interface GetTemplateAction {
-    payload: {
-        editTemplate?: boolean;
-        templateId: number;
-    };
+    payload: number;
+    type: string;
+}
+
+export interface Lookup extends Audited {
+    columnName: string;
+    descriptionColumn: string;
+    lookupId: number;
+    schemaName: string;
+    tableName: string;
+}
+
+export interface RemoveAnnotationsAction {
+    payload: number[];
     type: string;
 }
 

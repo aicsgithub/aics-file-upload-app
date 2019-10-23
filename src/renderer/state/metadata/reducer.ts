@@ -11,6 +11,8 @@ import {
 } from "./types";
 
 export const initialState: MetadataStateBranch = {
+    annotationLookups: [],
+    annotationTypes: [],
     annotations: [],
     barcodePrefixes: [],
     barcodeSearchResults: [],
@@ -19,6 +21,8 @@ export const initialState: MetadataStateBranch = {
         upload: {},
     },
     imagingSessions: [],
+    lookups: [],
+    templates: [],
     units: [],
     workflowOptions: [],
 };

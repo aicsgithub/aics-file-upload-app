@@ -2,29 +2,29 @@ import {
     ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
-    REMOVE_SCHEMA_FILE_PATH,
+    REMOVE_TEMPLATE_ID_FROM_SETTINGS,
     UPDATE_SETTINGS
 } from "./constants";
 import {
     AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     GatherSettingsAction,
-    RemoveSchemaFilepathAction,
+    RemoveTemplateIdFromSettingsAction,
     SettingStateBranch,
     UpdateSettingsAction,
 } from "./types";
 
-export function addTemplateIdToSettings(payload: string): AddTemplateIdToSettingsAction {
+export function addTemplateIdToSettings(payload: number): AddTemplateIdToSettingsAction {
     return {
         payload,
         type: ADD_TEMPLATE_ID_TO_SETTINGS,
     };
 }
 
-export function removeSchemaFilepath(payload: string): RemoveSchemaFilepathAction {
+export function removeTemplateIdFromSettings(payload: number): RemoveTemplateIdFromSettingsAction {
     return {
         payload,
-        type: REMOVE_SCHEMA_FILE_PATH,
+        type: REMOVE_TEMPLATE_ID_FROM_SETTINGS,
     };
 }
 
