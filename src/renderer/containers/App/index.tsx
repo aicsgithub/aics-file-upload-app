@@ -10,7 +10,7 @@ import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import ProgressBar from "../../components/ProgressBar";
-import SchemaEditorModal from "../../components/TemplateEditorModal";
+import SchemaEditorModal from "../TemplateEditorModal";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert, setAlert } from "../../state/feedback/actions";

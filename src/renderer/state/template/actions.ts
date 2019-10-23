@@ -1,10 +1,22 @@
-import { CREATE_TEMPLATE, EDIT_TEMPLATE, GET_TEMPLATE, SAVE_TEMPLATE, UPDATE_TEMPLATE_DRAFT } from "./constants";
 import {
-    CreateTemplateAction,
-    CreateTemplateRequest,
-    EditTemplateAction, GetTemplateAction, SaveTemplateAction,
-    Template, TemplateDraft, UpdateTemplateDraftAction,
+    CLEAR_TEMPLATE_DRAFT,
+    GET_TEMPLATE,
+    SAVE_TEMPLATE,
+    UPDATE_TEMPLATE_DRAFT,
+} from "./constants";
+import {
+    ClearTemplateDraftAction,
+    GetTemplateAction,
+    SaveTemplateAction,
+    TemplateDraft,
+    UpdateTemplateDraftAction,
 } from "./types";
+
+export function clearTemplateDraft(): ClearTemplateDraftAction {
+    return {
+        type: CLEAR_TEMPLATE_DRAFT,
+    };
+}
 
 export function getTemplate(templateId: number, editTemplate: boolean = false): GetTemplateAction {
     return {

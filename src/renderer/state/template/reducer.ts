@@ -3,14 +3,29 @@ import undoable, { UndoableOptions } from "redux-undo";
 
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
-import { CLEAR_TEMPLATE_HISTORY, JUMP_TO_PAST_TEMPLATE, JUMP_TO_TEMPLATE, UPDATE_TEMPLATE_DRAFT } from "./constants";
+import {
+    CLEAR_TEMPLATE_DRAFT,
+    CLEAR_TEMPLATE_HISTORY,
+    DEFAULT_TEMPLATE_DRAFT,
+    JUMP_TO_PAST_TEMPLATE,
+    JUMP_TO_TEMPLATE,
+    UPDATE_TEMPLATE_DRAFT,
+} from "./constants";
 
-import { TemplateStateBranch, UpdateTemplateDraftAction } from "./types";
+import { ClearTemplateDraftAction, TemplateStateBranch, UpdateTemplateDraftAction } from "./types";
 
 export const initialState: TemplateStateBranch = {
+    draft: DEFAULT_TEMPLATE_DRAFT,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
+    [CLEAR_TEMPLATE_DRAFT]: {
+        accepts: (action: AnyAction): action is ClearTemplateDraftAction => action.type === CLEAR_TEMPLATE_DRAFT,
+        perform: (state: TemplateStateBranch) => ({
+            ...state,
+            draft: {...DEFAULT_TEMPLATE_DRAFT},
+        }),
+    },
     [UPDATE_TEMPLATE_DRAFT]: {
         accepts: (action: AnyAction): action is UpdateTemplateDraftAction => action.type === UPDATE_TEMPLATE_DRAFT,
         perform: (state: TemplateStateBranch, action: UpdateTemplateDraftAction) => ({

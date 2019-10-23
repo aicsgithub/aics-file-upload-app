@@ -3,7 +3,7 @@ import { isEmpty, map } from "lodash";
 import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
-import { Annotation, AnnotationType } from "../../state/template/types";
+import { Annotation, AnnotationTypeDraft } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
@@ -47,8 +47,8 @@ export default class LabkeyClient extends BaseServiceClient {
     /**
      * Gets all annotation types
      */
-    public async getAnnotationTypes(): Promise<AnnotationType[]> {
-        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationType");
+    public async getAnnotationTypes(): Promise<AnnotationTypeDraft[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationTypeDraft");
         const { rows } = await this.httpClient.get(query);
         return rows.map(({
             AnnotationTypeId: annotationTypeId,

@@ -4,9 +4,9 @@ import * as React from "react";
 
 import { ColumnType } from "../../../state/setting/types";
 
-import FormControl from "../../FormControl";
+import FormControl from "../../../components/FormControl/index";
 
-import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
+import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../index";
 
 const styles = require("./styles.pcss");
 

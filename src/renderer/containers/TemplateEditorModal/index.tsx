@@ -18,23 +18,23 @@ import { CloseTemplateEditorAction, OpenTemplateEditorAction } from "../../state
 import { addTemplateIdToSettings } from "../../state/setting/actions";
 import { AddTemplateIdToSettingsAction } from "../../state/setting/types";
 import { saveTemplate, updateTemplateDraft } from "../../state/template/actions";
-import { getTemplateDraft } from "../../state/template/selectors";
+import { getCanSaveTemplate, getTemplateDraft } from "../../state/template/selectors";
 import {
     Annotation,
     AnnotationDraft,
-    AnnotationType, ColumnType, SaveTemplateAction,
+    AnnotationTypeDraft, ColumnType, SaveTemplateAction,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "../../state/template/types";
 import { State } from "../../state/types";
 
-import BooleanEditor from "../BooleanHandler/BooleanEditor";
-import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
-import FormControl from "../FormControl";
-import LabeledInput from "../LabeledInput";
+import BooleanEditor from "../../components/BooleanHandler/BooleanEditor/index";
+import BooleanFormatter from "../../components/BooleanHandler/BooleanFormatter/index";
+import FormControl from "../../components/FormControl/index";
+import LabeledInput from "../../components/LabeledInput/index";
 
-import ColumnTypeEditor from "./ColumnTypeEditor";
-import ColumnTypeFormatter from "./ColumnTypeFormatter";
+import ColumnTypeEditor from "./ColumnTypeEditor/index";
+import ColumnTypeFormatter from "./ColumnTypeFormatter/index";
 
 const styles = require("./styles.pcss");
 
@@ -45,7 +45,8 @@ interface ColumnTypeColumn extends AdazzleReactDataGrid.Column<AnnotationDraft> 
 interface Props {
     addTemplateIdToSettings: ActionCreator<AddTemplateIdToSettingsAction>;
     allAnnotations: Annotation[];
-    annotationTypes: AnnotationType[];
+    annotationTypes: AnnotationTypeDraft[];
+    canSave: boolean;
     className?: string;
     closeModal: ActionCreator<CloseTemplateEditorAction>;
     getAnnotations: ActionCreator<GetAnnotationsAction>;
@@ -88,6 +89,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     public render() {
         const {
             allAnnotations,
+            canSave: disabled,
             className,
             closeModal,
             template,
@@ -104,7 +106,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 onOk={this.saveAndClose}
                 onCancel={closeModal}
                 okText="Save"
-                okButtonProps={{disabled: !this.canSave()}}
+                okButtonProps={{disabled}}
                 maskClosable={false}
             >
                 <LabeledInput label="Column Template Name">
@@ -208,6 +210,15 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             tables: this.props.tables,
             width: 100,
         },
+        {
+            editable: true,
+            editor: BooleanEditor,
+            formatter: (props) => <BooleanFormatter {...props} rowKey="canHaveMany" saveValue={this.saveValueByRow} />,
+            key: "canHaveMany",
+            name: "Can Have Multiple Values?",
+            tables: this.props.tables,
+            width: 100,
+        },
         // todo add allow multiple values
     ])
 
@@ -222,31 +233,6 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     private getRow = (i: number): AnnotationDraft => this.props.template.annotations[i];
-
-    // todo: add this to a selector
-    private canSave = (): boolean => {
-        const { template: { annotations } } = this.props;
-        const columnWithNoTypeFound: boolean = !!annotations.find(({type}) => !type || !type.annotationTypeId);
-        const duplicateNamesFound: boolean = this.duplicateNamesFound();
-        const columnWithNoLabelFound: boolean = !!annotations.find(({name}) => !name);
-        const dropdownValuesMissing: boolean = !!annotations
-            .find(({type}) => type.name === ColumnType.DROPDOWN && isEmpty(type.annotationOptions));
-        const lookupValuesMissing: boolean = !!annotations
-            .find(({type}) => type.name === ColumnType.LOOKUP && !type.lookupTable);
-
-        return !duplicateNamesFound &&
-               !columnWithNoLabelFound &&
-               !dropdownValuesMissing &&
-               !columnWithNoTypeFound &&
-               !lookupValuesMissing;
-    }
-
-    // todo selector?
-    private duplicateNamesFound = (): boolean => {
-        let { template: { annotations } } = this.props;
-        annotations = annotations.filter((c: AnnotationDraft) => !!c.name);
-        return uniqBy(annotations, "name").length !== annotations.length;
-    }
 
     private saveAndClose = () => {
         const { template } = this.props;
@@ -319,7 +305,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     // todo
     private get DEFAULT_COLUMN(): AnnotationDraft {
         return {
-            annotationType: this.props.annotationTypes.find((at: AnnotationType) => at.name === ColumnType.TEXT)
+            annotationType: this.props.annotationTypes.find((at: AnnotationTypeDraft) => at.name === ColumnType.TEXT)
                 || { annotationTypeId: 1, name: "Text"},
             canHaveMany: false,
             name: "",
@@ -332,6 +318,7 @@ function mapStateToProps(state: State) {
     return {
         allAnnotations: getAnnotations(state),
         annotationTypes: getAnnotationTypes(state),
+        canSave: getCanSaveTemplate(state),
         tables: getDatabaseMetadata(state),
         template: getTemplateDraft(state), // todo handle undefined
         visible: getShowCreateSchemaModal(state),

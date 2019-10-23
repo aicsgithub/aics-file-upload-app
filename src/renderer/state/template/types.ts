@@ -1,7 +1,8 @@
 import { Audited } from "../types";
 
+// todo consider flattening
 export interface TemplateStateBranch {
-    draft?: TemplateDraft;
+    draft: TemplateDraft;
 }
 
 export interface Annotation extends Audited {
@@ -18,17 +19,18 @@ export interface Annotation extends Audited {
 }
 
 export interface AnnotationDraft {
+    annotationId?: number;
     canHaveMany: boolean;
     description?: string;
     index: number;
     name?: string;
     required: boolean;
-    type: AnnotationType;
+    type: AnnotationTypeDraft;
 }
 
 export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number };
 
-export interface AnnotationType {
+export interface AnnotationTypeDraft {
     annotationOptions?: string[];
     annotationTypeId: number;
     lookupColumn?: string;
@@ -47,6 +49,10 @@ export enum ColumnType {
     LOOKUP = "Lookup",
 }
 
+export interface ClearTemplateDraftAction {
+    type: string;
+}
+
 export interface CreateAnnotationRequest {
     annotationOptions?: string[];
     annotationTypeId: number;
@@ -59,11 +65,6 @@ export interface CreateAnnotationRequest {
     required: boolean;
 }
 
-export interface EditTemplateAction {
-    payload: Template;
-    type: string;
-}
-
 export interface GetTemplateAction {
     payload: {
         editTemplate?: boolean;
@@ -73,7 +74,7 @@ export interface GetTemplateAction {
 }
 
 export interface SaveTemplateAction {
-    payload: number;
+    payload?: number;
     type: string;
 }
 

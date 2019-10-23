@@ -7,7 +7,7 @@ import { editors } from "react-data-grid";
 import { DatabaseMetadata } from "../../../state/metadata/types";
 import { ColumnType } from "../../../state/setting/types";
 
-import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../";
+import { COLUMN_TYPE_DISPLAY_MAP, ColumnTypeValue } from "../index";
 
 const styles = require("./styles.pcss");
 
