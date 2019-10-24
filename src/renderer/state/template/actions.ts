@@ -7,17 +7,19 @@ import {
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import {
-    AddAnnotationAction,
+    AddExistingAnnotationAction,
+    Annotation,
     ClearTemplateDraftAction,
-    GetTemplateAction, RemoveAnnotationsAction,
+    GetTemplateAction,
+    RemoveAnnotationsAction,
     SaveTemplateAction,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "./types";
 
-export function addAnnotation(name: string): AddAnnotationAction {
+export function addExistingAnnotation(annotation: Annotation): AddExistingAnnotationAction {
     return {
-        payload: name,
+        payload: annotation,
         type: ADD_ANNOTATION,
     };
 }

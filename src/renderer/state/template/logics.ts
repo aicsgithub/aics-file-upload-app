@@ -5,10 +5,9 @@ import LabkeyClient from "../../util/labkey-client";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import {
-    getAnnotationLookups,
+    getAnnotationLookups, getAnnotationTypes,
     getLookupAnnotationTypeId,
     getLookups,
-    getTextAnnotationType,
 } from "../metadata/selectors";
 import {
     ReduxLogicDoneCb,
@@ -20,34 +19,55 @@ import { batchActions } from "../util";
 import { updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS } from "./constants";
 import { getTemplateDraft } from "./selectors";
-import { Annotation, AnnotationDraft } from "./types";
+import { AnnotationDraft, Template, TemplateAnnotation } from "./types";
 
-const addAnnotationLogic = createLogic({
+const addExistingAnnotationLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        // todo action.payload is currently either a string or an existing annotation
-        // handle those differently
+        const state = getState();
+        const { annotationId, annotationTypeId, description, name } = action.payload;
+        const { annotations: oldAnnotations } = getTemplateDraft(state);
+        const annotationTypes = getAnnotationTypes(state);
+        const annotationType = annotationTypes.find((at) => at.annotationTypeId === annotationTypeId);
 
-        const { annotations: oldAnnotations } = getTemplateDraft(getState());
-        const annotationType = getTextAnnotationType(getState());
         if (!annotationType) {
-            throw new Error("Could not get text annotation type");
+            throw new Error(""); // todo
         }
 
-        // todo if no name, show error?
+        const annotationLookups = getAnnotationLookups(state);
+        const annotationLookup = annotationLookups.find((al) => al.annotationId === annotationId);
+
+        if (!annotationLookup) {
+            throw new Error(""); // todo
+        }
+
+        const lookup = getLookups(state).find((l) => l.lookupId === annotationLookup.lookupId);
+
+        if (!lookup) {
+            throw new Error(""); // todo
+        }
+
         const annotations: AnnotationDraft[] = [...oldAnnotations, {
+            annotationId,
             canHaveMany: false,
+            description,
             index: oldAnnotations.length,
-            name: action.payload,
+            name,
             required: false,
-            type: annotationType,
+            type: {
+                annotationTypeId,
+                lookupColumn: lookup.columnName,
+                lookupSchema: lookup.schemaName,
+                lookupTable: lookup.tableName,
+                name: annotationType.name,
+            },
         }];
         next(updateTemplateDraft({annotations}));
     },
     type: ADD_ANNOTATION,
 });
 
-const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: Annotation, state: State,
-                                    labkeyClient: LabkeyClient) => {
+const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: TemplateAnnotation,
+                                    state: State, labkeyClient: LabkeyClient) => {
     if (!isEmpty(annotationOptions)) {
         return annotationOptions;
     }
@@ -81,12 +101,12 @@ const getTemplateLogic = createLogic({
 
         try {
             dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATE));
-            const template = await mmsClient.getTemplate(templateId);
+            const template: Template = await mmsClient.getTemplate(templateId);
             const { annotations, ...etc } = template;
             dispatch(batchActions([
                 updateTemplateDraft({
                     ...etc,
-                    annotations: await Promise.all(annotations.map(async (a: Annotation, index: number) => ({
+                    annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation, index: number) => ({
                         annotationId: a.annotationId,
                         canHaveMany: a.canHaveMany,
                         description: a.description,
@@ -133,7 +153,7 @@ const removeAnnotationsLogic = createLogic({
 });
 
 export default [
-    addAnnotationLogic,
+    addExistingAnnotationLogic,
     getTemplateLogic,
     removeAnnotationsLogic,
 ];

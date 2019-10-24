@@ -1,36 +1,40 @@
-.search {
-    width: 100%;
-}
-
-.column-definition-form {
-    display: flex;
-}
-
-.grid-and-notes {
-    flex: 1;
-
-    & :global(.react-grid-Grid) :global(.react-grid-Viewport) :global(.react-grid-Canvas) {
-        overflow: auto !important;
-    }
-
-    & :global(.react-grid-HeaderRow) {
-        overflow: hidden !important;
-    }
-
-    & :global(.react-grid-Cell) {
-        padding: 0;
-    }
+.infoAlert {
+    margin-bottom: 1em;
 }
 
 .buttons {
     flex: 0 0 auto;
-    display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    height: 100%;
-    margin-left: 0.5em;
 }
 
-.required {
-    padding-left: 1em;
+.search {
+    width: 100%;
+}
+
+.list-container {
+    display: flex;
+}
+
+.list {
+    border: var(--border);
+    margin-right: 1em;
+}
+
+.annotation-name, .tag {
+    display: inline;
+    margin-right: 1em;
+}
+
+.list, .form-container {
+    flex: 1;
+    padding: 0 1em;
+}
+
+.or {
+    width: 100%;
+    text-align: center;
+    padding-bottom: 1em;
+}
+
+.form {
+    border: var(--border);
 }

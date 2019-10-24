@@ -5,22 +5,16 @@ export interface TemplateStateBranch {
     draft: TemplateDraft;
 }
 
-export interface AddAnnotationAction {
-    payload: string | Annotation; // new annotation name or existing annotation
+export interface AddExistingAnnotationAction {
+    payload: Annotation;
     type: string;
 }
 
 export interface Annotation extends Audited {
     annotationId: number;
-    annotationOptions?: string[];
     annotationTypeId: number;
-    canHaveMany: boolean;
     description: string;
     name: string;
-    required: boolean;
-    lookupColumn?: string;
-    lookupSchema?: string;
-    lookupTable?: string;
 }
 
 export interface AnnotationDraft {
@@ -109,10 +103,23 @@ export interface SaveTemplateRequest {
 }
 
 export interface Template extends Audited {
-    annotations: Annotation[];
+    annotations: TemplateAnnotation[];
     name: string;
     templateId: number;
     version: number;
+}
+
+export interface TemplateAnnotation extends Audited {
+    annotationId: number;
+    annotationOptions?: string[];
+    annotationTypeId: number;
+    canHaveMany: boolean;
+    description: string;
+    name: string;
+    required: boolean;
+    lookupColumn?: string;
+    lookupSchema?: string;
+    lookupTable?: string;
 }
 
 export interface TemplateDraft {
