@@ -2,26 +2,27 @@
     margin-bottom: 1em;
 }
 
-.buttons {
-    flex: 0 0 auto;
-}
-
 .search {
     width: 100%;
 }
 
-.list-container, .body {
+.body {
     display: flex;
+    height: 550px; /* todo find a way to make height more dynamic */
 }
 
 .list-container {
-    flex-direction: column;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100%;
 }
 
 .list {
     border: var(--border);
     margin-right: 0.5em;
+    overflow-y: auto;
 }
 
 .annotation-name, .tag {

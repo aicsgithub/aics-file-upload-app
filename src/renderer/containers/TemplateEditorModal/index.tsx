@@ -1,5 +1,6 @@
 import { Alert, Icon, Input, List, Modal, Select, Tag } from "antd";
 import { ipcRenderer } from "electron";
+import { includes } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import { connect } from "react-redux";
@@ -99,6 +100,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             visible,
         } = this.props;
         const { selectedAnnotation, showAlert } = this.state;
+        const appliedAnnotationNames = template.annotations.map((a) => a.name);
+        const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
 
         return (
             <Modal
@@ -148,7 +151,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                                 showArrow={false}
                                 suffixIcon={<Icon type="search"/>}
                             >
-                                {allAnnotations.map((option: Annotation) => (
+                                {filteredAnnotations.map((option: Annotation) => (
                                     <Select.Option key={option.name}>{option.name}</Select.Option>
                                 ))}
                             </Select>
