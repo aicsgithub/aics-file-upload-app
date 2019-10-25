@@ -11,6 +11,7 @@ import { Workflow } from "../selection/types";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
+    APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
@@ -19,16 +20,15 @@ import {
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
-    APPLY_TEMPLATE,
     UPDATE_UPLOAD
 } from "./constants";
 import {
+    ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
-    ApplyTemplateAction,
     UpdateUploadAction,
     UploadStateBranch
 } from "./types";

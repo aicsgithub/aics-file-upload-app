@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { OPEN_CREATE_SCHEMA_MODAL, SCHEMA_SYNONYM } from "../../../shared/constants";
+import FormControl from "../../components/FormControl";
 
 import { requestAnnotations } from "../../state/metadata/actions";
 import { getAnnotations, getAnnotationTypes, getLookups } from "../../state/metadata/selectors";
@@ -35,7 +36,6 @@ import {
 } from "../../state/template/types";
 import { State } from "../../state/types";
 
-import LabeledInput from "../../components/LabeledInput/index";
 import AnnotationForm from "./AnnotationForm";
 import IconText from "./IconText";
 
@@ -125,12 +125,15 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                     type="info"
                     message={COLUMN_TEMPLATE_DESCRIPTION}
                 />}
-                <LabeledInput label="Column Template Name">
-                    <Input value={template ? template.name : undefined} onChange={this.updateTemplateName}/>
-                </LabeledInput>
+                <FormControl
+                    label="Column Template Name"
+                    error={!template.name ? "Template Name is required" : undefined}
+                >
+                    <Input value={template.name} onChange={this.updateTemplateName}/>
+                </FormControl>
                 <div className={styles.body}>
                     <div className={styles.formContainer}>
-                        <LabeledInput label="Add Existing Annotation" className={styles.search}>
+                        <FormControl label="Add Existing Annotation" className={styles.search}>
                             <Select
                                 allowClear={true}
                                 autoClearSearchValue={true}
@@ -148,14 +151,16 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                                     <Select.Option key={option.name}>{option.name}</Select.Option>
                                 ))}
                             </Select>
-                        </LabeledInput>
+                        </FormControl>
                         <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
                         <AnnotationForm
                             addAnnotation={this.addNewAnnotation}
                             annotationTypes={annotationTypes}
                             className={styles.form}
+                            existingAnnotations={allAnnotations}
                             index={template.annotations.length}
                             lookups={tables}
+                            templateAnnotations={template.annotations}
                             updateAnnotation={this.updateAnnotation}
                         />
                     </div>
@@ -182,7 +187,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     private renderListItem = (annotation: AnnotationDraft) => {
-        const { annotationTypes, tables } = this.props;
+        const { allAnnotations, annotationTypes, tables, template } = this.props;
         const { selectedAnnotation } = this.state;
 
         const {annotationId, canHaveMany, description, name, required, type} = annotation;
@@ -212,8 +217,10 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         addAnnotation={this.addNewAnnotation}
                         annotation={annotation}
                         annotationTypes={annotationTypes}
+                        existingAnnotations={allAnnotations}
                         index={annotation.index}
                         lookups={tables}
+                        templateAnnotations={template.annotations}
                         updateAnnotation={this.updateAnnotation}
                     />
                     )}

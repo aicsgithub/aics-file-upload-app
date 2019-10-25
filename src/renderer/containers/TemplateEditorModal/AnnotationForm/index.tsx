@@ -2,10 +2,12 @@ import { Button, Checkbox, Input, Select } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
+import { isEmpty, startCase } from "lodash";
 import { ChangeEvent } from "react";
 import * as React from "react";
-import LabeledInput from "../../../components/LabeledInput";
-import { AnnotationDraft, AnnotationType, ColumnType, Lookup } from "../../../state/template/types";
+
+import FormControl from "../../../components/FormControl";
+import { Annotation, AnnotationDraft, AnnotationType, ColumnType, Lookup } from "../../../state/template/types";
 
 const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
@@ -23,8 +25,10 @@ interface Props {
     annotation?: AnnotationDraft;
     annotationTypes: AnnotationType[];
     className?: string;
+    existingAnnotations: Annotation[];
     index: number;
     lookups: Lookup[];
+    templateAnnotations?: AnnotationDraft[];
     updateAnnotation: (index: number, annotation: Partial<AnnotationDraft>) => void;
 }
 
@@ -39,6 +43,49 @@ interface AnnotationFormState {
 }
 
 class AnnotationForm extends React.Component<Props, AnnotationFormState> {
+    public get annotationNameError(): string | undefined {
+        const { existingAnnotations } = this.props;
+        let { name } = this.state;
+        if (!name) {
+            return "Name is required";
+        }
+
+        name = startCase(name);
+
+        const templateAnnotations = this.props.templateAnnotations || [];
+        const allAnnotationsNames = [
+            ...existingAnnotations.map((a) => startCase(a.name)),
+            ...templateAnnotations.map((a) => startCase(a.name)),
+        ];
+        const annotationNameIsDuplicate = !!allAnnotationsNames.find((a) => a === name);
+        if (annotationNameIsDuplicate) {
+            return `Annotation named ${name} already exists`;
+        }
+
+        return undefined;
+    }
+
+    public get dropdownValuesError(): string | undefined {
+        const { annotationOptions, dataType } = this.state;
+        const isDropdown = dataType === ColumnType.DROPDOWN;
+
+        return isDropdown && (!annotationOptions || isEmpty(annotationOptions)) ? "Dropdown values are required"
+            : undefined;
+    }
+
+    public get lookupError(): string | undefined {
+        const { dataType, lookupTableName } = this.state;
+        const isLookup = dataType === ColumnType.LOOKUP;
+        return isLookup && !lookupTableName ? "Lookup table must be specified" : undefined;
+    }
+
+    public get descriptionError(): string | undefined {
+        return !this.state.description ? "Description is required" : undefined;
+    }
+
+    public get saveDisabled(): boolean {
+        return !!(this.annotationNameError || this.dropdownValuesError || this.lookupError || this.descriptionError);
+    }
 
     constructor(props: Props) {
         super(props);
@@ -74,10 +121,10 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                 <h4>{isEditing ? "Edit Annotation" : "Create New Annotation"}</h4>
                 {!isReadOnly && (
                     <>
-                        <LabeledInput label="Annotation Name">
+                        <FormControl label="Annotation Name" error={this.annotationNameError}>
                             <Input value={name} onChange={this.updateName}/>
-                        </LabeledInput>
-                        <LabeledInput label="Data Type">
+                        </FormControl>
+                        <FormControl label="Data Type">
                             <Select
                                 autoFocus={true}
                                 className={styles.select}
@@ -91,17 +138,22 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                                     </Select.Option>
                                 ))}
                             </Select>
-                        </LabeledInput>
+                        </FormControl>
                         {this.renderAdditionalInputForType()}
-                        <LabeledInput label="Description">
+                        <FormControl label="Description" error={this.descriptionError}>
                             <TextArea value={description} onChange={this.updateDescription}/>
-                        </LabeledInput>
+                        </FormControl>
                     </>
                 )}
                 <Checkbox value={required} onChange={this.setRequired}>Required</Checkbox>
                 <Checkbox value={canHaveMany} onChange={this.setCanHaveMany}>Allow Multiple Values</Checkbox>
                 <div className={styles.buttonContainer}>
-                    <Button className={styles.button} type="primary" onClick={this.saveAnnotation}>
+                    <Button
+                        className={styles.button}
+                        type="primary"
+                        onClick={this.saveAnnotation}
+                        disabled={this.saveDisabled}
+                    >
                         {isEditing ? "Update" : "Add"}
                     </Button>
                 </div>
@@ -113,22 +165,22 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const isReadOnly = Boolean(this.props.annotation && this.props.annotation.annotationId);
         if (this.state.dataType === ColumnType.DROPDOWN) {
             return (
-                <>
+                <FormControl label="Dropdown Values" error={this.dropdownValuesError}>
                     <Select
                         autoFocus={true}
                         className={styles.select}
                         disabled={isReadOnly}
                         mode="tags"
                         onChange={this.setDropdownValues}
-                        placeholder="Dropdown values"
+                        placeholder="Dropdown Values"
                         value={this.state.annotationOptions}
                     />
-                </>);
+                </FormControl>);
         }
         if (this.state.dataType === ColumnType.LOOKUP) {
             const { lookups } = this.props;
             return (
-                <>
+                <FormControl label="Lookup Table" error={this.lookupError}>
                     <Select
                         autoFocus={!this.state.lookupTableName}
                         className={styles.select}
@@ -142,7 +194,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                             <Select.Option key={table} value={table}>{table}</Select.Option>
                         ))}
                     </Select>
-                </>
+                </FormControl>
             );
         }
         return null;
@@ -153,7 +205,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         if (!annotation) {
             return {...EMPTY_STATE};
         }
-        
         return {
             annotationOptions: annotation.type.annotationOptions,
             canHaveMany: annotation.canHaveMany,
@@ -237,7 +288,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             this.props.updateAnnotation(index, draft);
         } else {
             this.props.addAnnotation(draft);
-            console.log("clear");
             this.setState({...EMPTY_STATE});
         }
     }

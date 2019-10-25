@@ -1,4 +1,12 @@
 .container {
+    margin-bottom: 1em;
+}
+
+.label {
+    margin-bottom: 0.25em;
+}
+
+.body {
     display: flex;
 
     & .form {
@@ -8,15 +16,17 @@
         align-items: center;
     }
 
-    &.error {
-        color: var(--error);
 
-        & .error-icon {
-            flex: 0 0 auto;
-            color: var(--error);
-            margin: 0 0.5em;
-            display: flex;
-            align-items: center;
-        }
+}
+
+.error {
+    color: var(--error);
+
+    & .error-icon {
+        flex: 0 0 auto;
+        color: var(--error);
+        margin: 0 0.5em;
+        display: flex;
+        align-items: center;
     }
 }
