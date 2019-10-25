@@ -89,7 +89,7 @@ class ColumnTypeEditor extends editors.EditorBase<Props, ColumnTypeEditorState> 
                         </Select.Option>
                     ))}
                 </Select>
-                {/*{this.renderAdditionalInputForType()}*/}
+                {this.renderAdditionalInputForType()}
             </div>
         );
     }

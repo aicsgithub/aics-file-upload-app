@@ -93,9 +93,11 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     public render() {
         const {
             allAnnotations,
+            annotationTypes,
             canSave: disabled,
             className,
             closeModal,
+            tables,
             template,
             visible,
         } = this.props;
@@ -157,7 +159,12 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                             </Select>
                         </LabeledInput>
                         <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
-                        <AnnotationForm annotation={selectedAnnotation} className={styles.form}/>
+                        <AnnotationForm
+                            annotation={selectedAnnotation}
+                            annotationTypes={annotationTypes}
+                            className={styles.form}
+                            lookups={tables}
+                        />
                     </div>
                 </div>
             </Modal>
