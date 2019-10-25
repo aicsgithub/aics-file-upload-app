@@ -4,18 +4,18 @@
 
 .search {
     width: 100%;
+    flex: 0 0 auto;
 }
 
 .body {
     display: flex;
-    height: 550px; /* todo find a way to make height more dynamic */
+    height: 560px; /* todo find a way to make height more dynamic */
 }
 
 .list-container {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
     height: 100%;
 }
 
@@ -30,12 +30,18 @@
     margin-right: 1em;
 }
 
+.form-container {
+    display: flex;
+    flex-direction: column;
+}
+
 .list, .form-container {
     flex: 1;
     padding: 0 1em;
 }
 
 .or {
+    flex: 0 0 auto;
     width: 100%;
     text-align: center;
     padding-bottom: 1em;
@@ -43,4 +49,6 @@
 
 .form {
     border: var(--border);
+    overflow-y: auto;
+    flex: 1;
 }
