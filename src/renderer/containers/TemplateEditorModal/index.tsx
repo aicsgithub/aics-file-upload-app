@@ -1,6 +1,6 @@
 import { Alert, Icon, Input, List, Modal, Popover, Select, Tag } from "antd";
 import { ipcRenderer } from "electron";
-import { includes } from "lodash";
+import { endsWith, includes, startCase } from "lodash";
 import * as React from "react";
 import { ChangeEvent } from "react";
 import { connect } from "react-redux";
@@ -129,7 +129,10 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                     label="Column Template Name"
                     error={!template.name ? "Template Name is required" : undefined}
                 >
-                    <Input value={template.name} onChange={this.updateTemplateName}/>
+                    <Input
+                        value={template.name}
+                        onChange={this.updateTemplateName}
+                    />
                 </FormControl>
                 <div className={styles.body}>
                     <div className={styles.formContainer}>
@@ -181,8 +184,10 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     private closeAlert = () => this.setState({showAlert: false});
 
     private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
+        const endsInSpace = endsWith(e.target.value, " ");
+        const ending = endsInSpace ? " " : "";
         this.props.updateTemplateDraft({
-            name: e.target.value,
+            name: startCase(e.target.value) + ending,
         });
     }
 

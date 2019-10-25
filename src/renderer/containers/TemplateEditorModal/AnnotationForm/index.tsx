@@ -2,7 +2,7 @@ import { Button, Checkbox, Input, Select } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
-import { isEmpty, startCase } from "lodash";
+import { endsWith, isEmpty, startCase } from "lodash";
 import { ChangeEvent } from "react";
 import * as React from "react";
 
@@ -122,7 +122,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                 {!isReadOnly && (
                     <>
                         <FormControl label="Annotation Name" error={this.annotationNameError}>
-                            <Input value={name} onChange={this.updateName} onBlur={this.convertNameToTitleCase}/>
+                            <Input value={name} onChange={this.updateName}/>
                         </FormControl>
                         <FormControl label="Data Type">
                             <Select
@@ -216,7 +216,9 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     }
 
     private updateName = (e: ChangeEvent<HTMLInputElement>) => {
-        this.setState({name: e.target.value});
+        const endsInSpace = endsWith(e.target.value, " ");
+        const ending = endsInSpace ? " " : "";
+        this.setState({name: startCase(e.target.value) + ending});
     }
 
     private updateDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -246,10 +248,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             dataType,
             lookupTableName: undefined,
         });
-    }
-
-    private convertNameToTitleCase = () => {
-        this.setState({name: startCase(this.state.name)});
     }
 
     private saveAnnotation = () => {
