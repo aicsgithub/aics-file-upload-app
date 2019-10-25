@@ -174,7 +174,9 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
 
     private renderListItem = (annotation: AnnotationDraft) => {
         const {canHaveMany, description, name, required, type} = annotation;
+        const {name: typeName} = type;
         const tags: Array<{color: string, text: string}> = [];
+        tags.push({color: "green", text: typeName});
         if (required) {
             tags.push({color: "red", text: "required"});
         } else {
