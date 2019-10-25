@@ -1,5 +1,5 @@
 import { GetPlateResponse } from "../../state/selection/types";
-import { Template } from "../../state/template/types";
+import { Template, TemplateDraft } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 
@@ -37,6 +37,12 @@ export default class MMSClient extends BaseServiceClient {
     public async getTemplate(templateId: number): Promise<Template> {
         const url = `/1.0/template/${templateId}`;
         const response = await this.httpClient.get(url);
+        return response.data[0];
+    }
+
+    public async createTemplate(draft: TemplateDraft): Promise<number> {
+        const url = `/1.0/template/`;
+        const response = await this.httpClient.post(url, draft);
         return response.data[0];
     }
 

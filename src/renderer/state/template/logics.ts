@@ -5,19 +5,22 @@ import LabkeyClient from "../../util/labkey-client";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import {
-    getAnnotationLookups, getAnnotationTypes,
+    getAnnotationLookups,
+    getAnnotationTypes,
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
+import { addTemplateIdToSettings } from "../setting/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
-    ReduxLogicTransformDependencies, State,
+    ReduxLogicTransformDependencies,
+    State,
 } from "../types";
 import { batchActions } from "../util";
 import { updateTemplateDraft } from "./actions";
-import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS } from "./constants";
+import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getTemplateDraft } from "./selectors";
 import { AnnotationDraft, Template, TemplateAnnotation } from "./types";
 
@@ -156,8 +159,32 @@ const removeAnnotationsLogic = createLogic({
     type: REMOVE_ANNOTATIONS,
 });
 
+const saveTemplateLogic = createLogic({
+    process: async ({action, getState, mmsClient}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const draft = getTemplateDraft(getState());
+        dispatch(addRequestToInProgress(AsyncRequest.SAVE_TEMPLATE));
+        try {
+            const templateId = await mmsClient.createTemplate(draft);
+            dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));
+            dispatch(addTemplateIdToSettings(templateId));
+        } catch (e) {
+            dispatch(batchActions([
+                setAlert({
+                    message: "Could not save template: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+                removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE),
+            ]));
+        }
+        done();
+    },
+    type: SAVE_TEMPLATE,
+});
+
 export default [
     addExistingAnnotationLogic,
     getTemplateLogic,
     removeAnnotationsLogic,
+    saveTemplateLogic,
 ];

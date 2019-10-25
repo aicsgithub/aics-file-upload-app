@@ -49,6 +49,7 @@ export enum AsyncRequest {
     GET_JOBS = "GET_JOBS",
     GET_TEMPLATE = "GET_TEMPLATE",
     RETRY_UPLOAD = "RETRY_UPLOAD",
+    SAVE_TEMPLATE = "SAVE_TEMPLATE",
 }
 
 export interface AddRequestInProgressAction {
