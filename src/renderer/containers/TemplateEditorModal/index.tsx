@@ -38,8 +38,9 @@ import LabeledInput from "../../components/LabeledInput/index";
 import AnnotationForm from "./AnnotationForm";
 
 const styles = require("./styles.pcss");
-const COLUMN_TEMPLATE_DESCRIPTION = `${SCHEMA_SYNONYM} define a group of annotations to associate with files.
-                    They can be shared and discovered by anyone.`;
+const COLUMN_TEMPLATE_DESCRIPTION = `A ${SCHEMA_SYNONYM} defines a group of annotations to associate with files.
+When applied to a batch of files to upload, the annotations associated with that template
+will be added as additional columns to fill out for each file. They can be shared and discovered by anyone.`;
 
 interface Props {
     addAnnotation: ActionCreator<AddExistingAnnotationAction>;
@@ -61,12 +62,15 @@ interface Props {
 
 interface TemplateEditorModalState {
     selectedAnnotation?: AnnotationDraft;
+    showAlert: boolean;
 }
 
 class TemplateEditorModal extends React.Component<Props, TemplateEditorModalState> {
     constructor(props: Props) {
         super(props);
-        this.state = {};
+        this.state = {
+            showAlert: true,
+        };
     }
 
     public componentDidMount(): void {
@@ -93,7 +97,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             template,
             visible,
         } = this.props;
-        const { selectedAnnotation } = this.state;
+        const { selectedAnnotation, showAlert } = this.state;
 
         return (
             <Modal
@@ -107,12 +111,14 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 okButtonProps={{disabled}}
                 maskClosable={false}
             >
-                <Alert
+                {showAlert && <Alert
+                    afterClose={this.closeAlert}
                     className={styles.infoAlert}
+                    closable={true}
                     showIcon={true}
                     type="info"
                     message={COLUMN_TEMPLATE_DESCRIPTION}
-                />
+                />}
                 <LabeledInput label="Column Template Name">
                     <Input value={template ? template.name : undefined} onChange={this.updateTemplateName}/>
                 </LabeledInput>
@@ -151,6 +157,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             </Modal>
         );
     }
+
+    private closeAlert = () => this.setState({showAlert: false});
 
     private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
         this.props.updateTemplateDraft({
