@@ -122,7 +122,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                 {!isReadOnly && (
                     <>
                         <FormControl label="Annotation Name" error={this.annotationNameError}>
-                            <Input value={name} onChange={this.updateName}/>
+                            <Input value={name} onChange={this.updateName} onBlur={this.convertNameToTitleCase}/>
                         </FormControl>
                         <FormControl label="Data Type">
                             <Select
@@ -246,6 +246,10 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             dataType,
             lookupTableName: undefined,
         });
+    }
+
+    private convertNameToTitleCase = () => {
+        this.setState({name: startCase(this.state.name)});
     }
 
     private saveAnnotation = () => {
