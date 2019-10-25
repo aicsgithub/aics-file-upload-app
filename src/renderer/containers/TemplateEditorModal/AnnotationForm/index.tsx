@@ -8,6 +8,15 @@ import LabeledInput from "../../../components/LabeledInput";
 import { AnnotationDraft, AnnotationType, ColumnType, Lookup } from "../../../state/template/types";
 
 const styles = require("./styles.pcss");
+const EMPTY_STATE: AnnotationFormState = {
+    annotationOptions: undefined,
+    canHaveMany: false,
+    dataType: ColumnType.TEXT,
+    description: undefined,
+    lookupTableName: undefined,
+    name: undefined,
+    required: false,
+};
 
 interface Props {
     addAnnotation: (annotation: AnnotationDraft) => void;
@@ -141,13 +150,17 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
 
     private getStateFromProps = (props: Props) => {
         const { annotation } = props;
+        if (!annotation) {
+            return {...EMPTY_STATE};
+        }
+        
         return {
-            annotationOptions: annotation ? annotation.type.annotationOptions : undefined,
-            canHaveMany: annotation ? annotation.canHaveMany : false,
-            dataType: annotation ? annotation.type.name : ColumnType.TEXT,
-            description: annotation ? annotation.description : undefined,
-            name: annotation ? annotation.name : undefined,
-            required: annotation ? annotation.required : false,
+            annotationOptions: annotation.type.annotationOptions,
+            canHaveMany: annotation.canHaveMany,
+            dataType: annotation.type.name,
+            description: annotation.description,
+            name: annotation.name,
+            required: annotation.required,
         };
     }
 
@@ -224,6 +237,8 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             this.props.updateAnnotation(index, draft);
         } else {
             this.props.addAnnotation(draft);
+            console.log("clear");
+            this.setState({...EMPTY_STATE});
         }
     }
 }
