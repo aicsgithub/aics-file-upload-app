@@ -10,13 +10,18 @@
     width: 100%;
 }
 
-.list-container {
+.list-container, .body {
     display: flex;
+}
+
+.list-container {
+    flex-direction: column;
+    flex: 1;
 }
 
 .list {
     border: var(--border);
-    margin-right: 1em;
+    margin-right: 0.5em;
 }
 
 .annotation-name, .tag {

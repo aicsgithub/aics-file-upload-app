@@ -122,14 +122,16 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 <LabeledInput label="Column Template Name">
                     <Input value={template ? template.name : undefined} onChange={this.updateTemplateName}/>
                 </LabeledInput>
-                <div className={styles.listContainer}>
-                    <List
-                        className={styles.list}
-                        dataSource={template.annotations}
-                        header={<h4>Annotations</h4>}
-                        itemLayout="vertical"
-                        renderItem={this.renderListItem}
-                    />
+                <div className={styles.body}>
+                    <div className={styles.listContainer}>
+                        <List
+                            className={styles.list}
+                            dataSource={template.annotations}
+                            header={<h4>Annotations</h4>}
+                            itemLayout="vertical"
+                            renderItem={this.renderListItem}
+                        />
+                    </div>
                     <div className={styles.formContainer}>
                         <LabeledInput label="Add Existing Annotation" className={styles.search}>
                             <Select
