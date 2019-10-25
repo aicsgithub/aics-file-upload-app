@@ -31,6 +31,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             className,
         } = this.props;
         const { isEditing } = this.state;
+        const isReadOnly = Boolean(annotation && annotation.annotationId);
 
         return (
             <form
@@ -38,13 +39,13 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             >
                 <h4>{isEditing ? "Edit Annotation" : "Create New Annotation"}</h4>
                 <LabeledInput label="Annotation Name">
-                    <Input value={annotation ? annotation.name : undefined}/>
+                    <Input value={annotation ? annotation.name : undefined} disabled={isReadOnly}/>
                 </LabeledInput>
                 <LabeledInput label="Data Type">
-                    <Input value={annotation ? annotation.type.name : undefined}/>
+                    <Input value={annotation ? annotation.type.name : undefined} disabled={isReadOnly}/>
                 </LabeledInput>
                 <LabeledInput label="Description">
-                    <TextArea value={annotation ? annotation.description : undefined}/>
+                    <TextArea value={annotation ? annotation.description : undefined} disabled={isReadOnly}/>
                 </LabeledInput>
                 <Checkbox value={annotation ? annotation.required : undefined}>Required</Checkbox>
                 <Checkbox value={annotation ? annotation.canHaveMany : undefined}>Allow Multiple Values</Checkbox>
