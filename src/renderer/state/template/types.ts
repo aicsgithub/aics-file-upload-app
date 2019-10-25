@@ -24,7 +24,7 @@ export interface AnnotationDraft {
     index: number;
     name?: string;
     required: boolean;
-    type: AnnotationTypeDraft;
+    type: AnnotationTypeDraft; // todo flatten
 }
 
 export interface AnnotationLookup {

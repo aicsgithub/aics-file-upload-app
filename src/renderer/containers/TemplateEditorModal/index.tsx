@@ -1,4 +1,4 @@
-import { Alert, Icon, Input, List, Modal, Select, Tag } from "antd";
+import { Alert, Icon, Input, List, Modal, Popover, Select, Tag } from "antd";
 import { ipcRenderer } from "electron";
 import { includes } from "lodash";
 import * as React from "react";
@@ -101,7 +101,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             template,
             visible,
         } = this.props;
-        const { selectedAnnotation, showAlert } = this.state;
+        const { showAlert } = this.state;
         const appliedAnnotationNames = template.annotations.map((a) => a.name);
         const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
 
@@ -129,15 +129,6 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                     <Input value={template ? template.name : undefined} onChange={this.updateTemplateName}/>
                 </LabeledInput>
                 <div className={styles.body}>
-                    <div className={styles.listContainer}>
-                        <List
-                            className={styles.list}
-                            dataSource={template.annotations}
-                            header={<h4>Annotations</h4>}
-                            itemLayout="vertical"
-                            renderItem={this.renderListItem}
-                        />
-                    </div>
                     <div className={styles.formContainer}>
                         <LabeledInput label="Add Existing Annotation" className={styles.search}>
                             <Select
@@ -160,10 +151,21 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         </LabeledInput>
                         <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
                         <AnnotationForm
-                            annotation={selectedAnnotation}
+                            addAnnotation={this.addNewAnnotation}
                             annotationTypes={annotationTypes}
                             className={styles.form}
+                            index={template.annotations.length}
                             lookups={tables}
+                            updateAnnotation={this.updateAnnotation}
+                        />
+                    </div>
+                    <div className={styles.listContainer}>
+                        <List
+                            className={styles.list}
+                            dataSource={template.annotations}
+                            header={<h4>Annotations</h4>}
+                            itemLayout="vertical"
+                            renderItem={this.renderListItem}
                         />
                     </div>
                 </div>
@@ -180,15 +182,18 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     private renderListItem = (annotation: AnnotationDraft) => {
+        const { annotationTypes, tables } = this.props;
+        const { selectedAnnotation } = this.state;
+
         const {annotationId, canHaveMany, description, name, required, type} = annotation;
         const {name: typeName} = type;
         const tags: Array<{color: string, text: string}> = [];
         tags.push({color: "green", text: typeName});
-        tags.push({color: "red", text: required ? "required" : "optional"});
-        tags.push({color: "purple", text: annotationId ? "Existing Annotation" : "NEW!"});
+        tags.push({color: "red", text: required ? "Required" : "Optional"});
+        tags.push({color: "purple", text: annotationId ? "Existing Annotation" : "New"});
 
         if (canHaveMany) {
-            tags.push({color: "blue", text: "multiple values allowed"});
+            tags.push({color: "blue", text: "Multiple Values Allowed"});
         }
 
         const title = (
@@ -200,12 +205,32 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             </div>
         );
 
+        const editButton = (
+            <Popover
+                content={(
+                    <AnnotationForm
+                        addAnnotation={this.addNewAnnotation}
+                        annotation={annotation}
+                        annotationTypes={annotationTypes}
+                        index={annotation.index}
+                        lookups={tables}
+                        updateAnnotation={this.updateAnnotation}
+                    />
+                    )}
+                trigger="click"
+                visible={Boolean(selectedAnnotation && selectedAnnotation.name === annotation.name)}
+                onVisibleChange={this.handleVisibleChange(annotation)}
+            >
+                <IconText icon="edit" key="edit" text="Edit"/>
+            </Popover>
+        );
+
         return (
             <List.Item
                 key={name}
                 actions={[
                     <IconText icon="delete" key="delete" onClick={this.removeAnnotation(annotation)} text="Remove"/>,
-                    <IconText icon="edit" key="edit" onClick={this.selectAnnotation(annotation)} text="Edit"/>,
+                    editButton,
                 ]}
             >
                 <List.Item.Meta
@@ -216,13 +241,18 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         );
     }
 
-    private saveValueByRow = (value: any, key: string, row: AnnotationDraft): void => {
+    private handleVisibleChange = (annotation: AnnotationDraft) => (visible: boolean) => {
+        this.setState({ selectedAnnotation: visible ? annotation : undefined });
+    }
+
+    private updateAnnotation = (index: number, row: Partial<AnnotationDraft>): void => {
         const annotations = [...this.props.template.annotations];
-        annotations[row.index] = {
-            ...annotations[row.index],
-            [key]: value,
+        annotations[index] = {
+            ...annotations[index],
+            ...row,
         };
         this.props.updateTemplateDraft({annotations});
+        this.setState({selectedAnnotation: undefined});
     }
 
     private saveAndClose = () => {
@@ -232,11 +262,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     private removeAnnotation = (annotation: AnnotationDraft) => () => {
-        this.props.removeAnnotations(annotation.index);
-    }
-
-    private selectAnnotation = (annotation: AnnotationDraft) => () => {
-        this.setState({selectedAnnotation: annotation});
+        this.props.removeAnnotations([annotation.index]);
     }
 
     private addExistingAnnotation = (existingAnnotationName: string) => {
@@ -251,6 +277,12 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 name,
             });
         }
+    }
+
+    private addNewAnnotation = (draft: AnnotationDraft) => {
+        const { annotations: oldAnnotations } = this.props.template;
+        const annotations = [...oldAnnotations, draft];
+        this.props.updateTemplateDraft({annotations});
     }
 }
 

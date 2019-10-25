@@ -6,7 +6,7 @@ const styles = require("./styles.pcss");
 interface Props {
     className?: string;
     icon: string;
-    onClick: () => void;
+    onClick?: () => void;
     text: string;
 }
 

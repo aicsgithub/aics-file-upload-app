@@ -10,10 +10,13 @@ import { AnnotationDraft, AnnotationType, ColumnType, Lookup } from "../../../st
 const styles = require("./styles.pcss");
 
 interface Props {
+    addAnnotation: (annotation: AnnotationDraft) => void;
     annotation?: AnnotationDraft;
     annotationTypes: AnnotationType[];
     className?: string;
+    index: number;
     lookups: Lookup[];
+    updateAnnotation: (index: number, annotation: Partial<AnnotationDraft>) => void;
 }
 
 interface AnnotationFormState {
@@ -60,33 +63,38 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                 className={classNames(styles.container, className)}
             >
                 <h4>{isEditing ? "Edit Annotation" : "Create New Annotation"}</h4>
-                <LabeledInput label="Annotation Name">
-                    <Input value={name} onChange={this.updateName} disabled={isReadOnly}/>
-                </LabeledInput>
-                <LabeledInput label="Data Type">
-                    <Select
-                        autoFocus={true}
-                        className={styles.select}
-                        disabled={isReadOnly}
-                        onChange={this.setColumnType}
-                        placeholder="Column Type"
-                        value={dataType}
-                    >
-                        {annotationTypes.map((at: AnnotationType) => (
-                            <Select.Option key={at.name} value={at.name}>
-                                {at.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </LabeledInput>
-                {this.renderAdditionalInputForType()}
-                <LabeledInput label="Description">
-                    <TextArea value={description} disabled={isReadOnly} onChange={this.updateDescription}/>
-                </LabeledInput>
+                {!isReadOnly && (
+                    <>
+                        <LabeledInput label="Annotation Name">
+                            <Input value={name} onChange={this.updateName}/>
+                        </LabeledInput>
+                        <LabeledInput label="Data Type">
+                            <Select
+                                autoFocus={true}
+                                className={styles.select}
+                                onChange={this.setColumnType}
+                                placeholder="Column Type"
+                                value={dataType}
+                            >
+                                {annotationTypes.map((at: AnnotationType) => (
+                                    <Select.Option key={at.name} value={at.name}>
+                                        {at.name}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </LabeledInput>
+                        {this.renderAdditionalInputForType()}
+                        <LabeledInput label="Description">
+                            <TextArea value={description} onChange={this.updateDescription}/>
+                        </LabeledInput>
+                    </>
+                )}
                 <Checkbox value={required} onChange={this.setRequired}>Required</Checkbox>
                 <Checkbox value={canHaveMany} onChange={this.setCanHaveMany}>Allow Multiple Values</Checkbox>
                 <div className={styles.buttonContainer}>
-                    <Button className={styles.button} type="primary">{isEditing ? "Update" : "Add"}</Button>
+                    <Button className={styles.button} type="primary" onClick={this.saveAnnotation}>
+                        {isEditing ? "Update" : "Add"}
+                    </Button>
                 </div>
             </form>
         );
@@ -176,6 +184,48 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         });
     }
 
+    private saveAnnotation = () => {
+        const { annotation, annotationTypes, index, lookups } = this.props;
+        const {
+            annotationOptions,
+            canHaveMany,
+            dataType,
+            description,
+            lookupTableName,
+            name,
+            required,
+        } = this.state;
+
+        const annotationTypeSelected = annotationTypes.find((at) => at.name === dataType);
+        const lookupSelected = lookupTableName ? lookups.find((l) => l.tableName === lookupTableName)
+            : undefined;
+
+        if (!annotationTypeSelected) {
+            throw new Error(); // todo
+        }
+
+        const draft: AnnotationDraft = {
+            canHaveMany,
+            description,
+            index,
+            name,
+            required,
+            type: {
+                annotationOptions,
+                annotationTypeId: annotationTypeSelected.annotationTypeId,
+                lookupColumn: lookupSelected ? lookupSelected.columnName : undefined,
+                lookupSchema: lookupSelected ? lookupSelected.schemaName : undefined,
+                lookupTable: lookupSelected ? lookupSelected.tableName : undefined,
+                name: annotationTypeSelected.name,
+            },
+        };
+
+        if (annotation) {
+            this.props.updateAnnotation(index, draft);
+        } else {
+            this.props.addAnnotation(draft);
+        }
+    }
 }
 
 export default AnnotationForm;
