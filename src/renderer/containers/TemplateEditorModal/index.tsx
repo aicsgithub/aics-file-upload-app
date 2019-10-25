@@ -36,6 +36,7 @@ import { State } from "../../state/types";
 
 import LabeledInput from "../../components/LabeledInput/index";
 import AnnotationForm from "./AnnotationForm";
+import IconText from "./IconText";
 
 const styles = require("./styles.pcss");
 const COLUMN_TEMPLATE_DESCRIPTION = `A ${SCHEMA_SYNONYM} defines a group of annotations to associate with files.
@@ -194,8 +195,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             <List.Item
                 key={name}
                 actions={[
-                    <Icon type="delete" key="delete" onClick={this.removeAnnotation(annotation)}/>,
-                    <Icon type="edit" key="edit" onClick={this.selectAnnotation(annotation)}/>,
+                    <IconText icon="delete" key="delete" onClick={this.removeAnnotation(annotation)} text="Remove"/>,
+                    <IconText icon="edit" key="edit" onClick={this.selectAnnotation(annotation)} text="Edit"/>,
                 ]}
             >
                 <List.Item.Meta
