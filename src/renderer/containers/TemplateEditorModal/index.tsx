@@ -94,7 +94,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         const {
             allAnnotations,
             annotationTypes,
-            canSave: disabled,
+            canSave,
             className,
             closeModal,
             tables,
@@ -114,7 +114,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 onOk={this.saveAndClose}
                 onCancel={closeModal}
                 okText="Save"
-                okButtonProps={{disabled}}
+                okButtonProps={{disabled: !canSave}}
                 maskClosable={false}
             >
                 {showAlert && <Alert
@@ -222,6 +222,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         addAnnotation={this.addNewAnnotation}
                         annotation={annotation}
                         annotationTypes={annotationTypes}
+                        cancel={this.hideEditAnnotation}
                         existingAnnotations={allAnnotations}
                         index={annotation.index}
                         lookups={tables}
@@ -256,6 +257,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     private handleVisibleChange = (annotation: AnnotationDraft) => (visible: boolean) => {
         this.setState({ selectedAnnotation: visible ? annotation : undefined });
     }
+
+    private hideEditAnnotation = () => this.setState({selectedAnnotation: undefined});
 
     private updateAnnotation = (index: number, row: Partial<AnnotationDraft>): void => {
         const annotations = [...this.props.template.annotations];

@@ -25,5 +25,6 @@ export const getCanSaveTemplate = createSelector([
         !columnWithNoLabelFound &&
         !dropdownValuesMissing &&
         !columnWithNoTypeFound &&
-        !lookupValuesMissing;
+        !lookupValuesMissing &&
+        annotations.length > 0;
 });

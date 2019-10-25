@@ -24,6 +24,7 @@ interface Props {
     addAnnotation: (annotation: AnnotationDraft) => void;
     annotation?: AnnotationDraft;
     annotationTypes: AnnotationType[];
+    cancel?: () => void;
     className?: string;
     existingAnnotations: Annotation[];
     index: number;
@@ -56,8 +57,9 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const allAnnotationsNames = [
             ...existingAnnotations.map((a) => startCase(a.name)),
             ...templateAnnotations.map((a) => startCase(a.name)),
+            name,
         ];
-        const annotationNameIsDuplicate = !!allAnnotationsNames.find((a) => a === name);
+        const annotationNameIsDuplicate = allAnnotationsNames.filter((a) => a === name).length > 1;
         if (annotationNameIsDuplicate) {
             return `Annotation named ${name} already exists`;
         }
@@ -84,7 +86,10 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     }
 
     public get saveDisabled(): boolean {
-        return !!(this.annotationNameError || this.dropdownValuesError || this.lookupError || this.descriptionError);
+        const {annotation} = this.props;
+        const isReadOnly = Boolean(annotation && annotation.annotationId);
+        return !isReadOnly &&
+            !!(this.annotationNameError || this.dropdownValuesError || this.lookupError || this.descriptionError);
     }
 
     constructor(props: Props) {
@@ -102,6 +107,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const {
             annotation,
             annotationTypes,
+            cancel,
             className,
         } = this.props;
         const {
@@ -148,6 +154,9 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                 <Checkbox value={required} onChange={this.setRequired}>Required</Checkbox>
                 <Checkbox value={canHaveMany} onChange={this.setCanHaveMany}>Allow Multiple Values</Checkbox>
                 <div className={styles.buttonContainer}>
+                    {cancel && (
+                        <Button className={styles.button} onClick={cancel}>Cancel</Button>
+                    )}
                     <Button
                         className={styles.button}
                         type="primary"
