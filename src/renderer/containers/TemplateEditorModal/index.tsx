@@ -203,11 +203,21 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         });
     }
 
+    // todo new component
     private renderListItem = (annotation: AnnotationDraft) => {
         const { allAnnotations, annotationTypes, tables, template } = this.props;
         const { selectedAnnotation } = this.state;
 
-        const {annotationId, annotationTypeName, canHaveManyValues, description, name, required} = annotation;
+        const {
+            annotationId,
+            annotationOptions,
+            annotationTypeName,
+            canHaveManyValues,
+            description,
+            lookupTable,
+            name,
+            required,
+        } = annotation;
         const tags: Array<{color: string, text: string}> = [];
         tags.push({color: "green", text: annotationTypeName});
         tags.push({color: "red", text: required ? "Required" : "Optional"});
@@ -215,6 +225,13 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
 
         if (canHaveManyValues) {
             tags.push({color: "blue", text: "Multiple Values Allowed"});
+        }
+
+        let metadata;
+        if (lookupTable) {
+            metadata = `Lookup table: ${lookupTable}`;
+        } else if (annotationOptions && annotationOptions.length) {
+            metadata = `Dropdown values: ${annotationOptions.join(", ")}`;
         }
 
         const title = (
@@ -258,9 +275,10 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 ]}
             >
                 <List.Item.Meta
-                    description={description}
+                    description={metadata}
                     title={title}
                 />
+                {description}
             </List.Item>
         );
     }

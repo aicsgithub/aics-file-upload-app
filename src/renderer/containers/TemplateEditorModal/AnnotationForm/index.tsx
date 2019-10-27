@@ -13,9 +13,9 @@ const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
     annotationOptions: undefined,
     canHaveManyValues: false,
-    dataType: ColumnType.TEXT,
+    annotationTypeName: ColumnType.TEXT,
     description: undefined,
-    lookupTableName: undefined,
+    lookupTable: undefined,
     name: undefined,
     required: false,
 };
@@ -36,9 +36,9 @@ interface Props {
 interface AnnotationFormState {
     annotationOptions?: string[];
     canHaveManyValues: boolean;
-    dataType: string;
+    annotationTypeName: string;
     description?: string;
-    lookupTableName?: string;
+    lookupTable?: string;
     name?: string;
     required: boolean;
 }
@@ -68,17 +68,17 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     }
 
     public get dropdownValuesError(): string | undefined {
-        const { annotationOptions, dataType } = this.state;
-        const isDropdown = dataType === ColumnType.DROPDOWN;
+        const { annotationOptions, annotationTypeName } = this.state;
+        const isDropdown = annotationTypeName === ColumnType.DROPDOWN;
 
         return isDropdown && (!annotationOptions || isEmpty(annotationOptions)) ? "Dropdown values are required"
             : undefined;
     }
 
     public get lookupError(): string | undefined {
-        const { dataType, lookupTableName } = this.state;
-        const isLookup = dataType === ColumnType.LOOKUP;
-        return isLookup && !lookupTableName ? "Lookup table must be specified" : undefined;
+        const { annotationTypeName, lookupTable } = this.state;
+        const isLookup = annotationTypeName === ColumnType.LOOKUP;
+        return isLookup && !lookupTable ? "Lookup table must be specified" : undefined;
     }
 
     public get descriptionError(): string | undefined {
@@ -112,7 +112,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         } = this.props;
         const {
             canHaveManyValues,
-            dataType,
+            annotationTypeName,
             description,
             name,
             required,
@@ -136,7 +136,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                                 className={styles.select}
                                 onChange={this.setColumnType}
                                 placeholder="Column Type"
-                                value={dataType}
+                                value={annotationTypeName}
                             >
                                 {annotationTypes.map((at: AnnotationType) => (
                                     <Select.Option key={at.name} value={at.name}>
@@ -172,7 +172,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
 
     public renderAdditionalInputForType = (): React.ReactNode => {
         const isReadOnly = Boolean(this.props.annotation && this.props.annotation.annotationId);
-        if (this.state.dataType === ColumnType.DROPDOWN) {
+        if (this.state.annotationTypeName === ColumnType.DROPDOWN) {
             return (
                 <FormControl label="Dropdown Values" error={this.dropdownValuesError}>
                     <Select
@@ -186,18 +186,18 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                     />
                 </FormControl>);
         }
-        if (this.state.dataType === ColumnType.LOOKUP) {
+        if (this.state.annotationTypeName === ColumnType.LOOKUP) {
             const { lookups } = this.props;
             return (
                 <FormControl label="Lookup Table" error={this.lookupError}>
                     <Select
-                        autoFocus={!this.state.lookupTableName}
+                        autoFocus={!this.state.lookupTable}
                         className={styles.select}
                         disabled={isReadOnly}
                         onChange={this.setLookup}
                         placeholder="Tables"
                         showSearch={true}
-                        value={this.state.lookupTableName}
+                        value={this.state.lookupTable}
                     >
                         {lookups && lookups.map((l: Lookup) => l.tableName).sort().map((table: string) => (
                             <Select.Option key={table} value={table}>{table}</Select.Option>
@@ -214,13 +214,13 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         if (!annotation) {
             return {...EMPTY_STATE};
         }
+        const {
+            annotationOptions,
+            ...etc
+        } = annotation;
         return {
-            annotationOptions: annotation.annotationOptions,
-            canHaveManyValues: annotation.canHaveManyValues,
-            dataType: annotation.annotationTypeName,
-            description: annotation.description,
-            name: annotation.name,
-            required: annotation.required,
+            annotationOptions: annotationOptions ? [...annotationOptions] : undefined,
+            ...etc,
         };
     }
 
@@ -239,7 +239,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     }
 
     private setLookup = (value: string) => {
-        this.setState({ lookupTableName: value });
+        this.setState({ lookupTable: value });
     }
 
     private setRequired = (e: CheckboxChangeEvent) => {
@@ -250,12 +250,12 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         this.setState({canHaveManyValues: e.target.checked});
     }
 
-    private setColumnType = (dataType: string) => {
-        const columnTypeIsDropdown = dataType === ColumnType.DROPDOWN;
+    private setColumnType = (annotationTypeName: string) => {
+        const columnTypeIsDropdown = annotationTypeName === ColumnType.DROPDOWN;
         this.setState({
             annotationOptions: columnTypeIsDropdown ? [] : undefined,
-            dataType,
-            lookupTableName: undefined,
+            annotationTypeName,
+            lookupTable: undefined,
         });
     }
 
@@ -263,16 +263,15 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const { annotation, annotationTypes, index, lookups } = this.props;
         const {
             annotationOptions,
+            annotationTypeName,
             canHaveManyValues,
-            dataType,
             description,
-            lookupTableName,
+            lookupTable,
             name,
             required,
         } = this.state;
-
-        const annotationTypeSelected = annotationTypes.find((at) => at.name === dataType);
-        const lookupSelected = lookupTableName ? lookups.find((l) => l.tableName === lookupTableName)
+        const annotationTypeSelected = annotationTypes.find((at) => at.name === annotationTypeName);
+        const lookupSelected = lookupTable ? lookups.find((l) => l.tableName === lookupTable)
             : undefined;
 
         if (!annotationTypeSelected) {
@@ -282,12 +281,12 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const draft: AnnotationDraft = {
             annotationOptions,
             annotationTypeId: annotationTypeSelected.annotationTypeId,
-            annotationTypeName: annotationTypeSelected.name,
+            annotationTypeName,
             canHaveManyValues,
             description,
             index,
             lookupSchema: lookupSelected ? lookupSelected.schemaName : undefined,
-            lookupTable: lookupSelected ? lookupSelected.tableName : undefined,
+            lookupTable,
             name,
             required,
         };
