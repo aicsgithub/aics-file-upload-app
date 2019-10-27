@@ -42,7 +42,6 @@ const associateFileAndWellLogic = createLogic({
 const applyTemplateLogic = createLogic({
     process: async ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        console.log("applying template process", ctx.templateId);
         if (ctx.templateId) {
             // these need to be dispatched separately to go through logics
             dispatch(getTemplate(ctx.templateId, true));

@@ -48,39 +48,60 @@ const addExistingAnnotationLogic = createLogic({
         const { annotations: oldAnnotations } = getTemplateDraft(state);
         const annotationTypes = getAnnotationTypes(state);
         const annotationType = annotationTypes.find((at) => at.annotationTypeId === annotationTypeId);
+        const lookupAnnotationTypeId = getLookupAnnotationTypeId(state);
 
-        if (!annotationType) {
-            throw new Error(""); // todo
+        try {
+            if (!annotationType) {
+                throw new Error(
+                    `Annotation \"${name}\" does not have a valid annotationTypeId: ${annotationTypeId}.
+                     Contact Software.`
+                );
+            }
+
+            let lookupSchema;
+            let lookupTable;
+            if (lookupAnnotationTypeId === annotationTypeId) {
+                const annotationLookups = getAnnotationLookups(state);
+                const annotationLookup = annotationLookups.find((al) => al.annotationId === annotationId);
+
+                if (!annotationLookup ) {
+                    throw new Error(`Annotation \"${name}\" does not have a lookup associated with it even though
+                     it is a Lookup type. Contact Software.`);
+                }
+
+                const lookup = getLookups(state).find((l) => l.lookupId === annotationLookup.lookupId);
+
+                if (!lookup) {
+                    throw new Error(`Annotation \"${name}\" has an invalid lookup id
+                     associated with it: ${annotationLookup.lookupId}. Contact Software.`);
+                }
+
+                lookupSchema = lookup.schemaName;
+                lookupTable = lookup.tableName;
+            }
+
+            const annotations: AnnotationDraft[] = [...oldAnnotations, {
+                annotationId,
+                annotationOptions,
+                annotationTypeId,
+                annotationTypeName: annotationType.name,
+                canHaveManyValues: false,
+                description,
+                index: oldAnnotations.length,
+                lookupSchema,
+                lookupTable,
+                name,
+                required: false,
+            }];
+
+            next(updateTemplateDraft({annotations}));
+
+        } catch(e) {
+            next(setAlert({
+                message: e.message,
+                type: AlertType.ERROR,
+            }));
         }
-
-        const annotationLookups = getAnnotationLookups(state);
-        const annotationLookup = annotationLookups.find((al) => al.annotationId === annotationId);
-
-        if (!annotationLookup) {
-            throw new Error(""); // todo
-        }
-
-        const lookup = getLookups(state).find((l) => l.lookupId === annotationLookup.lookupId);
-
-        if (!lookup) {
-            throw new Error(""); // todo
-        }
-
-        const annotations: AnnotationDraft[] = [...oldAnnotations, {
-            annotationId,
-            annotationOptions,
-            annotationTypeId,
-            annotationTypeName: annotationType.name,
-            canHaveManyValues: false,
-            description,
-            index: oldAnnotations.length,
-            lookupSchema: lookup.schemaName,
-            lookupTable: lookup.tableName,
-            name,
-            required: false,
-        }];
-
-        next(updateTemplateDraft({annotations}));
     },
     type: ADD_ANNOTATION,
 });
@@ -117,7 +138,6 @@ const getTemplateLogic = createLogic({
     process: async ({action, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        console.log("get template process");
         const state = getState();
         const { addAnnotationsToUpload, templateId } = action.payload;
         const uploads = getUpload(state);
