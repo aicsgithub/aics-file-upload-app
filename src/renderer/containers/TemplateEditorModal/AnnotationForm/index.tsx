@@ -12,8 +12,8 @@ import { Annotation, AnnotationDraft, AnnotationType, ColumnType, Lookup } from 
 const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
     annotationOptions: undefined,
-    canHaveManyValues: false,
     annotationTypeName: ColumnType.TEXT,
+    canHaveManyValues: false,
     description: undefined,
     lookupTable: undefined,
     name: undefined,
@@ -45,26 +45,32 @@ interface AnnotationFormState {
 
 class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     public get annotationNameError(): string | undefined {
-        const { existingAnnotations } = this.props;
         let { name } = this.state;
         if (!name) {
             return "Name is required";
         }
 
         name = startCase(name);
+        const { annotation } = this.props;
 
-        const templateAnnotations = this.props.templateAnnotations || [];
-        const allAnnotationsNames = [
-            ...existingAnnotations.map((a) => startCase(a.name)),
-            ...templateAnnotations.map((a) => startCase(a.name)),
-            name,
-        ];
-        const annotationNameIsDuplicate = allAnnotationsNames.filter((a) => a === name).length > 1;
-        if (annotationNameIsDuplicate) {
-            return `Annotation named ${name} already exists`;
+        // check that annotation name is not already an existing annotation if it's new
+        const existingAnnotationNames = this.props.existingAnnotations.map((a) => startCase(a.name));
+        const annotationNameDuplicatesExisting = existingAnnotationNames.find((a) => a === name);
+        if ((!annotation || !annotation.annotationId) && !!annotationNameDuplicatesExisting) {
+            return `Annotation named ${name} duplicates an existing annotation`;
         }
 
-        return undefined;
+        // check that the annotation name doesn't exist in template already
+        const templateAnnotations = this.props.templateAnnotations || [];
+        const templateAnnotationNames = templateAnnotations.map((a) => startCase(a.name));
+
+        if (!annotation) {
+            templateAnnotationNames.push(name);
+        }
+
+        const numberOfAnnotationsMatchingName = templateAnnotationNames.filter((a) => a === name).length;
+
+        return numberOfAnnotationsMatchingName > 1 ? `Annotation named ${name} already exists` : undefined;
     }
 
     public get dropdownValuesError(): string | undefined {
@@ -132,7 +138,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                         </FormControl>
                         <FormControl label="Data Type">
                             <Select
-                                autoFocus={true}
                                 className={styles.select}
                                 onChange={this.setColumnType}
                                 placeholder="Column Type"
