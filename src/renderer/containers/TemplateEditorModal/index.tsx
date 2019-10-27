@@ -1,8 +1,8 @@
-import { Alert, Input, List, Modal, Popover, Select, Tag } from "antd";
+import { Alert, Input, List, Modal, Popover, Select, Spin, Tag } from "antd";
 import { ipcRenderer } from "electron";
 import { endsWith, includes, startCase } from "lodash";
 import * as React from "react";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
@@ -55,6 +55,7 @@ interface Props {
     closeModal: ActionCreator<CloseTemplateEditorAction>;
     errors: string[];
     getAnnotations: ActionCreator<GetAnnotationsAction>;
+    loadingTemplate: boolean;
     openModal: ActionCreator<OpenTemplateEditorAction>;
     removeAnnotations: ActionCreator<RemoveAnnotationsAction>;
     saveInProgress: boolean;
@@ -95,19 +96,13 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
 
     public render() {
         const {
-            allAnnotations,
-            annotationTypes,
             className,
             closeModal,
             errors,
             saveInProgress,
-            tables,
             template,
             visible,
         } = this.props;
-        const { showAlert } = this.state;
-        const appliedAnnotationNames = template.annotations.map((a) => a.name);
-        const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
 
         return (
             <Modal
@@ -121,7 +116,46 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 okButtonProps={{disabled: errors.length > 0, loading: saveInProgress}}
                 maskClosable={false}
             >
-                {showAlert && <Alert
+                {this.renderBody()}
+            </Modal>
+        );
+    }
+
+    private closeAlert = () => this.setState({showAlert: false});
+
+    private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
+        const endsInSpace = endsWith(e.target.value, " ");
+        const ending = endsInSpace ? " " : "";
+        this.props.updateTemplateDraft({
+            name: startCase(e.target.value) + ending,
+        });
+    }
+
+    private renderBody = (): ReactNode | ReactNodeArray => {
+        const {
+            allAnnotations,
+            annotationTypes,
+            errors,
+            loadingTemplate,
+            tables,
+            template,
+        } = this.props;
+        const { showAlert } = this.state;
+        const appliedAnnotationNames = template.annotations.map((a) => a.name);
+        const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
+
+        if (loadingTemplate) {
+            return (
+                <div className={styles.spinContainer}>
+                    <div>Loading template...</div>
+                    <Spin/>
+                </div>
+            );
+        }
+
+        return (
+            <>
+                {!template.templateId && showAlert && <Alert
                     afterClose={this.closeAlert}
                     className={styles.alert}
                     closable={true}
@@ -181,22 +215,11 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         message={errors.map((e) => <div key={e}>{e}</div>)}
                     />
                 )}
-            </Modal>
-        );
-    }
-
-    private closeAlert = () => this.setState({showAlert: false});
-
-    private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
-        const endsInSpace = endsWith(e.target.value, " ");
-        const ending = endsInSpace ? " " : "";
-        this.props.updateTemplateDraft({
-            name: startCase(e.target.value) + ending,
-        });
+            </>);
     }
 
     // todo new component
-    private renderListItem = (annotation: AnnotationDraft) => {
+    private renderListItem = (annotation: AnnotationDraft): ReactNode => {
         const { allAnnotations, annotationTypes, tables, template } = this.props;
         const { selectedAnnotation } = this.state;
 
@@ -249,7 +272,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         templateAnnotations={template.annotations}
                         updateAnnotation={this.updateAnnotation}
                     />
-                    )}
+                )}
                 trigger="click"
                 visible={Boolean(selectedAnnotation && selectedAnnotation.name === annotation.name)}
                 onVisibleChange={this.handleVisibleChange(annotation)}
@@ -327,6 +350,7 @@ function mapStateToProps(state: State) {
         allAnnotations: getAnnotations(state),
         annotationTypes: getAnnotationTypes(state),
         errors: getTemplateDraftErrors(state),
+        loadingTemplate: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.SAVE_TEMPLATE),
         tables: getLookups(state),
         template: getTemplateDraft(state),
