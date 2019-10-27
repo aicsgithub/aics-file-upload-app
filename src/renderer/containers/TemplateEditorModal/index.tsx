@@ -6,14 +6,16 @@ import { ChangeEvent } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { OPEN_CREATE_SCHEMA_MODAL, SCHEMA_SYNONYM } from "../../../shared/constants";
+import { OPEN_TEMPLATE_EDITOR, SCHEMA_SYNONYM } from "../../../shared/constants";
 import FormControl from "../../components/FormControl";
+import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AsyncRequest } from "../../state/feedback/types";
 
 import { requestAnnotations } from "../../state/metadata/actions";
 import { getAnnotations, getAnnotationTypes, getLookups } from "../../state/metadata/selectors";
 import { GetAnnotationsAction } from "../../state/metadata/types";
-import { closeSchemaCreator, openSchemaCreator } from "../../state/selection/actions";
-import { getShowCreateSchemaModal } from "../../state/selection/selectors";
+import { closeTemplateEditor, openTemplateEditor } from "../../state/selection/actions";
+import { getTemplateEditorVisible } from "../../state/selection/selectors";
 import { CloseTemplateEditorAction, OpenTemplateEditorAction } from "../../state/selection/types";
 import { addTemplateIdToSettings } from "../../state/setting/actions";
 import { AddTemplateIdToSettingsAction } from "../../state/setting/types";
@@ -23,7 +25,7 @@ import {
     saveTemplate,
     updateTemplateDraft
 } from "../../state/template/actions";
-import { getCanSaveTemplate, getTemplateDraft } from "../../state/template/selectors";
+import { getTemplateDraft, getTemplateDraftErrors } from "../../state/template/selectors";
 import {
     AddExistingAnnotationAction,
     Annotation,
@@ -49,12 +51,13 @@ interface Props {
     addTemplateIdToSettings: ActionCreator<AddTemplateIdToSettingsAction>;
     allAnnotations: Annotation[];
     annotationTypes: AnnotationType[];
-    canSave: boolean;
     className?: string;
     closeModal: ActionCreator<CloseTemplateEditorAction>;
+    errors: string[];
     getAnnotations: ActionCreator<GetAnnotationsAction>;
     openModal: ActionCreator<OpenTemplateEditorAction>;
     removeAnnotations: ActionCreator<RemoveAnnotationsAction>;
+    saveInProgress: boolean;
     saveTemplate: ActionCreator<SaveTemplateAction>;
     tables: Lookup[]; // todo
     template: TemplateDraft;
@@ -76,7 +79,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     public componentDidMount(): void {
-        ipcRenderer.on(OPEN_CREATE_SCHEMA_MODAL, (event: Event, templateId?: number) => {
+        ipcRenderer.on(OPEN_TEMPLATE_EDITOR, (event: Event, templateId?: number) => {
             this.props.openModal(templateId);
         });
 
@@ -94,9 +97,10 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         const {
             allAnnotations,
             annotationTypes,
-            canSave,
             className,
             closeModal,
+            errors,
+            saveInProgress,
             tables,
             template,
             visible,
@@ -114,12 +118,12 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 onOk={this.saveAndClose}
                 onCancel={closeModal}
                 okText="Save"
-                okButtonProps={{disabled: !canSave}}
+                okButtonProps={{disabled: errors.length > 0, loading: saveInProgress}}
                 maskClosable={false}
             >
                 {showAlert && <Alert
                     afterClose={this.closeAlert}
-                    className={styles.infoAlert}
+                    className={styles.alert}
                     closable={true}
                     showIcon={true}
                     type="info"
@@ -177,6 +181,14 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         />
                     </div>
                 </div>
+                {errors.length > 0 && (
+                    <Alert
+                        className={styles.errorAlert}
+                        showIcon={true}
+                        type="error"
+                        message={errors.map((e) => <div key={e}>{e}</div>)}
+                    />
+                )}
             </Modal>
         );
     }
@@ -195,14 +207,13 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         const { allAnnotations, annotationTypes, tables, template } = this.props;
         const { selectedAnnotation } = this.state;
 
-        const {annotationId, canHaveMany, description, name, required, type} = annotation;
-        const {name: typeName} = type;
+        const {annotationId, annotationTypeName, canHaveManyValues, description, name, required} = annotation;
         const tags: Array<{color: string, text: string}> = [];
-        tags.push({color: "green", text: typeName});
+        tags.push({color: "green", text: annotationTypeName});
         tags.push({color: "red", text: required ? "Required" : "Optional"});
         tags.push({color: "purple", text: annotationId ? "Existing Annotation" : "New"});
 
-        if (canHaveMany) {
+        if (canHaveManyValues) {
             tags.push({color: "blue", text: "Multiple Values Allowed"});
         }
 
@@ -305,19 +316,20 @@ function mapStateToProps(state: State) {
     return {
         allAnnotations: getAnnotations(state),
         annotationTypes: getAnnotationTypes(state),
-        canSave: getCanSaveTemplate(state),
+        errors: getTemplateDraftErrors(state),
+        saveInProgress: getRequestsInProgressContains(state, AsyncRequest.SAVE_TEMPLATE),
         tables: getLookups(state),
         template: getTemplateDraft(state),
-        visible: getShowCreateSchemaModal(state),
+        visible: getTemplateEditorVisible(state),
     };
 }
 
 const dispatchToPropsMap = {
     addAnnotation: addExistingAnnotation,
     addTemplateIdToSettings,
-    closeModal: closeSchemaCreator,
+    closeModal: closeTemplateEditor,
     getAnnotations: requestAnnotations,
-    openModal: openSchemaCreator,
+    openModal: openTemplateEditor,
     removeAnnotations,
     saveTemplate,
     updateTemplateDraft,

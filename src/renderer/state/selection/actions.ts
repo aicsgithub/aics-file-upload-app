@@ -1,6 +1,6 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 
-import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
+import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -160,16 +160,16 @@ export function selectWells(wells: GridCell[]): SelectWellsAction {
     };
 }
 
-export function closeSchemaCreator(): CloseTemplateEditorAction {
+export function closeTemplateEditor(): CloseTemplateEditorAction {
     return {
-        type: CLOSE_CREATE_SCHEMA_MODAL,
+        type: CLOSE_TEMPLATE_EDITOR,
     };
 }
 
-export function openSchemaCreator(templateId?: number): OpenTemplateEditorAction {
+export function openTemplateEditor(templateId?: number): OpenTemplateEditorAction {
     return {
         payload: templateId,
-        type: OPEN_CREATE_SCHEMA_MODAL,
+        type: OPEN_TEMPLATE_EDITOR,
     };
 }
 

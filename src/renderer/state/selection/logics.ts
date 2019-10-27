@@ -5,7 +5,7 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
-import { OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
+import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
 import { canUserRead } from "../../util";
 
@@ -22,7 +22,7 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
-import { getTemplate } from "../template/actions";
+import { clearTemplateDraft, getTemplate } from "../template/actions";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
@@ -42,7 +42,7 @@ import {
     setPlate,
     setWells,
     stageFiles,
-    updateStagedFiles
+    updateStagedFiles,
 } from "./actions";
 import {
     GET_FILES_IN_FOLDER,
@@ -468,10 +468,23 @@ const openCreateSchemaModalLogic = createLogic({
 
         done();
     },
-    type: OPEN_CREATE_SCHEMA_MODAL,
+    type: OPEN_TEMPLATE_EDITOR,
+});
+
+const closeSchemaModalLogic = createLogic({
+   transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+       if (getPage(getState()) !== Page.AddCustomData) {
+           next(batchActions([
+               clearTemplateDraft(),
+               action,
+           ]));
+       }
+   },
+    type: CLOSE_TEMPLATE_EDITOR,
 });
 
 export default [
+    closeSchemaModalLogic,
     goBackLogic,
     goForwardLogic,
     loadFilesLogic,

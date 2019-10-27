@@ -12,7 +12,7 @@ import { Annotation, AnnotationDraft, AnnotationType, ColumnType, Lookup } from 
 const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
     annotationOptions: undefined,
-    canHaveMany: false,
+    canHaveManyValues: false,
     dataType: ColumnType.TEXT,
     description: undefined,
     lookupTableName: undefined,
@@ -35,7 +35,7 @@ interface Props {
 
 interface AnnotationFormState {
     annotationOptions?: string[];
-    canHaveMany: boolean;
+    canHaveManyValues: boolean;
     dataType: string;
     description?: string;
     lookupTableName?: string;
@@ -111,7 +111,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             className,
         } = this.props;
         const {
-            canHaveMany,
+            canHaveManyValues,
             dataType,
             description,
             name,
@@ -151,8 +151,8 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                         </FormControl>
                     </>
                 )}
-                <Checkbox value={required} onChange={this.setRequired}>Required</Checkbox>
-                <Checkbox value={canHaveMany} onChange={this.setCanHaveMany}>Allow Multiple Values</Checkbox>
+                <Checkbox checked={required} onChange={this.setRequired}>Required</Checkbox>
+                <Checkbox checked={canHaveManyValues} onChange={this.setCanHaveMany}>Allow Multiple Values</Checkbox>
                 <div className={styles.buttonContainer}>
                     {cancel && (
                         <Button className={styles.button} onClick={cancel}>Cancel</Button>
@@ -215,9 +215,9 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             return {...EMPTY_STATE};
         }
         return {
-            annotationOptions: annotation.type.annotationOptions,
-            canHaveMany: annotation.canHaveMany,
-            dataType: annotation.type.name,
+            annotationOptions: annotation.annotationOptions,
+            canHaveManyValues: annotation.canHaveManyValues,
+            dataType: annotation.annotationTypeName,
             description: annotation.description,
             name: annotation.name,
             required: annotation.required,
@@ -247,7 +247,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     }
 
     private setCanHaveMany = (e: CheckboxChangeEvent) => {
-        this.setState({canHaveMany: e.target.checked});
+        this.setState({canHaveManyValues: e.target.checked});
     }
 
     private setColumnType = (dataType: string) => {
@@ -263,7 +263,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const { annotation, annotationTypes, index, lookups } = this.props;
         const {
             annotationOptions,
-            canHaveMany,
+            canHaveManyValues,
             dataType,
             description,
             lookupTableName,
@@ -280,19 +280,16 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         }
 
         const draft: AnnotationDraft = {
-            canHaveMany,
+            annotationOptions,
+            annotationTypeId: annotationTypeSelected.annotationTypeId,
+            annotationTypeName: annotationTypeSelected.name,
+            canHaveManyValues,
             description,
             index,
+            lookupSchema: lookupSelected ? lookupSelected.schemaName : undefined,
+            lookupTable: lookupSelected ? lookupSelected.tableName : undefined,
             name,
             required,
-            type: {
-                annotationOptions,
-                annotationTypeId: annotationTypeSelected.annotationTypeId,
-                lookupColumn: lookupSelected ? lookupSelected.columnName : undefined,
-                lookupSchema: lookupSelected ? lookupSelected.schemaName : undefined,
-                lookupTable: lookupSelected ? lookupSelected.tableName : undefined,
-                name: annotationTypeSelected.name,
-            },
         };
 
         if (annotation) {

@@ -1,5 +1,6 @@
+import { AxiosRequestConfig } from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
-import { Template, TemplateDraft } from "../../state/template/types";
+import { SaveTemplateRequest, Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 
@@ -8,7 +9,7 @@ export default class MMSClient extends BaseServiceClient {
 
     constructor(config: {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
         super(config);
-        this.username = config.username;
+        this.username = "lisah";
     }
 
     /**
@@ -18,7 +19,7 @@ export default class MMSClient extends BaseServiceClient {
     public async createBarcode(prefixId: number): Promise<string> {
         const url = "/1.0/plate/barcode";
         const body = { prefixId, quantity: 1 };
-        const response = await this.httpClient.post(url, body, { headers: { "X-User-Id": this.username } });
+        const response = await this.httpClient.post(url, body, this.config);
         return response.data[0];
     }
 
@@ -40,13 +41,28 @@ export default class MMSClient extends BaseServiceClient {
         return response.data[0];
     }
 
-    public async createTemplate(draft: TemplateDraft): Promise<number> {
+    public async createTemplate(request: SaveTemplateRequest): Promise<number> {
         const url = `/1.0/template/`;
-        const response = await this.httpClient.post(url, draft);
+        const response = await this.httpClient.post(url, request, this.config);
+        return response.data[0];
+    }
+
+    public async editTemplate(request: SaveTemplateRequest): Promise<number> {
+        const url = `/1.0/template`;
+        const response = await this.httpClient.put(url, request, this.config);
         return response.data[0];
     }
 
     protected get baseURL(): string {
         return `${this.protocol}://${this.host}:${this.port}/metadata-management-service`;
+    }
+
+    private get config(): AxiosRequestConfig {
+        return {
+            headers: {
+                "Content-Type": "application/json",
+                "X-User-Id": this.username,
+            },
+        };
     }
 }

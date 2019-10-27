@@ -1,5 +1,5 @@
 import electron, { dialog, Menu, shell } from "electron";
-import { OPEN_CREATE_SCHEMA_MODAL, SCHEMA_SYNONYM, SET_LIMS_URL } from "../shared/constants";
+import { OPEN_TEMPLATE_EDITOR, SCHEMA_SYNONYM, SET_LIMS_URL } from "../shared/constants";
 import { LimsUrl } from "../shared/types";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
@@ -37,7 +37,7 @@ export const setMenu = (webContents: WebContents) => {
                     label: "New",
                     submenu: [
                         {
-                            click: () => webContents.send(OPEN_CREATE_SCHEMA_MODAL),
+                            click: () => webContents.send(OPEN_TEMPLATE_EDITOR),
                             label: SCHEMA_SYNONYM,
                         },
                     ],
@@ -52,7 +52,7 @@ export const setMenu = (webContents: WebContents) => {
                                     properties: ["openFile"],
                                     title: `Open ${SCHEMA_SYNONYM}`}, (filePaths?: string[]) => {
                                     if (filePaths) {
-                                        webContents.send(OPEN_CREATE_SCHEMA_MODAL, filePaths[0]);
+                                        webContents.send(OPEN_TEMPLATE_EDITOR, filePaths[0]);
                                     }
                                 });
                             },

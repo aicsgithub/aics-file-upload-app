@@ -16,8 +16,8 @@ export const SET_LIMS_URL = "SET_LIMS_URL";
 export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 
 // emitted by main process when user selects File > New > Schema
-export const OPEN_CREATE_SCHEMA_MODAL = "OPEN_CREATE_SCHEMA_MODAL";
-export const CLOSE_CREATE_SCHEMA_MODAL = "CLOSE_CREATE_SCHEMA_MODAL";
+export const OPEN_TEMPLATE_EDITOR = "OPEN_TEMPLATE_EDITOR";
+export const CLOSE_TEMPLATE_EDITOR = "CLOSE_TEMPLATE_EDITOR";
 
 // User settings
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";

@@ -5,26 +5,53 @@ import { State } from "../types";
 import { AnnotationDraft, ColumnType } from "./types";
 
 export const getTemplateDraft = (state: State) => state.template.present.draft;
+export const getTemplateDraftName = (state: State) => state.template.present.draft.name;
 export const getTemplateDraftAnnotations = (state: State) => state.template.present.draft.annotations;
 
-export const getCanSaveTemplate = createSelector([
+export const getTemplateDraftErrors = createSelector([
     getTemplateDraftAnnotations,
-], (annotations: AnnotationDraft[]) => {
-    const columnWithNoTypeFound: boolean = !!annotations.find(({type}) => !type || !type.annotationTypeId);
+    getTemplateDraftName,
+], (annotations: AnnotationDraft[], templateName?: string) => {
+    const errors = [];
+    if (!templateName) {
+        errors.push("Template is missing a name");
+    }
+    let annotationNameMissing = false;
+
+    annotations
+        .forEach(({name, annotationOptions, annotationTypeId, annotationTypeName, lookupTable}) => {
+            if (!name) {
+                annotationNameMissing = true;
+            }
+
+            if (!annotationTypeId) {
+                errors.push(`Annotation ${name} is missing a data type`);
+            }
+
+            if (annotationTypeName === ColumnType.DROPDOWN && isEmpty(annotationOptions)) {
+                errors.push(`Annotation ${name} is a dropdown but is missing dropdown options`);
+            }
+
+            if (annotationTypeName === ColumnType.LOOKUP && !lookupTable) {
+                errors.push(`Annotation ${name} is a lookup but no lookup table is specified`);
+            }
+        });
+    if (annotationNameMissing) {
+        errors.push("At least one annotation is missing a name");
+    }
+
+    if (isEmpty(annotations)) {
+        errors.push("Templates need at least one annotation");
+    }
+
     const duplicateNamesFound: boolean = uniqBy(
         annotations.filter((c: AnnotationDraft) => !!c.name),
         "name"
     ).length !== annotations.length;
-    const columnWithNoLabelFound: boolean = !!annotations.find(({name}) => !name);
-    const dropdownValuesMissing: boolean = !!annotations
-        .find(({type}) => type.name === ColumnType.DROPDOWN && isEmpty(type.annotationOptions));
-    const lookupValuesMissing: boolean = !!annotations
-        .find(({type}) => type.name === ColumnType.LOOKUP && !type.lookupTable);
 
-    return !duplicateNamesFound &&
-        !columnWithNoLabelFound &&
-        !dropdownValuesMissing &&
-        !columnWithNoTypeFound &&
-        !lookupValuesMissing &&
-        annotations.length > 0;
+    if (duplicateNamesFound) {
+        errors.push("Found duplicate annotation names");
+    }
+
+    return errors;
 });

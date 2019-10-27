@@ -11,7 +11,7 @@ import { SetAlertAction } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { GetTemplatesAction } from "../../state/metadata/types";
-import { goBack, goForward, openSchemaCreator } from "../../state/selection/actions";
+import { goBack, goForward, openTemplateEditor } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction, OpenTemplateEditorAction } from "../../state/selection/types";
 import { removeTemplateIdFromSettings } from "../../state/setting/actions";
 import { getTemplateIds } from "../../state/setting/selectors";
@@ -160,12 +160,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private requiredValuesPresent = (): boolean => {
         const {appliedTemplate} = this.props;
         if (appliedTemplate) {
-            return !appliedTemplate.annotations.every(({name, type: { name: typeName }, required}: AnnotationDraft) => {
+            return !appliedTemplate.annotations.every(({annotationTypeName, name, required}: AnnotationDraft) => {
                 if (!name) {
                     throw new Error("annotation is missing a name");
                 }
 
-                if (required && typeName !== ColumnType.BOOLEAN) {
+                if (required && annotationTypeName !== ColumnType.BOOLEAN) {
                     return this.props.uploads.every((upload: any) => {
                         return Boolean(upload[name]);
                     });
@@ -203,7 +203,7 @@ const dispatchToPropsMap = {
     goForward,
     initiateUpload,
     jumpToUpload,
-    openSchemaCreator,
+    openSchemaCreator: openTemplateEditor,
     removeTemplateIdFromSettings,
     removeUploads,
     requestTemplates,

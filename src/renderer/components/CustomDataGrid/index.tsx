@@ -220,7 +220,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             return basicColumns;
         }
         const schemaColumns = this.props.template.annotations.map((column: AnnotationDraft) => {
-            const {name,  type: {name: typeName,  annotationOptions }, required } = column;
+            const {name,  annotationTypeName,  annotationOptions, required } = column;
             const columns: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
@@ -228,18 +228,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 key: name || "", // todo
                 name: name || "", // todo
                 resizable: true,
-                type: typeName,
+                type: annotationTypeName,
             };
             // Use custom editor for everything except TEXT types which will use the default editor
-            if (typeName !== ColumnType.TEXT) {
+            if (annotationTypeName !== ColumnType.TEXT) {
                 columns.editor = Editor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
-            if (typeName === ColumnType.DATE) {
+            if (annotationTypeName === ColumnType.DATE) {
                 columns.width = 170;
             }
-            if (typeName === ColumnType.BOOLEAN) {
+            if (annotationTypeName === ColumnType.BOOLEAN) {
                 columns.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name || "", saveValue: this.saveByRow});
             } else {

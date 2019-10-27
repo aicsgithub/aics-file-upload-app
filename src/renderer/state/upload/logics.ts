@@ -42,7 +42,7 @@ const applyTemplateLogic = createLogic({
     process: async ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         if (ctx.templateId) {
-            // this needs to be dispatched separately to go through getTemplateLogic
+            // this needs to be dispatched separately to go through logics
             dispatch(getTemplate(ctx.templateId));
             dispatch(addTemplateIdToSettings(ctx.templateId));
         }

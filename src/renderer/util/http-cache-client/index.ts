@@ -21,13 +21,13 @@ export default class HttpCacheClient {
         return response.data;
     }
 
-    public post = async <T = any>(url: string, request: any, user: string, config?: AxiosRequestConfig) => {
-        const response = await this.httpClient.post(url, request, this.getConfig(user, config));
+    public post = async <T = any>(url: string, request: any, config?: AxiosRequestConfig) => {
+        const response = await this.httpClient.post(url, request, config);
         return response.data;
     }
 
-    public put = async <T = any>(url: string, request: any, user: string, config?: AxiosRequestConfig) => {
-        const response = await this.httpClient.put(url, request, this.getConfig(user, config));
+    public put = async <T = any>(url: string, request: any, config?: AxiosRequestConfig) => {
+        const response = await this.httpClient.put(url, request, config);
         return response.data;
     }
 
@@ -37,17 +37,17 @@ export default class HttpCacheClient {
         return this.checkCache(key, action);
     }
 
-    private postAndReturnCache = async <T = any>(url: string, request: any, user: string,
+    private postAndReturnCache = async <T = any>(url: string, request: any,
                                                  config?: AxiosRequestConfig): Promise<T> => {
         const key = `POST ${url}`;
-        const action = () => this.httpClient.post(url, request, this.getConfig(user, config));
+        const action = () => this.httpClient.post(url, request, config);
         return this.checkCache(key, action);
     }
 
-    private putAndReturnCache = async <T = any>(url: string, request: any, user: string,
+    private putAndReturnCache = async <T = any>(url: string, request: any,
                                                 config?: AxiosRequestConfig): Promise<T> => {
         const key = `PUT ${url}`;
-        const action = () => this.httpClient.put(url, request, this.getConfig(user, config));
+        const action = () => this.httpClient.put(url, request, config);
         return this.checkCache(key, action);
     }
 
@@ -62,18 +62,5 @@ export default class HttpCacheClient {
             this.localStorage.set(key, response.data);
         }
         return response.data;
-    }
-
-    private getConfig(user: string, config?: AxiosRequestConfig) {
-        return {
-            ...config,
-            headers: this.getHeaders(user),
-        };
-    }
-    private getHeaders(user: string): {[key: string]: string} {
-        return {
-            "Content-Type": "application/json",
-            "X-User-Id": user,
-        };
     }
 }

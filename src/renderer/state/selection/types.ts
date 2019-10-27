@@ -26,8 +26,8 @@ export interface SelectionStateBranch {
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
     page: Page;
-    showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
+    templateEditorVisible: boolean;
     view: Page;
 }
 

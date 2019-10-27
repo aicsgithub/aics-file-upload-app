@@ -8,7 +8,7 @@ import undoable, {
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
+import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_STAGED_FILES,
@@ -53,11 +53,11 @@ export const initialState = {
     page: Page.UploadSummary,
     selectedWells: [],
     selectedWorkflows: [],
-    showCreateSchemaModal: false,
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
+    templateEditorVisible: false,
     view: Page.UploadSummary,
     wells: [],
 };
@@ -162,19 +162,22 @@ const actionToConfigMap: TypeToDescriptionMap = {
             selectedWells: action.payload,
         }),
     },
-    [OPEN_CREATE_SCHEMA_MODAL]: {
-        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_CREATE_SCHEMA_MODAL,
+    [OPEN_TEMPLATE_EDITOR]: {
+        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
         perform: (state: SelectionStateBranch) => ({
             ...state,
-            showCreateSchemaModal: true,
+            templateEditorVisible: true,
         }),
     },
-    [CLOSE_CREATE_SCHEMA_MODAL]: {
-        accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_CREATE_SCHEMA_MODAL,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            showCreateSchemaModal: false,
-        }),
+    [CLOSE_TEMPLATE_EDITOR]: {
+        accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_TEMPLATE_EDITOR,
+        perform: (state: SelectionStateBranch) => {
+            console.log("closing")
+            return {
+                ...state,
+                templateEditorVisible: false,
+            };
+        },
     },
 };
 

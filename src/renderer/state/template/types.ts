@@ -19,12 +19,16 @@ export interface Annotation extends Audited {
 
 export interface AnnotationDraft {
     annotationId?: number;
-    canHaveMany: boolean;
+    annotationOptions?: string[];
+    annotationTypeId: number;
+    annotationTypeName: string;
+    canHaveManyValues: boolean;
     description?: string;
     index: number;
     name?: string;
+    lookupSchema?: string;
+    lookupTable?: string;
     required: boolean;
-    type: AnnotationTypeDraft; // todo flatten
 }
 
 export interface AnnotationLookup {
@@ -36,15 +40,6 @@ export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number
 
 export interface AnnotationType {
     annotationTypeId: number;
-    name: string;
-}
-
-export interface AnnotationTypeDraft {
-    annotationOptions?: string[];
-    annotationTypeId: number;
-    lookupColumn?: string;
-    lookupSchema?: string;
-    lookupTable?: string;
     name: string;
 }
 
@@ -65,7 +60,7 @@ export interface ClearTemplateDraftAction {
 export interface CreateAnnotationRequest {
     annotationOptions?: string[];
     annotationTypeId: number;
-    canHaveMany: boolean;
+    canHaveManyValues: boolean;
     description: string;
     name: string;
     lookupColumn?: string;
@@ -93,13 +88,12 @@ export interface RemoveAnnotationsAction {
 }
 
 export interface SaveTemplateAction {
-    payload?: number;
     type: string;
 }
 
 export interface SaveTemplateRequest {
     name: string;
-    annotations: AnnotationRequest;
+    annotations: AnnotationRequest[];
 }
 
 export interface Template extends Audited {
@@ -113,13 +107,12 @@ export interface TemplateAnnotation extends Audited {
     annotationId: number;
     annotationOptions?: string[];
     annotationTypeId: number;
-    canHaveMany: boolean;
+    canHaveManyValues: boolean;
     description: string;
-    name: string;
-    required: boolean;
-    lookupColumn?: string;
     lookupSchema?: string;
     lookupTable?: string;
+    name: string;
+    required: boolean;
 }
 
 export interface TemplateDraft {

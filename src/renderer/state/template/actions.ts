@@ -44,9 +44,8 @@ export function removeAnnotations(indexes: number[]): RemoveAnnotationsAction {
     };
 }
 
-export function saveTemplate(templateId?: number): SaveTemplateAction {
+export function saveTemplate(): SaveTemplateAction {
     return {
-        payload: templateId,
         type: SAVE_TEMPLATE,
     };
 }

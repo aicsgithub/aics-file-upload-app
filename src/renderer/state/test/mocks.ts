@@ -36,7 +36,7 @@ export const mockSelection: SelectionStateBranch = {
     page: Page.DragAndDrop,
     selectedWells: [],
     selectedWorkflows: [],
-    showCreateSchemaModal: false,
+    templateEditorVisible: false,
     stagedFiles: [],
     view: Page.DragAndDrop,
     wells: [],
