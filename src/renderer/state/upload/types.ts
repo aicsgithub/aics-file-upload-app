@@ -20,7 +20,7 @@ export interface UploadMetadata {
 
 export interface ApplyTemplateAction {
     payload: {
-        template?: LabkeyTemplate;
+        template: LabkeyTemplate;
         uploads: UploadStateBranch;
     };
     type: string;

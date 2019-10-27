@@ -30,6 +30,7 @@ export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
 export const getTemplateEditorVisible = (state: State) => state.selection.present.templateEditorVisible;
+export const getOpenTemplateModalVisible = (state: State) => state.selection.present.openTemplateModalVisible;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

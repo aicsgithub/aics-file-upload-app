@@ -15,8 +15,8 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
-import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
-import { getLimsHost, getLimsPort } from "./selectors";
+import { ADD_TEMPLATE_ID_TO_SETTINGS, GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
+import { getLimsHost, getLimsPort, getTemplateIds } from "./selectors";
 
 const updateSettingsLogic = createLogic({
     process: ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
@@ -87,7 +87,18 @@ const gatherSettingsLogic = createLogic({
    type: GATHER_SETTINGS,
 });
 
+const addTemplateIdToSettingsLogic = createLogic({
+    process: ({action, getState, storage}: ReduxLogicProcessDependencies,
+              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const templateIds = getTemplateIds(getState());
+        dispatch(updateSettings({templateIds: [...templateIds, action.payload.templateId]}));
+        done();
+    },
+    type: ADD_TEMPLATE_ID_TO_SETTINGS,
+});
+
 export default [
+    addTemplateIdToSettingsLogic,
     gatherSettingsLogic,
     updateSettingsLogic,
 ];

@@ -52,6 +52,7 @@ const port = "80";
 const protocol = "http";
 const username = "foo";
 const localStorage: LocalStorage = {
+    clear: stub(),
     get: stub(),
     set: stub(),
 };

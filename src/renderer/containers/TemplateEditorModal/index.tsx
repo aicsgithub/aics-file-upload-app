@@ -1,4 +1,4 @@
-import { Alert, Icon, Input, List, Modal, Popover, Select, Tag } from "antd";
+import { Alert, Input, List, Modal, Popover, Select, Tag } from "antd";
 import { ipcRenderer } from "electron";
 import { endsWith, includes, startCase } from "lodash";
 import * as React from "react";
@@ -142,17 +142,9 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                     <div className={styles.formContainer}>
                         <FormControl label="Add Existing Annotation" className={styles.search}>
                             <Select
-                                allowClear={true}
-                                autoClearSearchValue={true}
-                                autoFocus={true}
                                 className={styles.search}
-                                defaultActiveFirstOption={false}
-                                notFoundContent={null}
                                 onSelect={this.addExistingAnnotation}
                                 placeholder="Annotation Name"
-                                showSearch={true}
-                                showArrow={false}
-                                suffixIcon={<Icon type="search"/>}
                             >
                                 {filteredAnnotations.map((option: Annotation) => (
                                     <Select.Option key={option.name}>{option.name}</Select.Option>

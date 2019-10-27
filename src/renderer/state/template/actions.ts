@@ -30,9 +30,12 @@ export function clearTemplateDraft(): ClearTemplateDraftAction {
     };
 }
 
-export function getTemplate(templateId: number): GetTemplateAction {
+export function getTemplate(templateId: number, addAnnotationsToUpload: boolean = false): GetTemplateAction {
     return {
-        payload: templateId,
+        payload: {
+            addAnnotationsToUpload,
+            templateId,
+        },
         type: GET_TEMPLATE,
     };
 }

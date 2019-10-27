@@ -8,7 +8,12 @@ import undoable, {
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import {
+    CLOSE_OPEN_TEMPLATE_MODAL,
+    CLOSE_TEMPLATE_EDITOR,
+    OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_TEMPLATE_EDITOR,
+} from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_STAGED_FILES,
@@ -27,9 +32,9 @@ import {
 } from "./constants";
 import {
     AddStageFilesAction,
-    ClearStagedFilesAction,
+    ClearStagedFilesAction, CloseOpenTemplateModalAction,
     CloseTemplateEditorAction,
-    DeselectFilesAction,
+    DeselectFilesAction, OpenOpenTemplateModalAction,
     OpenTemplateEditorAction,
     Page,
     SelectBarcodeAction,
@@ -50,6 +55,7 @@ export const initialState = {
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
+    openTemplateModalVisible: false,
     page: Page.UploadSummary,
     selectedWells: [],
     selectedWorkflows: [],
@@ -171,13 +177,25 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [CLOSE_TEMPLATE_EDITOR]: {
         accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_TEMPLATE_EDITOR,
-        perform: (state: SelectionStateBranch) => {
-            console.log("closing")
-            return {
-                ...state,
-                templateEditorVisible: false,
-            };
-        },
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            templateEditorVisible: false,
+        }),
+    },
+    [OPEN_OPEN_TEMPLATE_MODAL]: {
+        accepts: (action: AnyAction): action is OpenOpenTemplateModalAction => action.type === OPEN_OPEN_TEMPLATE_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            openTemplateModalVisible: true,
+        }),
+    },
+    [CLOSE_OPEN_TEMPLATE_MODAL]: {
+        accepts: (action: AnyAction): action is CloseOpenTemplateModalAction =>
+            action.type === CLOSE_OPEN_TEMPLATE_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            openTemplateModalVisible: false,
+        }),
     },
 };
 

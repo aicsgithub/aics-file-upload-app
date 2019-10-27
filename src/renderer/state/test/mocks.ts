@@ -33,11 +33,12 @@ export const mockSelection: SelectionStateBranch = {
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
+    openTemplateModalVisible: false,
     page: Page.DragAndDrop,
     selectedWells: [],
     selectedWorkflows: [],
-    templateEditorVisible: false,
     stagedFiles: [],
+    templateEditorVisible: false,
     view: Page.DragAndDrop,
     wells: [],
 };

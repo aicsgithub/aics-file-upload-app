@@ -111,7 +111,7 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-export function applyTemplate(template?: LabkeyTemplate): ApplyTemplateAction {
+export function applyTemplate(template: LabkeyTemplate): ApplyTemplateAction {
     return {
         payload: {
             template,

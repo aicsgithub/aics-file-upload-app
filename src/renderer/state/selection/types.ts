@@ -21,6 +21,7 @@ export interface SelectionStateBranch {
     files: string[];
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
+    openTemplateModalVisible: boolean;
     plate?: PlateResponse;
     wells: WellResponse[];
     selectedWells: GridCell[];
@@ -207,6 +208,14 @@ export interface CloseTemplateEditorAction {
 
 export interface OpenTemplateEditorAction {
     payload?: number;
+    type: string;
+}
+
+export interface OpenOpenTemplateModalAction {
+    type: string;
+}
+
+export interface CloseOpenTemplateModalAction {
     type: string;
 }
 

@@ -460,7 +460,7 @@ const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): A
     return actions;
 };
 
-const openCreateSchemaModalLogic = createLogic({
+const openTemplateEditorLogic = createLogic({
     process: ({action}: ReduxLogicTransformDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         if (action.payload) {
             dispatch(getTemplate(action.payload));
@@ -471,7 +471,7 @@ const openCreateSchemaModalLogic = createLogic({
     type: OPEN_TEMPLATE_EDITOR,
 });
 
-const closeSchemaModalLogic = createLogic({
+const closeTemplateEditorLogic = createLogic({
    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
        if (getPage(getState()) !== Page.AddCustomData) {
            next(batchActions([
@@ -484,11 +484,11 @@ const closeSchemaModalLogic = createLogic({
 });
 
 export default [
-    closeSchemaModalLogic,
+    closeTemplateEditorLogic,
     goBackLogic,
     goForwardLogic,
     loadFilesLogic,
-    openCreateSchemaModalLogic,
+    openTemplateEditorLogic,
     openFilesLogic,
     getFilesInFolderLogic,
     selectBarcodeLogic,

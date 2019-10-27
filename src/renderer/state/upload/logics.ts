@@ -37,13 +37,15 @@ const associateFileAndWellLogic = createLogic({
     type: ASSOCIATE_FILES_AND_WELLS,
 });
 
-// This logic is to add new user-defined columns to each upload row, and remove any old columns
+// This logic will request the template from MMS and remove any old columns from existing uploads
+// The template applied does not contain annotation information yet
 const applyTemplateLogic = createLogic({
     process: async ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        console.log("applying template process", ctx.templateId);
         if (ctx.templateId) {
-            // this needs to be dispatched separately to go through logics
-            dispatch(getTemplate(ctx.templateId));
+            // these need to be dispatched separately to go through logics
+            dispatch(getTemplate(ctx.templateId, true));
             dispatch(addTemplateIdToSettings(ctx.templateId));
         }
 
@@ -52,6 +54,9 @@ const applyTemplateLogic = createLogic({
     transform: async ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
                       next: ReduxLogicNextCb) => {
         const {template} = action.payload;
+        if (template) {
+            ctx.templateId = template.TemplateId;
+        }
         const state = getState();
         const uploads: UploadStateBranch = getUpload(state);
 
@@ -59,18 +64,14 @@ const applyTemplateLogic = createLogic({
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
             const { barcode, notes, wellIds, wellLabels, workflows } = upload;
-            const uploadData: UploadMetadata = {
+            action.payload.uploads[filepath] = {
                 barcode,
                 notes,
-                templateId: template ? template.templateId : undefined,
+                templateId: template ? template.TemplateId : undefined,
                 wellIds,
                 wellLabels,
                 workflows,
             };
-            if (template) {
-                ctx.templateId = template.templateId;
-            }
-            action.payload.uploads[filepath] = uploadData;
         });
         next(action);
     },

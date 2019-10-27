@@ -1,4 +1,4 @@
-import { Button, Select } from "antd";
+import { Button, Spin } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -6,18 +6,16 @@ import { ActionCreator } from "redux";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
+import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
-import { SetAlertAction } from "../../state/feedback/types";
+import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { GetTemplatesAction } from "../../state/metadata/types";
 import { goBack, goForward, openTemplateEditor } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction, OpenTemplateEditorAction } from "../../state/selection/types";
-import { removeTemplateIdFromSettings } from "../../state/setting/actions";
 import { getTemplateIds } from "../../state/setting/selectors";
-import {
-    RemoveTemplateIdFromSettingsAction,
-} from "../../state/setting/types";
 import { getTemplateDraft } from "../../state/template/selectors";
 import { AnnotationDraft, ColumnType, TemplateDraft } from "../../state/template/types";
 import { State } from "../../state/types";
@@ -46,8 +44,6 @@ import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 const styles = require("./style.pcss");
 
-const { Option } = Select;
-
 interface Props {
     appliedTemplate: TemplateDraft;
     applyTemplate: ActionCreator<ApplyTemplateAction>;
@@ -58,8 +54,8 @@ interface Props {
     goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
+    loading: boolean;
     openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
-    removeTemplateIdFromSettings: ActionCreator<RemoveTemplateIdFromSettingsAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     requestTemplates: ActionCreator<GetTemplatesAction>;
     savedTemplateIds: number[];
@@ -87,6 +83,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canRedo,
             canUndo,
             className,
+            loading,
             uploads,
         } = this.props;
         const disableSaveButton = !(uploads.length && appliedTemplate && this.requiredValuesPresent());
@@ -101,12 +98,19 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
-                {appliedTemplate && (
+                {loading && (
+                    <div className={styles.spinContainer}>
+                        <div className={styles.spinText}>
+                            Getting template details...
+                        </div>
+                        <Spin/>
+                    </div>
+                )}
+                {appliedTemplate.templateId && (
                     <CustomDataGrid
                         canRedo={canRedo}
                         canUndo={canUndo}
                         redo={this.redo}
-                        removeTemplateIdFromSettings={this.props.removeTemplateIdFromSettings}
                         removeUploads={this.props.removeUploads}
                         template={appliedTemplate}
                         setAlert={this.props.setAlert}
@@ -125,18 +129,13 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.schemaSelector}>
-                <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
-                    <Select
-                        autoFocus={true}
+                    <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
+                    <TemplateSearch
                         className={styles.schemaSelector}
-                        onChange={this.selectTemplate}
-                        placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} file`}
-                        value={appliedTemplate ? appliedTemplate.name : undefined}
-                    >
-                        {templates.map(({Name: name}: LabkeyTemplate) => (
-                            <Option key={name}>{name}</Option>
-                        ))}
-                    </Select>
+                        value={appliedTemplate.name}
+                        onSelect={this.selectTemplate}
+                        templates={templates}
+                    />
                 </div>
                 <Button className={styles.createSchemaButton} onClick={this.props.openSchemaCreator}>
                     Create {SCHEMA_SYNONYM}
@@ -145,10 +144,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         );
     }
 
-    private selectTemplate = (templateName: string | null) => {
+    private selectTemplate = (templateName: string) => {
         const template = this.props.templates.find((t) => t.Name === templateName);
         if (template) {
-            this.props.applyTemplate(templateName);
+            this.props.applyTemplate(template);
         }
     }
 
@@ -190,6 +189,7 @@ function mapStateToProps(state: State) {
         appliedTemplate: getTemplateDraft(state),
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
+        loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         savedTemplateIds: getTemplateIds(state),
         schemaFile: getAppliedTemplateId(state),
         templates: getTemplates(state),
@@ -204,7 +204,6 @@ const dispatchToPropsMap = {
     initiateUpload,
     jumpToUpload,
     openSchemaCreator: openTemplateEditor,
-    removeTemplateIdFromSettings,
     removeUploads,
     requestTemplates,
     setAlert,

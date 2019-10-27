@@ -1,6 +1,5 @@
-import { isEmpty } from "lodash";
+import { isEmpty, map } from "lodash";
 import { createLogic } from "redux-logic";
-import { Error } from "tslint/lib/error";
 
 import LabkeyClient from "../../util/labkey-client";
 
@@ -8,7 +7,7 @@ import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from ".
 import { AlertType, AsyncRequest } from "../feedback/types";
 import {
     getAnnotationLookups,
-    getAnnotationTypes,
+    getAnnotationTypes, getBooleanAnnotationTypeId,
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
@@ -21,6 +20,9 @@ import {
     ReduxLogicTransformDependencies,
     State,
 } from "../types";
+import { updateUpload } from "../upload/actions";
+import { getUpload } from "../upload/selectors";
+import { UpdateUploadAction, UploadMetadata } from "../upload/types";
 import { batchActions } from "../util";
 import { updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
@@ -115,20 +117,44 @@ const getTemplateLogic = createLogic({
     process: async ({action, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        const templateId = action.payload;
+        console.log("get template process");
+        const state = getState();
+        const { addAnnotationsToUpload, templateId } = action.payload;
+        const uploads = getUpload(state);
+        const annotationTypes = getAnnotationTypes(state);
+        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(state);
 
         try {
             dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATE));
             const template: Template = await mmsClient.getTemplate(templateId);
             const { annotations, ...etc } = template;
-            const annotationTypes = getAnnotationTypes(getState());
+
+            const additionalAnnotations = annotations.reduce((accum: any, a: TemplateAnnotation) => {
+                let value;
+                if (a.annotationTypeId === booleanAnnotationTypeId) {
+                    value = false;
+                } else if (a.canHaveManyValues) {
+                    value = [];
+                }
+                return {
+                    ...accum,
+                    [a.name]: value,
+                };
+            }, {});
+
+            const updates: UpdateUploadAction[] = addAnnotationsToUpload ?
+                map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
+                    ...metadata,
+                    ...additionalAnnotations,
+                })) : [];
             dispatch(batchActions([
                 updateTemplateDraft({
                     ...etc,
                     annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation, index: number) => {
-                        const type = annotationTypes.find((t) => t.annotationTypeId === a.annotationId);
+                        const type = annotationTypes.find((t) => t.annotationTypeId === a.annotationTypeId);
                         if (!type) {
-                            throw new Error(""); // todo
+                            throw new Error(`Could not find matching type for annotation named ${a.name},
+                             annotationTypeId: ${a.annotationTypeId}`);
                         }
                         return {
                             ...a,
@@ -139,12 +165,13 @@ const getTemplateLogic = createLogic({
                     })),
                 }),
                 removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
+                ...updates,
             ]));
         } catch (e) {
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
                 setAlert({
-                    message: "Could not retrieve template",
+                    message: "Could not retrieve template: " + e.message,
                     type: AlertType.ERROR,
                 }),
             ]));
@@ -218,7 +245,6 @@ const saveTemplateLogic = createLogic({
                 message: "Template saved successfully!",
                 type: AlertType.SUCCESS,
             }));
-
 
         } catch (e) {
             dispatch(batchActions([

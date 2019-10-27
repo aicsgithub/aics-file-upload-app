@@ -134,6 +134,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
             ...action.payload.uploads,
         }),
     },
+    // template transform: add template id to uploads, strip away extras
+    // template process: save template id to settings, get template
+    // get template process: add additional fields to uploads
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
         perform: (state: UploadStateBranch, action: UpdateUploadAction) => ({

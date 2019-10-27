@@ -1,6 +1,11 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 
-import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import {
+    CLOSE_OPEN_TEMPLATE_MODAL,
+    CLOSE_TEMPLATE_EDITOR,
+    OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_TEMPLATE_EDITOR,
+} from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -26,7 +31,7 @@ import {
 import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
-    ClearStagedFilesAction,
+    ClearStagedFilesAction, CloseOpenTemplateModalAction,
     CloseTemplateEditorAction,
     DeselectFilesAction,
     DragAndDropFileList,
@@ -35,7 +40,7 @@ import {
     JumpToPastSelectionAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
-    NextPageAction,
+    NextPageAction, OpenOpenTemplateModalAction,
     OpenTemplateEditorAction,
     Page,
     PlateResponse,
@@ -170,6 +175,18 @@ export function openTemplateEditor(templateId?: number): OpenTemplateEditorActio
     return {
         payload: templateId,
         type: OPEN_TEMPLATE_EDITOR,
+    };
+}
+
+export function openOpenTemplateModal(): OpenOpenTemplateModalAction {
+    return {
+        type: OPEN_OPEN_TEMPLATE_MODAL,
+    };
+}
+
+export function closeOpenTemplateModal(): CloseOpenTemplateModalAction {
+    return {
+        type: CLOSE_OPEN_TEMPLATE_MODAL,
     };
 }
 

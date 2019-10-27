@@ -9,9 +9,6 @@ import { ActionCreator } from "redux";
 import NoteIcon from "../../components/NoteIcon";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import {
-    RemoveTemplateIdFromSettingsAction,
-} from "../../state/setting/types";
-import {
     AnnotationDraft,
     ColumnType,
     TemplateDraft,
@@ -32,7 +29,6 @@ interface Props {
     canRedo: boolean;
     className?: string;
     redo: () => void;
-    removeTemplateIdFromSettings: ActionCreator<RemoveTemplateIdFromSettingsAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     template?: TemplateDraft;
     setAlert: ActionCreator<SetAlertAction>;
@@ -324,10 +320,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         this.props.updateUpload(row.file, { [key]: value });
     }
 
-    private handleError = (error: string, errorFile?: string) => {
-        if  (errorFile) {
-            this.props.removeTemplateIdFromSettings(errorFile);
-        }
+    private handleError = (error: string) => {
         this.props.setAlert({
             message:  error,
             type: AlertType.WARN,

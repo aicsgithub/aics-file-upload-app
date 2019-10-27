@@ -27,7 +27,7 @@ import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
-    selectView
+    selectView,
 } from "../../state/selection/actions";
 import {
     getPage,
@@ -44,7 +44,7 @@ import {
     Page,
     SelectFileAction,
     SelectViewAction,
-    UploadFile
+    UploadFile,
 } from "../../state/selection/types";
 import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
@@ -59,6 +59,7 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import EnterBarcode from "../EnterBarcode";
+import OpenTemplateModal from "../OpenTemplateModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -228,6 +229,7 @@ class App extends React.Component<AppProps, {}> {
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <TemplateEditorModal/>
+                <OpenTemplateModal/>
             </div>
         );
     }

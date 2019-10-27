@@ -8,6 +8,7 @@ export default class HttpCacheClient {
     constructor(httpClient: AxiosInstance, useCache: boolean, electronStore: LocalStorage) {
         this.httpClient = httpClient;
         this.localStorage = electronStore;
+        this.localStorage.clear();
 
         if (useCache) {
             this.get = this.getAndReturnCache;

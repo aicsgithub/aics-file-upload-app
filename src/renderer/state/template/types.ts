@@ -70,7 +70,10 @@ export interface CreateAnnotationRequest {
 }
 
 export interface GetTemplateAction {
-    payload: number;
+    payload: {
+        addAnnotationsToUpload: boolean;
+        templateId: number;
+    };
     type: string;
 }
 
