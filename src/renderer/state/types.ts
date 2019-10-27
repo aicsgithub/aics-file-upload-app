@@ -86,6 +86,7 @@ export interface Audited {
 }
 
 export interface LocalStorage {
+    clear: () => void;
     get: (key: string) => void;
     set: (key: string, value: any) => void;
 }
