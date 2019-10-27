@@ -59,7 +59,7 @@ interface Props {
     removeAnnotations: ActionCreator<RemoveAnnotationsAction>;
     saveInProgress: boolean;
     saveTemplate: ActionCreator<SaveTemplateAction>;
-    tables: Lookup[]; // todo
+    tables: Lookup[];
     template: TemplateDraft;
     updateTemplateDraft: ActionCreator<UpdateTemplateDraftAction>;
     visible: boolean;
@@ -83,13 +83,13 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             this.props.openModal(templateId);
         });
 
-        // todo get more frequently?
         this.props.getAnnotations();
     }
 
     public componentDidUpdate(prevProps: Props): void {
         if (prevProps.template !== this.props.template) {
             this.setState({selectedAnnotation: undefined});
+            this.props.getAnnotations();
         }
     }
 
