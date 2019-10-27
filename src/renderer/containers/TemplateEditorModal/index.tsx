@@ -67,6 +67,7 @@ interface Props {
 }
 
 interface TemplateEditorModalState {
+    annotationNameSearch?: string;
     selectedAnnotation?: AnnotationDraft;
     showAlert: boolean;
 }
@@ -140,7 +141,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             tables,
             template,
         } = this.props;
-        const { showAlert } = this.state;
+        const { annotationNameSearch, showAlert } = this.state;
         const appliedAnnotationNames = template.annotations.map((a) => a.name);
         const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
 
@@ -177,8 +178,11 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                         <FormControl label="Add Existing Annotation" className={styles.search}>
                             <Select
                                 className={styles.search}
+                                onSearch={this.onAnnotationNameSearchChange}
                                 onSelect={this.addExistingAnnotation}
                                 placeholder="Annotation Name"
+                                showSearch={true}
+                                value={annotationNameSearch}
                             >
                                 {filteredAnnotations.map((option: Annotation) => (
                                     <Select.Option key={option.name}>{option.name}</Select.Option>
@@ -298,6 +302,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         );
     }
 
+    private onAnnotationNameSearchChange = (annotationNameSearch: string) => this.setState({annotationNameSearch});
+
     private handleVisibleChange = (annotation: AnnotationDraft) => (visible: boolean) => {
         this.setState({ selectedAnnotation: visible ? annotation : undefined });
     }
@@ -335,6 +341,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 description,
                 name,
             });
+            this.setState({annotationNameSearch: undefined});
         }
     }
 
