@@ -20,6 +20,7 @@ import {
     Lookup,
     Template,
     TemplateAnnotation,
+    TemplateDraft,
     TemplateStateBranch,
 } from "../template/types";
 import { State } from "../types";
@@ -279,8 +280,15 @@ export const mockAnnotationDraft: AnnotationDraft = {
     annotationTypeId: 1,
     annotationTypeName: "Text",
     canHaveManyValues: false,
+    description: "You know what a color is",
     index: 0,
+    name: "Color",
     required: false,
+};
+
+export const mockTemplateDraft: TemplateDraft = {
+    annotations: [mockAnnotationDraft],
+    name: "My Template",
 };
 
 export const mockAnnotation: Annotation = {
@@ -312,6 +320,10 @@ export const mockAnnotationTypes: AnnotationType[] = [
     {
         annotationTypeId: 3,
         name: ColumnType.LOOKUP,
+    },
+    {
+        annotationTypeId: 4,
+        name: ColumnType.DROPDOWN,
     },
 ];
 
