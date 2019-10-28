@@ -43,13 +43,13 @@ export interface AnnotationType {
     name: string;
 }
 
-// todo rename to AnnotationTypeName
 export enum ColumnType {
     TEXT = "Text",
     DROPDOWN = "Dropdown",
     BOOLEAN = "Yes/No",
     NUMBER = "Number",
-    DATE = "Date/Time",
+    DATE = "Date",
+    DATETIME = "Date/Time",
     LOOKUP = "Lookup",
 }
 

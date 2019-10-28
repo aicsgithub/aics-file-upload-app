@@ -100,17 +100,17 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     />
                 );
                 break;
-            // case ColumnType.DATETIME:
-            //     input = (
-            //         <input
-            //             autoFocus={true}
-            //             className={styles.dateTimeMinWidth}
-            //             onChange={this.handleInputOnChange}
-            //             type="datetime-local"
-            //             value={value || undefined}
-            //         />
-            //     );
-            //     break;
+            case ColumnType.DATETIME:
+                input = (
+                    <input
+                        autoFocus={true}
+                        className={styles.dateTimeMinWidth}
+                        onChange={this.handleInputOnChange}
+                        type="datetime-local"
+                        value={value || undefined}
+                    />
+                );
+                break;
             case ColumnType.LOOKUP:
                 input = (
                     <Select
