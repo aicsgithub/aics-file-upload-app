@@ -51,7 +51,6 @@ const requestMetadata = createLogic({
                 barcodePrefixes,
                 imagingSessions,
                 lookups,
-                templates,
                 units,
                 workflowOptions,
             ] = await Promise.all([
@@ -60,7 +59,6 @@ const requestMetadata = createLogic({
                 labkeyClient.getBarcodePrefixes(),
                 labkeyClient.getImagingSessions(),
                 labkeyClient.getLookups(),
-                labkeyClient.getTemplates(),
                 labkeyClient.getUnits(),
                 labkeyClient.getWorkflows(),
 
@@ -71,14 +69,12 @@ const requestMetadata = createLogic({
                 barcodePrefixes,
                 imagingSessions,
                 lookups,
-                templates,
                 units,
                 workflowOptions,
             }));
         } catch (reason) {
-            console.log(reason); // tslint:disable-line:no-console
             dispatch(setAlert({
-                message: "Failed to retrieve metadata.",
+                message: "Failed to retrieve metadata. " + reason.message,
                 type: AlertType.ERROR,
             }));
         }

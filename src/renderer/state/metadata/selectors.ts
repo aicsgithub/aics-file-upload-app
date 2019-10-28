@@ -36,12 +36,6 @@ export const getUniqueBarcodeSearchResults = createSelector([
     });
 });
 
-export const getTextAnnotationType = createSelector([
-    getAnnotationTypes,
-], (annotationTypes: AnnotationType[]) => {
-    return annotationTypes.find((at) => at.name === ColumnType.TEXT);
-});
-
 export const getBooleanAnnotationTypeId = createSelector([
     getAnnotationTypes,
 ], (annotationTypes: AnnotationType[]) => {

@@ -15,7 +15,7 @@ import {
     mockImagingSessions,
     mockLookups,
     mockSelectedWorkflows,
-    mockState, mockTemplates,
+    mockState,
     mockUnit,
 } from "../../test/mocks";
 
@@ -64,7 +64,6 @@ describe("Setting logics", () => {
         const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
         const getImagingSessionsStub = stub().resolves(mockImagingSessions);
         const getLookupsStub = stub().resolves(mockLookups);
-        const getTemplatesStub = stub().resolves(mockTemplates);
         const getUnitsStub = stub().resolves([mockUnit]);
         const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
 
@@ -73,7 +72,6 @@ describe("Setting logics", () => {
         sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
         sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
         sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
-        sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
         sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
         sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
 
