@@ -30,7 +30,7 @@ interface Props {
     className?: string;
     redo: () => void;
     removeUploads: ActionCreator<RemoveUploadsAction>;
-    template?: TemplateDraft;
+    template: TemplateDraft;
     setAlert: ActionCreator<SetAlertAction>;
     undo: () => void;
     updateUpload: ActionCreator<UpdateUploadAction>;
@@ -212,7 +212,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         } else {
             basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
         }
-        if  (!this.props.template) {
+        if  (!this.props.template.templateId) {
             return basicColumns;
         }
         const schemaColumns = this.props.template.annotations.map((column: AnnotationDraft) => {

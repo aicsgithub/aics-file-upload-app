@@ -140,7 +140,9 @@ export default class LabkeyClient extends BaseServiceClient {
                                  queryName: string,
                                  columnName: string): Promise<string[]> {
         const query = LabkeyClient.getSelectRowsURL(schemaName, queryName, [`query.columns=${columnName}`]);
-        const response = await this.httpClient.get(query);
+        const response: LabkeyResponse<any> = await this.httpClient.get(query);
+        // labkey casing may be different than what is saved in the Lookup table
+        columnName = response.columnModel[0].dataIndex;
         return response.rows.map((columnValue: any) => columnValue[columnName]);
     }
 

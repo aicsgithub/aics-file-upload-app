@@ -35,6 +35,7 @@ export interface LabkeyPlate {
 }
 
 export interface LabkeyResponse<T> {
+    columnModel: Array<{dataIndex: string}>;
     rowCount: number;
     rows: T[];
 }

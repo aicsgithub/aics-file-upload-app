@@ -96,7 +96,7 @@ const addExistingAnnotationLogic = createLogic({
 
             next(updateTemplateDraft({annotations}));
 
-        } catch(e) {
+        } catch (e) {
             next(setAlert({
                 message: e.message,
                 type: AlertType.ERROR,
@@ -176,9 +176,10 @@ const getTemplateLogic = createLogic({
                             throw new Error(`Could not find matching type for annotation named ${a.name},
                              annotationTypeId: ${a.annotationTypeId}`);
                         }
+                        const annotationOptions = await getAnnotationOptions(a, getState(), labkeyClient);
                         return {
                             ...a,
-                            annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient),
+                            annotationOptions,
                             annotationTypeName: type.name,
                             index,
                         };
