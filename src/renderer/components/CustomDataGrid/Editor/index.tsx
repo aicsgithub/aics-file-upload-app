@@ -2,8 +2,8 @@ import { InputNumber, Select } from "antd";
 import Logger from "js-logger";
 import * as React from "react";
 import { editors } from "react-data-grid";
+import { ColumnType } from "../../../state/template/types";
 
-import { ColumnType } from "../../../state/setting/types";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const styles = require("./styles.pcss");

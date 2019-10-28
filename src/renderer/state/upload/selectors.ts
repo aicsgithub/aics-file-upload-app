@@ -2,6 +2,7 @@ import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { forEach, groupBy, isArray, isEmpty, isNil, keys, map, omit, uniq, values, without } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+
 import { getUploadJobNames } from "../job/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
@@ -15,8 +16,8 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-export const getSchemaFile = createSelector([getUpload], (uploads: UploadStateBranch): string | undefined =>
-    Object.keys(uploads).length ? uploads[Object.keys(uploads)[0]].schemaFile : undefined
+export const getAppliedTemplateId = createSelector([getUpload], (uploads: UploadStateBranch): number | undefined =>
+    Object.keys(uploads).length ? uploads[Object.keys(uploads)[0]].templateId : undefined
 );
 
 export const getCanRedoUpload = createSelector([getUploadFuture], (future: UploadStateBranch[]) => {

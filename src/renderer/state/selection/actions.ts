@@ -1,6 +1,11 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 
-import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
+import {
+    CLOSE_OPEN_TEMPLATE_MODAL,
+    CLOSE_TEMPLATE_EDITOR,
+    OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_TEMPLATE_EDITOR,
+} from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -27,8 +32,8 @@ import {
 import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
-    ClearStagedFilesAction,
-    CloseSchemaCreatorAction,
+    ClearStagedFilesAction, CloseOpenTemplateModalAction,
+    CloseTemplateEditorAction,
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
@@ -36,8 +41,8 @@ import {
     JumpToPastSelectionAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
-    NextPageAction,
-    OpenSchemaCreatorAction,
+    NextPageAction, OpenOpenTemplateModalAction,
+    OpenTemplateEditorAction,
     Page,
     PlateResponse,
     SelectBarcodeAction,
@@ -162,15 +167,28 @@ export function selectWells(wells: GridCell[]): SelectWellsAction {
     };
 }
 
-export function closeSchemaCreator(): CloseSchemaCreatorAction {
+export function closeTemplateEditor(): CloseTemplateEditorAction {
     return {
-        type: CLOSE_CREATE_SCHEMA_MODAL,
+        type: CLOSE_TEMPLATE_EDITOR,
     };
 }
 
-export function openSchemaCreator(): OpenSchemaCreatorAction {
+export function openTemplateEditor(templateId?: number): OpenTemplateEditorAction {
     return {
-        type: OPEN_CREATE_SCHEMA_MODAL,
+        payload: templateId,
+        type: OPEN_TEMPLATE_EDITOR,
+    };
+}
+
+export function openOpenTemplateModal(): OpenOpenTemplateModalAction {
+    return {
+        type: OPEN_OPEN_TEMPLATE_MODAL,
+    };
+}
+
+export function closeOpenTemplateModal(): CloseOpenTemplateModalAction {
+    return {
+        type: CLOSE_OPEN_TEMPLATE_MODAL,
     };
 }
 

@@ -1,10 +1,12 @@
 import { isNil } from "lodash";
 
 import { makeConstant } from "../util";
+
 import { UploadMetadata } from "./types";
 
 const BRANCH_NAME = "upload";
 
+export const APPLY_TEMPLATE = makeConstant(BRANCH_NAME, "apply-template");
 export const ASSOCIATE_FILES_AND_WELLS = makeConstant(BRANCH_NAME, "associate-files-and-wells");
 export const ASSOCIATE_FILES_AND_WORKFLOWS = makeConstant(BRANCH_NAME, "associate-files-and-workflows");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");

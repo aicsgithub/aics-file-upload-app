@@ -5,6 +5,7 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
+import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
 import { canUserRead } from "../../util";
 
@@ -21,6 +22,7 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
+import { clearTemplateDraft, getTemplate } from "../template/actions";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
@@ -40,7 +42,7 @@ import {
     setPlate,
     setWells,
     stageFiles,
-    updateStagedFiles
+    updateStagedFiles,
 } from "./actions";
 import {
     GET_FILES_IN_FOLDER,
@@ -458,10 +460,33 @@ const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): A
     return actions;
 };
 
+const openTemplateEditorLogic = createLogic({
+    process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        if (action.payload) {
+            dispatch(getTemplate(action.payload));
+        }
+
+        done();
+    },
+    type: OPEN_TEMPLATE_EDITOR,
+});
+
+const closeTemplateEditorLogic = createLogic({
+   transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+       next(batchActions([
+           clearTemplateDraft(),
+           action,
+       ]));
+   },
+    type: CLOSE_TEMPLATE_EDITOR,
+});
+
 export default [
+    closeTemplateEditorLogic,
     goBackLogic,
     goForwardLogic,
     loadFilesLogic,
+    openTemplateEditorLogic,
     openFilesLogic,
     getFilesInFolderLogic,
     selectBarcodeLogic,

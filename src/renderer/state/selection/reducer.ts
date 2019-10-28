@@ -8,7 +8,12 @@ import undoable, {
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { CLOSE_CREATE_SCHEMA_MODAL, OPEN_CREATE_SCHEMA_MODAL } from "../../../shared/constants";
+import {
+    CLOSE_OPEN_TEMPLATE_MODAL,
+    CLOSE_TEMPLATE_EDITOR,
+    OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_TEMPLATE_EDITOR,
+} from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_STAGED_FILES,
@@ -29,9 +34,11 @@ import {
 import {
     AddStageFilesAction,
     ClearStagedFilesAction,
-    CloseSchemaCreatorAction,
+    CloseOpenTemplateModalAction,
+    CloseTemplateEditorAction,
     DeselectFilesAction,
-    OpenSchemaCreatorAction,
+    OpenOpenTemplateModalAction,
+    OpenTemplateEditorAction,
     Page,
     SelectBarcodeAction,
     SelectFileAction,
@@ -53,14 +60,15 @@ export const initialState = {
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
+    openTemplateModalVisible: false,
     page: Page.UploadSummary,
     selectedWells: [],
     selectedWorkflows: [],
-    showCreateSchemaModal: false,
     stagedFiles: [],
     startHistoryIndex: {
         [Page.DragAndDrop]: 0,
     },
+    templateEditorVisible: false,
     view: Page.UploadSummary,
     wells: [],
 };
@@ -165,18 +173,33 @@ const actionToConfigMap: TypeToDescriptionMap = {
             selectedWells: action.payload,
         }),
     },
-    [OPEN_CREATE_SCHEMA_MODAL]: {
-        accepts: (action: AnyAction): action is OpenSchemaCreatorAction => action.type === OPEN_CREATE_SCHEMA_MODAL,
+    [OPEN_TEMPLATE_EDITOR]: {
+        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
         perform: (state: SelectionStateBranch) => ({
             ...state,
-            showCreateSchemaModal: true,
+            templateEditorVisible: true,
         }),
     },
-    [CLOSE_CREATE_SCHEMA_MODAL]: {
-        accepts: (action: AnyAction): action is CloseSchemaCreatorAction => action.type === CLOSE_CREATE_SCHEMA_MODAL,
+    [CLOSE_TEMPLATE_EDITOR]: {
+        accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_TEMPLATE_EDITOR,
         perform: (state: SelectionStateBranch) => ({
             ...state,
-            showCreateSchemaModal: false,
+            templateEditorVisible: false,
+        }),
+    },
+    [OPEN_OPEN_TEMPLATE_MODAL]: {
+        accepts: (action: AnyAction): action is OpenOpenTemplateModalAction => action.type === OPEN_OPEN_TEMPLATE_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            openTemplateModalVisible: true,
+        }),
+    },
+    [CLOSE_OPEN_TEMPLATE_MODAL]: {
+        accepts: (action: AnyAction): action is CloseOpenTemplateModalAction =>
+            action.type === CLOSE_OPEN_TEMPLATE_MODAL,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            openTemplateModalVisible: false,
         }),
     },
     [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {

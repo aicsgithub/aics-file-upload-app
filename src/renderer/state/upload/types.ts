@@ -1,8 +1,8 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Channel } from "../metadata/types";
+import { LabkeyTemplate } from "../../util/labkey-client/types";
 
+import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
-import { SchemaDefinition } from "../setting/types";
 
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
@@ -15,17 +15,16 @@ export interface UploadMetadata {
     file: string;
     notes?: string;
     positionIndex?: number;
-    schemaFile?: string;
+    templateId?: number;
     wellIds: number[];
     wellLabels: string[];
     workflows?: string[];
     [genericKey: string]: any;
 }
 
-export interface UpdateSchemaAction {
+export interface ApplyTemplateAction {
     payload: {
-        schema?: SchemaDefinition;
-        schemaFile?: string;
+        template: LabkeyTemplate;
         uploads: UploadStateBranch;
     };
     type: string;

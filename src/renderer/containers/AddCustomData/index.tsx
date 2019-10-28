@@ -1,18 +1,24 @@
-import { Button, Select } from "antd";
-import { OpenDialogOptions, remote } from "electron";
+import { Button, Spin } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { promises } from "fs";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
+import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
-import { AlertType, SetAlertAction } from "../../state/feedback/types";
-import { getChannels } from "../../state/metadata/selectors";
-import { Channel, ImagingSession } from "../../state/metadata/types";
-import { goBack, goForward, openSchemaCreator, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { requestTemplates } from "../../state/metadata/actions";
+import {
+    getAnnotationTypes,
+    getBooleanAnnotationTypeId,
+    getChannels,
+    getTemplates,
+} from "../../state/metadata/selectors";
+import { Channel, ImagingSession, GetTemplatesAction } from "../../state/metadata/types";
+import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
@@ -23,12 +29,11 @@ import {
     ExpandedRows,
     GoBackAction,
     NextPageAction,
-    OpenSchemaCreatorAction,
+    OpenTemplateEditorAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
-import { addSchemaFilepath, removeSchemaFilepath } from "../../state/setting/actions";
-import { getSchemaFilepaths } from "../../state/setting/selectors";
+import { getTemplateIds } from "../../state/setting/selectors";
 import {
     AddSchemaFilepathAction,
     ColumnDefinition,
@@ -36,78 +41,74 @@ import {
     RemoveSchemaFilepathAction,
     SchemaDefinition
 } from "../../state/setting/types";
+import { getAppliedTemplate } from "../../state/template/selectors";
+import { AnnotationType, Template, TemplateAnnotation } from "../../state/template/types";
 import { State } from "../../state/types";
 import {
+    applyTemplate,
     initiateUpload,
     jumpToUpload,
-    removeUploads, updateScenes,
-    updateSchema,
-    updateUpload, updateUploads,
+    removeUploads,
+    updateScenes,
+    updateUpload,
+    updateUploads,
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
-    getCanUndoUpload, getFileToAnnotationHasValueMap,
-    getSchemaFile,
-    getUploadSummaryRows,
+    getCanUndoUpload,
+    getFileToAnnotationHasValueMap,
+    getUploadSummaryRows
 } from "../../state/upload/selectors";
 import {
+    ApplyTemplateAction,
     InitiateUploadAction,
     JumpToUploadAction,
-    RemoveUploadsAction, UpdateScenesAction,
-    UpdateSchemaAction,
-    UpdateUploadAction, UpdateUploadsAction,
+    RemoveUploadsAction,
+    UpdateScenesAction,
+    UpdateUploadAction,
+    UpdateUploadsAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
-import { isSchemaDefinition } from "../App/util";
+import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 const styles = require("./style.pcss");
 
-const { Option } = Select;
-
-const BROWSE_FOR_EXISTING_SCHEMA = `...Browse for existing ${SCHEMA_SYNONYM.toLowerCase()}`;
-
 interface Props {
-    addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     allWellsForSelectedPlate: Well[][];
+    annotationTypes: AnnotationType[];
+    appliedTemplate?: Template;
+    applyTemplate: ActionCreator<ApplyTemplateAction>;
+    booleanAnnotationTypeId?: number;
     canRedo: boolean;
     canUndo: boolean;
     channels: Channel[];
     className?: string;
     expandedRows: ExpandedRows;
-    filepath?: string;
+    filepath?: string; // todo
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
-    removeUploads: ActionCreator<RemoveUploadsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
-    openSchemaCreator: ActionCreator<OpenSchemaCreatorAction>;
-    removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
-    schemaFile?: string;
-    schemaFilepaths: string[];
+    loading: boolean;
+    openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
+    removeUploads: ActionCreator<RemoveUploadsAction>;
+    requestTemplates: ActionCreator<GetTemplatesAction>;
+    savedTemplateIds: number[];
     selectedBarcode?: string;
     selectedImagingSession?: ImagingSession;
     setAlert: ActionCreator<SetAlertAction>;
+    templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     updateScenes: ActionCreator<UpdateScenesAction>;
-    updateSchema: ActionCreator<UpdateSchemaAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
 }
 
 interface AddCustomDataState {
-    schema?: SchemaDefinition;
     selectedFiles: string[];
 }
-
-const openDialogOptions: OpenDialogOptions = {
-    filters: [
-        { name: "JSON", extensions: ["json"] },
-    ],
-    properties: ["openFile"],
-    title: "Select JSON file",
-};
 
 class AddCustomData extends React.Component<Props, AddCustomDataState> {
     constructor(props: Props) {
@@ -118,16 +119,23 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        if (this.props.schemaFile) {
-            this.readFile(this.props.schemaFile);
-        }
+        this.props.requestTemplates();
     }
 
     public render() {
-        const disableSaveButton = !(this.props.uploads.length && this.props.schemaFile && this.requiredValuesPresent());
+        const {
+            annotationTypes,
+            appliedTemplate,
+            canRedo,
+            canUndo,
+            className,
+            loading,
+            uploads,
+        } = this.props;
+        const disableSaveButton = !(uploads.length && appliedTemplate && this.requiredValuesPresent());
         return (
             <FormPage
-                className={this.props.className}
+                className={className}
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
@@ -136,26 +144,34 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 onBack={this.props.goBack}
             >
                 {this.renderButtons()}
-                {this.props.schemaFile && this.renderPlateInfo()}
-                {this.props.schemaFile && (
+                {loading && (
+                    <div className={styles.spinContainer}>
+                        <div className={styles.spinText}>
+                            Getting template details...
+                        </div>
+                        <Spin/>
+                    </div>
+                )}
+                {appliedTemplate && this.renderPlateInfo()}
+                {appliedTemplate && (
                     <CustomDataGrid
                         allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
-                        canRedo={this.props.canRedo}
-                        canUndo={this.props.canUndo}
+                        annotationTypes={annotationTypes}
+                        canRedo={canRedo}
+                        canUndo={canUndo}
                         channels={this.props.channels}
                         expandedRows={this.props.expandedRows}
                         fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
                         redo={this.redo}
-                        removeSchemaFilepath={this.props.removeSchemaFilepath}
                         removeUploads={this.props.removeUploads}
-                        schema={this.state.schema}
+                        template={appliedTemplate}
                         setAlert={this.props.setAlert}
                         toggleRowExpanded={this.props.toggleRowExpanded}
                         undo={this.undo}
                         updateScenes={this.props.updateScenes}
                         updateUpload={this.props.updateUpload}
                         updateUploads={this.props.updateUploads}
-                        uploads={this.props.uploads}
+                        uploads={uploads}
                     />
                 )}
             </FormPage>
@@ -177,91 +193,32 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderButtons = () => {
-        const { schemaFile, schemaFilepaths } = this.props;
+        const { appliedTemplate, templates } = this.props;
 
-        const schemaOptions = [...schemaFilepaths, BROWSE_FOR_EXISTING_SCHEMA];
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.schemaSelector}>
                     <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
-                    <Select
-                        autoFocus={true}
+                    <TemplateSearch
                         className={styles.schemaSelector}
-                        onChange={this.selectSchema}
-                        placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} file`}
-                        value={schemaFile}
-                    >
-                        {schemaOptions.map((dropdownValue: string) => (
-                            <Option key={dropdownValue}>{dropdownValue}</Option>
-                        ))}
-                    </Select>
+                        value={appliedTemplate ? appliedTemplate.name : undefined}
+                        onSelect={this.selectTemplate}
+                        templates={templates}
+                    />
                 </div>
-                <Button className={styles.createSchemaButton} onClick={this.props.openSchemaCreator}>
+                <Button className={styles.createSchemaButton} onClick={this.openTemplateEditor}>
                     Create {SCHEMA_SYNONYM}
                 </Button>
             </div>
         );
     }
 
-    private readFile = async (schemaFile: string, newFile?: boolean) => {
-        let fileString = "";
-        try {
-            const fileBuffer = await promises.readFile(schemaFile);
-            fileString = fileBuffer.toString();
-        } catch (e) {
-            this.props.updateSchema();
-            this.handleError("Invalid file or directory selected (.json only)", schemaFile);
-            return;
-        }
-        try {
-            const schema = JSON.parse(fileString);
-            if (!isSchemaDefinition(schema)) {
-                this.props.updateSchema();
-                this.handleError(`Invalid ${SCHEMA_SYNONYM} JSON`, schemaFile);
-                return;
-            }
-            this.props.updateSchema(schema, schemaFile);
-            if (newFile) {
-                this.props.addSchemaFilepath(schemaFile);
-            }
-            this.setState({ schema });
-        } catch (e) {
-            // It is possible for a user to select a directory
-            this.props.updateSchema();
-            this.handleError("Unable to parse JSON", schemaFile);
-        }
-    }
+    private openTemplateEditor = () => this.props.openSchemaCreator();
 
-    private findSchema = async () => {
-        remote.dialog.showOpenDialog(openDialogOptions, async (filepaths?: string[]) => {
-            if (filepaths && filepaths.length) {
-                // This shouldn't be possible with current window config
-                if (filepaths.length > 1) {
-                    this.props.updateSchema();
-                    this.handleError("Only one file may be selected");
-                } else {
-                    await this.readFile(filepaths[0], true);
-                }
-            }
-        });
-    }
-
-    private selectSchema = async (filepath: string | null) => {
-        if (filepath) {
-            if (filepath === BROWSE_FOR_EXISTING_SCHEMA) {
-                await this.findSchema();
-            } else if (filepath !== this.props.schemaFile) {
-                const fileExists = await promises.stat(filepath);
-                if (!fileExists || !fileExists.isFile()) {
-                    this.props.updateSchema();
-                    this.handleError(`File cannot be found ${filepath}.`, filepath);
-                    return;
-                }
-                await this.readFile(filepath);
-            }
-        } else {
-            this.props.updateSchema();
-            this.setState({ schema: undefined });
+    private selectTemplate = (templateName: string) => {
+        const template = this.props.templates.find((t) => t.Name === templateName);
+        if (template) {
+            this.props.applyTemplate(template);
         }
     }
 
@@ -271,28 +228,22 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private requiredValuesPresent = (): boolean => {
-        const {schema} = this.state;
-        if (schema) {
-            return !schema.columns.every(({label, type: { type }, required}: ColumnDefinition) => {
-                if (required && type !== ColumnType.BOOLEAN) {
+        const {appliedTemplate, booleanAnnotationTypeId} = this.props;
+        if (appliedTemplate) {
+            return !appliedTemplate.annotations.every(({annotationTypeId, name, required}: TemplateAnnotation) => {
+                if (!name) {
+                    throw new Error("annotation is missing a name");
+                }
+
+                if (required && annotationTypeId !== booleanAnnotationTypeId) {
                     return this.props.uploads.every((upload: any) => {
-                        return Boolean(upload[label]);
+                        return Boolean(upload[name]);
                     });
                 }
                 return false;
             });
         }
         return true;
-    }
-
-    private handleError = (error: string, errorFile?: string) => {
-        if (errorFile) {
-            this.props.removeSchemaFilepath(errorFile);
-        }
-        this.props.setAlert({
-            message: error,
-            type: AlertType.WARN,
-        });
     }
 
     private undo = (): void => {
@@ -307,32 +258,35 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 function mapStateToProps(state: State) {
     return {
         allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
+        annotationTypes: getAnnotationTypes(state),
+        appliedTemplate: getAppliedTemplate(state),
+        booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
         channels: getChannels(state),
         expandedRows: getExpandedUploadJobRows(state),
         fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
-        schemaFile: getSchemaFile(state),
-        schemaFilepaths: getSchemaFilepaths(state),
+        loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
+        savedTemplateIds: getTemplateIds(state),
         selectedBarcode: getSelectedBarcode(state),
         selectedImagingSession: getSelectedImagingSession(state),
+        templates: getTemplates(state),
         uploads: getUploadSummaryRows(state),
     };
 }
 
 const dispatchToPropsMap = {
-    addSchemaFilepath,
+    applyTemplate,
     goBack,
     goForward,
     initiateUpload,
     jumpToUpload,
-    openSchemaCreator,
-    removeSchemaFilepath,
+    openSchemaCreator: openTemplateEditor,
     removeUploads,
+    requestTemplates,
     setAlert,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateScenes,
-    updateSchema,
     updateUpload,
     updateUploads,
 };
