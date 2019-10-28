@@ -1,6 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession, LabKeyPlateBarcodePrefix, LabkeyTemplate } from "../../util/labkey-client/types";
+import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
@@ -17,6 +17,7 @@ import {
     AnnotationType,
     ColumnType,
     Lookup,
+    Template,
     TemplateStateBranch,
 } from "../template/types";
 import { State } from "../types";
@@ -57,7 +58,8 @@ export const mockSelection: SelectionStateBranch = {
     wells: [],
 };
 
-export const mockTemplate: TemplateStateBranch = {
+export const mockTemplateStateBranch: TemplateStateBranch = {
+    appliedTemplate: undefined,
     draft: {
         annotations: [],
     },
@@ -116,7 +118,7 @@ export const mockState: State = {
         limsProtocol: "http",
         templateIds: [],
     },
-    template: getMockStateWithHistory(mockTemplate),
+    template: getMockStateWithHistory(mockTemplateStateBranch),
     upload: getMockStateWithHistory(mockWellUpload),
 };
 
@@ -320,12 +322,13 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
     },
 ];
 
-export const mockTemplates: LabkeyTemplate[] = [
-    {
-        Name: "MyTemplate",
-        TemplateId: 1,
-    },
-];
+export const mockMMSTemplate: Template = {
+    ...mockAuditInfo,
+    annotations: [],
+    name: "Test",
+    templateId: 1,
+    version: 1,
+};
 
 export const mockUnit: Unit = {
     description: "description",

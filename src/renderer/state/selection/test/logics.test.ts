@@ -4,7 +4,7 @@ import { isEmpty } from "lodash";
 import { dirname, resolve } from "path";
 import { StateWithHistory } from "redux-undo";
 import * as sinon from "sinon";
-import { createSandbox } from "sinon";
+import { createSandbox, stub } from "sinon";
 
 import selections from "../";
 
@@ -13,12 +13,18 @@ import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, mockAuditInfo, mockSelection, mockState } from "../../test/mocks";
+import {
+    getMockStateWithHistory,
+    mockAuditInfo,
+    mockMMSTemplate,
+    mockSelection,
+    mockState,
+} from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { selectBarcode } from "../actions";
+import { openTemplateEditor, selectBarcode } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
-import { getPage, getSelectedBarcode, getSelectedPlateId, getWells } from "../selectors";
+import { getPage, getSelectedBarcode, getSelectedPlateId, getTemplateEditorVisible, getWells } from "../selectors";
 import {
     DragAndDropFileList,
     GetPlateResponse,
@@ -558,6 +564,43 @@ describe("Selection logics", () => {
                 }
             });
             store.dispatch(selectBarcode(barcode));
+        });
+    });
+
+    describe("openTemplateEditorLogic", () => {
+        it("gets template if template id passed", (done) => {
+            const store = createMockReduxStore({
+                ...mockState,
+            });
+            const getTemplateStub = stub().resolves(mockMMSTemplate);
+            sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
+
+            expect(getTemplateEditorVisible(store.getState())).to.be.false;
+            expect(getTemplateStub.called).to.be.false;
+
+            store.dispatch(openTemplateEditor(1));
+
+            // todo in the future just test that getTemplate action was dispatched using redux-logic-test
+            let storeSubscribeCount = 0;
+            store.subscribe(() => {
+                storeSubscribeCount++;
+
+                if (storeSubscribeCount === 1) {
+                    expect(getTemplateEditorVisible(store.getState())).to.be.true;
+                    expect(getTemplateStub.called).to.be.false;
+                } else if (storeSubscribeCount > 2) {
+                    expect(getTemplateStub.called).to.be.true;
+                    done();
+                }
+            });
+        });
+        it("sets templateEditorToVisible to true", () => {
+            const store = createMockReduxStore({
+                ...mockState,
+            });
+            expect(getTemplateEditorVisible(store.getState())).to.be.false;
+            store.dispatch(openTemplateEditor());
+            expect(getTemplateEditorVisible(store.getState())).to.be.true;
         });
     });
 });
