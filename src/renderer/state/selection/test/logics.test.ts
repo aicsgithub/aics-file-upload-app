@@ -13,7 +13,7 @@ import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, mockSelection, mockState } from "../../test/mocks";
+import { getMockStateWithHistory, mockAuditInfo, mockSelection, mockState } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
 import { selectBarcode } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
@@ -367,13 +367,10 @@ describe("Selection logics", () => {
                 wellId: 1,
             };
             const mockPlate: PlateResponse = {
+                ...mockAuditInfo,
                 barcode: "123456",
                 comments: "",
-                created: "2018-02-14 23:03:52",
-                createdBy: 1,
                 imagingSessionId: 1,
-                modified: "2018-02-14 23:03:52",
-                modifiedBy: 1,
                 plateGeometryId: 1,
                 plateId: 1,
                 plateStatusId: 1,

@@ -79,9 +79,9 @@ export interface TypeToDescriptionMap {
 }
 
 export interface Audited {
-    created: string; // Date string
+    created: Date;
     createdBy: number;
-    modified: string; // Date string
+    modified: Date;
     modifiedBy: number;
 }
 

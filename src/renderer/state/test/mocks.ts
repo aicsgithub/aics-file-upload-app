@@ -11,10 +11,24 @@ import {
     Well,
     Workflow
 } from "../selection/types";
-import { AnnotationLookup, AnnotationType, ColumnType, Lookup, TemplateStateBranch } from "../template/types";
+import {
+    Annotation,
+    AnnotationLookup,
+    AnnotationType,
+    ColumnType,
+    Lookup,
+    TemplateStateBranch,
+} from "../template/types";
 import { State } from "../types";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
+
+export const mockAuditInfo = {
+    created: new Date(),
+    createdBy: 1,
+    modified: new Date(),
+    modifiedBy: 1,
+} ;
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
@@ -256,6 +270,16 @@ export const nonEmptyJobStateBranch: JobStateBranch = {
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
+export const mockAnnotations: Annotation[] = [
+    {
+        ...mockAuditInfo,
+        annotationId: 1,
+        annotationTypeId: 1,
+        description: "You know what a color is",
+        name: "Color",
+    },
+];
+
 export const mockAnnotationLookups: AnnotationLookup[] = [
     {
         annotationId: 1,
@@ -312,13 +336,10 @@ export const mockUnit: Unit = {
 
 export const mockLookups: Lookup[] = [
     {
+        ...mockAuditInfo,
         columnName: "columnname",
-        created: "",
-        createdBy: 1,
         descriptionColumn: "description",
         lookupId: 1,
-        modified: "",
-        modifiedBy: 1,
         schemaName: "schema",
         tableName: "tablename",
     },

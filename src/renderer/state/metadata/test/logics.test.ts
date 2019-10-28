@@ -7,6 +7,7 @@ import { AlertType } from "../../feedback/types";
 import { createMockReduxStore, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     mockAnnotationLookups,
+    mockAnnotations,
     mockAnnotationTypes,
     mockBarcodePrefixes,
     mockImagingSessions,
@@ -15,11 +16,13 @@ import {
     mockState,
     mockUnit,
 } from "../../test/mocks";
-import { requestMetadata } from "../actions";
+import { requestAnnotations, requestMetadata, requestTemplates } from "../actions";
 
 import {
+    getAnnotations,
     getBarcodePrefixes,
     getImagingSessions,
+    getTemplates,
     getUnits,
     getWorkflowOptions,
 } from "../selectors";
@@ -85,6 +88,74 @@ describe("Metadata logics", () => {
                 expect(alert).to.not.be.undefined;
                 expect(get(alert, "type")).to.equal(AlertType.ERROR);
                 expect(get(alert, "message")).to.contain("Failed to retrieve metadata.");
+                done();
+            });
+        });
+    });
+    describe("requestAnnotations", () => {
+        it("sets annotations given OK response", (done) => {
+            const getAnnotationsStub = stub().resolves(mockAnnotations);
+            sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAnnotations(state)).to.be.empty;
+
+            store.dispatch(requestAnnotations());
+
+            store.subscribe(() => {
+                state = store.getState();
+                expect(getAnnotations(state)).to.not.be.empty;
+                done();
+            });
+        });
+        it("sets alert given not OK response", (done) => {
+            const getAnnotationsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(requestAnnotations());
+
+            store.subscribe(() => {
+                state = store.getState();
+                expect(getAlert(state)).to.not.be.undefined;
+                done();
+            });
+        });
+    });
+    describe("requestTemplates", () => {
+        it("sets templates given OK response", (done) => {
+            const getTemplatesStub = stub().resolves(mockAnnotations);
+            sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAnnotations(state)).to.be.empty;
+
+            store.dispatch(requestTemplates());
+
+            store.subscribe(() => {
+                state = store.getState();
+                expect(getTemplates(state)).to.not.be.empty;
+                done();
+            });
+        });
+        it("sets templates given not OK response", (done) => {
+            const getTemplatesStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
+            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(requestTemplates());
+
+            store.subscribe(() => {
+                state = store.getState();
+                expect(getAlert(state)).to.not.be.undefined;
                 done();
             });
         });
