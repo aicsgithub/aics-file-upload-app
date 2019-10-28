@@ -11,7 +11,7 @@ import {
     Well,
     Workflow
 } from "../selection/types";
-import { AnnotationLookup, AnnotationType, Lookup, TemplateStateBranch } from "../template/types";
+import { AnnotationLookup, AnnotationType, ColumnType, Lookup, TemplateStateBranch } from "../template/types";
 import { State } from "../types";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
@@ -266,7 +266,7 @@ export const mockAnnotationLookups: AnnotationLookup[] = [
 export const mockAnnotationTypes: AnnotationType[] = [
     {
         annotationTypeId: 1,
-        name: "Text",
+        name: ColumnType.TEXT,
     },
 ];
 

@@ -47,7 +47,7 @@ interface CustomDataState {
 
 interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
     dropdownValues?: string[];
-    type?: string;
+    type?: ColumnType;
 }
 
 interface FormatterProps {

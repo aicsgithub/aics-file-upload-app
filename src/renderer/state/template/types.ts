@@ -40,7 +40,7 @@ export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number
 
 export interface AnnotationType {
     annotationTypeId: number;
-    name: string;
+    name: ColumnType;
 }
 
 export enum ColumnType {
