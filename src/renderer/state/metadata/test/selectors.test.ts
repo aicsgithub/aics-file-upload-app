@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { mockState } from "../test/mocks";
-import { getUniqueBarcodeSearchResults } from "./selectors";
+import { mockState } from "../../test/mocks";
+import { getUniqueBarcodeSearchResults } from "../selectors";
 
 describe("getUniqueBarcodeSearchResults", () => {
     it("groups by barcode and combines imagingSessionIds", () => {
