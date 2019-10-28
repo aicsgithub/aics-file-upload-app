@@ -133,10 +133,14 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                 <h4>{isEditing ? "Edit Annotation" : "Create New Annotation"}</h4>
                 {!isReadOnly && (
                     <>
-                        <FormControl label="Annotation Name" error={this.annotationNameError}>
+                        <FormControl
+                            label="Annotation Name"
+                            error={this.annotationNameError}
+                            className={styles.formControl}
+                        >
                             <Input value={name} onChange={this.updateName}/>
                         </FormControl>
-                        <FormControl label="Data Type">
+                        <FormControl label="Data Type" className={styles.formControl}>
                             <Select
                                 className={styles.select}
                                 onChange={this.setColumnType}
@@ -151,7 +155,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                             </Select>
                         </FormControl>
                         {this.renderAdditionalInputForType()}
-                        <FormControl label="Description" error={this.descriptionError}>
+                        <FormControl label="Description" error={this.descriptionError} className={styles.formControl}>
                             <TextArea value={description} onChange={this.updateDescription}/>
                         </FormControl>
                     </>
@@ -280,7 +284,9 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             : undefined;
 
         if (!annotationTypeSelected) {
-            throw new Error(); // todo
+            throw new Error(
+                "Could not find an annotation type matching the selected annotationTypeName. Contact Software."
+            );
         }
 
         const draft: AnnotationDraft = {

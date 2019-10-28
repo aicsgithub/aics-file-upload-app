@@ -4,6 +4,7 @@ import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
+
 import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 

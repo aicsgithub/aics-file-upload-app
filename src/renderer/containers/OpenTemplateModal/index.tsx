@@ -44,7 +44,6 @@ class OpenTemplateModal extends React.Component<OpenTemplateModalProps, {}> {
         });
     }
 
-    // todo get templateIds from settings and show those templates first
     public render() {
         const { className, close, templates, visible } = this.props;
         return (

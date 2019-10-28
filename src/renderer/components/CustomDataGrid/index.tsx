@@ -158,7 +158,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             label?: string,
                             className?: string): React.ReactElement => {
         let childElement = children;
-        if (required && isNil(value)) {
+        if (required && (isNil(value) || isEmpty(value))) {
             childElement = (
                 <FormControl
                     className={classNames(styles.formatterContainer, className)}
@@ -223,30 +223,31 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             if (!annotationType) {
                 throw new Error(`Could not get annotation type for annotation ${column.name}. Contact Software`);
             }
+            const type = annotationType.name;
             const columns: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
                 editable: true,
-                key: name || "", // todo
-                name: name || "", // todo
+                key: name,
+                name,
                 resizable: true,
-                type: annotationType.name,
+                type,
             };
             // Use custom editor for everything except TEXT types which will use the default editor
-            if (annotationType.name !== ColumnType.TEXT) {
+            if (type !== ColumnType.TEXT) {
                 columns.editor = Editor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
-            if (annotationType.name === ColumnType.DATE) {
+            if (type === ColumnType.DATE) {
                 columns.width = 170;
             }
-            if (annotationType.name === ColumnType.BOOLEAN) {
+            if (type === ColumnType.BOOLEAN) {
                 columns.formatter = (props) =>
-                    BooleanFormatter({...props, rowKey: name || "", saveValue: this.saveByRow});
+                    BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
                 columns.formatter = ({ row, value }: FormatterProps) => (
-                    this.renderFormat(row, value, undefined, required, name || "")
+                    this.renderFormat(row, value, undefined, required, name)
                 );
             }
             return columns;
