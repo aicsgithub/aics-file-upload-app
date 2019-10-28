@@ -9,7 +9,8 @@ import {
     mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
-    mockAnnotationLookups, mockAnnotationTypes,
+    mockAnnotationLookups,
+    mockAnnotationTypes,
     mockBarcodePrefixes,
     mockImagingSessions,
     mockLookups,

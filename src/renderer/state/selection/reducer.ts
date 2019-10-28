@@ -32,9 +32,11 @@ import {
 } from "./constants";
 import {
     AddStageFilesAction,
-    ClearStagedFilesAction, CloseOpenTemplateModalAction,
+    ClearStagedFilesAction,
+    CloseOpenTemplateModalAction,
     CloseTemplateEditorAction,
-    DeselectFilesAction, OpenOpenTemplateModalAction,
+    DeselectFilesAction,
+    OpenOpenTemplateModalAction,
     OpenTemplateEditorAction,
     Page,
     SelectBarcodeAction,

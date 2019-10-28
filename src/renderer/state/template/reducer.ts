@@ -53,7 +53,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
 
 const template = makeReducer<TemplateStateBranch>(actionToConfigMap, initialState);
 const options: UndoableOptions = {
-    clearHistoryType: CLEAR_TEMPLATE_HISTORY, // todo need?
+    clearHistoryType: CLEAR_TEMPLATE_HISTORY,
     jumpToPastType: JUMP_TO_PAST_TEMPLATE,
     jumpType: JUMP_TO_TEMPLATE,
     limit: 100,
