@@ -19,8 +19,8 @@ import {
     mockUnit,
 } from "../../test/mocks";
 
-import { gatherSettings, updateSettings } from "../actions";
-import { getLimsHost } from "../selectors";
+import { addTemplateIdToSettings, gatherSettings, updateSettings } from "../actions";
+import { getLimsHost, getTemplateIds } from "../selectors";
 
 describe("Setting logics", () => {
     const localhost = "localhost";
@@ -185,6 +185,25 @@ describe("Setting logics", () => {
             // after
             expect(getLimsHost(store.getState())).to.equal(localhost);
             expect(getAlert(store.getState())).to.not.be.undefined;
+        });
+    });
+
+    describe("addTemplateIdToSettingsLogic", () => {
+        it("adds template id to settings", () => {
+            const store = createMockReduxStore({
+                ...mockState,
+                setting: {
+                    ...mockState.setting,
+                    templateIds: [1],
+                },
+            });
+
+            expect(getTemplateIds(store.getState()).length).to.equal(1);
+
+            store.dispatch(addTemplateIdToSettings(2));
+
+            expect(getTemplateIds(store.getState()).length).to.equal(2);
+            expect(getTemplateIds(store.getState())).contains(2);
         });
     });
 });

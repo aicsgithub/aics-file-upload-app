@@ -1,4 +1,4 @@
-import { map } from "lodash";
+import { map, uniq } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
@@ -71,28 +71,27 @@ const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-   transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       try {
-           const settings = storage.get(USER_SETTINGS_KEY);
-           next(updateSettings(settings));
+    transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const settings = storage.get(USER_SETTINGS_KEY);
+            next(updateSettings(settings));
 
-       } catch (e) {
-           next(setAlert({
-               message: "Failed to get saved settings. Falling back to default settings.",
-               type: AlertType.WARN,
-           }));
-       }
+        } catch (e) {
+            next(setAlert({
+                message: "Failed to get saved settings. Falling back to default settings.",
+                type: AlertType.WARN,
+            }));
+        }
 
-   },
-   type: GATHER_SETTINGS,
+    },
+    type: GATHER_SETTINGS,
 });
 
 const addTemplateIdToSettingsLogic = createLogic({
-    process: ({action, getState, storage}: ReduxLogicProcessDependencies,
-              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    transform: ({action, getState, storage}: ReduxLogicTransformDependencies,
+                next: ReduxLogicNextCb) => {
         const templateIds = getTemplateIds(getState());
-        dispatch(updateSettings({templateIds: [...templateIds, action.payload.templateId]}));
-        done();
+        next(updateSettings({templateIds: uniq([...templateIds, action.payload])}));
     },
     type: ADD_TEMPLATE_ID_TO_SETTINGS,
 });

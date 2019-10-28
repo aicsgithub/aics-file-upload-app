@@ -1,16 +1,13 @@
-import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
-    ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     UPDATE_SETTINGS,
 } from "./constants";
 import {
-    AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     SettingStateBranch,
     UpdateSettingsAction
@@ -25,14 +22,6 @@ const initialState: SettingStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [ADD_TEMPLATE_ID_TO_SETTINGS]: {
-        accepts: (action: AnyAction): action is AddTemplateIdToSettingsAction =>
-            action.type === ADD_TEMPLATE_ID_TO_SETTINGS,
-        perform: (state: SettingStateBranch, action: AddTemplateIdToSettingsAction) => ({
-            ...state,
-            templateIds: uniq([...state.templateIds, action.payload]),
-        }),
-    },
     [UPDATE_SETTINGS]: {
         accepts: (action: AnyAction): action is UpdateSettingsAction => action.type === UPDATE_SETTINGS,
         perform: (state: SettingStateBranch, action: UpdateSettingsAction) => ({ ...state, ...action.payload }),
