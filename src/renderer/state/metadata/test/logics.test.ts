@@ -62,6 +62,7 @@ describe("Metadata logics", () => {
 
             store.dispatch(requestMetadata());
 
+            // todo FMS-669 stop using subscribe to test multi-dispatch logics
             store.subscribe(() => {
                 state = store.getState();
                 expect(getBarcodePrefixes(state)).to.not.be.empty;
@@ -83,6 +84,7 @@ describe("Metadata logics", () => {
             store.dispatch(requestMetadata());
 
             // after
+            // todo FMS-669 stop using subscribe to test multi-dispatch logics
             store.subscribe(() => {
                 const alert = getAlert(store.getState());
                 expect(alert).to.not.be.undefined;
@@ -103,10 +105,15 @@ describe("Metadata logics", () => {
 
             store.dispatch(requestAnnotations());
 
+            // todo FMS-669 stop using subscribe to test multi-dispatch logics
+            let count = 0;
             store.subscribe(() => {
-                state = store.getState();
-                expect(getAnnotations(state)).to.not.be.empty;
-                done();
+                count++;
+                if (count > 1) {
+                    state = store.getState();
+                    expect(getAnnotations(state)).to.not.be.empty;
+                    done();
+                }
             });
         });
         it("sets alert given not OK response", (done) => {
@@ -119,10 +126,15 @@ describe("Metadata logics", () => {
 
             store.dispatch(requestAnnotations());
 
+            // todo FMS-669 stop using subscribe to test multi-dispatch logics
+            let count = 0;
             store.subscribe(() => {
-                state = store.getState();
-                expect(getAlert(state)).to.not.be.undefined;
-                done();
+                count++;
+                if (count > 1) {
+                    state = store.getState();
+                    expect(getAlert(state)).to.not.be.undefined;
+                    done();
+                }
             });
         });
     });
@@ -137,10 +149,15 @@ describe("Metadata logics", () => {
 
             store.dispatch(requestTemplates());
 
+            // todo FMS-669 stop using subscribe to test multi-dispatch logics
+            let count = 0;
             store.subscribe(() => {
-                state = store.getState();
-                expect(getTemplates(state)).to.not.be.empty;
-                done();
+                count++;
+                if (count > 1) {
+                    state = store.getState();
+                    expect(getTemplates(state)).to.not.be.empty;
+                    done();
+                }
             });
         });
         it("sets templates given not OK response", (done) => {
@@ -153,10 +170,15 @@ describe("Metadata logics", () => {
 
             store.dispatch(requestTemplates());
 
+            // todo FMS-669 stop using subscribe to test multi-dispatch logics
+            let count = 0;
             store.subscribe(() => {
-                state = store.getState();
-                expect(getAlert(state)).to.not.be.undefined;
-                done();
+                count++;
+                if (count > 1) {
+                    state = store.getState();
+                    expect(getAlert(state)).to.not.be.undefined;
+                    done();
+                }
             });
         });
     });
