@@ -1,4 +1,4 @@
-import { isEmpty, map } from "lodash";
+import { includes, isEmpty, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -27,10 +27,9 @@ import { UploadMetadata } from "../upload/types";
 import { batchActions } from "../util";
 import { setAppliedTemplate, updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
-import { getTemplateDraft } from "./selectors";
+import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";
 import {
     AnnotationDraft,
-    ColumnType, CreateAnnotationRequest,
     SaveTemplateRequest,
     Template,
     TemplateAnnotation,
@@ -118,13 +117,13 @@ const getAnnotationOptions = async ({annotationId, annotationOptions, annotation
         const annotationLookup = getAnnotationLookups(state).find((al) => al.annotationId === annotationId);
 
         if (!annotationLookup) {
-            throw new Error("Could not retrieve lookup values"); // todo message
+            throw new Error("Could not retrieve lookup values");
         }
 
         const lookup = getLookups(state).find((l) => l.lookupId === annotationLookup.lookupId);
 
         if (!lookup) {
-            throw new Error("Could not retrieve lookup values"); // todo message
+            throw new Error("Could not retrieve lookup values");
         }
 
         const { columnName, schemaName, tableName } = lookup;
@@ -194,7 +193,6 @@ const getTemplateLogic = createLogic({
                     }),
                 }));
             }
-
             dispatch(batchActions(actions));
         } catch (e) {
             dispatch(batchActions([
@@ -218,10 +216,11 @@ const removeAnnotationsLogic = createLogic({
         action.payload.forEach((selectedRow: number) => {
             annotations.splice(selectedRow, 1);
         });
-        annotations = annotations.map((a: AnnotationDraft, index: number) => ({
-            ...a,
-            index,
-        }));
+        annotations = annotations.filter((a) => !includes(action.payload, a.index))
+            .map((a: AnnotationDraft, index: number) => ({
+                ...a,
+                index,
+            }));
         next(updateTemplateDraft({annotations}));
     },
     type: REMOVE_ANNOTATIONS,
@@ -231,35 +230,7 @@ const saveTemplateLogic = createLogic({
     process: async ({action, getState, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const draft = getTemplateDraft(getState());
-        const request: SaveTemplateRequest = {
-            annotations: draft.annotations.map((a: AnnotationDraft) => {
-                if (a.annotationId) {
-                    return {
-                        annotationId: a.annotationId,
-                        canHaveManyValues: a.canHaveManyValues,
-                        required: a.required,
-                    };
-                }
-
-                let annotationOptions = a.annotationOptions;
-                if (a.annotationTypeName === ColumnType.LOOKUP) {
-                    annotationOptions = undefined;
-                }
-
-                const b: CreateAnnotationRequest = {
-                    annotationOptions,
-                    annotationTypeId: a.annotationTypeId,
-                    canHaveManyValues: a.canHaveManyValues,
-                    description: a.description || "",
-                    lookupSchema: a.lookupSchema,
-                    lookupTable: a.lookupTable,
-                    name: a.name || "",
-                    required: a.required,
-                };
-                return b;
-            }),
-            name: draft.name || "",
-        };
+        const request: SaveTemplateRequest = getSaveTemplateRequest(getState());
         dispatch(addRequestToInProgress(AsyncRequest.SAVE_TEMPLATE));
         let createdTemplateId;
         try {
@@ -267,9 +238,9 @@ const saveTemplateLogic = createLogic({
                 createdTemplateId = await mmsClient.editTemplate(request, draft.templateId);
             } else {
                 createdTemplateId = await mmsClient.createTemplate(request);
-
             }
 
+            // these need to be dispatched separately because they have logics associated with them
             dispatch(closeTemplateEditor());
             dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));
             dispatch(addTemplateIdToSettings(createdTemplateId));

@@ -13,11 +13,13 @@ import {
 } from "../selection/types";
 import {
     Annotation,
+    AnnotationDraft,
     AnnotationLookup,
     AnnotationType,
     ColumnType,
     Lookup,
     Template,
+    TemplateAnnotation,
     TemplateStateBranch,
 } from "../template/types";
 import { State } from "../types";
@@ -272,15 +274,24 @@ export const nonEmptyJobStateBranch: JobStateBranch = {
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
-export const mockAnnotations: Annotation[] = [
-    {
-        ...mockAuditInfo,
-        annotationId: 1,
-        annotationTypeId: 1,
-        description: "You know what a color is",
-        name: "Color",
-    },
-];
+export const mockAnnotationDraft: AnnotationDraft = {
+    annotationId: 1,
+    annotationTypeId: 1,
+    annotationTypeName: "Text",
+    canHaveManyValues: false,
+    index: 0,
+    required: false,
+};
+
+export const mockAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 1,
+    annotationTypeId: 1,
+    description: "You know what a color is",
+    name: "Color",
+};
+
+export const mockAnnotations: Annotation[] = [mockAnnotation];
 
 export const mockAnnotationLookups: AnnotationLookup[] = [
     {
@@ -293,6 +304,14 @@ export const mockAnnotationTypes: AnnotationType[] = [
     {
         annotationTypeId: 1,
         name: ColumnType.TEXT,
+    },
+    {
+        annotationTypeId: 2,
+        name: ColumnType.BOOLEAN,
+    },
+    {
+        annotationTypeId: 3,
+        name: ColumnType.LOOKUP,
     },
 ];
 
@@ -322,9 +341,20 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
     },
 ];
 
+export const mockTemplateAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 1,
+    annotationOptions: undefined,
+    annotationTypeId: 1,
+    canHaveManyValues: false,
+    description: "a description",
+    name: "favoriteColor",
+    required: true,
+};
+
 export const mockMMSTemplate: Template = {
     ...mockAuditInfo,
-    annotations: [],
+    annotations: [mockTemplateAnnotation],
     name: "Test",
     templateId: 1,
     version: 1,
