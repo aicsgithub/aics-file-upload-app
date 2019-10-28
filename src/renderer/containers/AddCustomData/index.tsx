@@ -79,6 +79,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         };
     }
 
+    public componentDidMount() {
+        this.props.requestTemplates();
+    }
+
     public render() {
         const {
             annotationTypes,

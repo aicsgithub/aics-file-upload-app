@@ -16,7 +16,13 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
-import { CREATE_BARCODE, GET_ANNOTATIONS, GET_BARCODE_SEARCH_RESULTS, REQUEST_METADATA } from "./constants";
+import {
+    CREATE_BARCODE,
+    GET_ANNOTATIONS,
+    GET_BARCODE_SEARCH_RESULTS,
+    GET_TEMPLATES,
+    REQUEST_METADATA,
+} from "./constants";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -128,7 +134,7 @@ const requestAnnotations = createLogic({
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
                 setAlert({
-                    message: e.message || "Could not retrieve annotations",
+                    message: "Could not retrieve annotations: " + e.message,
                     type: AlertType.ERROR,
                 }),
             ]));
@@ -138,9 +144,34 @@ const requestAnnotations = createLogic({
     type: GET_ANNOTATIONS,
 });
 
+const requestTemplates = createLogic({
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATES));
+        try {
+            const templates = sortBy(await labkeyClient.getTemplates(), ["name"]);
+            dispatch(batchActions([
+                receiveMetadata({templates}),
+                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
+            ]));
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
+                setAlert({
+                    message: "Could not retrieve templates: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: GET_TEMPLATES,
+});
+
 export default [
     createBarcode,
     requestAnnotations,
     requestBarcodes,
     requestMetadata,
+    requestTemplates,
 ];

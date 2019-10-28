@@ -47,7 +47,8 @@ export enum AsyncRequest {
     GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
     GET_PLATE = "GET_PLATE",
     GET_JOBS = "GET_JOBS",
-    GET_TEMPLATE = "GET_TEMPLATE",
+    GET_TEMPLATE = "GET_TEMPLATE", // full template with annotations from MMS
+    GET_TEMPLATES = "GET_TEMPLATES", // just template name from Labkey
     RETRY_UPLOAD = "RETRY_UPLOAD",
     SAVE_TEMPLATE = "SAVE_TEMPLATE",
 }

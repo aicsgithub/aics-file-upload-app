@@ -7,7 +7,9 @@ import { ActionCreator } from "redux";
 
 import { OPEN_OPEN_TEMPLATE_MODAL } from "../../../shared/constants";
 import TemplateSearch from "../../components/TemplateSearch";
+import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
+import { GetTemplatesAction } from "../../state/metadata/types";
 import { closeOpenTemplateModal, openOpenTemplateModal, openTemplateEditor } from "../../state/selection/actions";
 import { getOpenTemplateModalVisible } from "../../state/selection/selectors";
 import {
@@ -28,6 +30,7 @@ interface OpenTemplateModalProps {
     close: ActionCreator<CloseOpenTemplateModalAction>;
     openOpenTemplateModal: ActionCreator<OpenOpenTemplateModalAction>;
     openTemplateEditor: (templateId?: number) => OpenTemplateEditorAction;
+    requestTemplates: ActionCreator<GetTemplatesAction>;
     templates: LabkeyTemplate[];
     visible: boolean;
 }
@@ -42,6 +45,12 @@ class OpenTemplateModal extends React.Component<OpenTemplateModalProps, {}> {
         ipcRenderer.on(OPEN_OPEN_TEMPLATE_MODAL, () => {
             this.props.openOpenTemplateModal();
         });
+    }
+
+    public componentDidUpdate(prevProps: OpenTemplateModalProps): void {
+        if (this.props.visible && this.props.visible !== prevProps.visible) {
+            this.props.requestTemplates();
+        }
     }
 
     public render() {
@@ -80,6 +89,7 @@ const dispatchToPropsMap = {
     close: closeOpenTemplateModal,
     openOpenTemplateModal,
     openTemplateEditor,
+    requestTemplates,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(OpenTemplateModal);
