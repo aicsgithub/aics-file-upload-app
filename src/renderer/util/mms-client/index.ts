@@ -47,8 +47,8 @@ export default class MMSClient extends BaseServiceClient {
         return response.data[0];
     }
 
-    public async editTemplate(request: SaveTemplateRequest): Promise<number> {
-        const url = `/1.0/template`;
+    public async editTemplate(request: SaveTemplateRequest, templateId: number): Promise<number> {
+        const url = `/1.0/template/${templateId}`;
         const response = await this.httpClient.put(url, request, this.config);
         return response.data[0];
     }

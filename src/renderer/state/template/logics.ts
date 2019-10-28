@@ -232,10 +232,13 @@ const saveTemplateLogic = createLogic({
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const draft = getTemplateDraft(getState());
         const request: SaveTemplateRequest = {
-            ...draft,
             annotations: draft.annotations.map((a: AnnotationDraft) => {
                 if (a.annotationId) {
-                    return {annotationId: a.annotationId};
+                    return {
+                        annotationId: a.annotationId,
+                        canHaveManyValues: a.canHaveManyValues,
+                        required: a.required,
+                    };
                 }
 
                 let annotationOptions = a.annotationOptions;
@@ -261,7 +264,7 @@ const saveTemplateLogic = createLogic({
         let createdTemplateId;
         try {
             if (draft.templateId) {
-                createdTemplateId = await mmsClient.editTemplate(request);
+                createdTemplateId = await mmsClient.editTemplate(request, draft.templateId);
             } else {
                 createdTemplateId = await mmsClient.createTemplate(request);
 
