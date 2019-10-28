@@ -3,7 +3,7 @@ import {
     CLEAR_TEMPLATE_DRAFT,
     GET_TEMPLATE,
     REMOVE_ANNOTATIONS,
-    SAVE_TEMPLATE,
+    SAVE_TEMPLATE, SET_APPLIED_TEMPLATE,
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import {
@@ -12,7 +12,7 @@ import {
     ClearTemplateDraftAction,
     GetTemplateAction,
     RemoveAnnotationsAction,
-    SaveTemplateAction,
+    SaveTemplateAction, SetAppliedTemplateAction, Template,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "./types";
@@ -50,6 +50,13 @@ export function removeAnnotations(indexes: number[]): RemoveAnnotationsAction {
 export function saveTemplate(): SaveTemplateAction {
     return {
         type: SAVE_TEMPLATE,
+    };
+}
+
+export function setAppliedTemplate(template: Template): SetAppliedTemplateAction {
+    return {
+        payload: template,
+        type: SET_APPLIED_TEMPLATE,
     };
 }
 

@@ -11,13 +11,13 @@ import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
-import { getTemplates } from "../../state/metadata/selectors";
+import { getAnnotationTypes, getBooleanAnnotationTypeId, getTemplates } from "../../state/metadata/selectors";
 import { GetTemplatesAction } from "../../state/metadata/types";
 import { goBack, goForward, openTemplateEditor } from "../../state/selection/actions";
 import { GoBackAction, NextPageAction, OpenTemplateEditorAction } from "../../state/selection/types";
 import { getTemplateIds } from "../../state/setting/selectors";
-import { getTemplateDraft } from "../../state/template/selectors";
-import { AnnotationDraft, ColumnType, TemplateDraft } from "../../state/template/types";
+import { getAppliedTemplate } from "../../state/template/selectors";
+import { AnnotationType, Template, TemplateAnnotation } from "../../state/template/types";
 import { State } from "../../state/types";
 import {
     applyTemplate,
@@ -45,8 +45,10 @@ import { LabkeyTemplate } from "../../util/labkey-client/types";
 const styles = require("./style.pcss");
 
 interface Props {
-    appliedTemplate: TemplateDraft;
+    annotationTypes: AnnotationType[];
+    appliedTemplate?: Template;
     applyTemplate: ActionCreator<ApplyTemplateAction>;
+    booleanAnnotationTypeId?: number;
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
@@ -79,6 +81,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     public render() {
         const {
+            annotationTypes,
             appliedTemplate,
             canRedo,
             canUndo,
@@ -106,8 +109,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
-                {appliedTemplate.templateId && (
+                {appliedTemplate && (
                     <CustomDataGrid
+                        annotationTypes={annotationTypes}
                         canRedo={canRedo}
                         canUndo={canUndo}
                         redo={this.redo}
@@ -132,7 +136,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
-                        value={appliedTemplate.name}
+                        value={appliedTemplate ? appliedTemplate.name : undefined}
                         onSelect={this.selectTemplate}
                         templates={templates}
                     />
@@ -157,14 +161,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private requiredValuesPresent = (): boolean => {
-        const {appliedTemplate} = this.props;
+        const {appliedTemplate, booleanAnnotationTypeId} = this.props;
         if (appliedTemplate) {
-            return !appliedTemplate.annotations.every(({annotationTypeName, name, required}: AnnotationDraft) => {
+            return !appliedTemplate.annotations.every(({annotationTypeId, name, required}: TemplateAnnotation) => {
                 if (!name) {
                     throw new Error("annotation is missing a name");
                 }
 
-                if (required && annotationTypeName !== ColumnType.BOOLEAN) {
+                if (required && annotationTypeId !== booleanAnnotationTypeId) {
                     return this.props.uploads.every((upload: any) => {
                         return Boolean(upload[name]);
                     });
@@ -186,7 +190,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
 function mapStateToProps(state: State) {
     return {
-        appliedTemplate: getTemplateDraft(state),
+        annotationTypes: getAnnotationTypes(state),
+        appliedTemplate: getAppliedTemplate(state),
+        booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),

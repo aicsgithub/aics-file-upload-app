@@ -9,9 +9,10 @@ import { ActionCreator } from "redux";
 import NoteIcon from "../../components/NoteIcon";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import {
-    AnnotationDraft,
+    AnnotationType,
     ColumnType,
-    TemplateDraft,
+    Template,
+    TemplateAnnotation,
 } from "../../state/template/types";
 import { RemoveUploadsAction, UpdateUploadAction, UploadJobTableRow } from "../../state/upload/types";
 import { onDrop } from "../../util";
@@ -25,12 +26,13 @@ type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
 interface Props {
+    annotationTypes: AnnotationType[];
     canUndo: boolean;
     canRedo: boolean;
     className?: string;
     redo: () => void;
     removeUploads: ActionCreator<RemoveUploadsAction>;
-    template: TemplateDraft;
+    template?: Template;
     setAlert: ActionCreator<SetAlertAction>;
     undo: () => void;
     updateUpload: ActionCreator<UpdateUploadAction>;
@@ -212,11 +214,15 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         } else {
             basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
         }
-        if  (!this.props.template.templateId) {
+        if  (!this.props.template) {
             return basicColumns;
         }
-        const schemaColumns = this.props.template.annotations.map((column: AnnotationDraft) => {
-            const {name,  annotationTypeName,  annotationOptions, required } = column;
+        const schemaColumns = this.props.template.annotations.map((column: TemplateAnnotation) => {
+            const {name,  annotationTypeId,  annotationOptions, required } = column;
+            const annotationType = this.props.annotationTypes.find((a) => a.annotationTypeId === annotationTypeId);
+            if (!annotationType) {
+                throw new Error(`Could not get annotation type for annotation ${column.name}. Contact Software`);
+            }
             const columns: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
@@ -224,18 +230,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 key: name || "", // todo
                 name: name || "", // todo
                 resizable: true,
-                type: annotationTypeName,
+                type: annotationType.name,
             };
             // Use custom editor for everything except TEXT types which will use the default editor
-            if (annotationTypeName !== ColumnType.TEXT) {
+            if (annotationType.name !== ColumnType.TEXT) {
                 columns.editor = Editor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
-            if (annotationTypeName === ColumnType.DATE) {
+            if (annotationType.name === ColumnType.DATE) {
                 columns.width = 170;
             }
-            if (annotationTypeName === ColumnType.BOOLEAN) {
+            if (annotationType.name === ColumnType.BOOLEAN) {
                 columns.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name || "", saveValue: this.saveByRow});
             } else {

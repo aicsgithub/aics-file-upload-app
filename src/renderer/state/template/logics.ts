@@ -1,4 +1,5 @@
 import { isEmpty, map } from "lodash";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import LabkeyClient from "../../util/labkey-client";
@@ -22,9 +23,9 @@ import {
 } from "../types";
 import { updateUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
-import { UpdateUploadAction, UploadMetadata } from "../upload/types";
+import { UploadMetadata } from "../upload/types";
 import { batchActions } from "../util";
-import { updateTemplateDraft } from "./actions";
+import { setAppliedTemplate, updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getTemplateDraft } from "./selectors";
 import {
@@ -133,7 +134,6 @@ const getAnnotationOptions = async ({annotationId, annotationOptions, annotation
     return undefined;
 };
 
-// this is called when editing an existing template and when applying a template to an upload
 const getTemplateLogic = createLogic({
     process: async ({action, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
@@ -148,46 +148,54 @@ const getTemplateLogic = createLogic({
             dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATE));
             const template: Template = await mmsClient.getTemplate(templateId);
             const { annotations, ...etc } = template;
+            const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)];
 
-            const additionalAnnotations = annotations.reduce((accum: any, a: TemplateAnnotation) => {
-                let value;
-                if (a.annotationTypeId === booleanAnnotationTypeId) {
-                    value = false;
-                } else if (a.canHaveManyValues) {
-                    value = [];
-                }
-                return {
-                    ...accum,
-                    [a.name]: value,
-                };
-            }, {});
+            if (addAnnotationsToUpload) {
+                const additionalAnnotations = annotations.reduce((accum: any, a: TemplateAnnotation) => {
+                    let value;
+                    if (a.annotationTypeId === booleanAnnotationTypeId) {
+                        value = false;
+                    } else if (a.canHaveManyValues) {
+                        value = [];
+                    }
+                    return {
+                        ...accum,
+                        [a.name]: value,
+                    };
+                }, {});
 
-            const updates: UpdateUploadAction[] = addAnnotationsToUpload ?
-                map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
-                    ...metadata,
-                    ...additionalAnnotations,
-                })) : [];
-            dispatch(batchActions([
-                updateTemplateDraft({
+                actions.push(
+                    setAppliedTemplate({
+                        ...etc,
+                        annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation) => ({
+                            ...a,
+                            annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient),
+                        }))),
+                    }),
+                    ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
+                        ...metadata,
+                        ...additionalAnnotations,
+                    }))
+                );
+            } else {
+                actions.push(updateTemplateDraft({
                     ...etc,
-                    annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation, index: number) => {
+                    annotations: annotations.map((a: TemplateAnnotation, index: number) => {
                         const type = annotationTypes.find((t) => t.annotationTypeId === a.annotationTypeId);
                         if (!type) {
                             throw new Error(`Could not find matching type for annotation named ${a.name},
                              annotationTypeId: ${a.annotationTypeId}`);
                         }
-                        const annotationOptions = await getAnnotationOptions(a, getState(), labkeyClient);
                         return {
                             ...a,
-                            annotationOptions,
                             annotationTypeName: type.name,
                             index,
                         };
-                    })),
-                }),
-                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-                ...updates,
-            ]));
+                    }),
+                }));
+            }
+
+            dispatch(batchActions(actions));
         } catch (e) {
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),

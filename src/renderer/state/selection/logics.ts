@@ -479,6 +479,8 @@ const closeTemplateEditorLogic = createLogic({
                action,
            ]));
        }
+
+       next(action);
    },
     type: CLOSE_TEMPLATE_EDITOR,
 });

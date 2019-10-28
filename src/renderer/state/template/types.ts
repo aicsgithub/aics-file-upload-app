@@ -1,7 +1,7 @@
 import { Audited } from "../types";
 
-// todo consider flattening
 export interface TemplateStateBranch {
+    appliedTemplate?: Template;
     draft: TemplateDraft;
 }
 
@@ -97,6 +97,11 @@ export interface SaveTemplateAction {
 export interface SaveTemplateRequest {
     name: string;
     annotations: AnnotationRequest[];
+}
+
+export interface SetAppliedTemplateAction {
+    payload: Template;
+    type: string;
 }
 
 export interface Template extends Audited {

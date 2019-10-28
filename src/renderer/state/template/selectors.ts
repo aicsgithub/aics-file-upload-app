@@ -4,6 +4,7 @@ import { createSelector } from "reselect";
 import { State } from "../types";
 import { AnnotationDraft, ColumnType } from "./types";
 
+export const getAppliedTemplate = (state: State) => state.template.present.appliedTemplate;
 export const getTemplateDraft = (state: State) => state.template.present.draft;
 export const getTemplateDraftName = (state: State) => state.template.present.draft.name;
 export const getTemplateDraftAnnotations = (state: State) => state.template.present.draft.annotations;
