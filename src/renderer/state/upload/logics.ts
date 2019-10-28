@@ -2,12 +2,12 @@ import Logger from "js-logger";
 import { includes, isEmpty, isNil, map, values } from "lodash";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
+import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { Channel } from "../metadata/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
+import { Channel } from "../metadata/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
@@ -20,7 +20,6 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-
 import { removeUploads, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
@@ -29,7 +28,6 @@ import {
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
     UPDATE_SCENES,
-    UPDATE_SCHEMA,
 } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
@@ -291,7 +289,6 @@ export default [
     applyTemplateLogic,
     associateFileAndWellLogic,
     initiateUploadLogic,
-    updateSchemaLogic,
     retryUploadLogic,
     updateScenesLogic,
 ];

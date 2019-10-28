@@ -16,7 +16,6 @@ export const initialState: MetadataStateBranch = {
     annotations: [],
     barcodePrefixes: [],
     barcodeSearchResults: [],
-    barcodes: [],
     channels: [],
     history: {
         selection: {},

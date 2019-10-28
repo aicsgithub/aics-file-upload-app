@@ -17,7 +17,7 @@ import {
     getChannels,
     getTemplates,
 } from "../../state/metadata/selectors";
-import { Channel, ImagingSession, GetTemplatesAction } from "../../state/metadata/types";
+import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
 import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
@@ -34,13 +34,6 @@ import {
     Well,
 } from "../../state/selection/types";
 import { getTemplateIds } from "../../state/setting/selectors";
-import {
-    AddSchemaFilepathAction,
-    ColumnDefinition,
-    ColumnType,
-    RemoveSchemaFilepathAction,
-    SchemaDefinition
-} from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { AnnotationType, Template, TemplateAnnotation } from "../../state/template/types";
 import { State } from "../../state/types";
