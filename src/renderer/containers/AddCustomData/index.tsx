@@ -141,12 +141,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         templates={templates}
                     />
                 </div>
-                <Button className={styles.createSchemaButton} onClick={this.props.openSchemaCreator}>
+                <Button className={styles.createSchemaButton} onClick={this.openTemplateEditor}>
                     Create {SCHEMA_SYNONYM}
                 </Button>
             </div>
         );
     }
+
+    private openTemplateEditor = () => this.props.openSchemaCreator();
 
     private selectTemplate = (templateName: string) => {
         const template = this.props.templates.find((t) => t.Name === templateName);

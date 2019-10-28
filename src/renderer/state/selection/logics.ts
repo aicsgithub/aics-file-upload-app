@@ -461,7 +461,7 @@ const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): A
 };
 
 const openTemplateEditorLogic = createLogic({
-    process: ({action}: ReduxLogicTransformDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         if (action.payload) {
             dispatch(getTemplate(action.payload));
         }
@@ -473,14 +473,10 @@ const openTemplateEditorLogic = createLogic({
 
 const closeTemplateEditorLogic = createLogic({
    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       if (getPage(getState()) !== Page.AddCustomData) {
-           next(batchActions([
-               clearTemplateDraft(),
-               action,
-           ]));
-       }
-
-       next(action);
+       next(batchActions([
+           clearTemplateDraft(),
+           action,
+       ]));
    },
     type: CLOSE_TEMPLATE_EDITOR,
 });
