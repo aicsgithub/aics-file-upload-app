@@ -1,8 +1,9 @@
 import { isEmpty, uniqBy } from "lodash";
 
 import { createSelector } from "reselect";
+import { getNotesAnnotation, getWellAnnotation, getWorkflowAnnotation } from "../metadata/selectors";
 import { State } from "../types";
-import { AnnotationDraft, ColumnType, TemplateDraft } from "./types";
+import { Annotation, AnnotationDraft, ColumnType, Template, TemplateDraft } from "./types";
 
 export const getAppliedTemplate = (state: State) => state.template.present.appliedTemplate;
 export const getTemplateDraft = (state: State) => state.template.present.draft;
@@ -87,5 +88,48 @@ export const getSaveTemplateRequest = createSelector([
             };
         }),
         name: draft.name || "",
+    };
+});
+
+// includes annotation info for required fields - wellIds, workflow
+export const getCompleteAppliedTemplate = createSelector([
+    getNotesAnnotation,
+    getWellAnnotation,
+    getWorkflowAnnotation,
+    getAppliedTemplate,
+], (
+    notes?: Annotation,
+    well?: Annotation,
+    workflow?: Annotation,
+    appliedTemplate?: Template
+): Template | undefined => {
+    if (!appliedTemplate) {
+        return undefined;
+    }
+
+    if (!well || !workflow || !notes) {
+        throw new Error("Could not get well, workflow, or notes annotation");
+    }
+
+    return {
+        ...appliedTemplate,
+        annotations: [
+            ...appliedTemplate.annotations,
+            {
+                ...well,
+                canHaveManyValues: true,
+                required: true,
+            },
+            {
+                ...workflow,
+                canHaveManyValues: true,
+                required: true,
+            },
+            {
+                ...notes,
+                canHaveManyValues: true,
+                required: true,
+            },
+        ],
     };
 });

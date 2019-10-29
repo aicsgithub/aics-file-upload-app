@@ -129,7 +129,7 @@ describe("Template Logics", () => {
             sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
 
             expect(getAppliedTemplate(store.getState())).to.be.undefined;
-            expect("favoriteColor" in getUpload(store.getState())[key]).to.be.false;
+            expect("Favorite Color" in getUpload(store.getState())[key]).to.be.false;
 
             store.dispatch(getTemplate(1, true));
 
@@ -138,7 +138,7 @@ describe("Template Logics", () => {
                count++;
                if (count > 1) {
                    expect(getAppliedTemplate(store.getState())).to.not.be.undefined;
-                   expect("favoriteColor" in getUpload(store.getState())[key]).to.be.true;
+                   expect("Favorite Color" in getUpload(store.getState())[key]).to.be.true;
                    done();
                }
             });

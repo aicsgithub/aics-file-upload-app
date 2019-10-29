@@ -4,7 +4,7 @@ import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from ".
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { Unit } from "../metadata/types";
+import { Channel, Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
@@ -32,7 +32,62 @@ export const mockAuditInfo = {
     createdBy: 1,
     modified: new Date(),
     modifiedBy: 1,
-} ;
+};
+
+export const mockFavoriteColorAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 1,
+    annotationOptions: undefined,
+    annotationTypeId: 1,
+    canHaveManyValues: false,
+    description: "a description",
+    name: "Favorite Color",
+    required: true,
+};
+
+export const mockWellAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 2,
+    annotationTypeId: 3,
+    description: "Well associated with this file",
+    name: "Well",
+};
+
+export const mockWorkflowAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 4,
+    annotationTypeId: 3,
+    description: "Workflow associated with this file",
+    name: "Workflow",
+};
+
+export const mockNotesAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 3,
+    annotationTypeId: 1,
+    description: "Other information",
+    name: "Notes",
+};
+
+export const mockMMSTemplate: Template = {
+    ...mockAuditInfo,
+    annotations: [mockFavoriteColorAnnotation],
+    name: "Test",
+    templateId: 1,
+    version: 1,
+};
+
+export const mockTemplateStateBranch: TemplateStateBranch = {
+    appliedTemplate: undefined,
+    draft: {
+        annotations: [],
+    },
+};
+
+export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
+    ...mockTemplateStateBranch,
+    appliedTemplate: mockMMSTemplate,
+};
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
@@ -60,13 +115,6 @@ export const mockSelection: SelectionStateBranch = {
     templateEditorVisible: false,
     view: Page.DragAndDrop,
     wells: [],
-};
-
-export const mockTemplateStateBranch: TemplateStateBranch = {
-    appliedTemplate: undefined,
-    draft: {
-        annotations: [],
-    },
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -270,7 +318,14 @@ export const mockFailedCopyJob: JSSJob = {
 
 export const mockPendingJob: PendingJob = {
     ...mockWorkingUploadJob,
-    uploads: getUploadPayload(mockState),
+    uploads: getUploadPayload({
+        ...mockState,
+        metadata: {
+            ...mockState.metadata,
+            annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
+        },
+        template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
+    }),
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
@@ -366,23 +421,10 @@ export const mockChannels: LabkeyChannel[] = [
     },
 ];
 
-export const mockTemplateAnnotation: TemplateAnnotation = {
-    ...mockAuditInfo,
-    annotationId: 1,
-    annotationOptions: undefined,
-    annotationTypeId: 1,
-    canHaveManyValues: false,
-    description: "a description",
-    name: "favoriteColor",
-    required: true,
-};
-
-export const mockMMSTemplate: Template = {
-    ...mockAuditInfo,
-    annotations: [mockTemplateAnnotation],
-    name: "Test",
-    templateId: 1,
-    version: 1,
+export const mockChannel: Channel = {
+    channelId: 1,
+    description: "a channel",
+    name: "Raw 468 nm",
 };
 
 export const mockUnit: Unit = {

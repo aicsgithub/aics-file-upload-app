@@ -1,15 +1,33 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { forEach, groupBy, isArray, isEmpty, isNil, keys, map, omit, uniq, values, without } from "lodash";
+import {
+    castArray,
+    forEach,
+    groupBy,
+    isArray,
+    isEmpty,
+    isNil,
+    keys,
+    map,
+    omit,
+    pickBy,
+    startCase,
+    uniq,
+    values,
+    without
+} from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+import { flatMap } from "tslint/lib/utils";
 
 import { getUploadJobNames } from "../job/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
 import { ExpandedRows, Workflow } from "../selection/types";
+import { getCompleteAppliedTemplate } from "../template/selectors";
+import { Template } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneRow } from "./constants";
-import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
+import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -164,10 +182,66 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
     ".txt": FileType.TEXT,
 };
 
-export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
+const EXCLUDED_UPLOAD_FIELDS = [
+    "barcode",
+    "channel",
+    "file",
+    "plateId",
+    "positionIndex",
+    "wellLabels",
+    "wellIds",
+    "workflows",
+];
+// the userData relates to the same file but differs for scene/channel combinations
+const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template) => {
+    return flatMap(metadata, (metadatum: UploadMetadata) => {
+        const customData = omit(metadatum, EXCLUDED_UPLOAD_FIELDS);
+        const renamedData = {...customData, well: metadatum.wellIds, workflow: metadatum.workflows};
+        const result: MMSAnnotationValueRequest[] = [];
+        forEach(renamedData, (value: any, annotationName: string) => {
+            const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
+            if (addAnnotation) {
+                annotationName = startCase(annotationName);
+                const annotation = appliedTemplate.annotations
+                    .find((a) => a.name === annotationName);
+                if (!annotation) {
+                    throw new Error(
+                        `Could not find an annotation named ${annotationName} in your template`
+                    );
+                }
+
+                result.push({
+                    annotationId: annotation.annotationId,
+                    channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
+                    positionIndex: metadatum.positionIndex,
+                    timePointId: undefined,
+                    values: castArray(value),
+                });
+            }
+        });
+        return result;
+    });
+};
+
+export const getUploadPayload = createSelector([
+    getUpload,
+    getCompleteAppliedTemplate,
+], (uploads: UploadStateBranch, appliedTemplate?: Template): Uploads => {
+    if (!appliedTemplate) {
+        throw new Error("Template has not been applied");
+    }
+
     let result = {};
-    map(uploads, ({wellIds, barcode, wellLabels, plateId, workflows, ...userData}: any, fullPath: string) => {
-        const workflowNames = workflows && workflows.map((workflow: Workflow) => workflow.name);
+    const metadataGroupedByFile = groupBy(values(uploads), "file");
+    forEach(metadataGroupedByFile, (
+        metadata: UploadMetadata[],
+        fullPath: string
+    ) => {
+        // todo NOTES
+        // support pipeline ingestion
+        // todo make sure this is what we intend
+        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds));
+        const workflows = uniq(flatMap(metadata, (m) => m.workflows || []));
         result = {
             ...result,
             [fullPath]: {
@@ -175,11 +249,18 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     originalPath: fullPath,
                 },
-                microscopy: {
-                    ...wellIds && { wellIds },
-                    ...workflows && { workflows: workflowNames },
+                fileMetadata: {
+                    requests: [
+                        {
+                            annotations: getAnnotations(metadata, appliedTemplate),
+                            templateId: appliedTemplate.templateId,
+                        },
+                    ],
                 },
-                userData: omit(userData, "file"),
+                microscopy: {
+                    ...(wellIds.length && { wellIds }),
+                    ...(workflows.length && { workflows }),
+                },
             },
         };
     });
