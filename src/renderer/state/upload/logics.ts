@@ -196,7 +196,7 @@ const updateScenesLogic = createLogic({
             .find((u) => isNil(u.channelId) && isNil(u.positionIndex));
 
         if (!fileUpload) {
-            throw new Error(""); // todo
+            throw new Error("Could not find the main upload for the file. Contact Software.");
         }
 
         // if there are positions for a file, remove the well association from the file row

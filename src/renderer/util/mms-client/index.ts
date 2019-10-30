@@ -35,7 +35,6 @@ export default class MMSClient extends BaseServiceClient {
         return response.data[0];
     }
 
-    // todo description
     public async getTemplate(templateId: number): Promise<Template> {
         const url = `/1.0/template/${templateId}`;
         const response = await this.httpClient.get(url);

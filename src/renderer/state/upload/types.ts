@@ -79,7 +79,6 @@ export interface UploadJobTableRow {
     // react-data-grid property needed for nested rows
     treeDepth?: number;
 
-    // todo replace wellIds and wellLabels with wells and use selectors
     wellIds?: number[];
 
     // human readable identifier of well, such as "A1"
