@@ -128,7 +128,7 @@ export const getCompleteAppliedTemplate = createSelector([
                 canHaveManyValues: true,
                 // Renaming because it the annotation name doesn't match the property in UploadMetadata
                 // In the future we should think about renaming the property
-                name: "Workflow",
+                name: "Workflows",
                 required: false,
             },
             {
