@@ -89,67 +89,12 @@ export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
     appliedTemplate: mockMMSTemplate,
 };
 
-export const mockFavoriteColorAnnotation: TemplateAnnotation = {
-    ...mockAuditInfo,
-    annotationId: 1,
-    annotationOptions: undefined,
-    annotationTypeId: 1,
-    canHaveManyValues: false,
-    description: "a description",
-    name: "Favorite Color",
-    required: true,
-};
-
-export const mockWellAnnotation: Annotation = {
-    ...mockAuditInfo,
-    annotationId: 2,
-    annotationTypeId: 3,
-    description: "Well associated with this file",
-    name: "Well",
-};
-
-export const mockWorkflowAnnotation: Annotation = {
-    ...mockAuditInfo,
-    annotationId: 4,
-    annotationTypeId: 3,
-    description: "Workflow associated with this file",
-    name: "Workflow",
-};
-
-export const mockNotesAnnotation: Annotation = {
-    ...mockAuditInfo,
-    annotationId: 3,
-    annotationTypeId: 1,
-    description: "Other information",
-    name: "Notes",
-};
-
 export const mockAnnotations = [
     mockFavoriteColorAnnotation,
     mockWellAnnotation,
     mockWorkflowAnnotation,
     mockNotesAnnotation,
 ];
-
-export const mockMMSTemplate: Template = {
-    ...mockAuditInfo,
-    annotations: [mockFavoriteColorAnnotation],
-    name: "Test",
-    templateId: 1,
-    version: 1,
-};
-
-export const mockTemplateStateBranch: TemplateStateBranch = {
-    appliedTemplate: undefined,
-    draft: {
-        annotations: [],
-    },
-};
-
-export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
-    ...mockTemplateStateBranch,
-    appliedTemplate: mockMMSTemplate,
-};
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
