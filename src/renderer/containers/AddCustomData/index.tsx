@@ -35,7 +35,7 @@ import {
 } from "../../state/selection/types";
 import { getTemplateIds } from "../../state/setting/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AnnotationType, Template, TemplateAnnotation } from "../../state/template/types";
+import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
 import {
     applyTemplate,
@@ -47,10 +47,10 @@ import {
     updateUploads,
 } from "../../state/upload/actions";
 import {
-    getCanRedoUpload,
+    getCanRedoUpload, getCanSave,
     getCanUndoUpload,
     getFileToAnnotationHasValueMap,
-    getUploadSummaryRows
+    getUploadSummaryRows,
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
@@ -73,6 +73,7 @@ interface Props {
     applyTemplate: ActionCreator<ApplyTemplateAction>;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
+    canSave: boolean;
     canUndo: boolean;
     channels: Channel[];
     className?: string;
@@ -120,19 +121,19 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             annotationTypes,
             appliedTemplate,
             canRedo,
+            canSave,
             canUndo,
             className,
             loading,
             uploads,
         } = this.props;
-        const disableSaveButton = !(uploads.length && appliedTemplate && this.requiredValuesPresent());
         return (
             <FormPage
                 className={className}
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={disableSaveButton}
+                saveButtonDisabled={!canSave}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
             >
@@ -220,25 +221,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         this.props.goForward();
     }
 
-    private requiredValuesPresent = (): boolean => {
-        const {appliedTemplate, booleanAnnotationTypeId} = this.props;
-        if (appliedTemplate) {
-            return !appliedTemplate.annotations.every(({annotationTypeId, name, required}: TemplateAnnotation) => {
-                if (!name) {
-                    throw new Error("annotation is missing a name");
-                }
-
-                if (required && annotationTypeId !== booleanAnnotationTypeId) {
-                    return this.props.uploads.every((upload: any) => {
-                        return Boolean(upload[name]);
-                    });
-                }
-                return false;
-            });
-        }
-        return true;
-    }
-
     private undo = (): void => {
         this.props.jumpToUpload(-1);
     }
@@ -255,6 +237,7 @@ function mapStateToProps(state: State) {
         appliedTemplate: getAppliedTemplate(state),
         booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
+        canSave: getCanSave(state),
         canUndo: getCanUndoUpload(state),
         channels: getChannels(state),
         expandedRows: getExpandedUploadJobRows(state),
