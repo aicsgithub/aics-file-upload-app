@@ -9,6 +9,8 @@ import {
     isNil,
     keys,
     omit,
+    pick,
+    some,
     startCase,
     uniq,
     values,
@@ -164,12 +166,44 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
     }
 );
 
+export const getCanSave = createSelector([
+    getUploadSummaryRows,
+    getFileToAnnotationHasValueMap,
+    getCompleteAppliedTemplate,
+], (
+    rows: UploadJobTableRow[],
+    fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}},
+    template?: Template
+): boolean => {
+    if (!template || !rows.length) {
+        return false;
+    }
+
+    const requiredAnnotations = template.annotations.filter((a) => a.required).map((a) => a.name);
+    let isValid = true;
+    forEach(fileToAnnotationHasValueMap, (annotationHasValueMap: {[key: string]: boolean}) => {
+        if (!annotationHasValueMap.wellIds && !annotationHasValueMap.workflows) {
+            isValid = false;
+        }
+        const onlyRequiredAnnotations = pick(annotationHasValueMap, requiredAnnotations);
+        const valuesOfRequired = values(onlyRequiredAnnotations);
+        const aFalseExists = some(valuesOfRequired, (x) => !x);
+        if (aFalseExists) {
+            isValid = false;
+        }
+    });
+
+    return isValid;
+});
+
 const EXCLUDED_UPLOAD_FIELDS = [
     "barcode",
     "channel",
     "file",
+    "key",
     "plateId",
     "positionIndex",
+    "templateId",
     "wellLabels",
 ];
 // the userData relates to the same file but differs for scene/channel combinations
