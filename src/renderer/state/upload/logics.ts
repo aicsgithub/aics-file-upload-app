@@ -272,7 +272,7 @@ const updateScenesLogic = createLogic({
         const channelIds = channels.map((c: Channel) => c.channelId);
         const rowsToDelete = existingUploadsForFile
             .filter((u) => (!isNil(u.positionIndex) && !includes(positionIndexes, u.positionIndex)) ||
-                (!isNil(u.channel) && !includes(channelIds, u.channelId)));
+                (!isNil(u.channel) && !includes(channelIds, u.channel.channelId)));
         const rowKeysToDelete = rowsToDelete.map(({file, positionIndex, channel}: UploadMetadata) =>
             getUploadRowKey(file, positionIndex, channel ? channel.channelId : undefined));
 

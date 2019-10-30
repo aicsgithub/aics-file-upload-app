@@ -728,9 +728,16 @@ describe("Upload selectors", () => {
                         wellIds: [1],
                         wellLabels: ["A1"],
                     },
+                    [getUploadRowKey("/path/to/file1", undefined, 1)]: {
+                        barcode: "1234",
+                        channel: mockChannel,
+                        file: "/path/to/file1",
+                        wellIds: [],
+                        wellLabels: [],
+                    },
                 }),
             });
-            expect(rows.length).to.equal(3);
+            expect(rows.length).to.equal(4);
             expect(rows).to.deep.include({
                 barcode: "1234",
                 channelIds: [1],
@@ -751,10 +758,10 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey("/path/to/file1", 1),
-                numberSiblings: 1,
+                numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
-                siblingIndex: 0,
+                siblingIndex: 1,
                 treeDepth: 1,
                 wellIds: [],
                 wellLabels: "",
@@ -774,6 +781,21 @@ describe("Upload selectors", () => {
                 treeDepth: 2,
                 wellIds: [1],
                 wellLabels: "A1",
+                workflows: "",
+            });
+            expect(rows).to.deep.include({
+                barcode: "1234",
+                channel: mockChannel,
+                channelIds: [],
+                file: "/path/to/file1",
+                group: false,
+                key: getUploadRowKey("/path/to/file1", undefined, 1),
+                numberSiblings: 2,
+                positionIndexes: [],
+                siblingIndex: 0,
+                treeDepth: 1,
+                wellIds: [],
+                wellLabels: "",
                 workflows: "",
             });
         });

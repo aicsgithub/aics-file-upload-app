@@ -18,7 +18,6 @@ export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
 export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
 export const UPDATE_SCENES = makeConstant(BRANCH_NAME, "add-scenes");
-export const UPDATE_SCHEMA = makeConstant(BRANCH_NAME, "update-schema");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
 export const UPDATE_UPLOADS = makeConstant(BRANCH_NAME, "update-uploads");
 
@@ -38,4 +37,5 @@ export const getUploadRowKey = (file: string, positionIndex?: number, channelId?
 
 export const isFileRow = ({channel, positionIndex}: UploadMetadata) => isNil(channel) && isNil(positionIndex);
 export const isChannelOnlyRow = ({channel, positionIndex}: UploadMetadata) => !isNil(channel) && isNil(positionIndex);
-export const isSceneRow = ({channel, positionIndex}: UploadMetadata) => !isNil(positionIndex);
+export const isSceneRow = ({positionIndex}: UploadMetadata) => !isNil(positionIndex);
+export const isSceneOnlyRow = ({channel, positionIndex}: UploadMetadata) => !isNil(positionIndex) && isNil(channel);
