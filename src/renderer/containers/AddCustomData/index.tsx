@@ -78,7 +78,6 @@ interface Props {
     channels: Channel[];
     className?: string;
     expandedRows: ExpandedRows;
-    filepath?: string; // todo
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
@@ -146,6 +145,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
+                {appliedTemplate && this.renderTemplateInfo()}
                 {appliedTemplate && this.renderPlateInfo()}
                 {appliedTemplate && (
                     <CustomDataGrid
@@ -169,6 +169,19 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     />
                 )}
             </FormPage>
+        );
+    }
+
+    private renderTemplateInfo = () => {
+        const { appliedTemplate } = this.props;
+        if (!appliedTemplate) {
+            return null;
+        }
+
+        return (
+            <a href="#" onClick={this.openTemplateEditorWithId(appliedTemplate.templateId)}>
+                View Template
+            </a>
         );
     }
 
@@ -208,6 +221,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private openTemplateEditor = () => this.props.openSchemaCreator();
+    private openTemplateEditorWithId = (id: number) => () => this.props.openSchemaCreator(id);
 
     private selectTemplate = (templateName: string) => {
         const template = this.props.templates.find((t) => t.Name === templateName);
