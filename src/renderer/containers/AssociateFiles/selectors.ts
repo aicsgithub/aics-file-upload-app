@@ -1,4 +1,4 @@
-import { difference, isEmpty, reduce, uniq } from "lodash";
+import { difference, flatMap, isEmpty, reduce } from "lodash";
 import { createSelector } from "reselect";
 
 import { getSelectedWellsWithData, getSelectedWorkflows } from "../../state/selection/selectors";
@@ -6,45 +6,12 @@ import { Well, Workflow } from "../../state/selection/types";
 import { getUpload } from "../../state/upload/selectors";
 import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
-export interface IdToFilesMap {
-    [Id: number]: string[]; // filePaths
-    [name: string]: string[]; // filePaths
-}
-
-export const getWellIdToFiles = createSelector([getUpload], (upload: UploadStateBranch): IdToFilesMap => {
-    return reduce(upload, (result: IdToFilesMap, {wellIds}: UploadMetadata, filePath: string) => {
-        if (!wellIds) {
-            return {};
-        }
-        return {
-            ...result,
-            ...reduce(wellIds, (accum: IdToFilesMap, wellId: number) => {
-                const files = accum[wellId] || [];
-                return {
-                    ...accum,
-                    [wellId]: uniq([...files, filePath]),
-                };
-            }, {}),
-        };
-    }, {});
+export const getWellsWithAssociations = createSelector([getUpload], (upload: UploadStateBranch): number[] => {
+    return flatMap(upload, ({wellIds}: UploadMetadata) => wellIds);
 });
 
-export const getWorkflowNameToFiles = createSelector([getUpload], (upload: UploadStateBranch): IdToFilesMap => {
-    return reduce(upload, (result: IdToFilesMap, {workflows}: UploadMetadata, filePath: string) => {
-        if (!workflows) {
-            return {};
-        }
-        return {
-            ...result,
-            ...reduce(workflows, (accum: IdToFilesMap, workflow: string) => {
-                const files = accum[workflow] || [];
-                return {
-                    ...accum,
-                    [workflow]: uniq([...files, filePath]),
-                };
-            }, {}),
-        };
-    }, {});
+export const getWorkflowsWithAssociations = createSelector([getUpload], (upload: UploadStateBranch): string[] => {
+    return flatMap(upload, ({workflows}: UploadMetadata) => workflows || []);
 });
 
 export const getMutualFilesForWells = createSelector([

@@ -1,10 +1,8 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { Tabs } from "antd";
-import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
 import { GoBackAction, NextPageAction, SelectWellsAction, Well } from "../../state/selection/types";
 import {
     AssociateFilesAndWellsAction,
@@ -37,7 +35,7 @@ interface AssociateWellsProps {
     selectWells: ActionCreator<SelectWellsAction>;
     undo: () => void;
     wells?: Well[][];
-    wellIdToFiles: IdToFilesMap;
+    wellsWithAssociations: number[];
     undoAssociation: ActionCreator<UndoFileWellAssociationAction>;
 }
 
@@ -57,7 +55,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
             selectedWellLabels,
             undo,
             wells,
-            wellIdToFiles,
+            wellsWithAssociations,
         } = this.props;
 
         const associationsTitle = `Selected Well(s): ${selectedWellLabels.sort().join(", ")}`;
@@ -98,7 +96,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                             wells={wells}
                             onWellClick={this.selectWells}
                             selectedWells={selectedWells}
-                            wellIdToFiles={wellIdToFiles}
+                            wellsWithAssociations={wellsWithAssociations}
                         />
                     ) : <span>Plate does not have any well information!</span>}
             </FormPage>
@@ -141,7 +139,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
 
     // If we at least one well associated with at least one file then we can continue the upload
     private canContinue = (): boolean => {
-        return keys(this.props.wellIdToFiles).length > 0;
+        return this.props.wellsWithAssociations.length > 0;
     }
 }
 

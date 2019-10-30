@@ -3,7 +3,6 @@ import { Icon, Modal } from "antd";
 import * as classNames from "classnames";
 import { flatten, isNil } from "lodash";
 import * as React from "react";
-import { IdToFilesMap } from "../../../containers/AssociateFiles/selectors";
 import { Well } from "../../../state/selection/types";
 import Plate from "../../Plate";
 
@@ -22,7 +21,6 @@ interface Props {
 interface WellsFormatterState {
     selectedWells: AicsGridCell[];
     showModal: boolean;
-    wellIdToFiles: IdToFilesMap;
 }
 
 class WellsFormatter extends React.Component<Props, WellsFormatterState> {
@@ -46,13 +44,13 @@ class WellsFormatter extends React.Component<Props, WellsFormatterState> {
             className,
             fileName,
             positionIndex,
+            selectedWellIds,
             selectedWellLabels,
             wells,
         } = this.props;
         const {
             selectedWells,
             showModal,
-            wellIdToFiles,
         } = this.state;
 
         let title = `Associate Wells with \"${fileName}\"`;
@@ -78,7 +76,7 @@ class WellsFormatter extends React.Component<Props, WellsFormatterState> {
                         wells={wells}
                         onWellClick={this.selectWells}
                         selectedWells={selectedWells}
-                        wellIdToFiles={wellIdToFiles}
+                        wellsWithAssociations={selectedWellIds}
                     />
                 </Modal>
             </>
@@ -111,13 +109,8 @@ class WellsFormatter extends React.Component<Props, WellsFormatterState> {
         const selectedWells = props.selectedWellIds.map((selectedWellId: number) => {
             return flattenedWells.find((w: Well) => w.wellId === selectedWellId);
         }).filter((w) => !!w) as Well[];
-        const wellIdToFiles = props.selectedWellIds.reduce((accum: IdToFilesMap, wellId: number) => ({
-            ...accum,
-            [wellId]: "arbitrary file path", // todo
-        }), {});
         return {
             selectedWells,
-            wellIdToFiles,
         };
     }
 }

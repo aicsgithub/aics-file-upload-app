@@ -1,9 +1,7 @@
 import { Select, Tabs } from "antd";
-import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
 import { GoBackAction, NextPageAction, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
@@ -33,7 +31,7 @@ interface Props {
     undo: () => void;
     undoAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
     workflowOptions: Workflow[];
-    workflowIdToFiles: IdToFilesMap;
+    workflowsWithAssociations: string[];
 }
 
 class AssociateWorkflows extends React.Component<Props, {}> {
@@ -130,7 +128,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
 
     // If we at least one workflow associated with at least one file then we can continue the upload
     private canContinue = (): boolean => {
-        return keys(this.props.workflowIdToFiles).length > 0;
+        return this.props.workflowsWithAssociations.length > 0;
     }
 }
 
