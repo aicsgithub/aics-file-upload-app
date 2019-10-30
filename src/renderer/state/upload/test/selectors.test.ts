@@ -1,34 +1,76 @@
+import { UploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { keys } from "lodash";
+import { forEach, keys, orderBy } from "lodash";
 
 import {
     getMockStateWithHistory,
+    mockChannel,
+    mockFavoriteColorAnnotation,
+    mockMMSTemplate,
+    mockNotesAnnotation,
     mockSelection,
     mockState,
+    mockWellAnnotation,
     nonEmptyJobStateBranch,
+    nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 
 import { getFileToAnnotationHasValueMap, getUploadJobName, getUploadPayload, getUploadSummaryRows } from "../selectors";
-import { FileType } from "../types";
+import { FileType, MMSAnnotationValueRequest } from "../types";
+
+const orderAnnotationValueRequests = (annotations: MMSAnnotationValueRequest[]) => {
+    return orderBy(annotations, ["annotationId", "positionId", "channelId", "timePointId"]);
+};
+
+// utility function to allow us to deeply compare expected and actual output without worrying about order
+const standardizeUploads = (uploads: Uploads): Uploads => {
+    const result: Uploads = {};
+    forEach(uploads, (upload: UploadMetadata, file: string) => {
+        result[file] = {
+            ...upload,
+            fileMetadata: {
+                ...upload.fileMetadata,
+                requests: upload.fileMetadata.requests.map((r: {annotations: MMSAnnotationValueRequest[]}) => ({
+                    ...r,
+                    annotations: orderAnnotationValueRequests(r.annotations),
+                })),
+            },
+        };
+    });
+    return result;
+};
 
 describe("Upload selectors", () => {
     describe("getUploadPayload", () => {
-        it("Adds correct file type and moves wellId to microscopy section", () => {
+        it("Converts upload state branch into correct payload for aicsfiles-js", () => {
             const state: State = {
-                ...mockState,
+                ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
                     "/path/to.dot/image.tiff": {
                         barcode: "452",
                         file: "/path/to.dot/image.tiff",
+                        ["Favorite Color"]: "blue",
                         notes: undefined,
                         plateId: 4,
+                        wellIds: [],
+                        wellLabels: [],
+                    },
+                    "/path/to.dot/image.tiffscene:1channel:1": {
+                        barcode: "452",
+                        channel: mockChannel,
+                        ["Favorite Color"]: "yellow",
+                        file: "/path/to.dot/image.tiff",
+                        notes: "Seeing some interesting things here!",
+                        plateId: 4,
+                        positionIndex: 1,
                         wellIds: [6],
                         wellLabels: ["A1"],
                     },
                     "/path/to/image.czi": {
                         barcode: "567",
+                        ["Favorite Color"]: "red",
                         file: "/path/to/image.czi",
                         notes: undefined,
                         plateId: 4,
@@ -37,6 +79,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.ome.tiff": {
                         barcode: "123",
+                        ["Favorite Color"]: "green",
                         file: "/path/to/image.ome.tiff",
                         notes: undefined,
                         plateId: 2,
@@ -45,6 +88,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.png": {
                         barcode: "345",
+                        ["Favorite Color"]: "purple",
                         file: "/path/to/image.png",
                         notes: undefined,
                         plateId: 5,
@@ -53,6 +97,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.tiff": {
                         barcode: "234",
+                        ["Favorite Color"]: "orange",
                         file: "/path/to/image.tiff",
                         notes: undefined,
                         plateId: 3,
@@ -61,6 +106,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/multi-well.txt": {
                         barcode: "456",
+                        ["Favorite Color"]: "pink",
                         file: "/path/to/multi-well.txt",
                         notes: undefined,
                         plateId: 7,
@@ -69,6 +115,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/no-extension": {
                         barcode: "888",
+                        ["Favorite Color"]: "gold",
                         file: "/path/to/no-extension",
                         notes: undefined,
                         plateId: 7,
@@ -77,6 +124,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/not-image.csv": {
                         barcode: "578",
+                        ["Favorite Color"]: "grey",
                         file: "/path/to/not-image.csv",
                         notes: undefined,
                         plateId: 7,
@@ -85,6 +133,7 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/not-image.txt": {
                         barcode: "456",
+                        ["Favorite Color"]: "black",
                         file: "/path/to/not-image.txt",
                         notes: undefined,
                         plateId: 7,
@@ -99,11 +148,45 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to.dot/image.tiff",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["blue"],
+                                    },
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: mockChannel.channelId,
+                                        positionIndex: 1,
+                                        timePointId: undefined,
+                                        values: ["yellow"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: mockChannel.channelId,
+                                        positionIndex: 1,
+                                        timePointId: undefined,
+                                        values: [6],
+                                    },
+                                    {
+                                        annotationId: mockNotesAnnotation.annotationId,
+                                        channelId: mockChannel.channelId,
+                                        positionIndex: 1,
+                                        timePointId: undefined,
+                                        values: ["Seeing some interesting things here!"],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [6],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/image.czi": {
@@ -111,11 +194,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.czi",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["red"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [1],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [1],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/image.ome.tiff": {
@@ -123,11 +226,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.ome.tiff",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["green"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [2],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [2],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/image.png": {
@@ -135,11 +258,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.png",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["purple"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [3],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [3],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/image.tiff": {
@@ -147,11 +290,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.tiff",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["orange"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [4],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [4],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/multi-well.txt": {
@@ -159,11 +322,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/multi-well.txt",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["pink"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [5, 6, 7],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [5, 6, 7],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/no-extension": {
@@ -171,11 +354,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.OTHER,
                         originalPath: "/path/to/no-extension",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["gold"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [7],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [7],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/not-image.csv": {
@@ -183,11 +386,31 @@ describe("Upload selectors", () => {
                         fileType: FileType.CSV,
                         originalPath: "/path/to/not-image.csv",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["grey"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [8],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [8],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
                 "/path/to/not-image.txt": {
@@ -195,17 +418,37 @@ describe("Upload selectors", () => {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/not-image.txt",
                     },
+                    fileMetadata: {
+                        requests: [
+                            {
+                                annotations: [
+                                    {
+                                        annotationId: mockFavoriteColorAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: ["black"],
+                                    },
+                                    {
+                                        annotationId: mockWellAnnotation.annotationId,
+                                        channelId: undefined,
+                                        positionIndex: undefined,
+                                        timePointId: undefined,
+                                        values: [5],
+                                    },
+                                ],
+                                templateId: mockMMSTemplate.templateId,
+                            },
+                        ],
+                    },
                     microscopy: {
                         wellIds: [5],
-                    },
-                    userData: {
-                        notes: undefined,
                     },
                 },
             };
 
-            const payload = getUploadPayload(state);
-            expect(payload).to.deep.equal(expected);
+            const payload: Uploads = getUploadPayload(state);
+            expect(standardizeUploads(payload)).to.deep.equal(standardizeUploads(expected));
         });
     });
 
@@ -256,7 +499,6 @@ describe("Upload selectors", () => {
     });
 
     describe("getUploadSummaryRows", () => {
-        const mockChannel = {channelId: 1, description: "", name: "name" };
         it("handles files without scenes or channels", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,

@@ -1,7 +1,20 @@
 import { expect } from "chai";
 import { ColumnType } from "../../template/types";
-import { mockState } from "../../test/mocks";
-import { getBooleanAnnotationTypeId, getLookupAnnotationTypeId, getUniqueBarcodeSearchResults } from "../selectors";
+import {
+    mockNotesAnnotation,
+    mockState,
+    mockWellAnnotation,
+    mockWorkflowAnnotation,
+    nonEmptyStateForInitiatingUpload,
+} from "../../test/mocks";
+import {
+    getBooleanAnnotationTypeId,
+    getLookupAnnotationTypeId,
+    getNotesAnnotation,
+    getUniqueBarcodeSearchResults,
+    getWellAnnotation,
+    getWorkflowAnnotation,
+} from "../selectors";
 
 describe("Metadata selectors", () => {
     describe("getUniqueBarcodeSearchResults", () => {
@@ -97,6 +110,36 @@ describe("Metadata selectors", () => {
                 },
             });
             expect(result).to.equal(undefined);
+        });
+    });
+    describe("getNotesAnnotation", () => {
+        it("returns annotation named Notes if found", () => {
+            const result = getNotesAnnotation(nonEmptyStateForInitiatingUpload);
+            expect(result).to.equal(mockNotesAnnotation);
+        });
+        it("returns undefined if Notes annotation not found", () => {
+            const result = getNotesAnnotation(mockState);
+            expect(result).to.be.undefined;
+        });
+    });
+    describe("getWellAnnotation", () => {
+        it("returns annotation named Well if found", () => {
+            const result = getWellAnnotation(nonEmptyStateForInitiatingUpload);
+            expect(result).to.equal(mockWellAnnotation);
+        });
+        it("returns undefined if Well annotation not found", () => {
+            const result = getWellAnnotation(mockState);
+            expect(result).to.be.undefined;
+        });
+    });
+    describe("getWorkflowAnnotation", () => {
+        it("returns annotation named Workflow if found", () => {
+            const result = getWorkflowAnnotation(nonEmptyStateForInitiatingUpload);
+            expect(result).to.equal(mockWorkflowAnnotation);
+        });
+        it("returns undefined if Workflow annotation not found", () => {
+            const result = getWorkflowAnnotation(mockState);
+            expect(result).to.be.undefined;
         });
     });
 });

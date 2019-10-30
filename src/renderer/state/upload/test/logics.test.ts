@@ -8,7 +8,7 @@ import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, mockState } from "../../test/mocks";
+import { getMockStateWithHistory, mockState, nonEmptyStateForInitiatingUpload } from "../../test/mocks";
 import { applyTemplate, associateFilesAndWells, initiateUpload, updateScenes } from "../actions";
 import { getUploadRowKey } from "../constants";
 import { getAppliedTemplateId, getUpload, getUploadSummaryRows } from "../selectors";
@@ -72,7 +72,7 @@ describe("Upload logics", () => {
         it("adds an info alert given valid metadata", (done) => {
             sandbox.replace(fms, "uploadFiles", stub().resolves());
             sandbox.replace(fms, "validateMetadata", stub().resolves());
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -98,7 +98,7 @@ describe("Upload logics", () => {
         });
         it("does not add job given invalid metadata", (done) => {
             sandbox.replace(fms, "validateMetadata", stub().rejects());
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();

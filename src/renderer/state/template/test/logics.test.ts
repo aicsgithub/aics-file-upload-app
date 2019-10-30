@@ -5,8 +5,9 @@ import { getAlert } from "../../feedback/selectors";
 import { createMockReduxStore, labkeyClient, mmsClient } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
-    mockAnnotation, mockAnnotationDraft,
+    mockAnnotationDraft,
     mockAnnotationTypes,
+    mockFavoriteColorAnnotation,
     mockLookups,
     mockMMSTemplate,
     mockState,
@@ -29,7 +30,7 @@ describe("Template Logics", () => {
         ...mockState,
         metadata: {
             ...mockState.metadata,
-            annotationLookups: [{annotationId: mockAnnotation.annotationId, lookupId: 1}],
+            annotationLookups: [{annotationId: mockFavoriteColorAnnotation.annotationId, lookupId: 1}],
             annotationTypes: mockAnnotationTypes,
             lookups: mockLookups,
         },
@@ -44,7 +45,7 @@ describe("Template Logics", () => {
             expect(getTemplateDraftAnnotations(state).length).to.equal(0);
 
             store.dispatch(addExistingAnnotation({
-                ...mockAnnotation,
+                ...mockFavoriteColorAnnotation,
                 annotationTypeId: 3,
             }));
 
@@ -58,7 +59,7 @@ describe("Template Logics", () => {
             expect(getAlert(state)).to.be.undefined;
 
             store.dispatch(addExistingAnnotation({
-                ...mockAnnotation,
+                ...mockFavoriteColorAnnotation,
                 annotationTypeId: 100,
             }));
 
@@ -78,7 +79,7 @@ describe("Template Logics", () => {
             expect(getAlert(state)).to.be.undefined;
 
             store.dispatch(addExistingAnnotation({
-                ...mockAnnotation,
+                ...mockFavoriteColorAnnotation,
                 annotationTypeId: 3,
             }));
 
@@ -98,7 +99,7 @@ describe("Template Logics", () => {
             expect(getAlert(state)).to.be.undefined;
 
             store.dispatch(addExistingAnnotation({
-                ...mockAnnotation,
+                ...mockFavoriteColorAnnotation,
                 annotationTypeId: 3,
             }));
 
@@ -129,7 +130,7 @@ describe("Template Logics", () => {
             sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
 
             expect(getAppliedTemplate(store.getState())).to.be.undefined;
-            expect("favoriteColor" in getUpload(store.getState())[key]).to.be.false;
+            expect("Favorite Color" in getUpload(store.getState())[key]).to.be.false;
 
             store.dispatch(getTemplate(1, true));
 
@@ -138,7 +139,7 @@ describe("Template Logics", () => {
                count++;
                if (count > 1) {
                    expect(getAppliedTemplate(store.getState())).to.not.be.undefined;
-                   expect("favoriteColor" in getUpload(store.getState())[key]).to.be.true;
+                   expect("Favorite Color" in getUpload(store.getState())[key]).to.be.true;
                    done();
                }
             });

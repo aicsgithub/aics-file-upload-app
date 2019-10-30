@@ -2,13 +2,13 @@ import { expect } from "chai";
 
 import {
     getMockStateWithHistory,
-    mockAnnotationDraft,
+    mockAnnotationDraft, mockFavoriteColorAnnotation, mockNotesAnnotation,
     mockState,
     mockTemplateDraft,
-    mockTemplateStateBranch,
+    mockTemplateStateBranch, mockWellAnnotation, mockWorkflowAnnotation, nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 
-import { getTemplateDraftErrors } from "../selectors";
+import { getCompleteAppliedTemplate, getTemplateDraftErrors } from "../selectors";
 import { ColumnType } from "../types";
 
 describe("Template selectors", () => {
@@ -113,6 +113,50 @@ describe("Template selectors", () => {
                 }),
             });
             expect(result).to.contain("Found duplicate annotation names");
+        });
+    });
+
+    describe("getCompleteAppliedTemplate", () => {
+        it("adds annotations for notes, wells, and workflows", () => {
+            const result = getCompleteAppliedTemplate(nonEmptyStateForInitiatingUpload);
+            expect(result).to.not.be.undefined;
+            if (result) {
+                const annotationIds = result.annotations.map((a) => a.annotationId);
+                expect(annotationIds).to.contain(mockNotesAnnotation.annotationId);
+                expect(annotationIds).to.contain(mockWellAnnotation.annotationId);
+                expect(annotationIds).to.contain(mockWorkflowAnnotation.annotationId);
+            }
+        });
+        it("returns undefined if template has not been applied", () => {
+            const result = getCompleteAppliedTemplate(mockState);
+            expect(result).to.be.undefined;
+        });
+        it("throws error if notes annotation not found", () => {
+            expect(() => getCompleteAppliedTemplate({
+                ...nonEmptyStateForInitiatingUpload,
+                metadata: {
+                    ...nonEmptyStateForInitiatingUpload.metadata,
+                    annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockFavoriteColorAnnotation],
+                },
+            })).to.throw();
+        });
+        it("throws error if well annotation not found", () => {
+            expect(() => getCompleteAppliedTemplate({
+                ...nonEmptyStateForInitiatingUpload,
+                metadata: {
+                    ...nonEmptyStateForInitiatingUpload.metadata,
+                    annotations: [mockNotesAnnotation, mockWorkflowAnnotation, mockFavoriteColorAnnotation],
+                },
+            })).to.throw();
+        });
+        it("throws error if workflow annotation not found", () => {
+            expect(() => getCompleteAppliedTemplate({
+                ...nonEmptyStateForInitiatingUpload,
+                metadata: {
+                    ...nonEmptyStateForInitiatingUpload.metadata,
+                    annotations: [mockWellAnnotation, mockNotesAnnotation, mockFavoriteColorAnnotation],
+                },
+            })).to.throw();
         });
     });
 });

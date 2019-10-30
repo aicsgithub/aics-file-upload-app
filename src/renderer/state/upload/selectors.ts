@@ -1,5 +1,19 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
-import { forEach, groupBy, isArray, isEmpty, isNil, keys, map, omit, uniq, values, without } from "lodash";
+import {
+    castArray,
+    flatMap,
+    forEach,
+    groupBy,
+    isArray,
+    isEmpty,
+    isNil,
+    keys,
+    omit,
+    startCase,
+    uniq,
+    values,
+    without
+} from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
 
@@ -7,9 +21,11 @@ import { getUploadJobNames } from "../job/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
 import { ExpandedRows, Workflow } from "../selection/types";
+import { getCompleteAppliedTemplate } from "../template/selectors";
+import { Template } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneRow } from "./constants";
-import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
+import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -49,7 +65,7 @@ const convertToUploadJobRow = (metadata: UploadMetadata,
 // of scenes + channels
 const getFileToMetadataMap = createSelector([
     getUpload,
-], (uploads: UploadStateBranch): {[file: string]: UploadMetadata[]} => {
+], (uploads: UploadStateBranch): { [file: string]: UploadMetadata[] } => {
     return groupBy(values(uploads), ({file}: UploadMetadata) => file);
 });
 
@@ -92,7 +108,7 @@ export const getUploadSummaryRows = createSelector([
     getExpandedUploadJobRows,
     getFileToMetadataMap,
 ], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
-    metadataGroupedByFile: {[file: string]: UploadMetadata[]}): UploadJobTableRow[] => {
+    metadataGroupedByFile: { [file: string]: UploadMetadata[] }): UploadJobTableRow[] => {
 
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
@@ -132,10 +148,10 @@ export const getUploadSummaryRows = createSelector([
 });
 
 export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataMap],
-    (metadataGroupedByFile: {[file: string]: UploadMetadata[]}) => {
-        const result: {[file: string]: {[key: string]: boolean}} = {};
+    (metadataGroupedByFile: { [file: string]: UploadMetadata[] }) => {
+        const result: { [file: string]: { [key: string]: boolean } } = {};
         forEach(metadataGroupedByFile, (allMetadata: UploadMetadata[], file: string) => {
-            result[file] = allMetadata.reduce((accum: {[key: string]: boolean}, curr: UploadMetadata) => {
+            result[file] = allMetadata.reduce((accum: { [key: string]: boolean }, curr: UploadMetadata) => {
                 forEach(curr, (value: any, key: string) => {
                     const currentValueIsEmpty = isArray(value) ? isEmpty(value) : isNil(value);
                     accum[key] = accum[key] || !currentValueIsEmpty;
@@ -148,7 +164,45 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
     }
 );
 
-const extensionToFileTypeMap: {[index: string]: FileType} = {
+const EXCLUDED_UPLOAD_FIELDS = [
+    "barcode",
+    "channel",
+    "file",
+    "plateId",
+    "positionIndex",
+    "wellLabels",
+];
+// the userData relates to the same file but differs for scene/channel combinations
+const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): MMSAnnotationValueRequest[] => {
+    return flatMap(metadata, (metadatum: UploadMetadata) => {
+        const customData = omit(metadatum, EXCLUDED_UPLOAD_FIELDS);
+        const result: MMSAnnotationValueRequest[] = [];
+        forEach(customData, (value: any, annotationName: string) => {
+            const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
+            if (addAnnotation) {
+                annotationName = startCase(annotationName);
+                const annotation = appliedTemplate.annotations
+                    .find((a) => a.name === annotationName);
+                if (!annotation) {
+                    throw new Error(
+                        `Could not find an annotation named ${annotationName} in your template`
+                    );
+                }
+
+                result.push({
+                    annotationId: annotation.annotationId,
+                    channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
+                    positionIndex: metadatum.positionIndex,
+                    timePointId: undefined,
+                    values: castArray(value),
+                });
+            }
+        });
+        return result;
+    });
+};
+
+const extensionToFileTypeMap: { [index: string]: FileType } = {
     ".csv": FileType.CSV,
     ".czexp": FileType.ZEISS_CONFIG_FILE,
     ".czi": FileType.IMAGE,
@@ -164,10 +218,22 @@ const extensionToFileTypeMap: {[index: string]: FileType} = {
     ".txt": FileType.TEXT,
 };
 
-export const getUploadPayload = createSelector([getUpload], (uploads: UploadStateBranch): Uploads => {
+export const getUploadPayload = createSelector([
+    getUpload,
+    getCompleteAppliedTemplate,
+], (uploads: UploadStateBranch, template?: Template): Uploads => {
+    if (!template) {
+        throw new Error("Template has not been applied");
+    }
+
     let result = {};
-    map(uploads, ({wellIds, barcode, wellLabels, plateId, workflows, ...userData}: any, fullPath: string) => {
-        const workflowNames = workflows && workflows.map((workflow: Workflow) => workflow.name);
+    const metadataGroupedByFile = groupBy(values(uploads), "file");
+    forEach(metadataGroupedByFile, (metadata: UploadMetadata[], fullPath: string) => {
+        // to support the current way of storing metadata in bob the blob, we continue to include
+        // wellIds and workflows in the microscopy block. Since a file may have 1 or more scenes and channels
+        // per file, we set these values to a uniq list of all of the values found across each "dimension"
+        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds));
+        const workflows = uniq(flatMap(metadata, (m) => m.workflows || []));
         result = {
             ...result,
             [fullPath]: {
@@ -175,11 +241,18 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     originalPath: fullPath,
                 },
-                microscopy: {
-                    ...wellIds && { wellIds },
-                    ...workflows && { workflows: workflowNames },
+                fileMetadata: {
+                    requests: [
+                        {
+                            annotations: getAnnotations(metadata, template),
+                            templateId: template.templateId,
+                        },
+                    ],
                 },
-                userData: omit(userData, "file"),
+                microscopy: {
+                    ...(wellIds.length && { wellIds }),
+                    ...(workflows.length && { workflows }),
+                },
             },
         };
     });

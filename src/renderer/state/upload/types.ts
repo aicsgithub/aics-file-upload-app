@@ -173,3 +173,11 @@ export enum FileType {
     TEXT = "text",
     ZEISS_CONFIG_FILE = "zeiss-config-file",
 }
+
+export interface MMSAnnotationValueRequest {
+    annotationId: number;
+    channelId?: number;
+    positionIndex?: number;
+    timePointId?: number;
+    values: any[];
+}
