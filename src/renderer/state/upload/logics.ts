@@ -92,22 +92,21 @@ const initiateUploadLogic = createLogic({
     process: async ({ctx, fms, getState, ipcRenderer}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const now = new Date();
-        dispatch(addPendingJob({
-            created: now,
-            currentStage: "Pending",
-            jobId: (now).toLocaleString(),
-            jobName: ctx.name,
-            modified: now,
-            status: "WAITING",
-            uploads: ctx.uploads,
-            user: userInfo().username,
-        }));
-
         try {
-            const result = await fms.uploadFiles(getUploadPayload(getState()), ctx.name);
+            const payload = getUploadPayload(getState());
+            dispatch(addPendingJob({
+                created: now,
+                currentStage: "Pending",
+                jobId: (now).toLocaleString(),
+                jobName: ctx.name,
+                modified: now,
+                status: "WAITING",
+                uploads: ctx.uploads,
+                user: userInfo().username,
+            }));
+            const result = await fms.uploadFiles(payload, ctx.name);
             Logger.debug(`UPLOAD_FINISHED for jobName=${ctx.name} with result:`, result);
             dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
-
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
             dispatch(setAlert({

@@ -22,6 +22,14 @@ export interface UploadMetadata {
     [genericKey: string]: any;
 }
 
+export interface MMSAnnotationValueRequest {
+    annotationId: number;
+    channelId?: number;
+    positionIndex?: number;
+    timePointId?: number;
+    values: any[];
+}
+
 export interface ApplyTemplateAction {
     payload: {
         template: LabkeyTemplate;
