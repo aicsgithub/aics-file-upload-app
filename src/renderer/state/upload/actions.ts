@@ -129,10 +129,10 @@ export function applyTemplate(template: LabkeyTemplate): ApplyTemplateAction {
     };
 }
 
-export function updateUpload(filePath: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
+export function updateUpload(key: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
     return {
         payload: {
-            filePath,
+            key,
             upload,
         },
         type: UPDATE_UPLOAD,

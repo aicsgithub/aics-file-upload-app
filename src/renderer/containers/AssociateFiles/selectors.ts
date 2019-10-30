@@ -24,7 +24,8 @@ export const getMutualFilesForWells = createSelector([
 
     const selectedWellIds = selectedWellsData.map((well: Well) => well.wellId);
 
-    return reduce(upload, (files: string[], metadata: UploadMetadata, filepath: string) => {
+    return reduce(upload, (files: string[], metadata: UploadMetadata) => {
+        const filepath = metadata.file;
         const allWellsFound = isEmpty(difference(selectedWellIds, metadata.wellIds));
         const accum = [...files];
         if (allWellsFound) {
@@ -44,14 +45,14 @@ export const getMutualFilesForWorkflows = createSelector([
 
     const selectedWorkflowNames = workflows.map((workflow: Workflow) => workflow.name);
 
-    return reduce(upload, (files: string[], metadata: UploadMetadata, filepath: string) => {
+    return reduce(upload, (files: string[], metadata: UploadMetadata) => {
         if (!metadata.workflows) {
             return files;
         }
         const allWorkflowsFound = isEmpty(difference(selectedWorkflowNames, metadata.workflows));
         const accum = [...files];
         if (allWorkflowsFound) {
-            accum.push(filepath);
+            accum.push(metadata.file);
         }
         return accum;
     }, []);

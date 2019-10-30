@@ -24,6 +24,7 @@ import {
     TemplateStateBranch,
 } from "../template/types";
 import { State } from "../types";
+import { getUploadRowKey } from "../upload/constants";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
 
@@ -125,19 +126,19 @@ export const mockSelection: SelectionStateBranch = {
 };
 
 export const mockWellUpload: UploadStateBranch = {
-    "/path/to/file1": {
+    [getUploadRowKey("/path/to/file1")]: {
         barcode: "1234",
         file: "/path/to/file1",
         wellIds: [1],
         wellLabels: ["A1"],
     },
-    "/path/to/file2": {
+    [getUploadRowKey("/path/to/file2")]: {
         barcode: "1235",
         file: "/path/to/file2",
         wellIds: [2],
         wellLabels: ["A2"],
     },
-    "/path/to/file3": {
+    [getUploadRowKey("/path/to/file3")]: {
         barcode: "1236",
         file: "/path/to/file3",
         wellIds: [1, 2, 3],

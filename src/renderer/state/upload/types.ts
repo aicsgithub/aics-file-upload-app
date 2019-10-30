@@ -40,7 +40,7 @@ export interface ApplyTemplateAction {
 
 export interface UpdateUploadAction {
     payload: {
-        filePath: string;
+        key: string;
         upload: Partial<UploadMetadata>;
     };
     type: string;

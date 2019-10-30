@@ -816,7 +816,7 @@ describe("Upload selectors", () => {
                     },
                 }),
             });
-            expect(result[getUploadRowKey(file)]).to.deep.equal({
+            expect(result[file]).to.deep.equal({
                 age: false,
                 barcode: true,
                 file: true,
@@ -852,7 +852,7 @@ describe("Upload selectors", () => {
                     },
                 }),
             });
-            expect(result[getUploadRowKey(file)]).to.deep.equal({
+            expect(result[file]).to.deep.equal({
                 age: true,
                 barcode: true,
                 file: true,

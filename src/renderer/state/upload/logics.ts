@@ -4,14 +4,17 @@ import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { pivotAnnotations } from "../../util";
 import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
+import { getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
+import { getAppliedTemplate } from "../template/selectors";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -73,7 +76,7 @@ const applyTemplateLogic = createLogic({
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
             const { barcode, notes, wellIds, wellLabels, workflows } = upload;
-            action.payload.uploads[filepath] = {
+            action.payload.uploads[getUploadRowKey(filepath)] = {
                 barcode,
                 file: upload.file,
                 notes,
@@ -199,6 +202,21 @@ const updateScenesLogic = createLogic({
             throw new Error("Could not find the main upload for the file. Contact Software.");
         }
 
+        const template = getAppliedTemplate(getState());
+        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+
+        if (!template) {
+            throw new Error("Could not get applied template while attempting to update scenes. Contact Software.");
+        }
+
+        if (!booleanAnnotationTypeId) {
+            throw new Error(
+                "Could not get boolean annotation type id while attempting to update scenes. Contact Software."
+            );
+        }
+
+        const additionalAnnotations = pivotAnnotations(template.annotations, booleanAnnotationTypeId);
+
         // if there are positions for a file, remove the well association from the file row
         const fileRowKey = getUploadRowKey(row.file);
         if (!isEmpty(positionIndexes)) {
@@ -224,7 +242,8 @@ const updateScenesLogic = createLogic({
                     wellIds: [],
                     wellLabels: [],
                     workflows,
-                }; // todo additional custom fields?
+                    ...additionalAnnotations,
+                };
             });
 
         // add uploads that are new
@@ -244,7 +263,8 @@ const updateScenesLogic = createLogic({
                     wellIds: [],
                     wellLabels: [],
                     workflows,
-                }; // todo additional custom fields
+                    ...additionalAnnotations,
+                };
             }
 
             channels.forEach((channel: Channel) => {
@@ -263,6 +283,7 @@ const updateScenesLogic = createLogic({
                         wellIds: [],
                         wellLabels: [],
                         workflows,
+                        ...additionalAnnotations,
                     };
                 }
             });
