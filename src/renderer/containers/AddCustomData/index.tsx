@@ -47,7 +47,8 @@ import {
     updateUploads,
 } from "../../state/upload/actions";
 import {
-    getCanRedoUpload, getCanSave,
+    getCanRedoUpload,
+    getCanSave,
     getCanUndoUpload,
     getFileToAnnotationHasValueMap,
     getUploadSummaryRows,

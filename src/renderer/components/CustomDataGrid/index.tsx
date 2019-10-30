@@ -27,8 +27,10 @@ import {
     UploadMetadata,
 } from "../../state/upload/types";
 import { getWellLabel, onDrop } from "../../util";
+
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import FormControl from "../FormControl";
+
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import WellsFormatter from "./WellsFormatter";

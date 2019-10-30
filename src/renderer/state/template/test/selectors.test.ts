@@ -2,10 +2,15 @@ import { expect } from "chai";
 
 import {
     getMockStateWithHistory,
-    mockAnnotationDraft, mockFavoriteColorAnnotation, mockNotesAnnotation,
+    mockAnnotationDraft,
+    mockFavoriteColorAnnotation,
+    mockNotesAnnotation,
     mockState,
     mockTemplateDraft,
-    mockTemplateStateBranch, mockWellAnnotation, mockWorkflowAnnotation, nonEmptyStateForInitiatingUpload,
+    mockTemplateStateBranch,
+    mockWellAnnotation,
+    mockWorkflowAnnotation,
+    nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 
 import { getCompleteAppliedTemplate, getTemplateDraftErrors } from "../selectors";
