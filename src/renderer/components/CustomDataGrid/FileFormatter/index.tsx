@@ -173,7 +173,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         this.setState({
             positionIndexes: positionIndexes
                 .map((pi: number | string) => parseInt(`${pi}`, 10))
-                .filter((pi: number) => isNumber(pi) && pi > 0)}); // todo: can positions be 0?
+                .filter((pi: number) => isNumber(pi) && pi > -1)});
     }
 
     private getOkButtonDisabled = () => {
