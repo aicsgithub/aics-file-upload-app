@@ -1,4 +1,4 @@
-import { isEmpty, uniqBy } from "lodash";
+import { isEmpty, trim, uniqBy } from "lodash";
 
 import { createSelector } from "reselect";
 import { State } from "../types";
@@ -14,14 +14,18 @@ export const getTemplateDraftErrors = createSelector([
     getTemplateDraftName,
 ], (annotations: AnnotationDraft[], templateName?: string) => {
     const errors = [];
-    if (!templateName) {
+    if (!trim(templateName)) {
         errors.push("Template is missing a name");
     }
     let annotationNameMissing = false;
-
+    let annotationDescriptionMissing = false;
     annotations
-        .forEach(({name, annotationOptions, annotationTypeId, annotationTypeName, lookupTable}) => {
-            if (!name) {
+        .forEach(({description, name, annotationOptions, annotationTypeId, annotationTypeName, lookupTable}) => {
+            if (!trim(description)) {
+                annotationDescriptionMissing = true;
+            }
+
+            if (!trim(name)) {
                 annotationNameMissing = true;
             }
 
@@ -37,6 +41,10 @@ export const getTemplateDraftErrors = createSelector([
                 errors.push(`Annotation ${name} is a lookup but no lookup table is specified`);
             }
         });
+    if (annotationDescriptionMissing) {
+        errors.push("At least one annotation is missing a description");
+    }
+
     if (annotationNameMissing) {
         errors.push("At least one annotation is missing a name");
     }
@@ -70,8 +78,11 @@ export const getSaveTemplateRequest = createSelector([
                 };
             }
 
-            let annotationOptions = a.annotationOptions;
-            if (a.annotationTypeName === ColumnType.LOOKUP) {
+            let annotationOptions: string[] | undefined = (a.annotationOptions || [])
+                .map((o: string) => trim(o))
+                .filter((o: string) => !!o);
+
+            if (a.annotationTypeName !== ColumnType.DROPDOWN) {
                 annotationOptions = undefined;
             }
 
@@ -79,13 +90,13 @@ export const getSaveTemplateRequest = createSelector([
                 annotationOptions,
                 annotationTypeId: a.annotationTypeId,
                 canHaveManyValues: a.canHaveManyValues,
-                description: a.description || "",
+                description: trim(a.description) || "",
                 lookupSchema: a.lookupSchema,
                 lookupTable: a.lookupTable,
-                name: a.name || "",
+                name: trim(a.name) || "",
                 required: a.required,
             };
         }),
-        name: draft.name || "",
+        name: trim(draft.name) || "",
     };
 });

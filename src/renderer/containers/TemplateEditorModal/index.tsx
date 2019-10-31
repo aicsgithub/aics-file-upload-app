@@ -1,7 +1,7 @@
 import { Alert, Input, List, Modal, Select, Spin } from "antd";
 import * as classNames from "classnames";
 import { ipcRenderer } from "electron";
-import { includes } from "lodash";
+import { includes, trim } from "lodash";
 import * as React from "react";
 import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
 import { connect } from "react-redux";
@@ -173,7 +173,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 <FormControl
                     className={styles.formControl}
                     label="Column Template Name"
-                    error={!template.name ? "Template Name is required" : undefined}
+                    error={!trim(template.name) ? "Template Name is required" : undefined}
                 >
                     <Input
                         value={template.name}
