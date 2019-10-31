@@ -7,6 +7,7 @@ import LabkeyClient from "../../util/labkey-client";
 
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
+import { requestTemplates } from "../metadata/actions";
 import {
     getAnnotationLookups,
     getAnnotationTypes,
@@ -207,9 +208,6 @@ const removeAnnotationsLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { annotations: oldAnnotations } = getTemplateDraft(getState());
         let annotations = [...oldAnnotations];
-        action.payload.forEach((selectedRow: number) => {
-            annotations.splice(selectedRow, 1);
-        });
         annotations = annotations.filter((a) => !includes(action.payload, a.index))
             .map((a: AnnotationDraft, index: number) => ({
                 ...a,
@@ -236,6 +234,7 @@ const saveTemplateLogic = createLogic({
 
             // these need to be dispatched separately because they have logics associated with them
             dispatch(closeTemplateEditor());
+            dispatch(requestTemplates());
             dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));
             dispatch(addTemplateIdToSettings(createdTemplateId));
             dispatch(setAlert({

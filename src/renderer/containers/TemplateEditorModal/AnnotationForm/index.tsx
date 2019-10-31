@@ -2,7 +2,7 @@ import { Button, Checkbox, Input, Select } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
-import { endsWith, isEmpty, startCase } from "lodash";
+import { endsWith, isEmpty, startCase, trim } from "lodash";
 import { ChangeEvent } from "react";
 import * as React from "react";
 
@@ -46,7 +46,7 @@ interface AnnotationFormState {
 class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     public get annotationNameError(): string | undefined {
         let { name } = this.state;
-        if (!name) {
+        if (!trim(name)) {
             return "Name is required";
         }
 
@@ -76,8 +76,9 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     public get dropdownValuesError(): string | undefined {
         const { annotationOptions, annotationTypeName } = this.state;
         const isDropdown = annotationTypeName === ColumnType.DROPDOWN;
+        const nonEmptyAnnotationOptions = (annotationOptions || []).filter((o) => !!trim(o));
 
-        return isDropdown && (!annotationOptions || isEmpty(annotationOptions)) ? "Dropdown values are required"
+        return isDropdown && (isEmpty(nonEmptyAnnotationOptions)) ? "Dropdown values are required"
             : undefined;
     }
 
@@ -88,7 +89,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     }
 
     public get descriptionError(): string | undefined {
-        return !this.state.description ? "Description is required" : undefined;
+        return !trim(this.state.description) ? "Description is required" : undefined;
     }
 
     public get saveDisabled(): boolean {
@@ -183,7 +184,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const isReadOnly = Boolean(this.props.annotation && this.props.annotation.annotationId);
         if (this.state.annotationTypeName === ColumnType.DROPDOWN) {
             return (
-                <FormControl label="Dropdown Values" error={this.dropdownValuesError}>
+                <FormControl label="Dropdown Values" error={this.dropdownValuesError} className={styles.formControl}>
                     <Select
                         autoFocus={true}
                         className={styles.select}
@@ -198,7 +199,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         if (this.state.annotationTypeName === ColumnType.LOOKUP) {
             const { lookups } = this.props;
             return (
-                <FormControl label="Lookup Table" error={this.lookupError}>
+                <FormControl label="Lookup Table" error={this.lookupError} className={styles.formControl}>
                     <Select
                         autoFocus={!this.state.lookupTable}
                         className={styles.select}
@@ -243,8 +244,8 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         this.setState({description: e.target.value});
     }
 
-    private setDropdownValues = (selectOption: string[]) => {
-        this.setState({annotationOptions: selectOption});
+    private setDropdownValues = (values: string[]) => {
+        this.setState({annotationOptions: values.filter((v) => !!trim(v))});
     }
 
     private setLookup = (value: string) => {

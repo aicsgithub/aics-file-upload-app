@@ -1,7 +1,7 @@
 import { Alert, Input, List, Modal, Select, Spin } from "antd";
 import * as classNames from "classnames";
 import { ipcRenderer } from "electron";
-import { endsWith, includes, startCase } from "lodash";
+import { includes, trim } from "lodash";
 import * as React from "react";
 import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
 import { connect } from "react-redux";
@@ -82,9 +82,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     public componentDidMount(): void {
-        ipcRenderer.on(OPEN_TEMPLATE_EDITOR, (event: Event, templateId?: number) => {
-            this.props.openModal(templateId);
-        });
+        ipcRenderer.on(OPEN_TEMPLATE_EDITOR, this.openModal);
 
         this.props.getAnnotations();
     }
@@ -98,6 +96,12 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             this.props.getAnnotations();
         }
     }
+
+    public componentWillUnmount(): void {
+        ipcRenderer.removeListener(OPEN_TEMPLATE_EDITOR, this.openModal);
+    }
+
+    public openModal = (event: Event, templateId?: number) => this.props.openModal(templateId);
 
     public render() {
         const {
@@ -129,10 +133,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     private closeAlert = () => this.setState({showInfoAlert: false});
 
     private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
-        const endsInSpace = endsWith(e.target.value, " ");
-        const ending = endsInSpace ? " " : "";
         this.props.updateTemplateDraft({
-            name: startCase(e.target.value) + ending,
+            name: e.target.value,
         });
     }
 
@@ -171,7 +173,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 <FormControl
                     className={styles.formControl}
                     label="Column Template Name"
-                    error={!template.name ? "Template Name is required" : undefined}
+                    error={!trim(template.name) ? "Template Name is required" : undefined}
                 >
                     <Input
                         value={template.name}

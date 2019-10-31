@@ -53,8 +53,8 @@ const associateFileAndWellLogic = createLogic({
 // This logic will request the template from MMS and remove any old columns from existing uploads
 // The template applied does not contain annotation information yet
 const applyTemplateLogic = createLogic({
-    process: async ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
-                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+    process: ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
+              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         if (ctx.templateId) {
             // these need to be dispatched separately to go through logics
             dispatch(getTemplate(ctx.templateId, true));
@@ -63,8 +63,8 @@ const applyTemplateLogic = createLogic({
 
         done();
     },
-    transform: async ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
-                      next: ReduxLogicNextCb) => {
+    transform: ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
+                next: ReduxLogicNextCb) => {
         const {template} = action.payload;
         if (template) {
             ctx.templateId = template.TemplateId;
