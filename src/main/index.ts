@@ -4,8 +4,6 @@ import * as path from "path";
 import { format as formatUrl } from "url";
 
 import {
-    LIMS_HOST,
-    LIMS_PORT,
     LIMS_PROTOCOL,
     OPEN_CREATE_PLATE_STANDALONE,
     PLATE_CREATED,
@@ -88,7 +86,11 @@ app.on("ready", async () => {
     await autoUpdater.checkForUpdatesAndNotify();
 });
 
-ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, prefix: string) => {
+ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any,
+                                          limsHost: string,
+                                          limsPort: string,
+                                          barcode: string,
+                                          prefix: string) => {
     const child: BrowserWindow = new BrowserWindow({
         parent: mainWindow,
         show: false,
@@ -97,7 +99,10 @@ ipcMain.on(OPEN_CREATE_PLATE_STANDALONE, (event: any, barcode: string, prefix: s
         },
     });
     const plateView = `/labkey/aics_microscopy/AICS/plateStandalone.view?Barcode=${barcode}`;
-    let modalUrl = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}${plateView}`;
+    // We can't modify the environment variables this would normally get the host and port from because it is in a
+    // different process, similarly we are unable to access the state to get the most current so we need to rely on
+    // being given them
+    let modalUrl = `${LIMS_PROTOCOL}://${limsHost}:${limsPort}${plateView}`;
     if (prefix === "AX" || prefix === "AD") {
         modalUrl = `${modalUrl}&TeamMode=AssayDev`;
     }

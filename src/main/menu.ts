@@ -54,7 +54,7 @@ export const setMenu = (webContents: WebContents) => {
                 {
                     click: () => {
                         dialog.showMessageBox({
-                            buttons: ["Cancel", "Staging", "Production"],
+                            buttons: ["Cancel", "Local", "Staging", "Production"],
                             cancelId: 0,
                             message: "Switch environment?",
                             type: "question",
@@ -63,11 +63,16 @@ export const setMenu = (webContents: WebContents) => {
                             if (response > 0) {
                                 const urlMap: {[index: number]: LimsUrl} = {
                                     1: {
+                                        limsHost: "localhost",
+                                        limsPort: "8080",
+                                        limsProtocol: "http",
+                                    },
+                                    2: {
                                         limsHost: "stg-aics.corp.alleninstitute.org",
                                         limsPort: "80",
                                         limsProtocol: "http",
                                     },
-                                    2: {
+                                    3: {
                                         limsHost: "aics.corp.alleninstitute.org",
                                         limsPort: "80",
                                         limsProtocol: "http",
