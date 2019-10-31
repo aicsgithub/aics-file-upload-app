@@ -1,7 +1,7 @@
 import { Alert, Input, List, Modal, Select, Spin } from "antd";
 import * as classNames from "classnames";
 import { ipcRenderer } from "electron";
-import { endsWith, includes, startCase } from "lodash";
+import { includes } from "lodash";
 import * as React from "react";
 import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
 import { connect } from "react-redux";
@@ -133,10 +133,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     private closeAlert = () => this.setState({showInfoAlert: false});
 
     private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
-        const endsInSpace = endsWith(e.target.value, " ");
-        const ending = endsInSpace ? " " : "";
         this.props.updateTemplateDraft({
-            name: startCase(e.target.value) + ending,
+            name: e.target.value,
         });
     }
 
