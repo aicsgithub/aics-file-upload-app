@@ -98,7 +98,7 @@ interface AppProps {
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
-        container: <DragAndDropSquare key="dragAndDrop" className={styles.dragAndDropSquare}/>,
+        container: <DragAndDropSquare key="dragAndDrop" />,
     }],
     [Page.EnterBarcode, {
         container:  <EnterBarcode key="enterBarcode"/>,
@@ -222,10 +222,6 @@ class App extends React.Component<AppProps, {}> {
                                 </TabPane>
                             )}
                         </Tabs>
-                        {view !== Page.UploadSummary && <ProgressBar
-                            className={styles.progressBar}
-                            page={page}
-                        />}
                     </div>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>

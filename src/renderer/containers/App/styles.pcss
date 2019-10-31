@@ -44,30 +44,16 @@
 
 .tab-container {
   flex: 1;
-  height: calc(100% - var(--progress-bar-height));
+  height: 100%;
   padding-top: 0.5em;
   width: 100%;
   user-select: none;
 
   & .tab-content {
-    /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom - statusBarHeight */
-    max-height: calc(100vh - 64px - 56px - 30px);
-    overflow-y: auto;
+    height: 100%;
     padding: 0 0.5em 0 0.5em; /* top right bottom left */
     user-select: auto;
-
-    & .drag-and-drop-square {
-      margin-top: 30vh;
-    }
   }
-}
-
-.progress-bar {
-  height: var(--progress-bar-height);
-  flex: 0 0 auto;
-  padding: 0.5em;
-  user-select: none;
-  width: 100%;
 }
 
 .status-bar {

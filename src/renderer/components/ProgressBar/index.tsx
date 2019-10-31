@@ -7,7 +7,6 @@ import { Page } from "../../state/selection/types";
 const { Step } = Steps;
 
 interface ProgressBarProps {
-    className?: string;
     page: Page;
 }
 
@@ -38,7 +37,7 @@ const stepOrder: StepInfo = {
 };
 
 const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
-    const { className, page } = props;
+    const { page } = props;
 
     const currentIndex = Object.keys(stepOrder).findIndex((step) => step === page);
 
@@ -62,20 +61,18 @@ const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
     );
 
     return (
-        <div className={className}>
-            <Steps
-                size="small"
-                current={currentIndex}
-            >
-                {Object.keys(stepOrder).map((step: string, index: number) => (
-                    <Step
-                        icon={index < currentIndex ? <Icon type="check-circle" /> : stepOrder[step].icon}
-                        key={step}
-                        title={createTitle(step, index)}
-                    />
-                ))}
-            </Steps>
-        </div>
+        <Steps
+            size="small"
+            current={currentIndex}
+        >
+            {Object.keys(stepOrder).map((step: string, index: number) => (
+                <Step
+                    icon={index < currentIndex ? <Icon type="check-circle" /> : stepOrder[step].icon}
+                    key={step}
+                    title={createTitle(step, index)}
+                />
+            ))}
+        </Steps>
     );
 };
 

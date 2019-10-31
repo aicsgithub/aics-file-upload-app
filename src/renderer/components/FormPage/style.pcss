@@ -1,11 +1,6 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  user-select: none;
-
-  & .content {
-    flex: 1;
-  }
+  /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom - statusBarHeight - buttonsHeight - progressBarHeight */
+  max-height: calc(100vh - 64px - 56px - 30px - 40px - 40px);
 
   & .title {
     text-transform: uppercase;
@@ -19,15 +14,31 @@
     padding: 1em 0;
   }
 
-  & .button-container {
-    flex: 0 0 auto;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
-
   & .loading {
     font-size: 24px;
     padding: 0 12px;
+  }
+}
+
+.content {
+  flex: 1;
+    /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom - statusBarHeight - buttonsHeight */
+  height: calc(100vh - 64px - 56px - 30px - 40px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.button-container {
+  width: 100%;
+  height: 40px;
+  margin: 6px 0 6px 0;
+
+  & .back-button {
+    float: left;
+  }
+
+  & .save-button {
+    float: right;
   }
 }

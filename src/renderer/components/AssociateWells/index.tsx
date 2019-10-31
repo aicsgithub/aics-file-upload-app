@@ -3,7 +3,7 @@ import { Tabs } from "antd";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { GoBackAction, NextPageAction, SelectWellsAction, Well } from "../../state/selection/types";
+import { GoBackAction, NextPageAction, Page, SelectWellsAction, Well } from "../../state/selection/types";
 import {
     AssociateFilesAndWellsAction,
     UndoFileWellAssociationAction,
@@ -68,6 +68,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                 onBack={goBack}
                 onSave={goForward}
                 saveButtonDisabled={!this.canContinue()}
+                page={Page.AssociateFiles}
             >
                 <SelectedAssociationsCard
                     className={styles.wellInfo}

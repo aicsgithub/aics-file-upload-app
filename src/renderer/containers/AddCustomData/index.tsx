@@ -19,6 +19,7 @@ import {
 } from "../../state/metadata/selectors";
 import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
 import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import { Page } from "../../state/selection/types";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
@@ -136,6 +137,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 saveButtonDisabled={!canSave}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
+                page={Page.AddCustomData}
             >
                 {this.renderButtons()}
                 {loading && (

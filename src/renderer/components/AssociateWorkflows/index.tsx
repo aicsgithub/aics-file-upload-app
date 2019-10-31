@@ -2,7 +2,7 @@ import { Select, Tabs } from "antd";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { GoBackAction, NextPageAction, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { GoBackAction, NextPageAction, Page, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
     UndoFileWorkflowAssociationAction
@@ -59,6 +59,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                 onBack={this.props.goBack}
                 onSave={this.props.goForward}
                 saveButtonDisabled={!this.canContinue()}
+                page={Page.AssociateFiles}
             >
                 <SelectedAssociationsCard
                     files={mutualFiles}

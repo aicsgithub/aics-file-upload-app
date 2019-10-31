@@ -44,6 +44,7 @@ import {
 import {
     GoBackAction,
     NextPageAction,
+    Page,
     SelectBarcodeAction,
     SelectWorkflowPathAction
 } from "../../state/selection/types";
@@ -123,6 +124,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                 onSave={this.saveAndContinue}
                 saveInProgress={saveInProgress}
                 onBack={this.props.goBack}
+                page={Page.EnterBarcode}
             >
                 <div>Plate Barcode <span className={styles.asterisk}>*</span></div>
                 <Select

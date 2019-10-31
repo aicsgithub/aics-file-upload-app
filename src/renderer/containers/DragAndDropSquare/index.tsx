@@ -3,15 +3,17 @@ import { connect } from "react-redux";
 
 import { OpenDialogOptions } from "electron";
 import DragAndDrop from "../../components/DragAndDrop";
+import ProgressBar from "../../components/ProgressBar";
 import { selection } from "../../state";
 import {
     DragAndDropFileList,
     LoadFilesFromDragAndDropAction,
-    LoadFilesFromOpenDialogAction,
+    LoadFilesFromOpenDialogAction, Page,
 } from "../../state/selection/types";
 
+const styles = require("./style.pcss");
+
 interface DragAndDropSquareProps {
-    className?: string;
     onDrop: (files: DragAndDropFileList) => LoadFilesFromDragAndDropAction;
     onOpen: (files: string[]) => LoadFilesFromOpenDialogAction;
 }
@@ -22,17 +24,21 @@ const openDialogOptions: OpenDialogOptions = {
 };
 
 const DragAndDropSquare: React.FunctionComponent<DragAndDropSquareProps> = ({
-                                                                                className,
                                                                                 onDrop,
                                                                                 onOpen,
                                                                             }: DragAndDropSquareProps) => {
     return (
-        <DragAndDrop
-            openDialogOptions={openDialogOptions}
-            className={className}
-            onDrop={onDrop}
-            onOpen={onOpen}
-        />
+        <div>
+            <DragAndDrop
+                onDrop={onDrop}
+                onOpen={onOpen}
+                className={styles.dragAndDropSquare}
+                openDialogOptions={openDialogOptions}
+            />
+            <ProgressBar
+                page={Page.DragAndDrop}
+            />
+        </div>
     );
 };
 
