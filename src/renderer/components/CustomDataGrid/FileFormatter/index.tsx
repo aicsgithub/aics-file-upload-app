@@ -118,7 +118,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                         showIcon={true}
                         className={styles.alert}
                     />}
-                    <LabeledInput label="Scene Position(s) (Numbers above 0 only)">
+                    <LabeledInput label="Scene Position(s) (Non-negative Numbers Only)">
                         <Select
                             className={styles.input}
                             allowClear={true}

@@ -128,6 +128,23 @@ describe("Upload logics", () => {
         const fileRowKey = getUploadRowKey(file);
         const mockChannel = { channelId: 1, description: "", name: ""};
 
+        it("allows positionIndex = 0 to be added", () => {
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+
+            // before
+            let state = store.getState();
+            expect(keys(getUpload(state)).length).to.equal(3);
+            const fileRow = getUploadSummaryRows(state).find((r) => r.key === fileRowKey);
+            expect(fileRow).to.not.be.undefined;
+
+            if (fileRow) {
+                store.dispatch(updateScenes(fileRow, [0], []));
+            }
+
+            state = store.getState();
+            expect(keys(getUpload(state)).length).to.equal(4);
+        });
+
         it("does not remove well associations from the file row if file does not have a scene", () => {
             const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
