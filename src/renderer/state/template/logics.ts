@@ -213,9 +213,6 @@ const removeAnnotationsLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { annotations: oldAnnotations } = getTemplateDraft(getState());
         let annotations = [...oldAnnotations];
-        action.payload.forEach((selectedRow: number) => {
-            annotations.splice(selectedRow, 1);
-        });
         annotations = annotations.filter((a) => !includes(action.payload, a.index))
             .map((a: AnnotationDraft, index: number) => ({
                 ...a,

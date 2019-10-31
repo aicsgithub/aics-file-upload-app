@@ -11,16 +11,7 @@ interface TemplateSearchProps {
     value?: string;
 }
 
-interface TemplateSearchState {
-    searchStr?: string;
-}
-
-class TemplateSearch extends React.Component<TemplateSearchProps, TemplateSearchState> {
-    constructor(props: TemplateSearchProps) {
-        super(props);
-        this.state = {};
-    }
-
+class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
     public render() {
         const {
             className,
@@ -31,7 +22,6 @@ class TemplateSearch extends React.Component<TemplateSearchProps, TemplateSearch
         return (
           <Select
             className={className}
-            onSearch={this.updateSearch}
             onSelect={onSelect}
             placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
             showSearch={true}
@@ -43,8 +33,6 @@ class TemplateSearch extends React.Component<TemplateSearchProps, TemplateSearch
           </Select>
         );
     }
-
-    private updateSearch = (searchStr: string) => this.setState({searchStr});
 }
 
 export default TemplateSearch;

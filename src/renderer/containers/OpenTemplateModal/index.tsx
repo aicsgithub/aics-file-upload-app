@@ -42,9 +42,11 @@ class OpenTemplateModal extends React.Component<OpenTemplateModalProps, {}> {
     }
 
     public componentDidMount(): void {
-        ipcRenderer.on(OPEN_OPEN_TEMPLATE_MODAL, () => {
-            this.props.openOpenTemplateModal();
-        });
+        ipcRenderer.on(OPEN_OPEN_TEMPLATE_MODAL, this.props.openOpenTemplateModal);
+    }
+
+    public componentWillUnmount(): void {
+        ipcRenderer.removeListener(OPEN_OPEN_TEMPLATE_MODAL, this.props.openOpenTemplateModal);
     }
 
     public componentDidUpdate(prevProps: OpenTemplateModalProps): void {

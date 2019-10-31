@@ -82,9 +82,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     public componentDidMount(): void {
-        ipcRenderer.on(OPEN_TEMPLATE_EDITOR, (event: Event, templateId?: number) => {
-            this.props.openModal(templateId);
-        });
+        ipcRenderer.on(OPEN_TEMPLATE_EDITOR, this.openModal);
 
         this.props.getAnnotations();
     }
@@ -98,6 +96,12 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             this.props.getAnnotations();
         }
     }
+
+    public componentWillUnmount(): void {
+        ipcRenderer.removeListener(OPEN_TEMPLATE_EDITOR, this.openModal);
+    }
+
+    public openModal = (event: Event, templateId?: number) => this.props.openModal(templateId);
 
     public render() {
         const {
