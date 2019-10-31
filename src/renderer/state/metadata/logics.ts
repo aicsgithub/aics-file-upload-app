@@ -27,9 +27,10 @@ import {
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
+            const { setting: { limsHost, limsPort } } = getState();
             const { prefixId, prefix } = action.payload;
             const barcode = await mmsClient.createBarcode(prefixId);
-            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, prefix);
+            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, limsHost, limsPort, barcode, prefix);
             next(action);
         } catch (ex) {
             next(setAlert({

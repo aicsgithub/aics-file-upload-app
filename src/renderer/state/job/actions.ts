@@ -7,7 +7,8 @@ import {
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
-    AddPendingJobAction, PendingJob,
+    AddPendingJobAction,
+    PendingJob,
     RemovePendingJobsAction,
     RetrieveJobsAction,
     SetCopyJobsAction,
