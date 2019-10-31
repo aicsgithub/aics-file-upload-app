@@ -27,7 +27,7 @@ export interface MMSAnnotationValueRequest {
     channelId?: number;
     positionIndex?: number;
     timePointId?: number;
-    values: any[];
+    values: string[];
 }
 
 export interface ApplyTemplateAction {
@@ -185,12 +185,4 @@ export enum FileType {
     OTHER = "other",
     TEXT = "text",
     ZEISS_CONFIG_FILE = "zeiss-config-file",
-}
-
-export interface MMSAnnotationValueRequest {
-    annotationId: number;
-    channelId?: number;
-    positionIndex?: number;
-    timePointId?: number;
-    values: any[];
 }

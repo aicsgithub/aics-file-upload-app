@@ -230,7 +230,7 @@ const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): 
                     channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
                     positionIndex: metadatum.positionIndex,
                     timePointId: undefined,
-                    values: castArray(value),
+                    values: castArray(value).map((v) => v.toString()),
                 });
             }
         });
