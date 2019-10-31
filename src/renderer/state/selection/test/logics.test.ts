@@ -17,6 +17,8 @@ import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
+    mockAnnotations,
+    mockAnnotationTypes,
     mockAuditInfo,
     mockMMSTemplate,
     mockSelection,
@@ -574,6 +576,11 @@ describe("Selection logics", () => {
         it("gets template if template id passed", (done) => {
             const store = createMockReduxStore({
                 ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationTypes: mockAnnotationTypes,
+                    annotations: mockAnnotations,
+                },
             });
             const getTemplateStub = stub().resolves(mockMMSTemplate);
             sandbox.replace(mmsClient, "getTemplate", getTemplateStub);

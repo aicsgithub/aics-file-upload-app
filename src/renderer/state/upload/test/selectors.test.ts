@@ -30,12 +30,9 @@ const standardizeUploads = (uploads: Uploads): Uploads => {
     forEach(uploads, (upload: UploadMetadata, file: string) => {
         result[file] = {
             ...upload,
-            fileMetadata: {
-                ...upload.fileMetadata,
-                requests: upload.fileMetadata.requests.map((r: {annotations: MMSAnnotationValueRequest[]}) => ({
-                    ...r,
-                    annotations: orderAnnotationValueRequests(r.annotations),
-                })),
+            customMetadata: {
+                ...upload.customMetadata,
+                annotations: orderAnnotationValueRequests(upload.customMetadata.annotations),
             },
         };
     });
@@ -144,302 +141,266 @@ describe("Upload selectors", () => {
             };
             const expected = {
                 "/path/to.dot/image.tiff": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["blue"],
+                            },
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: mockChannel.channelId,
+                                positionIndex: 1,
+                                timePointId: undefined,
+                                values: ["yellow"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: mockChannel.channelId,
+                                positionIndex: 1,
+                                timePointId: undefined,
+                                values: [6],
+                            },
+                            {
+                                annotationId: mockNotesAnnotation.annotationId,
+                                channelId: mockChannel.channelId,
+                                positionIndex: 1,
+                                timePointId: undefined,
+                                values: ["Seeing some interesting things here!"],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to.dot/image.tiff",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["blue"],
-                                    },
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: mockChannel.channelId,
-                                        positionIndex: 1,
-                                        timePointId: undefined,
-                                        values: ["yellow"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: mockChannel.channelId,
-                                        positionIndex: 1,
-                                        timePointId: undefined,
-                                        values: [6],
-                                    },
-                                    {
-                                        annotationId: mockNotesAnnotation.annotationId,
-                                        channelId: mockChannel.channelId,
-                                        positionIndex: 1,
-                                        timePointId: undefined,
-                                        values: ["Seeing some interesting things here!"],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [6],
                     },
                 },
                 "/path/to/image.czi": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["red"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [1],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.czi",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["red"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [1],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [1],
                     },
                 },
                 "/path/to/image.ome.tiff": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["green"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [2],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.ome.tiff",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["green"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [2],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [2],
                     },
                 },
                 "/path/to/image.png": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["purple"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [3],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.png",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["purple"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [3],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [3],
                     },
                 },
                 "/path/to/image.tiff": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["orange"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [4],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.tiff",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["orange"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [4],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [4],
                     },
                 },
                 "/path/to/multi-well.txt": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["pink"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [5, 6, 7],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/multi-well.txt",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["pink"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [5, 6, 7],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [5, 6, 7],
                     },
                 },
                 "/path/to/no-extension": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["gold"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [7],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.OTHER,
                         originalPath: "/path/to/no-extension",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["gold"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [7],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [7],
                     },
                 },
                 "/path/to/not-image.csv": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["grey"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [8],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.CSV,
                         originalPath: "/path/to/not-image.csv",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["grey"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [8],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [8],
                     },
                 },
                 "/path/to/not-image.txt": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockFavoriteColorAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: ["black"],
+                            },
+                            {
+                                annotationId: mockWellAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                timePointId: undefined,
+                                values: [5],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
                     file: {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/not-image.txt",
-                    },
-                    fileMetadata: {
-                        requests: [
-                            {
-                                annotations: [
-                                    {
-                                        annotationId: mockFavoriteColorAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: ["black"],
-                                    },
-                                    {
-                                        annotationId: mockWellAnnotation.annotationId,
-                                        channelId: undefined,
-                                        positionIndex: undefined,
-                                        timePointId: undefined,
-                                        values: [5],
-                                    },
-                                ],
-                                templateId: mockMMSTemplate.templateId,
-                            },
-                        ],
                     },
                     microscopy: {
                         wellIds: [5],

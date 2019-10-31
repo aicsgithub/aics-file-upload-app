@@ -447,21 +447,12 @@ export const nonEmptyStateForInitiatingUpload: State = {
     ...mockState,
     metadata: {
         ...mockState.metadata,
+        annotationTypes: mockAnnotationTypes,
         annotations: mockAnnotations,
     },
     template: getMockStateWithHistory({
         ...mockTemplateStateBranch,
         appliedTemplate: mockMMSTemplate,
     }),
-    upload: getMockStateWithHistory({
-        "/path/to.dot/image.tiff": {
-            barcode: "452",
-            file: "/path/to.dot/image.tiff",
-            ["Favorite Color"]: "blue",
-            notes: undefined,
-            plateId: 4,
-            wellIds: [],
-            wellLabels: [],
-        },
-    }),
+    upload: getMockStateWithHistory(mockWellUpload),
 };

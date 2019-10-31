@@ -24,11 +24,12 @@ describe("App selectors", () => {
 
             const file1Tags = map.get(filePath1) || [];
             expect(file1Tags.length).to.equal(2);
-            expect(get(file1Tags, [0, "title"])).to.equal("A1");
+            expect(file1Tags.map((t) => t.title)).to.contain("A1");
+            expect(file1Tags.map((t) => t.title)).to.contain("A3");
 
             const file2Tags = map.get(filePath2) || [];
             expect(file2Tags.length).to.equal(1);
-            expect(get(file2Tags, [0, "title"])).to.equal("B2");
+            expect(get(file2Tags, [0, "title"])).to.equal("A4");
 
             expect(get(file1Tags, [0, "color"])).to.equal(get(file2Tags, [0, "color"]));
         });

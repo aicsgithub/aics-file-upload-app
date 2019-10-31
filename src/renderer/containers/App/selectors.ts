@@ -22,8 +22,8 @@ export const getFileToTags = createSelector([
     const uploadsGroupedByFile = groupBy(upload, "file");
     const result = new Map<string, FileTagType[]>();
     forEach(uploadsGroupedByFile, (metadata: UploadMetadata[], file: string) => {
-        const workflows = flatMap(metadata, (m) => m.workflows || []).sort();
-        const wellLabels = flatMap(metadata, (m) => m.wellLabels || []).sort();
+        const workflows = flatMap(metadata, (m) => m.workflows || []);
+        const wellLabels = flatMap(metadata, (m) => m.wellLabels || []);
         result.set(file, [
             ...uniq(workflows).map((w: string) => new FileTag(w, "blue")),
             ...uniq(wellLabels).map((w: string) => new FileTag(w, "magenta")),

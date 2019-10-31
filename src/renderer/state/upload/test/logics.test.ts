@@ -8,7 +8,7 @@ import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, mockState, nonEmptyStateForInitiatingUpload } from "../../test/mocks";
+import { getMockStateWithHistory, nonEmptyStateForInitiatingUpload } from "../../test/mocks";
 import { applyTemplate, associateFilesAndWells, initiateUpload, updateScenes } from "../actions";
 import { getUploadRowKey } from "../constants";
 import { getAppliedTemplateId, getUpload, getUploadSummaryRows } from "../selectors";
@@ -16,7 +16,7 @@ import { getAppliedTemplateId, getUpload, getUploadSummaryRows } from "../select
 describe("Upload logics", () => {
     describe("associateFileAndWellLogic", () => {
         it("clears files and associates well with file", () => {
-            const store = createMockReduxStore(mockState);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
@@ -32,7 +32,7 @@ describe("Upload logics", () => {
 
     describe("applyTemplateLogic", () => {
         it("updates uploads with a templateId", (done) => {
-            const store = createMockReduxStore(mockState);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
@@ -129,7 +129,7 @@ describe("Upload logics", () => {
         const mockChannel = { channelId: 1, description: "", name: ""};
 
         it("does not remove well associations from the file row if file does not have a scene", () => {
-            const store = createMockReduxStore(mockState);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
             let state = store.getState();
@@ -146,7 +146,7 @@ describe("Upload logics", () => {
             expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
         });
         it("removes well associations from the file row if file has at least one scene", () => {
-            const store = createMockReduxStore(mockState);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
             let state = store.getState();
@@ -164,7 +164,7 @@ describe("Upload logics", () => {
             expect(getUpload(state)[fileRowKey].wellIds).to.be.empty;
         });
         it("adds channel-only uploads", () => {
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -184,6 +184,7 @@ describe("Upload logics", () => {
                 expect(channelUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: mockChannel,
+                    ["Favorite Color"]: undefined,
                     file: fileRow.file,
                     key: getUploadRowKey(file, undefined, 1),
                     notes: undefined,
@@ -195,7 +196,7 @@ describe("Upload logics", () => {
             }
         });
         it("adds scene-only uploads", () => {
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -215,6 +216,7 @@ describe("Upload logics", () => {
                 expect(sceneUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: undefined,
+                    ["Favorite Color"]: undefined,
                     file: fileRow.file,
                     key: getUploadRowKey(file, 1),
                     notes: undefined,
@@ -226,7 +228,7 @@ describe("Upload logics", () => {
             }
         });
         it("adds scene+channel uploads", () => {
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -249,6 +251,7 @@ describe("Upload logics", () => {
                 expect(sceneUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: undefined,
+                    ["Favorite Color"]: undefined,
                     file: fileRow.file,
                     key: getUploadRowKey(file, 1),
                     notes: undefined,
@@ -264,6 +267,7 @@ describe("Upload logics", () => {
                 expect(sceneAndChannelUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: mockChannel,
+                    ["Favorite Color"]: undefined,
                     file: fileRow.file,
                     key: sceneAndChannelKey,
                     notes: undefined,
@@ -277,7 +281,7 @@ describe("Upload logics", () => {
         it("removes uploads that don't exist anymore", () => {
             const sceneKey = getUploadRowKey(file, 1);
             const store = createMockReduxStore({
-                ...mockState,
+                ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey(file)]: {
                         barcode: "1234",

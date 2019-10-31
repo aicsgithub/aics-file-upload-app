@@ -273,17 +273,13 @@ export const getUploadPayload = createSelector([
         result = {
             ...result,
             [fullPath]: {
+                customMetadata: {
+                    annotations: getAnnotations(metadata, template),
+                    templateId: template.templateId,
+                },
                 file: {
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     originalPath: fullPath,
-                },
-                fileMetadata: {
-                    requests: [
-                        {
-                            annotations: getAnnotations(metadata, template),
-                            templateId: template.templateId,
-                        },
-                    ],
                 },
                 microscopy: {
                     ...(wellIds.length && { wellIds }),
