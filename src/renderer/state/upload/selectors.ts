@@ -11,13 +11,13 @@ import {
     omit,
     pick,
     some,
-    startCase,
     uniq,
     values,
     without
 } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+import { titleCase } from "../../util";
 
 import { getUploadJobNames } from "../job/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
@@ -216,7 +216,7 @@ const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): 
         forEach(customData, (value: any, annotationName: string) => {
             const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
             if (addAnnotation) {
-                annotationName = startCase(annotationName);
+                annotationName = titleCase(annotationName);
                 const annotation = appliedTemplate.annotations
                     .find((a) => a.name === annotationName);
                 if (!annotation) {

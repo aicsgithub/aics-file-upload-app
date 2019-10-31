@@ -3,6 +3,7 @@ import { constants, promises } from "fs";
 import {
     forOwn,
     isFunction,
+    startCase,
 } from "lodash";
 import { DragAndDropFileList } from "../state/selection/types";
 import { TemplateAnnotation } from "../state/template/types";
@@ -118,4 +119,10 @@ export const pivotAnnotations = (annotations: TemplateAnnotation[], booleanAnnot
             [a.name]: value,
         };
     }, {});
+};
+
+// start case almost works but adds spaces before numbers which we'll remove here
+export const titleCase = (name?: string) => {
+    const result = startCase(name);
+    return result.replace(/\s([0-9]+)/g, "$1");
 };
