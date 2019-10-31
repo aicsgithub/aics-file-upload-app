@@ -2,9 +2,9 @@ import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { isEmpty, map } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+
 import { getUploadJobNames } from "../job/selectors";
 import { getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
-
 import { Workflow } from "../selection/types";
 import { State } from "../types";
 import { FileType, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -14,8 +14,8 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-export const getSchemaFile = createSelector([getUpload], (uploads: UploadStateBranch): string | undefined =>
-    Object.keys(uploads).length ? uploads[Object.keys(uploads)[0]].schemaFile : undefined
+export const getAppliedTemplateId = createSelector([getUpload], (uploads: UploadStateBranch): number | undefined =>
+    Object.keys(uploads).length ? uploads[Object.keys(uploads)[0]].templateId : undefined
 );
 
 export const getCanRedoUpload = createSelector([getUploadFuture], (future: UploadStateBranch[]) => {

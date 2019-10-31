@@ -9,11 +9,11 @@ import { ActionCreator } from "redux";
 import NoteIcon from "../../components/NoteIcon";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import {
-    ColumnDefinition,
+    AnnotationType,
     ColumnType,
-    RemoveSchemaFilepathAction,
-    SchemaDefinition
-} from "../../state/setting/types";
+    Template,
+    TemplateAnnotation,
+} from "../../state/template/types";
 import { RemoveUploadsAction, UpdateUploadAction, UploadJobTableRow } from "../../state/upload/types";
 import { onDrop } from "../../util";
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
@@ -26,14 +26,13 @@ type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
 interface Props {
+    annotationTypes: AnnotationType[];
     canUndo: boolean;
     canRedo: boolean;
     className?: string;
     redo: () => void;
-    removeSchemaFilepath: ActionCreator<RemoveSchemaFilepathAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
-    schemaFile?: string;
-    schema?: SchemaDefinition;
+    template?: Template;
     setAlert: ActionCreator<SetAlertAction>;
     undo: () => void;
     updateUpload: ActionCreator<UpdateUploadAction>;
@@ -159,7 +158,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             label?: string,
                             className?: string): React.ReactElement => {
         let childElement = children;
-        if (required && isNil(value)) {
+        if (required && (isNil(value) || isEmpty(value))) {
             childElement = (
                 <FormControl
                     className={classNames(styles.formatterContainer, className)}
@@ -215,17 +214,22 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         } else {
             basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
         }
-        if  (!this.props.schema) {
+        if  (!this.props.template) {
             return basicColumns;
         }
-        const schemaColumns = this.props.schema.columns.map((column: ColumnDefinition) => {
-            const {label,  type: {type,  dropdownValues }, required } = column;
+        const schemaColumns = this.props.template.annotations.map((column: TemplateAnnotation) => {
+            const {name,  annotationTypeId,  annotationOptions, required } = column;
+            const annotationType = this.props.annotationTypes.find((a) => a.annotationTypeId === annotationTypeId);
+            if (!annotationType) {
+                throw new Error(`Could not get annotation type for annotation ${column.name}. Contact Software`);
+            }
+            const type = annotationType.name;
             const columns: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
-                dropdownValues,
+                dropdownValues: annotationOptions,
                 editable: true,
-                key: label,
-                name: label,
+                key: name,
+                name,
                 resizable: true,
                 type,
             };
@@ -237,14 +241,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             // acceptable width for them
             if (type === ColumnType.DATE) {
                 columns.width = 170;
-            } else if (type === ColumnType.DATETIME) {
-                columns.width = 250;
             }
             if (type === ColumnType.BOOLEAN) {
-                columns.formatter = (props) => BooleanFormatter({...props, rowKey: label, saveValue: this.saveByRow});
+                columns.formatter = (props) =>
+                    BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
                 columns.formatter = ({ row, value }: FormatterProps) => (
-                    this.renderFormat(row, value, undefined, required, label)
+                    this.renderFormat(row, value, undefined, required, name)
                 );
             }
             return columns;
@@ -324,10 +327,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         this.props.updateUpload(row.file, { [key]: value });
     }
 
-    private handleError = (error: string, errorFile?: string) => {
-        if  (errorFile) {
-            this.props.removeSchemaFilepath(errorFile);
-        }
+    private handleError = (error: string) => {
         this.props.setAlert({
             message:  error,
             type: AlertType.WARN,

@@ -4,16 +4,35 @@ import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labke
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { DatabaseMetadata, Unit } from "../metadata/types";
+import { Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
     Well,
     Workflow
 } from "../selection/types";
+import {
+    Annotation,
+    AnnotationDraft,
+    AnnotationLookup,
+    AnnotationType,
+    ColumnType,
+    Lookup,
+    Template,
+    TemplateAnnotation,
+    TemplateDraft,
+    TemplateStateBranch,
+} from "../template/types";
 import { State } from "../types";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
+
+export const mockAuditInfo = {
+    created: new Date(),
+    createdBy: 1,
+    modified: new Date(),
+    modifiedBy: 1,
+} ;
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
@@ -32,13 +51,21 @@ export const mockSelection: SelectionStateBranch = {
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
+    openTemplateModalVisible: false,
     page: Page.DragAndDrop,
     selectedWells: [],
     selectedWorkflows: [],
-    showCreateSchemaModal: false,
     stagedFiles: [],
+    templateEditorVisible: false,
     view: Page.DragAndDrop,
     wells: [],
+};
+
+export const mockTemplateStateBranch: TemplateStateBranch = {
+    appliedTemplate: undefined,
+    draft: {
+        annotations: [],
+    },
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -71,6 +98,9 @@ export const mockState: State = {
         uploadJobs: [],
     },
     metadata: {
+        annotationLookups: [],
+        annotationTypes: [],
+        annotations: [],
         barcodePrefixes: [],
         barcodeSearchResults: [],
         history: {
@@ -78,6 +108,8 @@ export const mockState: State = {
             upload: {},
         },
         imagingSessions: [],
+        lookups: [],
+        templates: [],
         units: [],
         workflowOptions: [],
     },
@@ -87,8 +119,9 @@ export const mockState: State = {
         limsHost: "localhost",
         limsPort: "8080",
         limsProtocol: "http",
-        schemaFilepaths: [],
+        templateIds: [],
     },
+    template: getMockStateWithHistory(mockTemplateStateBranch),
     upload: getMockStateWithHistory(mockWellUpload),
 };
 
@@ -242,6 +275,58 @@ export const nonEmptyJobStateBranch: JobStateBranch = {
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
+export const mockAnnotationDraft: AnnotationDraft = {
+    annotationId: 1,
+    annotationTypeId: 1,
+    annotationTypeName: "Text",
+    canHaveManyValues: false,
+    description: "You know what a color is",
+    index: 0,
+    name: "Color",
+    required: false,
+};
+
+export const mockTemplateDraft: TemplateDraft = {
+    annotations: [mockAnnotationDraft],
+    name: "My Template",
+};
+
+export const mockAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 1,
+    annotationTypeId: 1,
+    description: "You know what a color is",
+    name: "Color",
+};
+
+export const mockAnnotations: Annotation[] = [mockAnnotation];
+
+export const mockAnnotationLookups: AnnotationLookup[] = [
+    {
+        annotationId: 1,
+        lookupId: 1,
+    },
+];
+
+export const mockAnnotationTypes: AnnotationType[] = [
+    {
+        annotationTypeId: 1,
+        name: ColumnType.TEXT,
+    },
+    {
+        annotationTypeId: 2,
+        name: ColumnType.BOOLEAN,
+    },
+    {
+        annotationTypeId: 3,
+        name: ColumnType.LOOKUP,
+    },
+    {
+        annotationTypeId: 4,
+        name: ColumnType.DROPDOWN,
+    },
+];
+
 export const mockImagingSessions: LabkeyImagingSession[] = [
     {
         Description: "",
@@ -268,6 +353,25 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
     },
 ];
 
+export const mockTemplateAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 1,
+    annotationOptions: undefined,
+    annotationTypeId: 1,
+    canHaveManyValues: false,
+    description: "a description",
+    name: "favoriteColor",
+    required: true,
+};
+
+export const mockMMSTemplate: Template = {
+    ...mockAuditInfo,
+    annotations: [mockTemplateAnnotation],
+    name: "Test",
+    templateId: 1,
+    version: 1,
+};
+
 export const mockUnit: Unit = {
     description: "description",
     name: "name",
@@ -275,11 +379,13 @@ export const mockUnit: Unit = {
     unitsId: 1,
 };
 
-export const mockDatabaseMetadata: DatabaseMetadata = {
-    "Table Name": {
-        columns: [],
-        displayName: "Table Name",
-        name: "table_name",
-        schemaName: "microscopy",
+export const mockLookups: Lookup[] = [
+    {
+        ...mockAuditInfo,
+        columnName: "columnname",
+        descriptionColumn: "description",
+        lookupId: 1,
+        schemaName: "schema",
+        tableName: "tablename",
     },
-};
+];

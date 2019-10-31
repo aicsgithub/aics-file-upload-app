@@ -9,6 +9,7 @@ interface Props {
     children?: ReactNode | ReactNodeArray;
     className?: string;
     error?: string;
+    label?: string;
     onClick?: () => void;
 }
 
@@ -17,24 +18,24 @@ interface Props {
  * @param children element(s) to wrap
  * @param className class to apply to this component
  * @param error message to display. undefined implies no error.
+ * @param label label for form control
  * @param onClick callback for when component is clicked
  * @constructor
  */
-const FormControl: React.FunctionComponent<Props> = ({children, className, error, onClick}: Props) => (
-    <div
-        className={classNames(
-            styles.container,
-            {[styles.error]: error},
-            className
-        )}
-        onClick={onClick}
-    >
-        <div className={styles.form}>
-            {children}
+const FormControl: React.FunctionComponent<Props> = ({children, className, error, label, onClick}: Props) => (
+    <div className={classNames(styles.container, {[styles.error]: error}, className)}>
+        {label && <div className={styles.label}>{label}</div>}
+        <div
+            className={styles.body}
+            onClick={onClick}
+        >
+            <div className={styles.form}>
+                {children}
+            </div>
+            {error && <Tooltip title={error} className={styles.errorIcon} >
+                <Icon type="close-circle" theme="filled" />
+            </Tooltip>}
         </div>
-        {error && <Tooltip title={error} className={styles.errorIcon} >
-            <Icon type="close-circle" theme="filled" />
-        </Tooltip>}
     </div>
 );
 

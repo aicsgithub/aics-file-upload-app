@@ -18,6 +18,7 @@ import {
     metadata,
     selection,
     setting,
+    template,
     upload,
 } from "../";
 import { LocalStorage, State } from "../types";
@@ -51,6 +52,7 @@ const port = "80";
 const protocol = "http";
 const username = "foo";
 const localStorage: LocalStorage = {
+    clear: stub(),
     get: stub(),
     set: stub(),
 };
@@ -90,6 +92,7 @@ const reducers = {
     metadata: metadata.reducer,
     selection: selection.reducer,
     setting: setting.reducer,
+    template: template.reducer,
     upload: upload.reducer,
 };
 
@@ -99,6 +102,7 @@ const logics = [
     ...metadata.logics,
     ...selection.logics,
     ...setting.logics,
+    ...template.logics,
     ...upload.logics,
 ];
 

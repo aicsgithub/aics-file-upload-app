@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import { sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -17,7 +18,9 @@ import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
+    GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
+    GET_TEMPLATES,
     REQUEST_METADATA,
 } from "./constants";
 
@@ -43,30 +46,35 @@ const requestMetadata = createLogic({
                     done: () => void) => {
         try {
             const [
+                annotationLookups,
+                annotationTypes,
                 barcodePrefixes,
-                databaseMetadata,
                 imagingSessions,
+                lookups,
                 units,
                 workflowOptions,
             ] = await Promise.all([
+                labkeyClient.getAnnotationLookups(),
+                labkeyClient.getAnnotationTypes(),
                 labkeyClient.getBarcodePrefixes(),
-                labkeyClient.getDatabaseMetadata(),
                 labkeyClient.getImagingSessions(),
+                labkeyClient.getLookups(),
                 labkeyClient.getUnits(),
                 labkeyClient.getWorkflows(),
 
             ]);
             dispatch(receiveMetadata({
+                annotationLookups,
+                annotationTypes,
                 barcodePrefixes,
-                databaseMetadata,
                 imagingSessions,
+                lookups,
                 units,
                 workflowOptions,
             }));
         } catch (reason) {
-            console.log(reason); // tslint:disable-line:no-console
             dispatch(setAlert({
-                message: "Failed to retrieve metadata.",
+                message: "Failed to retrieve metadata. " + reason.message,
                 type: AlertType.ERROR,
             }));
         }
@@ -87,7 +95,7 @@ const requestBarcodes = createLogic({
         } else {
             dispatch(addRequestToInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
             try {
-                const searchResults = await labkeyClient.getPlatesByBarcode(action.payload);
+                const searchResults = await labkeyClient.getPlatesByBarcode(searchStr);
                 dispatch(batchActions([
                     receiveMetadata({barcodeSearchResults: searchResults}),
                     removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
@@ -108,8 +116,58 @@ const requestBarcodes = createLogic({
     type: GET_BARCODE_SEARCH_RESULTS,
 });
 
+const requestAnnotations = createLogic({
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.GET_ANNOTATIONS));
+        try {
+            const annotations = sortBy(await labkeyClient.getAnnotations(), ["name"]);
+            dispatch(batchActions([
+                receiveMetadata({annotations}),
+                removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
+            ]));
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
+                setAlert({
+                    message: "Could not retrieve annotations: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: GET_ANNOTATIONS,
+});
+
+const requestTemplates = createLogic({
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATES));
+        try {
+            const templates = sortBy(await labkeyClient.getTemplates(), ["name"]);
+            dispatch(batchActions([
+                receiveMetadata({templates}),
+                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
+            ]));
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
+                setAlert({
+                    message: "Could not retrieve templates: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: GET_TEMPLATES,
+});
+
 export default [
     createBarcode,
+    requestAnnotations,
     requestBarcodes,
     requestMetadata,
+    requestTemplates,
 ];

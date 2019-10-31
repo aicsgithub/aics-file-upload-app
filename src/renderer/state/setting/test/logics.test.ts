@@ -9,16 +9,18 @@ import {
     mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
+    mockAnnotationLookups,
+    mockAnnotationTypes,
     mockBarcodePrefixes,
-    mockDatabaseMetadata,
     mockImagingSessions,
+    mockLookups,
     mockSelectedWorkflows,
     mockState,
     mockUnit,
 } from "../../test/mocks";
 
-import { gatherSettings, updateSettings } from "../actions";
-import { getLimsHost } from "../selectors";
+import { addTemplateIdToSettings, gatherSettings, updateSettings } from "../actions";
+import { getLimsHost, getTemplateIds } from "../selectors";
 
 describe("Setting logics", () => {
     const localhost = "localhost";
@@ -57,17 +59,22 @@ describe("Setting logics", () => {
         stub(mmsClient, "host").set(mmsClientHostSetterSpy);
         stub(mmsClient, "port").set(mmsClientPortSetterSpy);
 
+        const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
+        const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
         const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
-        const getDatabaseMetadataStub = stub().resolves(mockDatabaseMetadata);
         const getImagingSessionsStub = stub().resolves(mockImagingSessions);
+        const getLookupsStub = stub().resolves(mockLookups);
         const getUnitsStub = stub().resolves([mockUnit]);
         const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
 
+        sandbox.replace(labkeyClient, "getAnnotationLookups", getAnnotationLookupsStub);
+        sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
         sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
-        sandbox.replace(labkeyClient, "getDatabaseMetadata", getDatabaseMetadataStub);
         sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
+        sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
         sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
         sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+
     });
 
     afterEach(() => {
@@ -178,6 +185,25 @@ describe("Setting logics", () => {
             // after
             expect(getLimsHost(store.getState())).to.equal(localhost);
             expect(getAlert(store.getState())).to.not.be.undefined;
+        });
+    });
+
+    describe("addTemplateIdToSettingsLogic", () => {
+        it("adds template id to settings", () => {
+            const store = createMockReduxStore({
+                ...mockState,
+                setting: {
+                    ...mockState.setting,
+                    templateIds: [1],
+                },
+            });
+
+            expect(getTemplateIds(store.getState()).length).to.equal(1);
+
+            store.dispatch(addTemplateIdToSettings(2));
+
+            expect(getTemplateIds(store.getState()).length).to.equal(2);
+            expect(getTemplateIds(store.getState())).contains(2);
         });
     });
 });

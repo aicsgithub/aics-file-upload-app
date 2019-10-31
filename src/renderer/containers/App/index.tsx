@@ -1,16 +1,15 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message, Tabs } from "antd";
 import { ipcRenderer, remote } from "electron";
-import { readFile } from "fs";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import { OPEN_CREATE_SCHEMA_MODAL, SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
+
+import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
 import ProgressBar from "../../components/ProgressBar";
-import SchemaEditorModal from "../../components/SchemaEditorModal";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert, setAlert } from "../../state/feedback/actions";
@@ -24,42 +23,34 @@ import {
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { getDatabaseMetadata } from "../../state/metadata/selectors";
-import { DatabaseMetadata, RequestMetadataAction } from "../../state/metadata/types";
+import { RequestMetadataAction } from "../../state/metadata/types";
 import {
     clearStagedFiles,
-    closeSchemaCreator,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
-    openSchemaCreator,
-    selectView
+    selectView,
 } from "../../state/selection/actions";
 import {
     getPage,
     getSelectedFiles,
-    getShowCreateSchemaModal,
     getStagedFiles,
     getView,
 } from "../../state/selection/selectors";
 import {
     AppPageConfig,
     ClearStagedFilesAction,
-    CloseSchemaCreatorAction,
     GetFilesInFolderAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
-    OpenSchemaCreatorAction,
     Page,
     SelectFileAction,
     SelectViewAction,
-    UploadFile
+    UploadFile,
 } from "../../state/selection/types";
-import { addSchemaFilepath, gatherSettings, updateSettings } from "../../state/setting/actions";
+import { gatherSettings, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
-    AddSchemaFilepathAction,
     GatherSettingsAction,
-    SchemaDefinition,
     UpdateSettingsAction,
 } from "../../state/setting/types";
 import { State } from "../../state/types";
@@ -69,10 +60,11 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import EnterBarcode from "../EnterBarcode";
+import OpenTemplateModal from "../OpenTemplateModal";
+import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
 import { getFileToTags } from "./selectors";
-import { isSchemaDefinition } from "./util";
 
 const styles = require("./styles.pcss");
 
@@ -81,11 +73,9 @@ const { TabPane } = Tabs;
 const ALERT_DURATION = 2;
 
 interface AppProps {
-    addSchemaFilepath: ActionCreator<AddSchemaFilepathAction>;
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
     clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
-    closeSchemaCreator: ActionCreator<CloseSchemaCreatorAction>;
     copyInProgress: boolean;
     fileToTags: Map<string, FileTagType[]>;
     files: UploadFile[];
@@ -95,23 +85,15 @@ interface AppProps {
     loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
     openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
     loading: boolean;
-    openSchemaCreator: ActionCreator<OpenSchemaCreatorAction>;
     recentEvent?: AppEvent;
     requestMetadata: ActionCreator<RequestMetadataAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
     selectView: ActionCreator<SelectViewAction>;
-    showCreateSchemaModal: boolean;
     page: Page;
-    tables?: DatabaseMetadata;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     view: Page;
-}
-
-interface AppState {
-    schema?: SchemaDefinition;
-    schemaFilepath?: string;
 }
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
@@ -136,10 +118,7 @@ message.config({
     maxCount: 1,
 });
 
-class App extends React.Component<AppProps, AppState> {
-    public state: AppState = {
-    };
-
+class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
@@ -163,43 +142,6 @@ class App extends React.Component<AppProps, AppState> {
                 remote.app.exit();
             }
         });
-        ipcRenderer.on(OPEN_CREATE_SCHEMA_MODAL, (event: Event, schemaFilepath?: string) => {
-            if (schemaFilepath) {
-                readFile(schemaFilepath, (err, data: Buffer) => {
-                    if (err) {
-                        this.props.setAlert({
-                            message: err,
-                            type: AlertType.ERROR,
-                        });
-                    } else {
-                        try {
-                            const json = JSON.parse(data.toString());
-                            if (isSchemaDefinition(json)) {
-                                this.setState({
-                                    schema: json,
-                                    schemaFilepath,
-                                });
-                                this.props.openSchemaCreator();
-                            } else {
-                                this.props.setAlert({
-                                    message: "Invalid schema JSON",
-                                    type: AlertType.ERROR,
-                                });
-                            }
-
-                        } catch (e) {
-                            this.props.setAlert({
-                                message: e.message || "File is not valid JSON",
-                                type: AlertType.ERROR,
-                            });
-                        }
-                    }
-                });
-            } else {
-                this.props.openSchemaCreator();
-            }
-        });
-
     }
 
     public componentDidUpdate() {
@@ -238,12 +180,9 @@ class App extends React.Component<AppProps, AppState> {
             recentEvent,
             selectFile,
             selectedFiles,
-            showCreateSchemaModal,
             page,
-            tables,
             view,
         } = this.props;
-        const { schema, schemaFilepath } = this.state;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
         const uploadSummaryConfig = APP_PAGE_TO_CONFIG_MAP.get(Page.UploadSummary);
 
@@ -290,15 +229,8 @@ class App extends React.Component<AppProps, AppState> {
                     </div>
                 </div>
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
-                <SchemaEditorModal
-                    close={this.props.closeSchemaCreator}
-                    onSchemaFileCreated={this.props.addSchemaFilepath}
-                    visible={showCreateSchemaModal}
-                    schema={schema}
-                    setAlert={setAlert}
-                    filepath={schemaFilepath}
-                    tables={tables}
-                />
+                <TemplateEditorModal/>
+                <OpenTemplateModal/>
             </div>
         );
     }
@@ -315,22 +247,17 @@ function mapStateToProps(state: State) {
         page: getPage(state),
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
-        showCreateSchemaModal: getShowCreateSchemaModal(state),
-        tables: getDatabaseMetadata(state),
         view: getView(state),
     };
 }
 
 const dispatchToPropsMap = {
-    addSchemaFilepath,
     clearAlert,
     clearStagedFiles,
-    closeSchemaCreator,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
-    openSchemaCreator,
     requestMetadata,
     selectFile: selection.actions.selectFile,
     selectView,

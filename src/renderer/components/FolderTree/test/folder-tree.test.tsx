@@ -31,7 +31,7 @@ describe("<FolderTree/>", () => {
     });
 
     describe("onExpand", () => {
-        it("should not get children if folder has been expanded", (done) => {
+        it("should not get children if folder has been expanded", () => {
             const clearStagedFiles = sinon.fake();
             const getFilesInFolder = sinon.fake();
             const loadFilesFromDragAndDropAction = sinon.fake();
@@ -58,12 +58,7 @@ describe("<FolderTree/>", () => {
             });
             wrapper.find(DirectoryTree).dive()
                 .simulate("expand", [testFolderKey]);
-
-            setTimeout(() => {
-                // after
-                expect(getFilesInFolder.called).to.equal(false);
-                done();
-            }, 500);
+            expect(getFilesInFolder.called).to.equal(false);
         });
     });
 

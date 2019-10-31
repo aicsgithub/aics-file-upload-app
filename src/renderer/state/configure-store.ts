@@ -19,6 +19,7 @@ import {
     metadata,
     selection,
     setting,
+    template,
     upload,
 } from "./";
 import { State } from "./types";
@@ -33,6 +34,7 @@ const reducers = {
     metadata: metadata.reducer,
     selection: selection.reducer,
     setting: setting.reducer,
+    template: template.reducer,
     upload: upload.reducer,
 };
 
@@ -42,6 +44,7 @@ const logics = [
     ...metadata.logics,
     ...selection.logics,
     ...setting.logics,
+    ...template.logics,
     ...upload.logics,
 ];
 

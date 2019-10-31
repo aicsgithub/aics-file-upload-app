@@ -11,6 +11,7 @@ import { Workflow } from "../selection/types";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
+    APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
@@ -19,16 +20,15 @@ import {
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
-    UPDATE_SCHEMA,
     UPDATE_UPLOAD
 } from "./constants";
 import {
+    ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
-    UpdateSchemaAction,
     UpdateUploadAction,
     UploadStateBranch
 } from "./types";
@@ -127,9 +127,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOAD,
         perform: (state: UploadStateBranch, action: RemoveUploadsAction) => omit(state, action.payload),
     },
-    [UPDATE_SCHEMA]: {
-        accepts: (action: AnyAction): action is UpdateSchemaAction => action.type === UPDATE_SCHEMA,
-        perform: (state: UploadStateBranch, action: UpdateSchemaAction) => ({
+    [APPLY_TEMPLATE]: {
+        accepts: (action: AnyAction): action is ApplyTemplateAction => action.type === APPLY_TEMPLATE,
+        perform: (state: UploadStateBranch, action: ApplyTemplateAction) => ({
             ...state,
             ...action.payload.uploads,
         }),

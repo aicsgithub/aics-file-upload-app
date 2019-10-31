@@ -21,13 +21,14 @@ export interface SelectionStateBranch {
     files: string[];
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
+    openTemplateModalVisible: boolean;
     plate?: PlateResponse;
     wells: WellResponse[];
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
     page: Page;
-    showCreateSchemaModal: boolean;
     stagedFiles: UploadFile[];
+    templateEditorVisible: boolean;
     view: Page;
 }
 
@@ -201,11 +202,20 @@ export interface SelectWellsAction {
     type: string;
 }
 
-export interface CloseSchemaCreatorAction {
+export interface CloseTemplateEditorAction {
     type: string;
 }
 
-export interface OpenSchemaCreatorAction {
+export interface OpenTemplateEditorAction {
+    payload?: number;
+    type: string;
+}
+
+export interface OpenOpenTemplateModalAction {
+    type: string;
+}
+
+export interface CloseOpenTemplateModalAction {
     type: string;
 }
 

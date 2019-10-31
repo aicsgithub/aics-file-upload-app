@@ -2,11 +2,11 @@ import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
-    schemaFilepaths: string[];
+    templateIds: number[];
 }
 
-export interface AddSchemaFilepathAction {
-    payload: string;
+export interface AddTemplateIdToSettingsAction {
+    payload: number;
     type: string;
 }
 export interface AssociateByWorkflowAction {
@@ -14,8 +14,8 @@ export interface AssociateByWorkflowAction {
     type: string;
 }
 
-export interface RemoveSchemaFilepathAction {
-    payload: string;
+export interface RemoveTemplateIdFromSettingsAction {
+    payload: number;
     type: string;
 }
 
@@ -26,30 +26,4 @@ export interface UpdateSettingsAction {
 
 export interface GatherSettingsAction {
     type: string;
-}
-
-export interface SchemaDefinition {
-    columns: ColumnDefinition[];
-    notes?: string;
-}
-
-export interface ColumnDefinition {
-    label: string;
-    type: {
-        column: string;
-        dropdownValues: string[];
-        table: string; // table display name
-        type: ColumnType;
-    };
-    required: boolean;
-}
-
-export enum ColumnType {
-    TEXT = 1,
-    DROPDOWN = 2,
-    BOOLEAN = 3,
-    NUMBER = 4,
-    DATE = 5,
-    DATETIME = 6,
-    LOOKUP = 7,
 }

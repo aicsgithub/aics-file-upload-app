@@ -1,31 +1,27 @@
-import { isEmpty, map } from "lodash";
+import { camelizeKeys } from "humps";
+import { isEmpty, map, pick } from "lodash";
 
-import { DatabaseMetadata, Table } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
+import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
-    GetBarcodesResponse,
-    GetTablesResponse,
-    GetTablesResponseColumn,
-    GetTablesResponseQuery,
+    LabkeyAnnotation,
+    LabkeyAnnotationLookup,
+    LabkeyAnnotationType,
     LabkeyImagingSession,
+    LabkeyLookup,
     LabkeyPlate,
     LabKeyPlateBarcodePrefix,
-    LabkeyPlateResponse, LabKeyWorkflow,
+    LabkeyPlateResponse,
+    LabkeyResponse, LabkeyTemplate,
+    LabKeyWorkflow,
 } from "./types";
 
-const LABKEY_GET_TABLES_URL = `/AICS/query-getQueries.api`;
+const LK_FILEMETADATA_SCHEMA = "filemetadata";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
-
-// There are more schemas, but these are the only ones (AFAIK) that users use
-const SCHEMAS = [
-    "assayscustom",
-    "celllines",
-    LK_MICROSCOPY_SCHEMA,
-    "processing",
-];
+const LK_UPLOADER_SCHEMA = "uploader";
 
 export default class LabkeyClient extends BaseServiceClient {
     private static getSelectRowsURL = (schema: string, table: string, additionalQueries: string[] = []) => {
@@ -42,6 +38,33 @@ export default class LabkeyClient extends BaseServiceClient {
     }
 
     /**
+     * Gets all annotation types
+     */
+    public async getAnnotationTypes(): Promise<AnnotationType[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationType");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyAnnotationType) => camelizeKeys(pick(r, ["AnnotationTypeId", "Name"])));
+    }
+
+    /**
+     * Gets all annotations
+     */
+    public async getAnnotations(): Promise<Annotation[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Annotation");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyAnnotation) => camelizeKeys(pick(r,
+            ["AnnotationId", "AnnotationTypeId", "Description",
+                "Name", "CreatedBy", "Created", "ModifiedBy", "Modified"]
+        )));
+    }
+
+    public async getAnnotationLookups(): Promise<AnnotationLookup[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationLookup");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyAnnotationLookup) => camelizeKeys(pick(r, ["AnnotationId", "LookupId"])));
+    }
+
+    /**
      * Searches plates where the barcode contains searchString
      * @param searchString fragment of a barcode
      */
@@ -51,7 +74,7 @@ export default class LabkeyClient extends BaseServiceClient {
             `query.barcode~contains=${searchString}`,
         ]);
 
-        const response: GetBarcodesResponse = await this.httpClient.get(query);
+        const response: LabkeyResponse<LabkeyPlate> = await this.httpClient.get(query);
         const plates: LabkeyPlate[] = response.rows;
         return map(plates, (p) => ({
             barcode: p.BarCode,
@@ -85,6 +108,20 @@ export default class LabkeyClient extends BaseServiceClient {
         }));
     }
 
+    public async getLookups(): Promise<Lookup[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Lookup");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyLookup) => camelizeKeys(pick(r,
+            ["LookupId", "ColumnName", "DescriptionColumn", "SchemaName", "TableName"]
+        )));
+    }
+
+    public async getTemplates(): Promise<LabkeyTemplate[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_UPLOADER_SCHEMA, "Template");
+        const response = await this.httpClient.get(query);
+        return response.rows;
+    }
+
     /**
      * Retrieves all units
      */
@@ -99,57 +136,13 @@ export default class LabkeyClient extends BaseServiceClient {
         }));
     }
 
-    /**
-     * Retrieves all Table names and Table Column names for each Schema defined in the constant SCHEMAS
-     */
-    public async getDatabaseMetadata(): Promise<DatabaseMetadata> {
-        const requests = SCHEMAS.map((schemaName: string) =>
-            this.httpClient.post(LABKEY_GET_TABLES_URL, { schemaName })
-        );
-        const responses: GetTablesResponse[] = await Promise.all(requests);
-        let tables: Table[] = [];
-        responses.forEach(({ schemaName, queries }: GetTablesResponse) => {
-            tables = [
-                ...tables,
-                ...queries
-                // User defined queries have been broken in production before, we want to avoid breaking the app
-                // because of them -- also it doesn't seem like we want to let the user to associate with a view
-                    .filter(({ isUserDefined }: GetTablesResponseQuery) => !isUserDefined)
-                    .map(({ columns, name }: GetTablesResponseQuery) => ({
-                        columns: columns.map((column: GetTablesResponseColumn) => column.caption),
-                        displayName: name,
-                        name,
-                        schemaName,
-                    })),
-            ];
-        });
-        // If any duplicate table name are present append the schemaName as a suffix
-        return tables.reduce((acc: DatabaseMetadata, table: Table) => {
-            const matchingTable = tables.find(({ name, schemaName }: Table) => (
-                table.name === name && table.schemaName !== schemaName)
-            );
-            if (matchingTable) {
-                const displayName = `${table.name} (${table.schemaName})`;
-                return {
-                    ...acc,
-                    [displayName]: {
-                        ...table,
-                        displayName,
-                    },
-                };
-            }
-            return {
-                ...acc,
-                [table.name]: table,
-            };
-        }, {});
-    }
-
     public async getColumnValues(schemaName: string,
                                  queryName: string,
                                  columnName: string): Promise<string[]> {
         const query = LabkeyClient.getSelectRowsURL(schemaName, queryName, [`query.columns=${columnName}`]);
-        const response = await this.httpClient.get(query);
+        const response: LabkeyResponse<any> = await this.httpClient.get(query);
+        // labkey casing may be different than what is saved in the Lookup table
+        columnName = response.columnModel[0].dataIndex;
         return response.rows.map((columnValue: any) => columnValue[columnName]);
     }
 

@@ -1,4 +1,4 @@
-import { map } from "lodash";
+import { map, uniq } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { USER_SETTINGS_KEY } from "../../../shared/constants";
@@ -15,8 +15,8 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
-import { GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
-import { getLimsHost, getLimsPort } from "./selectors";
+import { ADD_TEMPLATE_ID_TO_SETTINGS, GATHER_SETTINGS, UPDATE_SETTINGS } from "./constants";
+import { getLimsHost, getLimsPort, getTemplateIds } from "./selectors";
 
 const updateSettingsLogic = createLogic({
     process: ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
@@ -71,23 +71,33 @@ const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-   transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       try {
-           const settings = storage.get(USER_SETTINGS_KEY);
-           next(updateSettings(settings));
+    transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const settings = storage.get(USER_SETTINGS_KEY);
+            next(updateSettings(settings));
 
-       } catch (e) {
-           next(setAlert({
-               message: "Failed to get saved settings. Falling back to default settings.",
-               type: AlertType.WARN,
-           }));
-       }
+        } catch (e) {
+            next(setAlert({
+                message: "Failed to get saved settings. Falling back to default settings.",
+                type: AlertType.WARN,
+            }));
+        }
 
-   },
-   type: GATHER_SETTINGS,
+    },
+    type: GATHER_SETTINGS,
+});
+
+const addTemplateIdToSettingsLogic = createLogic({
+    transform: ({action, getState, storage}: ReduxLogicTransformDependencies,
+                next: ReduxLogicNextCb) => {
+        const templateIds = getTemplateIds(getState());
+        next(updateSettings({templateIds: uniq([...templateIds, action.payload])}));
+    },
+    type: ADD_TEMPLATE_ID_TO_SETTINGS,
 });
 
 export default [
+    addTemplateIdToSettingsLogic,
     gatherSettingsLogic,
     updateSettingsLogic,
 ];
