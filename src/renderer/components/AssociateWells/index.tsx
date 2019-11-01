@@ -35,10 +35,14 @@ interface AssociateWellsProps {
     selectWells: ActionCreator<SelectWellsAction>;
     undo: () => void;
     wells?: Well[][];
-    wellsWithAssociations: number[];
+    wellsWithAssociations: number[]; // wells with Associations will be displayed as green
     undoAssociation: ActionCreator<UndoFileWellAssociationAction>;
 }
 
+/**
+ * Displays a read only version of the Plate UI and all of the selected files and wells
+ * to associate them together.
+ */
 class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     public render() {
         const {

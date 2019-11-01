@@ -105,6 +105,9 @@ interface AddCustomDataState {
     selectedFiles: string[];
 }
 
+/**
+ * Renders column template selector and custom data grid for adding additional data to each file.
+ */
 class AddCustomData extends React.Component<Props, AddCustomDataState> {
     constructor(props: Props) {
         super(props);

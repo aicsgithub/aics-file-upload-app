@@ -24,6 +24,9 @@ interface FormPageProps {
     page: Page;
 }
 
+/**
+ * This adds common components to the "pages" of the app.
+ */
 class FormPage extends React.Component<FormPageProps, {}> {
     public static defaultProps = {
         backButtonDisabled: false,

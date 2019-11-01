@@ -22,6 +22,10 @@ interface FileFormatterState {
     channels: Channel[];
 }
 
+/**
+ * This is used in the custom data grid. It displays a file path within a grid cell and provides a button that
+ * opens a modal to add scenes and channels to the file.
+ */
 class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     constructor(props: Props) {

@@ -34,6 +34,9 @@ interface Props {
     workflowsWithAssociations: string[];
 }
 
+/**
+ * Displays a workflow selector and the selected files and allows users to associate files and workflows together.
+ */
 class AssociateWorkflows extends React.Component<Props, {}> {
     public render() {
         const {

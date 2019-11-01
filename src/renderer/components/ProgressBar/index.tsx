@@ -36,6 +36,11 @@ const stepOrder: StepInfo = {
     },
 };
 
+/**
+ * Displays all of the steps of the wizard and where the user is at.
+ * @param props
+ * @constructor
+ */
 const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
     const { page } = props;
 

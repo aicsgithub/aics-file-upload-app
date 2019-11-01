@@ -24,6 +24,11 @@ interface WellsFormatterState {
     showModal: boolean;
 }
 
+/**
+ * Displayed within the well column of the CustomDataGrid, this formatter displays the selected wells by their label
+ * (i.e. "A1, B3") and provides a button that opens a modal that displays a read-only Plate UI selecting
+ * different wells.
+ */
 class WellsFormatter extends React.Component<Props, WellsFormatterState> {
 
     constructor(props: Props) {

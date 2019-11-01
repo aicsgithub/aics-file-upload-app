@@ -19,6 +19,9 @@ interface PlateProps {
     wellsWithAssociations: number[];
 }
 
+/**
+ * A readonly view of a plate saved through the Plate UI
+ */
 class Plate extends React.Component<PlateProps, {}> {
     public static getWellDisplayText(cellData: Well): JSX.Element {
         return <WellComponent well={cellData}/>;
