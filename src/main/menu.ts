@@ -145,7 +145,9 @@ export const setMenu = (webContents: WebContents) => {
             submenu: [
                 {
                     click: () => {
-                        shell.openExternal("http://confluence.corp.alleninstitute.org/display/SF/File+Upload+App");
+                        shell.openExternal(
+                            "http://confluence.corp.alleninstitute.org/display/SF/Information+for+Alpha+Users"
+                        );
                     },
                     label: "Learn More",
                 },

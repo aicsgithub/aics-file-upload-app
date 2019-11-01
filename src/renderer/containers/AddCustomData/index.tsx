@@ -19,13 +19,13 @@ import {
 } from "../../state/metadata/selectors";
 import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
 import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
-import { Page } from "../../state/selection/types";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
     getSelectedImagingSession,
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
+import { Page } from "../../state/selection/types";
 import {
     ExpandedRows,
     GoBackAction,

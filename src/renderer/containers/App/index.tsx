@@ -9,7 +9,6 @@ import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 
 import FolderTree from "../../components/FolderTree";
-import ProgressBar from "../../components/ProgressBar";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert, setAlert } from "../../state/feedback/actions";
