@@ -146,11 +146,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
         perform: (state: UploadStateBranch, action: UpdateUploadAction) => {
-            const key = getUploadRowKey(action.payload.key);
             return {
                 ...state,
-                [key]: {
-                    ...state[key],
+                [action.payload.key]: {
+                    ...state[action.payload.key],
                     ...action.payload.upload,
                 },
             };
