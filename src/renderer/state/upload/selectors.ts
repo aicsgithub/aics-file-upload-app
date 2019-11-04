@@ -60,9 +60,6 @@ export const getUploadPayload = createSelector([getUpload], (uploads: UploadStat
         const workflowNames = workflows && workflows.map((workflow: Workflow) => workflow.name);
         result = {
             ...result,
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
-            shouldBeInPublic: false,
             [fullPath]: {
                 file: {
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
