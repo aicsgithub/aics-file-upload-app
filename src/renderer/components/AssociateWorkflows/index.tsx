@@ -1,10 +1,8 @@
 import { Select, Tabs } from "antd";
-import { keys } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
-import { GoBackAction, NextPageAction, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { GoBackAction, NextPageAction, Page, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
     UndoFileWorkflowAssociationAction
@@ -33,9 +31,12 @@ interface Props {
     undo: () => void;
     undoAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
     workflowOptions: Workflow[];
-    workflowIdToFiles: IdToFilesMap;
+    workflowsWithAssociations: string[];
 }
 
+/**
+ * Displays a workflow selector and the selected files and allows users to associate files and workflows together.
+ */
 class AssociateWorkflows extends React.Component<Props, {}> {
     public render() {
         const {
@@ -61,6 +62,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                 onBack={this.props.goBack}
                 onSave={this.props.goForward}
                 saveButtonDisabled={!this.canContinue()}
+                page={Page.AssociateFiles}
             >
                 <SelectedAssociationsCard
                     files={mutualFiles}
@@ -130,7 +132,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
 
     // If we at least one workflow associated with at least one file then we can continue the upload
     private canContinue = (): boolean => {
-        return keys(this.props.workflowIdToFiles).length > 0;
+        return this.props.workflowsWithAssociations.length > 0;
     }
 }
 

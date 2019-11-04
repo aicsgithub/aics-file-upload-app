@@ -28,6 +28,7 @@ import {
     SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
+    TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -49,11 +50,13 @@ import {
     SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
+    ToggleExpandedUploadJobRowAction,
     UpdateStagedFilesAction,
 } from "./types";
 
 export const initialState = {
     barcode: undefined,
+    expandedUploadJobRows: {},
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
@@ -197,6 +200,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             openTemplateModalVisible: false,
+        }),
+    },
+    [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {
+        accepts: (action: AnyAction): action is ToggleExpandedUploadJobRowAction =>
+            action.type === TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+        perform: (state: SelectionStateBranch, action: ToggleExpandedUploadJobRowAction) => ({
+            ...state,
+            expandedUploadJobRows: {
+                ...state.expandedUploadJobRows,
+                [action.payload]: !state.expandedUploadJobRows[action.payload],
+            },
         }),
     },
 };

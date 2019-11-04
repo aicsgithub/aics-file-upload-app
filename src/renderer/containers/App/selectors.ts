@@ -1,8 +1,8 @@
+import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
-import { getWellIdToWellLabelMap } from "../../state/selection/selectors";
-import { Workflow } from "../../state/selection/types";
+
 import { getUpload } from "../../state/upload/selectors";
-import { FileTagType, UploadStateBranch } from "../../state/upload/types";
+import { FileTagType, UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
 // All tags representing wells should share the same color
 export class FileTag implements FileTagType {
@@ -18,26 +18,16 @@ export class FileTag implements FileTagType {
 // Result used by the FolderTree to display tags by each file with associated metadata
 export const getFileToTags = createSelector([
     getUpload,
-    getWellIdToWellLabelMap,
-], (upload: UploadStateBranch, wellIdToWellLabel: Map<number, string>): Map<string, FileTagType[]> => {
-
-    const fullPathToTags = new Map<string, FileTagType[]>();
-    for (const fullPath in upload) {
-        // Don't include JavaScript object meta properties
-        if (upload.hasOwnProperty(fullPath)) {
-            const metadata = upload[fullPath];
-            let tags;
-            if (metadata.workflows) {
-                tags = metadata.workflows.map(({ name }: Workflow) => (
-                    new FileTag(name, "blue")
-                ));
-            } else {
-                tags = metadata.wellIds.map((wellId) => (
-                    new FileTag(wellIdToWellLabel.get(wellId) || "", "magenta")
-                ));
-            }
-            fullPathToTags.set(fullPath, tags);
-        }
-    }
-    return fullPathToTags;
+], (upload: UploadStateBranch): Map<string, FileTagType[]> => {
+    const uploadsGroupedByFile = groupBy(upload, "file");
+    const result = new Map<string, FileTagType[]>();
+    forEach(uploadsGroupedByFile, (metadata: UploadMetadata[], file: string) => {
+        const workflows = flatMap(metadata, (m) => m.workflows || []);
+        const wellLabels = flatMap(metadata, (m) => m.wellLabels || []);
+        result.set(file, [
+            ...uniq(workflows).map((w: string) => new FileTag(w, "blue")),
+            ...uniq(wellLabels).map((w: string) => new FileTag(w, "magenta")),
+        ]);
+    });
+    return result;
 });

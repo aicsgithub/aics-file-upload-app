@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.13
+- Feature: stopped saving templates in files and started saving them to the database
+- Feature: support scenes and channels
+
 ## 1.0.12
 - Bugfix: Move custom metadata to new location on upload complete request
 - Feature: Upload wizard status bar

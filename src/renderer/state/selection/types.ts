@@ -18,8 +18,9 @@ export interface DeselectFilesAction {
 
 export interface SelectionStateBranch {
     barcode?: string;
+    expandedUploadJobRows: ExpandedRows;
     files: string[];
-    imagingSessionId?: number | null;
+    imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
     openTemplateModalVisible: boolean;
     plate?: PlateResponse;
@@ -30,6 +31,10 @@ export interface SelectionStateBranch {
     stagedFiles: UploadFile[];
     templateEditorVisible: boolean;
     view: Page;
+}
+
+export interface ExpandedRows {
+    [rowKey: string]: boolean;
 }
 
 export interface SelectFileAction {
@@ -259,5 +264,10 @@ export interface ClearSelectionHistoryAction {
 }
 
 export interface ClearStagedFilesAction {
+    type: string;
+}
+
+export interface ToggleExpandedUploadJobRowAction {
+    payload: string;
     type: string;
 }

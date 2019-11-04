@@ -10,12 +10,13 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import {
+    getSelectedImagingSession,
     getSelectedWellLabels,
     getSelectedWellsWithData,
     getWellIdToWellLabelMap,
     getWellsWithModified,
     getWellsWithUnitsAndModified,
-    NO_UNIT
+    NO_UNIT,
 } from "../selectors";
 import { CellPopulation, Solution, Well, WellResponse } from "../types";
 
@@ -248,6 +249,46 @@ describe("Selections selectors", () => {
                 }),
             });
             expect(arr).to.be.empty;
+        });
+    });
+
+    describe("getSelectedImagingSession", () => {
+        it("returns undefined if imaging session id is undefined", () => {
+            const result = getSelectedImagingSession({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    imagingSessions: [ {
+                        description: "",
+                        imagingSessionId: 1,
+                        name: "1 Week",
+                    }],
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    imagingSessionId: undefined,
+                }),
+            });
+            expect(result).to.be.undefined;
+        });
+
+        it("returns matching imaging session if imagingsessionid defined", () => {
+            const result = getSelectedImagingSession({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    imagingSessions: [ {
+                        description: "",
+                        imagingSessionId: 1,
+                        name: "1 Week",
+                    }],
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    imagingSessionId: 1,
+                }),
+            });
+            expect(result).to.not.be.undefined;
         });
     });
 });

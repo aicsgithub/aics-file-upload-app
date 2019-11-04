@@ -11,33 +11,57 @@ import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId, getTemplates } from "../../state/metadata/selectors";
-import { GetTemplatesAction } from "../../state/metadata/types";
-import { goBack, goForward, openTemplateEditor } from "../../state/selection/actions";
-import { GoBackAction, NextPageAction, OpenTemplateEditorAction } from "../../state/selection/types";
+import {
+    getAnnotationTypes,
+    getBooleanAnnotationTypeId,
+    getChannels,
+    getTemplates,
+} from "../../state/metadata/selectors";
+import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
+import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import {
+    getExpandedUploadJobRows,
+    getSelectedBarcode,
+    getSelectedImagingSession,
+    getWellsWithUnitsAndModified,
+} from "../../state/selection/selectors";
+import { Page } from "../../state/selection/types";
+import {
+    ExpandedRows,
+    GoBackAction,
+    NextPageAction,
+    OpenTemplateEditorAction,
+    ToggleExpandedUploadJobRowAction,
+    Well,
+} from "../../state/selection/types";
 import { getTemplateIds } from "../../state/setting/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AnnotationType, Template, TemplateAnnotation } from "../../state/template/types";
+import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
 import {
     applyTemplate,
     initiateUpload,
     jumpToUpload,
     removeUploads,
-    updateUpload
+    updateScenes,
+    updateUpload,
+    updateUploads,
 } from "../../state/upload/actions";
 import {
-    getAppliedTemplateId,
     getCanRedoUpload,
+    getCanSave,
     getCanUndoUpload,
-    getUploadSummaryRows
+    getFileToAnnotationHasValueMap,
+    getUploadSummaryRows,
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
+    UpdateScenesAction,
     UpdateUploadAction,
+    UpdateUploadsAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
@@ -45,13 +69,18 @@ import { LabkeyTemplate } from "../../util/labkey-client/types";
 const styles = require("./style.pcss");
 
 interface Props {
+    allWellsForSelectedPlate: Well[][];
     annotationTypes: AnnotationType[];
     appliedTemplate?: Template;
     applyTemplate: ActionCreator<ApplyTemplateAction>;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
+    canSave: boolean;
     canUndo: boolean;
+    channels: Channel[];
     className?: string;
+    expandedRows: ExpandedRows;
+    fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
@@ -61,9 +90,14 @@ interface Props {
     removeUploads: ActionCreator<RemoveUploadsAction>;
     requestTemplates: ActionCreator<GetTemplatesAction>;
     savedTemplateIds: number[];
+    selectedBarcode?: string;
+    selectedImagingSession?: ImagingSession;
     setAlert: ActionCreator<SetAlertAction>;
     templates: LabkeyTemplate[];
+    toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
+    updateScenes: ActionCreator<UpdateScenesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
+    updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
 }
 
@@ -71,6 +105,9 @@ interface AddCustomDataState {
     selectedFiles: string[];
 }
 
+/**
+ * Renders column template selector and custom data grid for adding additional data to each file.
+ */
 class AddCustomData extends React.Component<Props, AddCustomDataState> {
     constructor(props: Props) {
         super(props);
@@ -88,21 +125,22 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             annotationTypes,
             appliedTemplate,
             canRedo,
+            canSave,
             canUndo,
             className,
             loading,
             uploads,
         } = this.props;
-        const disableSaveButton = !(uploads.length && appliedTemplate && this.requiredValuesPresent());
         return (
             <FormPage
                 className={className}
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={disableSaveButton}
+                saveButtonDisabled={!canSave}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
+                page={Page.AddCustomData}
             >
                 {this.renderButtons()}
                 {loading && (
@@ -113,21 +151,57 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
+                {appliedTemplate && this.renderTemplateInfo()}
+                {appliedTemplate && this.renderPlateInfo()}
                 {appliedTemplate && (
                     <CustomDataGrid
+                        allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                         annotationTypes={annotationTypes}
                         canRedo={canRedo}
                         canUndo={canUndo}
+                        channels={this.props.channels}
+                        expandedRows={this.props.expandedRows}
+                        fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
                         redo={this.redo}
                         removeUploads={this.props.removeUploads}
                         template={appliedTemplate}
                         setAlert={this.props.setAlert}
+                        toggleRowExpanded={this.props.toggleRowExpanded}
                         undo={this.undo}
+                        updateScenes={this.props.updateScenes}
                         updateUpload={this.props.updateUpload}
+                        updateUploads={this.props.updateUploads}
                         uploads={uploads}
                     />
                 )}
             </FormPage>
+        );
+    }
+
+    private renderTemplateInfo = () => {
+        const { appliedTemplate } = this.props;
+        if (!appliedTemplate) {
+            return null;
+        }
+
+        return (
+            <a href="#" onClick={this.openTemplateEditorWithId(appliedTemplate.templateId)}>
+                View Template
+            </a>
+        );
+    }
+
+    private renderPlateInfo = () => {
+        const { selectedBarcode, selectedImagingSession } = this.props;
+        if (!selectedBarcode) {
+            return null;
+        }
+
+        return (
+            <div className={styles.plateInfo}>
+                <div>Plate Barcode: {selectedBarcode}</div>
+                {selectedImagingSession && <div>Imaging Session: {selectedImagingSession.name}</div>}
+            </div>
         );
     }
 
@@ -153,6 +227,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private openTemplateEditor = () => this.props.openSchemaCreator();
+    private openTemplateEditorWithId = (id: number) => () => this.props.openSchemaCreator(id);
 
     private selectTemplate = (templateName: string) => {
         const template = this.props.templates.find((t) => t.Name === templateName);
@@ -166,25 +241,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         this.props.goForward();
     }
 
-    private requiredValuesPresent = (): boolean => {
-        const {appliedTemplate, booleanAnnotationTypeId} = this.props;
-        if (appliedTemplate) {
-            return !appliedTemplate.annotations.every(({annotationTypeId, name, required}: TemplateAnnotation) => {
-                if (!name) {
-                    throw new Error("annotation is missing a name");
-                }
-
-                if (required && annotationTypeId !== booleanAnnotationTypeId) {
-                    return this.props.uploads.every((upload: any) => {
-                        return Boolean(upload[name]);
-                    });
-                }
-                return false;
-            });
-        }
-        return true;
-    }
-
     private undo = (): void => {
         this.props.jumpToUpload(-1);
     }
@@ -196,14 +252,20 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
 function mapStateToProps(state: State) {
     return {
+        allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
         annotationTypes: getAnnotationTypes(state),
         appliedTemplate: getAppliedTemplate(state),
         booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
+        canSave: getCanSave(state),
         canUndo: getCanUndoUpload(state),
+        channels: getChannels(state),
+        expandedRows: getExpandedUploadJobRows(state),
+        fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         savedTemplateIds: getTemplateIds(state),
-        schemaFile: getAppliedTemplateId(state),
+        selectedBarcode: getSelectedBarcode(state),
+        selectedImagingSession: getSelectedImagingSession(state),
         templates: getTemplates(state),
         uploads: getUploadSummaryRows(state),
     };
@@ -219,7 +281,10 @@ const dispatchToPropsMap = {
     removeUploads,
     requestTemplates,
     setAlert,
+    toggleRowExpanded: toggleExpandedUploadJobRow,
+    updateScenes,
     updateUpload,
+    updateUploads,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);

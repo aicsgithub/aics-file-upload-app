@@ -1,6 +1,9 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
+
+import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
+
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
@@ -13,7 +16,9 @@ import {
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
+    UPDATE_SCENES,
     UPDATE_UPLOAD,
+    UPDATE_UPLOADS,
 } from "./constants";
 import {
     ApplyTemplateAction,
@@ -27,7 +32,10 @@ import {
     RetryUploadAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
+    UpdateScenesAction,
     UpdateUploadAction,
+    UpdateUploadsAction,
+    UploadJobTableRow,
     UploadMetadata,
 } from "./types";
 
@@ -121,10 +129,10 @@ export function applyTemplate(template: LabkeyTemplate): ApplyTemplateAction {
     };
 }
 
-export function updateUpload(filePath: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
+export function updateUpload(key: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
     return {
         payload: {
-            filePath,
+            key,
             upload,
         },
         type: UPDATE_UPLOAD,
@@ -135,5 +143,24 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
     return {
         payload: job,
         type: RETRY_UPLOAD,
+    };
+}
+
+export function updateUploads(upload: Partial<UploadMetadata>): UpdateUploadsAction {
+    return {
+        payload: upload,
+        type: UPDATE_UPLOADS,
+    };
+}
+
+export function updateScenes(row: UploadJobTableRow, positionIndexes: number[], channels: Channel[]):
+    UpdateScenesAction {
+    return {
+        payload: {
+            channels,
+            positionIndexes,
+            row,
+        },
+        type: UPDATE_SCENES,
     };
 }

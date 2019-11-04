@@ -1,10 +1,10 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
-import { LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
+import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { Unit } from "../metadata/types";
+import { Channel, Unit } from "../metadata/types";
 import {
     Page,
     SelectionStateBranch,
@@ -24,15 +24,78 @@ import {
     TemplateStateBranch,
 } from "../template/types";
 import { State } from "../types";
+import { getUploadRowKey } from "../upload/constants";
 import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
 
 export const mockAuditInfo = {
-    created: new Date(),
+    created: new Date(2019, 9, 30),
     createdBy: 1,
-    modified: new Date(),
+    modified: new Date(2019, 9, 30),
     modifiedBy: 1,
-} ;
+};
+
+export const mockFavoriteColorAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 1,
+    annotationOptions: undefined,
+    annotationTypeId: 1,
+    canHaveManyValues: false,
+    description: "a description",
+    name: "Favorite Color",
+    required: true,
+};
+
+export const mockWellAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 2,
+    annotationTypeId: 3,
+    description: "Well associated with this file",
+    name: "Well",
+};
+
+export const mockWorkflowAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 4,
+    annotationTypeId: 3,
+    description: "Workflow associated with this file",
+    name: "Workflow",
+};
+
+export const mockNotesAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 3,
+    annotationTypeId: 1,
+    description: "Other information",
+    name: "Notes",
+};
+
+export const mockMMSTemplate: Template = {
+    ...mockAuditInfo,
+    annotations: [mockFavoriteColorAnnotation],
+    name: "Test",
+    templateId: 1,
+    version: 1,
+};
+
+export const mockTemplateStateBranch: TemplateStateBranch = {
+    appliedTemplate: undefined,
+    draft: {
+        annotations: [],
+    },
+};
+
+export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
+    ...mockTemplateStateBranch,
+    appliedTemplate: mockMMSTemplate,
+};
+
+export const mockAnnotations = [
+    mockFavoriteColorAnnotation,
+    mockWellAnnotation,
+    mockWorkflowAnnotation,
+    mockNotesAnnotation,
+];
 
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
@@ -48,6 +111,7 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
 
 export const mockSelection: SelectionStateBranch = {
     barcode: undefined,
+    expandedUploadJobRows: {},
     files: [],
     imagingSessionId: undefined,
     imagingSessionIds: [],
@@ -61,26 +125,22 @@ export const mockSelection: SelectionStateBranch = {
     wells: [],
 };
 
-export const mockTemplateStateBranch: TemplateStateBranch = {
-    appliedTemplate: undefined,
-    draft: {
-        annotations: [],
-    },
-};
-
 export const mockWellUpload: UploadStateBranch = {
-    "/path/to/file1": {
+    [getUploadRowKey("/path/to/file1")]: {
         barcode: "1234",
+        file: "/path/to/file1",
         wellIds: [1],
         wellLabels: ["A1"],
     },
-    "/path/to/file2": {
+    [getUploadRowKey("/path/to/file2")]: {
         barcode: "1235",
+        file: "/path/to/file2",
         wellIds: [2],
         wellLabels: ["A2"],
     },
-    "/path/to/file3": {
+    [getUploadRowKey("/path/to/file3")]: {
         barcode: "1236",
+        file: "/path/to/file3",
         wellIds: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
     },
@@ -103,6 +163,7 @@ export const mockState: State = {
         annotations: [],
         barcodePrefixes: [],
         barcodeSearchResults: [],
+        channels: [],
         history: {
             selection: {},
             upload: {},
@@ -265,7 +326,14 @@ export const mockFailedCopyJob: JSSJob = {
 
 export const mockPendingJob: PendingJob = {
     ...mockWorkingUploadJob,
-    uploads: getUploadPayload(mockState),
+    uploads: getUploadPayload({
+        ...mockState,
+        metadata: {
+            ...mockState.metadata,
+            annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
+        },
+        template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
+    }),
 };
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
@@ -290,16 +358,6 @@ export const mockTemplateDraft: TemplateDraft = {
     annotations: [mockAnnotationDraft],
     name: "My Template",
 };
-
-export const mockAnnotation: Annotation = {
-    ...mockAuditInfo,
-    annotationId: 1,
-    annotationTypeId: 1,
-    description: "You know what a color is",
-    name: "Color",
-};
-
-export const mockAnnotations: Annotation[] = [mockAnnotation];
 
 export const mockAnnotationLookups: AnnotationLookup[] = [
     {
@@ -353,23 +411,18 @@ export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
     },
 ];
 
-export const mockTemplateAnnotation: TemplateAnnotation = {
-    ...mockAuditInfo,
-    annotationId: 1,
-    annotationOptions: undefined,
-    annotationTypeId: 1,
-    canHaveManyValues: false,
-    description: "a description",
-    name: "favoriteColor",
-    required: true,
-};
+export const mockChannels: LabkeyChannel[] = [
+    {
+        ContentTypeId: 1,
+        Description: "a channel",
+        Name: "Raw 468nm",
+    },
+];
 
-export const mockMMSTemplate: Template = {
-    ...mockAuditInfo,
-    annotations: [mockTemplateAnnotation],
-    name: "Test",
-    templateId: 1,
-    version: 1,
+export const mockChannel: Channel = {
+    channelId: 1,
+    description: "a channel",
+    name: "Raw 468 nm",
 };
 
 export const mockUnit: Unit = {
@@ -389,3 +442,17 @@ export const mockLookups: Lookup[] = [
         tableName: "tablename",
     },
 ];
+
+export const nonEmptyStateForInitiatingUpload: State = {
+    ...mockState,
+    metadata: {
+        ...mockState.metadata,
+        annotationTypes: mockAnnotationTypes,
+        annotations: mockAnnotations,
+    },
+    template: getMockStateWithHistory({
+        ...mockTemplateStateBranch,
+        appliedTemplate: mockMMSTemplate,
+    }),
+    upload: getMockStateWithHistory(mockWellUpload),
+};

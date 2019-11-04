@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 import { BarcodeSelectorOption } from "../../containers/EnterBarcode";
 
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
-import { AnnotationType, ColumnType } from "../template/types";
+import { Annotation, AnnotationType, ColumnType } from "../template/types";
 import { State } from "../types";
 
 // BASIC SELECTORS
@@ -19,6 +19,7 @@ export const getUploadHistory = (state: State) => state.metadata.history.upload;
 export const getWorkflowOptions = (state: State) => state.metadata.workflowOptions;
 export const getBarcodeSearchResults = (state: State) => state.metadata.barcodeSearchResults;
 export const getTemplates = (state: State) => state.metadata.templates;
+export const getChannels = (state: State) => state.metadata.channels;
 
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([
@@ -48,4 +49,22 @@ export const getLookupAnnotationTypeId = createSelector([
 ], (annotationTypes: AnnotationType[]) => {
     const annotationType = annotationTypes.find((at) => at.name === ColumnType.LOOKUP);
     return annotationType ? annotationType.annotationTypeId : undefined;
+});
+
+export const getNotesAnnotation = createSelector([
+    getAnnotations,
+], (annotations: Annotation[]): Annotation | undefined => {
+    return  annotations.find((a) => a.name === "Notes");
+});
+
+export const getWellAnnotation = createSelector([
+    getAnnotations,
+], (annotations: Annotation[]): Annotation | undefined => {
+    return annotations.find((a) => a.name === "Well");
+});
+
+export const getWorkflowAnnotation = createSelector([
+    getAnnotations,
+], (annotations: Annotation[]): Annotation | undefined => {
+    return annotations.find((a) => a.name === "Workflow");
 });

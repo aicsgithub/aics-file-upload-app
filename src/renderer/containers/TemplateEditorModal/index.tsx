@@ -148,7 +148,8 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             template,
         } = this.props;
         const { annotationNameSearch, showInfoAlert } = this.state;
-        const appliedAnnotationNames = template.annotations.map((a) => a.name);
+        const appliedAnnotationNames = template.annotations.map((a) => a.name)
+            .concat("Workflow", "Well", "Notes");
         const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
 
         if (loadingTemplate) {

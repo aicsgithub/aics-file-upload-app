@@ -1,6 +1,7 @@
 import { includes, isEmpty, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { pivotAnnotations } from "../../util";
 
 import LabkeyClient from "../../util/labkey-client";
 
@@ -9,7 +10,8 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { requestTemplates } from "../metadata/actions";
 import {
     getAnnotationLookups,
-    getAnnotationTypes, getBooleanAnnotationTypeId,
+    getAnnotationTypes,
+    getBooleanAnnotationTypeId,
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
@@ -29,12 +31,7 @@ import { batchActions } from "../util";
 import { setAppliedTemplate, updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";
-import {
-    AnnotationDraft,
-    SaveTemplateRequest,
-    Template,
-    TemplateAnnotation,
-} from "./types";
+import { AnnotationDraft, SaveTemplateRequest, Template, TemplateAnnotation } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -144,6 +141,14 @@ const getTemplateLogic = createLogic({
         const annotationTypes = getAnnotationTypes(state);
         const booleanAnnotationTypeId = getBooleanAnnotationTypeId(state);
 
+        if (!booleanAnnotationTypeId) {
+            dispatch(setAlert({
+                message: "Could not get boolean annotation type. Contact Software",
+                type: AlertType.ERROR,
+            }));
+            throw new Error("Could not get boolean annotation type. Contact Software");
+        }
+
         try {
             dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATE));
             const template: Template = await mmsClient.getTemplate(templateId);
@@ -151,18 +156,7 @@ const getTemplateLogic = createLogic({
             const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)];
 
             if (addAnnotationsToUpload) {
-                const additionalAnnotations = annotations.reduce((accum: any, a: TemplateAnnotation) => {
-                    let value;
-                    if (a.annotationTypeId === booleanAnnotationTypeId) {
-                        value = false;
-                    } else if (a.canHaveManyValues) {
-                        value = [];
-                    }
-                    return {
-                        ...accum,
-                        [a.name]: value,
-                    };
-                }, {});
+                const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
 
                 actions.push(
                     setAppliedTemplate({

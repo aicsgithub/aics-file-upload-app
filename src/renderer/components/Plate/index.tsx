@@ -1,6 +1,6 @@
 import { AicsGrid, AicsGridCell } from "@aics/aics-react-labkey";
+import { includes } from "lodash";
 import * as React from "react";
-import { IdToFilesMap } from "../../containers/AssociateFiles/selectors";
 
 import { Well } from "../../state/selection/types";
 
@@ -16,9 +16,12 @@ interface PlateProps {
     onWellClick: (cells: AicsGridCell[]) => void;
     selectedWells: AicsGridCell[];
     wells: Well[][];
-    wellIdToFiles: IdToFilesMap;
+    wellsWithAssociations: number[];
 }
 
+/**
+ * A readonly view of a plate saved through the Plate UI
+ */
 class Plate extends React.Component<PlateProps, {}> {
     public static getWellDisplayText(cellData: Well): JSX.Element {
         return <WellComponent well={cellData}/>;
@@ -30,9 +33,7 @@ class Plate extends React.Component<PlateProps, {}> {
     }
 
     public wellColorSelector(cellData: Well): string {
-        // if file count is not 0 or undefined, the well is associated with at least one file
-        const associatedFiles = this.props.wellIdToFiles[cellData.wellId] || [];
-        if (associatedFiles.length > 0) {
+        if (includes(this.props.wellsWithAssociations, cellData.wellId)) {
             return ASSOCIATED_WELL_COLOR;
         }
 

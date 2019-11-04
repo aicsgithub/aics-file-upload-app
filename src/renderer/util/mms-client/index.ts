@@ -2,6 +2,7 @@ import { AxiosRequestConfig } from "axios";
 import { GetPlateResponse } from "../../state/selection/types";
 import { SaveTemplateRequest, Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
+
 import BaseServiceClient from "../base-service-client";
 
 export default class MMSClient extends BaseServiceClient {
@@ -34,7 +35,6 @@ export default class MMSClient extends BaseServiceClient {
         return response.data[0];
     }
 
-    // todo description
     public async getTemplate(templateId: number): Promise<Template> {
         const url = `/1.0/template/${templateId}`;
         const response = await this.httpClient.get(url);

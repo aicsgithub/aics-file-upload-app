@@ -1,10 +1,9 @@
 import { UploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Alert, Collapse, Descriptions } from "antd";
 import CollapsePanel from "antd/lib/collapse/CollapsePanel";
-import { get, isEmpty, map } from "lodash";
+import { get, isEmpty } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import FileMetadataDisplay from "../FileMetadataDisplay";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const Item = Descriptions.Item;
@@ -67,14 +66,6 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                             const header = result ? result.fileName : metadata.file.originalPath;
                             return (
                                 <CollapsePanel header={header} key={header}>
-
-                                    {map(metadata, (value: any, metadataGroupName: string) => (
-                                        <FileMetadataDisplay
-                                            metadata={value}
-                                            title={metadataGroupName}
-                                            key={metadataGroupName}
-                                        />
-                                    ))}
                                     {result && <Descriptions
                                         size="small"
                                         title="Upload Result"

@@ -1,6 +1,7 @@
 import { camelizeKeys } from "humps";
 import { isEmpty, map, pick } from "lodash";
 
+import { Channel } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
 import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../../state/template/types";
@@ -10,17 +11,20 @@ import {
     LabkeyAnnotation,
     LabkeyAnnotationLookup,
     LabkeyAnnotationType,
+    LabkeyChannel,
     LabkeyImagingSession,
     LabkeyLookup,
     LabkeyPlate,
     LabKeyPlateBarcodePrefix,
     LabkeyPlateResponse,
-    LabkeyResponse, LabkeyTemplate,
+    LabkeyResponse,
+    LabkeyTemplate,
     LabKeyWorkflow,
 } from "./types";
 
 const LK_FILEMETADATA_SCHEMA = "filemetadata";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
+const LK_PROCESSING_SCHEMA = "processing";
 const LK_UPLOADER_SCHEMA = "uploader";
 
 export default class LabkeyClient extends BaseServiceClient {
@@ -156,6 +160,16 @@ export default class LabkeyClient extends BaseServiceClient {
             description: workflow.Description,
             name: workflow.Name,
             workflowId: workflow.WorkflowId,
+        }));
+    }
+
+    public async getChannels(): Promise<Channel[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_PROCESSING_SCHEMA, "ContentType");
+        const response = await this.httpClient.get(query);
+        return response.rows.map((channel: LabkeyChannel) => ({
+            channelId: channel.ContentTypeId,
+            description: channel.Description,
+            name: channel.Name,
         }));
     }
 

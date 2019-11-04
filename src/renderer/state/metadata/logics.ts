@@ -27,9 +27,10 @@ import {
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
+            const { setting: { limsHost, limsPort } } = getState();
             const { prefixId, prefix } = action.payload;
             const barcode = await mmsClient.createBarcode(prefixId);
-            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, barcode, prefix);
+            ipcRenderer.send(OPEN_CREATE_PLATE_STANDALONE, limsHost, limsPort, barcode, prefix);
             next(action);
         } catch (ex) {
             next(setAlert({
@@ -49,6 +50,7 @@ const requestMetadata = createLogic({
                 annotationLookups,
                 annotationTypes,
                 barcodePrefixes,
+                channels,
                 imagingSessions,
                 lookups,
                 units,
@@ -57,6 +59,7 @@ const requestMetadata = createLogic({
                 labkeyClient.getAnnotationLookups(),
                 labkeyClient.getAnnotationTypes(),
                 labkeyClient.getBarcodePrefixes(),
+                labkeyClient.getChannels(),
                 labkeyClient.getImagingSessions(),
                 labkeyClient.getLookups(),
                 labkeyClient.getUnits(),
@@ -67,6 +70,7 @@ const requestMetadata = createLogic({
                 annotationLookups,
                 annotationTypes,
                 barcodePrefixes,
+                channels,
                 imagingSessions,
                 lookups,
                 units,

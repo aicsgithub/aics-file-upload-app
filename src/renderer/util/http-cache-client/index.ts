@@ -1,13 +1,14 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+
 import { LocalStorage } from "../../state/types";
 
 export default class HttpCacheClient {
     private httpClient: AxiosInstance;
     private localStorage: LocalStorage;
 
-    constructor(httpClient: AxiosInstance, useCache: boolean, electronStore: LocalStorage) {
+    constructor(httpClient: AxiosInstance, useCache: boolean, localStorage: LocalStorage) {
         this.httpClient = httpClient;
-        this.localStorage = electronStore;
+        this.localStorage = localStorage;
 
         if (useCache) {
             this.get = this.getAndReturnCache;

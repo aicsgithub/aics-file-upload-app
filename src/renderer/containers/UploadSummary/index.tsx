@@ -111,6 +111,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 formPrompt=""
                 onSave={this.onFormSave}
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
+                page={Page.UploadSummary}
             >
                 <Table
                     className={styles.jobTable}

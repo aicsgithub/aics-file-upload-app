@@ -16,18 +16,20 @@ describe("App selectors", () => {
                     wells: mockWells,
                 }),
                 upload: getMockStateWithHistory({
-                    [filePath1]: { barcode: "test_barcode", wellIds: [1, 3], wellLabels: ["A1", "A3"] },
-                    [filePath2]: { barcode: "test_barcode", wellIds: [4], wellLabels: ["A4"] },
+                    [filePath1]: { barcode: "test_barcode", file: filePath1,
+                        wellIds: [1, 3], wellLabels: ["A1", "A3"] },
+                    [filePath2]: { barcode: "test_barcode", file: filePath2, wellIds: [4], wellLabels: ["A4"] },
                 }),
             });
 
             const file1Tags = map.get(filePath1) || [];
             expect(file1Tags.length).to.equal(2);
-            expect(get(file1Tags, [0, "title"])).to.equal("A1");
+            expect(file1Tags.map((t) => t.title)).to.contain("A1");
+            expect(file1Tags.map((t) => t.title)).to.contain("A3");
 
             const file2Tags = map.get(filePath2) || [];
             expect(file2Tags.length).to.equal(1);
-            expect(get(file2Tags, [0, "title"])).to.equal("B2");
+            expect(get(file2Tags, [0, "title"])).to.equal("A4");
 
             expect(get(file1Tags, [0, "color"])).to.equal(get(file2Tags, [0, "color"]));
         });
@@ -42,13 +44,13 @@ describe("App selectors", () => {
                     wells: mockWells,
                 }),
                 upload: getMockStateWithHistory({
-                    [filePath1]: { barcode: "test_barcode", wellIds: [], wellLabels: [], workflows: [
-                        {workflowId: 2, name: "work3", description: ""},
-                        {workflowId: 3, name: "work4", description: ""},
-                    ]},
-                    [filePath2]: { barcode: "test_barcode", wellIds: [], wellLabels: [], workflows: [
-                        {workflowId: 1, name: "work2", description: ""},
-                    ] },
+                    [filePath1]: { barcode: "test_barcode", file: filePath1, wellIds: [], wellLabels: [], workflows: [
+                            "work3",
+                            "work4",
+                        ]},
+                    [filePath2]: { barcode: "test_barcode", file: filePath2, wellIds: [], wellLabels: [], workflows: [
+                            "work2",
+                        ]},
                 }),
             });
 

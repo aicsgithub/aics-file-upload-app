@@ -12,6 +12,7 @@ import {
     mockAnnotationLookups,
     mockAnnotationTypes,
     mockBarcodePrefixes,
+    mockChannels,
     mockImagingSessions,
     mockLookups,
     mockSelectedWorkflows,
@@ -62,6 +63,7 @@ describe("Setting logics", () => {
         const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
         const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
         const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
+        const getChannelsStub = stub().resolves(mockChannels);
         const getImagingSessionsStub = stub().resolves(mockImagingSessions);
         const getLookupsStub = stub().resolves(mockLookups);
         const getUnitsStub = stub().resolves([mockUnit]);
@@ -70,6 +72,7 @@ describe("Setting logics", () => {
         sandbox.replace(labkeyClient, "getAnnotationLookups", getAnnotationLookupsStub);
         sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
         sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
+        sandbox.replace(labkeyClient, "getChannels", getChannelsStub);
         sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
         sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
         sandbox.replace(labkeyClient, "getUnits", getUnitsStub);

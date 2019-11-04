@@ -1,13 +1,11 @@
 import {
     omit,
     uniq,
-    uniqBy,
     without,
 } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
-import { Workflow } from "../selection/types";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
@@ -16,11 +14,13 @@ import {
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOAD,
+    getUploadRowKey,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
-    UPDATE_UPLOAD
+    UPDATE_UPLOAD,
+    UPDATE_UPLOADS,
 } from "./constants";
 import {
     ApplyTemplateAction,
@@ -30,7 +30,8 @@ import {
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateUploadAction,
-    UploadStateBranch
+    UpdateUploadsAction,
+    UploadStateBranch,
 } from "./types";
 
 export const initialState = {
@@ -46,17 +47,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
 
             const { barcode, wellIds, wellLabels, fullPaths } = action.payload;
 
-            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => ({
-                ...accum,
-                [fullPath]: {
-                    ...accum[fullPath],
-                    barcode,
-                    wellIds: accum[fullPath] ?
-                        uniq([...accum[fullPath].wellIds, ...wellIds]) : wellIds,
-                    wellLabels: accum[fullPath] ?
-                        uniq([...accum[fullPath].wellLabels, ...wellLabels]) : wellLabels,
-                },
-            }), nextState);
+            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => {
+                const key = getUploadRowKey(fullPath);
+                return {
+                    ...accum,
+                    [key]: {
+                        ...accum[key],
+                        barcode,
+                        file: fullPath,
+                        wellIds: accum[key] ?
+                            uniq([...accum[key].wellIds, ...wellIds]) : wellIds,
+                        wellLabels: accum[key] ?
+                            uniq([...accum[key].wellLabels, ...wellLabels]) : wellLabels,
+                    },
+                };
+            }, nextState);
         },
     },
     [ASSOCIATE_FILES_AND_WORKFLOWS]: {
@@ -66,33 +71,39 @@ const actionToConfigMap: TypeToDescriptionMap = {
             const nextState = {...state};
 
             const { fullPaths, workflows } = action.payload;
+            const workflowNames = uniq(workflows.map((w) => w.name));
 
-            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => ({
-                ...accum,
-                [fullPath]: {
-                    ...accum[fullPath],
-                    workflows: accum[fullPath] && accum[fullPath].workflows ?
-                        uniqBy([...accum[fullPath].workflows!, ...workflows], "workflowId") : workflows,
-                },
-            }), nextState);
+            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => {
+                const key = getUploadRowKey(fullPath);
+                return ({
+                    ...accum,
+                    [key]: {
+                        ...accum[key],
+                        file: fullPath,
+                        workflows: accum[key] && accum[key].workflows ?
+                            uniq([...accum[key].workflows!, ...workflowNames]) : workflowNames,
+                    },
+                });
+            }, nextState);
         },
     },
     [UNDO_FILE_WELL_ASSOCIATION]: {
         accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
             action.type === UNDO_FILE_WELL_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => {
-            const wellIds = without(state[action.payload.fullPath].wellIds, ...action.payload.wellIds);
+            const key = getUploadRowKey(action.payload.fullPath);
+            const wellIds = without(state[key].wellIds, ...action.payload.wellIds);
             if (!wellIds.length) {
                 const stateWithoutFile = { ...state };
-                delete stateWithoutFile[action.payload.fullPath];
+                delete stateWithoutFile[key];
                 return stateWithoutFile;
             }
             return {
                 ...state,
-                [action.payload.fullPath]: {
-                    ...state[action.payload.fullPath],
+                [key]: {
+                    ...state[key],
                     wellIds,
-                    wellLabels: without(state[action.payload.fullPath].wellLabels, ...action.payload.wellLabels),
+                    wellLabels: without(state[key].wellLabels, ...action.payload.wellLabels),
                 },
             };
         },
@@ -101,23 +112,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UndoFileWorkflowAssociationAction =>
             action.type === UNDO_FILE_WORKFLOW_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWorkflowAssociationAction) => {
-            const currentWorkflows = state[action.payload.fullPath].workflows;
+            const key = getUploadRowKey(action.payload.fullPath);
+            const currentWorkflows = state[key].workflows;
             if (!currentWorkflows) {
                 return state;
             }
-            const unwantedWorkflowIds = action.payload.workflows.map((workflow: Workflow) => workflow.workflowId);
-            const workflows = currentWorkflows.filter((workflow: Workflow) => (
-                !unwantedWorkflowIds.includes(workflow.workflowId)
-            ));
+            const workflows = without(currentWorkflows, ...action.payload.workflows.map((w) => w.name));
             if (!workflows.length) {
                 const stateWithoutFile = { ...state };
-                delete stateWithoutFile[action.payload.fullPath];
+                delete stateWithoutFile[key];
                 return stateWithoutFile;
             }
             return {
                 ...state,
-                [action.payload.fullPath]: {
-                    ...state[action.payload.fullPath],
+                [key]: {
+                    ...state[key],
                     workflows,
                 },
             };
@@ -136,12 +145,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
-        perform: (state: UploadStateBranch, action: UpdateUploadAction) => ({
+        perform: (state: UploadStateBranch, action: UpdateUploadAction) => {
+            return {
+                ...state,
+                [action.payload.key]: {
+                    ...state[action.payload.key],
+                    ...action.payload.upload,
+                },
+            };
+        },
+    },
+    [UPDATE_UPLOADS]: {
+        accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOADS,
+        perform: (state: UploadStateBranch, action: UpdateUploadsAction) => ({
             ...state,
-            [action.payload.filePath]: {
-                ...state[action.payload.filePath],
-                ...action.payload.upload,
-            },
+            ...action.payload,
         }),
     },
 };

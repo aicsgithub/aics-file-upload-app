@@ -3,8 +3,10 @@ import { constants, promises } from "fs";
 import {
     forOwn,
     isFunction,
+    startCase,
 } from "lodash";
 import { DragAndDropFileList } from "../state/selection/types";
+import { TemplateAnnotation } from "../state/template/types";
 
 export function bindAll<T>(obj: T, methods: Array<() => any>) {
     const setOfMethods = new Set(methods);
@@ -102,4 +104,25 @@ export const canUserRead = async (filePath: string): Promise<boolean> => {
     } catch (permissionError) {
         return false;
     }
+};
+
+export const pivotAnnotations = (annotations: TemplateAnnotation[], booleanAnnotationTypeId: number) => {
+    return annotations.reduce((accum: any, a: TemplateAnnotation) => {
+        let value;
+        if (a.annotationTypeId === booleanAnnotationTypeId) {
+            value = false;
+        } else if (a.canHaveManyValues) {
+            value = [];
+        }
+        return {
+            ...accum,
+            [a.name]: value,
+        };
+    }, {});
+};
+
+// start case almost works but adds spaces before numbers which we'll remove here
+export const titleCase = (name?: string) => {
+    const result = startCase(name);
+    return result.replace(/\s([0-9]+)/g, "$1");
 };

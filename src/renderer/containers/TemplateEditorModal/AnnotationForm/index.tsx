@@ -2,12 +2,13 @@ import { Button, Checkbox, Input, Select } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import TextArea from "antd/lib/input/TextArea";
 import * as classNames from "classnames";
-import { endsWith, isEmpty, startCase, trim } from "lodash";
+import { endsWith, isEmpty, trim } from "lodash";
 import { ChangeEvent } from "react";
 import * as React from "react";
 
 import FormControl from "../../../components/FormControl";
 import { Annotation, AnnotationDraft, AnnotationType, ColumnType, Lookup } from "../../../state/template/types";
+import { titleCase } from "../../../util";
 
 const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
@@ -50,11 +51,11 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             return "Name is required";
         }
 
-        name = startCase(name);
+        name = titleCase(name);
         const { annotation } = this.props;
 
         // check that annotation name is not already an existing annotation if it's new
-        const existingAnnotationNames = this.props.existingAnnotations.map((a) => startCase(a.name));
+        const existingAnnotationNames = this.props.existingAnnotations.map((a) => titleCase(a.name));
         const annotationNameDuplicatesExisting = existingAnnotationNames.find((a) => a === name);
         if ((!annotation || !annotation.annotationId) && !!annotationNameDuplicatesExisting) {
             return `Annotation named ${name} duplicates an existing annotation`;
@@ -62,7 +63,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
 
         // check that the annotation name doesn't exist in template already
         const templateAnnotations = this.props.templateAnnotations || [];
-        const templateAnnotationNames = templateAnnotations.map((a) => startCase(a.name));
+        const templateAnnotationNames = templateAnnotations.map((a) => titleCase(a.name));
 
         if (!annotation) {
             templateAnnotationNames.push(name);
@@ -237,7 +238,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     private updateName = (e: ChangeEvent<HTMLInputElement>) => {
         const endsInSpace = endsWith(e.target.value, " ");
         const ending = endsInSpace ? " " : "";
-        this.setState({name: startCase(e.target.value) + ending});
+        this.setState({name: titleCase(e.target.value) + ending});
     }
 
     private updateDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {

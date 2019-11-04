@@ -10,6 +10,7 @@ import {
     mockAnnotations,
     mockAnnotationTypes,
     mockBarcodePrefixes,
+    mockChannels,
     mockImagingSessions,
     mockLookups,
     mockSelectedWorkflows,
@@ -21,6 +22,7 @@ import { requestAnnotations, requestMetadata, requestTemplates } from "../action
 import {
     getAnnotations,
     getBarcodePrefixes,
+    getChannels,
     getImagingSessions,
     getTemplates,
     getUnits,
@@ -39,6 +41,7 @@ describe("Metadata logics", () => {
             const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
             const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
             const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
+            const getChannelsStub = stub().resolves(mockChannels);
             const getImagingSessionsStub = stub().resolves(mockImagingSessions);
             const getLookupsStub = stub().resolves(mockLookups);
             const getUnitsStub = stub().resolves([mockUnit]);
@@ -47,6 +50,7 @@ describe("Metadata logics", () => {
             sandbox.replace(labkeyClient, "getAnnotationLookups", getAnnotationLookupsStub);
             sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
             sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
+            sandbox.replace(labkeyClient, "getChannels", getChannelsStub);
             sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
             sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
             sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
@@ -56,6 +60,7 @@ describe("Metadata logics", () => {
 
             let state = store.getState();
             expect(getBarcodePrefixes(state)).to.be.empty;
+            expect(getChannels(state)).to.be.empty;
             expect(getImagingSessions(state)).to.be.empty;
             expect(getUnits(state)).to.be.empty;
             expect(getWorkflowOptions(state)).to.be.empty;
@@ -66,6 +71,7 @@ describe("Metadata logics", () => {
             store.subscribe(() => {
                 state = store.getState();
                 expect(getBarcodePrefixes(state)).to.not.be.empty;
+                expect(getChannels(state)).to.not.be.empty;
                 expect(getImagingSessions(state)).to.not.be.empty;
                 expect(getUnits(state)).to.not.be.empty;
                 expect(getWorkflowOptions(state)).to.not.be.empty;

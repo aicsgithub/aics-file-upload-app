@@ -49,7 +49,7 @@ const logics = [
 ];
 
 export const reduxLogicDependencies = {
-    fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT, logLevel: "debug"}),
+    fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT, logLevel: "trace"}),
     ipcRenderer,
     jssClient: new JobStatusClient({
         host: LIMS_HOST,

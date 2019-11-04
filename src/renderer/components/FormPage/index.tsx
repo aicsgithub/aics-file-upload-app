@@ -3,6 +3,10 @@ import * as classNames from "classnames";
 import { ReactNode, ReactNodeArray } from "react";
 import * as React from "react";
 
+import { Page } from "../../state/selection/types";
+
+import ProgressBar from "../ProgressBar";
+
 const styles = require("./style.pcss");
 
 interface FormPageProps {
@@ -17,8 +21,12 @@ interface FormPageProps {
     onSave?: () => any;
     backButtonName?: string;
     onBack?: () => any;
+    page: Page;
 }
 
+/**
+ * This adds common components to the "pages" of the app.
+ */
 class FormPage extends React.Component<FormPageProps, {}> {
     public static defaultProps = {
         backButtonDisabled: false,
@@ -50,6 +58,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
             formTitle,
             onSave,
             onBack,
+            page,
             saveInProgress,
             saveButtonDisabled,
             saveButtonName,
@@ -69,6 +78,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                 </div>
                 <div className={styles.buttonContainer}>
                     {onBack ? <Button
+                        className={styles.backButton}
                         size="large"
                         onClick={this.onBack}
                         disabled={backButtonDisabled}
@@ -76,6 +86,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {backButtonName}
                     </Button> : <div/>}
                     {onSave ? <Button
+                        className={styles.saveButton}
                         type="primary"
                         size="large"
                         onClick={this.onSave}
@@ -85,6 +96,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {FormPage.renderSpinner(saveInProgress)}
                     </Button> : <div/>}
                 </div>
+                {page !== Page.UploadSummary && <ProgressBar page={page} />}
             </div>
         );
     }
