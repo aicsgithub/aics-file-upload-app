@@ -1,5 +1,5 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Modal, Table } from "antd";
+import { Alert, Button, Col, Modal, Row, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -44,6 +44,7 @@ interface Props {
 
 interface UploadSummaryState {
     selectedJobId?: string;
+    showRefreshButton: boolean;
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
@@ -76,11 +77,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     constructor(props: Props) {
         super(props);
-        this.state = {};
+        this.state = {
+            showRefreshButton: false,
+        };
     }
 
     public componentDidMount(): void {
-        this.interval = setInterval(this.props.retrieveJobs, 1000);
+        this.setJobInterval();
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<{}>, snapshot?: any): void {
@@ -91,8 +94,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     public componentWillUnmount(): void {
-        if (this.interval) {
-            clearInterval(this.interval);
+        if (this.props.allJobsComplete) {
+            this.clearJobInterval();
         }
     }
 
@@ -103,6 +106,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             page,
             retrying,
         } = this.props;
+        const { showRefreshButton } = this.state;
         const selectedJob = this.getSelectedJob();
         return (
             <FormPage
@@ -112,6 +116,24 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 onSave={this.onFormSave}
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
             >
+                {showRefreshButton && (
+                    <Row className={styles.refreshContainer}>
+                        <Col xs={4}>
+                            <Button
+                                size="large"
+                                type="primary"
+                                onClick={this.setJobInterval}
+                            >Refresh Jobs
+                            </Button>
+                        </Col>
+                        <Col xs={20}>
+                            <Alert
+                                type="info"
+                                message="Uploads no longer auto-updating, click refresh to begin updating again"
+                            />
+                        </Col>
+                    </Row>
+                )}
                 <Table
                     className={styles.jobTable}
                     columns={this.columns}
@@ -129,6 +151,25 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 </Modal>}
             </FormPage>
         );
+    }
+
+    // Auto-refresh jobs every 3 seconds for 3 minutes
+    private setJobInterval = (mouseEvent?: any): void => {
+        this.interval = setInterval(this.props.retrieveJobs, 3000); // 3 seconds
+        setTimeout(this.clearJobInterval, 180000); // 3 minutes
+        // If this was triggered by the refresh button, remove it
+        if (mouseEvent) {
+            this.setState({ showRefreshButton: false });
+        }
+    }
+
+    // Stop auto-refreshing jobs
+    private clearJobInterval = (): void => {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+            this.setState({ showRefreshButton: true });
+        }
     }
 
     private getSelectedJob = (): UploadSummaryTableRow | undefined => {
