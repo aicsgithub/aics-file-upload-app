@@ -1,5 +1,6 @@
 import { Button } from "antd";
 import * as classNames from "classnames";
+import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
 import { get, isEmpty, without } from "lodash";
 import { basename } from "path";
@@ -29,8 +30,9 @@ import {
 import { getWellLabel, onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
-import FormControl from "../FormControl";
+import AddValuesModal from "./AddValuesModal";
 
+import CellWithContextMenu from "./CellWithContextMenu";
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import WellsFormatter from "./WellsFormatter";
@@ -62,7 +64,13 @@ interface Props {
 }
 
 interface CustomDataState {
+    addValuesCurrentValues?: any[];
+    addValuesAnnotationName?: string;
+    addValuesAnnotationOptions?: string[];
+    addValuesAnnotationType?: ColumnType;
+    addValuesRow?: UploadJobTableRow;
     selectedRows: string[];
+    showAddValuesModal: boolean;
     sortColumn?: SortableColumns;
     sortDirection?: SortDirections;
 }
@@ -133,6 +141,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         super(props);
         this.state = {
             selectedRows: [],
+            showAddValuesModal: false,
         };
     }
 
@@ -145,7 +154,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             undo,
             uploads,
         } = this.props;
-        const { selectedRows } = this.state;
+        const {
+            addValuesAnnotationName,
+            addValuesAnnotationOptions,
+            addValuesAnnotationType,
+            addValuesRow,
+            selectedRows,
+            showAddValuesModal,
+        } = this.state;
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
         const rowGetter = (idx: number) => sortedRows[idx];
@@ -195,30 +211,59 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                         <p className={styles.alignCenter}>No Uploads</p>
                     }
                 </div>
+                {addValuesAnnotationType && addValuesRow && addValuesAnnotationName && <AddValuesModal
+                    annotationName={addValuesAnnotationName}
+                    annotationOptions={addValuesAnnotationOptions}
+                    annotationType={addValuesAnnotationType}
+                    onOk={this.addValues}
+                    onCancel={this.closeAddValuesModal}
+                    row={addValuesRow}
+                    visible={showAddValuesModal}
+                />}
             </>
         );
     }
+
+    private addValues = (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => {
+        this.saveByRow(value, key, row);
+        this.closeAddValuesModal();
+    }
+
+    private closeAddValuesModal = () => this.setState({
+        addValuesAnnotationName: undefined,
+        addValuesAnnotationOptions: undefined,
+        addValuesAnnotationType: undefined,
+        addValuesCurrentValues: undefined,
+        addValuesRow: undefined,
+        showAddValuesModal: false,
+    })
 
     private renderFormat = (row: UploadJobTableRow,
                             label: string,
                             value: any,
                             childElement?: React.ReactNode | React.ReactNodeArray,
                             required?: boolean,
-                            className?: string): React.ReactElement => {
-        if (required && !this.props.fileToAnnotationHasValueMap[row.file][label]) {
-            childElement = (
-                <FormControl
-                    className={classNames(styles.formatterContainer, className)}
-                    error={`${label} is required, current value is: ${value}`}
-                >
-                    {childElement || value}
-                </FormControl>
-            );
+                            className?: string,
+                            contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>): React.ReactElement => {
+        const error = required && !this.props.fileToAnnotationHasValueMap[row.file][label] ?
+            `${label} is required` : undefined;
+        let inner = childElement;
+        if (!inner) {
+            if (Array.isArray(value)) {
+                inner = value.join(", ");
+            } else {
+                inner = value;
+            }
         }
+
         return (
-            <div className={classNames(styles.formatterContainer, className)} onDrop={this.onDrop(row)}>
-                {childElement ? childElement : value}
-            </div>
+            <CellWithContextMenu
+                className={classNames(styles.formatterContainer, className)}
+                error={error}
+                template={contextMenuItems}
+            >
+                {inner}
+            </CellWithContextMenu>
         );
     }
 
@@ -247,18 +292,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         ...innerColumns,
         {
             editable: true,
-            formatter: ({ row, value }: FormatterProps) => (
-                this.renderFormat(
-                    row,
-                    "notes",
-                    value,
-                    (
-                        <NoteIcon
-                            handleError={this.handleError}
-                            notes={row.notes}
-                            saveNotes={this.saveNotesByRow(row)}
-                        />
-                    ))
+            formatter: ({ row }: FormatterProps) => (
+                <div className={styles.formatterContainer} onDrop={this.onDrop(row)}>
+                    <NoteIcon
+                        handleError={this.handleError}
+                        notes={row.notes}
+                        saveNotes={this.saveNotesByRow(row)}
+                    />
+                </div>
             ),
             key: "notes",
             name: "Notes",
@@ -279,14 +320,17 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         if  (!this.props.template) {
             return basicColumns;
         }
-        const schemaColumns = this.props.template.annotations.map((column: TemplateAnnotation) => {
-            const {name,  annotationTypeId,  annotationOptions, required } = column;
+        const schemaColumns = this.props.template.annotations.map((templateAnnotation: TemplateAnnotation) => {
+            const {name,  annotationTypeId,  annotationOptions, required } = templateAnnotation;
             const annotationType = this.props.annotationTypes.find((a) => a.annotationTypeId === annotationTypeId);
             if (!annotationType) {
-                throw new Error(`Could not get annotation type for annotation ${column.name}. Contact Software`);
+                throw new Error(
+                    `Could not get annotation type for annotation ${templateAnnotation.name}. Contact Software`
+                );
             }
+
             const type = annotationType.name;
-            const columns: UploadJobColumn = {
+            const column: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
                 editable: true,
@@ -297,24 +341,49 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             };
             // Use custom editor for everything except TEXT types which will use the default editor
             if (type !== ColumnType.TEXT) {
-                columns.editor = Editor;
+                column.editor = Editor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
             if (type === ColumnType.DATE) {
-                columns.width = 170;
+                column.width = 170;
             } else if (type === ColumnType.DATETIME) {
-                columns.width = 250;
+                column.width = 250;
             }
-            if (type === ColumnType.BOOLEAN) {
-                columns.formatter = (props) =>
+            if (type === ColumnType.BOOLEAN) { // todo update this too
+                column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
-                columns.formatter = ({ row, value }: FormatterProps) => (
-                    this.renderFormat(row, name, value, undefined, required)
-                );
+                column.formatter = ({ row, value }: FormatterProps) => {
+                    const contextMenuItems = [
+                        {
+                            click: () => {
+                                this.setState({
+                                    addValuesAnnotationName: templateAnnotation.name,
+                                    addValuesAnnotationOptions: templateAnnotation.annotationOptions,
+                                    addValuesAnnotationType: annotationType.name,
+                                    addValuesCurrentValues: value,
+                                    addValuesRow: row,
+                                    showAddValuesModal: true,
+                                });
+                            },
+                            enabled: templateAnnotation.canHaveManyValues,
+                            label: "Edit",
+                        },
+                    ];
+                    // todo config
+                    return this.renderFormat(
+                        row,
+                        name,
+                        value,
+                        undefined,
+                        required,
+                        undefined,
+                        contextMenuItems
+                    );
+                };
             }
-            return columns;
+            return column;
         });
         return basicColumns.concat(schemaColumns);
     }
