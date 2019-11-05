@@ -1,17 +1,19 @@
 import { Modal, Select } from "antd";
+import { castArray } from "lodash";
 import * as React from "react";
+
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 
 const styles = require("./styles.pcss");
 
 interface Props {
-    annotationName: string;
+    annotationName?: string;
     annotationOptions?: string[];
-    annotationType: ColumnType;
+    annotationType?: ColumnType;
     onOk: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
     onCancel: () => void;
-    row: UploadJobTableRow;
+    row?: UploadJobTableRow;
     values?: any[];
     visible: boolean;
 }
@@ -25,14 +27,14 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            values: props.values || [],
+            values: castArray(props.values),
         };
     }
 
     public componentDidUpdate(prevProps: Props): void {
         if (prevProps.visible !== this.props.visible && this.props.visible) {
             this.setState({
-                values: this.props.values || [],
+                values: castArray(this.props.values),
             });
         }
     }
@@ -85,7 +87,10 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     private submit = () => {
         const {values} = this.state;
         const {annotationName, row} = this.props;
-        this.props.onOk(values, annotationName, row);
+
+        if (annotationName && row) {
+            this.props.onOk(values, annotationName, row);
+        }
     }
 }
 

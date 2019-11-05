@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { get, isEmpty, without } from "lodash";
+import { castArray, get, isEmpty, without } from "lodash";
 import { basename } from "path";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -158,6 +158,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             addValuesAnnotationName,
             addValuesAnnotationOptions,
             addValuesAnnotationType,
+            addValuesCurrentValues,
             addValuesRow,
             selectedRows,
             showAddValuesModal,
@@ -211,15 +212,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                         <p className={styles.alignCenter}>No Uploads</p>
                     }
                 </div>
-                {addValuesAnnotationType && addValuesRow && addValuesAnnotationName && <AddValuesModal
+                <AddValuesModal
                     annotationName={addValuesAnnotationName}
                     annotationOptions={addValuesAnnotationOptions}
                     annotationType={addValuesAnnotationType}
                     onOk={this.addValues}
                     onCancel={this.closeAddValuesModal}
                     row={addValuesRow}
+                    values={addValuesCurrentValues}
                     visible={showAddValuesModal}
-                />}
+                />
             </>
         );
     }
@@ -362,7 +364,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                                     addValuesAnnotationName: templateAnnotation.name,
                                     addValuesAnnotationOptions: templateAnnotation.annotationOptions,
                                     addValuesAnnotationType: annotationType.name,
-                                    addValuesCurrentValues: value,
+                                    addValuesCurrentValues: castArray(value),
                                     addValuesRow: row,
                                     showAddValuesModal: true,
                                 });
