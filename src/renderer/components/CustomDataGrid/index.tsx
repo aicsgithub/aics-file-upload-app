@@ -33,8 +33,8 @@ import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
 
 import CellWithContextMenu from "./CellWithContextMenu";
-import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
+import GridEditor from "./GridEditor";
 import WellsFormatter from "./WellsFormatter";
 
 const styles = require("./style.pcss");
@@ -76,6 +76,7 @@ interface CustomDataState {
 }
 
 interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
+    allowMultipleValues?: boolean;
     dropdownValues?: string[];
     type?: ColumnType;
 }
@@ -333,6 +334,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
             const type = annotationType.name;
             const column: UploadJobColumn = {
+                allowMultipleValues: templateAnnotation.canHaveManyValues,
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
                 editable: true,
@@ -343,7 +345,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             };
             // Use custom editor for everything except TEXT types which will use the default editor
             if (type !== ColumnType.TEXT) {
-                column.editor = Editor;
+                column.editor = GridEditor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them

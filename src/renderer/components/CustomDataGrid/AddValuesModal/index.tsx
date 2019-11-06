@@ -1,8 +1,9 @@
-import { Alert, Modal, Select } from "antd";
-import { castArray } from "lodash";
+import { Alert, Button, Modal } from "antd";
+import { castArray, includes, isNil } from "lodash";
 import * as React from "react";
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
+import Editor from "../Editor";
 
 const styles = require("./styles.pcss");
 
@@ -18,6 +19,7 @@ interface Props {
 }
 
 interface AddValuesModalState {
+    draft?: any;
     error?: string;
     values: any[];
 }
@@ -41,31 +43,12 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
 
     public render() {
         const {annotationOptions, annotationType, onCancel, visible} = this.props;
-        const {error} = this.state;
+        const {error, values} = this.state;
 
-        let input;
-        if (!!annotationOptions) {
-            input = (
-                <Select
-                    className={styles.input}
-                    allowClear={true}
-                    onChange={this.selectValues}
-                    mode="multiple"
-                    value={this.state.values}
-                >
-                    {annotationOptions.map((o) => <Select.Option value={o} key={o}>{o}</Select.Option>)}
-                </Select>
-            );
-        } else if (annotationType === ColumnType.TEXT || annotationType === ColumnType.NUMBER) {
-            input = (
-                <Select
-                    className={styles.input}
-                    allowClear={true}
-                    onSelect={this.selectValues}
-                    mode="multiple"
-                />
-            );
-        }
+        const isSelectorType = includes([ColumnType.DROPDOWN, ColumnType.LOOKUP], annotationType);
+        const editorValue = isSelectorType ? values :
+            this.state.draft;
+        const allValues = !isNil(values) ? castArray(values) : [];
 
         return (
             <Modal
@@ -76,11 +59,28 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                 onCancel={onCancel}
                 okText="Save"
             >
-                {input}
+                <div className={styles.formContainer}>
+                    <Editor
+                        allowMultipleValues={isSelectorType}
+                        className={styles.editor}
+                        dropdownValues={annotationOptions}
+                        onChange={isSelectorType ? this.selectValues : this.updateDraft}
+                        onPressEnter={this.addValue}
+                        type={annotationType}
+                        value={editorValue}
+                    />
+                    {!isSelectorType && <Button onClick={this.addValue} type="primary">Add</Button>}
+                </div>
+                {!isSelectorType && allValues.map((v, i) => (
+                    <div key={v + i}>{v}</div>
+                ))}
                 {error && <Alert type="error" message="Could not save values" description={error}/>}
             </Modal>
         );
     }
+
+    private updateDraft = (draft: any) => this.setState({draft});
+    private addValue = () => this.setState({draft: undefined, values: [...this.state.values, this.state.draft]});
 
     private selectValues = (values: any[]) => {
         this.setState({values});
