@@ -11,6 +11,7 @@ const styles = require("./styles.pcss");
 const { Option } = Select;
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
+    allowMultipleValues?: boolean;
     dropdownValues?: string[];
     type?: ColumnType;
 }
@@ -45,8 +46,16 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     }
 
     public render() {
-        const { column: { dropdownValues, type } } = this.props;
-        const { value } = this.state;
+        const { column: { allowMultipleValues, dropdownValues, type } } = this.props;
+        let { value } = this.state;
+
+        if (Array.isArray(value) && (type !== ColumnType.LOOKUP && type !== ColumnType.DROPDOWN)) {
+            if (value.length > 0) {
+                value = value[value.length - 1];
+            } else {
+                value = undefined;
+            }
+        }
 
         let input;
         switch (type) {
@@ -56,6 +65,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         allowClear={true}
                         autoFocus={true}
                         defaultOpen={true}
+                        mode={allowMultipleValues ? "multiple" : "default"}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
                         value={value}
@@ -118,6 +128,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         autoFocus={true}
                         defaultOpen={true}
                         loading={!dropdownValues || !dropdownValues.length}
+                        mode={allowMultipleValues ? "multiple" : "default"}
                         onChange={this.handleOnChange}
                         onBlur={this.props.onCommit}
                         placeholder="Column Values"

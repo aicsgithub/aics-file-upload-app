@@ -1,40 +1,63 @@
-import { Alert, Button, Modal } from "antd";
-import { castArray, includes, isNil } from "lodash";
+import { Alert, Button, Icon, Modal } from "antd";
+import ButtonGroup from "antd/lib/button/button-group";
+import { castArray, isEmpty, without } from "lodash";
 import * as React from "react";
+import * as ReactDataGrid from "react-data-grid";
+
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import Editor from "../Editor";
+import { FormatterProps } from "../index";
 
 const styles = require("./styles.pcss");
 
+interface TableRow {
+    idx: number;
+    [annotationName: string]: any;
+}
+
 interface Props {
-    annotationName?: string;
-    annotationOptions?: string[];
-    annotationType?: ColumnType;
+    annotationName: string;
+    annotationType: ColumnType;
     onOk: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
-    onCancel: () => void;
-    row?: UploadJobTableRow;
+    row: UploadJobTableRow;
     values?: any[];
-    visible: boolean;
 }
 
 interface AddValuesModalState {
     draft?: any;
     error?: string;
+    selectedRows: number[];
     values: any[];
+    visible: boolean;
 }
 
+// this is for special cases - dates/datetimes/booleans when multiple values are allowed
 class AddValuesModal extends React.Component<Props, AddValuesModalState> {
+    private get columns() {
+        return [
+            {
+                formatter: ({ row, value }: FormatterProps) => (
+                    <Editor onChange={this.updateRow(row)} type={this.props.annotationType} value={value}/>
+                ),
+                key: this.props.annotationName,
+                name: this.props.annotationName,
+                resizable: true,
+            },
+        ];
+    }
 
     constructor(props: Props) {
         super(props);
         this.state = {
+            selectedRows: [],
             values: props.values ? castArray(props.values) : [],
+            visible: false,
         };
     }
 
     public componentDidUpdate(prevProps: Props): void {
-        if (prevProps.visible !== this.props.visible && this.props.visible) {
+        if (prevProps.values !== this.props.values) {
             this.setState({
                 values: this.props.values ? castArray(this.props.values) : [],
             });
@@ -42,48 +65,81 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     }
 
     public render() {
-        const {annotationOptions, annotationType, onCancel, visible} = this.props;
-        const {error, values} = this.state;
-
-        const isSelectorType = includes([ColumnType.DROPDOWN, ColumnType.LOOKUP], annotationType);
-        const editorValue = isSelectorType ? values :
-            this.state.draft;
-        const allValues = !isNil(values) ? castArray(values) : [];
-
+        const {error, selectedRows, values, visible} = this.state;
+console.log(values);
         return (
-            <Modal
-                width="50%"
-                title="Add Values"
-                visible={visible}
-                onOk={this.submit}
-                onCancel={onCancel}
-                okText="Save"
-            >
-                <div className={styles.formContainer}>
-                    <Editor
-                        allowMultipleValues={isSelectorType}
-                        className={styles.editor}
-                        dropdownValues={annotationOptions}
-                        onChange={isSelectorType ? this.selectValues : this.updateDraft}
-                        onPressEnter={this.addValue}
-                        type={annotationType}
-                        value={editorValue}
+            <>
+                <Modal
+                    className={styles.container}
+                    width="90%"
+                    title="Add Values"
+                    visible={visible}
+                    onOk={this.submit}
+                    onCancel={this.cancel}
+                    okText="Save"
+                >
+                    <ButtonGroup className={styles.buttons}>
+                        <Button icon="plus" onClick={this.addRow}/>
+                        <Button icon="minus" onClick={this.removeRow}/>
+                    </ButtonGroup>
+                    <ReactDataGrid
+                        columns={this.columns}
+                        rowGetter={this.rowGetter}
+                        rowsCount={values.length}
+                        rowSelection={{
+                            enableShiftSelect: true,
+                            onRowsDeselected: this.deselectRows,
+                            onRowsSelected: this.selectRows,
+                            selectBy: {
+                                indexes: selectedRows,
+                            },
+                        }}
                     />
-                    {!isSelectorType && <Button onClick={this.addValue} type="primary">Add</Button>}
+                    {error && <Alert type="error" message="Could not save values" description={error}/>}
+                </Modal>
+                <div>
+                    <Icon onClick={this.openModal} type={isEmpty(values) ? "plus-circle" : "edit"}/>
                 </div>
-                {!isSelectorType && allValues.map((v, i) => (
-                    <div key={v + i}>{v}</div>
-                ))}
-                {error && <Alert type="error" message="Could not save values" description={error}/>}
-            </Modal>
+            </>
         );
     }
 
-    private updateDraft = (draft: any) => this.setState({draft});
-    private addValue = () => this.setState({draft: undefined, values: [...this.state.values, this.state.draft]});
+    private rowGetter = (idx: number) => {
+        console.log("get row")
+        return ({[this.props.annotationName]: this.state.values[idx], idx});
+    }
+    private openModal = () => this.setState({visible: true});
+    private cancel = () => this.setState({visible: false});
 
-    private selectValues = (values: any[]) => {
+    private updateRow = (row: TableRow) => (value: any) => {
+        const values = [...this.state.values];
+        values[row.idx] = value;
         this.setState({values});
+    }
+    private addRow = () => {
+        this.setState({values: [...this.state.values, undefined]});
+    }
+    private removeRow = () => {
+        const { selectedRows } = this.state;
+        const values = [...this.state.values];
+        if (selectedRows.length) {
+            selectedRows.forEach((r) => values.splice(r, 1));
+            this.setState({
+                selectedRows: [],
+                values,
+            });
+        }
+    }
+
+    private selectRows = (rows: Array<{row: TableRow, rowIdx: number}>) => {
+        const rowIndexes = rows.map((r) => r.rowIdx);
+        this.setState({selectedRows:  [...this.state.selectedRows, ...rowIndexes] });
+    }
+
+    private deselectRows = (rows: Array<{row: TableRow, rowIdx: number}>) => {
+        const rowIndexes = rows.map((r) => r.rowIdx);
+        const selectedRows = without(this.state.selectedRows, ...rowIndexes);
+        this.setState({selectedRows});
     }
 
     private submit = () => {

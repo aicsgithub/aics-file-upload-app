@@ -14,19 +14,13 @@ interface Props {
     dropdownValues?: string[];
     onBlur?: () => void;
     onChange: (value: any) => void;
-    onPressEnter: () => void;
+    onPressEnter?: () => void;
     type?: ColumnType;
     value?: any;
 }
 
 const getOnChange = (onChange: (value: any) => void) =>
     (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-
-const getOnPressEnter = (onPressEnter: () => void) => (e: any) => {
-    if (e.key === "Enter") {
-        onPressEnter();
-    }
-};
 
 const Editor: React.FunctionComponent<Props> = ({
     allowMultipleValues,
@@ -72,7 +66,6 @@ const Editor: React.FunctionComponent<Props> = ({
                     autoFocus={true}
                     className={classNames(styles.input, className)}
                     onChange={onChange}
-                    onKeyDown={getOnPressEnter(onPressEnter)}
                     type="number"
                     value={value}
                 />

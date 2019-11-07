@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, get, isEmpty, without } from "lodash";
+import { get, includes, isEmpty, without } from "lodash";
 import { basename } from "path";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -38,6 +38,7 @@ import GridEditor from "./GridEditor";
 import WellsFormatter from "./WellsFormatter";
 
 const styles = require("./style.pcss");
+const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DATETIME];
 
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
@@ -64,10 +65,6 @@ interface Props {
 }
 
 interface CustomDataState {
-    addValuesCurrentValues?: any[];
-    addValuesAnnotationName?: string;
-    addValuesAnnotationOptions?: string[];
-    addValuesAnnotationType?: ColumnType;
     addValuesRow?: UploadJobTableRow;
     selectedRows: string[];
     showAddValuesModal: boolean;
@@ -156,13 +153,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             uploads,
         } = this.props;
         const {
-            addValuesAnnotationName,
-            addValuesAnnotationOptions,
-            addValuesAnnotationType,
-            addValuesCurrentValues,
-            addValuesRow,
             selectedRows,
-            showAddValuesModal,
         } = this.state;
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
@@ -213,33 +204,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                         <p className={styles.alignCenter}>No Uploads</p>
                     }
                 </div>
-                <AddValuesModal
-                    annotationName={addValuesAnnotationName}
-                    annotationOptions={addValuesAnnotationOptions}
-                    annotationType={addValuesAnnotationType}
-                    onOk={this.addValues}
-                    onCancel={this.closeAddValuesModal}
-                    row={addValuesRow}
-                    values={addValuesCurrentValues}
-                    visible={showAddValuesModal}
-                />
             </>
         );
     }
-
-    private addValues = (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => {
-        this.saveByRow(value, key, row);
-        this.closeAddValuesModal();
-    }
-
-    private closeAddValuesModal = () => this.setState({
-        addValuesAnnotationName: undefined,
-        addValuesAnnotationOptions: undefined,
-        addValuesAnnotationType: undefined,
-        addValuesCurrentValues: undefined,
-        addValuesRow: undefined,
-        showAddValuesModal: false,
-    })
 
     private renderFormat = (row: UploadJobTableRow,
                             label: string,
@@ -343,8 +310,10 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 resizable: true,
                 type,
             };
-            // Use custom editor for everything except TEXT types which will use the default editor
-            if (type !== ColumnType.TEXT) {
+
+            const specialCase = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
+                templateAnnotation.canHaveManyValues;
+            if (type !== ColumnType.TEXT && !specialCase) {
                 column.editor = GridEditor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
@@ -354,38 +323,23 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             } else if (type === ColumnType.DATETIME) {
                 column.width = 250;
             }
-            if (type === ColumnType.BOOLEAN) { // todo update this too
+
+            if (specialCase) {
+              column.formatter = ({ row }: FormatterProps) => (
+                  <AddValuesModal
+                      annotationName={templateAnnotation.name}
+                      annotationType={type}
+                      onOk={this.saveByRow}
+                      row={row}
+                  />
+              );
+            } else if (type === ColumnType.BOOLEAN) { // todo update this too
                 column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
-                column.formatter = ({ row, value }: FormatterProps) => {
-                    const contextMenuItems = [
-                        {
-                            click: () => {
-                                this.setState({
-                                    addValuesAnnotationName: templateAnnotation.name,
-                                    addValuesAnnotationOptions: templateAnnotation.annotationOptions,
-                                    addValuesAnnotationType: annotationType.name,
-                                    addValuesCurrentValues: castArray(value),
-                                    addValuesRow: row,
-                                    showAddValuesModal: true,
-                                });
-                            },
-                            enabled: templateAnnotation.canHaveManyValues,
-                            label: "Edit",
-                        },
-                    ];
-                    // todo config
-                    return this.renderFormat(
-                        row,
-                        name,
-                        value,
-                        undefined,
-                        required,
-                        undefined,
-                        contextMenuItems
-                    );
-                };
+                column.formatter = ({ row, value }: FormatterProps) => (
+                    this.renderFormat(row, name, value, undefined, required)
+                );
             }
             return column;
         });
