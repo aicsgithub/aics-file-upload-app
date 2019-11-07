@@ -1,9 +1,11 @@
-import { InputNumber, Select } from "antd";
+import { Input, InputNumber, Select } from "antd";
 import Logger from "js-logger";
+import { castArray, isNil, trim } from "lodash";
+import { ChangeEvent } from "react";
 import * as React from "react";
 import { editors } from "react-data-grid";
-import { ColumnType } from "../../../state/template/types";
 
+import { ColumnType } from "../../../state/template/types";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const styles = require("./styles.pcss");
@@ -22,6 +24,7 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
 }
 
 interface EditorState {
+    text?: string; // this is for the "number" input if multiple values allowed
     value?: any;
 }
 
@@ -37,25 +40,18 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     constructor(props: AdazzleReactDataGrid.EditorBaseProps) {
         super(props);
-        this.state = {
-            // When the user starts typing into a cell with a numeric input the value
-            // that they start typing with is sent as a prop to this component, however then the component
-            // registers the same key being pressed twice leading to a a double entry ex. '4' -> '44', '1' -> '11'
-            value: this.props.column.type === ColumnType.NUMBER ? null : props.value,
-        };
+        this.state = this.getStateFromProps(props);
+    }
+
+    public componentDidUpdate(prevProps: EditorProps) {
+        if (this.props.value !== prevProps.value) {
+            this.setState(this.getStateFromProps(this.props));
+        }
     }
 
     public render() {
         const { column: { allowMultipleValues, dropdownValues, type } } = this.props;
-        let { value } = this.state;
-
-        if (Array.isArray(value) && (type !== ColumnType.LOOKUP && type !== ColumnType.DROPDOWN)) {
-            if (value.length > 0) {
-                value = value[value.length - 1];
-            } else {
-                value = undefined;
-            }
-        }
+        const { text, value } = this.state;
 
         let input;
         switch (type) {
@@ -85,15 +81,25 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 );
                 break;
             case ColumnType.NUMBER:
-                input = (
-                    <InputNumber
-                        autoFocus={true}
-                        onChange={this.handleOnChange}
-                        type="number"
-                        style={{ width: "100%" }}
-                        value={value}
-                    />
-                );
+                input = allowMultipleValues ?
+                    (
+                        <Input
+                            autoFocus={true}
+                            onBlur={this.onBlur}
+                            onChange={this.onStringInputChange}
+                            style={{ width: "100%" }}
+                            value={text}
+                        />
+                    )
+                    :
+                    (
+                        <InputNumber
+                            autoFocus={true}
+                            onChange={this.onNumberInputChange}
+                            style={{ width: "100%" }}
+                            value={value}
+                        />
+                    );
                 break;
             // TODO: Make Date & DateTime use either better style or a better component for date selection
             // Here I am using the input date element because the components I tried thus far did not register
@@ -168,6 +174,65 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     private handleOnChange = (value: any) => {
         this.setState({ value });
+    }
+
+    private onBlur = (e: ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value;
+        this.setState({value: this.parseNumberArray(rawValue)});
+    }
+
+    private onStringInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({text: e.target.value});
+    }
+
+    private onNumberInputChange = (value?: number) => {
+        this.setState({ value });
+    }
+
+    private parseNumberArray = (rawValue?: string) => {
+        if (!rawValue) {
+            return undefined;
+        }
+
+        return rawValue.split(",")
+            .map(this.parseNumber)
+            .filter((v: number) => !Number.isNaN(v));
+    }
+
+    // returns int if no decimals and float if not
+    private parseNumber = (n: string) => {
+        const trimmed = trim(n);
+        let parsed = parseFloat(trimmed);
+
+        // convert to int if no decimals
+        if (parsed % 1 !== 0) {
+            parsed = parseInt(trimmed, 10);
+        }
+
+        return parsed;
+    }
+
+    private formatNumberList = (numbers?: number | number[]) => {
+        const values = !isNil(numbers) ? castArray(numbers) : [];
+        return values.join(", ");
+    }
+
+    private getStateFromProps = (props: EditorProps) => {
+        let value;
+        let text;
+        if (props.column.allowMultipleValues) {
+            text = this.formatNumberList(props.value);
+        } else {
+            value = props.value;
+            if (Array.isArray(value)) {
+                value = value.length ? value[0] : undefined;
+            }
+        }
+
+        return {
+            text,
+            value,
+        };
     }
 }
 

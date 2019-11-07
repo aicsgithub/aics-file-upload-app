@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { get, includes, isEmpty, without } from "lodash";
+import { castArray, get, includes, isEmpty, without } from "lodash";
 import { basename } from "path";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -310,9 +310,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 type,
             };
 
-            const specialCase = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
+            // When an annotation can have multiple values and it is a Boolean, Date, or Datetime, we need more space.
+            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
                 templateAnnotation.canHaveManyValues;
-            if (type !== ColumnType.TEXT && !specialCase) {
+
+            if (type !== ColumnType.TEXT && !formatterNeedsModal) {
                 column.editor = GridEditor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
@@ -323,23 +325,28 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 column.width = 250;
             }
 
-            if (specialCase) {
-              column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => (
-                  <AddValuesModal
-                      annotationName={templateAnnotation.name}
-                      annotationType={type}
-                      onOk={this.saveByRow}
-                      row={row}
-                      values={value}
-                  />
-              );
-            } else if (type === ColumnType.BOOLEAN) { // todo update this too
+            // eventually we may want to allow undefined Booleans as well but for now, the default value is False
+            if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
                 column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
-                column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => (
-                    this.renderFormat(row, name, value, undefined, required)
-                );
+                column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => {
+                    let childEl;
+                    if (formatterNeedsModal) {
+                        childEl = (
+                            <AddValuesModal
+                                annotationName={templateAnnotation.name}
+                                annotationType={type}
+                                onOk={this.saveByRow}
+                                row={row}
+                                values={value}
+                            />
+                        );
+                    } else if (templateAnnotation.canHaveManyValues && value) {
+                        value = castArray(value).join(", ");
+                    }
+                    return this.renderFormat(row, name, value, childEl, required);
+                };
             }
             return column;
         });
@@ -425,7 +432,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
 
     private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {
-        console.log(key);
         this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), { [key]: value });
     }
 
