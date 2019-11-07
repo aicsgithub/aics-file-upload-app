@@ -4,6 +4,7 @@ import { castArray, isEmpty, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
+import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
@@ -70,9 +71,9 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         const {error, selectedRows, values, visible} = this.state;
         let formattedValue;
         if (annotationType === ColumnType.DATE) {
-            formattedValue = values.map((v) => moment(v).format("MMM Do YYYY")).join(", ");
+            formattedValue = values.map((v) => moment(v).format(DATE_FORMAT)).join(", ");
         } else if (annotationType === ColumnType.DATETIME) {
-            formattedValue = values.map((v) => moment(v).format("MMM Do YYYY, h:mm:ss a")).join(", ");
+            formattedValue = values.map((v) => moment(v).format(DATETIME_FORMAT)).join(", ");
         } else {
             formattedValue = values.map((v) => v ? "Yes" : "No").join(", ");
         }

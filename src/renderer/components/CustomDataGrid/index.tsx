@@ -3,12 +3,14 @@ import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
 import { castArray, get, includes, isEmpty, without } from "lodash";
+import * as moment from "moment";
 import { basename } from "path";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
 import NoteIcon from "../../components/NoteIcon";
+import { DATE_FORMAT, DATETIME_FORMAT } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import { ExpandedRows, ToggleExpandedUploadJobRowAction, Well } from "../../state/selection/types";
@@ -343,7 +345,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             />
                         );
                     } else if (templateAnnotation.canHaveManyValues && value) {
-                        value = castArray(value).join(", ");
+                        childEl = castArray(value).join(", ");
+                    } else if (type === ColumnType.DATE && value) {
+                        childEl = moment(value).format(DATE_FORMAT);
+                    } else if (type === ColumnType.DATETIME && value) {
+                        childEl = moment(value).format(DATETIME_FORMAT);
                     }
                     return this.renderFormat(row, name, value, childEl, required);
                 };

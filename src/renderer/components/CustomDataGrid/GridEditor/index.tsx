@@ -1,14 +1,14 @@
-import { Input, InputNumber, Select } from "antd";
+import { DatePicker, Input, InputNumber, Select } from "antd";
 import Logger from "js-logger";
 import { castArray, isNil, trim } from "lodash";
+import * as moment from "moment";
 import { ChangeEvent } from "react";
 import * as React from "react";
 import { editors } from "react-data-grid";
+import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 
 import { ColumnType } from "../../../state/template/types";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
-
-const styles = require("./styles.pcss");
 
 const { Option } = Select;
 
@@ -112,30 +112,17 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     />
                 );
                 break;
-            // TODO: Make Date & DateTime use either better style or a better component for date selection
-            // Here I am using the input date element because the components I tried thus far did not register
-            // a change of input before the focus changed back to the formatter thereby losing the selection
-            // - Sean M 8/14/19
             case ColumnType.DATE:
-                input = (
-                    <input
-                        autoFocus={true}
-                        className={styles.dateMinWidth}
-                        onChange={this.handleInputOnChange}
-                        type="date"
-                        value={value || undefined}
-                    />
-                );
-                break;
             case ColumnType.DATETIME:
-                input = (
-                    <input
-                        autoFocus={true}
-                        className={styles.dateTimeMinWidth}
-                        onChange={this.handleInputOnChange}
-                        type="datetime-local"
-                        value={value || undefined}
-                    />
+                input = allowMultipleValues ? null : (
+                  <DatePicker
+                    autoFocus={true}
+                    format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
+                    onChange={this.handleOnChange}
+                    value={moment(value)}
+                    showTime={type === ColumnType.DATETIME}
+                    style={{ width: "100%" }}
+                  />
                 );
                 break;
             case ColumnType.LOOKUP:
@@ -179,15 +166,11 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         return this.input.current;
     }
 
-    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value: any = e.target.value;
-        if (this.props.column.allowMultipleValues) {
-            value = !isNil(value) ? this.parseStringArray(value) : [];
-        }
-        this.setState({ value });
-    }
-
     private handleOnChange = (value: any) => {
+        const { column: { type } } = this.props;
+        if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
+            value = value instanceof Date ? value : value.toDate();
+        }
         this.setState({ value });
     }
 
