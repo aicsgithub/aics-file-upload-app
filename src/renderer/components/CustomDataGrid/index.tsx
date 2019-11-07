@@ -36,7 +36,7 @@ import AddValuesModal from "./AddValuesModal";
 
 import CellWithContextMenu from "./CellWithContextMenu";
 import FileFormatter from "./FileFormatter";
-import GridEditor from "./GridEditor";
+import Editor from "./Editor";
 import WellsFormatter from "./WellsFormatter";
 
 const styles = require("./style.pcss");
@@ -317,7 +317,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 templateAnnotation.canHaveManyValues;
 
             if (!formatterNeedsModal) {
-                column.editor = GridEditor;
+                column.editor = Editor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
