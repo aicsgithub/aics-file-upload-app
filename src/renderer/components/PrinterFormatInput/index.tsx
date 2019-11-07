@@ -1,11 +1,11 @@
 import { Input } from "antd";
+import { isEmpty, isNumber, toNumber, uniq } from "lodash";
 import * as React from "react";
-import { toNumber, isEmpty, isNumber, uniq } from "lodash";
 import { defaultMemoize } from "reselect";
 
 interface PrinterFormatInputProps {
     value?: string;
-    className?: string
+    className?: string;
     placeholder: string;
     onEnter: (value: string, errorMessage: string | undefined) => void;
 }
@@ -20,15 +20,15 @@ class PrinterFormatInput extends React.Component<PrinterFormatInputProps, {}> {
         if (isEmpty(input)) {
             return undefined;
         }
-        const positions = input.split(',').map(position => position.trim());
+        const positions = input.split(",").map((position) => position.trim());
         for (const [idx, position] of positions.entries()) {
             const positionIndex = `Position at index ${idx + 1}`;
             if (isEmpty(position)) {
                 return `${positionIndex} is empty`;
             }
-            const range = position.split('-');
-            const numberRange = range.filter(position => !isEmpty(position)).map(position => toNumber(position));
-            if (range.length != numberRange.length) {
+            const range = position.split("-");
+            const numberRange = range.filter((num) => !isEmpty(num)).map((num) => toNumber(num));
+            if (range.length !== numberRange.length) {
                 return `${positionIndex} is not valid range`;
             }
             if (!isNumber(numberRange[0])) {
@@ -42,12 +42,12 @@ class PrinterFormatInput extends React.Component<PrinterFormatInputProps, {}> {
                     return `${positionIndex} has multiple dashes in a row without a comma separator`;
                 }
                 if (numberRange[0] > numberRange[1]) {
-                    return `${positionIndex} has uneven range, right number should be greater than left`
+                    return `${positionIndex} has uneven range, right number should be greater than left`;
                 }
             }
         }
         return undefined;
-    })
+    });
 
     public static extractValues = (input: string): number[] | undefined => {
         const scenes: number[] = [];
@@ -55,10 +55,10 @@ class PrinterFormatInput extends React.Component<PrinterFormatInputProps, {}> {
             if (PrinterFormatInput.validateInput(input)) {
                 return undefined;
             }
-            input.split(',')
-                .map(position => position.trim())
+            input.split(",")
+                .map((position) => position.trim())
                 .forEach((position: string) => {
-                    const range = position.split("-").map(position => toNumber(position));
+                    const range = position.split("-").map((num) => toNumber(num));
                     scenes.push(range[0]);
                     if (range.length > 1) {
                         for (let i = range[0] + 1; i <= range[1]; i += 1) {

@@ -32,11 +32,11 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     private static convertChannels(channelIds: number[], channelOptions: Channel[]): Channel[] {
         return (channelIds ? channelIds
             .map((id: number) => channelOptions.find((o: Channel) => o.channelId === id))
-            .filter((c?: Channel) => !!c) : []) as Channel[]
+            .filter((c?: Channel) => !!c) : []) as Channel[];
     }
 
     private static convertPositionIndexes(positionIndexes: number[]): string {
-        return positionIndexes ? positionIndexes.join(', ') : '';
+        return positionIndexes ? positionIndexes.join(", ") : "";
     }
 
     constructor(props: Props) {
