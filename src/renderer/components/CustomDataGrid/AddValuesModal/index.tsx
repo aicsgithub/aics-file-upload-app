@@ -1,6 +1,7 @@
 import { Alert, Button, Icon, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
 import { castArray, isEmpty, without } from "lodash";
+import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
 
@@ -37,7 +38,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     private get columns() {
         return [
             {
-                formatter: ({ row, value }: FormatterProps) => (
+                formatter: ({ row, value }: FormatterProps<TableRow>) => (
                     <Editor onChange={this.updateRow(row)} type={this.props.annotationType} value={value}/>
                 ),
                 key: this.props.annotationName,
@@ -65,8 +66,17 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     }
 
     public render() {
+        const { annotationType } = this.props;
         const {error, selectedRows, values, visible} = this.state;
-console.log(values);
+        let formattedValue;
+        if (annotationType === ColumnType.DATE) {
+            formattedValue = values.map((v) => moment(v).format("MMM Do YYYY")).join(", ");
+        } else if (annotationType === ColumnType.DATETIME) {
+            formattedValue = values.map((v) => moment(v).format("MMM Do YYYY, h:mm:ss a")).join(", ");
+        } else {
+            formattedValue = values.map((v) => v ? "Yes" : "No").join(", ");
+        }
+
         return (
             <>
                 <Modal
@@ -97,18 +107,24 @@ console.log(values);
                     />
                     {error && <Alert type="error" message="Could not save values" description={error}/>}
                 </Modal>
-                <div>
-                    <Icon onClick={this.openModal} type={isEmpty(values) ? "plus-circle" : "edit"}/>
+                <div className={styles.cell}>
+                    <span>{formattedValue}</span>
+                    <Icon
+                        className={styles.cellBtn}
+                        onClick={this.openModal}
+                        type={isEmpty(values) ? "plus-circle" : "edit"}
+                    />
                 </div>
             </>
         );
     }
 
     private rowGetter = (idx: number) => {
-        console.log("get row")
         return ({[this.props.annotationName]: this.state.values[idx], idx});
     }
+
     private openModal = () => this.setState({visible: true});
+
     private cancel = () => this.setState({visible: false});
 
     private updateRow = (row: TableRow) => (value: any) => {
@@ -116,9 +132,17 @@ console.log(values);
         values[row.idx] = value;
         this.setState({values});
     }
+
     private addRow = () => {
-        this.setState({values: [...this.state.values, undefined]});
+        let nextValue: any = false;
+        const {annotationType} = this.props;
+        if (annotationType === ColumnType.DATE || annotationType === ColumnType.DATETIME) {
+            nextValue = new Date();
+        }
+
+        this.setState({values: [...this.state.values, nextValue]});
     }
+
     private removeRow = () => {
         const { selectedRows } = this.state;
         const values = [...this.state.values];
@@ -143,10 +167,18 @@ console.log(values);
     }
 
     private submit = () => {
-        const {values} = this.state;
-        const {annotationName, row} = this.props;
+        let {values} = this.state;
+        const {annotationName, annotationType, row} = this.props;
         if (annotationName && row) {
+            if (annotationType === ColumnType.DATETIME || annotationType === ColumnType.DATE) {
+                values = values
+                    .filter((v) => !!v)
+                    .map((m) => {
+                        return m instanceof Date ? m : m.toDate();
+                    });
+            }
             this.props.onOk(values, annotationName, row);
+            this.setState({visible: false});
         } else {
             this.setState({error: "AnnotationName or Row info not provided. Contact Software."});
         }

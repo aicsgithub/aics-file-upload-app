@@ -67,7 +67,6 @@ interface Props {
 interface CustomDataState {
     addValuesRow?: UploadJobTableRow;
     selectedRows: string[];
-    showAddValuesModal: boolean;
     sortColumn?: SortableColumns;
     sortDirection?: SortDirections;
 }
@@ -91,16 +90,16 @@ interface OnExpandArgs {
     rowIdx: number;
 }
 
-export interface FormatterProps {
+export interface FormatterProps<T> {
     isScrollable?: boolean;
-    row: UploadJobTableRow;
+    row: T;
     value?: any;
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {
     private readonly WELL_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps) => (
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => (
                 row.channel || !isEmpty(row.positionIndexes) ?
                     null :
                     this.renderFormat(
@@ -128,7 +127,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, "workflows", value),
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+                this.renderFormat(row, "workflows", value),
             key: "workflows",
             name: "Workflow(s)",
             resizable: true,
@@ -139,7 +139,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         super(props);
         this.state = {
             selectedRows: [],
-            showAddValuesModal: false,
         };
     }
 
@@ -239,7 +238,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private uploadColumns = (innerColumns: UploadJobColumn[]): UploadJobColumn[] => ([
         {
-            formatter: ({ row, value }: FormatterProps) =>
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
                 this.renderFormat(
                     row,
                     "file",
@@ -262,7 +261,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         ...innerColumns,
         {
             editable: true,
-            formatter: ({ row }: FormatterProps) => (
+            formatter: ({ row }: FormatterProps<UploadJobTableRow>) => (
                 <div className={styles.formatterContainer} onDrop={this.onDrop(row)}>
                     <NoteIcon
                         handleError={this.handleError}
@@ -325,19 +324,20 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             }
 
             if (specialCase) {
-              column.formatter = ({ row }: FormatterProps) => (
+              column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => (
                   <AddValuesModal
                       annotationName={templateAnnotation.name}
                       annotationType={type}
                       onOk={this.saveByRow}
                       row={row}
+                      values={value}
                   />
               );
             } else if (type === ColumnType.BOOLEAN) { // todo update this too
                 column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
-                column.formatter = ({ row, value }: FormatterProps) => (
+                column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => (
                     this.renderFormat(row, name, value, undefined, required)
                 );
             }
@@ -425,6 +425,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
 
     private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {
+        console.log(key);
         this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), { [key]: value });
     }
 

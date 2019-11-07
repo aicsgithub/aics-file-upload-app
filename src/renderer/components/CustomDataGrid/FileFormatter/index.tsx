@@ -4,13 +4,14 @@ import { basename } from "path";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
+import { UploadJobTableRow } from "../../../state/upload/types";
 
 import LabeledInput from "../../LabeledInput";
 import { FormatterProps } from "../index";
 
 const styles = require("./styles.pcss");
 
-interface Props extends FormatterProps {
+interface Props extends FormatterProps<UploadJobTableRow> {
     addScenes: (positionIndexes: number[], channels: Channel[]) => void;
     channelOptions: Channel[];
 }

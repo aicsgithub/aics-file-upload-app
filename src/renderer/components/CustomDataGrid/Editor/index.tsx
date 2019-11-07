@@ -1,6 +1,7 @@
-import { Input, InputNumber, Select } from "antd";
+import { DatePicker, Input, InputNumber, Select } from "antd";
 import * as classNames from "classnames";
 import { castArray, includes, isNil } from "lodash";
+import * as moment from "moment";
 import * as React from "react";
 
 import { ColumnType } from "../../../state/template/types";
@@ -33,7 +34,7 @@ const Editor: React.FunctionComponent<Props> = ({
     value,
 }: Props) => {
     const selectMode = allowMultipleValues ? "multiple" : "default";
-    onChange = includes([ColumnType.DATETIME, ColumnType.DATE, ColumnType.TEXT], type) ?
+    onChange = includes([ColumnType.TEXT], type) ?
         getOnChange(onChange) : onChange;
 
     if (allowMultipleValues) {
@@ -70,21 +71,17 @@ const Editor: React.FunctionComponent<Props> = ({
                     value={value}
                 />
             );
-        // TODO: Make Date & DateTime use either better style or a better component for date selection
-        // Here I am using the input date element because the components I tried thus far did not register
-        // a change of input before the focus changed back to the formatter thereby losing the selection
-        // - Sean M 8/14/19
         case ColumnType.DATE:
         case ColumnType.DATETIME:
             return (
-                <input
+                <DatePicker
                     autoFocus={true}
-                    className={classNames(styles.input, className)}
                     onChange={onChange}
-                    type={type === ColumnType.DATE ? "date" : "datetime-local"}
-                    value={value || undefined}
+                    value={moment(value)}
+                    showTime={type === ColumnType.DATETIME}
                 />
             );
+
         case ColumnType.BOOLEAN:
             return (
                 <BooleanFormatter
