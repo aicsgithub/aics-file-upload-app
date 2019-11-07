@@ -50,7 +50,7 @@ class PrinterFormatInput extends React.Component<PrinterFormatInputProps, {}> {
     });
 
     public static extractValues = (input: string): number[] | undefined => {
-        const scenes: number[] = [];
+        const values: number[] = [];
         if (!isEmpty(input)) {
             if (PrinterFormatInput.validateInput(input)) {
                 return undefined;
@@ -59,15 +59,15 @@ class PrinterFormatInput extends React.Component<PrinterFormatInputProps, {}> {
                 .map((position) => position.trim())
                 .forEach((position: string) => {
                     const range = position.split("-").map((num) => toNumber(num));
-                    scenes.push(range[0]);
+                    values.push(range[0]);
                     if (range.length > 1) {
                         for (let i = range[0] + 1; i <= range[1]; i += 1) {
-                            scenes.push(i);
+                            values.push(i);
                         }
                     }
                 });
         }
-        return uniq(scenes);
+        return uniq(values);
     }
 
     public render() {
