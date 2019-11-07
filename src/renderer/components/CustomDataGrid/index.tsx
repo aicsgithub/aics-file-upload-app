@@ -314,7 +314,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
                 templateAnnotation.canHaveManyValues;
 
-            if (type !== ColumnType.TEXT && !formatterNeedsModal) {
+            if (!formatterNeedsModal) {
                 column.editor = GridEditor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially

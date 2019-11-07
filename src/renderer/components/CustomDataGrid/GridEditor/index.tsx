@@ -24,7 +24,7 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
 }
 
 interface EditorState {
-    text?: string; // this is for the "number" input if multiple values allowed
+    text?: string; // this is for the number and string inputs if multiple values allowed
     value?: any;
 }
 
@@ -86,7 +86,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         <Input
                             autoFocus={true}
                             onBlur={this.onBlur}
-                            onChange={this.onStringInputChange}
+                            onChange={this.updateText}
                             style={{ width: "100%" }}
                             value={text}
                         />
@@ -100,6 +100,17 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                             value={value}
                         />
                     );
+                break;
+            case ColumnType.TEXT:
+                input = (
+                    <Input
+                        autoFocus={true}
+                        onBlur={this.onBlur}
+                        onChange={this.updateText}
+                        style={{ width: "100%" }}
+                        value={allowMultipleValues ? text : value}
+                    />
+                );
                 break;
             // TODO: Make Date & DateTime use either better style or a better component for date selection
             // Here I am using the input date element because the components I tried thus far did not register
@@ -169,7 +180,11 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     }
 
     private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ value: e.target.value });
+        let value: any = e.target.value;
+        if (this.props.column.allowMultipleValues) {
+            value = !isNil(value) ? this.parseStringArray(value) : [];
+        }
+        this.setState({ value });
     }
 
     private handleOnChange = (value: any) => {
@@ -178,15 +193,25 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     private onBlur = (e: ChangeEvent<HTMLInputElement>) => {
         const rawValue = e.target.value;
-        this.setState({value: this.parseNumberArray(rawValue)});
+        const value = this.props.column.type === ColumnType.NUMBER ?
+            this.parseNumberArray(rawValue) : this.parseStringArray(rawValue);
+        this.setState({value});
     }
 
-    private onStringInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    private updateText = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({text: e.target.value});
     }
 
     private onNumberInputChange = (value?: number) => {
         this.setState({ value });
+    }
+
+    private parseStringArray = (rawValue?: string) => {
+        if (!rawValue) {
+            return undefined;
+        }
+
+        return rawValue.split(",").map(trim).filter((v) => !!v);
     }
 
     private parseNumberArray = (rawValue?: string) => {
@@ -212,16 +237,17 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         return parsed;
     }
 
-    private formatNumberList = (numbers?: number | number[]) => {
-        const values = !isNil(numbers) ? castArray(numbers) : [];
+    private stringifyList = (list?: any) => {
+        const values = !isNil(list) ? castArray(list) : [];
         return values.join(", ");
     }
 
     private getStateFromProps = (props: EditorProps) => {
+        const { column: { type } } = props;
         let value;
         let text;
-        if (props.column.allowMultipleValues) {
-            text = this.formatNumberList(props.value);
+        if (props.column.allowMultipleValues && (type === ColumnType.NUMBER || type === ColumnType.TEXT)) {
+            text = this.stringifyList(props.value);
         } else {
             value = props.value;
             if (Array.isArray(value)) {
