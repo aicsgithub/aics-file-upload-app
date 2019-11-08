@@ -4,7 +4,7 @@ import PrinterFormatInput from "../index";
 
 describe("<PrinterFormatInput/>", () => {
     it("returns undefined if string is valid", () => {
-        const result = PrinterFormatInput.validateInput("4, 1, 3-10, 3-100, 1000-1004, 4, 7");
+        const result = PrinterFormatInput.validateInput("4, 1  ,  3 -  10, 3-100, 1000-1004, 4, 7");
         expect(result).to.be.undefined;
     });
 
