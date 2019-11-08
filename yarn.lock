@@ -919,7 +919,7 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
-"@types/react-data-grid@^4.0.4":
+"@types/react-data-grid@4.0.4":
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.4.tgz#234ff82ebae3af0cd7fc663bd6550476b2b54d3c"
   integrity sha512-s5tnTp6FUJVaqDIwY4vDhGHp9S8/lvONyULX6cRnkLH8Dx5aY5Xog3kCezMP9hZ65PMf6sAzYJqRQ9O84pwu2A==
@@ -8195,7 +8195,7 @@ react-bootstrap@^0.32.1:
     uncontrollable "^5.0.0"
     warning "^3.0.0"
 
-react-data-grid@^6.1.0:
+react-data-grid@6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/react-data-grid/-/react-data-grid-6.1.0.tgz#04f5a3032fd097c54cd494b000a366d5bad6b39d"
   integrity sha512-N1UtiHvsowEPzhx0VPqQKvGgSza/YNljczbisFDGMjawiGApS2taMv7h+EDXDx49CdaA6ur4eYS0z10x63IUpw==

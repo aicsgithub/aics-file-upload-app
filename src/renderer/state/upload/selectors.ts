@@ -17,6 +17,7 @@ import {
 } from "lodash";
 import { extname } from "path";
 import { createSelector } from "reselect";
+import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 
 import { getUploadJobNames } from "../job/selectors";
@@ -59,8 +60,8 @@ const convertToUploadJobRow = (metadata: UploadMetadata,
     positionIndexes,
     siblingIndex,
     treeDepth,
-    wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(", ") : "",
-    workflows: metadata.workflows ? metadata.workflows.join(", ") : "",
+    wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(LIST_DELIMITER_JOIN) : "",
+    workflows: metadata.workflows ? metadata.workflows.join(LIST_DELIMITER_JOIN) : "",
 });
 
 // there will be metadata for files, each scene in a file, each channel in a file, and every combo
@@ -302,7 +303,7 @@ export const getUploadJobName = createSelector([
         if (!workflows) {
             return "";
         }
-        const workflowNames = workflows.map((workflow) => workflow.name).join(", ");
+        const workflowNames = workflows.map((workflow) => workflow.name).join(LIST_DELIMITER_JOIN);
         const jobNamesForWorkflow = uploadJobNames.filter((name) => {
             // name could look like "barcode" or "barcode (1)". We want to get just "barcode"
             const workflowParts = name.match(numberOfJobsRegex);

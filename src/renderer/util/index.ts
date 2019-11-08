@@ -1,10 +1,14 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { constants, promises } from "fs";
 import {
+    castArray,
     forOwn,
     isFunction,
+    isNil,
     startCase,
+    trim,
 } from "lodash";
+import { LIST_DELIMITER_SPLIT } from "../constants";
 import { DragAndDropFileList } from "../state/selection/types";
 import { TemplateAnnotation } from "../state/template/types";
 
@@ -126,3 +130,19 @@ export const titleCase = (name?: string) => {
     const result = startCase(name);
     return result.replace(/\s([0-9]+)/g, "$1");
 };
+
+/**
+ * Works like lodash's castArray except that if value is undefined, it returns
+ * an empty array
+ * @param value value to convert to an array
+ */
+export const convertToArray = (value?: any): any[] => !isNil(value) ? castArray(value) : [];
+
+/**
+ * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters
+ * out falsy values
+ * @param {string} value
+ * @returns {any[]}
+ */
+export const splitTrimAndFilter = (value: string = ""): any[] =>
+    value.split(LIST_DELIMITER_SPLIT).map(trim).filter((v) => !!v);
