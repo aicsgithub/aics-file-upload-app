@@ -267,7 +267,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 name: "Notes",
                 width: 80,
             },
-        ]
+        ];
     }
 
     private getColumns = (): UploadJobColumn[] => {
@@ -425,7 +425,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private addScenes = (files: string[], positionIndexes: number[], channels: Channel[]) => {
         files.forEach((file: string) => {
-            const row = this.props.uploads.find(upload => upload.file === file);
+            const row = this.props.uploads.find((upload) => upload.file === file);
             this.props.updateScenes(row, positionIndexes, channels);
         });
     }
