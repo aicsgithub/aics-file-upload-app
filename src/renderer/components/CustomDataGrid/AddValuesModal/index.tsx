@@ -80,7 +80,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         super(props);
         this.state = {
             selectedRows: [],
-            values: props.values ? castArray(props.values) : [],
+            values: !isNil(props.values) ? castArray(props.values) : [],
             visible: false,
         };
     }
