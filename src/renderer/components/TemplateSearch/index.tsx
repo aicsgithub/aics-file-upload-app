@@ -1,14 +1,16 @@
 import { Select } from "antd";
+import { sortBy } from "lodash";
 import * as React from "react";
+
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 interface TemplateSearchProps {
     className?: string;
-    onSelect: (selectedTemplateName: string) => void;
+    onSelect: (selectedTemplateId: number) => void;
     templates: LabkeyTemplate[];
-    value?: string;
+    value?: number;
 }
 
 class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
@@ -19,6 +21,7 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
             templates,
             value,
         } = this.props;
+        const sortedTemplates = sortBy(templates, ["Name", "Version"]);
         return (
           <Select
             className={className}
@@ -27,8 +30,8 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
             showSearch={true}
             value={value}
           >
-              {templates.map(({Name: name}: LabkeyTemplate) => (
-                  <Select.Option key={name} value={name}>{name}</Select.Option>
+              {sortedTemplates.map(({Name: name, TemplateId: id, Version: version}: LabkeyTemplate) => (
+                  <Select.Option key={`${name}${version}`} value={id}>{name} (Version {version})</Select.Option>
               ))}
           </Select>
         );

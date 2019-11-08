@@ -39,6 +39,7 @@ describe("Upload logics", () => {
             const schema: LabkeyTemplate = {
                 Name: "My Template",
                 TemplateId: 1,
+                Version: 1,
             };
             let state = store.getState();
             expect(getAppliedTemplateId(state)).to.be.undefined;

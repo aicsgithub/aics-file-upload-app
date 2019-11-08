@@ -214,7 +214,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
-                        value={appliedTemplate ? appliedTemplate.name : undefined}
+                        value={appliedTemplate ? appliedTemplate.templateId : undefined}
                         onSelect={this.selectTemplate}
                         templates={templates}
                     />
@@ -229,8 +229,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private openTemplateEditor = () => this.props.openSchemaCreator();
     private openTemplateEditorWithId = (id: number) => () => this.props.openSchemaCreator(id);
 
-    private selectTemplate = (templateName: string) => {
-        const template = this.props.templates.find((t) => t.Name === templateName);
+    private selectTemplate = (templateId: number) => {
+        const template = this.props.templates.find((t) => t.TemplateId === templateId);
         if (template) {
             this.props.applyTemplate(template);
         }

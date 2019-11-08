@@ -43,6 +43,7 @@ export interface LabkeyResponse<T> {
 export interface LabkeyTemplate {
     Name: string;
     TemplateId: number;
+    Version: number;
 }
 
 export interface GetTablesResponseColumn {
