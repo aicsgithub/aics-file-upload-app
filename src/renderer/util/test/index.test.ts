@@ -2,7 +2,7 @@
 
 import { expect } from "chai";
 
-import { alphaOrderComparator, bindAll, titleCase } from "../";
+import { alphaOrderComparator, bindAll, convertToArray, titleCase } from "../";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
@@ -115,5 +115,32 @@ describe("General utilities", () => {
            const result = titleCase("cas 9 9");
            expect(result).to.equal("Cas99");
        });
+    });
+
+    describe("convertToArray", () => {
+        it("returns an empty array given undefined", () => {
+            const result = convertToArray(undefined);
+            expect(result).to.deep.equal([]);
+        });
+        it("returns an empty array given null", () => {
+            const result = convertToArray(null);
+            expect(result).to.deep.equal([]);
+        });
+        it("returns an array length=1 given empty string", () => {
+            const result = convertToArray("");
+            expect(result).to.deep.equal([""]);
+        });
+        it("returns an array length=1 array given 0", () => {
+            const result = convertToArray(0);
+            expect(result).to.deep.equal([0]);
+        });
+        it("returns an array length=1 array given false", () => {
+            const result = convertToArray(false);
+            expect(result).to.deep.equal([false]);
+        });
+        it("returns an array if passsed an array", () => {
+            const result = convertToArray(["bob"]);
+            expect(result).to.deep.equal(["bob"]);
+        });
     });
 });

@@ -1,6 +1,6 @@
 import { DatePicker, Input, InputNumber, Select } from "antd";
 import Logger from "js-logger";
-import { castArray, isNil, trim } from "lodash";
+import { trim } from "lodash";
 import * as moment from "moment";
 import { ChangeEvent } from "react";
 import * as React from "react";
@@ -8,6 +8,7 @@ import { editors } from "react-data-grid";
 import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 
 import { ColumnType } from "../../../state/template/types";
+import { convertToArray } from "../../../util";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const { Option } = Select;
@@ -222,10 +223,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         return parsed;
     }
 
-    private stringifyList = (list?: any) => {
-        const values = !isNil(list) ? castArray(list) : [];
-        return values.join(", ");
-    }
+    private stringifyList = (list?: any) => convertToArray(list).join(", ");
 
     private getStateFromProps = (props: EditorProps) => {
         const { column: { type } } = props;

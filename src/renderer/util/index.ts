@@ -1,8 +1,10 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { constants, promises } from "fs";
 import {
+    castArray,
     forOwn,
     isFunction,
+    isNil,
     startCase,
 } from "lodash";
 import { DragAndDropFileList } from "../state/selection/types";
@@ -126,3 +128,10 @@ export const titleCase = (name?: string) => {
     const result = startCase(name);
     return result.replace(/\s([0-9]+)/g, "$1");
 };
+
+/**
+ * Works like lodash's castArray except that if value is undefined, it returns
+ * an empty array
+ * @param value value to convert to an array
+ */
+export const convertToArray = (value?: any) => !isNil(value) ? castArray(value) : [];

@@ -1,6 +1,6 @@
 import { Alert, Button, DatePicker, Icon, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
-import { castArray, isEmpty, isNil, without } from "lodash";
+import { isEmpty, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
@@ -8,6 +8,7 @@ import * as ReactDataGrid from "react-data-grid";
 import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
+import { convertToArray } from "../../../util";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 import { FormatterProps } from "../index";
@@ -80,16 +81,14 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         super(props);
         this.state = {
             selectedRows: [],
-            values: !isNil(props.values) ? castArray(props.values) : [],
+            values: convertToArray(props.values),
             visible: false,
         };
     }
 
     public componentDidUpdate(prevProps: Props): void {
         if (prevProps.values !== this.props.values) {
-            this.setState({
-                values: this.props.values ? castArray(this.props.values) : [],
-            });
+            this.setState({ values: convertToArray(this.props.values) });
         }
     }
 
@@ -97,7 +96,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         const { annotationType } = this.props;
         const {error, selectedRows, values, visible} = this.state;
         let formattedValue;
-        const savedValues = !isNil(this.props.values) ? castArray(this.props.values) : [];
+        const savedValues = convertToArray(this.props.values);
         if (annotationType === ColumnType.DATE) {
             formattedValue = savedValues.map((v) => moment(v).format(DATE_FORMAT)).join(", ");
         } else if (annotationType === ColumnType.DATETIME) {
