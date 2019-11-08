@@ -249,7 +249,7 @@ const updateScenesLogic = createLogic({
         // add uploads that are new
         positionIndexes.forEach((positionIndex: number) => {
             const matchingSceneRow = existingUploadsForFile
-                .find((u: UploadMetadata) => !isNil(u.positionIndex) && isNil(u.channelId));
+                .find((u: UploadMetadata) => u.positionIndex === positionIndex && isNil(u.channelId));
 
             if (!matchingSceneRow) {
                 const sceneOnlyRowKey = getUploadRowKey(row.file, positionIndex);
