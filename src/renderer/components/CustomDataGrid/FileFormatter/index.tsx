@@ -1,11 +1,12 @@
 import { Alert, Icon, Modal, Select, Tooltip } from "antd";
-import { isEmpty, isNil, isNumber } from "lodash";
+import { isEmpty, isNil } from "lodash";
 import { basename } from "path";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
 
 import LabeledInput from "../../LabeledInput";
+import PrinterFormatInput from "../../PrinterFormatInput";
 import { FormatterProps } from "../index";
 
 const styles = require("./styles.pcss");
@@ -16,9 +17,10 @@ interface Props extends FormatterProps {
 }
 
 interface FileFormatterState {
+    errorMessage?: string;
     isEditing: boolean;
     showModal: boolean;
-    positionIndexes: number[];
+    positionIndexes: string;
     channels: Channel[];
 }
 
@@ -27,16 +29,24 @@ interface FileFormatterState {
  * opens a modal to add scenes and channels to the file.
  */
 class FileFormatter extends React.Component<Props, FileFormatterState> {
+    private static convertChannels(channelIds: number[] = [], channelOptions: Channel[]): Channel[] {
+        return channelIds
+            .map((id: number) => channelOptions.find((o: Channel) => o.channelId === id))
+            .filter(Boolean) as Channel[];
+    }
+
+    private static convertPositionIndexes(positionIndexes: number[] = []): string {
+        return positionIndexes ? positionIndexes.join(", ") : "";
+    }
 
     constructor(props: Props) {
         super(props);
-        const channels =  (props.row.channelIds ? props.row.channelIds
-            .map((id: number) => props.channelOptions.find((o) => o.channelId === id))
-            .filter((c?: Channel) => !!c) : []) as Channel[];
+        const { channelOptions, row: { channelIds, positionIndexes } } = props;
+        const channels =  FileFormatter.convertChannels(channelIds, channelOptions);
         this.state = {
             channels,
-            isEditing: !isEmpty(props.row.channelIds) || !isEmpty(props.row.positionIndexes),
-            positionIndexes: props.row.positionIndexes ? [...props.row.positionIndexes] : [],
+            isEditing: !isEmpty(channelIds) || !isEmpty(positionIndexes),
+            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
             showModal: false,
         };
     }
@@ -44,14 +54,8 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<FileFormatterState>): void {
         if (prevState.showModal !== this.state.showModal && this.state.showModal) {
             const {channelOptions, row: {channelIds, positionIndexes}} = this.props;
-            const channels =  (channelIds ? channelIds
-                .map((id: number) => channelOptions.find((o: Channel) => o.channelId === id))
-                .filter((c?: Channel) => !!c) : []) as Channel[];
-            this.setState({
-                channels,
-                isEditing: !isEmpty(channelIds) || !isEmpty(positionIndexes),
-                positionIndexes: positionIndexes ? [...positionIndexes] : [],
-            });
+            const channels =  FileFormatter.convertChannels(channelIds, channelOptions);
+            this.setState({ channels, positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes) });
         }
     }
 
@@ -63,6 +67,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         } = this.props;
         const {
             channels,
+            errorMessage,
             isEditing,
             positionIndexes,
             showModal,
@@ -90,8 +95,8 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         }
 
         const fileName = basename(value);
-        const title = isEditing ? `Edit Scenes and channels for \"${fileName}\"` :
-            `Add Scenes and channels to \"${fileName}\"`;
+        const action = isEditing ? "Update" : "Add";
+        const title = `${action} Scenes and channels for "${fileName}"`;
 
         return (
             <div>
@@ -107,37 +112,35 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                     width="50%"
                     title={title}
                     visible={showModal}
-                    onOk={this.addScenes}
+                    onOk={this.addSceneAndChannels}
                     onCancel={this.closeModal}
-                    okText={isEditing ? "Update" : "Add"}
+                    okText={action}
                     okButtonProps={{disabled: this.getOkButtonDisabled()}}
                 >
-                    <div className={styles.modalHelpText}>
+                    <p className={styles.modalHelpText}>
                         If this is a microscopy image (3i, czi, ome.tiff) you can add scene positions or channels.
                         This will allow you to add annotations for specific scenes and channels within a file.
-                    </div>
-                    {!isEditing && <Alert
-                        message="Adding scenes will clear out direct file-well associations made on the previous page"
+                    </p>
+                    <Alert
+                        className={styles.alert}
                         type="warning"
                         showIcon={true}
-                        className={styles.alert}
-                    />}
-                    <LabeledInput label="Scene Position(s) (Non-negative Numbers Only)">
-                        <Select
-                            className={styles.input}
-                            allowClear={true}
-                            onChange={this.selectScene}
-                            placeholder="Enter Scene Position(s)"
-                            mode="tags"
+                        closable={true}
+                        message="Adding scenes will clear out direct file-well associations made on the previous page"
+                    />
+                    <LabeledInput label="Scene Positions (ex. 1, 4, 5-10)">
+                        <PrinterFormatInput
                             value={positionIndexes}
+                            onEnter={this.enterScenes}
+                            placeholder="Enter Scene Positions"
                         />
                     </LabeledInput>
-                    <LabeledInput label="Channel(s)">
+                    <LabeledInput label="Channels">
                         <Select
                             className={styles.input}
                             allowClear={true}
                             onChange={this.selectChannel}
-                            placeholder="Select Channel(s)"
+                            placeholder="Select Channels"
                             mode="tags"
                             value={channels.map((channel) => channel.name)}
                         >
@@ -148,6 +151,12 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             ))}
                         </Select>
                     </LabeledInput>
+                    {errorMessage && (<Alert
+                        className={styles.alert}
+                        type="error"
+                        showIcon={true}
+                        message={errorMessage}
+                    />)}
                 </Modal>
             </div>
         );
@@ -159,31 +168,31 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         showModal: false,
     })
 
-    private addScenes = () => {
+    private addSceneAndChannels = () => {
         const { channels, positionIndexes } = this.state;
-        this.props.addScenes(positionIndexes, channels);
-        this.setState({
-            isEditing: !isEmpty(channels) || !isEmpty(positionIndexes),
-            showModal: false,
-        });
+        const scenes = PrinterFormatInput.extractValues(positionIndexes);
+        this.props.addScenes(scenes || [], channels);
+        this.setState({ showModal: false, isEditing: !isEmpty(scenes) || !isEmpty(channels) });
     }
 
     private selectChannel = (names: string[]) => {
         const channels = this.props.channelOptions.filter((channel) => names.includes(channel.name));
-        this.setState({channels});
+        this.setState({ channels });
     }
 
-    private selectScene = (positionIndexes: Array<number | string>) => {
-        this.setState({
-            positionIndexes: positionIndexes
-                .map((pi: number | string) => parseInt(`${pi}`, 10))
-                .filter((pi: number) => isNumber(pi) && pi > -1)});
+    private enterScenes = (positionIndexes: string, errorMessage: string | undefined) => {
+        this.setState({ positionIndexes, errorMessage });
     }
 
-    private getOkButtonDisabled = () => {
+    private getOkButtonDisabled = (): boolean => {
         const { channels, isEditing, positionIndexes } = this.state;
-        return !isEditing && isEmpty(positionIndexes) && isEmpty(channels);
+        const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
+        if (isEditing) {
+            return validationError;
+        }
+        return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
     }
+
 }
 
 export default FileFormatter;
