@@ -120,7 +120,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                 >
                     <ButtonGroup className={styles.buttons}>
                         <Button icon="plus" onClick={this.addRow}/>
-                        <Button icon="minus" onClick={this.removeRow}/>
+                        <Button icon="minus" onClick={this.removeRow} disabled={isEmpty(selectedRows)}/>
                     </ButtonGroup>
                     <ReactDataGrid
                         columns={this.columns}
@@ -176,13 +176,11 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     private removeRow = () => {
         const { selectedRows } = this.state;
         const values = [...this.state.values];
-        if (selectedRows.length) {
-            selectedRows.forEach((r) => values.splice(r, 1));
-            this.setState({
-                selectedRows: [],
-                values,
-            });
-        }
+        selectedRows.forEach((r) => values.splice(r, 1));
+        this.setState({
+            selectedRows: [],
+            values,
+        });
     }
 
     private selectRows = (rows: Array<{row: TableRow, rowIdx: number}>) => {
@@ -203,9 +201,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
             if (annotationType === ColumnType.DATETIME || annotationType === ColumnType.DATE) {
                 values = values
                     .filter((v) => !!v)
-                    .map((m) => {
-                        return m instanceof Date ? m : m.toDate();
-                    });
+                    .map((m) =>  m instanceof Date ? m : m.toDate());
             }
             this.props.onOk(values, annotationName, row);
             this.setState({visible: false});
