@@ -224,16 +224,6 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     private enterScenes = (positionIndexes: string, errorMessage: string | undefined) => {
         this.setState({ positionIndexes, errorMessage });
     }
-
-    private getOkButtonDisabled = (): boolean => {
-        const { channels, isEditing, positionIndexes } = this.state;
-        const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
-        if (isEditing) {
-            return validationError;
-        }
-        return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
-    }
-
 }
 
 export default FileFormatter;
