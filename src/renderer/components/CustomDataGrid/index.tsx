@@ -301,20 +301,19 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             }
 
             const type = annotationType.name;
+            // When an annotation can have multiple values and it is a Boolean, Date, or Datetime, we need more space.
+            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
+                templateAnnotation.canHaveManyValues;
             const column: UploadJobColumn = {
                 allowMultipleValues: templateAnnotation.canHaveManyValues,
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
-                editable: true,
+                editable: !formatterNeedsModal,
                 key: name,
                 name,
                 resizable: true,
                 type,
             };
-
-            // When an annotation can have multiple values and it is a Boolean, Date, or Datetime, we need more space.
-            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
-                templateAnnotation.canHaveManyValues;
 
             if (!formatterNeedsModal) {
                 column.editor = Editor;

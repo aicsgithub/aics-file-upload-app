@@ -1,6 +1,6 @@
 import { Alert, Button, DatePicker, Icon, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
-import { castArray, isEmpty, without } from "lodash";
+import { castArray, isEmpty, isNil, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
@@ -97,12 +97,13 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         const { annotationType } = this.props;
         const {error, selectedRows, values, visible} = this.state;
         let formattedValue;
+        const savedValues = !isNil(this.props.values) ? castArray(this.props.values) : [];
         if (annotationType === ColumnType.DATE) {
-            formattedValue = values.map((v) => moment(v).format(DATE_FORMAT)).join(", ");
+            formattedValue = savedValues.map((v) => moment(v).format(DATE_FORMAT)).join(", ");
         } else if (annotationType === ColumnType.DATETIME) {
-            formattedValue = values.map((v) => moment(v).format(DATETIME_FORMAT)).join(", ");
+            formattedValue = savedValues.map((v) => moment(v).format(DATETIME_FORMAT)).join(", ");
         } else {
-            formattedValue = values.map((v) => v ? "Yes" : "No").join(", ");
+            formattedValue = savedValues.map((v) => v ? "Yes" : "No").join(", ");
         }
 
         return (

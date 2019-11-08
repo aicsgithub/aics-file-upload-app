@@ -168,6 +168,8 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     private handleOnChange = (value: any) => {
         const { column: { type } } = this.props;
+
+        // antd's DatePicker passes a moment object rather than Date so we convert back here
         if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
             value = value instanceof Date ? value : value.toDate();
         }
