@@ -195,12 +195,11 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     // while this is not the ideal solution, this helps us stay consistent in the meantime
     private getInitialState = () => {
         const {channelOptions, row: {channelIds, file, positionIndexes}} = this.props;
-        console.log(`file: ${!isEmpty(channelIds) || !isEmpty(positionIndexes)}`);
         return {
             channels: FileFormatter.convertChannels(channelIds, channelOptions),
-            isEditing: !isEmpty(channelIds) || !isEmpty(positionIndexes),
             files: [file],
-            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes)
+            isEditing: !isEmpty(channelIds) || !isEmpty(positionIndexes),
+            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
         };
     }
 
@@ -213,7 +212,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     private selectFiles = (selectedFiles: string[]) => {
         const { fileOptions, row: { file } } = this.props;
-        const files = selectedFiles.filter((file) => fileOptions.includes(file));
+        const files = selectedFiles.filter((selectedFile) => fileOptions.includes(selectedFile));
         this.setState({ files: uniq([ file, ...files]) });
     }
 
