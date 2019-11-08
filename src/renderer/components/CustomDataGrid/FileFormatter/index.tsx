@@ -29,13 +29,13 @@ interface FileFormatterState {
  * opens a modal to add scenes and channels to the file.
  */
 class FileFormatter extends React.Component<Props, FileFormatterState> {
-    private static convertChannels(channelIds: number[], channelOptions: Channel[]): Channel[] {
-        return (channelIds ? channelIds
+    private static convertChannels(channelIds: number[] = [], channelOptions: Channel[]): Channel[] {
+        return channelIds
             .map((id: number) => channelOptions.find((o: Channel) => o.channelId === id))
-            .filter((c?: Channel) => !!c) : []) as Channel[];
+            .filter((c?: Channel) => !!c) as Channel[];
     }
 
-    private static convertPositionIndexes(positionIndexes: number[]): string {
+    private static convertPositionIndexes(positionIndexes: number[] = []): string {
         return positionIndexes ? positionIndexes.join(", ") : "";
     }
 
@@ -115,7 +115,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                     onOk={this.addSceneAndChannels}
                     onCancel={this.closeModal}
                     okText={action}
-                    okButtonProps={{disabled: Boolean(errorMessage)}}
+                    okButtonProps={{disabled: this.getOkButtonDisabled()}}
                 >
                     <p className={styles.modalHelpText}>
                         If this is a microscopy image (3i, czi, ome.tiff) you can add scene positions or channels.
@@ -128,18 +128,13 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                         closable={true}
                         message="Adding scenes will clear out direct file-well associations made on the previous page"
                     />
-                        <LabeledInput label="Scene Positions">
-                            <Tooltip
-                                placement="left"
-                                title="Use printer format to specify a range of values ex. 1, 4, 5-10"
-                            >
-                            <PrinterFormatInput
-                                value={positionIndexes}
-                                onEnter={this.enterScenes}
-                                placeholder="Enter scene positions"
-                            />
-                            </Tooltip>
-                        </LabeledInput>
+                    <LabeledInput label="Scene Positions (ex. 1, 4, 5-10)">
+                        <PrinterFormatInput
+                            value={positionIndexes}
+                            onEnter={this.enterScenes}
+                            placeholder="Enter Scene Positions"
+                        />
+                    </LabeledInput>
                     <LabeledInput label="Channels">
                         <Select
                             className={styles.input}
@@ -158,7 +153,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                     </LabeledInput>
                     {errorMessage && (<Alert
                         className={styles.alert}
-                        type="info"
+                        type="error"
                         showIcon={true}
                         message={errorMessage}
                     />)}
@@ -176,13 +171,8 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     private addSceneAndChannels = () => {
         const { channels, positionIndexes } = this.state;
         const scenes = PrinterFormatInput.extractValues(positionIndexes);
-        if (!scenes) {
-            const errorMessage = `Scenes appear to be invalid: ${PrinterFormatInput.validateInput(positionIndexes)}`;
-            this.setState({ errorMessage });
-        } else {
-            this.props.addScenes(scenes, channels);
-            this.setState({ showModal: false, isEditing: true });
-        }
+        this.props.addScenes(scenes || [], channels);
+        this.setState({ showModal: false, isEditing: !isEmpty(scenes) || !isEmpty(channels) });
     }
 
     private selectChannel = (names: string[]) => {
@@ -193,6 +183,16 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     private enterScenes = (positionIndexes: string, errorMessage: string | undefined) => {
         this.setState({ positionIndexes, errorMessage });
     }
+
+    private getOkButtonDisabled = (): boolean => {
+        const { channels, isEditing, positionIndexes } = this.state;
+        const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
+        if (isEditing) {
+            return validationError;
+        }
+        return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
+    }
+
 }
 
 export default FileFormatter;
