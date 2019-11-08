@@ -4,7 +4,7 @@ import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { pivotAnnotations } from "../../util";
+import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
@@ -192,7 +192,7 @@ const updateScenesLogic = createLogic({
         const uploads = getUpload(getState());
         const {channels, positionIndexes, row} = action.payload;
         const update: Partial<UploadStateBranch> = {};
-        const workflows = row.workflows.split(", ").filter((w: string) => !isEmpty(w));
+        const workflows = splitTrimAndFilter(row.workflows);
 
         const existingUploadsForFile = values(uploads).filter((u) => u.file === row.file);
         const fileUpload: UploadMetadata | undefined = existingUploadsForFile

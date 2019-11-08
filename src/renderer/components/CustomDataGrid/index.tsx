@@ -10,7 +10,7 @@ import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
 import NoteIcon from "../../components/NoteIcon";
-import { DATE_FORMAT, DATETIME_FORMAT } from "../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import { ExpandedRows, ToggleExpandedUploadJobRowAction, Well } from "../../state/selection/types";
@@ -35,8 +35,8 @@ import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
 
 import CellWithContextMenu from "./CellWithContextMenu";
-import FileFormatter from "./FileFormatter";
 import Editor from "./Editor";
+import FileFormatter from "./FileFormatter";
 import WellsFormatter from "./WellsFormatter";
 
 const styles = require("./style.pcss");
@@ -221,7 +221,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         let inner = childElement;
         if (!inner) {
             if (Array.isArray(value)) {
-                inner = value.join(", ");
+                inner = value.join(LIST_DELIMITER_JOIN);
             } else {
                 inner = value;
             }
@@ -344,7 +344,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             />
                         );
                     } else if (templateAnnotation.canHaveManyValues && value) {
-                        childEl = castArray(value).join(", ");
+                        childEl = castArray(value).join(LIST_DELIMITER_JOIN);
                     } else if (type === ColumnType.DATE && value) {
                         childEl = moment(value).format(DATE_FORMAT);
                     } else if (type === ColumnType.DATETIME && value) {

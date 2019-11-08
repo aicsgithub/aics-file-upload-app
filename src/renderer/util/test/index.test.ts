@@ -2,7 +2,7 @@
 
 import { expect } from "chai";
 
-import { alphaOrderComparator, bindAll, convertToArray, titleCase } from "../";
+import { alphaOrderComparator, bindAll, convertToArray, splitTrimAndFilter, titleCase } from "../";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
@@ -141,6 +141,17 @@ describe("General utilities", () => {
         it("returns an array if passsed an array", () => {
             const result = convertToArray(["bob"]);
             expect(result).to.deep.equal(["bob"]);
+        });
+    });
+
+    describe("splitTrimAndFilter", () => {
+        it("splits string on commas, trims whitespace", () => {
+            const result = splitTrimAndFilter("abc, de ,fg");
+            expect(result).to.deep.equal(["abc", "de", "fg"]);
+        });
+        it("returns empty array give comma", () => {
+            const result = splitTrimAndFilter(",");
+            expect(result).to.deep.equal([]);
         });
     });
 });

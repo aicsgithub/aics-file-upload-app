@@ -5,10 +5,10 @@ import * as moment from "moment";
 import { ChangeEvent } from "react";
 import * as React from "react";
 import { editors } from "react-data-grid";
-import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 
 import { ColumnType } from "../../../state/template/types";
-import { convertToArray } from "../../../util";
+import { convertToArray, splitTrimAndFilter } from "../../../util";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const { Option } = Select;
@@ -192,20 +192,14 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         this.setState({ value });
     }
 
-    private parseStringArray = (rawValue?: string) => {
-        if (!rawValue) {
-            return undefined;
-        }
-
-        return rawValue.split(",").map(trim).filter((v) => !!v);
-    }
+    private parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
 
     private parseNumberArray = (rawValue?: string) => {
         if (!rawValue) {
             return undefined;
         }
 
-        return rawValue.split(",")
+        return rawValue.split(LIST_DELIMITER_SPLIT)
             .map(this.parseNumber)
             .filter((v: number) => !Number.isNaN(v));
     }
@@ -223,7 +217,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         return parsed;
     }
 
-    private stringifyList = (list?: any) => convertToArray(list).join(", ");
+    private stringifyList = (list?: any) => convertToArray(list).join(LIST_DELIMITER_JOIN);
 
     private getStateFromProps = (props: EditorProps) => {
         const { column: { type } } = props;

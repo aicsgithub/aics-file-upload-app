@@ -5,7 +5,7 @@ import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
 
-import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../../constants";
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import { convertToArray } from "../../../util";
@@ -98,11 +98,13 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         let formattedValue;
         const savedValues = convertToArray(this.props.values);
         if (annotationType === ColumnType.DATE) {
-            formattedValue = savedValues.map((v) => moment(v).format(DATE_FORMAT)).join(", ");
+            formattedValue = savedValues
+                .map((v) => moment(v).format(DATE_FORMAT)).join(LIST_DELIMITER_JOIN);
         } else if (annotationType === ColumnType.DATETIME) {
-            formattedValue = savedValues.map((v) => moment(v).format(DATETIME_FORMAT)).join(", ");
+            formattedValue = savedValues
+                .map((v) => moment(v).format(DATETIME_FORMAT)).join(LIST_DELIMITER_JOIN);
         } else {
-            formattedValue = savedValues.map((v) => v ? "Yes" : "No").join(", ");
+            formattedValue = savedValues.map((v) => v ? "Yes" : "No").join(LIST_DELIMITER_JOIN);
         }
 
         return (
