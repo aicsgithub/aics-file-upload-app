@@ -167,9 +167,9 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             mode="tags"
                             value={channels.map((channel) => channel.name)}
                         >
-                            {channelOptions.map((channel: Channel) => (
-                                <Select.Option key={channel.name} value={channel.name}>
-                                    {channel.name}
+                            {channelOptions.map(({ name }: Channel) => (
+                                <Select.Option key={name} value={name}>
+                                    {name}
                                 </Select.Option>
                             ))}
                         </Select>
@@ -191,8 +191,6 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         showModal: false,
     })
 
-    // Custom data grid has some funky loading going on to optimize when/which rows get re-loaded at what time,
-    // while this is not the ideal solution, this helps us stay consistent in the meantime
     private getInitialState = () => {
         const {channelOptions, row: {channelIds, file, positionIndexes}} = this.props;
         return {
@@ -207,7 +205,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         const { channels, files, positionIndexes } = this.state;
         const scenes = PrinterFormatInput.extractValues(positionIndexes);
         this.props.addScenes(files, scenes || [], channels);
-        this.setState({ showModal: false, isEditing: true });
+        this.setState({ showModal: false, isEditing: !isEmpty(channels) || !isEmpty(positionIndexes) });
     }
 
     private selectFiles = (selectedFiles: string[]) => {
@@ -223,6 +221,15 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     private enterScenes = (positionIndexes: string, errorMessage: string | undefined) => {
         this.setState({ positionIndexes, errorMessage });
+    }
+
+    private getOkButtonDisabled = (): boolean => {
+        const { channels, isEditing, positionIndexes } = this.state;
+        const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
+        if (isEditing) {
+            return validationError;
+        }
+        return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
     }
 }
 
