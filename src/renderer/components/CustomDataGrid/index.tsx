@@ -215,8 +215,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             required?: boolean,
                             className?: string,
                             contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>): React.ReactElement => {
-        const error = required && !this.props.fileToAnnotationHasValueMap[row.file][label] ?
-            `${label} is required` : undefined;
+        const showError = required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+        const error = showError ? `${label} is required` : undefined;
         let inner = childElement;
         if (!inner) {
             if (Array.isArray(value)) {
