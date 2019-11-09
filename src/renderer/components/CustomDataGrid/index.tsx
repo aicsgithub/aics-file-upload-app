@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, get, includes, isEmpty, without } from "lodash";
+import { castArray, get, includes, isEmpty, trim, without } from "lodash";
 import * as moment from "moment";
 import { basename } from "path";
 import * as React from "react";
@@ -10,16 +10,11 @@ import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
 import NoteIcon from "../../components/NoteIcon";
-import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import { ExpandedRows, ToggleExpandedUploadJobRowAction, Well } from "../../state/selection/types";
-import {
-    AnnotationType,
-    ColumnType,
-    Template,
-    TemplateAnnotation,
-} from "../../state/template/types";
+import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../state/template/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import {
     RemoveUploadsAction,
@@ -29,7 +24,7 @@ import {
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
-import { getWellLabel, onDrop } from "../../util";
+import { getWellLabel, onDrop, splitTrimAndFilter } from "../../util";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
@@ -40,8 +35,8 @@ import FileFormatter from "./FileFormatter";
 import WellsFormatter from "./WellsFormatter";
 
 const styles = require("./style.pcss");
-const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DATETIME];
 
+const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DATETIME];
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
@@ -76,6 +71,7 @@ interface CustomDataState {
 interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
     allowMultipleValues?: boolean;
     dropdownValues?: string[];
+    onChange?: (value: any, key: keyof UploadJobTableRow, row: UploadJobTableRow) => void;
     type?: ColumnType;
 }
 
@@ -311,6 +307,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 editable: !formatterNeedsModal,
                 key: name,
                 name,
+                onChange: this.saveByRow,
                 resizable: true,
                 type,
             };
@@ -436,8 +433,44 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         };
     }
 
-    private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {
+    private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow,
+                         type?: ColumnType, allowMultipleValues?: boolean) => {
+        const endsWithComma = trim(value).endsWith(",");
+        // antd's DatePicker passes a moment object rather than Date so we convert back here
+        if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
+            value = value instanceof Date || !value ? value : value.toDate();
+        } else if (type === ColumnType.NUMBER && allowMultipleValues && !endsWithComma) {
+            value = this.parseNumberArray(value);
+        } else if (type === ColumnType.TEXT && allowMultipleValues && !endsWithComma) {
+            value = this.parseStringArray(value);
+        }
+
         this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), { [key]: value });
+    }
+
+    private parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
+
+    private parseNumberArray = (rawValue?: string) => {
+        if (!rawValue) {
+            return undefined;
+        }
+
+        return rawValue.split(LIST_DELIMITER_SPLIT)
+            .map(this.parseNumber)
+            .filter((v: number) => !Number.isNaN(v));
+    }
+
+    // returns int if no decimals and float if not
+    private parseNumber = (n: string) => {
+        const trimmed = trim(n);
+        let parsed = parseFloat(trimmed);
+
+        // convert to int if no decimals
+        if (parsed % 1 !== 0) {
+            parsed = parseInt(trimmed, 10);
+        }
+
+        return parsed;
     }
 
     private handleError = (error: string) => {
