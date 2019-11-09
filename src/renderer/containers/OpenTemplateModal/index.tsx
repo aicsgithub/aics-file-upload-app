@@ -69,14 +69,9 @@ class OpenTemplateModal extends React.Component<OpenTemplateModalProps, {}> {
         );
     }
 
-    private openTemplateEditor = (templateName: string): void => {
-        const template = this.props.templates.find((t) => t.Name === templateName);
-        if (template) {
-            this.props.openTemplateEditor(template.TemplateId);
-            this.props.close();
-        } else {
-            throw new Error("Could not find templateId");
-        }
+    private openTemplateEditor = (templateId: number): void => {
+        this.props.openTemplateEditor(templateId);
+        this.props.close();
     }
 }
 
