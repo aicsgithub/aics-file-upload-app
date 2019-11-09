@@ -341,7 +341,20 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             />
                         );
                     } else if (templateAnnotation.canHaveManyValues && value) {
-                        childEl = castArray(value).join(LIST_DELIMITER_JOIN);
+                        childEl = castArray(value)
+                            .map((v: any) => {
+                                switch (type) {
+                                    case ColumnType.DATETIME:
+                                        return moment(v).format(DATETIME_FORMAT);
+                                    case ColumnType.DATE:
+                                        return moment(v).format(DATE_FORMAT);
+                                    case ColumnType.BOOLEAN:
+                                        return v ? "Yes" : "No";
+                                    default:
+                                        return v;
+                                }
+                            })
+                            .join(LIST_DELIMITER_JOIN);
                     } else if (type === ColumnType.DATE && value) {
                         childEl = moment(value).format(DATE_FORMAT);
                     } else if (type === ColumnType.DATETIME && value) {

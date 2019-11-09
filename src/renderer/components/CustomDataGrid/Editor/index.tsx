@@ -101,7 +101,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                     autoFocus={true}
                     format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
                     onChange={this.handleOnChange}
-                    value={moment(value)}
+                    value={value ? moment(value) : undefined}
                     showTime={type === ColumnType.DATETIME}
                     style={{ width: "100%" }}
                   />

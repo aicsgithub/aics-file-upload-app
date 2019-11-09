@@ -48,6 +48,29 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
     return !isEmpty(past);
 });
 
+const EXCLUDED_UPLOAD_FIELDS = [
+    "barcode",
+    "channel",
+    "file",
+    "key",
+    "plateId",
+    "positionIndex",
+    "templateId",
+    "wellLabels",
+];
+
+// this matches the metadata annotations to the ones in the database and removes
+// extra stuff that does not have annotations associated with it but is needed for UI display
+const standardizeUploadMetadata = (metadata: UploadMetadata) => {
+    const strippedMetadata = omit(metadata, EXCLUDED_UPLOAD_FIELDS);
+    const result: any = {};
+    forEach(strippedMetadata, (value: any, key: string) => {
+        result[titleCase(key)] = value;
+    });
+
+    return result;
+};
+
 const convertToUploadJobRow = (
     metadata: UploadMetadata,
     numberSiblings: number,
@@ -62,7 +85,9 @@ const convertToUploadJobRow = (
     // convert arrays to strings
     const formattedMetadata: UploadMetadata = {...metadata};
     if (template && annotationTypes) {
-        forEach(metadata, (value: any, key: string) => {
+        console.log(template.annotations.map((a) => a.name));
+        console.log(standardizeUploadMetadata(metadata))
+        forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === key);
 
             if (!templateAnnotation) {
@@ -79,12 +104,12 @@ const convertToUploadJobRow = (
             }
 
             const type = annotationType.name;
+            // When a text or number annotation has supports multiple values, the editor will be
+            // an Input so we need to convert arrays to strings
             const formatList = templateAnnotation && templateAnnotation.canHaveManyValues && Array.isArray(value) &&
                 (type === ColumnType.TEXT || type === ColumnType.NUMBER);
             if (formatList) {
                 formattedMetadata[key] = value.join(LIST_DELIMITER_JOIN);
-            } else if (Array.isArray(value)) {
-                formattedMetadata[key] = value.length ? value[0] : undefined;
             }
         });
     }
@@ -259,20 +284,10 @@ export const getCanSave = createSelector([
     return isValid;
 });
 
-const EXCLUDED_UPLOAD_FIELDS = [
-    "barcode",
-    "channel",
-    "file",
-    "key",
-    "plateId",
-    "positionIndex",
-    "templateId",
-    "wellLabels",
-];
 // the userData relates to the same file but differs for scene/channel combinations
 const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): MMSAnnotationValueRequest[] => {
     return flatMap(metadata, (metadatum: UploadMetadata) => {
-        const customData = omit(metadatum, EXCLUDED_UPLOAD_FIELDS);
+        const customData = standardizeUploadMetadata(metadatum);
         const result: MMSAnnotationValueRequest[] = [];
         forEach(customData, (value: any, annotationName: string) => {
             const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
