@@ -80,7 +80,7 @@ describe("Template Logics", () => {
 
             store.dispatch(addExistingAnnotation({
                 ...mockFavoriteColorAnnotation,
-                annotationTypeId: 3,
+                annotationTypeId: 6,
             }));
 
             state = store.getState();
@@ -100,7 +100,7 @@ describe("Template Logics", () => {
 
             store.dispatch(addExistingAnnotation({
                 ...mockFavoriteColorAnnotation,
-                annotationTypeId: 3,
+                annotationTypeId: 6,
             }));
 
             state = store.getState();

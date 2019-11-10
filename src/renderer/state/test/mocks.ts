@@ -146,31 +146,47 @@ export const mockWellUpload: UploadStateBranch = {
     },
 };
 
+export const mockTextAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 56,
+    annotationTypeId: 1,
+    canHaveManyValues: true,
+    description: "some description",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Another Garbage Text Annotation",
+    required: false,
+};
+
+export const mockDateAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 68,
+    annotationTypeId: 4,
+    canHaveManyValues: true,
+    description: "dob - for testing",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Birth Date",
+    required: false,
+};
+
+export const mockNumberAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 64,
+    annotationTypeId: 2,
+    canHaveManyValues: true,
+    description: "for testing number annotations",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Clone Number Garbage",
+    required: false,
+};
+
 export const mockTemplateWithManyValues: Template = {
     ...mockAuditInfo,
     annotations: [
-        {
-            ...mockAuditInfo,
-            annotationId: 56,
-            annotationTypeId: 1,
-            canHaveManyValues: true,
-            description: "some description",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Another Garbage Text Annotation",
-            required: false,
-        },
-        {
-            ...mockAuditInfo,
-            annotationId: 68,
-            annotationTypeId: 4,
-            canHaveManyValues: true,
-            description: "dob - for testing",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Birth Date",
-            required: false,
-        },
+        mockTextAnnotation,
+        mockDateAnnotation,
         {
             ...mockAuditInfo,
             annotationId: 2,
@@ -186,17 +202,7 @@ export const mockTemplateWithManyValues: Template = {
             name: "Cas9",
             required: false,
         },
-        {
-            ...mockAuditInfo,
-            annotationId: 64,
-            annotationTypeId: 2,
-            canHaveManyValues: true,
-            description: "for testing number annotations",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Clone Number Garbage",
-            required: false,
-        },
+        mockNumberAnnotation,
         {
             ...mockAuditInfo,
             annotationId: 61,
@@ -485,15 +491,27 @@ export const mockAnnotationTypes: AnnotationType[] = [
     },
     {
         annotationTypeId: 2,
-        name: ColumnType.BOOLEAN,
+        name: ColumnType.NUMBER,
     },
     {
         annotationTypeId: 3,
-        name: ColumnType.LOOKUP,
+        name: ColumnType.BOOLEAN,
     },
     {
         annotationTypeId: 4,
+        name: ColumnType.DATETIME,
+    },
+    {
+        annotationTypeId: 5,
         name: ColumnType.DROPDOWN,
+    },
+    {
+        annotationTypeId: 6,
+        name: ColumnType.LOOKUP,
+    },
+    {
+        annotationTypeId: 7,
+        name: ColumnType.DATE,
     },
 ];
 
