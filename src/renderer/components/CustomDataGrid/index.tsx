@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, get, includes, isEmpty, trim, without } from "lodash";
+import { castArray, get, includes, isEmpty, without } from "lodash";
 import * as moment from "moment";
 import { basename } from "path";
 import * as React from "react";
@@ -10,7 +10,7 @@ import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
 import NoteIcon from "../../components/NoteIcon";
-import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import { ExpandedRows, ToggleExpandedUploadJobRowAction, Well } from "../../state/selection/types";
@@ -24,7 +24,7 @@ import {
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
-import { getWellLabel, onDrop, splitTrimAndFilter } from "../../util";
+import { getWellLabel, onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
@@ -59,6 +59,7 @@ interface Props {
     updateUpload: ActionCreator<UpdateUploadAction>;
     updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
+    validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
 
 interface CustomDataState {
@@ -212,8 +213,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             required?: boolean,
                             className?: string,
                             contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>): React.ReactElement => {
-        const showError = required && !this.props.fileToAnnotationHasValueMap[row.file][label];
-        const error = showError ? `${label} is required` : undefined;
+        // If a required field is not filled out, show error for that first.
+        // If filled out but there is additional issues like misformatted lists (e.g. "a, b, c,")
+        // then show a error related to that.
+        const { validationErrors } = this.props;
+        const showFieldIsRequiredError = required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+        let error;
+        if (showFieldIsRequiredError) {
+            error = `${label} is required`;
+        } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
+            error = validationErrors[row.key][label];
+        }
+
         let inner = childElement;
         if (!inner) {
             if (Array.isArray(value)) {
@@ -348,8 +359,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                                         return moment(v).format(DATETIME_FORMAT);
                                     case ColumnType.DATE:
                                         return moment(v).format(DATE_FORMAT);
-                                    case ColumnType.BOOLEAN:
-                                        return v ? "Yes" : "No";
                                     default:
                                         return v;
                                 }
@@ -446,44 +455,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         };
     }
 
-    private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow,
-                         type?: ColumnType, allowMultipleValues?: boolean) => {
-        const endsWithComma = trim(value).endsWith(",");
-        // antd's DatePicker passes a moment object rather than Date so we convert back here
-        if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
-            value = value instanceof Date || !value ? value : value.toDate();
-        } else if (type === ColumnType.NUMBER && allowMultipleValues && !endsWithComma) {
-            value = this.parseNumberArray(value);
-        } else if (type === ColumnType.TEXT && allowMultipleValues && !endsWithComma) {
-            value = this.parseStringArray(value);
-        }
-
+    private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {
         this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), { [key]: value });
-    }
-
-    private parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
-
-    private parseNumberArray = (rawValue?: string) => {
-        if (!rawValue) {
-            return undefined;
-        }
-
-        return rawValue.split(LIST_DELIMITER_SPLIT)
-            .map(this.parseNumber)
-            .filter((v: number) => !Number.isNaN(v));
-    }
-
-    // returns int if no decimals and float if not
-    private parseNumber = (n: string) => {
-        const trimmed = trim(n);
-        let parsed = parseFloat(trimmed);
-
-        // convert to int if no decimals
-        if (parsed % 1 !== 0) {
-            parsed = parseInt(trimmed, 10);
-        }
-
-        return parsed;
     }
 
     private handleError = (error: string) => {

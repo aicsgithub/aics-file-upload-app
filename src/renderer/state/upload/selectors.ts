@@ -146,7 +146,7 @@ const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: Tem
             siblingIndex,
             1,
             template,
-            annotationTypes,
+            annotationTypes
         ));
 };
 

@@ -832,6 +832,37 @@ describe("Upload selectors", () => {
     });
 
     describe("getValidationErrorsMap", () => {
+        it("returns empty object if no validation errors", () => {
+            const uploadRowKey = getUploadRowKey("/path/to/file1");
+            const result = getValidationErrorsMap({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: mockTemplateWithManyValues,
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Another Garbage Text Annotation": ["valid", "valid"],
+                        "Birth Date": [new Date()],
+                        "Cas9": [],
+                        "Clone Number Garbage": [1, 2, 3],
+                        "Dropdown": undefined,
+                        "Qc": [false],
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+            expect(result).to.deep.equal({});
+        });
         it("sets error if a multi-value annotation is not an array", () => {
             const uploadRowKey = getUploadRowKey("/path/to/file1");
             const result = getValidationErrorsMap({

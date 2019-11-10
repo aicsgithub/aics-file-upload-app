@@ -14,8 +14,7 @@ const { Option } = Select;
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
     allowMultipleValues?: boolean;
     dropdownValues?: string[];
-    onChange?: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow,
-                type?: ColumnType, allowMultipleValues?: boolean) => void;
+    onChange?: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
     type?: ColumnType;
 }
 
@@ -154,16 +153,10 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
     }
 
     private handleOnChange = (value: any) => {
-        const { column: { allowMultipleValues, key, type, onChange }, rowData } = this.props;
-
-        let formattedValue = value;
-        if (type === ColumnType.NUMBER && value) {
-            // Remove anything that isn't a number, comma, or whitespace
-            formattedValue = value.replace(/[^0-9,\s]/g, "");
-        }
+        const { column: { key, onChange }, rowData } = this.props;
 
         if (onChange) {
-            onChange(formattedValue, key, rowData, type, allowMultipleValues);
+            onChange(value, key, rowData);
         }
     }
 }

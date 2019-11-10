@@ -195,14 +195,9 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     }
 
     private submit = () => {
-        let {values} = this.state;
-        const {annotationName, annotationType, row} = this.props;
+        const {values} = this.state;
+        const {annotationName, row} = this.props;
         if (annotationName && row) {
-            if (annotationType === ColumnType.DATETIME || annotationType === ColumnType.DATE) {
-                values = values
-                    .filter((v) => !!v)
-                    .map((m) =>  m instanceof Date ? m : m.toDate());
-            }
             this.props.onOk(values, annotationName, row);
             this.setState({visible: false});
         } else {
