@@ -85,8 +85,6 @@ const convertToUploadJobRow = (
     // convert arrays to strings
     const formattedMetadata: UploadMetadata = {...metadata};
     if (template && annotationTypes) {
-        console.log(template.annotations.map((a) => a.name));
-        console.log(standardizeUploadMetadata(metadata))
         forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === key);
 
@@ -138,7 +136,7 @@ const getFileToMetadataMap = createSelector([
 });
 
 const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: Template,
-                            annotationTypes?: AnnotationType[],) => {
+                            annotationTypes?: AnnotationType[]) => {
     const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
     const sceneOnlyRows = allMetadataForFile.filter(isSceneOnlyRow);
     return channelMetadata.map((c: UploadMetadata, siblingIndex: number) =>
@@ -254,16 +252,49 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
     }
 );
 
+export const getValidationErrorsMap = createSelector([
+    getUpload,
+    getCompleteAppliedTemplate,
+], (upload: UploadStateBranch, template?: Template) => {
+    if (!template) {
+        return {};
+    }
+
+    const result: any = {};
+    forEach(upload, (metadata: UploadMetadata, key: string) => {
+        const annotationToErrorMap: {[annotation: string]: string} = {};
+        forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
+            const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
+            if (templateAnnotation) {
+                if (templateAnnotation.canHaveManyValues && !isNil(value) && !Array.isArray(value)) {
+                    annotationToErrorMap[annotationName] = "Invalid format";
+                }
+            }
+        });
+
+        if (keys(annotationToErrorMap).length) {
+            result[key] = annotationToErrorMap;
+        }
+    });
+    return result;
+});
+
 export const getCanSave = createSelector([
     getUploadSummaryRows,
     getFileToAnnotationHasValueMap,
+    getValidationErrorsMap,
     getCompleteAppliedTemplate,
 ], (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}},
+    validationErrorsMap: {[key: string]: {[annotation: string]: string}},
     template?: Template
 ): boolean => {
     if (!template || !rows.length) {
+        return false;
+    }
+
+    if (keys(validationErrorsMap).length) {
         return false;
     }
 

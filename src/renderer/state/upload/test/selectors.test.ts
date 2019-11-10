@@ -10,6 +10,8 @@ import {
     mockNotesAnnotation,
     mockSelection,
     mockState,
+    mockTemplateStateBranch,
+    mockTemplateWithManyValues,
     mockWellAnnotation,
     nonEmptyJobStateBranch,
     nonEmptyStateForInitiatingUpload,
@@ -17,7 +19,13 @@ import {
 import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 
-import { getFileToAnnotationHasValueMap, getUploadJobName, getUploadPayload, getUploadSummaryRows } from "../selectors";
+import {
+    getFileToAnnotationHasValueMap,
+    getUploadJobName,
+    getUploadPayload,
+    getUploadSummaryRows,
+    getValidationErrorsMap,
+} from "../selectors";
 import { FileType, MMSAnnotationValueRequest } from "../types";
 
 const orderAnnotationValueRequests = (annotations: MMSAnnotationValueRequest[]) => {
@@ -819,6 +827,46 @@ describe("Upload selectors", () => {
                 file: true,
                 wellIds: true,
                 wellLabels: true,
+            });
+        });
+    });
+
+    describe("getValidationErrorsMap", () => {
+        it("sets error if a multi-value annotation is not an array", () => {
+            const uploadRowKey = getUploadRowKey("/path/to/file1");
+            const result = getValidationErrorsMap({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: mockTemplateWithManyValues,
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Another Garbage Text Annotation": "should, not, be, a, string",
+                        "Birth Date": [new Date()],
+                        "Cas9": [],
+                        "Clone Number Garbage": "1, 2, 3,",
+                        "Dropdown": undefined,
+                        "Qc": [false],
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+            const error = "Invalid format";
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    "Another Garbage Text Annotation": error,
+                    "Clone Number Garbage": error,
+                },
             });
         });
     });

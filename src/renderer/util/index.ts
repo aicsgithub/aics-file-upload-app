@@ -114,7 +114,11 @@ export const pivotAnnotations = (annotations: TemplateAnnotation[], booleanAnnot
     return annotations.reduce((accum: any, a: TemplateAnnotation) => {
         let value;
         if (a.annotationTypeId === booleanAnnotationTypeId) {
-            value = false;
+            if (a.canHaveManyValues) {
+                value = [false];
+            } else {
+                value = false;
+            }
         } else if (a.canHaveManyValues) {
             value = [];
         }
