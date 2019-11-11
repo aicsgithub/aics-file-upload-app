@@ -442,12 +442,44 @@ export const mockFailedCopyJob: JSSJob = {
     status: "FAILED",
 };
 
+export const mockAnnotationTypes: AnnotationType[] = [
+    {
+        annotationTypeId: 1,
+        name: ColumnType.TEXT,
+    },
+    {
+        annotationTypeId: 2,
+        name: ColumnType.NUMBER,
+    },
+    {
+        annotationTypeId: 3,
+        name: ColumnType.BOOLEAN,
+    },
+    {
+        annotationTypeId: 4,
+        name: ColumnType.DATETIME,
+    },
+    {
+        annotationTypeId: 5,
+        name: ColumnType.DROPDOWN,
+    },
+    {
+        annotationTypeId: 6,
+        name: ColumnType.LOOKUP,
+    },
+    {
+        annotationTypeId: 7,
+        name: ColumnType.DATE,
+    },
+];
+
 export const mockPendingJob: PendingJob = {
     ...mockWorkingUploadJob,
     uploads: getUploadPayload({
         ...mockState,
         metadata: {
             ...mockState.metadata,
+            annotationTypes: mockAnnotationTypes,
             annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
         },
         template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
@@ -481,37 +513,6 @@ export const mockAnnotationLookups: AnnotationLookup[] = [
     {
         annotationId: 1,
         lookupId: 1,
-    },
-];
-
-export const mockAnnotationTypes: AnnotationType[] = [
-    {
-        annotationTypeId: 1,
-        name: ColumnType.TEXT,
-    },
-    {
-        annotationTypeId: 2,
-        name: ColumnType.NUMBER,
-    },
-    {
-        annotationTypeId: 3,
-        name: ColumnType.BOOLEAN,
-    },
-    {
-        annotationTypeId: 4,
-        name: ColumnType.DATETIME,
-    },
-    {
-        annotationTypeId: 5,
-        name: ColumnType.DROPDOWN,
-    },
-    {
-        annotationTypeId: 6,
-        name: ColumnType.LOOKUP,
-    },
-    {
-        annotationTypeId: 7,
-        name: ColumnType.DATE,
     },
 ];
 

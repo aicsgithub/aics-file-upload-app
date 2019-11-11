@@ -13,10 +13,12 @@ import {
     some,
     uniq,
     values,
-    without
+    without,
 } from "lodash";
+import * as moment from "moment";
 import { extname } from "path";
 import { createSelector } from "reselect";
+
 import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 
@@ -26,7 +28,7 @@ import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } fr
 
 import { ExpandedRows, Workflow } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
-import { AnnotationType, ColumnType, Template } from "../template/types";
+import { AnnotationType, ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
 import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -76,15 +78,14 @@ const convertToUploadJobRow = (
     numberSiblings: number,
     siblingIndex: number,
     treeDepth: number,
-    template?: Template,
-    annotationTypes?: AnnotationType[],
+    template?: TemplateWithTypeNames,
     hasSubRows: boolean = false,
     channelIds: number[] = [],
     positionIndexes: number[] = []
 ): UploadJobTableRow => {
     // convert arrays to strings
     const formattedMetadata: UploadMetadata = {...metadata};
-    if (template && annotationTypes) {
+    if (template) {
         forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === key);
 
@@ -92,16 +93,7 @@ const convertToUploadJobRow = (
                 throw new Error("Could not get template annotation named " + key);
             }
 
-            const annotationType = annotationTypes.find((a) =>
-                a.annotationTypeId === templateAnnotation.annotationTypeId);
-
-            if (!annotationType) {
-                throw new Error(
-                    `Could not get annotation type for annotation ${templateAnnotation.name}. Contact Software`
-                );
-            }
-
-            const type = annotationType.name;
+            const { type } = templateAnnotation;
             // When a text or number annotation has supports multiple values, the editor will be
             // an Input so we need to convert arrays to strings
             const formatList = templateAnnotation && templateAnnotation.canHaveManyValues && Array.isArray(value) &&
@@ -135,8 +127,7 @@ const getFileToMetadataMap = createSelector([
     return groupBy(values(uploads), ({file}: UploadMetadata) => file);
 });
 
-const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: Template,
-                            annotationTypes?: AnnotationType[]) => {
+const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: TemplateWithTypeNames) => {
     const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
     const sceneOnlyRows = allMetadataForFile.filter(isSceneOnlyRow);
     return channelMetadata.map((c: UploadMetadata, siblingIndex: number) =>
@@ -145,14 +136,12 @@ const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: Tem
             channelMetadata.length + sceneOnlyRows.length,
             siblingIndex,
             1,
-            template,
-            annotationTypes
+            template
         ));
 };
 
 const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRows: number,
-                      expandedRows: ExpandedRows, file: string, template?: Template,
-                      annotationTypes?: AnnotationType[]) => {
+                      expandedRows: ExpandedRows, file: string, template?: TemplateWithTypeNames) => {
     const sceneRows: UploadJobTableRow[] = [];
     const sceneMetadata = allMetadataForFile.filter(isSceneRow);
     const metadataGroupedByScene = groupBy(sceneMetadata, ({positionIndex}: UploadMetadata) => positionIndex);
@@ -168,7 +157,6 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRow
                     sceneIndex + numberChannelOnlyRows,
                     1,
                     template,
-                    annotationTypes,
                     allMetadataForPositionIndex.length > 1
                 );
                 sceneRows.push(sceneRow);
@@ -195,7 +183,7 @@ export const getUploadSummaryRows = createSelector([
     getCompleteAppliedTemplate,
     getAnnotationTypes,
 ], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
-    metadataGroupedByFile: { [file: string]: UploadMetadata[] }, template?: Template,
+    metadataGroupedByFile: { [file: string]: UploadMetadata[] }, template?: TemplateWithTypeNames,
     annotationTypes?: AnnotationType[]): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
@@ -207,9 +195,8 @@ export const getUploadSummaryRows = createSelector([
         const fileMetadata = allMetadataForFile.find(isFileRow);
 
         if (fileMetadata) {
-            const channelRows = getChannelOnlyRows(allMetadataForFile, template, annotationTypes);
-            const sceneRows = getSceneRows(allMetadataForFile, channelRows.length, expandedRows, file, template,
-                annotationTypes);
+            const channelRows = getChannelOnlyRows(allMetadataForFile, template);
+            const sceneRows = getSceneRows(allMetadataForFile, channelRows.length, expandedRows, file, template);
 
             // file rows are always visible
             const hasSubRows = channelRows.length + sceneRows.length > 0;
@@ -220,7 +207,7 @@ export const getUploadSummaryRows = createSelector([
                 .filter((m: UploadMetadata) => !isNil(m.positionIndex))
                 .map((m: UploadMetadata) => m.positionIndex)) as number[];
             const fileRow = convertToUploadJobRow(fileMetadata, keys(metadataGroupedByFile).length, fileSiblingIndex,
-                0, template, annotationTypes, hasSubRows, allChannelIds, allPositionIndexes);
+                0, template, hasSubRows, allChannelIds, allPositionIndexes);
             visibleRows.push(fileRow);
 
             if (expandedRows[getUploadRowKey(file)]) {
@@ -255,7 +242,7 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
 export const getValidationErrorsMap = createSelector([
     getUpload,
     getCompleteAppliedTemplate,
-], (upload: UploadStateBranch, template?: Template) => {
+], (upload: UploadStateBranch, template?: TemplateWithTypeNames) => {
     if (!template) {
         return {};
     }
@@ -288,7 +275,7 @@ export const getCanSave = createSelector([
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}},
     validationErrorsMap: {[key: string]: {[annotation: string]: string}},
-    template?: Template
+    template?: TemplateWithTypeNames
 ): boolean => {
     if (!template || !rows.length) {
         return false;
@@ -316,7 +303,10 @@ export const getCanSave = createSelector([
 });
 
 // the userData relates to the same file but differs for scene/channel combinations
-const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): MMSAnnotationValueRequest[] => {
+const getAnnotations = (
+    metadata: UploadMetadata[],
+    appliedTemplate: TemplateWithTypeNames
+): MMSAnnotationValueRequest[] => {
     return flatMap(metadata, (metadatum: UploadMetadata) => {
         const customData = standardizeUploadMetadata(metadatum);
         const result: MMSAnnotationValueRequest[] = [];
@@ -337,7 +327,14 @@ const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): 
                     channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
                     positionIndex: metadatum.positionIndex,
                     timePointId: undefined,
-                    values: castArray(value).map((v) => v.toString()),
+                    values: castArray(value).map((v) => {
+                        if (annotation.type === ColumnType.DATETIME) {
+                            return moment(v).format("YYYY-MM-DD HH:mm:ss");
+                        } else if (annotation.type === ColumnType.DATE) {
+                            return moment(v).format("YYYY-MM-DD");
+                        }
+                        return v.toString();
+                    }),
                 });
             }
         });
@@ -364,7 +361,7 @@ const extensionToFileTypeMap: { [index: string]: FileType } = {
 export const getUploadPayload = createSelector([
     getUpload,
     getCompleteAppliedTemplate,
-], (uploads: UploadStateBranch, template?: Template): Uploads => {
+], (uploads: UploadStateBranch, template?: TemplateWithTypeNames): Uploads => {
     if (!template) {
         throw new Error("Template has not been applied");
     }

@@ -123,11 +123,22 @@ export interface TemplateAnnotation extends Audited {
     required: boolean;
 }
 
+export interface TemplateAnnotationWithTypeName extends TemplateAnnotation {
+    type: string; // name of annotationType
+}
+
 export interface TemplateDraft {
     annotations: AnnotationDraft[];
     name?: string;
     templateId?: number;
     version?: number;
+}
+
+export interface TemplateWithTypeNames extends Audited{
+    annotations: TemplateAnnotationWithTypeName[];
+    name: string;
+    templateId: number;
+    version: number;
 }
 
 export interface UpdateTemplateDraftAction {
