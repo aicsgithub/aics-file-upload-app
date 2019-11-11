@@ -375,8 +375,8 @@ export const getUploadPayload = createSelector([
         // to support the current way of storing metadata in bob the blob, we continue to include
         // wellIds and workflows in the microscopy block. Since a file may have 1 or more scenes and channels
         // per file, we set these values to a uniq list of all of the values found across each "dimension"
-        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds));
-        const workflows = uniq(flatMap(metadata, (m) => m.workflows || []));
+        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds)).filter((w) => !!w);
+        const workflows = uniq(flatMap(metadata, (m) => m.workflows || [])).filter((w) => !!w);
         result = {
             ...result,
             [fullPath]: {
