@@ -7,6 +7,7 @@ import { AlertType } from "../../feedback/types";
 import { createMockReduxStore, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     mockAnnotationLookups,
+    mockAnnotationOptions,
     mockAnnotations,
     mockAnnotationTypes,
     mockBarcodePrefixes,
@@ -20,10 +21,14 @@ import {
 import { requestAnnotations, requestMetadata, requestTemplates } from "../actions";
 
 import {
+    getAnnotationLookups,
+    getAnnotationOptions,
     getAnnotations,
+    getAnnotationTypes,
     getBarcodePrefixes,
     getChannels,
     getImagingSessions,
+    getLookups,
     getTemplates,
     getUnits,
     getWorkflowOptions,
@@ -59,9 +64,12 @@ describe("Metadata logics", () => {
             const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
+            expect(getAnnotationLookups(state)).to.be.empty;
+            expect(getAnnotationTypes(state)).to.be.empty;
             expect(getBarcodePrefixes(state)).to.be.empty;
             expect(getChannels(state)).to.be.empty;
             expect(getImagingSessions(state)).to.be.empty;
+            expect(getLookups(state)).to.be.empty;
             expect(getUnits(state)).to.be.empty;
             expect(getWorkflowOptions(state)).to.be.empty;
 
@@ -70,9 +78,12 @@ describe("Metadata logics", () => {
             // todo FMS-669 stop using subscribe to test multi-dispatch logics
             store.subscribe(() => {
                 state = store.getState();
+                expect(getAnnotationLookups(state)).to.not.be.empty;
+                expect(getAnnotationTypes(state)).to.not.be.empty;
                 expect(getBarcodePrefixes(state)).to.not.be.empty;
                 expect(getChannels(state)).to.not.be.empty;
                 expect(getImagingSessions(state)).to.not.be.empty;
+                expect(getLookups(state)).to.not.be.empty;
                 expect(getUnits(state)).to.not.be.empty;
                 expect(getWorkflowOptions(state)).to.not.be.empty;
                 done();
@@ -103,11 +114,14 @@ describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
         it("sets annotations given OK response", (done) => {
             const getAnnotationsStub = stub().resolves(mockAnnotations);
+            const getAnnotationOptionsStub = stub().resolves(mockAnnotationOptions);
             sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
+            sandbox.replace(labkeyClient, "getAnnotationOptions", getAnnotationOptionsStub);
             const store = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAnnotations(state)).to.be.empty;
+            expect(getAnnotationOptions(state)).to.be.empty;
 
             store.dispatch(requestAnnotations());
 
@@ -118,6 +132,7 @@ describe("Metadata logics", () => {
                 if (count > 1) {
                     state = store.getState();
                     expect(getAnnotations(state)).to.not.be.empty;
+                    expect(getAnnotationOptions(state)).to.not.be.empty;
                     done();
                 }
             });

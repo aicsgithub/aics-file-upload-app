@@ -13,7 +13,11 @@ import FormControl from "../../components/FormControl";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { requestAnnotations } from "../../state/metadata/actions";
-import { getAnnotations, getAnnotationTypes, getLookups } from "../../state/metadata/selectors";
+import {
+    getAnnotationsWithAnnotationOptions,
+    getAnnotationTypes,
+    getLookups,
+} from "../../state/metadata/selectors";
 import { GetAnnotationsAction } from "../../state/metadata/types";
 import { closeTemplateEditor, openTemplateEditor } from "../../state/selection/actions";
 import { getTemplateEditorVisible } from "../../state/selection/selectors";
@@ -31,7 +35,9 @@ import {
     AddExistingAnnotationAction,
     Annotation,
     AnnotationDraft,
-    AnnotationType, Lookup,
+    AnnotationType,
+    AnnotationWithOptions,
+    Lookup,
     RemoveAnnotationsAction,
     SaveTemplateAction,
     TemplateDraft,
@@ -50,7 +56,7 @@ will be added as additional columns to fill out for each file. They can be share
 interface Props {
     addAnnotation: ActionCreator<AddExistingAnnotationAction>;
     addTemplateIdToSettings: ActionCreator<AddTemplateIdToSettingsAction>;
-    allAnnotations: Annotation[];
+    allAnnotations: AnnotationWithOptions[];
     annotationTypes: AnnotationType[];
     className?: string;
     closeModal: ActionCreator<CloseTemplateEditorAction>;
@@ -286,9 +292,10 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         const { allAnnotations }  = this.props;
         const annotation = allAnnotations.find((a: Annotation) => a.name === existingAnnotationName);
         if (annotation) {
-            const { annotationId, annotationTypeId, description, name } = annotation;
+            const { annotationId, annotationOptions, annotationTypeId, description, name } = annotation;
             this.props.addAnnotation({
                 annotationId,
+                annotationOptions,
                 annotationTypeId,
                 description,
                 name,
@@ -306,7 +313,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
 
 function mapStateToProps(state: State) {
     return {
-        allAnnotations: getAnnotations(state),
+        allAnnotations: getAnnotationsWithAnnotationOptions(state),
         annotationTypes: getAnnotationTypes(state),
         errors: getTemplateDraftErrors(state),
         loadingTemplate: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),

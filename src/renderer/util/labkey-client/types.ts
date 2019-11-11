@@ -16,6 +16,12 @@ export interface LabkeyAnnotationLookup {
     LookupId: number;
 }
 
+export interface LabkeyAnnotationOption {
+    AnnotationOptionId: number;
+    AnnotationId: number;
+    Value: string;
+}
+
 export interface LabkeyAnnotationType {
     AnnotationTypeId: number;
     Name: string;
