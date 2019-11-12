@@ -1,9 +1,10 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, get, includes, isEmpty, orderBy, some } from "lodash";
+import { every, get, includes, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
+import { IN_PROGRESS_STATUSES } from "../constants";
 import { State } from "../types";
 import { PendingJob } from "./types";
 
@@ -34,8 +35,6 @@ export const getUploadJobsWithCopyJob = createSelector([
    });
 });
 
-const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
-
 export const getJobsForTable = createSelector([
     getUploadJobsWithCopyJob,
     getPendingJobs,
@@ -44,25 +43,15 @@ export const getJobsForTable = createSelector([
         .map((job) => ({...job, key: job.jobId}));
 });
 
+// The app is unsafe to exit after aicsfiles has start the copyJob process
 export const getIsSafeToExit = createSelector([
     getUploadJobsWithCopyJob,
     getNumberOfPendingJobs,
-], (jobs: JSSJob[], numberPendingJobs: number): boolean => {
-    if (numberPendingJobs > 0) {
-        return false;
-    }
-
-    return isEmpty(jobs) || some(jobs, ({status, serviceFields}) => {
-        const { copyJob } = serviceFields;
-        if (!copyJob) {
-            return false;
-        }
-
-        const uploadInProgress = includes(IN_PROGRESS_STATUSES, status);
-        const copyInProgress = includes(IN_PROGRESS_STATUSES, copyJob.status);
-        return !uploadInProgress || !copyInProgress;
-    });
-});
+], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
+    numberPendingJobs === 0 && every(jobs, ({ serviceFields: { copyJob }, status }) => (
+        !copyJob || !includes(IN_PROGRESS_STATUSES, copyJob.status) || !includes(IN_PROGRESS_STATUSES, status)
+    ))
+));
 
 export const getUploadJobNames = createSelector([
     getUploadJobs,
