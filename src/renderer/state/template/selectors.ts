@@ -128,7 +128,7 @@ export const getCompleteAppliedTemplate = createSelector([
     well?: Annotation,
     workflow?: Annotation,
     appliedTemplate?: Template,
-    annotationTypes?: AnnotationType[],
+    annotationTypes?: AnnotationType[]
 ): TemplateWithTypeNames | undefined => {
     if (!appliedTemplate) {
         return undefined;

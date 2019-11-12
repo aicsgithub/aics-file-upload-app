@@ -134,7 +134,7 @@ export interface TemplateDraft {
     version?: number;
 }
 
-export interface TemplateWithTypeNames extends Audited{
+export interface TemplateWithTypeNames extends Audited {
     annotations: TemplateAnnotationWithTypeName[];
     name: string;
     templateId: number;
