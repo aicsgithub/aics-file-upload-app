@@ -347,6 +347,7 @@ const parseNumber = (n: string) => {
 // If we can create a valid array from the text of the input, we'll transform it into an array
 // if not, we pass the value untouched to the reducer.
 // Additionally we take care of converting moment dates back to dates.
+const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
 const updateUploadLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const {upload} = action.payload;
@@ -371,9 +372,9 @@ const updateUploadLogic = createLogic({
                         const endsWithComma = trim(value).endsWith(",");
 
                         // numbers are formatted in text Inputs so they'll be strings at this point
-                        if (type === ColumnType.NUMBER && value) {
+                        if (type === ColumnType.NUMBER && value && canHaveManyValues) {
                             // Remove anything that isn't a number, comma, or whitespace
-                            value = value.replace(/[^0-9,\s]/g, "");
+                            value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
                         }
 
                         // antd's DatePicker passes a moment object rather than Date so we convert back here
