@@ -5,6 +5,7 @@ import {
 } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
+import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
@@ -168,6 +169,7 @@ const upload = makeReducer<UploadStateBranch>(actionToConfigMap, initialState);
 
 const options: UndoableOptions = {
     clearHistoryType: CLEAR_UPLOAD_HISTORY,
+    initTypes: [RESET_HISTORY],
     jumpToPastType: JUMP_TO_PAST_UPLOAD,
     jumpType: JUMP_TO_UPLOAD,
     limit: 100,

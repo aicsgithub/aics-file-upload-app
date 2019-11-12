@@ -1,18 +1,25 @@
 import {
     ADD_ANNOTATION,
     CLEAR_TEMPLATE_DRAFT,
+    CLEAR_TEMPLATE_HISTORY,
     GET_TEMPLATE,
+    JUMP_TO_PAST_TEMPLATE,
     REMOVE_ANNOTATIONS,
-    SAVE_TEMPLATE, SET_APPLIED_TEMPLATE,
+    SAVE_TEMPLATE,
+    SET_APPLIED_TEMPLATE,
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import {
     AddExistingAnnotationAction,
     Annotation,
     ClearTemplateDraftAction,
+    ClearTemplateHistoryAction,
     GetTemplateAction,
+    JumpToPastTemplateAction,
     RemoveAnnotationsAction,
-    SaveTemplateAction, SetAppliedTemplateAction, Template,
+    SaveTemplateAction,
+    SetAppliedTemplateAction,
+    Template,
     TemplateDraft,
     UpdateTemplateDraftAction,
 } from "./types";
@@ -30,6 +37,12 @@ export function clearTemplateDraft(): ClearTemplateDraftAction {
     };
 }
 
+export function clearTemplateHistory(): ClearTemplateHistoryAction {
+    return {
+        type: CLEAR_TEMPLATE_HISTORY,
+    };
+}
+
 export function getTemplate(templateId: number, addAnnotationsToUpload: boolean = false): GetTemplateAction {
     return {
         payload: {
@@ -37,6 +50,13 @@ export function getTemplate(templateId: number, addAnnotationsToUpload: boolean 
             templateId,
         },
         type: GET_TEMPLATE,
+    };
+}
+
+export function jumpToPastTemplate(index: number): JumpToPastTemplateAction {
+    return {
+        index,
+        type: JUMP_TO_PAST_TEMPLATE,
     };
 }
 

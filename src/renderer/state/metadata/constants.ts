@@ -8,4 +8,5 @@ export const GET_BARCODE_SEARCH_RESULTS = makeConstant(BRANCH_NAME, "get-barcode
 export const GET_TEMPLATES = makeConstant(BRANCH_NAME, "get-templates");
 export const RECEIVE_METADATA = makeConstant(BRANCH_NAME, "receive");
 export const REQUEST_METADATA = makeConstant(BRANCH_NAME, "request");
+export const RESET_HISTORY = makeConstant(BRANCH_NAME, "reset-history");
 export const UPDATE_PAGE_HISTORY = makeConstant(BRANCH_NAME, "update-page-history");

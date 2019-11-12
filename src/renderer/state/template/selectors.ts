@@ -19,6 +19,7 @@ import {
 } from "./types";
 
 export const getAppliedTemplate = (state: State) => state.template.present.appliedTemplate;
+export const getCurrentTemplateIndex = (state: State) => state.template.index;
 export const getTemplateDraft = (state: State) => state.template.present.draft;
 export const getTemplateDraftName = (state: State) => state.template.present.draft.name;
 export const getTemplateDraftAnnotations = (state: State) => state.template.present.draft.annotations;
@@ -128,7 +129,7 @@ export const getCompleteAppliedTemplate = createSelector([
     well?: Annotation,
     workflow?: Annotation,
     appliedTemplate?: Template,
-    annotationTypes?: AnnotationType[],
+    annotationTypes?: AnnotationType[]
 ): TemplateWithTypeNames | undefined => {
     if (!appliedTemplate) {
         return undefined;

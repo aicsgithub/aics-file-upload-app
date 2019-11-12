@@ -3,10 +3,11 @@ import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { RECEIVE_METADATA, UPDATE_PAGE_HISTORY } from "./constants";
+import { RECEIVE_METADATA, RESET_HISTORY, UPDATE_PAGE_HISTORY } from "./constants";
 import {
     MetadataStateBranch,
     ReceiveMetadataAction,
+    ResetHistoryAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -19,6 +20,7 @@ export const initialState: MetadataStateBranch = {
     channels: [],
     history: {
         selection: {},
+        template: {},
         upload: {},
     },
     imagingSessions: [],
@@ -32,6 +34,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [RECEIVE_METADATA]: {
         accepts: (action: AnyAction): action is ReceiveMetadataAction => action.type === RECEIVE_METADATA,
         perform: (state: MetadataStateBranch, action: ReceiveMetadataAction) => ({ ...state, ...action.payload }),
+    },
+    [RESET_HISTORY]: {
+        accepts: (action: AnyAction): action is ResetHistoryAction => action.type === RESET_HISTORY,
+        perform: (state: MetadataStateBranch) => ({
+            ...state,
+            history: {
+                selection: {},
+                template: {},
+                upload: {},
+            },
+        }),
     },
     [UPDATE_PAGE_HISTORY]: {
         accepts: (action: AnyAction): action is UpdatePageHistoryMapAction =>
