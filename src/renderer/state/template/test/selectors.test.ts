@@ -163,5 +163,13 @@ describe("Template selectors", () => {
                 },
             })).to.throw();
         });
+        it("adds annotation type names to all annotations", () => {
+            const result = getCompleteAppliedTemplate(nonEmptyStateForInitiatingUpload);
+            expect(result).to.not.be.undefined;
+            if (result) {
+                const types = result.annotations.map((a) => a.type).filter((t) => !!t);
+                expect(types.length).to.equal(result.annotations.length);
+            }
+        });
     });
 });

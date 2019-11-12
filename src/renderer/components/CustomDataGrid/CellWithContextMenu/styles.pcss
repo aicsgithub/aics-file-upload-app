@@ -1,0 +1,23 @@
+.container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    min-height: 1em;
+}
+
+.main {
+    flex: 1;
+}
+
+.error {
+    color: var(--error);
+
+    & .error-icon {
+        flex: 0 0 auto;
+        color: var(--error);
+        margin: 0 0.5em;
+        display: flex;
+        align-items: center;
+    }
+}

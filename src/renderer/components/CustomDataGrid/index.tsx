@@ -1,22 +1,20 @@
 import { Button } from "antd";
 import * as classNames from "classnames";
+import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { get, isEmpty, without } from "lodash";
+import { castArray, get, includes, isEmpty, without } from "lodash";
+import * as moment from "moment";
 import { basename } from "path";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
 
 import NoteIcon from "../../components/NoteIcon";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import { ExpandedRows, ToggleExpandedUploadJobRowAction, Well } from "../../state/selection/types";
-import {
-    AnnotationType,
-    ColumnType,
-    Template,
-    TemplateAnnotation,
-} from "../../state/template/types";
+import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../state/template/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import {
     RemoveUploadsAction,
@@ -29,14 +27,16 @@ import {
 import { getWellLabel, onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
-import FormControl from "../FormControl";
+import AddValuesModal from "./AddValuesModal";
 
+import CellWithContextMenu from "./CellWithContextMenu";
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import WellsFormatter from "./WellsFormatter";
 
 const styles = require("./style.pcss");
 
+const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DATETIME];
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
@@ -59,16 +59,20 @@ interface Props {
     updateUpload: ActionCreator<UpdateUploadAction>;
     updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
+    validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
 
 interface CustomDataState {
+    addValuesRow?: UploadJobTableRow;
     selectedRows: string[];
     sortColumn?: SortableColumns;
     sortDirection?: SortDirections;
 }
 
 interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
+    allowMultipleValues?: boolean;
     dropdownValues?: string[];
+    onChange?: (value: any, key: keyof UploadJobTableRow, row: UploadJobTableRow) => void;
     type?: ColumnType;
 }
 
@@ -85,16 +89,16 @@ interface OnExpandArgs {
     rowIdx: number;
 }
 
-export interface FormatterProps {
+export interface FormatterProps<T> {
     isScrollable?: boolean;
-    row: UploadJobTableRow;
+    row: T;
     value?: any;
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {
     private readonly WELL_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps) => (
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => (
                 row.channel || !isEmpty(row.positionIndexes) ?
                     null :
                     this.renderFormat(
@@ -122,7 +126,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, "workflows", value),
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => this.renderFormat(row, "workflows", value),
             key: "workflows",
             name: "Workflows",
             resizable: true,
@@ -145,7 +149,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             undo,
             uploads,
         } = this.props;
-        const { selectedRows } = this.state;
+        const {
+            selectedRows,
+        } = this.state;
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
         const rowGetter = (idx: number) => sortedRows[idx];
@@ -204,21 +210,37 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             value: any,
                             childElement?: React.ReactNode | React.ReactNodeArray,
                             required?: boolean,
-                            className?: string): React.ReactElement => {
-        if (required && !this.props.fileToAnnotationHasValueMap[row.file][label]) {
-            childElement = (
-                <FormControl
-                    className={classNames(styles.formatterContainer, className)}
-                    error={`${label} is required, current value is: ${value}`}
-                >
-                    {childElement || value}
-                </FormControl>
-            );
+                            className?: string,
+                            contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>): React.ReactElement => {
+        // If a required field is not filled out, show error for that first.
+        // If filled out but there is additional issues like misformatted lists (e.g. "a, b, c,")
+        // then show a error related to that.
+        const { validationErrors } = this.props;
+        const showFieldIsRequiredError = required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+        let error;
+        if (showFieldIsRequiredError) {
+            error = `${label} is required`;
+        } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
+            error = validationErrors[row.key][label];
         }
+
+        let inner = childElement;
+        if (!inner) {
+            if (Array.isArray(value)) {
+                inner = value.join(LIST_DELIMITER_JOIN);
+            } else {
+                inner = value;
+            }
+        }
+
         return (
-            <div className={classNames(styles.formatterContainer, className)} onDrop={this.onDrop(row)}>
-                {childElement ? childElement : value}
-            </div>
+            <CellWithContextMenu
+                className={classNames(styles.formatterContainer, className)}
+                error={error}
+                template={contextMenuItems}
+            >
+                {inner}
+            </CellWithContextMenu>
         );
     }
 
@@ -226,7 +248,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         const files = this.props.uploads.map(({ file }) => file);
         return [
             {
-                formatter: ({ row, value }: FormatterProps) =>
+                formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
                     this.renderFormat(
                         row,
                         "file",
@@ -250,18 +272,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             ...innerColumns,
             {
                 editable: true,
-                formatter: ({ row, value }: FormatterProps) => (
-                    this.renderFormat(
-                        row,
-                        "notes",
-                        value,
-                        (
+                formatter: ({ row }: FormatterProps<UploadJobTableRow>) => (
+                    <div className={styles.formatterContainer} onDrop={this.onDrop(row)}>
                             <NoteIcon
                                 handleError={this.handleError}
                                 notes={row.notes}
                                 saveNotes={this.saveNotesByRow(row)}
                             />
-                        ))
+                    </div>
                 ),
                 key: "notes",
                 name: "Notes",
@@ -283,42 +301,81 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         if  (!this.props.template) {
             return basicColumns;
         }
-        const schemaColumns = this.props.template.annotations.map((column: TemplateAnnotation) => {
-            const {name,  annotationTypeId,  annotationOptions, required } = column;
+        const schemaColumns = this.props.template.annotations.map((templateAnnotation: TemplateAnnotation) => {
+            const {name,  annotationTypeId,  annotationOptions, required } = templateAnnotation;
             const annotationType = this.props.annotationTypes.find((a) => a.annotationTypeId === annotationTypeId);
             if (!annotationType) {
-                throw new Error(`Could not get annotation type for annotation ${column.name}. Contact Software`);
+                throw new Error(
+                    `Could not get annotation type for annotation ${templateAnnotation.name}. Contact Software`
+                );
             }
+
             const type = annotationType.name;
-            const columns: UploadJobColumn = {
+            // When an annotation can have multiple values and it is a Boolean, Date, or Datetime, we need more space.
+            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
+                templateAnnotation.canHaveManyValues;
+            const column: UploadJobColumn = {
+                allowMultipleValues: templateAnnotation.canHaveManyValues,
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
-                editable: true,
+                editable: !formatterNeedsModal,
                 key: name,
                 name,
+                onChange: this.saveByRow,
                 resizable: true,
                 type,
             };
-            // Use custom editor for everything except TEXT types which will use the default editor
-            if (type !== ColumnType.TEXT) {
-                columns.editor = Editor;
+
+            if (!formatterNeedsModal) {
+                column.editor = Editor;
             }
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
             if (type === ColumnType.DATE) {
-                columns.width = 170;
+                column.width = 170;
             } else if (type === ColumnType.DATETIME) {
-                columns.width = 250;
+                column.width = 250;
             }
-            if (type === ColumnType.BOOLEAN) {
-                columns.formatter = (props) =>
+
+            // eventually we may want to allow undefined Booleans as well but for now, the default value is False
+            if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
+                column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {
-                columns.formatter = ({ row, value }: FormatterProps) => (
-                    this.renderFormat(row, name, value, undefined, required)
-                );
+                column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => {
+                    let childEl;
+                    if (formatterNeedsModal) {
+                        childEl = (
+                            <AddValuesModal
+                                annotationName={templateAnnotation.name}
+                                annotationType={type}
+                                onOk={this.saveByRow}
+                                row={row}
+                                values={value}
+                            />
+                        );
+                    } else if (templateAnnotation.canHaveManyValues && value) {
+                        childEl = castArray(value)
+                            .map((v: any) => {
+                                switch (type) {
+                                    case ColumnType.DATETIME:
+                                        return moment(v).format(DATETIME_FORMAT);
+                                    case ColumnType.DATE:
+                                        return moment(v).format(DATE_FORMAT);
+                                    default:
+                                        return v;
+                                }
+                            })
+                            .join(LIST_DELIMITER_JOIN);
+                    } else if (type === ColumnType.DATE && value) {
+                        childEl = moment(value).format(DATE_FORMAT);
+                    } else if (type === ColumnType.DATETIME && value) {
+                        childEl = moment(value).format(DATETIME_FORMAT);
+                    }
+                    return this.renderFormat(row, name, value, childEl, required);
+                };
             }
-            return columns;
+            return column;
         });
         return basicColumns.concat(schemaColumns);
     }

@@ -146,6 +146,124 @@ export const mockWellUpload: UploadStateBranch = {
     },
 };
 
+export const mockTextAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 56,
+    annotationTypeId: 1,
+    canHaveManyValues: true,
+    description: "some description",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Another Garbage Text Annotation",
+    required: false,
+};
+
+export const mockDateAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 68,
+    annotationTypeId: 4,
+    canHaveManyValues: true,
+    description: "dob - for testing",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Birth Date",
+    required: false,
+};
+
+export const mockNumberAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 64,
+    annotationTypeId: 2,
+    canHaveManyValues: true,
+    description: "for testing number annotations",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Clone Number Garbage",
+    required: false,
+};
+
+export const mockTemplateWithManyValues: Template = {
+    ...mockAuditInfo,
+    annotations: [
+        mockTextAnnotation,
+        mockDateAnnotation,
+        {
+            ...mockAuditInfo,
+            annotationId: 2,
+            annotationOptions: [
+                "spCas9",
+                "Not Recorded",
+            ],
+            annotationTypeId: 6,
+            canHaveManyValues: true,
+            description: "CRISPR associated protein 9",
+            lookupSchema: "celllines",
+            lookupTable: "cas9",
+            name: "Cas9",
+            required: false,
+        },
+        mockNumberAnnotation,
+        {
+            ...mockAuditInfo,
+            annotationId: 61,
+            annotationTypeId: 3,
+            canHaveManyValues: true,
+            description: "Is this image related to QC of a gene-edited line?",
+            lookupSchema: undefined,
+            lookupTable: undefined,
+            name: "Qc",
+            required: false,
+        },
+        {
+            ...mockAuditInfo,
+            annotationId: 69,
+            annotationOptions: [
+                "A",
+                "B",
+                "C",
+                "D",
+            ],
+            annotationTypeId: 5,
+            canHaveManyValues: false,
+            description: "test",
+            lookupSchema: undefined,
+            lookupTable: undefined,
+            name: "Dropdown",
+            required: false,
+        },
+        {
+            ...mockAuditInfo,
+            annotationId: 21,
+            annotationTypeId: 6,
+            canHaveManyValues: true,
+            description: "A well on a plate (that has been entered into the Plate UI)",
+            name: "Well Ids",
+            required: false,
+        },
+        {
+            ...mockAuditInfo,
+            annotationId: 18,
+            annotationTypeId: 6,
+            canHaveManyValues: true,
+            description: "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH)",
+            name: "Workflows",
+            required: false,
+        },
+        {
+            ...mockAuditInfo,
+            annotationId: 22,
+            annotationTypeId: 1,
+            canHaveManyValues: true,
+            description: "Additional information that doesn't align well with other annotations",
+            name: "Notes",
+            required: true,
+        },
+    ],
+    name: "Test multiple values",
+    templateId: 8,
+    version: 1,
+};
+
 export const mockState: State = {
     feedback: {
         events: [],
@@ -324,12 +442,44 @@ export const mockFailedCopyJob: JSSJob = {
     status: "FAILED",
 };
 
+export const mockAnnotationTypes: AnnotationType[] = [
+    {
+        annotationTypeId: 1,
+        name: ColumnType.TEXT,
+    },
+    {
+        annotationTypeId: 2,
+        name: ColumnType.NUMBER,
+    },
+    {
+        annotationTypeId: 3,
+        name: ColumnType.BOOLEAN,
+    },
+    {
+        annotationTypeId: 4,
+        name: ColumnType.DATETIME,
+    },
+    {
+        annotationTypeId: 5,
+        name: ColumnType.DROPDOWN,
+    },
+    {
+        annotationTypeId: 6,
+        name: ColumnType.LOOKUP,
+    },
+    {
+        annotationTypeId: 7,
+        name: ColumnType.DATE,
+    },
+];
+
 export const mockPendingJob: PendingJob = {
     ...mockWorkingUploadJob,
     uploads: getUploadPayload({
         ...mockState,
         metadata: {
             ...mockState.metadata,
+            annotationTypes: mockAnnotationTypes,
             annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
         },
         template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
@@ -363,25 +513,6 @@ export const mockAnnotationLookups: AnnotationLookup[] = [
     {
         annotationId: 1,
         lookupId: 1,
-    },
-];
-
-export const mockAnnotationTypes: AnnotationType[] = [
-    {
-        annotationTypeId: 1,
-        name: ColumnType.TEXT,
-    },
-    {
-        annotationTypeId: 2,
-        name: ColumnType.BOOLEAN,
-    },
-    {
-        annotationTypeId: 3,
-        name: ColumnType.LOOKUP,
-    },
-    {
-        annotationTypeId: 4,
-        name: ColumnType.DROPDOWN,
     },
 ];
 

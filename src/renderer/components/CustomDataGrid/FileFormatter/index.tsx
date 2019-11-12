@@ -12,7 +12,7 @@ import { FormatterProps } from "../index";
 
 const styles = require("./styles.pcss");
 
-interface Props extends FormatterProps {
+interface Props extends FormatterProps<UploadJobTableRow> {
     addScenes: (files: string[], positionIndexes: number[], channels: Channel[]) => void;
     channelOptions: Channel[];
     fileOptions: string[];

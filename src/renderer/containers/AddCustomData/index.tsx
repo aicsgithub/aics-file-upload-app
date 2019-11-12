@@ -53,6 +53,7 @@ import {
     getCanUndoUpload,
     getFileToAnnotationHasValueMap,
     getUploadSummaryRows,
+    getValidationErrorsMap,
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
@@ -99,6 +100,7 @@ interface Props {
     updateUpload: ActionCreator<UpdateUploadAction>;
     updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
+    validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
 
 interface AddCustomDataState {
@@ -130,6 +132,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             className,
             loading,
             uploads,
+            validationErrors,
         } = this.props;
         return (
             <FormPage
@@ -172,6 +175,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         updateUpload={this.props.updateUpload}
                         updateUploads={this.props.updateUploads}
                         uploads={uploads}
+                        validationErrors={validationErrors}
                     />
                 )}
             </FormPage>
@@ -268,6 +272,7 @@ function mapStateToProps(state: State) {
         selectedImagingSession: getSelectedImagingSession(state),
         templates: getTemplates(state),
         uploads: getUploadSummaryRows(state),
+        validationErrors: getValidationErrorsMap(state),
     };
 }
 

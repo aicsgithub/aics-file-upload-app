@@ -1,5 +1,6 @@
 import { List, Popover, Tag } from "antd";
 import * as React from "react";
+import { LIST_DELIMITER_JOIN } from "../../../constants";
 
 import { Annotation, AnnotationDraft, AnnotationType, Lookup, TemplateDraft } from "../../../state/template/types";
 import AnnotationForm from "../AnnotationForm";
@@ -66,7 +67,7 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
         if (lookupTable) {
             metadata = `Lookup table: ${lookupTable}`;
         } else if (annotationOptions && annotationOptions.length) {
-            metadata = `Dropdown values: ${annotationOptions.join(", ")}`;
+            metadata = `Dropdown values: ${annotationOptions.join(LIST_DELIMITER_JOIN)}`;
         }
 
         const title = (

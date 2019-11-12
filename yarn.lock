@@ -919,10 +919,10 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
-"@types/react-data-grid@4.0.3":
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.3.tgz#be8eb886575d39955c97ac2a53e4cd164e553aaa"
-  integrity sha512-k6Efzb3rkpZIWDdQp4VRze36BxVFOvklELEJZF3fK3T2K7qOwqahPCNRdem3ZT6tgIzg809pGYG+Si/Xm14zIw==
+"@types/react-data-grid@4.0.4":
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.4.tgz#234ff82ebae3af0cd7fc663bd6550476b2b54d3c"
+  integrity sha512-s5tnTp6FUJVaqDIwY4vDhGHp9S8/lvONyULX6cRnkLH8Dx5aY5Xog3kCezMP9hZ65PMf6sAzYJqRQ9O84pwu2A==
   dependencies:
     "@types/react" "*"
 
@@ -6343,11 +6343,6 @@ object-copy@^0.1.0:
     define-property "^0.2.5"
     kind-of "^3.0.3"
 
-object-hash@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-2.0.0.tgz#7c4cc341eb8b53367312a7c546142f00c9e0ea20"
-  integrity sha512-I7zGBH0rDKwVGeGZpZoFaDhIwvJa3l1CZE+8VchylXbInNiCj7sxxea9P5dTM4ftKR5//nrqxrdeGSTWL2VpBA==
-
 object-inspect@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.6.0.tgz#c70b6cbf72f274aab4c34c0c82f5167bf82cf15b"
@@ -8200,10 +8195,14 @@ react-bootstrap@^0.32.1:
     uncontrollable "^5.0.0"
     warning "^3.0.0"
 
-react-data-grid@5.0.4:
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/react-data-grid/-/react-data-grid-5.0.4.tgz#a242863b48a0829eed65ba8a5fc3e8a475dad3fe"
-  integrity sha512-h0LWwf0o2l1ioG1ADQGDiUMItZszO3YrVpAWmBOsFSdedHl5us/JEumohFVidadYcGQyj+XBhm+gsg0YWTiUDA==
+react-data-grid@6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/react-data-grid/-/react-data-grid-6.1.0.tgz#04f5a3032fd097c54cd494b000a366d5bad6b39d"
+  integrity sha512-N1UtiHvsowEPzhx0VPqQKvGgSza/YNljczbisFDGMjawiGApS2taMv7h+EDXDx49CdaA6ur4eYS0z10x63IUpw==
+  dependencies:
+    object-assign "^4.1.1"
+    react-is-deprecated "^0.1.2"
+    shallowequal "^1.1.0"
 
 react-dom@16.8.6:
   version "16.8.6"
@@ -8221,6 +8220,11 @@ react-input-autosize@^2.1.2:
   integrity sha512-3+K4CD13iE4lQQ2WlF8PuV5htfmTRLH6MDnfndHM6LuBRszuXnuyIfE7nhSKt8AzRBZ50bu0sAhkNMeS5pxQQA==
   dependencies:
     prop-types "^15.5.8"
+
+react-is-deprecated@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/react-is-deprecated/-/react-is-deprecated-0.1.2.tgz#301148f86ea428fe8e673eca7a372160b7579dbd"
+  integrity sha1-MBFI+G6kKP6OZz7KejchYLdXnb0=
 
 react-is@^16.3.2, react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.2, react-is@^16.8.4, react-is@^16.8.6:
   version "16.8.6"
