@@ -425,7 +425,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private addScenes = (files: string[], positionIndexes: number[], channels: Channel[]) => {
         files.forEach((file: string) => {
-            const row = this.props.uploads.find((upload) => upload.file === file);
+            const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey(file));
             this.props.updateScenes(row, positionIndexes, channels);
         });
     }
