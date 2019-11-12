@@ -2,16 +2,24 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Button, Descriptions } from "antd";
 import * as React from "react";
 
+import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
+
 const Item = Descriptions.Item;
 
 interface Props {
+    cancelUpload: () => void;
     className?: string;
     job: JSSJob;
-    retrying: boolean;
+    loading: boolean;
     retryUpload: () => void;
 }
 
-const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job, retrying, retryUpload}: Props) => {
+const JobOverviewDisplay: React.FunctionComponent<Props> = ({
+                                                                cancelUpload,
+                                                                className,
+                                                                job,
+                                                                loading,
+                                                                retryUpload}: Props) => {
     const {
         created,
         currentStage,
@@ -23,6 +31,20 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job, ret
         status,
         user,
     } = job;
+    let extraStatusActionButton: JSX.Element | undefined;
+    if (status === FAILED_STATUS) {
+        extraStatusActionButton = (
+            <Button onClick={retryUpload} type="primary" loading={loading}>
+                Retry
+            </Button>
+        );
+    } else if (IN_PROGRESS_STATUSES.includes(status)) {
+        extraStatusActionButton = (
+            <Button onClick={cancelUpload} type="danger" loading={loading}>
+                Cancel
+            </Button>
+        );
+    }
     return (
         <Descriptions
             className={className}
@@ -32,11 +54,7 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({className, job, ret
         >
             <Item label="Job Id">{jobId}</Item>
             <Item label="Job Name">{jobName}</Item>
-            <Item label="Status">{status} {status === "FAILED" && (
-                <Button onClick={retryUpload} type="primary" loading={retrying}>
-                    Retry
-                </Button>
-            )}</Item>
+            <Item label="Status">{status} {extraStatusActionButton}</Item>
             <Item label="Created">{created.toLocaleString()}</Item>
             <Item label="Created By">{user}</Item>
             <Item label="Origination Host">{originationHost}</Item>

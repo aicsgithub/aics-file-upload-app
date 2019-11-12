@@ -11,8 +11,9 @@ const styles = require("./styles.pcss");
 
 interface UploadJobDisplayProps {
     className?: string;
+    cancelUpload: () => void;
     job: UploadSummaryTableRow;
-    retrying: boolean;
+    loading: boolean;
     retryUpload: () => void;
 }
 
@@ -23,9 +24,10 @@ interface ResultFile {
 }
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
+                                                                              cancelUpload,
                                                                               className,
                                                                               job,
-                                                                              retrying,
+                                                                              loading,
                                                                               retryUpload,
                                                                           }: UploadJobDisplayProps) => {
     const { serviceFields } = job;
@@ -52,7 +54,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     return (
         <div className={className}>
             {error}
-            <JobOverviewDisplay job={job} retryUpload={retryUpload} retrying={retrying}/>
+            <JobOverviewDisplay cancelUpload={cancelUpload} job={job} loading={loading} retryUpload={retryUpload}/>
 
             {showFiles && (
                 <>
