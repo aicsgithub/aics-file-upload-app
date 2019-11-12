@@ -4,6 +4,7 @@ import { basename } from "path";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
+import { UploadJobTableRow } from "../../../state/upload/types";
 
 import LabeledInput from "../../LabeledInput";
 import PrinterFormatInput from "../../PrinterFormatInput";
@@ -20,7 +21,6 @@ interface Props extends FormatterProps {
 interface FileFormatterState {
     errorMessage?: string;
     files: string[];
-    isEditing: boolean;
     showModal: boolean;
     positionIndexes: string;
     channels: Channel[];
@@ -39,6 +39,10 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     private static convertPositionIndexes(positionIndexes: number[] = []): string {
         return positionIndexes ? positionIndexes.join(", ") : "";
+    }
+
+    private static isEditing({ channelIds, positionIndexes }: UploadJobTableRow): boolean {
+        return !isEmpty(channelIds) || !isEmpty(positionIndexes)
     }
 
     constructor(props: Props) {
@@ -66,7 +70,6 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             channels,
             files,
             errorMessage,
-            isEditing,
             positionIndexes,
             showModal,
         } = this.state;
@@ -93,6 +96,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         }
 
         const fileName = basename(value);
+        const isEditing = FileFormatter.isEditing(row);
         const action = isEditing ? "Update" : "Add";
         const title = `${action} Scenes and channels for "${fileName}"`;
 
@@ -196,7 +200,6 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         return {
             channels: FileFormatter.convertChannels(channelIds, channelOptions),
             files: [file],
-            isEditing: !isEmpty(channelIds) || !isEmpty(positionIndexes),
             positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
         };
     }
@@ -205,7 +208,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         const { channels, files, positionIndexes } = this.state;
         const scenes = PrinterFormatInput.extractValues(positionIndexes);
         this.props.addScenes(files, scenes || [], channels);
-        this.setState({ showModal: false, isEditing: !isEmpty(channels) || !isEmpty(positionIndexes) });
+        this.setState({ showModal: false });
     }
 
     private selectFiles = (selectedFiles: string[]) => {
@@ -224,9 +227,9 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     }
 
     private getOkButtonDisabled = (): boolean => {
-        const { channels, isEditing, positionIndexes } = this.state;
+        const { channels, positionIndexes } = this.state;
         const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
-        if (isEditing) {
+        if (FileFormatter.isEditing(this.props.row)) {
             return validationError;
         }
         return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
