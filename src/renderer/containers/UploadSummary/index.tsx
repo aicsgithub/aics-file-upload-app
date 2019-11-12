@@ -17,8 +17,8 @@ import { selectPage, selectView } from "../../state/selection/actions";
 import { getPage, getStagedFiles } from "../../state/selection/selectors";
 import { Page, SelectPageAction, SelectViewAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
-import { retryUpload } from "../../state/upload/actions";
-import { RetryUploadAction } from "../../state/upload/types";
+import { cancelUpload, retryUpload } from "../../state/upload/actions";
+import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types";
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
@@ -31,12 +31,13 @@ export interface UploadSummaryTableRow extends JSSJob {
 
 interface Props {
     allJobsComplete: boolean;
+    cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
     files: UploadFile[];
+    loading: boolean;
     jobs: UploadSummaryTableRow[];
     page: Page;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
-    retrying: boolean;
     retryUpload: ActionCreator<RetryUploadAction>;
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
@@ -86,25 +87,16 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.setJobInterval();
     }
 
-    public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<{}>, snapshot?: any): void {
-        if (this.interval && this.props.allJobsComplete) {
-            clearInterval(this.interval);
-            this.interval = null;
-        }
-    }
-
     public componentWillUnmount(): void {
-        if (this.props.allJobsComplete) {
-            this.clearJobInterval();
-        }
+        this.clearJobInterval();
     }
 
     public render() {
         const {
             className,
             jobs,
+            loading,
             page,
-            retrying,
         } = this.props;
         const { showRefreshButton } = this.state;
         const selectedJob = this.getSelectedJob();
@@ -148,7 +140,12 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     footer={null}
                     onCancel={this.closeModal}
                 >
-                   <UploadJobDisplay job={selectedJob} retryUpload={this.retryUpload} retrying={retrying}/>
+                   <UploadJobDisplay
+                       cancelUpload={this.cancelUpload}
+                       job={selectedJob}
+                       retryUpload={this.retryUpload}
+                       loading={loading}
+                   />
                 </Modal>}
             </FormPage>
         );
@@ -156,8 +153,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     // Auto-refresh jobs every 3 seconds for 3 minutes
     private setJobInterval = (mouseEvent?: any): void => {
-        this.interval = setInterval(this.props.retrieveJobs, 3000); // 3 seconds
-        setTimeout(this.clearJobInterval, 180000); // 3 minutes
+        this.interval = setInterval(this.props.retrieveJobs, 2000); // 2 seconds
+        setTimeout(() => this.clearJobInterval(true), 180000); // 3 minutes
         // If this was triggered by the refresh button, remove it
         if (mouseEvent) {
             this.setState({ showRefreshButton: false });
@@ -165,8 +162,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     // Stop auto-refreshing jobs
-    private clearJobInterval = (): void => {
-        if (this.interval) {
+    private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
+        if (this.interval && (!checkIfJobsComplete || this.props.allJobsComplete)) {
             clearInterval(this.interval);
             this.interval = null;
             this.setState({ showRefreshButton: true });
@@ -177,6 +174,10 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         const {jobs} = this.props;
         const {selectedJobId} = this.state;
         return jobs.find((j) => j.jobId === selectedJobId);
+    }
+
+    private cancelUpload = (): void => {
+        this.props.cancelUpload(this.getSelectedJob());
     }
 
     private retryUpload = (): void => {
@@ -213,12 +214,14 @@ function mapStateToProps(state: State) {
         allJobsComplete: getAreAllJobsComplete(state),
         files: getStagedFiles(state),
         jobs: getJobsForTable(state),
+        loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)
+            || getRequestsInProgressContains(state, AsyncRequest.CANCEL_UPLOAD),
         page: getPage(state),
-        retrying: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD),
     };
 }
 
 const dispatchToPropsMap = {
+    cancelUpload,
     retrieveJobs,
     retryUpload,
     selectPage,

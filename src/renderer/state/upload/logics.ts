@@ -30,10 +30,12 @@ import { removeUploads, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
+    CANCEL_UPLOAD,
     getUploadRowKey,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
-    UPDATE_SCENES, UPDATE_UPLOAD,
+    UPDATE_SCENES,
+    UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
@@ -144,6 +146,55 @@ const initiateUploadLogic = createLogic({
         }
     },
     type: INITIATE_UPLOAD,
+});
+
+const cancelUploadLogic = createLogic({
+    process: async ({action, ctx, jssClient, getState}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const uploadJob: UploadSummaryTableRow = action.payload;
+
+        dispatch(setAlert({
+            message: `Cancel upload ${uploadJob.jobName}`,
+            type: AlertType.INFO,
+        }));
+        dispatch(addRequestToInProgress(AsyncRequest.CANCEL_UPLOAD));
+
+        try {
+            await jssClient.updateJob(uploadJob.jobId, {
+                serviceFields: {
+                    error: "Cancelled by user",
+                },
+                status: "UNRECOVERABLE",
+            });
+            dispatch(setAlert({
+                message: `Cancel upload ${uploadJob.jobName} succeeded!`,
+                type: AlertType.SUCCESS,
+            }));
+            dispatch(retrieveJobs());
+        } catch (e) {
+            Logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
+            dispatch(setAlert({
+                message: `Cancel upload ${uploadJob.jobName} failed: ${e.message}`,
+                type: AlertType.ERROR,
+            }));
+        }
+
+        dispatch(removeRequestFromInProgress(AsyncRequest.CANCEL_UPLOAD));
+        done();
+    },
+    transform: ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const uploadJob: UploadSummaryTableRow = action.payload;
+        if (!uploadJob) {
+            next(setAlert({
+                message: "Cannot cancel undefined upload job",
+                type: AlertType.ERROR,
+            }));
+        } else {
+            next(action);
+        }
+    },
+    type: CANCEL_UPLOAD,
 });
 
 const retryUploadLogic = createLogic({
@@ -404,6 +455,7 @@ const updateUploadLogic = createLogic({
 export default [
     applyTemplateLogic,
     associateFileAndWellLogic,
+    cancelUploadLogic,
     initiateUploadLogic,
     retryUploadLogic,
     updateScenesLogic,

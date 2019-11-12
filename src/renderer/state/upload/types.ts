@@ -151,6 +151,11 @@ export interface InitiateUploadAction {
     type: string;
 }
 
+export interface CancelUploadAction {
+    payload: UploadSummaryTableRow;
+    type: string;
+}
+
 export interface RetryUploadAction {
     payload: UploadSummaryTableRow;
     type: string;
