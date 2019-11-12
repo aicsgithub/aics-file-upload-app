@@ -1,9 +1,10 @@
 import { Alert, Icon, Modal, Select, Tooltip } from "antd";
-import { isEmpty, isNil } from "lodash";
+import { isEmpty, isNil, uniq } from "lodash";
 import { basename } from "path";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
+import { UploadJobTableRow } from "../../../state/upload/types";
 
 import LabeledInput from "../../LabeledInput";
 import PrinterFormatInput from "../../PrinterFormatInput";
@@ -12,13 +13,14 @@ import { FormatterProps } from "../index";
 const styles = require("./styles.pcss");
 
 interface Props extends FormatterProps {
-    addScenes: (positionIndexes: number[], channels: Channel[]) => void;
+    addScenes: (files: string[], positionIndexes: number[], channels: Channel[]) => void;
     channelOptions: Channel[];
+    fileOptions: string[];
 }
 
 interface FileFormatterState {
     errorMessage?: string;
-    isEditing: boolean;
+    files: string[];
     showModal: boolean;
     positionIndexes: string;
     channels: Channel[];
@@ -39,36 +41,35 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         return positionIndexes ? positionIndexes.join(", ") : "";
     }
 
+    private static isEditing({ channelIds, positionIndexes }: UploadJobTableRow): boolean {
+        return !isEmpty(channelIds) || !isEmpty(positionIndexes)
+    }
+
     constructor(props: Props) {
         super(props);
-        const { channelOptions, row: { channelIds, positionIndexes } } = props;
-        const channels =  FileFormatter.convertChannels(channelIds, channelOptions);
         this.state = {
-            channels,
-            isEditing: !isEmpty(channelIds) || !isEmpty(positionIndexes),
-            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
+            ...this.getInitialState(),
             showModal: false,
         };
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<FileFormatterState>): void {
         if (prevState.showModal !== this.state.showModal && this.state.showModal) {
-            const {channelOptions, row: {channelIds, positionIndexes}} = this.props;
-            const channels =  FileFormatter.convertChannels(channelIds, channelOptions);
-            this.setState({ channels, positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes) });
+            this.setState(this.getInitialState());
         }
     }
 
     public render() {
         const {
             channelOptions,
+            fileOptions,
             row,
             value,
         } = this.props;
         const {
             channels,
+            files,
             errorMessage,
-            isEditing,
             positionIndexes,
             showModal,
         } = this.state;
@@ -95,6 +96,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         }
 
         const fileName = basename(value);
+        const isEditing = FileFormatter.isEditing(row);
         const action = isEditing ? "Update" : "Add";
         const title = `${action} Scenes and channels for "${fileName}"`;
 
@@ -112,7 +114,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                     width="50%"
                     title={title}
                     visible={showModal}
-                    onOk={this.addSceneAndChannels}
+                    onOk={this.addFilesScenesAndChannels}
                     onCancel={this.closeModal}
                     okText={action}
                     okButtonProps={{disabled: this.getOkButtonDisabled()}}
@@ -128,6 +130,31 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                         closable={true}
                         message="Adding scenes will clear out direct file-well associations made on the previous page"
                     />
+                    {this.state.files.length > 1 && (
+                        <Alert
+                            className={styles.alert}
+                            type="warning"
+                            showIcon={true}
+                            closable={true}
+                            message="Adding scenes/channels to other files removes scenes/channels they already have"
+                        />
+                    )}
+                    <LabeledInput label="Files">
+                        <Select
+                            className={styles.input}
+                            allowClear={true}
+                            onChange={this.selectFiles}
+                            placeholder="Select Files"
+                            mode="tags"
+                            value={files}
+                        >
+                            {fileOptions.map((file: string) => (
+                                <Select.Option key={file} value={file}>
+                                    {file}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                    </LabeledInput>
                     <LabeledInput label="Scene Positions (ex. 1, 4, 5-10)">
                         <PrinterFormatInput
                             value={positionIndexes}
@@ -144,9 +171,9 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             mode="tags"
                             value={channels.map((channel) => channel.name)}
                         >
-                            {channelOptions.map((channel: Channel) => (
-                                <Select.Option key={channel.name} value={channel.name}>
-                                    {channel.name}({channel.description})
+                            {channelOptions.map(({ name }: Channel) => (
+                                <Select.Option key={name} value={name}>
+                                    {name}
                                 </Select.Option>
                             ))}
                         </Select>
@@ -168,11 +195,26 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         showModal: false,
     })
 
-    private addSceneAndChannels = () => {
-        const { channels, positionIndexes } = this.state;
+    private getInitialState = () => {
+        const {channelOptions, row: {channelIds, file, positionIndexes}} = this.props;
+        return {
+            channels: FileFormatter.convertChannels(channelIds, channelOptions),
+            files: [file],
+            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
+        };
+    }
+
+    private addFilesScenesAndChannels = () => {
+        const { channels, files, positionIndexes } = this.state;
         const scenes = PrinterFormatInput.extractValues(positionIndexes);
-        this.props.addScenes(scenes || [], channels);
-        this.setState({ showModal: false, isEditing: !isEmpty(scenes) || !isEmpty(channels) });
+        this.props.addScenes(files, scenes || [], channels);
+        this.setState({ showModal: false });
+    }
+
+    private selectFiles = (selectedFiles: string[]) => {
+        const { fileOptions, row: { file } } = this.props;
+        const files = selectedFiles.filter((selectedFile) => fileOptions.includes(selectedFile));
+        this.setState({ files: uniq([ file, ...files]) });
     }
 
     private selectChannel = (names: string[]) => {
@@ -185,14 +227,13 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     }
 
     private getOkButtonDisabled = (): boolean => {
-        const { channels, isEditing, positionIndexes } = this.state;
+        const { channels, positionIndexes } = this.state;
         const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
-        if (isEditing) {
+        if (FileFormatter.isEditing(this.props.row)) {
             return validationError;
         }
         return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
     }
-
 }
 
 export default FileFormatter;

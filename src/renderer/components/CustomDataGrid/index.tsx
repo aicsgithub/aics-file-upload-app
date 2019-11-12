@@ -114,7 +114,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                     )
             ),
             key: "wellLabels",
-            name: "Well(s)",
+            name: "Wells",
             resizable: true,
             sortable: true,
         },
@@ -124,7 +124,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         {
             formatter: ({ row, value }: FormatterProps) => this.renderFormat(row, "workflows", value),
             key: "workflows",
-            name: "Workflow(s)",
+            name: "Workflows",
             resizable: true,
         },
     ];
@@ -222,49 +222,53 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         );
     }
 
-    private uploadColumns = (innerColumns: UploadJobColumn[]): UploadJobColumn[] => ([
-        {
-            formatter: ({ row, value }: FormatterProps) =>
-                this.renderFormat(
-                    row,
-                    "file",
-                    value,
-                    (
-                        <FileFormatter
-                            addScenes={this.addScenes(row)}
-                            channelOptions={this.props.channels}
-                            row={row}
-                            value={value}
-                        />
-                    )
+    private uploadColumns = (innerColumns: UploadJobColumn[]): UploadJobColumn[] => {
+        const files = this.props.uploads.map(({ file }) => file);
+        return [
+            {
+                formatter: ({ row, value }: FormatterProps) =>
+                    this.renderFormat(
+                        row,
+                        "file",
+                        value,
+                        (
+                            <FileFormatter
+                                addScenes={this.addScenes}
+                                channelOptions={this.props.channels}
+                                fileOptions={files}
+                                row={row}
+                                value={value}
+                            />
+                        )
+                    ),
+                key: "file",
+                name: "File",
+                resizable: true,
+                sortable: true,
+                width: 250,
+            },
+            ...innerColumns,
+            {
+                editable: true,
+                formatter: ({ row, value }: FormatterProps) => (
+                    this.renderFormat(
+                        row,
+                        "notes",
+                        value,
+                        (
+                            <NoteIcon
+                                handleError={this.handleError}
+                                notes={row.notes}
+                                saveNotes={this.saveNotesByRow(row)}
+                            />
+                        ))
                 ),
-            key: "file",
-            name: "File",
-            resizable: true,
-            sortable: true,
-            width: 250,
-        },
-        ...innerColumns,
-        {
-            editable: true,
-            formatter: ({ row, value }: FormatterProps) => (
-                this.renderFormat(
-                    row,
-                    "notes",
-                    value,
-                    (
-                        <NoteIcon
-                            handleError={this.handleError}
-                            notes={row.notes}
-                            saveNotes={this.saveNotesByRow(row)}
-                        />
-                    ))
-            ),
-            key: "notes",
-            name: "Notes",
-            width: 80,
-        },
-    ])
+                key: "notes",
+                name: "Notes",
+                width: 80,
+            },
+        ];
+    }
 
     private getColumns = (): UploadJobColumn[] => {
         if (!this.props.uploads.length) {
@@ -419,8 +423,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         };
     }
 
-    private addScenes = (row: UploadJobTableRow) => (positionIndexes: number[], channels: Channel[]) => {
-        this.props.updateScenes(row, positionIndexes, channels);
+    private addScenes = (files: string[], positionIndexes: number[], channels: Channel[]) => {
+        files.forEach((file: string) => {
+            const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey(file));
+            this.props.updateScenes(row, positionIndexes, channels);
+        });
     }
 }
 
