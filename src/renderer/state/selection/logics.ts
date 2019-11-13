@@ -1,6 +1,6 @@
 import { stat as fsStat, Stats } from "fs";
 import * as Logger from "js-logger";
-import { isEmpty, keys, uniq } from "lodash";
+import { isEmpty, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -369,7 +369,7 @@ const selectPageLogic = createLogic({
             stateBranchHistory.forEach((history) => {
                 const historyForThisStateBranch = history.getHistory(state);
 
-                if (keys(historyForThisStateBranch).length) {
+                if (historyForThisStateBranch && historyForThisStateBranch[nextPage]) {
                     const index = historyForThisStateBranch[nextPage];
                     if (index > -1) {
                         actions.push(history.jumpToPast(index));

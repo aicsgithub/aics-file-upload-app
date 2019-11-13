@@ -1,13 +1,12 @@
 import { castArray } from "lodash";
 import { AnyAction } from "redux";
 import undoable, {
-    excludeAction,
     UndoableOptions,
 } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
-import { makeReducer } from "../util";
+import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
     CLOSE_OPEN_TEMPLATE_MODAL,
@@ -221,7 +220,7 @@ const selection = makeReducer<SelectionStateBranch>(actionToConfigMap, initialSt
 
 const options: UndoableOptions = {
     clearHistoryType: CLEAR_SELECTION_HISTORY,
-    filter: excludeAction(SELECT_PAGE),
+    filter: getReduxUndoFilterFn([SELECT_PAGE, SELECT_VIEW]),
     initTypes: [RESET_HISTORY],
     jumpToPastType: JUMP_TO_PAST_SELECTION,
     limit: 100,

@@ -12,9 +12,14 @@ import { feedback } from "../../";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
+import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
-import { getTemplateDraft } from "../../template/selectors";
-import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { getCurrentTemplateIndex, getTemplateDraft } from "../../template/selectors";
+import {
+    createMockReduxStore,
+    mmsClient,
+    mockReduxLogicDeps,
+} from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
     mockAnnotations,
@@ -26,10 +31,18 @@ import {
     mockTemplateStateBranch,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { closeTemplateEditor, openTemplateEditor, selectBarcode } from "../actions";
+import { getCurrentUploadIndex } from "../../upload/selectors";
+import { closeTemplateEditor, openTemplateEditor, selectBarcode, selectPage } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
-import { getPage, getSelectedBarcode, getSelectedPlateId, getTemplateEditorVisible, getWells } from "../selectors";
+import {
+    getCurrentSelectionIndex,
+    getPage,
+    getSelectedBarcode,
+    getSelectedPlateId,
+    getTemplateEditorVisible,
+    getWells,
+} from "../selectors";
 import {
     DragAndDropFileList,
     GetPlateResponse,
@@ -635,6 +648,256 @@ describe("Selection logics", () => {
             store.dispatch(closeTemplateEditor());
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
+        });
+    });
+
+    describe("selectPageLogic", () => {
+        // This is technically going backwards but we won't see any changes because there is no history for each
+        // branch (as is the case after an upload)
+        it("Going from UploadSummary to DragAndDrop page should not change info related to history", (done) => {
+            const selection = getMockStateWithHistory({
+                ...mockSelection,
+                page: Page.UploadSummary,
+                view: Page.UploadSummary,
+            });
+
+            const store = createMockReduxStore({
+                ...mockState,
+                selection,
+            });
+
+            let state = store.getState();
+
+            expect(getCurrentSelectionIndex(state)).to.equal(0);
+            expect(getCurrentTemplateIndex(state)).to.equal(0);
+            expect(getCurrentUploadIndex(state)).to.equal(0);
+            expect(getSelectionHistory(state)).to.be.empty;
+            expect(getTemplateHistory(state)).to.be.empty;
+            expect(getUploadHistory(state)).to.be.empty;
+
+            store.subscribe(() => {
+                state = store.getState();
+                expect(getCurrentSelectionIndex(state)).to.equal(0);
+                expect(getCurrentTemplateIndex(state)).to.equal(0);
+                expect(getCurrentUploadIndex(state)).to.equal(0);
+                expect(getSelectionHistory(state)).to.be.empty;
+                expect(getTemplateHistory(state)).to.be.empty;
+                expect(getUploadHistory(state)).to.be.empty;
+                done();
+            });
+            store.dispatch(selectPage(Page.UploadSummary, Page.DragAndDrop));
+        });
+        // This is going forward
+        it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
+            "branches are at for the page we went to", (done) => {
+            const store = createMockReduxStore({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.DragAndDrop,
+                    view: Page.DragAndDrop,
+                }),
+            });
+
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.be.empty;
+            expect(getTemplateHistory(state)).to.be.empty;
+            expect(getUploadHistory(state)).to.be.empty;
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getSelectionHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    expect(getTemplateHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    expect(getUploadHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
+        });
+        it("Going from EnterBarcode to AssociateFiles should record which index selection/template/upload state " +
+            "branches are at for the page we went to", (done) => {
+            const startingSelectionHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const startingTemplateHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const startingUploadHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const store = createMockReduxStore({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    history: {
+                        selection: startingSelectionHistory,
+                        template: startingTemplateHistory,
+                        upload: startingUploadHistory,
+                    },
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
+                }, 2),
+            });
+
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
+            expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
+            expect(getUploadHistory(state)).to.equal(startingUploadHistory);
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getSelectionHistory(state)).to.deep.equal({
+                        ...startingSelectionHistory,
+                        [Page.AssociateFiles]: 2,
+                    });
+                    expect(getTemplateHistory(state)).to.deep.equal({
+                        ...startingTemplateHistory,
+                        [Page.AssociateFiles]: 0,
+                    });
+                    expect(getUploadHistory(state)).to.deep.equal({
+                        ...startingUploadHistory,
+                        [Page.AssociateFiles]: 0,
+                    });
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
+        });
+        it("Going from AssociateFiles to AddCustomData should record which index selection/template/upload state " +
+            "branches are at for the page we went to", (done) => {
+            const startingSelectionHistory = {
+                [Page.AssociateFiles]: 2,
+                [Page.EnterBarcode]: 0,
+            };
+            const startingTemplateHistory = {
+                [Page.AssociateFiles]: 0,
+                [Page.EnterBarcode]: 0,
+            };
+            const startingUploadHistory = {
+                [Page.AssociateFiles]: 0,
+                [Page.EnterBarcode]: 0,
+            };
+            const store = createMockReduxStore({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    history: {
+                        selection: startingSelectionHistory,
+                        template: startingTemplateHistory,
+                        upload: startingUploadHistory,
+                    },
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
+                }, 6),
+                template: getMockStateWithHistory(mockTemplateStateBranch, 1),
+                upload: getMockStateWithHistory(mockState.upload.present, 6),
+            });
+
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
+            expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
+            expect(getUploadHistory(state)).to.equal(startingUploadHistory);
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getSelectionHistory(state)).to.deep.equal({
+                        ...startingSelectionHistory,
+                        [Page.AddCustomData]: 6,
+                    });
+                    expect(getTemplateHistory(state)).to.deep.equal({
+                        ...startingTemplateHistory,
+                        [Page.AddCustomData]: 1,
+                    });
+                    expect(getUploadHistory(state)).to.deep.equal({
+                        ...startingUploadHistory,
+                        [Page.AddCustomData]: 6,
+                    });
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.AssociateFiles, Page.AddCustomData));
+        });
+        it("Going from AddCustomData to UploadSummary should record which index selection/template/upload state " +
+            "branches are at for the page we went to", (done) => {
+            const startingSelectionHistory = {
+                [Page.AddCustomData]: 6,
+                [Page.AssociateFiles]: 2,
+                [Page.EnterBarcode]: 0,
+            };
+            const startingTemplateHistory = {
+                [Page.AddCustomData]: 1,
+                [Page.AssociateFiles]: 0,
+                [Page.EnterBarcode]: 0,
+            };
+            const startingUploadHistory = {
+                [Page.AddCustomData]: 6,
+                [Page.AssociateFiles]: 0,
+                [Page.EnterBarcode]: 0,
+            };
+            const store = createMockReduxStore({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    history: {
+                        selection: startingSelectionHistory,
+                        template: startingTemplateHistory,
+                        upload: startingUploadHistory,
+                    },
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
+                }, 6),
+                template: getMockStateWithHistory(mockTemplateStateBranch, 2),
+                upload: getMockStateWithHistory(mockState.upload.present, 7),
+            });
+
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
+            expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
+            expect(getUploadHistory(state)).to.equal(startingUploadHistory);
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getSelectionHistory(state)).to.deep.equal({
+                        ...startingSelectionHistory,
+                        [Page.UploadSummary]: 6,
+                    });
+                    expect(getTemplateHistory(state)).to.deep.equal({
+                        ...startingTemplateHistory,
+                        [Page.UploadSummary]: 2,
+                    });
+                    expect(getUploadHistory(state)).to.deep.equal({
+                        ...startingUploadHistory,
+                        [Page.UploadSummary]: 7,
+                    });
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.AssociateFiles, Page.AddCustomData));
         });
     });
 });

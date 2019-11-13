@@ -2,6 +2,7 @@ import {
     AnyAction,
     Reducer,
 } from "redux";
+import { FilterFunction, StateWithHistory } from "redux-undo";
 
 import { APP_ID } from "../constants";
 
@@ -58,3 +59,12 @@ export function getActionFromBatch(batchAction: AnyAction, type: string): AnyAct
 
     return undefined;
 }
+
+export const getReduxUndoFilterFn = (excludeActions: string[]): FilterFunction =>
+    <T>(action: AnyAction, currentState: T, previousHistory: StateWithHistory<T>) => {
+    if (excludeActions.includes(action.type)) {
+        return false;
+    }
+
+    return currentState !== previousHistory.present;
+};

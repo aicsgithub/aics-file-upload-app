@@ -56,6 +56,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
                     ...state.history.selection,
                     ...action.payload.selection,
                 },
+                template: {
+                    ...state.history.template,
+                    ...action.payload.template,
+                },
                 upload: {
                     ...state.history.upload,
                     ...action.payload.upload,
