@@ -39,11 +39,16 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
             </Button>
         );
     } else if (IN_PROGRESS_STATUSES.includes(status)) {
-        extraStatusActionButton = (
-            <Button onClick={cancelUpload} type="danger" loading={loading}>
-                Cancel
-            </Button>
-        );
+        const fiveMinutesAgo = new Date(Date.now());
+        fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+        // Only allow cancelling jobs that have been going on for > 5 minutes to avoid possible funkiness
+        if (fiveMinutesAgo > modified) {
+            extraStatusActionButton = (
+                <Button onClick={cancelUpload} type="danger" loading={loading}>
+                    Cancel
+                </Button>
+            );
+        }
     }
     return (
         <Descriptions
