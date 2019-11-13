@@ -43,13 +43,13 @@ export const getJobsForTable = createSelector([
         .map((job) => ({...job, key: job.jobId}));
 });
 
-// The app is unsafe to exit after aicsfiles has start the copyJob process
+// The app is only safe to exit after fss and aicsfiles confirm the job is complete
 export const getIsSafeToExit = createSelector([
     getUploadJobsWithCopyJob,
     getNumberOfPendingJobs,
 ], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
     numberPendingJobs === 0 && every(jobs, ({ serviceFields: { copyJob }, status }) => (
-        !copyJob || !includes(IN_PROGRESS_STATUSES, copyJob.status) || !includes(IN_PROGRESS_STATUSES, status)
+        (!copyJob || !includes(IN_PROGRESS_STATUSES, copyJob.status)) && !includes(IN_PROGRESS_STATUSES, status)
     ))
 ));
 
