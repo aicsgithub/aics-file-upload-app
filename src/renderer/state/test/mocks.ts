@@ -97,12 +97,12 @@ export const mockAnnotations = [
     mockNotesAnnotation,
 ];
 
-export const getMockStateWithHistory = <T>(state: T, index: number = 1): StateWithHistory<T> => {
+export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
         _latestUnfiltered: {...state},
         future: [],
         group: {},
-        index,
+        index: 0,
         limit: 10,
         past: [],
         present: {...state},

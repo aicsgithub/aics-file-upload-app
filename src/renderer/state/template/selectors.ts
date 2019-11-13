@@ -23,6 +23,7 @@ export const getCurrentTemplateIndex = (state: State) => state.template.index;
 export const getTemplateDraft = (state: State) => state.template.present.draft;
 export const getTemplateDraftName = (state: State) => state.template.present.draft.name;
 export const getTemplateDraftAnnotations = (state: State) => state.template.present.draft.annotations;
+export const getTemplatePast = (state: State) => state.template.past;
 
 export const getTemplateDraftErrors = createSelector([
     getTemplateDraftAnnotations,

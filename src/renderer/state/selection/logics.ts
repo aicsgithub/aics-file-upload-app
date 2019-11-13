@@ -378,6 +378,11 @@ const selectPageLogic = createLogic({
                     if (index === 0) {
                         actions.push(history.clearHistory());
                     }
+                } else {
+                    actions.push(
+                        history.jumpToPast(0),
+                        history.clearHistory()
+                    );
                 }
             });
 

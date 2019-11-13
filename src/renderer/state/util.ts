@@ -62,9 +62,5 @@ export function getActionFromBatch(batchAction: AnyAction, type: string): AnyAct
 
 export const getReduxUndoFilterFn = (excludeActions: string[]): FilterFunction =>
     <T>(action: AnyAction, currentState: T, previousHistory: StateWithHistory<T>) => {
-    if (excludeActions.includes(action.type)) {
-        return false;
-    }
-
-    return currentState !== previousHistory.present;
+    return !excludeActions.includes(action.type) && currentState !== previousHistory.present;
 };

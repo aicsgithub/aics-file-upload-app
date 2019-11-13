@@ -16,8 +16,10 @@ import {
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOAD,
     getUploadRowKey,
+    INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
+    RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_UPLOAD,
@@ -169,7 +171,13 @@ const upload = makeReducer<UploadStateBranch>(actionToConfigMap, initialState);
 
 const options: UndoableOptions = {
     clearHistoryType: CLEAR_UPLOAD_HISTORY,
-    filter: getReduxUndoFilterFn([]),
+    filter: getReduxUndoFilterFn([
+        INITIATE_UPLOAD,
+        JUMP_TO_PAST_UPLOAD,
+        JUMP_TO_UPLOAD,
+        CLEAR_UPLOAD_HISTORY,
+        RETRY_UPLOAD,
+    ]),
     initTypes: [RESET_HISTORY],
     jumpToPastType: JUMP_TO_PAST_UPLOAD,
     jumpType: JUMP_TO_UPLOAD,

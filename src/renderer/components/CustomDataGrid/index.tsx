@@ -20,7 +20,6 @@ import {
     RemoveUploadsAction,
     UpdateScenesAction,
     UpdateUploadAction,
-    UpdateUploadsAction,
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
@@ -57,7 +56,6 @@ interface Props {
     undo: () => void;
     updateScenes: ActionCreator<UpdateScenesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
-    updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
