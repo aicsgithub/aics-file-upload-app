@@ -4,6 +4,7 @@ import CollapsePanel from "antd/lib/collapse/CollapsePanel";
 import { get, isEmpty } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { IN_PROGRESS_STATUSES } from "../../state/constants";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const Item = Descriptions.Item;
@@ -47,6 +48,11 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
             };
         });
     }
+    const { modified, status } = job;
+    // Only allow cancelling jobs that have been going on for > 5 minutes to avoid possible funkiness
+    const fiveMinutesAgo = new Date();
+    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+    const allowCancel = IN_PROGRESS_STATUSES.includes(status) && fiveMinutesAgo > modified;
 
     const error = job.serviceFields && job.serviceFields.error && (
         <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
@@ -54,7 +60,14 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     return (
         <div className={className}>
             {error}
-            <JobOverviewDisplay cancelUpload={cancelUpload} job={job} loading={loading} retryUpload={retryUpload}/>
+            {allowCancel && <Alert closable={true} type="warning" message="Cancelling destroys this upload" />}
+            <JobOverviewDisplay
+                allowCancel={allowCancel}
+                cancelUpload={cancelUpload}
+                job={job}
+                loading={loading}
+                retryUpload={retryUpload}
+            />
 
             {showFiles && (
                 <>

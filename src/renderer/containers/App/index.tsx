@@ -125,8 +125,8 @@ class App extends React.Component<AppProps, {}> {
             this.props.updateSettings(limsUrl);
         });
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
-            const warning = "Uploads are in progress." +
-                " Exiting now will cause incomplete uploads to stay pending until cancelled. Are you sure?";
+            const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
+                " will need to be manually cancelled. Are you sure?";
             if (this.props.copyInProgress) {
                 remote.dialog.showMessageBox({
                     buttons: ["Cancel", "Close Anyways"],

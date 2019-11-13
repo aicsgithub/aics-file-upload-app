@@ -2,11 +2,12 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Button, Descriptions } from "antd";
 import * as React from "react";
 
-import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
+import { FAILED_STATUS } from "../../state/constants";
 
 const Item = Descriptions.Item;
 
 interface Props {
+    allowCancel: boolean;
     cancelUpload: () => void;
     className?: string;
     job: JSSJob;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const JobOverviewDisplay: React.FunctionComponent<Props> = ({
+                                                                allowCancel,
                                                                 cancelUpload,
                                                                 className,
                                                                 job,
@@ -32,23 +34,18 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
         user,
     } = job;
     let extraStatusActionButton: JSX.Element | undefined;
-    if (status === FAILED_STATUS) {
+    if (allowCancel) {
+        extraStatusActionButton = (
+            <Button onClick={cancelUpload} type="danger" loading={loading}>
+                Cancel
+            </Button>
+        );
+    } else if (status === FAILED_STATUS) {
         extraStatusActionButton = (
             <Button onClick={retryUpload} type="primary" loading={loading}>
                 Retry
             </Button>
         );
-    } else if (IN_PROGRESS_STATUSES.includes(status)) {
-        const fiveMinutesAgo = new Date();
-        fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
-        // Only allow cancelling jobs that have been going on for > 5 minutes to avoid possible funkiness
-        if (fiveMinutesAgo > modified) {
-            extraStatusActionButton = (
-                <Button onClick={cancelUpload} type="danger" loading={loading}>
-                    Cancel
-                </Button>
-            );
-        }
     }
     return (
         <Descriptions
