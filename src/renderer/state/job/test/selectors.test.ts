@@ -85,7 +85,7 @@ describe("Job selectors", () => {
             expect(isSafeToExit).to.be.false;
         });
 
-        it("returns false if an upload job is in progress and its copy job is in complete", () => {
+        it("returns true if an upload job is in progress and its copy job is in complete", () => {
             const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
@@ -100,7 +100,7 @@ describe("Job selectors", () => {
                     }],
                 },
             });
-            expect(isSafeToExit).to.be.false;
+            expect(isSafeToExit).to.be.true;
         });
 
         it("returns true if an upload job is in progress and its copy job is failed", () => {

@@ -49,7 +49,7 @@ export const getIsSafeToExit = createSelector([
     getNumberOfPendingJobs,
 ], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
     numberPendingJobs === 0 && every(jobs, ({ serviceFields: { copyJob }, status }) => (
-        (!copyJob || !includes(IN_PROGRESS_STATUSES, copyJob.status)) && !includes(IN_PROGRESS_STATUSES, status)
+        !includes(IN_PROGRESS_STATUSES, !copyJob ? status : copyJob.status)
     ))
 ));
 
