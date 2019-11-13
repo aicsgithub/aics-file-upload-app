@@ -1,20 +1,23 @@
 import Logger from "js-logger";
-import { includes, isEmpty, isNil, map, values } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
+import { Moment } from "moment";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
+import { LIST_DELIMITER_SPLIT } from "../../constants";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { pivotAnnotations } from "../../util";
+import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
-import { getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
+import { ColumnType } from "../template/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -30,7 +33,7 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
-    UPDATE_SCENES,
+    UPDATE_SCENES, UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
@@ -192,7 +195,7 @@ const updateScenesLogic = createLogic({
         const uploads = getUpload(getState());
         const {channels, positionIndexes, row} = action.payload;
         const update: Partial<UploadStateBranch> = {};
-        const workflows = row.workflows.split(", ").filter((w: string) => !isEmpty(w));
+        const workflows = splitTrimAndFilter(row.workflows);
 
         const existingUploadsForFile = values(uploads).filter((u) => u.file === row.file);
         const fileUpload: UploadMetadata | undefined = existingUploadsForFile
@@ -249,7 +252,7 @@ const updateScenesLogic = createLogic({
         // add uploads that are new
         positionIndexes.forEach((positionIndex: number) => {
             const matchingSceneRow = existingUploadsForFile
-                .find((u: UploadMetadata) => !isNil(u.positionIndex) && isNil(u.channelId));
+                .find((u: UploadMetadata) => u.positionIndex === positionIndex && isNil(u.channelId));
 
             if (!matchingSceneRow) {
                 const sceneOnlyRowKey = getUploadRowKey(row.file, positionIndex);
@@ -305,10 +308,104 @@ const updateScenesLogic = createLogic({
     type: UPDATE_SCENES,
 });
 
+const parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
+
+const parseNumberArray = (rawValue?: string) => {
+    if (!rawValue) {
+        return undefined;
+    }
+
+    // Remove anything that isn't a number, comma, or whitespace
+    rawValue = rawValue.replace(/[^0-9,\s]/g, "");
+    return rawValue.split(LIST_DELIMITER_SPLIT)
+        .map(parseNumber)
+        .filter((v: number) => !Number.isNaN(v));
+};
+
+// returns int if no decimals and float if not
+const parseNumber = (n: string) => {
+    const trimmed = trim(n);
+    let parsed = parseFloat(trimmed);
+
+    // convert to int if no decimals
+    if (parsed % 1 !== 0) {
+        parsed = parseInt(trimmed, 10);
+    }
+
+    return parsed;
+};
+
+// Here we take care of custom inputs that handle arrays for strings and numbers.
+// If we can create a valid array from the text of the input, we'll transform it into an array
+// if not, we pass the value untouched to the reducer.
+// Additionally we take care of converting moment dates back to dates.
+const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
+const updateUploadLogic = createLogic({
+    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const {upload} = action.payload;
+        const state = getState();
+        const template = getAppliedTemplate(state);
+        const annotationTypes = getAnnotationTypes(state);
+
+        if (!template || !annotationTypes) {
+            next(action);
+        } else {
+            const formattedUpload: Partial<UploadMetadata> = {};
+            forEach(upload, (value: any, key: string) => {
+                const annotation = template.annotations.find((a) => a.name === key);
+
+                if (annotation) {
+                    const annotationType = annotationTypes
+                        .find((at) => at.annotationTypeId === annotation.annotationTypeId);
+
+                    if (annotationType) {
+                        const { canHaveManyValues } = annotation;
+                        const type = annotationType.name;
+                        const endsWithComma = trim(value).endsWith(",");
+
+                        // numbers are formatted in text Inputs so they'll be strings at this point
+                        if (type === ColumnType.NUMBER && value && canHaveManyValues) {
+                            // Remove anything that isn't a number, comma, or whitespace
+                            value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
+                        }
+
+                        // antd's DatePicker passes a moment object rather than Date so we convert back here
+                        if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
+                            if (canHaveManyValues) {
+                                value = (value || [])
+                                    .filter((d: Moment) => !!d)
+                                    .map((d: Moment) => d instanceof Date ? d : d.toDate());
+                            } else {
+                                value = value instanceof Date || !value ? value : value.toDate();
+                            }
+                        } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
+                            value = parseNumberArray(value);
+                        } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
+                            value = parseStringArray(value);
+                        }
+                    }
+                }
+
+                formattedUpload[key] = value;
+            });
+
+            next({
+                ...action,
+                payload: {
+                    ...action.payload,
+                    upload: formattedUpload,
+                },
+            });
+        }
+    },
+    type: UPDATE_UPLOAD,
+});
+
 export default [
     applyTemplateLogic,
     associateFileAndWellLogic,
     initiateUploadLogic,
     retryUploadLogic,
     updateScenesLogic,
+    updateUploadLogic,
 ];

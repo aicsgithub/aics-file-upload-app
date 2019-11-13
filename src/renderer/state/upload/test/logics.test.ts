@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { get, keys } from "lodash";
+import * as moment from "moment";
 import { createSandbox, stub } from "sinon";
 
 import { LabkeyTemplate } from "../../../util/labkey-client/types";
@@ -8,8 +9,13 @@ import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, nonEmptyStateForInitiatingUpload } from "../../test/mocks";
-import { applyTemplate, associateFilesAndWells, initiateUpload, updateScenes } from "../actions";
+import {
+    getMockStateWithHistory, mockDateAnnotation, mockNumberAnnotation,
+    mockTemplateStateBranch,
+    mockTemplateWithManyValues, mockTextAnnotation,
+    nonEmptyStateForInitiatingUpload,
+} from "../../test/mocks";
+import { applyTemplate, associateFilesAndWells, initiateUpload, updateScenes, updateUpload } from "../actions";
 import { getUploadRowKey } from "../constants";
 import { getAppliedTemplateId, getUpload, getUploadSummaryRows } from "../selectors";
 
@@ -329,6 +335,162 @@ describe("Upload logics", () => {
                 const uploads = getUpload(store.getState());
                 expect(uploads[sceneKey]).to.be.undefined;
             }
+        });
+    });
+
+    describe("updateUploadLogic", () => {
+        const uploadRowKey = getUploadRowKey("/path/to/file1");
+
+        it("converts array of Moment objects to array of dates", () => {
+            const store = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockDateAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Birth Date": [],
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Birth Date";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: [moment()]}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation][0] instanceof Date).to.be.true;
+        });
+        it("converts moment objects to dates", () => {
+            const store = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [{
+                            ...mockDateAnnotation,
+                            canHaveManyValues: false,
+                        }],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Birth Date": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Birth Date";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: moment()}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation] instanceof Date).to.be.true;
+        });
+        it("converts strings to arrays of strings if canHaveManyValues=true and type is TEXT", () => {
+            const store = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockTextAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Another Garbage Text Annotation": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Another Garbage Text Annotation";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: "a,b,c"}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal(["a", "b", "c"]);
+        });
+        it("converts strings to arrays of numbers if canHaveManyValues=true and type is NUMBER", () => {
+            const store = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockNumberAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Clone Number Garbage": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Clone Number Garbage";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: "1,2,3"}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2, 3]);
         });
     });
 });

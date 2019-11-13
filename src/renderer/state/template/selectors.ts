@@ -1,9 +1,22 @@
 import { isEmpty, trim, uniqBy } from "lodash";
 
 import { createSelector } from "reselect";
-import { getNotesAnnotation, getWellAnnotation, getWorkflowAnnotation } from "../metadata/selectors";
+import {
+    getAnnotationTypes,
+    getNotesAnnotation,
+    getWellAnnotation,
+    getWorkflowAnnotation,
+} from "../metadata/selectors";
 import { State } from "../types";
-import { Annotation, AnnotationDraft, ColumnType, Template, TemplateDraft } from "./types";
+import {
+    Annotation,
+    AnnotationDraft,
+    AnnotationType,
+    ColumnType,
+    Template,
+    TemplateDraft,
+    TemplateWithTypeNames,
+} from "./types";
 
 export const getAppliedTemplate = (state: State) => state.template.present.appliedTemplate;
 export const getTemplateDraft = (state: State) => state.template.present.draft;
@@ -103,17 +116,20 @@ export const getSaveTemplateRequest = createSelector([
 });
 
 // includes annotation info for required fields - wellIds, workflow
+// and fills out annotation type name
 export const getCompleteAppliedTemplate = createSelector([
     getNotesAnnotation,
     getWellAnnotation,
     getWorkflowAnnotation,
     getAppliedTemplate,
+    getAnnotationTypes,
 ], (
     notes?: Annotation,
     well?: Annotation,
     workflow?: Annotation,
-    appliedTemplate?: Template
-): Template | undefined => {
+    appliedTemplate?: Template,
+    annotationTypes?: AnnotationType[]
+): TemplateWithTypeNames | undefined => {
     if (!appliedTemplate) {
         return undefined;
     }
@@ -122,10 +138,23 @@ export const getCompleteAppliedTemplate = createSelector([
         throw new Error("Could not get well, workflow, or notes annotation");
     }
 
+    if (!annotationTypes) {
+        throw new Error("Missing Annotation Types");
+    }
+
     return {
         ...appliedTemplate,
         annotations: [
-            ...appliedTemplate.annotations,
+            ...appliedTemplate.annotations.map((a) => {
+                const type = annotationTypes.find((at) => at.annotationTypeId === a.annotationTypeId);
+                if (!type) {
+                    throw new Error(`Could not find annotation type matching annotationTypeId=${a.annotationTypeId}`);
+                }
+                return {
+                    ...a,
+                    type: type.name,
+                };
+            }),
             {
                 ...well,
                 canHaveManyValues: true,
@@ -133,6 +162,7 @@ export const getCompleteAppliedTemplate = createSelector([
                 // In the future we should think about renaming the property
                 name: "Well Ids",
                 required: false,
+                type: ColumnType.LOOKUP,
             },
             {
                 ...workflow,
@@ -141,11 +171,13 @@ export const getCompleteAppliedTemplate = createSelector([
                 // In the future we should think about renaming the property
                 name: "Workflows",
                 required: false,
+                type: ColumnType.LOOKUP,
             },
             {
                 ...notes,
                 canHaveManyValues: true,
                 required: true,
+                type: ColumnType.TEXT,
             },
         ],
     };

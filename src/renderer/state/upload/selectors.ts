@@ -13,18 +13,22 @@ import {
     some,
     uniq,
     values,
-    without
+    without,
 } from "lodash";
+import * as moment from "moment";
 import { extname } from "path";
 import { createSelector } from "reselect";
+
+import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 
 import { getUploadJobNames } from "../job/selectors";
+import { getAnnotationTypes } from "../metadata/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
 import { ExpandedRows, Workflow } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
-import { Template } from "../template/types";
+import { AnnotationType, ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
 import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -46,22 +50,74 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
     return !isEmpty(past);
 });
 
-const convertToUploadJobRow = (metadata: UploadMetadata,
-                               numberSiblings: number, siblingIndex: number,
-                               treeDepth: number, hasSubRows: boolean = false,
-                               channelIds: number[] = [], positionIndexes: number[] = []): UploadJobTableRow => ({
-    ...metadata,
-    channelIds,
-    group: hasSubRows,
-    key: getUploadRowKey(metadata.file, metadata.positionIndex,
-        metadata.channel ? metadata.channel.channelId : undefined),
-    numberSiblings,
-    positionIndexes,
-    siblingIndex,
-    treeDepth,
-    wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(", ") : "",
-    workflows: metadata.workflows ? metadata.workflows.join(", ") : "",
-});
+const EXCLUDED_UPLOAD_FIELDS = [
+    "barcode",
+    "channel",
+    "file",
+    "key",
+    "plateId",
+    "positionIndex",
+    "templateId",
+    "wellLabels",
+];
+
+// this matches the metadata annotations to the ones in the database and removes
+// extra stuff that does not have annotations associated with it but is needed for UI display
+const standardizeUploadMetadata = (metadata: UploadMetadata) => {
+    const strippedMetadata = omit(metadata, EXCLUDED_UPLOAD_FIELDS);
+    const result: any = {};
+    forEach(strippedMetadata, (value: any, key: string) => {
+        result[titleCase(key)] = value;
+    });
+
+    return result;
+};
+
+const convertToUploadJobRow = (
+    metadata: UploadMetadata,
+    numberSiblings: number,
+    siblingIndex: number,
+    treeDepth: number,
+    template?: TemplateWithTypeNames,
+    hasSubRows: boolean = false,
+    channelIds: number[] = [],
+    positionIndexes: number[] = []
+): UploadJobTableRow => {
+    // convert arrays to strings
+    const formattedMetadata: UploadMetadata = {...metadata};
+    if (template) {
+        forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
+            const templateAnnotation = template.annotations.find((a) => a.name === key);
+
+            if (!templateAnnotation) {
+                throw new Error("Could not get template annotation named " + key);
+            }
+
+            const { type } = templateAnnotation;
+            // When a text or number annotation has supports multiple values, the editor will be
+            // an Input so we need to convert arrays to strings
+            const formatList = templateAnnotation && templateAnnotation.canHaveManyValues && Array.isArray(value) &&
+                (type === ColumnType.TEXT || type === ColumnType.NUMBER);
+            if (formatList) {
+                formattedMetadata[key] = value.join(LIST_DELIMITER_JOIN);
+            }
+        });
+    }
+
+    return {
+        ...formattedMetadata,
+        channelIds,
+        group: hasSubRows,
+        key: getUploadRowKey(metadata.file, metadata.positionIndex,
+            metadata.channel ? metadata.channel.channelId : undefined),
+        numberSiblings,
+        positionIndexes,
+        siblingIndex,
+        treeDepth,
+        wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(LIST_DELIMITER_JOIN) : "",
+        workflows: metadata.workflows ? metadata.workflows.join(LIST_DELIMITER_JOIN) : "",
+    };
+};
 
 // there will be metadata for files, each scene in a file, each channel in a file, and every combo
 // of scenes + channels
@@ -71,15 +127,21 @@ const getFileToMetadataMap = createSelector([
     return groupBy(values(uploads), ({file}: UploadMetadata) => file);
 });
 
-const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[]) => {
+const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: TemplateWithTypeNames) => {
     const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
     const sceneOnlyRows = allMetadataForFile.filter(isSceneOnlyRow);
     return channelMetadata.map((c: UploadMetadata, siblingIndex: number) =>
-        convertToUploadJobRow(c, channelMetadata.length + sceneOnlyRows.length, siblingIndex, 1));
+        convertToUploadJobRow(
+            c,
+            channelMetadata.length + sceneOnlyRows.length,
+            siblingIndex,
+            1,
+            template
+        ));
 };
 
 const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRows: number,
-                      expandedRows: ExpandedRows, file: string) => {
+                      expandedRows: ExpandedRows, file: string, template?: TemplateWithTypeNames) => {
     const sceneRows: UploadJobTableRow[] = [];
     const sceneMetadata = allMetadataForFile.filter(isSceneRow);
     const metadataGroupedByScene = groupBy(sceneMetadata, ({positionIndex}: UploadMetadata) => positionIndex);
@@ -89,8 +151,14 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRow
         (allMetadataForPositionIndex: UploadMetadata[], sceneIndex: number) => {
             const sceneParentMetadata = allMetadataForPositionIndex.find((m) => isNil(m.channel));
             if (sceneParentMetadata) {
-                const sceneRow = convertToUploadJobRow(sceneParentMetadata, numberSiblingsUnderFile,
-                    sceneIndex + numberChannelOnlyRows, 1, allMetadataForPositionIndex.length > 1);
+                const sceneRow = convertToUploadJobRow(
+                    sceneParentMetadata,
+                    numberSiblingsUnderFile,
+                    sceneIndex + numberChannelOnlyRows,
+                    1,
+                    template,
+                    allMetadataForPositionIndex.length > 1
+                );
                 sceneRows.push(sceneRow);
 
                 if (expandedRows[getUploadRowKey(file, sceneParentMetadata.positionIndex)]) {
@@ -98,7 +166,7 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRow
                     const sceneChannelRows = sceneChannelMetadata
                         .map((u: UploadMetadata, sceneChannelSiblingIndex: number) =>
                             convertToUploadJobRow(u, sceneChannelMetadata.length,
-                                sceneChannelSiblingIndex, 2));
+                                sceneChannelSiblingIndex, 2, template));
                     sceneRows.push(...sceneChannelRows);
                 }
             }
@@ -112,8 +180,11 @@ export const getUploadSummaryRows = createSelector([
     getUpload,
     getExpandedUploadJobRows,
     getFileToMetadataMap,
+    getCompleteAppliedTemplate,
+    getAnnotationTypes,
 ], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
-    metadataGroupedByFile: { [file: string]: UploadMetadata[] }): UploadJobTableRow[] => {
+    metadataGroupedByFile: { [file: string]: UploadMetadata[] }, template?: TemplateWithTypeNames,
+    annotationTypes?: AnnotationType[]): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
 
@@ -124,8 +195,8 @@ export const getUploadSummaryRows = createSelector([
         const fileMetadata = allMetadataForFile.find(isFileRow);
 
         if (fileMetadata) {
-            const channelRows = getChannelOnlyRows(allMetadataForFile);
-            const sceneRows = getSceneRows(allMetadataForFile, channelRows.length, expandedRows, file);
+            const channelRows = getChannelOnlyRows(allMetadataForFile, template);
+            const sceneRows = getSceneRows(allMetadataForFile, channelRows.length, expandedRows, file, template);
 
             // file rows are always visible
             const hasSubRows = channelRows.length + sceneRows.length > 0;
@@ -136,7 +207,7 @@ export const getUploadSummaryRows = createSelector([
                 .filter((m: UploadMetadata) => !isNil(m.positionIndex))
                 .map((m: UploadMetadata) => m.positionIndex)) as number[];
             const fileRow = convertToUploadJobRow(fileMetadata, keys(metadataGroupedByFile).length, fileSiblingIndex,
-                0, hasSubRows, allChannelIds, allPositionIndexes);
+                0, template, hasSubRows, allChannelIds, allPositionIndexes);
             visibleRows.push(fileRow);
 
             if (expandedRows[getUploadRowKey(file)]) {
@@ -168,16 +239,49 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
     }
 );
 
+export const getValidationErrorsMap = createSelector([
+    getUpload,
+    getCompleteAppliedTemplate,
+], (upload: UploadStateBranch, template?: TemplateWithTypeNames) => {
+    if (!template) {
+        return {};
+    }
+
+    const result: any = {};
+    forEach(upload, (metadata: UploadMetadata, key: string) => {
+        const annotationToErrorMap: {[annotation: string]: string} = {};
+        forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
+            const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
+            if (templateAnnotation) {
+                if (templateAnnotation.canHaveManyValues && !isNil(value) && !Array.isArray(value)) {
+                    annotationToErrorMap[annotationName] = "Invalid format";
+                }
+            }
+        });
+
+        if (keys(annotationToErrorMap).length) {
+            result[key] = annotationToErrorMap;
+        }
+    });
+    return result;
+});
+
 export const getCanSave = createSelector([
     getUploadSummaryRows,
     getFileToAnnotationHasValueMap,
+    getValidationErrorsMap,
     getCompleteAppliedTemplate,
 ], (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}},
-    template?: Template
+    validationErrorsMap: {[key: string]: {[annotation: string]: string}},
+    template?: TemplateWithTypeNames
 ): boolean => {
     if (!template || !rows.length) {
+        return false;
+    }
+
+    if (keys(validationErrorsMap).length) {
         return false;
     }
 
@@ -198,20 +302,13 @@ export const getCanSave = createSelector([
     return isValid;
 });
 
-const EXCLUDED_UPLOAD_FIELDS = [
-    "barcode",
-    "channel",
-    "file",
-    "key",
-    "plateId",
-    "positionIndex",
-    "templateId",
-    "wellLabels",
-];
 // the userData relates to the same file but differs for scene/channel combinations
-const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): MMSAnnotationValueRequest[] => {
+const getAnnotations = (
+    metadata: UploadMetadata[],
+    appliedTemplate: TemplateWithTypeNames
+): MMSAnnotationValueRequest[] => {
     return flatMap(metadata, (metadatum: UploadMetadata) => {
-        const customData = omit(metadatum, EXCLUDED_UPLOAD_FIELDS);
+        const customData = standardizeUploadMetadata(metadatum);
         const result: MMSAnnotationValueRequest[] = [];
         forEach(customData, (value: any, annotationName: string) => {
             const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
@@ -230,7 +327,14 @@ const getAnnotations = (metadata: UploadMetadata[], appliedTemplate: Template): 
                     channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
                     positionIndex: metadatum.positionIndex,
                     timePointId: undefined,
-                    values: castArray(value).map((v) => v.toString()),
+                    values: castArray(value).map((v) => {
+                        if (annotation.type === ColumnType.DATETIME) {
+                            return moment(v).format("YYYY-MM-DD HH:mm:ss");
+                        } else if (annotation.type === ColumnType.DATE) {
+                            return moment(v).format("YYYY-MM-DD");
+                        }
+                        return v.toString();
+                    }),
                 });
             }
         });
@@ -257,7 +361,7 @@ const extensionToFileTypeMap: { [index: string]: FileType } = {
 export const getUploadPayload = createSelector([
     getUpload,
     getCompleteAppliedTemplate,
-], (uploads: UploadStateBranch, template?: Template): Uploads => {
+], (uploads: UploadStateBranch, template?: TemplateWithTypeNames): Uploads => {
     if (!template) {
         throw new Error("Template has not been applied");
     }
@@ -268,8 +372,8 @@ export const getUploadPayload = createSelector([
         // to support the current way of storing metadata in bob the blob, we continue to include
         // wellIds and workflows in the microscopy block. Since a file may have 1 or more scenes and channels
         // per file, we set these values to a uniq list of all of the values found across each "dimension"
-        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds));
-        const workflows = uniq(flatMap(metadata, (m) => m.workflows || []));
+        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds)).filter((w) => !!w);
+        const workflows = uniq(flatMap(metadata, (m) => m.workflows || [])).filter((w) => !!w);
         result = {
             ...result,
             [fullPath]: {
@@ -302,7 +406,7 @@ export const getUploadJobName = createSelector([
         if (!workflows) {
             return "";
         }
-        const workflowNames = workflows.map((workflow) => workflow.name).join(", ");
+        const workflowNames = workflows.map((workflow) => workflow.name).join(LIST_DELIMITER_JOIN);
         const jobNamesForWorkflow = uploadJobNames.filter((name) => {
             // name could look like "barcode" or "barcode (1)". We want to get just "barcode"
             const workflowParts = name.match(numberOfJobsRegex);
