@@ -39,7 +39,7 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
             </Button>
         );
     } else if (IN_PROGRESS_STATUSES.includes(status)) {
-        const fiveMinutesAgo = new Date(Date.now());
+        const fiveMinutesAgo = new Date();
         fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
         // Only allow cancelling jobs that have been going on for > 5 minutes to avoid possible funkiness
         if (fiveMinutesAgo > modified) {
