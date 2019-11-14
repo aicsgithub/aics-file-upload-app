@@ -1,9 +1,11 @@
 import { isEmpty, trim, uniqBy } from "lodash";
 
 import { createSelector } from "reselect";
+import { LabkeyTemplate } from "../../util/labkey-client/types";
 import {
     getAnnotationTypes,
     getNotesAnnotation,
+    getTemplates,
     getWellAnnotation,
     getWorkflowAnnotation,
 } from "../metadata/selectors";
@@ -24,9 +26,11 @@ export const getTemplateDraftName = (state: State) => state.template.present.dra
 export const getTemplateDraftAnnotations = (state: State) => state.template.present.draft.annotations;
 
 export const getTemplateDraftErrors = createSelector([
+    getTemplates,
+    getTemplateDraft,
     getTemplateDraftAnnotations,
     getTemplateDraftName,
-], (annotations: AnnotationDraft[], templateName?: string) => {
+], (allTemplates: LabkeyTemplate[], draft: TemplateDraft, annotations: AnnotationDraft[], templateName?: string) => {
     const errors = [];
     if (!trim(templateName)) {
         errors.push("Template is missing a name");
@@ -74,6 +78,12 @@ export const getTemplateDraftErrors = createSelector([
 
     if (duplicateNamesFound) {
         errors.push("Found duplicate annotation names");
+    }
+
+    const canEdit = draft.templateId && !allTemplates.find(({ Name, Version }) =>
+        Name === templateName && !!draft.version && Version > draft.version);
+    if (!canEdit) {
+        errors.push("Must edit the most recent version of a template");
     }
 
     return errors;
