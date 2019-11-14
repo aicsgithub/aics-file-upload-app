@@ -183,7 +183,8 @@ const cancelUploadLogic = createLogic({
         dispatch(removeRequestFromInProgress(AsyncRequest.CANCEL_UPLOAD));
         done();
     },
-    transform: ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({ action, ctx, fms, getState, remote }: ReduxLogicTransformDependencies,
+                next: ReduxLogicNextCb, reject: () => void) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
         if (!uploadJob) {
             next(setAlert({
@@ -191,7 +192,20 @@ const cancelUploadLogic = createLogic({
                 type: AlertType.ERROR,
             }));
         } else {
-            next(action);
+            remote.dialog.showMessageBox({
+                buttons: ["No", "Yes"],
+                cancelId: 0,
+                defaultId: 1,
+                message: "Cancelling this upload will make it unrecoverable. Are you sure?",
+                title: "Warning",
+                type: "warning",
+            }, (response: number) => {
+                if (response === 1) {
+                    next(action);
+                } else {
+                    reject();
+                }
+            });
         }
     },
     type: CANCEL_UPLOAD,
