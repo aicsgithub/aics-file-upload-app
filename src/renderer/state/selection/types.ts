@@ -236,7 +236,7 @@ export interface DragAndDropFile {
 
 export enum Page {
     DragAndDrop = "DragAndDrop",
-    EnterBarcode = "EnterBarcode",
+    SelectUploadType = "SelectUploadType",
     AssociateFiles = "AssociateFiles",
     AddCustomData = "AddCustomData",
     UploadSummary = "UploadSummary",

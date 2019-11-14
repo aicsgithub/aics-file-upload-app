@@ -100,7 +100,7 @@ describe("Selection logics", () => {
 
             // after
             store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
                 done();
             });
         });
@@ -108,7 +108,7 @@ describe("Selection logics", () => {
         it("Does not change page if not on DragAndDrop page", (done) => {
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
                 ...mockSelection,
-                page: Page.EnterBarcode,
+                page: Page.SelectUploadType,
             });
             const store = createMockReduxStore({
                 ...mockState,
@@ -116,14 +116,14 @@ describe("Selection logics", () => {
             });
 
             // before
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
 
             // apply
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
             // after
             store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
                 done();
             });
         });
@@ -210,7 +210,7 @@ describe("Selection logics", () => {
 
             // after
             store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
                 done();
             });
         });
@@ -218,7 +218,7 @@ describe("Selection logics", () => {
         it("Does not change page if not on DragAndDrop page", (done) => {
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
                 ...mockSelection,
-                page: Page.EnterBarcode,
+                page: Page.SelectUploadType,
             });
             const store = createMockReduxStore({
                 ...mockState,
@@ -226,14 +226,14 @@ describe("Selection logics", () => {
             });
 
             // before
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
 
             // apply
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
             // after
             store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
                 done();
             });
         });

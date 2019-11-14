@@ -99,7 +99,7 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop" />,
     }],
-    [Page.EnterBarcode, {
+    [Page.SelectUploadType, {
         container:  <EnterBarcode key="enterBarcode"/>,
     }],
     [Page.AssociateFiles, {
