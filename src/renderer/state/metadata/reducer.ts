@@ -13,6 +13,7 @@ import {
 
 export const initialState: MetadataStateBranch = {
     annotationLookups: [],
+    annotationOptions: [],
     annotationTypes: [],
     annotations: [],
     barcodePrefixes: [],

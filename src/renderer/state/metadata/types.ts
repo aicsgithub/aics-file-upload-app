@@ -1,10 +1,11 @@
 import { LabkeyPlateResponse, LabkeyTemplate } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
-import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../template/types";
+import { Annotation, AnnotationLookup, AnnotationOption, AnnotationType, Lookup } from "../template/types";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
     annotationLookups: AnnotationLookup[];
+    annotationOptions: AnnotationOption[];
     annotationTypes: AnnotationType[];
     barcode?: string;
     barcodePrefixes: BarcodePrefix[];

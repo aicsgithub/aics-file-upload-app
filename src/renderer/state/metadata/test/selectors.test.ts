@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ColumnType } from "../../template/types";
 import {
+    mockAuditInfo,
     mockNotesAnnotation,
     mockState,
     mockWellAnnotation,
@@ -8,6 +9,7 @@ import {
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
+    getAnnotationsWithAnnotationOptions,
     getBooleanAnnotationTypeId,
     getLookupAnnotationTypeId,
     getNotesAnnotation,
@@ -140,6 +142,50 @@ describe("Metadata selectors", () => {
         it("returns undefined if Workflow annotation not found", () => {
             const result = getWorkflowAnnotation(mockState);
             expect(result).to.be.undefined;
+        });
+    });
+    describe("getAnnotationsWithAnnotationOptions", () => {
+        const mockAnnotation = {
+            ...mockAuditInfo,
+            annotationId: 2,
+            annotationTypeId: 3,
+            description: "",
+            name: "Dropdown",
+        };
+        const mockAnnotation2 = {
+            ...mockAnnotation,
+            annotationId: 3,
+        };
+        it("adds annotation options to matching annotation if found", () => {
+            const result = getAnnotationsWithAnnotationOptions({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationOptions: [
+                        {
+                            annotationId: mockAnnotation.annotationId,
+                            annotationOptionId: 1,
+                            value: "a",
+                        },
+                        {
+                            annotationId: mockAnnotation.annotationId,
+                            annotationOptionId: 1,
+                            value: "b",
+                        },
+                    ],
+                    annotations: [mockAnnotation, mockAnnotation2],
+                },
+            });
+            expect(result).to.deep.equal([
+                {
+                    ...mockAnnotation,
+                    annotationOptions: ["a", "b"],
+                },
+                {
+                    ...mockAnnotation2,
+                    annotationOptions: undefined,
+                },
+            ]);
         });
     });
 });

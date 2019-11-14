@@ -15,6 +15,7 @@ import {
     Annotation,
     AnnotationDraft,
     AnnotationLookup,
+    AnnotationOption,
     AnnotationType,
     ColumnType,
     Lookup,
@@ -277,6 +278,7 @@ export const mockState: State = {
     },
     metadata: {
         annotationLookups: [],
+        annotationOptions: [],
         annotationTypes: [],
         annotations: [],
         barcodePrefixes: [],
@@ -517,6 +519,14 @@ export const mockAnnotationLookups: AnnotationLookup[] = [
     },
 ];
 
+export const mockAnnotationOptions: AnnotationOption[] = [
+    {
+        annotationId: 1,
+        annotationOptionId: 1,
+        value: "Green",
+    },
+];
+
 export const mockImagingSessions: LabkeyImagingSession[] = [
     {
         Description: "",
@@ -579,6 +589,7 @@ export const nonEmptyStateForInitiatingUpload: State = {
     ...mockState,
     metadata: {
         ...mockState.metadata,
+        annotationOptions: mockAnnotationOptions,
         annotationTypes: mockAnnotationTypes,
         annotations: mockAnnotations,
     },
