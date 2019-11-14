@@ -124,7 +124,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => this.renderFormat(row, "workflows", value),
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+                this.renderFormat(row, "workflows", value),
             key: "workflows",
             name: "Workflows",
             resizable: true,
