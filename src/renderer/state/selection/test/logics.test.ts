@@ -653,45 +653,6 @@ describe("Selection logics", () => {
     });
 
     describe("selectPageLogic", () => {
-        // This is technically going backwards but we won't see any changes because there is no history for each
-        // branch (as is the case after an upload)
-        it("Going from UploadSummary to DragAndDrop page should not change info related to history", (done) => {
-            const selection = getMockStateWithHistory({
-                ...mockSelection,
-                page: Page.UploadSummary,
-                view: Page.UploadSummary,
-            });
-
-            const store = createMockReduxStore({
-                ...mockState,
-                selection,
-            });
-
-            let state = store.getState();
-
-            expect(getCurrentSelectionIndex(state)).to.equal(0);
-            expect(getCurrentTemplateIndex(state)).to.equal(0);
-            expect(getCurrentUploadIndex(state)).to.equal(0);
-            expect(getSelectionHistory(state)).to.be.empty;
-            expect(getTemplateHistory(state)).to.be.empty;
-            expect(getUploadHistory(state)).to.be.empty;
-
-            let count = 0;
-            store.subscribe(() => {
-                count++;
-                if (count === 2) {
-                    state = store.getState();
-                    expect(getCurrentSelectionIndex(state)).to.equal(0);
-                    expect(getCurrentTemplateIndex(state)).to.equal(0);
-                    expect(getCurrentUploadIndex(state)).to.equal(0);
-                    expect(getSelectionHistory(state)).to.be.empty;
-                    expect(getTemplateHistory(state)).to.be.empty;
-                    expect(getUploadHistory(state)).to.be.empty;
-                    done();
-                }
-            });
-            store.dispatch(selectPage(Page.UploadSummary, Page.DragAndDrop));
-        });
         // This is going forward
         it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
             "branches are at for the page we went to", (done) => {
