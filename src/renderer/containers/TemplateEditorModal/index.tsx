@@ -113,11 +113,13 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             visible,
         } = this.props;
 
+        const isEditing = Boolean(template && template.templateId);
+        const title = isEditing ? `Edit ${SCHEMA_SYNONYM}: ${template.name}` : `New ${SCHEMA_SYNONYM}`;
         return (
             <Modal
                 width="90%"
                 className={className}
-                title={template && template.templateId ? `Edit ${SCHEMA_SYNONYM}` : `New ${SCHEMA_SYNONYM}`}
+                title={title}
                 visible={visible}
                 onOk={this.saveAndClose}
                 onCancel={closeModal}
@@ -125,7 +127,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 okButtonProps={{disabled: errors.length > 0, loading: saveInProgress}}
                 maskClosable={false}
             >
-                {this.renderBody()}
+                {this.renderBody(isEditing)}
             </Modal>
         );
     }
@@ -138,7 +140,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         });
     }
 
-    private renderBody = (): ReactNode | ReactNodeArray => {
+    private renderBody = (isEditing: boolean): ReactNode | ReactNodeArray => {
         const {
             allAnnotations,
             annotationTypes,
@@ -163,7 +165,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
 
         return (
             <>
-                {!template.templateId && showInfoAlert && <Alert
+                {!isEditing && showInfoAlert && <Alert
                     afterClose={this.closeAlert}
                     className={styles.alert}
                     closable={true}
@@ -171,16 +173,16 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                     type="info"
                     message={COLUMN_TEMPLATE_DESCRIPTION}
                 />}
-                <FormControl
+                {!isEditing && <FormControl
                     className={styles.formControl}
-                    label="Column Template Name"
+                    label="Template Name"
                     error={!trim(template.name) ? "Template Name is required" : undefined}
                 >
                     <Input
                         value={template.name}
                         onChange={this.updateTemplateName}
                     />
-                </FormControl>
+                </FormControl>}
                 <div className={styles.body}>
                     <div className={styles.formContainer}>
                         <FormControl
