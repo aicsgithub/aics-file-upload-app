@@ -185,8 +185,8 @@ export const getCompleteAppliedTemplate = createSelector([
             },
             {
                 ...notes,
-                canHaveManyValues: true,
-                required: true,
+                canHaveManyValues: false,
+                required: false,
                 type: ColumnType.TEXT,
             },
         ],
