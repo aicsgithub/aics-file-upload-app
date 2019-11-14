@@ -1,4 +1,5 @@
 import { Button, Spin } from "antd";
+import classNames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -108,7 +109,7 @@ interface AddCustomDataState {
 }
 
 /**
- * Renders column template selector and custom data grid for adding additional data to each file.
+ * Renders template selector and custom data grid for adding additional data to each file.
  */
 class AddCustomData extends React.Component<Props, AddCustomDataState> {
     constructor(props: Props) {
@@ -154,7 +155,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
-                {appliedTemplate && this.renderTemplateInfo()}
                 {appliedTemplate && this.renderPlateInfo()}
                 {appliedTemplate && (
                     <CustomDataGrid
@@ -182,19 +182,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         );
     }
 
-    private renderTemplateInfo = () => {
-        const { appliedTemplate } = this.props;
-        if (!appliedTemplate) {
-            return null;
-        }
-
-        return (
-            <a href="#" onClick={this.openTemplateEditorWithId(appliedTemplate.templateId)}>
-                View Template
-            </a>
-        );
-    }
-
     private renderPlateInfo = () => {
         const { selectedBarcode, selectedImagingSession } = this.props;
         if (!selectedBarcode) {
@@ -215,7 +202,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.schemaSelector}>
-                    <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
+                    <p className={styles.schemaSelectorLabel}>{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
                         value={appliedTemplate ? appliedTemplate.templateId : undefined}
@@ -223,15 +210,36 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         templates={templates}
                     />
                 </div>
-                <Button className={styles.createSchemaButton} onClick={this.openTemplateEditor}>
+                <Button
+                    icon="plus-circle"
+                    className={classNames(styles.templateButton, styles.createTemplateButton)}
+                    onClick={this.openTemplateEditor}
+                >
                     Create {SCHEMA_SYNONYM}
                 </Button>
+                <Button
+                    icon="edit"
+                    disabled={!appliedTemplate}
+                    className={styles.templateButton}
+                    onClick={this.openTemplateEditorWithId(appliedTemplate && appliedTemplate.templateId)}
+                >
+                    Edit {SCHEMA_SYNONYM}
+                </Button>
+                {/* TODO: Add readonly template view in [FMS-671] */}
+                {/*<Button*/}
+                {/*    icon="info-circle"*/}
+                {/*    disabled={!appliedTemplate}*/}
+                {/*    className={styles.templateButton}*/}
+                {/*    onClick={this.openTemplateEditorWithId(appliedTemplate && appliedTemplate.templateId)}*/}
+                {/*>*/}
+                {/*    View {SCHEMA_SYNONYM}*/}
+                {/*</Button>*/}
             </div>
         );
     }
 
     private openTemplateEditor = () => this.props.openSchemaCreator();
-    private openTemplateEditorWithId = (id: number) => () => this.props.openSchemaCreator(id);
+    private openTemplateEditorWithId = (id: number | undefined) => () => this.props.openSchemaCreator(id);
 
     private selectTemplate = (templateId: number) => {
         const template = this.props.templates.find((t) => t.TemplateId === templateId);
