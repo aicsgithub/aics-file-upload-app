@@ -225,15 +225,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 >
                     Edit {SCHEMA_SYNONYM}
                 </Button>
-                {/* TODO: Add readonly template view in [FMS-671] */}
-                {/*<Button*/}
-                {/*    icon="info-circle"*/}
-                {/*    disabled={!appliedTemplate}*/}
-                {/*    className={styles.templateButton}*/}
-                {/*    onClick={this.openTemplateEditorWithId(appliedTemplate && appliedTemplate.templateId)}*/}
-                {/*>*/}
-                {/*    View {SCHEMA_SYNONYM}*/}
-                {/*</Button>*/}
             </div>
         );
     }
