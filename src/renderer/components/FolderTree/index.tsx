@@ -52,9 +52,11 @@ interface FolderTreeState {
 const FOLDER_TAG = "(folder)";
 const CANT_READ_TAG = "(cant read)";
 
+// On Windows file browsers cannot look for directories and files at the same time
+// directories are the default in that case
 const openDialogOptions: OpenDialogOptions = {
     properties: ["openFile", "openDirectory", "multiSelections"],
-    title: "Open files",
+    title: "Browse for folders, or drag and drop files/folders onto app",
 };
 
 class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
@@ -128,7 +130,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
 
                 </div>
                 <DragAndDrop
-                    className={styles.dragAndDrop}
+                    className={files.length && styles.dragAndDrop}
                     openDialogOptions={openDialogOptions}
                     onDrop={loadFilesFromDragAndDropAction}
                 >
