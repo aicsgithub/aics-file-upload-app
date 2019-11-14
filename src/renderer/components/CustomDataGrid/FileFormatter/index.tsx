@@ -42,7 +42,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     }
 
     private static isEditing({ channelIds, positionIndexes }: UploadJobTableRow): boolean {
-        return !isEmpty(channelIds) || !isEmpty(positionIndexes)
+        return !isEmpty(channelIds) || !isEmpty(positionIndexes);
     }
 
     constructor(props: Props) {
