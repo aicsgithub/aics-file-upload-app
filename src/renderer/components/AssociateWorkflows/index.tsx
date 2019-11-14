@@ -98,7 +98,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                             allowClear={true}
                             autoFocus={true}
                             onChange={this.selectWorkflows}
-                            placeholder="Select Workflow(s)"
+                            placeholder="Select Workflows"
                             mode="tags"
                             style={{ width: "100%" }}
                             value={selectedWorkflows.map((workflow) => workflow.name)}
