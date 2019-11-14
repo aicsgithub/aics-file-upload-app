@@ -1,4 +1,4 @@
-import { Alert, Col, Icon, Modal, Row, Select, Tooltip } from "antd";
+import { Alert, Icon, Modal, Select, Tooltip } from "antd";
 import { isEmpty, isNil, uniq } from "lodash";
 import { basename } from "path";
 import * as React from "react";
@@ -103,18 +103,12 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         return (
             <div>
                 <Tooltip mouseLeaveDelay={0} title={value} className={styles.fileCell}>
-                    <Row>
-                        <Col xs={22}>
-                            <span className={styles.fileCellText}>{fileName}</span>
-                        </Col>
-                        <Col xs={2}>
-                            <Icon
-                                className={styles.addSceneIcon}
-                                onClick={this.openModal}
-                                type={isEditing ? "edit" : "plus-circle"}
-                            />
-                        </Col>
-                    </Row>
+                    <span className={styles.fileCellText}>{fileName}</span>
+                    <Icon
+                        className={styles.addSceneIcon}
+                        onClick={this.openModal}
+                        type={isEditing ? "edit" : "plus-circle"}
+                    />
                 </Tooltip>
                 <Modal
                     width="50%"
