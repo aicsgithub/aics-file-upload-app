@@ -133,7 +133,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
                     className={styles.select}
                     showSearch={true}
                     showArrow={false}
-                    notFoundContent={null}
+                    notFoundContent={<div>Start typing to search for barcodes</div>}
                     value={barcode}
                     placeholder="Barcode"
                     autoFocus={true}
