@@ -507,6 +507,7 @@ export const mockAnnotationDraft: AnnotationDraft = {
 export const mockTemplateDraft: TemplateDraft = {
     annotations: [mockAnnotationDraft],
     name: "My Template",
+    version: 1,
 };
 
 export const mockAnnotationLookups: AnnotationLookup[] = [

@@ -80,9 +80,9 @@ export const getTemplateDraftErrors = createSelector([
         errors.push("Found duplicate annotation names");
     }
 
-    const canEdit = draft.templateId && !allTemplates.find(({ Name, Version }) =>
+    const notMostRecent = allTemplates.find(({ Name, Version }) =>
         Name === templateName && !!draft.version && Version > draft.version);
-    if (!canEdit) {
+    if (draft.templateId && notMostRecent) {
         errors.push("Must edit the most recent version of a template");
     }
 
