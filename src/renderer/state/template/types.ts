@@ -36,11 +36,22 @@ export interface AnnotationLookup {
     lookupId: number;
 }
 
+export interface AnnotationOption {
+    annotationId: number;
+    annotationOptionId: number;
+    value: string;
+}
+
 export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number };
 
 export interface AnnotationType {
     annotationTypeId: number;
     name: ColumnType;
+}
+
+// if dropdown, annotationOptions array is supplied
+export interface AnnotationWithOptions extends Annotation {
+    annotationOptions?: string[];
 }
 
 export enum ColumnType {

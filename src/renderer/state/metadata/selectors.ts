@@ -3,12 +3,13 @@ import { createSelector } from "reselect";
 import { BarcodeSelectorOption } from "../../containers/EnterBarcode";
 
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
-import { Annotation, AnnotationType, ColumnType } from "../template/types";
+import { Annotation, AnnotationOption, AnnotationType, AnnotationWithOptions, ColumnType } from "../template/types";
 import { State } from "../types";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
 export const getAnnotationLookups = (state: State) => state.metadata.annotationLookups;
+export const getAnnotationOptions = (state: State) => state.metadata.annotationOptions;
 export const getAnnotationTypes = (state: State) => state.metadata.annotationTypes;
 export const getUnits = (state: State) => state.metadata.units;
 export const getImagingSessions = (state: State) => state.metadata.imagingSessions;
@@ -67,4 +68,18 @@ export const getWorkflowAnnotation = createSelector([
     getAnnotations,
 ], (annotations: Annotation[]): Annotation | undefined => {
     return annotations.find((a) => a.name === "Workflow");
+});
+
+export const getAnnotationsWithAnnotationOptions = createSelector([
+    getAnnotations,
+    getAnnotationOptions,
+], (annotations: Annotation[], annotationOptions: AnnotationOption[]): AnnotationWithOptions[] => {
+    return annotations.map((a) => {
+        const options =  annotationOptions.filter((o) => o.annotationId === a.annotationId)
+            .map((o) => o.value);
+        return {
+            ...a,
+            annotationOptions: options.length ? options : undefined,
+        };
+    });
 });
