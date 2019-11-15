@@ -62,6 +62,29 @@ export const jssClient = new JobStatusClient({host, port, username});
 export const labkeyClient = new LabkeyClient({host, localStorage, port, protocol});
 export const mmsClient = new MMSClient({host, localStorage, port, protocol, username});
 
+export const switchEnvMenuItem = {
+    enabled: true,
+    label: "Switch Environment",
+};
+
+export const getApplicationMenu = stub().returns(
+    {
+        items: [
+            {
+                enabled: true,
+                label: "File",
+                submenu: {
+                    items: [
+                        {enabled: true, label: "New"},
+                        {enabled: true, label: "Open"},
+                        switchEnvMenuItem,
+                    ],
+                },
+            },
+        ],
+    }
+);
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     fms,
     ipcRenderer: {
@@ -73,7 +96,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     mmsClient,
     remote: {
         Menu: {
-            getApplicationMenu: stub(),
+            getApplicationMenu,
         },
         dialog: {
             showMessageBox: stub(),

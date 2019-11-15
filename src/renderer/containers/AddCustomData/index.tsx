@@ -19,7 +19,7 @@ import {
     getTemplates,
 } from "../../state/metadata/selectors";
 import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
-import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import { goBack, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
@@ -30,7 +30,6 @@ import { Page } from "../../state/selection/types";
 import {
     ExpandedRows,
     GoBackAction,
-    NextPageAction,
     OpenTemplateEditorAction,
     ToggleExpandedUploadJobRowAction,
     Well,
@@ -46,7 +45,6 @@ import {
     removeUploads,
     updateScenes,
     updateUpload,
-    updateUploads,
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
@@ -63,7 +61,6 @@ import {
     RemoveUploadsAction,
     UpdateScenesAction,
     UpdateUploadAction,
-    UpdateUploadsAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
@@ -84,7 +81,6 @@ interface Props {
     expandedRows: ExpandedRows;
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     goBack: ActionCreator<GoBackAction>;
-    goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
     loading: boolean;
@@ -99,7 +95,6 @@ interface Props {
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     updateScenes: ActionCreator<UpdateScenesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
-    updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
@@ -173,7 +168,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         undo={this.undo}
                         updateScenes={this.props.updateScenes}
                         updateUpload={this.props.updateUpload}
-                        updateUploads={this.props.updateUploads}
                         uploads={uploads}
                         validationErrors={validationErrors}
                     />
@@ -241,7 +235,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     private upload = (): void => {
         this.props.initiateUpload();
-        this.props.goForward();
     }
 
     private undo = (): void => {
@@ -278,7 +271,6 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     applyTemplate,
     goBack,
-    goForward,
     initiateUpload,
     jumpToUpload,
     openSchemaCreator: openTemplateEditor,
@@ -288,7 +280,6 @@ const dispatchToPropsMap = {
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateScenes,
     updateUpload,
-    updateUploads,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);

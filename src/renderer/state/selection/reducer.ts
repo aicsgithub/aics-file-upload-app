@@ -1,12 +1,12 @@
 import { castArray } from "lodash";
 import { AnyAction } from "redux";
 import undoable, {
-    excludeAction,
     UndoableOptions,
 } from "redux-undo";
+import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
-import { makeReducer } from "../util";
+import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
     CLOSE_OPEN_TEMPLATE_MODAL,
@@ -16,6 +16,7 @@ import {
 } from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
+    CLEAR_SELECTION_HISTORY,
     CLEAR_STAGED_FILES,
     DESELECT_FILES,
     JUMP_TO_PAST_SELECTION,
@@ -218,7 +219,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
 const selection = makeReducer<SelectionStateBranch>(actionToConfigMap, initialState);
 
 const options: UndoableOptions = {
-    filter: excludeAction( SELECT_PAGE),
+    clearHistoryType: CLEAR_SELECTION_HISTORY,
+    filter: getReduxUndoFilterFn([SELECT_PAGE, SELECT_VIEW]),
+    initTypes: [RESET_HISTORY],
     jumpToPastType: JUMP_TO_PAST_SELECTION,
     limit: 100,
 };

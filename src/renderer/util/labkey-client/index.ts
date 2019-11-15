@@ -4,12 +4,13 @@ import { isEmpty, map, pick } from "lodash";
 import { Channel } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
 import { Workflow } from "../../state/selection/types";
-import { Annotation, AnnotationLookup, AnnotationType, Lookup } from "../../state/template/types";
+import { Annotation, AnnotationLookup, AnnotationOption, AnnotationType, Lookup } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 import {
     LabkeyAnnotation,
     LabkeyAnnotationLookup,
+    LabkeyAnnotationOption,
     LabkeyAnnotationType,
     LabkeyChannel,
     LabkeyImagingSession,
@@ -66,6 +67,13 @@ export default class LabkeyClient extends BaseServiceClient {
         const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationLookup");
         const { rows } = await this.httpClient.get(query);
         return rows.map((r: LabkeyAnnotationLookup) => camelizeKeys(pick(r, ["AnnotationId", "LookupId"])));
+    }
+
+    public async getAnnotationOptions(): Promise<AnnotationOption[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "AnnotationOption");
+        const { rows } = await this.httpClient.get(query);
+        return rows.map((r: LabkeyAnnotationOption) =>
+            camelizeKeys(pick(r, ["AnnotationOptionId", "AnnotationId", "Value"])));
     }
 
     /**

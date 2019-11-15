@@ -126,8 +126,9 @@ const requestAnnotations = createLogic({
         dispatch(addRequestToInProgress(AsyncRequest.GET_ANNOTATIONS));
         try {
             const annotations = sortBy(await labkeyClient.getAnnotations(), ["name"]);
+            const annotationOptions = await labkeyClient.getAnnotationOptions();
             dispatch(batchActions([
-                receiveMetadata({annotations}),
+                receiveMetadata({annotationOptions, annotations}),
                 removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
             ]));
         } catch (e) {
