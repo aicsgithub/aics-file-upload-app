@@ -3,7 +3,7 @@ import { RadioChangeEvent } from "antd/es/radio";
 import { SelectValue } from "antd/es/select";
 import { get } from "lodash";
 import * as React from "react";
-import { BarcodeSelectorOption } from "../../../containers/EnterBarcode";
+import { BarcodeSelectorOption } from "../../../containers/SelectUploadType";
 
 import { ImagingSession } from "../../../state/metadata/types";
 

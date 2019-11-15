@@ -66,7 +66,7 @@ enum Path {
     Workflow = 3, // No plate or ability to create one, but can associate with workflows
 }
 
-interface EnterBarcodeProps {
+interface SelectUploadTypeProps {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: BarcodeSelectorOption[];
     className?: string;
@@ -88,7 +88,7 @@ interface EnterBarcodeProps {
     setAlert: ActionCreator<SetAlertAction>;
 }
 
-interface EnterBarcodeState {
+interface SelectUploadTypeState {
     barcode?: string;
     barcodePrefixId?: number;
     imagingSessionId?: number | null;
@@ -96,12 +96,17 @@ interface EnterBarcodeState {
     path?: Path;
 }
 
-class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState> {
+/*
+    This container represents the SelectUploadType page. On this page a user will be presented with different options
+    representing the different ways they may associate data with their files. While later on they will be able to
+    associate custom data regardless, it is important for us to at least require some minimum data to be able to query.
+ */
+class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUploadTypeState> {
     private onBarcodeInput = debounce((input: string): void => {
         this.props.getBarcodeSearchResults(input);
     }, 500);
 
-    constructor(props: EnterBarcodeProps) {
+    constructor(props: SelectUploadTypeProps) {
         super(props);
         this.state = {
             barcode: props.selectedBarcode,
@@ -217,7 +222,7 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
 
     // If a user causes an action in a card all other card must be reset to prevent the idea that you could
     // ever select > 1 path
-    private resetAndReplaceState = (replacementState: Partial<EnterBarcodeState> = {}) => {
+    private resetAndReplaceState = (replacementState: Partial<SelectUploadTypeState> = {}) => {
         this.setState({
             barcode: undefined,
             barcodePrefixId: undefined,
@@ -276,4 +281,4 @@ const dispatchToPropsMap = {
     setAlert,
 };
 
-export default connect(mapStateToProps, dispatchToPropsMap)(EnterBarcode);
+export default connect(mapStateToProps, dispatchToPropsMap)(SelectUploadType);
