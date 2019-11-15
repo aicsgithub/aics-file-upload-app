@@ -1,10 +1,9 @@
-import { Button, Col, Icon, Radio, Row, Select } from "antd";
+import { Col, Row } from "antd";
 import { SelectValue } from "antd/es/select";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
-import { debounce, get } from "lodash";
-import { ReactNodeArray } from "react";
+import { debounce } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -12,6 +11,9 @@ import { ActionCreator } from "redux";
 import { PLATE_CREATED } from "../../../shared/constants";
 
 import FormPage from "../../components/FormPage";
+import CreateBarcodeCard from "../../components/SelectPath/CreateBarcodeCard";
+import EnterBarcodeCard from "../../components/SelectPath/EnterBarcodeCard";
+import SelectWorkflowCard from "../../components/SelectPath/SelectWorkflowCard";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
@@ -57,6 +59,13 @@ export interface BarcodeSelectorOption {
     imagingSessionIds: Array<number | null>;
 }
 
+// The different upload paths a user may take
+enum Path {
+    EnterBarcode = 1, // The user already has a plate barcode and can associate wells
+    CreateBarcode = 2, // No plate, but can create one and can associate wells
+    Workflow = 3, // No plate or ability to create one, but can associate with workflows
+}
+
 interface EnterBarcodeProps {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: BarcodeSelectorOption[];
@@ -84,7 +93,7 @@ interface EnterBarcodeState {
     barcodePrefixId?: number;
     imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
-    showCreateBarcodeForm: boolean;
+    path?: Path;
 }
 
 class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState> {
@@ -98,152 +107,141 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             barcode: props.selectedBarcode,
             imagingSessionId: props.selectedImagingSessionId,
             imagingSessionIds: props.selectedImagingSessionIds,
-            showCreateBarcodeForm: false,
+            path: props.selectedBarcode ? Path.EnterBarcode : undefined,
         };
         this.onBarcodeChange = this.onBarcodeChange.bind(this);
         this.saveAndContinue = this.saveAndContinue.bind(this);
         this.setAlert = debounce(this.setAlert.bind(this), 2000);
 
+        // During the "Create Barcode" path the user will create a plate, triggering this. From here we can proceed
+        // to associating files and wells, note this will now become essentially the same path as "Enter Barcode"
         ipcRenderer.on(PLATE_CREATED, (event: any, barcode: string, imagingSessionId: number | null) => {
             this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
         });
     }
 
     public render() {
-        const {barcode} = this.state;
-        const {barcodeSearchResults, className, loadingBarcodes, saveInProgress} = this.props;
-        const options: ReactNodeArray = barcodeSearchResults.map((option: BarcodeSelectorOption) => (
-            <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
-        ));
+        const {
+            barcodePrefixes,
+            barcodeSearchResults,
+            className,
+            imagingSessions,
+            loadingBarcodes,
+            saveInProgress,
+        } = this.props;
+        const {
+            barcode,
+            barcodePrefixId,
+            imagingSessionId,
+            imagingSessionIds,
+        } = this.state;
         return (
             <FormPage
                 className={className}
-                formTitle="PLATE BARCODE"
-                formPrompt="Enter a barcode associated with at least one of these files."
-                saveButtonDisabled={this.saveButtonDisabled()}
+                formTitle="SELECT UPLOAD TYPE"
+                formPrompt="Choose how you want to associate data with your files. May only choose one."
+                saveButtonDisabled={!this.state.path}
                 onSave={this.saveAndContinue}
                 saveInProgress={saveInProgress}
                 onBack={this.props.goBack}
-                page={Page.EnterBarcode}
+                page={Page.SelectUploadType}
             >
-                <div>Plate Barcode <span className={styles.asterisk}>*</span></div>
-                <Select
-                    suffixIcon={<Icon type="search"/>}
-                    allowClear={true}
-                    className={styles.select}
-                    showSearch={true}
-                    showArrow={false}
-                    notFoundContent={null}
-                    value={barcode}
-                    placeholder="Barcode"
-                    autoFocus={true}
-                    autoClearSearchValue={true}
-                    onChange={this.onBarcodeChange}
-                    onSearch={this.onBarcodeInput}
-                    loading={loadingBarcodes}
-                    defaultActiveFirstOption={false}
-                >
-                    {options}
-                </Select>
-                <a href="#" className={styles.createBarcodeLink} onClick={this.showCreateBarcodeForm}>
-                    I don't have a barcode
-                </a>
-                <a href="#" className={styles.createBarcodeLink} onClick={this.props.selectWorkflowPath}>
-                    Associate by Workflow instead of Plate
-                </a>
-                {this.state.showCreateBarcodeForm ? this.renderBarcodeForm() : null}
-                {this.renderPlateOptions()}
+                <Row className={styles.cardRow} gutter={16}>
+                    <Col span={8}>
+                        <EnterBarcodeCard
+                            barcode={barcode}
+                            barcodeSearchResults={barcodeSearchResults}
+                            imagingSessionId={imagingSessionId}
+                            imagingSessionIds={imagingSessionIds}
+                            imagingSessions={imagingSessions}
+                            loadingBarcodes={loadingBarcodes}
+                            onBarcodeChange={this.onBarcodeChange}
+                            onBarcodeInput={this.onBarcodeInput}
+                            onImagingSessionChanged={this.onImagingSessionChanged}
+                            isSelected={this.state.path === Path.EnterBarcode}
+                            onCancel={this.resetAndReplaceState}
+                        />
+                    </Col>
+                    <Col span={8}>
+                        <CreateBarcodeCard
+                            barcodePrefixes={barcodePrefixes}
+                            barcodePrefixId={barcodePrefixId}
+                            onBarcodePrefixChanged={this.setBarcodePrefixOption}
+                            isSelected={this.state.path === Path.CreateBarcode}
+                            onCancel={this.resetAndReplaceState}
+                        />
+                    </Col>
+                    <Col span={8}>
+                        <SelectWorkflowCard
+                            selectWorkflowPath={this.selectWorkflowPath}
+                            isSelected={this.state.path === Path.Workflow}
+                            onCancel={this.resetAndReplaceState}
+                        />
+                    </Col>
+                </Row>
             </FormPage>
         );
     }
 
-    private renderBarcodeForm = (): JSX.Element | null => {
-        const { barcodePrefixId } = this.state;
-        const { barcodePrefixes } = this.props;
-
-        return (
-            <Row className={styles.createBarcodeForm}>
-                <Col xs={16} md={20}>
-                    <div>Barcode Prefix <span className={styles.asterisk}>*</span></div>
-                    <Select
-                        autoFocus={true}
-                        className={styles.select}
-                        value={barcodePrefixId}
-                        onSelect={this.setBarcodePrefixOption}
-                        placeholder="Select Barcode Prefix"
-                    >
-                        {barcodePrefixes.map((prefix) => (
-                            <Select.Option value={prefix.prefixId} key={prefix.prefixId}>
-                                {prefix.description}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </Col>
-                <Col xs={8} md={4}>
-                    <Button
-                        className={styles.createBarcodeButton}
-                        disabled={!barcodePrefixId}
-                        onClick={this.createBarcode}
-                        size="large"
-                        type="primary"
-                    >Create
-                    </Button>
-                </Col>
-            </Row>
-        );
-    }
-
-    private renderPlateOptions = (): JSX.Element | null => {
-        const { imagingSessionIds, imagingSessionId } = this.state;
-
-        if (imagingSessionIds.length < 2) {
-            return null;
+    private onBarcodeChange(value: SelectValue): void {
+        let replacementState;
+        if (value) {
+            const matchingResult = this.props.barcodeSearchResults
+                .filter((r: BarcodeSelectorOption) => r.barcode === value);
+            const imagingSessionIds = matchingResult.length > 0 ? matchingResult[0].imagingSessionIds : [];
+            console.log(imagingSessionIds.length > 1 ? undefined : Path.EnterBarcode);
+            replacementState = {
+                barcode: value as string,
+                imagingSessionIds,
+                path: imagingSessionIds.length > 1 ? undefined : Path.EnterBarcode,
+            };
         }
-
-        return (
-            <div className={styles.imagingSessions}>
-                <div>Which Imaging Session? <span className={styles.asterisk}>*</span></div>
-                <Radio.Group buttonStyle="solid" value={imagingSessionId} onChange={this.onImagingSessionChanged}>
-                    {imagingSessionIds.map((id) => {
-                        const option = this.getImagingSessionName(id);
-                        return (
-                            <Radio.Button value={id || "None"} key={option}>
-                                {option}
-                            </Radio.Button>
-                        );
-                    })}
-                </Radio.Group>
-            </div>
-        );
+        this.resetAndReplaceState(replacementState);
     }
 
     private onImagingSessionChanged = (event: RadioChangeEvent) => {
         const imagingSessionId = event.target.value;
-        this.setState({imagingSessionId});
+        this.setState({ imagingSessionId, path: Path.EnterBarcode });
     }
 
     private setBarcodePrefixOption = (barcodePrefixId?: number | null ) => {
-        this.setState({ barcodePrefixId: barcodePrefixId || undefined });
+        this.resetAndReplaceState({
+            barcodePrefixId: barcodePrefixId || undefined,
+            path: Path.CreateBarcode,
+        });
     }
 
-    private showCreateBarcodeForm = () => {
+    private selectWorkflowPath = () => {
+        this.resetAndReplaceState({ path: Path.Workflow });
+    }
+
+    // If a user causes an action in a card all other card must be reset to prevent the idea that you could
+    // ever select > 1 path
+    private resetAndReplaceState = (replacementState: Partial<EnterBarcodeState> = {}) => {
         this.setState({
             barcode: undefined,
             barcodePrefixId: undefined,
             imagingSessionId: undefined,
             imagingSessionIds: [],
-            showCreateBarcodeForm: true,
+            path: undefined,
+            ...replacementState,
         });
     }
 
-    private getImagingSessionName = (id: number | null) => {
-        if (id == null) {
-            return "None";
+    // Depending on the path chosen we need to cause a different action to be triggered
+    private saveAndContinue(): void {
+        const { barcode, barcodePrefixId, imagingSessionId, imagingSessionIds, path } = this.state;
+        switch (path) {
+            case Path.EnterBarcode:
+                this.props.selectBarcode(barcode, imagingSessionIds, imagingSessionId);
+                break;
+            case Path.CreateBarcode:
+                const barcodePrefix = this.props.barcodePrefixes.find((option) => option.prefixId === barcodePrefixId);
+                this.props.createBarcode(barcodePrefix);
+                break;
+            case Path.Workflow:
+                this.props.selectWorkflowPath();
         }
-
-        const { imagingSessions } = this.props;
-        const matchingImagingSession = imagingSessions.find((i) => i.imagingSessionId === id);
-        return get(matchingImagingSession, ["name"], `Imaging Session Id: ${id}`);
     }
 
     private setAlert(error: AxiosError): void {
@@ -252,50 +250,6 @@ class EnterBarcode extends React.Component<EnterBarcodeProps, EnterBarcodeState>
             statusCode: error.response ? error.response.status : undefined,
             type: AlertType.ERROR,
         });
-    }
-
-    private onBarcodeChange(value: SelectValue): void {
-        if (value) {
-            const matchingResult = this.props.barcodeSearchResults
-                .filter((r: BarcodeSelectorOption) => r.barcode === value);
-            const imagingSessionIds = matchingResult.length > 0 ? matchingResult[0].imagingSessionIds : [];
-            this.setState({
-                barcode: value as string,
-                barcodePrefixId: undefined,
-                imagingSessionId: undefined,
-                imagingSessionIds,
-                showCreateBarcodeForm: false,
-            });
-        } else {
-            this.setState({
-                barcode: undefined,
-                imagingSessionIds: [],
-            });
-        }
-    }
-
-    private createBarcode = () => {
-        const { barcodePrefixId } = this.state;
-        if (barcodePrefixId) {
-            const barcodePrefix = this.props.barcodePrefixes.find((option) => option.prefixId === barcodePrefixId);
-            this.setState({showCreateBarcodeForm: false});
-            this.props.createBarcode(barcodePrefix);
-        }
-    }
-
-    private saveAndContinue(): void {
-        const { barcode, imagingSessionId, imagingSessionIds} = this.state;
-        if (barcode) {
-            this.props.selectBarcode(barcode, imagingSessionIds, imagingSessionId);
-        }
-    }
-
-    private saveButtonDisabled = (): boolean => {
-        const {saveInProgress} = this.props;
-        const {barcode, imagingSessionId, imagingSessionIds} = this.state;
-        const multipleOptions = imagingSessionIds.length > 1;
-        const plateSelected = multipleOptions ? barcode && imagingSessionId !== undefined : barcode;
-        return !plateSelected || saveInProgress;
     }
 }
 
