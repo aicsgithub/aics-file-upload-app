@@ -149,8 +149,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     // Auto-refresh jobs every 2 seconds for 3 minutes
     private setJobInterval = (): void => {
-        this.interval = setInterval(this.props.retrieveJobs, 2000); // 2 seconds
-        setTimeout(() => this.clearJobInterval(true), 180000); // 3 minutes
+        this.interval = setInterval(this.props.retrieveJobs, 1000); // 1 seconds
+        setTimeout(() => this.clearJobInterval(true), 300000); // 5 minutes
     }
 
     // Stop auto-refreshing jobs
@@ -168,10 +168,18 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private cancelUpload = (): void => {
+        // Start refreshing again if we aren't
+        if (!this.interval) {
+            this.setJobInterval();
+        }
         this.props.cancelUpload(this.getSelectedJob());
     }
 
     private retryUpload = (): void => {
+        // Start refreshing again if we aren't
+        if (!this.interval) {
+            this.setJobInterval();
+        }
         this.props.retryUpload(this.getSelectedJob());
     }
 
