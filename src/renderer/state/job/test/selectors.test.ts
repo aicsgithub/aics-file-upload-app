@@ -69,7 +69,7 @@ describe("Job selectors", () => {
             expect(isSafeToExit).to.be.false;
         });
 
-        it("returns true if an upload job is failed and its add metadata job exists", () => {
+        it("returns true if an upload job is failed", () => {
             const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
