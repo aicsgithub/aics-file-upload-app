@@ -1,7 +1,8 @@
 import { expect } from "chai";
 
 import {
-    mockBlockedUploadJob, mockFailedAddMetadataJob,
+    mockBlockedUploadJob,
+    mockFailedAddMetadataJob,
     mockFailedCopyJob,
     mockFailedUploadJob,
     mockPendingJob,
@@ -11,7 +12,8 @@ import {
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob,
     mockUnrecoverableUploadJob,
-    mockWaitingUploadJob, mockWorkingAddMetadataJob,
+    mockWaitingUploadJob,
+    mockWorkingAddMetadataJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
     nonEmptyJobStateBranch,
@@ -91,6 +93,7 @@ describe("Job selectors", () => {
                 job: {
                     ...mockState.job,
                     addMetadataJobs: [mockWorkingAddMetadataJob],
+                    copyJobs: [mockSuccessfulCopyJob],
                     uploadJobs: [{
                         ...mockWorkingUploadJob,
                         serviceFields: {
