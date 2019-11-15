@@ -196,7 +196,7 @@ const cancelUploadLogic = createLogic({
                 buttons: ["No", "Yes"],
                 cancelId: 0,
                 defaultId: 1,
-                message: "Cancelling this upload will make it unrecoverable. Are you sure?",
+                message: "An upload cannot be restarted once cancelled. Continue?",
                 title: "Warning",
                 type: "warning",
             }, (response: number) => {
