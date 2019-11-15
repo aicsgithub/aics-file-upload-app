@@ -56,7 +56,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     return (
         <div className={className}>
             {error}
-            {allowCancel && <Alert closable={true} type="warning" message="Cancelling destroys this upload" />}
+            {allowCancel && <Alert closable={true} type="warning" message="Cancelling will make this upload unrecoverable" />}
             <JobOverviewDisplay
                 allowCancel={allowCancel}
                 cancelUpload={cancelUpload}
