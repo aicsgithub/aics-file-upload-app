@@ -271,6 +271,7 @@ export const mockState: State = {
         requestsInProgress: [],
     },
     job: {
+        addMetadataJobs: [],
         copyJobs: [],
         pendingJobs: [],
         uploadJobs: [],
@@ -425,7 +426,6 @@ export const mockSuccessfulCopyJob: JSSJob = {
     status: "SUCCEEDED",
     user: "test_user",
 };
-
 export const mockWorkingCopyJob: JSSJob = {
     ...mockSuccessfulCopyJob,
     currentStage: "Copying files",
@@ -440,6 +440,31 @@ export const mockFailedCopyJob: JSSJob = {
     jobId: "copyJobId3",
     jobName: "Copy job parent for 3333333333",
     status: "FAILED",
+};
+
+const mockAddMetadataJob: JSSJob = {
+    created: new Date(),
+    currentStage: "Complete",
+    jobId: "addMetadataJobId",
+    jobName: "Add Metadata job 1",
+    modified: new Date(),
+    status: "WORKING",
+    user: "test_user",
+};
+
+export const mockSuccessfulAddMetadataJob: JSSJob = {
+    ...mockAddMetadataJob,
+    parentId: "123434234",
+};
+
+export const mockWorkingAddMetadataJob: JSSJob = {
+    ...mockAddMetadataJob,
+    parentId: "2222222222",
+};
+
+export const mockFailedAddMetadataJob: JSSJob = {
+    ...mockAddMetadataJob,
+    parentId: "3333333333",
 };
 
 export const mockAnnotationTypes: AnnotationType[] = [

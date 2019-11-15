@@ -1,16 +1,17 @@
 import { expect } from "chai";
 
 import {
-    mockBlockedUploadJob,
+    mockBlockedUploadJob, mockFailedAddMetadataJob,
     mockFailedCopyJob,
     mockFailedUploadJob,
     mockPendingJob,
     mockRetryingUploadJob,
     mockState,
+    mockSuccessfulAddMetadataJob,
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob,
     mockUnrecoverableUploadJob,
-    mockWaitingUploadJob,
+    mockWaitingUploadJob, mockWorkingAddMetadataJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
     nonEmptyJobStateBranch,
@@ -55,24 +56,23 @@ describe("Job selectors", () => {
             expect(isSafeToExit).to.be.false;
         });
 
-        it("returns false if an upload job is in progress and its copy job is in progress", () => {
+        it("returns false if an upload job is in progress and its add metadata job doesn't exist", () => {
             const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    copyJobs: [mockWorkingCopyJob],
                     uploadJobs: [mockWorkingUploadJob],
                 },
             });
             expect(isSafeToExit).to.be.false;
         });
 
-        it("returns false if an upload job is failed and its copy job is in progress", () => {
+        it("returns true if an upload job is failed and its add metadata job exists", () => {
             const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    copyJobs: [mockWorkingCopyJob],
+                    addMetadataJobs: [mockFailedAddMetadataJob],
                     uploadJobs: [{
                         ...mockFailedUploadJob,
                         serviceFields: {
@@ -82,15 +82,15 @@ describe("Job selectors", () => {
                     }],
                 },
             });
-            expect(isSafeToExit).to.be.false;
+            expect(isSafeToExit).to.be.true;
         });
 
-        it("returns true if an upload job is in progress and its copy job is in complete", () => {
+        it("returns true if an upload job is in progress and its add metadata job exists", () => {
             const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    copyJobs: [mockSuccessfulCopyJob],
+                    addMetadataJobs: [mockWorkingAddMetadataJob],
                     uploadJobs: [{
                         ...mockWorkingUploadJob,
                         serviceFields: {
@@ -103,22 +103,22 @@ describe("Job selectors", () => {
             expect(isSafeToExit).to.be.true;
         });
 
-        it("returns true if an upload job is in progress and its copy job is failed", () => {
+        it("returns false if an upload job is in progress and its add metadata job doesnt exist", () => {
             const isSafeToExit = getIsSafeToExit({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    copyJobs: [mockFailedCopyJob],
+                    addMetadataJobs: [],
                     uploadJobs: [{
-                        ...mockFailedUploadJob,
+                        ...mockWorkingUploadJob,
                         serviceFields: {
-                            ...mockFailedUploadJob.serviceFields,
+                            ...mockWorkingUploadJob.serviceFields,
                             copyJobId: mockFailedCopyJob.jobId,
                         },
                     }],
                 },
             });
-            expect(isSafeToExit).to.be.true;
+            expect(isSafeToExit).to.be.false;
         });
 
         it("returns true if an upload job is complete", () => {
@@ -126,7 +126,7 @@ describe("Job selectors", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    copyJobs: [mockSuccessfulCopyJob],
+                    addMetadataJobs: [mockSuccessfulAddMetadataJob],
                     uploadJobs: [mockSuccessfulUploadJob],
                 },
             });

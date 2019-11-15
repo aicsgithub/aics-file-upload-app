@@ -16,7 +16,7 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { removePendingJobs, setCopyJobs, setUploadJobs } from "./actions";
+import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs } from "./actions";
 
 import { RETRIEVE_JOBS } from "./constants";
 import { getPendingJobNames } from "./selectors";
@@ -45,8 +45,18 @@ const retrieveJobsLogic = createLogic({
                 },
                 user: userInfo().username,
             });
+            const getAddMetadataPromise = jssClient.getJobs({
+                serviceFields: {
+                    type: "add_metadata",
+                },
+                user: userInfo().username,
+            });
 
-            const [uploadJobs, copyJobs] = await Promise.all([getUploadJobsPromise, getCopyJobsPromise]);
+            const [uploadJobs, copyJobs, addMetadataJobs] = await Promise.all([
+                getUploadJobsPromise,
+                getCopyJobsPromise,
+                getAddMetadataPromise,
+            ]);
 
             const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
             const pendingJobNames = getPendingJobNames(getState());
@@ -56,6 +66,7 @@ const retrieveJobsLogic = createLogic({
             const actions: AnyAction[] = [
                 setUploadJobs(uploadJobs.map(convertJobDates)),
                 setCopyJobs(copyJobs.map(convertJobDates)),
+                setAddMetadataJobs(addMetadataJobs.map(convertJobDates)),
                 removeRequestFromInProgress(AsyncRequest.GET_JOBS),
             ];
 

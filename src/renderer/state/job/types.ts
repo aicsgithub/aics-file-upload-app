@@ -4,6 +4,7 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
+    addMetadataJobs: JSSJob[];
     pendingJobs: PendingJob[];
 }
 
@@ -23,6 +24,11 @@ export interface SetUploadJobsAction {
 }
 
 export interface SetCopyJobsAction {
+    payload: JSSJob[];
+    type: string;
+}
+
+export interface SetAddMetadataJobsAction {
     payload: JSSJob[];
     type: string;
 }
