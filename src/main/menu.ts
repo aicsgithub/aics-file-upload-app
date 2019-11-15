@@ -83,6 +83,7 @@ export const setMenu = (webContents: WebContents) => {
 
                         });
                     },
+                    enabled: true,
                     label: "Switch environment",
                 },
                 isMac ? { role: "close" } : { role: "quit" },
