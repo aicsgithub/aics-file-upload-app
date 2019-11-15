@@ -448,8 +448,8 @@ const mockAddMetadataJob: JSSJob = {
     jobId: "addMetadataJobId",
     jobName: "Add Metadata job 1",
     modified: new Date(),
-    user: "test_user",
     status: "WAITING",
+    user: "test_user",
 };
 
 export const mockSuccessfulAddMetadataJob: JSSJob = {
