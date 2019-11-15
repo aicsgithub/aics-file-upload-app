@@ -36,7 +36,7 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
     let extraStatusActionButton: JSX.Element | undefined;
     if (allowCancel) {
         extraStatusActionButton = (
-            <Button onClick={cancelUpload} type="danger" loading={loading}>
+            <Button onClick={cancelUpload} type="danger" disabled={loading} loading={loading}>
                 Cancel
             </Button>
         );
