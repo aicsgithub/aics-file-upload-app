@@ -286,6 +286,7 @@ export const mockState: State = {
         channels: [],
         history: {
             selection: {},
+            template: {},
             upload: {},
         },
         imagingSessions: [],

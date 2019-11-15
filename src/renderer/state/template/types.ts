@@ -68,6 +68,10 @@ export interface ClearTemplateDraftAction {
     type: string;
 }
 
+export interface ClearTemplateHistoryAction {
+    type: string;
+}
+
 export interface CreateAnnotationRequest {
     annotationOptions?: string[];
     annotationTypeId: number;
@@ -85,6 +89,11 @@ export interface GetTemplateAction {
         addAnnotationsToUpload: boolean;
         templateId: number;
     };
+    type: string;
+}
+
+export interface JumpToPastTemplateAction {
+    index: number;
     type: string;
 }
 

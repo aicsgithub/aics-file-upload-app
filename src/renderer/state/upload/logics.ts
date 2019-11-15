@@ -7,12 +7,12 @@ import { LIST_DELIMITER_SPLIT } from "../../constants";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
-import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
-import { deselectFiles } from "../selection/actions";
+import { deselectFiles, goForward } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
@@ -99,7 +99,13 @@ const initiateUploadLogic = createLogic({
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const now = new Date();
         try {
+            // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
+            // page until we call it successfully.
             const payload = getUploadPayload(getState());
+
+            // Go forward needs to be handled by redux-logic so we're dispatching separately
+            dispatch(goForward());
+
             dispatch(addPendingJob({
                 created: now,
                 currentStage: "Pending",
@@ -110,9 +116,7 @@ const initiateUploadLogic = createLogic({
                 uploads: ctx.uploads,
                 user: userInfo().username,
             }));
-            const result = await fms.uploadFiles(payload, ctx.name);
-            Logger.debug(`UPLOAD_FINISHED for jobName=${ctx.name} with result:`, result);
-            dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
+            await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
             dispatch(setAlert({
