@@ -448,23 +448,26 @@ const mockAddMetadataJob: JSSJob = {
     jobId: "addMetadataJobId",
     jobName: "Add Metadata job 1",
     modified: new Date(),
-    status: "WORKING",
     user: "test_user",
+    status: "WAITING",
 };
 
 export const mockSuccessfulAddMetadataJob: JSSJob = {
     ...mockAddMetadataJob,
     parentId: "123434234",
+    status: "SUCCEEDED",
 };
 
 export const mockWorkingAddMetadataJob: JSSJob = {
     ...mockAddMetadataJob,
     parentId: "2222222222",
+    status: "WORKING",
 };
 
 export const mockFailedAddMetadataJob: JSSJob = {
     ...mockAddMetadataJob,
     parentId: "3333333333",
+    status: "FAILED",
 };
 
 export const mockAnnotationTypes: AnnotationType[] = [

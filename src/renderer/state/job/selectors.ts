@@ -46,13 +46,14 @@ export const getJobsForTable = createSelector([
         .map((job) => ({...job, key: job.jobId}));
 });
 
-// The app is only safe to exit after fss and aicsfiles confirm the job is complete
+// The app is only safe to exit after either fss completes or after the add metadata step has been sent off
 export const getIsSafeToExit = createSelector([
     getUploadJobsWithChildJobs,
     getNumberOfPendingJobs,
 ], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
     numberPendingJobs === 0 && every(jobs, ({ serviceFields: { addMetadataJob }, status }) => (
-        !includes(IN_PROGRESS_STATUSES, status) || addMetadataJob
+        !includes(IN_PROGRESS_STATUSES, status)
+        || (addMetadataJob && !includes(IN_PROGRESS_STATUSES, addMetadataJob.status))
     ))
 ));
 

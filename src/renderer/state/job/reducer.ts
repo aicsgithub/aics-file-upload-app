@@ -13,7 +13,8 @@ import {
 import {
     AddPendingJobAction,
     JobStateBranch,
-    RemovePendingJobsAction, SetAddMetadataJobsAction,
+    RemovePendingJobsAction,
+    SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
 } from "./types";

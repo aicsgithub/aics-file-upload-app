@@ -42,7 +42,7 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
         );
     } else if (status === FAILED_STATUS) {
         extraStatusActionButton = (
-            <Button onClick={retryUpload} type="primary" loading={loading}>
+            <Button onClick={retryUpload} type="primary" disabled={loading} loading={loading}>
                 Retry
             </Button>
         );
