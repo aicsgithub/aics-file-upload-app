@@ -4,6 +4,7 @@ import CollapsePanel from "antd/lib/collapse/CollapsePanel";
 import { get, isEmpty } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { IN_PROGRESS_STATUSES } from "../../state/constants";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const Item = Descriptions.Item;
@@ -11,8 +12,9 @@ const styles = require("./styles.pcss");
 
 interface UploadJobDisplayProps {
     className?: string;
+    cancelUpload: () => void;
     job: UploadSummaryTableRow;
-    retrying: boolean;
+    loading: boolean;
     retryUpload: () => void;
 }
 
@@ -23,9 +25,10 @@ interface ResultFile {
 }
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
+                                                                              cancelUpload,
                                                                               className,
                                                                               job,
-                                                                              retrying,
+                                                                              loading,
                                                                               retryUpload,
                                                                           }: UploadJobDisplayProps) => {
     const { serviceFields } = job;
@@ -45,6 +48,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
             };
         });
     }
+    const allowCancel = IN_PROGRESS_STATUSES.includes(job.status);
 
     const error = job.serviceFields && job.serviceFields.error && (
         <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
@@ -52,7 +56,16 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     return (
         <div className={className}>
             {error}
-            <JobOverviewDisplay job={job} retryUpload={retryUpload} retrying={retrying}/>
+            {allowCancel && (
+                <Alert closable={true} type="warning" message="Cancelling will make this upload unrecoverable" />
+            )}
+            <JobOverviewDisplay
+                allowCancel={allowCancel}
+                cancelUpload={cancelUpload}
+                job={job}
+                loading={loading}
+                retryUpload={retryUpload}
+            />
 
             {showFiles && (
                 <>

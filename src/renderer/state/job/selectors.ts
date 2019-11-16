@@ -1,15 +1,17 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, get, includes, isEmpty, orderBy, some } from "lodash";
+import { every, get, includes, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
+import { IN_PROGRESS_STATUSES } from "../constants";
 import { State } from "../types";
 import { PendingJob } from "./types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getPendingJobs = (state: State) => state.job.pendingJobs;
+export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
 
 export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
    return pendingJobs.length;
@@ -19,50 +21,41 @@ export const getPendingJobNames = createSelector([getPendingJobs], (jobs: Pendin
     return jobs.map((job) => job.jobName);
 });
 
-export const getUploadJobsWithCopyJob = createSelector([
+export const getUploadJobsWithChildJobs = createSelector([
     getCopyJobs,
+    getAddMetadataJobs,
     getUploadJobs,
-], (copyJobs: JSSJob[], uploadJobs: JSSJob[]) => {
+], (copyJobs: JSSJob[], addMetadataJobs: JSSJob[], uploadJobs: JSSJob[]) => {
    return uploadJobs.map((j) => {
        return {
            ...j,
            serviceFields: {
                ...j.serviceFields,
+               addMetadataJob: addMetadataJobs.find(({ parentId }) => parentId === j.jobId),
                copyJob: copyJobs.find((cj) => cj.jobId === get(j, ["serviceFields", "copyJobId"])),
            },
        };
    });
 });
 
-const IN_PROGRESS_STATUSES = ["WORKING", "RETRYING", "WAITING", "BLOCKED"];
-
 export const getJobsForTable = createSelector([
-    getUploadJobsWithCopyJob,
+    getUploadJobsWithChildJobs,
     getPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
     return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"])
         .map((job) => ({...job, key: job.jobId}));
 });
 
+// The app is only safe to exit after either fss completes or after the add metadata step has been sent off
 export const getIsSafeToExit = createSelector([
-    getUploadJobsWithCopyJob,
+    getUploadJobsWithChildJobs,
     getNumberOfPendingJobs,
-], (jobs: JSSJob[], numberPendingJobs: number): boolean => {
-    if (numberPendingJobs > 0) {
-        return false;
-    }
-
-    return isEmpty(jobs) || some(jobs, ({status, serviceFields}) => {
-        const { copyJob } = serviceFields;
-        if (!copyJob) {
-            return false;
-        }
-
-        const uploadInProgress = includes(IN_PROGRESS_STATUSES, status);
-        const copyInProgress = includes(IN_PROGRESS_STATUSES, copyJob.status);
-        return !uploadInProgress || !copyInProgress;
-    });
-});
+], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
+    numberPendingJobs === 0 && every(jobs, ({ serviceFields: { addMetadataJob }, status }) => (
+        !includes(IN_PROGRESS_STATUSES, status)
+        || (addMetadataJob && !includes(IN_PROGRESS_STATUSES, addMetadataJob.status))
+    ))
+));
 
 export const getUploadJobNames = createSelector([
     getUploadJobs,
