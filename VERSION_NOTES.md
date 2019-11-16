@@ -1,5 +1,26 @@
 # Version Notes
 
+## 1.0.14:
+- Feature: We now support annotations that take multiple values. If your annotation is Text or a Number, you can add values
+delimited by a comma. For other annotation types, the cell will include an edit icon which will open a new window when clicked
+for adding more values
+- Feature: The Upload Summary page (with the job statuses) no longer continuously polls for jobs for performance reasons.
+ When polling stops, you can manually start it with a Refresh button that will appear.
+- Feature: Added a shortcut for adding multiple position indexes to a file. 
+- Feature: Added a Dataset annotation
+- Feature: Add support for Date annotation type
+- Feature: Add Scenes/Channels to multiple files.
+- Feature: Show unrecoverable upload jobs using a grey status circle on the Upload Summary page
+- Feature: added more hints to the UI
+- Bugfix: clear out data created during an upload after an upload has been initiated
+- Bugfix: Handle buggy behavior that occurs when a template gets saved but produces a new version in order to not break
+the file metadata that was already using the previous version of the template
+- Bugfix: Allow users to annotate a channel on a file
+- Bugfix: Made job statuses more reliable - jobs that failed should show as failed
+- Bugfix: Fix bug where existing dropdown annotations could not be added to
+- Bugfix: Fix tag location annotation support
+- Bugfix: Fix warning alert as users are closing the app. Sometimes this alert was showing even if there were no jobs in progress.
+
 ## 1.0.13
 - Feature: stopped saving templates in files and started saving them to the database
 - Feature: support scenes and channels
