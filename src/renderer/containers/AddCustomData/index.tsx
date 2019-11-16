@@ -1,4 +1,5 @@
 import { Button, Spin } from "antd";
+import classNames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -18,7 +19,7 @@ import {
     getTemplates,
 } from "../../state/metadata/selectors";
 import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
-import { goBack, goForward, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import { goBack, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
@@ -29,7 +30,6 @@ import { Page } from "../../state/selection/types";
 import {
     ExpandedRows,
     GoBackAction,
-    NextPageAction,
     OpenTemplateEditorAction,
     ToggleExpandedUploadJobRowAction,
     Well,
@@ -45,7 +45,6 @@ import {
     removeUploads,
     updateScenes,
     updateUpload,
-    updateUploads,
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
@@ -62,7 +61,6 @@ import {
     RemoveUploadsAction,
     UpdateScenesAction,
     UpdateUploadAction,
-    UpdateUploadsAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
@@ -83,7 +81,6 @@ interface Props {
     expandedRows: ExpandedRows;
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     goBack: ActionCreator<GoBackAction>;
-    goForward: ActionCreator<NextPageAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
     loading: boolean;
@@ -98,7 +95,6 @@ interface Props {
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     updateScenes: ActionCreator<UpdateScenesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
-    updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
@@ -108,7 +104,7 @@ interface AddCustomDataState {
 }
 
 /**
- * Renders column template selector and custom data grid for adding additional data to each file.
+ * Renders template selector and custom data grid for adding additional data to each file.
  */
 class AddCustomData extends React.Component<Props, AddCustomDataState> {
     constructor(props: Props) {
@@ -154,7 +150,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
-                {appliedTemplate && this.renderTemplateInfo()}
                 {appliedTemplate && this.renderPlateInfo()}
                 {appliedTemplate && (
                     <CustomDataGrid
@@ -173,25 +168,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         undo={this.undo}
                         updateScenes={this.props.updateScenes}
                         updateUpload={this.props.updateUpload}
-                        updateUploads={this.props.updateUploads}
                         uploads={uploads}
                         validationErrors={validationErrors}
                     />
                 )}
             </FormPage>
-        );
-    }
-
-    private renderTemplateInfo = () => {
-        const { appliedTemplate } = this.props;
-        if (!appliedTemplate) {
-            return null;
-        }
-
-        return (
-            <a href="#" onClick={this.openTemplateEditorWithId(appliedTemplate.templateId)}>
-                View Template
-            </a>
         );
     }
 
@@ -215,7 +196,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         return (
             <div className={styles.buttonRow}>
                 <div className={styles.schemaSelector}>
-                    <p className={styles.schemaSelectorLabel}>{`Apply ${SCHEMA_SYNONYM}`}</p>
+                    <p className={styles.schemaSelectorLabel}>{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
                         value={appliedTemplate ? appliedTemplate.templateId : undefined}
@@ -223,15 +204,27 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         templates={templates}
                     />
                 </div>
-                <Button className={styles.createSchemaButton} onClick={this.openTemplateEditor}>
+                <Button
+                    icon="plus-circle"
+                    className={classNames(styles.templateButton, styles.createTemplateButton)}
+                    onClick={this.openTemplateEditor}
+                >
                     Create {SCHEMA_SYNONYM}
+                </Button>
+                <Button
+                    icon="edit"
+                    disabled={!appliedTemplate}
+                    className={styles.templateButton}
+                    onClick={this.openTemplateEditorWithId(appliedTemplate && appliedTemplate.templateId)}
+                >
+                    Edit {SCHEMA_SYNONYM}
                 </Button>
             </div>
         );
     }
 
     private openTemplateEditor = () => this.props.openSchemaCreator();
-    private openTemplateEditorWithId = (id: number) => () => this.props.openSchemaCreator(id);
+    private openTemplateEditorWithId = (id: number | undefined) => () => this.props.openSchemaCreator(id);
 
     private selectTemplate = (templateId: number) => {
         const template = this.props.templates.find((t) => t.TemplateId === templateId);
@@ -242,7 +235,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     private upload = (): void => {
         this.props.initiateUpload();
-        this.props.goForward();
     }
 
     private undo = (): void => {
@@ -279,7 +271,6 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     applyTemplate,
     goBack,
-    goForward,
     initiateUpload,
     jumpToUpload,
     openSchemaCreator: openTemplateEditor,
@@ -289,7 +280,6 @@ const dispatchToPropsMap = {
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateScenes,
     updateUpload,
-    updateUploads,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);

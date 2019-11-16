@@ -18,9 +18,11 @@ interface DragAndDropSquareProps {
     onOpen: (files: string[]) => LoadFilesFromOpenDialogAction;
 }
 
+// On Windows file browsers cannot look for directories and files at the same time
+// directories are the default in that case
 const openDialogOptions: OpenDialogOptions = {
     properties: ["openFile", "openDirectory", "multiSelections"],
-    title: "Open files",
+    title: "Browse for folders, or drag and drop files/folders onto app",
 };
 
 const DragAndDropSquare: React.FunctionComponent<DragAndDropSquareProps> = ({

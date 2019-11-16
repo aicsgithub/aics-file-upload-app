@@ -12,9 +12,14 @@ import { feedback } from "../../";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
+import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
-import { getTemplateDraft } from "../../template/selectors";
-import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { getCurrentTemplateIndex, getTemplateDraft, getTemplatePast } from "../../template/selectors";
+import {
+    createMockReduxStore,
+    mmsClient,
+    mockReduxLogicDeps,
+} from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
     mockAnnotations,
@@ -26,10 +31,19 @@ import {
     mockTemplateStateBranch,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { closeTemplateEditor, openTemplateEditor, selectBarcode } from "../actions";
+import { getCurrentUploadIndex, getUploadPast } from "../../upload/selectors";
+import { closeTemplateEditor, openTemplateEditor, selectBarcode, selectPage } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
-import { getPage, getSelectedBarcode, getSelectedPlateId, getTemplateEditorVisible, getWells } from "../selectors";
+import {
+    getCurrentSelectionIndex,
+    getPage,
+    getSelectedBarcode,
+    getSelectedPlateId,
+    getSelectionPast,
+    getTemplateEditorVisible,
+    getWells,
+} from "../selectors";
 import {
     DragAndDropFileList,
     GetPlateResponse,
@@ -635,6 +649,154 @@ describe("Selection logics", () => {
             store.dispatch(closeTemplateEditor());
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
+        });
+    });
+
+    describe("selectPageLogic", () => {
+        // This is going forward
+        it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
+            "branches are at for the page we went to", (done) => {
+            const store = createMockReduxStore({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.DragAndDrop,
+                    view: Page.DragAndDrop,
+                }),
+            });
+
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.be.empty;
+            expect(getTemplateHistory(state)).to.be.empty;
+            expect(getUploadHistory(state)).to.be.empty;
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getSelectionHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    expect(getTemplateHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    expect(getUploadHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
+        });
+        it("Going from EnterBarcode to AssociateFiles should record which index selection/template/upload state " +
+            "branches are at for the page we went to", (done) => {
+            const startingSelectionHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const startingTemplateHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const startingUploadHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const store = createMockReduxStore({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    history: {
+                        selection: startingSelectionHistory,
+                        template: startingTemplateHistory,
+                        upload: startingUploadHistory,
+                    },
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
+                }),
+            });
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
+            expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
+            expect(getUploadHistory(state)).to.equal(startingUploadHistory);
+
+            store.dispatch(selectBarcode("12345"));
+            expect(getCurrentSelectionIndex(store.getState())).to.equal(1);
+
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getSelectionHistory(state)).to.deep.equal({
+                        ...startingSelectionHistory,
+                        [Page.AssociateFiles]: 1,
+                    });
+                    expect(getTemplateHistory(state)).to.deep.equal({
+                        ...startingTemplateHistory,
+                        [Page.AssociateFiles]: 0,
+                    });
+                    expect(getUploadHistory(state)).to.deep.equal({
+                        ...startingUploadHistory,
+                        [Page.AssociateFiles]: 0,
+                    });
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.EnterBarcode, Page.AssociateFiles));
+        });
+        it("Going from EnterBarcode to DragAndDrop should change index for selection/template/upload to 0" +
+            "and clear history", (done) => {
+            const startingSelectionHistory = {
+                [Page.EnterBarcode]: 1,
+            };
+            const startingTemplateHistory = {
+                [Page.EnterBarcode]: 0,
+
+            };
+            const startingUploadHistory = {
+                [Page.EnterBarcode]: 0,
+            };
+            const store = createMockReduxStore({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    history: {
+                        selection: startingSelectionHistory,
+                        template: startingTemplateHistory,
+                        upload: startingUploadHistory,
+                    },
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
+                }),
+            });
+            let state = store.getState();
+            expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
+            expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
+            expect(getUploadHistory(state)).to.equal(startingUploadHistory);
+
+            store.dispatch(selectBarcode("12345"));
+            expect(getCurrentSelectionIndex(store.getState())).to.equal(1);
+
+            let count = 0;
+            store.subscribe(() => {
+                count++;
+                // wait for updatePageHistory to go through reducer
+                if (count === 2) {
+                    state = store.getState();
+                    expect(getCurrentSelectionIndex(state)).to.equal(0);
+                    expect(getCurrentTemplateIndex(state)).to.equal(0);
+                    expect(getCurrentUploadIndex(state)).to.equal(0);
+
+                    expect(getSelectionPast(state)).to.be.empty;
+                    expect(getTemplatePast(state)).to.be.empty;
+                    expect(getUploadPast(state)).to.be.empty;
+                    return done();
+                }
+            });
+
+            store.dispatch(selectPage(Page.EnterBarcode, Page.DragAndDrop));
         });
     });
 });

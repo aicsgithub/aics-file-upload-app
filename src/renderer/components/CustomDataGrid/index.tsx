@@ -20,7 +20,6 @@ import {
     RemoveUploadsAction,
     UpdateScenesAction,
     UpdateUploadAction,
-    UpdateUploadsAction,
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
@@ -57,7 +56,6 @@ interface Props {
     undo: () => void;
     updateScenes: ActionCreator<UpdateScenesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
-    updateUploads: ActionCreator<UpdateUploadsAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
@@ -126,9 +124,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
-            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => (
-                this.renderFormat(row, "workflows", value)
-            ),
+            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+                this.renderFormat(row, "workflows", value),
             key: "workflows",
             name: "Workflows",
             resizable: true,

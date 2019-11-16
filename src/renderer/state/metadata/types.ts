@@ -19,6 +19,7 @@ export interface MetadataStateBranch {
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
     history: {
         selection: PageToIndexMap;
+        template: PageToIndexMap;
         upload: PageToIndexMap;
     };
     workflowOptions: Workflow[];
@@ -64,6 +65,9 @@ export interface UpdatePageHistoryMapAction {
         selection: {
             [page: string]: number,
         },
+        template: {
+            [page: string]: number,
+        },
         upload: {
             [page: string]: number,
         },
@@ -97,4 +101,8 @@ export interface LabkeyUnit {
     Description: string;
     UnitsId: number;
     Name: string;
+}
+
+export interface ResetHistoryAction {
+    type: string;
 }

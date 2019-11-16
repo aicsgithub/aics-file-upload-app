@@ -31,8 +31,8 @@ const stepOrder: StepInfo = {
         icon: <Icon type="file" />,
     },
     [Page.AddCustomData]: {
-        description: "Add additional custom metadata to the file(s)",
-        icon: <Icon type="edit"/>,
+        description: "Add additional custom metadata to the files",
+        icon: <Icon type="form"/>,
     },
 };
 

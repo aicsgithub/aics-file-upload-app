@@ -9,6 +9,7 @@ const BRANCH_NAME = "upload";
 export const APPLY_TEMPLATE = makeConstant(BRANCH_NAME, "apply-template");
 export const ASSOCIATE_FILES_AND_WELLS = makeConstant(BRANCH_NAME, "associate-files-and-wells");
 export const ASSOCIATE_FILES_AND_WORKFLOWS = makeConstant(BRANCH_NAME, "associate-files-and-workflows");
+export const CANCEL_UPLOAD = makeConstant(BRANCH_NAME, "cancel-upload");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOAD = makeConstant(BRANCH_NAME, "delete-upload");
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");

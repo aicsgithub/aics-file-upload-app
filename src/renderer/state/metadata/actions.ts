@@ -5,6 +5,7 @@ import {
     GET_TEMPLATES,
     RECEIVE_METADATA,
     REQUEST_METADATA,
+    RESET_HISTORY,
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
@@ -17,6 +18,7 @@ import {
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
+    ResetHistoryAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -59,17 +61,26 @@ export function createBarcode(barcodePrefix: BarcodePrefix): CreateBarcodeAction
     };
 }
 
-export function updatePageHistory(page: string, selectionIndex: number, uploadIndex: number):
+export function updatePageHistory(page: string, selectionIndex: number, uploadIndex: number, templateIndex: number):
     UpdatePageHistoryMapAction {
     return {
         payload: {
             selection: {
                 [page]: selectionIndex,
             },
+            template: {
+                [page]: templateIndex,
+            },
             upload: {
                 [page]: uploadIndex,
             },
         },
         type: UPDATE_PAGE_HISTORY,
+    };
+}
+
+export function resetHistory(): ResetHistoryAction {
+    return {
+        type: RESET_HISTORY,
     };
 }

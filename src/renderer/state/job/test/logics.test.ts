@@ -3,9 +3,14 @@ import { createSandbox, stub } from "sinon";
 import { getAlert } from "../../feedback/selectors";
 
 import { createMockReduxStore, jssClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { mockState, mockSuccessfulUploadJob } from "../../test/mocks";
+import {
+    mockState,
+    mockSuccessfulAddMetadataJob,
+    mockSuccessfulCopyJob,
+    mockSuccessfulUploadJob
+} from "../../test/mocks";
 import { retrieveJobs } from "../actions";
-import { getUploadJobs } from "../selectors";
+import { getAddMetadataJobs, getCopyJobs, getUploadJobs } from "../selectors";
 
 describe("Job logics", () => {
     const sandbox = createSandbox();
@@ -16,22 +21,30 @@ describe("Job logics", () => {
 
     describe("retrieveJobsLogic", () => {
         it("Sets jobs given successful JSS query", (done) => {
-            sandbox.replace(jssClient, "getJobs", stub().resolves([mockSuccessfulUploadJob]));
+            const callback = stub();
+            callback.onCall(0).returns([mockSuccessfulUploadJob]);
+            callback.onCall(1).returns([mockSuccessfulCopyJob]);
+            callback.returns([mockSuccessfulAddMetadataJob]);
+            sandbox.replace(jssClient, "getJobs", callback);
             const store = createMockReduxStore({
                 ...mockState,
             });
 
             // before
-            let jobs = getUploadJobs(store.getState());
-            expect(jobs).to.be.empty;
+            let state = store.getState();
+            expect(getUploadJobs(state)).to.be.empty;
+            expect(getCopyJobs(state)).to.be.empty;
+            expect(getAddMetadataJobs(state)).to.be.empty;
 
             // apply
             store.dispatch(retrieveJobs());
 
             // after
             store.subscribe(() => {
-                jobs = getUploadJobs(store.getState());
-                expect(jobs).to.not.be.empty;
+                state = store.getState();
+                expect(getUploadJobs(state)).to.not.be.empty;
+                expect(getCopyJobs(state)).to.not.be.empty;
+                expect(getAddMetadataJobs(state)).to.not.be.empty;
                 done();
             });
         });

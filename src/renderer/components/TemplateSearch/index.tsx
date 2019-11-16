@@ -24,6 +24,7 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
         const sortedTemplates = sortBy(templates, ["Name", "Version"]);
         return (
           <Select
+            autoFocus={true}
             className={className}
             onSelect={onSelect}
             placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}

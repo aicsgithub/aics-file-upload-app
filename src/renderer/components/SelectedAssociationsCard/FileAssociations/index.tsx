@@ -29,7 +29,7 @@ class FileAssociations extends React.Component<WellFileAssociationsProps, {}> {
                     {this.renderFiles()}
                 </div>
                 <div className={styles.addRow}>
-                    <div className={styles.title}>Selected File(s): {selectedFilesCount}</div>
+                    <div className={styles.title}>Selected Files: {selectedFilesCount}</div>
                     <Button
                         type="primary"
                         disabled={!canAssociate}

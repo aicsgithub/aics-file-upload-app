@@ -7,12 +7,12 @@ import { LIST_DELIMITER_SPLIT } from "../../constants";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
-import { addEvent, addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
-import { deselectFiles } from "../selection/actions";
+import { deselectFiles, goForward } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
@@ -30,10 +30,12 @@ import { removeUploads, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
+    CANCEL_UPLOAD,
     getUploadRowKey,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
-    UPDATE_SCENES, UPDATE_UPLOAD,
+    UPDATE_SCENES,
+    UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
@@ -99,7 +101,13 @@ const initiateUploadLogic = createLogic({
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const now = new Date();
         try {
+            // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
+            // page until we call it successfully.
             const payload = getUploadPayload(getState());
+
+            // Go forward needs to be handled by redux-logic so we're dispatching separately
+            dispatch(goForward());
+
             dispatch(addPendingJob({
                 created: now,
                 currentStage: "Pending",
@@ -110,9 +118,7 @@ const initiateUploadLogic = createLogic({
                 uploads: ctx.uploads,
                 user: userInfo().username,
             }));
-            const result = await fms.uploadFiles(payload, ctx.name);
-            Logger.debug(`UPLOAD_FINISHED for jobName=${ctx.name} with result:`, result);
-            dispatch(addEvent("Upload Finished", AlertType.SUCCESS, new Date()));
+            await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
             dispatch(setAlert({
@@ -146,6 +152,69 @@ const initiateUploadLogic = createLogic({
     type: INITIATE_UPLOAD,
 });
 
+const cancelUploadLogic = createLogic({
+    process: async ({action, ctx, jssClient, getState}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const uploadJob: UploadSummaryTableRow = action.payload;
+
+        dispatch(setAlert({
+            message: `Cancel upload ${uploadJob.jobName}`,
+            type: AlertType.INFO,
+        }));
+        dispatch(addRequestToInProgress(AsyncRequest.CANCEL_UPLOAD));
+
+        try {
+            await jssClient.updateJob(uploadJob.jobId, {
+                serviceFields: {
+                    error: "Cancelled by user",
+                },
+                status: "UNRECOVERABLE",
+            });
+            dispatch(setAlert({
+                message: `Cancel upload ${uploadJob.jobName} succeeded!`,
+                type: AlertType.SUCCESS,
+            }));
+            dispatch(retrieveJobs());
+        } catch (e) {
+            Logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
+            dispatch(setAlert({
+                message: `Cancel upload ${uploadJob.jobName} failed: ${e.message}`,
+                type: AlertType.ERROR,
+            }));
+        }
+
+        dispatch(removeRequestFromInProgress(AsyncRequest.CANCEL_UPLOAD));
+        done();
+    },
+    transform: ({ action, ctx, fms, getState, remote }: ReduxLogicTransformDependencies,
+                next: ReduxLogicNextCb, reject: () => void) => {
+        const uploadJob: UploadSummaryTableRow = action.payload;
+        if (!uploadJob) {
+            next(setAlert({
+                message: "Cannot cancel undefined upload job",
+                type: AlertType.ERROR,
+            }));
+        } else {
+            remote.dialog.showMessageBox({
+                buttons: ["No", "Yes"],
+                cancelId: 0,
+                defaultId: 1,
+                message: "An upload cannot be restarted once cancelled. Continue?",
+                title: "Warning",
+                type: "warning",
+            }, (response: number) => {
+                if (response === 1) {
+                    next(action);
+                } else {
+                    reject();
+                }
+            });
+        }
+    },
+    type: CANCEL_UPLOAD,
+});
+
 const retryUploadLogic = createLogic({
     process: async ({action, ctx, fms, getState}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
@@ -159,7 +228,7 @@ const retryUploadLogic = createLogic({
         dispatch(addRequestToInProgress(AsyncRequest.RETRY_UPLOAD));
 
         try {
-            await fms.retryUpload(action.payload);
+            await fms.retryUpload(uploadJob);
             dispatch(setAlert({
                 message: `Retry upload ${uploadJob.jobName} succeeded!`,
                 type: AlertType.SUCCESS,
@@ -404,6 +473,7 @@ const updateUploadLogic = createLogic({
 export default [
     applyTemplateLogic,
     associateFileAndWellLogic,
+    cancelUploadLogic,
     initiateUploadLogic,
     retryUploadLogic,
     updateScenesLogic,

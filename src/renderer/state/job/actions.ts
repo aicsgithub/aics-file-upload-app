@@ -3,6 +3,7 @@ import {
     ADD_PENDING_JOB,
     REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
+    SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
 } from "./constants";
@@ -11,6 +12,7 @@ import {
     PendingJob,
     RemovePendingJobsAction,
     RetrieveJobsAction,
+    SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
 } from "./types";
@@ -32,6 +34,13 @@ export function setCopyJobs(jobs: JSSJob[]): SetCopyJobsAction {
     return {
         payload: jobs,
         type: SET_COPY_JOBS,
+    };
+}
+
+export function setAddMetadataJobs(jobs: JSSJob[]): SetAddMetadataJobsAction {
+    return {
+        payload: jobs,
+        type: SET_ADD_METADATA_JOBS,
     };
 }
 

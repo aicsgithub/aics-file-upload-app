@@ -52,7 +52,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
         } = this.props;
 
         const workflowNames = selectedWorkflows.map((workflow: Workflow) => workflow.name).sort().join(", ");
-        const associationsTitle = `Selected Workflow(s): ${workflowNames}`;
+        const associationsTitle = `Selected Workflows: ${workflowNames}`;
 
         return (
             <FormPage
@@ -98,7 +98,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                             allowClear={true}
                             autoFocus={true}
                             onChange={this.selectWorkflows}
-                            placeholder="Select Workflow(s)"
+                            placeholder="Select Workflows"
                             mode="tags"
                             style={{ width: "100%" }}
                             value={selectedWorkflows.map((workflow) => workflow.name)}

@@ -8,6 +8,7 @@ import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
+    CANCEL_UPLOAD,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOAD,
     INITIATE_UPLOAD,
@@ -24,6 +25,7 @@ import {
     ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
+    CancelUploadAction,
     ClearUploadHistoryAction,
     InitiateUploadAction,
     JumpToPastUploadAction,
@@ -136,6 +138,13 @@ export function updateUpload(key: string, upload: Partial<UploadMetadata>): Upda
             upload,
         },
         type: UPDATE_UPLOAD,
+    };
+}
+
+export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
+    return {
+        payload: job,
+        type: CANCEL_UPLOAD,
     };
 }
 

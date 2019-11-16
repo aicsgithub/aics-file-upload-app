@@ -102,7 +102,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
         return (
             <div>
-                <Tooltip title={value} className={styles.fileCell}>
+                <Tooltip mouseLeaveDelay={0} title={value} className={styles.fileCell}>
                     <span className={styles.fileCellText}>{fileName}</span>
                     <Icon
                         className={styles.addSceneIcon}

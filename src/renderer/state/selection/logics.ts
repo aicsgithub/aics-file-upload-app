@@ -20,9 +20,10 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata, updatePageHistory } from "../metadata/actions";
-import { getSelectionHistory, getUploadHistory } from "../metadata/selectors";
+import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { associateByWorkflow } from "../setting/actions";
-import { clearTemplateDraft, getTemplate } from "../template/actions";
+import { clearTemplateDraft, clearTemplateHistory, getTemplate, jumpToPastTemplate } from "../template/actions";
+import { getCurrentTemplateIndex } from "../template/selectors";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
@@ -335,7 +336,7 @@ const selectPageLogic = createLogic({
         dispatch: ReduxLogicNextCb,
         done: ReduxLogicDoneCb
     ) => {
-        const { currentPage, nextPage } = action.payload;
+        const {currentPage, nextPage} = action.payload;
         const state = getState();
 
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
@@ -343,27 +344,47 @@ const selectPageLogic = createLogic({
 
         updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
 
-        // going back - rewind selections and uploads to the state they were at when user was on previous page
+        // going back - rewind selections, uploads & template to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
-            const selectionIndex = getSelectionHistory(state)[nextPage];
-            const uploadIndex = getUploadHistory(state)[nextPage];
-            const actions = [];
+            const actions: AnyAction[] = [];
 
-            if (selectionIndex > -1) {
-                actions.push(jumpToPastSelection(selectionIndex));
-            }
+            const stateBranchHistory = [
+                {
+                    clearHistory: clearSelectionHistory,
+                    getHistory: getSelectionHistory,
+                    jumpToPast: jumpToPastSelection,
+                },
+                {
+                    clearHistory: clearTemplateHistory,
+                    getHistory: getTemplateHistory,
+                    jumpToPast: jumpToPastTemplate,
+                },
+                {
+                    clearHistory: clearUploadHistory,
+                    getHistory: getUploadHistory,
+                    jumpToPast: jumpToPastUpload,
+                },
+            ];
 
-            if (selectionIndex === 0) {
-                actions.push(clearSelectionHistory());
-            }
+            stateBranchHistory.forEach((history) => {
+                const historyForThisStateBranch = history.getHistory(state);
 
-            if (uploadIndex > -1) {
-                actions.push(jumpToPastUpload(uploadIndex));
-            }
+                if (historyForThisStateBranch && historyForThisStateBranch[nextPage]) {
+                    const index = historyForThisStateBranch[nextPage];
+                    if (index > -1) {
+                        actions.push(history.jumpToPast(index));
+                    }
 
-            if (uploadIndex === 0) {
-                actions.push(clearUploadHistory());
-            }
+                    if (index === 0) {
+                        actions.push(history.clearHistory());
+                    }
+                } else {
+                    actions.push(
+                        history.jumpToPast(0),
+                        history.clearHistory()
+                    );
+                }
+            });
 
             if (!isEmpty(actions)) {
                 dispatch(batchActions(actions));
@@ -373,7 +394,8 @@ const selectPageLogic = createLogic({
         } else if (nextPageOrder > currentPageOrder) {
             const selectionIndex = getCurrentSelectionIndex(state);
             const uploadIndex = getCurrentUploadIndex(state);
-            dispatch(updatePageHistory(getPage(state), selectionIndex, uploadIndex));
+            const templateIndex = getCurrentTemplateIndex(state);
+            dispatch(updatePageHistory(getPage(state), selectionIndex, uploadIndex, templateIndex));
         }
 
         done();
@@ -449,7 +471,8 @@ const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): A
 
     const currentSelectionIndex = getCurrentSelectionIndex(state);
     const currentUploadIndex = getCurrentUploadIndex(state);
-    actions.push(updatePageHistory(lastPage, currentSelectionIndex, currentUploadIndex));
+    const currentTemplateIndex = getCurrentTemplateIndex(state);
+    actions.push(updatePageHistory(lastPage, currentSelectionIndex, currentUploadIndex, currentTemplateIndex));
 
     const nextPage = getNextPage(lastPage, 1);
     if (nextPage) {
