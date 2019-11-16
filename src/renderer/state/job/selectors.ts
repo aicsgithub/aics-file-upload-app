@@ -11,6 +11,7 @@ import { PendingJob } from "./types";
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getPendingJobs = (state: State) => state.job.pendingJobs;
+export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
 
 export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
    return pendingJobs.length;
@@ -20,15 +21,17 @@ export const getPendingJobNames = createSelector([getPendingJobs], (jobs: Pendin
     return jobs.map((job) => job.jobName);
 });
 
-export const getUploadJobsWithCopyJob = createSelector([
+export const getUploadJobsWithChildJobs = createSelector([
     getCopyJobs,
+    getAddMetadataJobs,
     getUploadJobs,
-], (copyJobs: JSSJob[], uploadJobs: JSSJob[]) => {
+], (copyJobs: JSSJob[], addMetadataJobs: JSSJob[], uploadJobs: JSSJob[]) => {
    return uploadJobs.map((j) => {
        return {
            ...j,
            serviceFields: {
                ...j.serviceFields,
+               addMetadataJob: addMetadataJobs.find(({ parentId }) => parentId === j.jobId),
                copyJob: copyJobs.find((cj) => cj.jobId === get(j, ["serviceFields", "copyJobId"])),
            },
        };
@@ -36,20 +39,21 @@ export const getUploadJobsWithCopyJob = createSelector([
 });
 
 export const getJobsForTable = createSelector([
-    getUploadJobsWithCopyJob,
+    getUploadJobsWithChildJobs,
     getPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
     return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"])
         .map((job) => ({...job, key: job.jobId}));
 });
 
-// The app is only safe to exit after fss and aicsfiles confirm the job is complete
+// The app is only safe to exit after either fss completes or after the add metadata step has been sent off
 export const getIsSafeToExit = createSelector([
-    getUploadJobsWithCopyJob,
+    getUploadJobsWithChildJobs,
     getNumberOfPendingJobs,
 ], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
-    numberPendingJobs === 0 && every(jobs, ({ serviceFields: { copyJob }, status }) => (
-        !includes(IN_PROGRESS_STATUSES, !copyJob ? status : copyJob.status)
+    numberPendingJobs === 0 && every(jobs, ({ serviceFields: { addMetadataJob }, status }) => (
+        !includes(IN_PROGRESS_STATUSES, status)
+        || (addMetadataJob && !includes(IN_PROGRESS_STATUSES, addMetadataJob.status))
     ))
 ));
 

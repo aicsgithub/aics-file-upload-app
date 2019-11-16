@@ -3,16 +3,24 @@ import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
-import { ADD_PENDING_JOB, REMOVE_PENDING_JOB, SET_COPY_JOBS, SET_UPLOAD_JOBS } from "./constants";
+import {
+    ADD_PENDING_JOB,
+    REMOVE_PENDING_JOB,
+    SET_ADD_METADATA_JOBS,
+    SET_COPY_JOBS,
+    SET_UPLOAD_JOBS
+} from "./constants";
 import {
     AddPendingJobAction,
     JobStateBranch,
     RemovePendingJobsAction,
+    SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
 } from "./types";
 
 export const initialState = {
+    addMetadataJobs: [],
     copyJobs: [],
     pendingJobs: [],
     uploadJobs: [],
@@ -36,6 +44,15 @@ const actionToConfigMap: TypeToDescriptionMap = {
             return {
                 ...state,
                 copyJobs,
+            };
+        },
+    },
+    [SET_ADD_METADATA_JOBS]: {
+        accepts: (action: AnyAction): action is SetAddMetadataJobsAction => action.type === SET_ADD_METADATA_JOBS,
+        perform: (state: JobStateBranch, action: SetAddMetadataJobsAction) => {
+            return {
+                ...state,
+                addMetadataJobs: action.payload,
             };
         },
     },

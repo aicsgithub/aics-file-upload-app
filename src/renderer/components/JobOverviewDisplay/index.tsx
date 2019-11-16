@@ -36,13 +36,13 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
     let extraStatusActionButton: JSX.Element | undefined;
     if (allowCancel) {
         extraStatusActionButton = (
-            <Button onClick={cancelUpload} type="danger" loading={loading}>
+            <Button onClick={cancelUpload} type="danger" disabled={loading} loading={loading}>
                 Cancel
             </Button>
         );
     } else if (status === FAILED_STATUS) {
         extraStatusActionButton = (
-            <Button onClick={retryUpload} type="primary" loading={loading}>
+            <Button onClick={retryUpload} type="primary" disabled={loading} loading={loading}>
                 Retry
             </Button>
         );

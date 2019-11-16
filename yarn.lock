@@ -24,10 +24,10 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.0.2.tgz#c1e74aac8df44ab670e51fc18735ea923dfebca4"
-  integrity sha512-IAKxPMecRBqKRZgacdLwjjppbE00u4lIv/8qOTWLd9zGU2lWBspHd3EVZ7L4cY7O7V74NWHaGsUbQ9x77fv0wA==
+"@aics/aicsfiles@^2.0.6":
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.0.6.tgz#2a0b2af14799b93ae06d6dd58046f7b9318b8b42"
+  integrity sha512-eQxWOKqJwv14mNiSa62k7vtzdzYcFke0S7RzbO5nx3XhkgpzFWt2gcF9q4mad9UDUgtV5/5bYZJ/cKPxW0inMQ==
   dependencies:
     "@aics/job-status-client" "^1.0.8"
     "@babel/polyfill" "^7.4.4"
@@ -6007,7 +6007,7 @@ mock-css-modules@1.0.0:
   dependencies:
     harmony-reflect "~1.4.2"
 
-moment@2.x, moment@^2.24.0:
+moment@2.24.0, moment@2.x, moment@^2.24.0:
   version "2.24.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==

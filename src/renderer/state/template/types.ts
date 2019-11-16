@@ -36,11 +36,22 @@ export interface AnnotationLookup {
     lookupId: number;
 }
 
+export interface AnnotationOption {
+    annotationId: number;
+    annotationOptionId: number;
+    value: string;
+}
+
 export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number };
 
 export interface AnnotationType {
     annotationTypeId: number;
     name: ColumnType;
+}
+
+// if dropdown, annotationOptions array is supplied
+export interface AnnotationWithOptions extends Annotation {
+    annotationOptions?: string[];
 }
 
 export enum ColumnType {
@@ -54,6 +65,10 @@ export enum ColumnType {
 }
 
 export interface ClearTemplateDraftAction {
+    type: string;
+}
+
+export interface ClearTemplateHistoryAction {
     type: string;
 }
 
@@ -74,6 +89,11 @@ export interface GetTemplateAction {
         addAnnotationsToUpload: boolean;
         templateId: number;
     };
+    type: string;
+}
+
+export interface JumpToPastTemplateAction {
+    index: number;
     type: string;
 }
 

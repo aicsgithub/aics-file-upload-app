@@ -1,8 +1,9 @@
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
+import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
-import { makeReducer } from "../util";
+import { getReduxUndoFilterFn, makeReducer } from "../util";
 import {
     CLEAR_TEMPLATE_DRAFT,
     CLEAR_TEMPLATE_HISTORY,
@@ -54,6 +55,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
 const template = makeReducer<TemplateStateBranch>(actionToConfigMap, initialState);
 const options: UndoableOptions = {
     clearHistoryType: CLEAR_TEMPLATE_HISTORY,
+    filter: getReduxUndoFilterFn([]),
+    initTypes: [RESET_HISTORY],
     jumpToPastType: JUMP_TO_PAST_TEMPLATE,
     jumpType: JUMP_TO_TEMPLATE,
     limit: 100,
