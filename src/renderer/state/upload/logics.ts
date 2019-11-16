@@ -228,7 +228,7 @@ const retryUploadLogic = createLogic({
         dispatch(addRequestToInProgress(AsyncRequest.RETRY_UPLOAD));
 
         try {
-            await fms.retryUpload(action.payload);
+            await fms.retryUpload(uploadJob);
             dispatch(setAlert({
                 message: `Retry upload ${uploadJob.jobName} succeeded!`,
                 type: AlertType.SUCCESS,

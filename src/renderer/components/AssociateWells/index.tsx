@@ -62,7 +62,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
             wellsWithAssociations,
         } = this.props;
 
-        const associationsTitle = `Selected Well(s): ${selectedWellLabels.sort().join(", ")}`;
+        const associationsTitle = `Selected Wells: ${selectedWellLabels.sort().join(", ")}`;
 
         return (
             <FormPage

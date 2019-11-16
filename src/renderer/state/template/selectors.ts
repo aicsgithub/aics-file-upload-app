@@ -1,9 +1,11 @@
 import { isEmpty, trim, uniqBy } from "lodash";
 
 import { createSelector } from "reselect";
+import { LabkeyTemplate } from "../../util/labkey-client/types";
 import {
     getAnnotationTypes,
     getNotesAnnotation,
+    getTemplates,
     getWellAnnotation,
     getWorkflowAnnotation,
 } from "../metadata/selectors";
@@ -26,9 +28,11 @@ export const getTemplateDraftAnnotations = (state: State) => state.template.pres
 export const getTemplatePast = (state: State) => state.template.past;
 
 export const getTemplateDraftErrors = createSelector([
+    getTemplates,
+    getTemplateDraft,
     getTemplateDraftAnnotations,
     getTemplateDraftName,
-], (annotations: AnnotationDraft[], templateName?: string) => {
+], (allTemplates: LabkeyTemplate[], draft: TemplateDraft, annotations: AnnotationDraft[], templateName?: string) => {
     const errors = [];
     if (!trim(templateName)) {
         errors.push("Template is missing a name");
@@ -76,6 +80,12 @@ export const getTemplateDraftErrors = createSelector([
 
     if (duplicateNamesFound) {
         errors.push("Found duplicate annotation names");
+    }
+
+    const notMostRecent = allTemplates.find(({ Name, Version }) =>
+        Name === templateName && !!draft.version && Version > draft.version);
+    if (draft.templateId && notMostRecent) {
+        errors.push("Must edit the most recent version of a template");
     }
 
     return errors;
@@ -177,8 +187,8 @@ export const getCompleteAppliedTemplate = createSelector([
             },
             {
                 ...notes,
-                canHaveManyValues: true,
-                required: true,
+                canHaveManyValues: false,
+                required: false,
                 type: ColumnType.TEXT,
             },
         ],
