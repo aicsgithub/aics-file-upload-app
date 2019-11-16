@@ -103,7 +103,7 @@ describe("Selection logics", () => {
             };
         });
 
-        it("Goes to EnterBarcode page if on DragAndDrop page", (done) => {
+        it("Goes to SelectUploadType page if on DragAndDrop page", (done) => {
             const store = createMockReduxStore(mockState);
 
             // before
@@ -213,7 +213,7 @@ describe("Selection logics", () => {
             filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
         });
 
-        it("Goes to EnterBarcode page if on DragAndDrop page", (done) => {
+        it("Goes to SelectUploadType page if on DragAndDrop page", (done) => {
             const store = createMockReduxStore(mockState);
 
             // before
@@ -654,7 +654,7 @@ describe("Selection logics", () => {
 
     describe("selectPageLogic", () => {
         // This is going forward
-        it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
+        it("Going from DragAndDrop to SelectUploadType should record which index selection/template/upload state " +
             "branches are at for the page we went to", (done) => {
             const store = createMockReduxStore({
                 ...mockState,
@@ -675,25 +675,25 @@ describe("Selection logics", () => {
                 // wait for updatePageHistory to go through reducer
                 if (count === 2) {
                     state = store.getState();
-                    expect(getSelectionHistory(state)[Page.EnterBarcode]).to.equal(0);
-                    expect(getTemplateHistory(state)[Page.EnterBarcode]).to.equal(0);
-                    expect(getUploadHistory(state)[Page.EnterBarcode]).to.equal(0);
+                    expect(getSelectionHistory(state)[Page.SelectUploadType]).to.equal(0);
+                    expect(getTemplateHistory(state)[Page.SelectUploadType]).to.equal(0);
+                    expect(getUploadHistory(state)[Page.SelectUploadType]).to.equal(0);
                     return done();
                 }
             });
 
-            store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
+            store.dispatch(selectPage(Page.DragAndDrop, Page.SelectUploadType));
         });
-        it("Going from EnterBarcode to AssociateFiles should record which index selection/template/upload state " +
+        it("Going from SelectUploadType to AssociateFiles should record which index selection/template/upload state " +
             "branches are at for the page we went to", (done) => {
             const startingSelectionHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const startingTemplateHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const startingUploadHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const store = createMockReduxStore({
                 ...mockState,
@@ -707,8 +707,8 @@ describe("Selection logics", () => {
                 },
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    page: Page.EnterBarcode,
-                    view: Page.EnterBarcode,
+                    page: Page.SelectUploadType,
+                    view: Page.SelectUploadType,
                 }),
             });
             let state = store.getState();
@@ -741,19 +741,19 @@ describe("Selection logics", () => {
                 }
             });
 
-            store.dispatch(selectPage(Page.EnterBarcode, Page.AssociateFiles));
+            store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
         });
-        it("Going from EnterBarcode to DragAndDrop should change index for selection/template/upload to 0" +
+        it("Going from SelectUploadType to DragAndDrop should change index for selection/template/upload to 0" +
             "and clear history", (done) => {
             const startingSelectionHistory = {
-                [Page.EnterBarcode]: 1,
+                [Page.SelectUploadType]: 1,
             };
             const startingTemplateHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
 
             };
             const startingUploadHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const store = createMockReduxStore({
                 ...mockState,
@@ -767,8 +767,8 @@ describe("Selection logics", () => {
                 },
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    page: Page.EnterBarcode,
-                    view: Page.EnterBarcode,
+                    page: Page.SelectUploadType,
+                    view: Page.SelectUploadType,
                 }),
             });
             let state = store.getState();
@@ -796,7 +796,7 @@ describe("Selection logics", () => {
                 }
             });
 
-            store.dispatch(selectPage(Page.EnterBarcode, Page.DragAndDrop));
+            store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));
         });
     });
 });

@@ -49,9 +49,9 @@ const CreateBarcodeCard: React.FunctionComponent<Props> = ({
                         onSelect={onBarcodePrefixChanged}
                         placeholder="Select Barcode Prefix"
                     >
-                        {barcodePrefixes.map((prefix) => (
-                            <Select.Option value={prefix.prefixId} key={prefix.prefixId}>
-                                {prefix.description}
+                        {barcodePrefixes.map(({ prefixId, description }) => (
+                            <Select.Option value={prefixId} key={prefixId}>
+                                {description}
                             </Select.Option>
                         ))}
                     </Select>

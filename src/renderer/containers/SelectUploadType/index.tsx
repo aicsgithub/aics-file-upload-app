@@ -194,7 +194,6 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
             const matchingResult = this.props.barcodeSearchResults
                 .filter((r: BarcodeSelectorOption) => r.barcode === value);
             const imagingSessionIds = matchingResult.length > 0 ? matchingResult[0].imagingSessionIds : [];
-            console.log(imagingSessionIds.length > 1 ? undefined : Path.EnterBarcode);
             replacementState = {
                 barcode: value as string,
                 imagingSessionIds,

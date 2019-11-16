@@ -58,8 +58,8 @@ import { FileTagType } from "../../state/upload/types";
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
-import EnterBarcode from "../SelectUploadType";
 import OpenTemplateModal from "../OpenTemplateModal";
+import EnterBarcode from "../SelectUploadType";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 

@@ -17,7 +17,7 @@ interface Props {
     barcodeSearchResults: BarcodeSelectorOption[];
     loadingBarcodes: boolean;
     imagingSessionId?: number | null;
-    imagingSessionIds: (number | null)[];
+    imagingSessionIds: Array<number | null>;
     imagingSessions: ImagingSession[];
     isSelected: boolean;
     onBarcodeChange: (option: SelectValue) => void;
@@ -25,7 +25,6 @@ interface Props {
     onCancel: () => void;
     onImagingSessionChanged: (event: RadioChangeEvent) => void;
 }
-
 
 /*
     This card is for showing and gathering relevant information for the "Enter Barcode" path to uploading.
@@ -94,7 +93,7 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
                         className={styles.selector}
                         showSearch={true}
                         showArrow={false}
-                        notFoundContent={null}
+                        notFoundContent={<div>Start typing to search</div>}
                         value={barcode}
                         placeholder="Type to search"
                         autoClearSearchValue={true}
@@ -103,8 +102,8 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
                         loading={loadingBarcodes}
                         defaultActiveFirstOption={false}
                     >
-                        {barcodeSearchResults.map(({ barcode }) => (
-                            <Select.Option key={barcode}>{barcode}</Select.Option>
+                        {barcodeSearchResults.map((option) => (
+                            <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
                         ))}
                     </Select>
                     {renderImagingSessionInput()}
