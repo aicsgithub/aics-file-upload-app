@@ -87,7 +87,7 @@ describe("Setting logics", () => {
     describe("updateSettingsLogic", () => {
 
         it("updates settings if data persisted correctly", () => {
-            const store = createMockReduxStore(mockState);
+            const { store } = createMockReduxStore(mockState);
 
             // before
             expect(getLimsHost(store.getState())).to.equal(localhost);
@@ -100,7 +100,7 @@ describe("Setting logics", () => {
         });
 
         it("sets host and port on all LIMS clients", () => {
-            const store = createMockReduxStore(mockState);
+            const { store } = createMockReduxStore(mockState);
 
             // before
             expect(fmsHostSetterSpy.called).to.be.false;
@@ -119,7 +119,7 @@ describe("Setting logics", () => {
         });
 
         it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
-            const store = createMockReduxStore(mockState);
+            const { store } = createMockReduxStore(mockState);
             store.dispatch(updateSettings({associateByWorkflow: true}));
             expect(fmsHostSetterSpy.called).to.be.false;
             expect(fmsPortSetterSpy.called).to.be.false;
@@ -135,7 +135,7 @@ describe("Setting logics", () => {
                     set: sinon.stub ().throwsException(),
                 },
             };
-            const store = createMockReduxStore(mockState, deps);
+            const { store } = createMockReduxStore(mockState, deps);
 
             // before
             expect(getLimsHost(store.getState())).to.equal(localhost);
@@ -160,7 +160,7 @@ describe("Setting logics", () => {
                     }),
                 },
             };
-            const store = createMockReduxStore(mockState, deps);
+            const { store } = createMockReduxStore(mockState, deps);
 
             // before
             expect(getLimsHost(store.getState())).to.equal(localhost);
@@ -180,7 +180,7 @@ describe("Setting logics", () => {
                     get: sinon.stub().throwsException(),
                 },
             };
-            const store = createMockReduxStore(mockState, deps);
+            const { store } = createMockReduxStore(mockState, deps);
 
             // apply
             store.dispatch(gatherSettings());
@@ -193,7 +193,7 @@ describe("Setting logics", () => {
 
     describe("addTemplateIdToSettingsLogic", () => {
         it("adds template id to settings", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...mockState,
                 setting: {
                     ...mockState.setting,

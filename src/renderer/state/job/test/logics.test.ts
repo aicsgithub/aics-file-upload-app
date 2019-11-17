@@ -26,7 +26,7 @@ describe("Job logics", () => {
             callback.onCall(1).returns([mockSuccessfulCopyJob]);
             callback.returns([mockSuccessfulAddMetadataJob]);
             sandbox.replace(jssClient, "getJobs", callback);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...mockState,
             });
 
@@ -52,7 +52,7 @@ describe("Job logics", () => {
         it("Sets an alert given a non OK response from JSS", (done) => {
             sandbox.replace(jssClient, "getJobs", stub().rejects());
 
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...mockState,
             }, mockReduxLogicDeps);
 

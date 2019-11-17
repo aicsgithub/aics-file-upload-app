@@ -3,9 +3,9 @@ import { JobStatusClient } from "@aics/job-status-client";
 import {
     applyMiddleware,
     combineReducers,
-    createStore,
+    createStore, Middleware, Store,
 } from "redux";
-import { createLogicMiddleware } from "redux-logic";
+import { createLogicMiddleware, LogicMiddleware } from "redux-logic";
 import { SinonStub, stub } from "sinon";
 
 import LabkeyClient from "../../util/labkey-client";
@@ -22,6 +22,8 @@ import {
     upload,
 } from "../";
 import { LocalStorage, State } from "../types";
+import { Actions, default as ActionTracker } from "./action-tracker";
+import { getMockStateWithHistory } from "./mocks";
 
 export interface ReduxLogicDependencies {
     fms: FileManagementSystem;
@@ -129,14 +131,35 @@ const logics = [
     ...upload.logics,
 ];
 
-export function createMockReduxStore(initialState: State,
-                                     reduxLogicDependencies: ReduxLogicDependencies = mockReduxLogicDeps) {
-    const logicMiddleware = createLogicMiddleware(logics, reduxLogicDependencies);
-    const middleware = applyMiddleware(logicMiddleware);
+const initialState: State = {
+    feedback: feedback.initialState,
+    job: job.initialState,
+    metadata: metadata.initialState,
+    selection: getMockStateWithHistory(selection.initialState),
+    setting: setting.initialState,
+    template: getMockStateWithHistory(template.initialState),
+    upload: getMockStateWithHistory(upload.initialState),
+};
+
+export function createMockReduxStore(mockState: State = initialState,
+                                     reduxLogicDependencies: ReduxLogicDependencies = mockReduxLogicDeps
+): {store: Store; logicMiddleware: LogicMiddleware<State, ReduxLogicDependencies>; actions: Actions} {
+    // redux-logic middleware
+    const logicMiddleware: LogicMiddleware<State, ReduxLogicDependencies> = createLogicMiddleware(logics);
+    logicMiddleware.addDeps(reduxLogicDependencies);
+
+    // action tracking middleware
+    const actionTracker = new ActionTracker();
+    const trackActionsMiddleware: Middleware = () => (next) => (action) => {
+        actionTracker.track(action);
+        return next(action);
+    };
+    const middleware = applyMiddleware(logicMiddleware, trackActionsMiddleware);
     const rootReducer = enableBatching<State>(combineReducers(reducers));
 
-    if (initialState) {
-        return createStore(rootReducer, initialState, middleware);
-    }
-    return createStore(rootReducer, middleware);
+    return {
+        actions: actionTracker.actions,
+        logicMiddleware,
+        store: createStore(rootReducer, mockState, middleware),
+    };
 }

@@ -39,7 +39,7 @@ describe("Template Logics", () => {
     describe("addExistingAnnotationLogic", () => {
 
         it("adds annotation to draft annotations", () => {
-            const store = createMockReduxStore({...startState});
+            const { store } = createMockReduxStore({...startState});
 
             let state = store.getState();
             expect(getTemplateDraftAnnotations(state).length).to.equal(0);
@@ -53,7 +53,7 @@ describe("Template Logics", () => {
             expect(getTemplateDraftAnnotations(state).length).to.equal(1);
         });
         it("sets alert if the annotation type is not recognized", () => {
-            const store = createMockReduxStore({...startState});
+            const { store } = createMockReduxStore({...startState});
 
             let state = store.getState();
             expect(getAlert(state)).to.be.undefined;
@@ -67,7 +67,7 @@ describe("Template Logics", () => {
             expect(getAlert(state)).to.not.be.undefined;
         });
         it("sets alert if the annotation type is lookup and no annotationlookup junction exists", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 metadata: {
                     ...startState.metadata,
@@ -87,7 +87,7 @@ describe("Template Logics", () => {
             expect(getAlert(state)).to.not.be.undefined;
         });
         it("sets alert if lookup id is invalid", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 metadata: {
                     ...startState.metadata,
@@ -111,7 +111,7 @@ describe("Template Logics", () => {
     describe("getTemplateLogic", () => {
         it("sets applied template and updates uploads if addAnnotationsToUpload=true", (done) => {
             const key = "somekey";
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 upload: getMockStateWithHistory({
                     ...startState.upload.present,
@@ -147,7 +147,7 @@ describe("Template Logics", () => {
         it("updates template draft if addAnnotationsToUpload=false", (done) => {
             const getTemplateStub = stub().rejects();
             sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
             });
 
@@ -167,7 +167,7 @@ describe("Template Logics", () => {
         it("sets alert if getTemplate returns not OK response", (done) => {
             const getTemplateStub = stub().resolves(mockMMSTemplate);
             sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
             });
 
@@ -188,7 +188,7 @@ describe("Template Logics", () => {
 
     describe("removeAnnotationsLogic", () => {
         it("removes annotations from template draft", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 template: getMockStateWithHistory({
                     ...startState.template.present,
@@ -233,7 +233,7 @@ describe("Template Logics", () => {
         it("calls editTemplate endpoint if template id supplied", (done) => {
             const editTemplateStub = stub().resolves([1]);
             sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 template: getMockStateWithHistory({
                     ...startState.template.present,
@@ -260,7 +260,7 @@ describe("Template Logics", () => {
         it("calls createTemplate endpoint if template id not supplied", (done) => {
             const createTemplateStub = stub().resolves([1]);
             sandbox.replace(mmsClient, "createTemplate", createTemplateStub);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 template: getMockStateWithHistory({
                     ...startState.template.present,
@@ -286,7 +286,7 @@ describe("Template Logics", () => {
         it("sets alert if endpoint returns not OK response", (done) => {
             const editTemplateStub = stub().rejects();
             sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...startState,
                 template: getMockStateWithHistory({
                     ...startState.template.present,

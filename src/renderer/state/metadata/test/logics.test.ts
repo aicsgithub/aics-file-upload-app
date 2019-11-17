@@ -61,7 +61,7 @@ describe("Metadata logics", () => {
             sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
             sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
 
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAnnotationLookups(state)).to.be.empty;
@@ -92,7 +92,7 @@ describe("Metadata logics", () => {
         it("sets alert given non-OK response", (done) => {
             const getImagingSessionsStub = stub().rejects();
             sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getAlert(store.getState())).to.be.undefined;
@@ -117,7 +117,7 @@ describe("Metadata logics", () => {
             const getAnnotationOptionsStub = stub().resolves(mockAnnotationOptions);
             sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
             sandbox.replace(labkeyClient, "getAnnotationOptions", getAnnotationOptionsStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAnnotations(state)).to.be.empty;
@@ -140,7 +140,7 @@ describe("Metadata logics", () => {
         it("sets alert given not OK response", (done) => {
             const getAnnotationsStub = stub().rejects();
             sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAlert(state)).to.be.undefined;
@@ -163,7 +163,7 @@ describe("Metadata logics", () => {
         it("sets templates given OK response", (done) => {
             const getTemplatesStub = stub().resolves(mockAnnotations);
             sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAnnotations(state)).to.be.empty;
@@ -184,7 +184,7 @@ describe("Metadata logics", () => {
         it("sets templates given not OK response", (done) => {
             const getTemplatesStub = stub().rejects();
             sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAlert(state)).to.be.undefined;
