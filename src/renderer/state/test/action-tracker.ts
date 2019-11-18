@@ -45,6 +45,8 @@ export interface Actions {
 export default class ActionTracker {
     private _trackedActions: AnyAction[] = [];
 
+    // allow anonymous class
+    // tslint:disable-next-line
     private _actions: Actions = new (class {
         constructor(private superThis: ActionTracker) {
             this.superThis = superThis;
