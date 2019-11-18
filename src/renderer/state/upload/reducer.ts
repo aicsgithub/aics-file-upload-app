@@ -14,7 +14,7 @@ import {
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD_HISTORY,
-    DELETE_UPLOAD,
+    DELETE_UPLOADS,
     getUploadRowKey,
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
@@ -135,8 +135,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [DELETE_UPLOAD]: {
-        accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOAD,
+    [DELETE_UPLOADS]: {
+        accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOADS,
         perform: (state: UploadStateBranch, action: RemoveUploadsAction) => omit(state, action.payload),
     },
     [APPLY_TEMPLATE]: {
