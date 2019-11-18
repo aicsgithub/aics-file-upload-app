@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, uniq, values } from "lodash";
 import { Moment } from "moment";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
@@ -31,6 +31,7 @@ import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     CANCEL_UPLOAD,
+    DELETE_UPLOADS,
     getUploadRowKey,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
@@ -470,10 +471,34 @@ const updateUploadLogic = createLogic({
     type: UPDATE_UPLOAD,
 });
 
+const deleteUploadsLogic = createLogic({
+    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        // if there are child uploads under any of the uploads in action.payload, delete the children too
+        const uploads: UploadStateBranch = getUpload(getState());
+        const { payload: uploadKeys } = action;
+        const additionalKeys: string[] = [];
+        uploadKeys.forEach((key: string) => {
+            const {file, channel, positionIndex} = uploads[key];
+            if (positionIndex && !channel) {
+                const children = values(uploads)
+                    .filter((u) => u.file === file && u.positionIndex === positionIndex && u.key !== key)
+                    .map((u) => u.key);
+                additionalKeys.push(...children);
+            }
+        });
+        next({
+            ...action,
+            payload: uniq([...uploadKeys, ...additionalKeys]),
+        });
+    },
+    type: DELETE_UPLOADS,
+});
+
 export default [
     applyTemplateLogic,
     associateFileAndWellLogic,
     cancelUploadLogic,
+    deleteUploadsLogic,
     initiateUploadLogic,
     retryUploadLogic,
     updateScenesLogic,

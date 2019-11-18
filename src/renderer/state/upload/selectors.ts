@@ -23,12 +23,11 @@ import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 
 import { getUploadJobNames } from "../job/selectors";
-import { getAnnotationTypes } from "../metadata/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
 import { ExpandedRows, Workflow } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
-import { AnnotationType, ColumnType, TemplateWithTypeNames } from "../template/types";
+import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
 import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -181,10 +180,9 @@ export const getUploadSummaryRows = createSelector([
     getExpandedUploadJobRows,
     getFileToMetadataMap,
     getCompleteAppliedTemplate,
-    getAnnotationTypes,
 ], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
-    metadataGroupedByFile: { [file: string]: UploadMetadata[] }, template?: TemplateWithTypeNames,
-    annotationTypes?: AnnotationType[]): UploadJobTableRow[] => {
+    metadataGroupedByFile: { [file: string]: UploadMetadata[] },
+    template?: TemplateWithTypeNames): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
 
