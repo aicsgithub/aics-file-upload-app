@@ -1,5 +1,8 @@
 # Version Notes
 
+## 1.0.15:
+- Bugfix: Fix bug where deleting a row in the custom data grid would remove the child rows
+
 ## 1.0.14:
 - Feature: We now support annotations that take multiple values. If your annotation is Text or a Number, you can add values
 delimited by a comma. For other annotation types, the cell will include an edit icon which will open a new window when clicked
