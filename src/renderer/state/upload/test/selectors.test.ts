@@ -607,6 +607,62 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
         });
+        it("shows scene and channel only rows if file row is not present", () => {
+            const rows = getUploadSummaryRows({
+                ...mockState,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey("/path/to/file1", 1)]: {
+                        barcode: "1234",
+                        file: "/path/to/file1",
+                        key: getUploadRowKey("/path/to/file1", 1),
+                        positionIndex: 1,
+                        wellIds: [2],
+                        wellLabels: ["A2"],
+                    },
+                    [getUploadRowKey("/path/to/file1", undefined, 1)]: {
+                        barcode: "1234",
+                        channel: mockChannel,
+                        file: "/path/to/file1",
+                        key: getUploadRowKey("/path/to/file1", undefined, 1),
+                        positionIndex: undefined,
+                        wellIds: [2],
+                        wellLabels: ["A2"],
+                    },
+                }),
+            });
+            expect(rows.length).to.equal(2);
+            expect(rows[0]).to.deep.equal({
+                barcode: "1234",
+                channel: mockChannel,
+                channelIds: [],
+                file: "/path/to/file1",
+                group: false,
+                key: getUploadRowKey("/path/to/file1", undefined, 1),
+                numberSiblings: 2,
+                positionIndex: undefined,
+                positionIndexes: [],
+                siblingIndex: 0,
+                treeDepth: 0,
+                wellIds: [2],
+                wellLabels: "A2",
+                workflows: "",
+            });
+            expect(rows[1]).to.deep.equal({
+                barcode: "1234",
+                channelIds: [],
+                file: "/path/to/file1",
+                group: false,
+                key: getUploadRowKey("/path/to/file1", 1),
+                numberSiblings: 2,
+                positionIndex: 1,
+                positionIndexes: [],
+                siblingIndex: 1,
+                treeDepth: 0,
+                wellIds: [2],
+                wellLabels: "A2",
+                workflows: "",
+            });
+        });
         it("handles files with channels", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,

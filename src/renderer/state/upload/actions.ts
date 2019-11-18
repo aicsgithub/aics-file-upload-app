@@ -10,7 +10,7 @@ import {
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CANCEL_UPLOAD,
     CLEAR_UPLOAD_HISTORY,
-    DELETE_UPLOAD,
+    DELETE_UPLOADS,
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
@@ -111,7 +111,7 @@ export function clearUploadHistory(): ClearUploadHistoryAction {
 export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
     return {
         payload: fullPaths,
-        type: DELETE_UPLOAD,
+        type: DELETE_UPLOADS,
     };
 }
 

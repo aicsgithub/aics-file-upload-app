@@ -23,12 +23,11 @@ import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 
 import { getUploadJobNames } from "../job/selectors";
-import { getAnnotationTypes } from "../metadata/selectors";
 import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
 
 import { ExpandedRows, Workflow } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
-import { AnnotationType, ColumnType, TemplateWithTypeNames } from "../template/types";
+import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
 import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
@@ -127,7 +126,8 @@ const getFileToMetadataMap = createSelector([
     return groupBy(values(uploads), ({file}: UploadMetadata) => file);
 });
 
-const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: TemplateWithTypeNames) => {
+const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: TemplateWithTypeNames,
+                            treeDepth: number = 1) => {
     const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
     const sceneOnlyRows = allMetadataForFile.filter(isSceneOnlyRow);
     return channelMetadata.map((c: UploadMetadata, siblingIndex: number) =>
@@ -135,13 +135,29 @@ const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: Tem
             c,
             channelMetadata.length + sceneOnlyRows.length,
             siblingIndex,
-            1,
+            treeDepth,
             template
         ));
 };
 
-const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRows: number,
-                      expandedRows: ExpandedRows, file: string, template?: TemplateWithTypeNames) => {
+const getSceneChannelRows = (allMetadataForPositionIndex: UploadMetadata[],
+                             treeDepth: number,
+                             sceneParentMetadata?: UploadMetadata,
+                             template?: TemplateWithTypeNames) => {
+    const sceneChannelMetadata = sceneParentMetadata ? without(allMetadataForPositionIndex, sceneParentMetadata)
+        : allMetadataForPositionIndex;
+    return sceneChannelMetadata
+        .map((u: UploadMetadata, sceneChannelSiblingIndex: number) =>
+            convertToUploadJobRow(u, sceneChannelMetadata.length,
+                sceneChannelSiblingIndex, treeDepth, template));
+};
+
+const getSceneRows = (allMetadataForFile: UploadMetadata[],
+                      numberChannelOnlyRows: number,
+                      expandedRows: ExpandedRows, file: string,
+                      sceneRowTreeDepth: number,
+                      template?: TemplateWithTypeNames
+                      ) => {
     const sceneRows: UploadJobTableRow[] = [];
     const sceneMetadata = allMetadataForFile.filter(isSceneRow);
     const metadataGroupedByScene = groupBy(sceneMetadata, ({positionIndex}: UploadMetadata) => positionIndex);
@@ -155,20 +171,19 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[], numberChannelOnlyRow
                     sceneParentMetadata,
                     numberSiblingsUnderFile,
                     sceneIndex + numberChannelOnlyRows,
-                    1,
+                    sceneRowTreeDepth,
                     template,
                     allMetadataForPositionIndex.length > 1
                 );
                 sceneRows.push(sceneRow);
 
                 if (expandedRows[getUploadRowKey(file, sceneParentMetadata.positionIndex)]) {
-                    const sceneChannelMetadata = without(allMetadataForPositionIndex, sceneParentMetadata);
-                    const sceneChannelRows = sceneChannelMetadata
-                        .map((u: UploadMetadata, sceneChannelSiblingIndex: number) =>
-                            convertToUploadJobRow(u, sceneChannelMetadata.length,
-                                sceneChannelSiblingIndex, 2, template));
-                    sceneRows.push(...sceneChannelRows);
+                    sceneRows.push(...getSceneChannelRows(allMetadataForPositionIndex, sceneRowTreeDepth + 1,
+                        sceneParentMetadata, template));
                 }
+            } else {
+                sceneRows.push(...getSceneChannelRows(allMetadataForPositionIndex, sceneRowTreeDepth,
+                    sceneParentMetadata, template));
             }
         });
 
@@ -181,10 +196,9 @@ export const getUploadSummaryRows = createSelector([
     getExpandedUploadJobRows,
     getFileToMetadataMap,
     getCompleteAppliedTemplate,
-    getAnnotationTypes,
 ], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
-    metadataGroupedByFile: { [file: string]: UploadMetadata[] }, template?: TemplateWithTypeNames,
-    annotationTypes?: AnnotationType[]): UploadJobTableRow[] => {
+    metadataGroupedByFile: { [file: string]: UploadMetadata[] },
+    template?: TemplateWithTypeNames): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
 
@@ -193,11 +207,11 @@ export const getUploadSummaryRows = createSelector([
     forEach(metadataGroupedByFile, (allMetadataForFile: UploadMetadata[], file: string) => {
         fileSiblingIndex++;
         const fileMetadata = allMetadataForFile.find(isFileRow);
+        const treeDepth = fileMetadata ? 1 : 0;
+        const channelRows = getChannelOnlyRows(allMetadataForFile, template, treeDepth);
+        const sceneRows = getSceneRows(allMetadataForFile, channelRows.length, expandedRows, file, treeDepth, template);
 
         if (fileMetadata) {
-            const channelRows = getChannelOnlyRows(allMetadataForFile, template);
-            const sceneRows = getSceneRows(allMetadataForFile, channelRows.length, expandedRows, file, template);
-
             // file rows are always visible
             const hasSubRows = channelRows.length + sceneRows.length > 0;
             const allChannelIds = uniq(allMetadataForFile
@@ -216,6 +230,11 @@ export const getUploadSummaryRows = createSelector([
                     ...sceneRows
                 );
             }
+        } else {
+            visibleRows.push(
+                ...channelRows,
+                ...sceneRows
+            );
         }
     });
 
