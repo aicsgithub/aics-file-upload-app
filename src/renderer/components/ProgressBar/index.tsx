@@ -60,7 +60,7 @@ const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
     };
 
     const createTitle = (step: string, index: number): React.ReactNode => (
-        <Tooltip title={`${getStatus(index)}: ${stepOrder[step].description}`}>
+        <Tooltip title={`${getStatus(index)}: ${stepOrder[step].description}`} mouseLeaveDelay={0}>
             {startCase(step)}
         </Tooltip>
     );
