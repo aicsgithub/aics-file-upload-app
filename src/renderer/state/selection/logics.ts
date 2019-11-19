@@ -438,7 +438,6 @@ const goForwardLogic = createLogic({
         const nextPage = getNextPage(currentPage, 1);
 
         if (nextPage) {
-            console.log("going forward");
             next(selectPage(currentPage, nextPage));
         } else {
            reject();
