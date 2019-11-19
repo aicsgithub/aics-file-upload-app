@@ -395,7 +395,6 @@ const selectPageLogic = createLogic({
             const selectionIndex = getCurrentSelectionIndex(state);
             const uploadIndex = getCurrentUploadIndex(state);
             const templateIndex = getCurrentTemplateIndex(state);
-            console.log("storing indexes for page", currentPage);
             dispatch(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
         }
 
