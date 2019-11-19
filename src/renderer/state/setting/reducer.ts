@@ -13,7 +13,7 @@ import {
     UpdateSettingsAction
 } from "./types";
 
-const initialState: SettingStateBranch = {
+export const initialState: SettingStateBranch = {
     associateByWorkflow: false,
     limsHost: LIMS_HOST,
     limsPort: LIMS_PORT,

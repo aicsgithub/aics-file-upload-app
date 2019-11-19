@@ -21,7 +21,7 @@ import { ColumnType } from "../template/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
-    ReduxLogicProcessDependencies,
+    ReduxLogicProcessDependencies, ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
@@ -130,7 +130,8 @@ const initiateUploadLogic = createLogic({
         dispatch(removePendingJobs(ctx.name));
         done();
     },
-    transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+                      rejectCb: ReduxLogicRejectCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
             ctx.name = getUploadJobName(getState());
@@ -143,7 +144,7 @@ const initiateUploadLogic = createLogic({
                 action,
             ]));
         } catch (e) {
-            next(setAlert({
+            rejectCb(setAlert({
                 message: e.message || "Validation error",
                 type: AlertType.ERROR,
             }));

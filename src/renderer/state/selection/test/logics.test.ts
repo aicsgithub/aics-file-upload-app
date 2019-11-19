@@ -10,6 +10,7 @@ import selections from "../";
 
 import { feedback } from "../../";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
+import { addRequestToInProgress } from "../../feedback/actions";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
@@ -103,8 +104,8 @@ describe("Selection logics", () => {
             };
         });
 
-        it("Goes to SelectUploadType page if on DragAndDrop page", (done) => {
-            const store = createMockReduxStore(mockState);
+        it("Goes to EnterBarcode page if on DragAndDrop page", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(selections.selectors.getPage(store.getState())).to.equal(Page.DragAndDrop);
@@ -113,37 +114,33 @@ describe("Selection logics", () => {
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
             // after
-            store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
-                done();
-            });
+            await logicMiddleware.whenComplete();
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
         });
 
-        it("Does not change page if not on DragAndDrop page", (done) => {
+        it("Does not change page if not on DragAndDrop page", async () => {
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
                 ...mockSelection,
-                page: Page.SelectUploadType,
+                page: Page.EnterBarcode,
             });
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 selection,
             });
 
             // before
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
 
             // apply
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
             // after
-            store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
-                done();
-            });
+            await logicMiddleware.whenComplete();
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
         });
 
-        it("stages all files loaded", (done) => {
-            const store = createMockReduxStore(mockState);
+        it("stages all files loaded", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(selections.selectors.getStagedFiles(store.getState()).length).to.equal(0);
@@ -151,19 +148,17 @@ describe("Selection logics", () => {
             // apply
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
-            store.subscribe(() => {
-                // after
-                const stagedFiles = selections.selectors.getStagedFiles(store.getState());
-                expect(stagedFiles.length === fileList.length).to.be.true;
-                // expect(stagedFiles.length).to.equal(fileList.length);
+            // after
+            await logicMiddleware.whenComplete();
+            const stagedFiles = selections.selectors.getStagedFiles(store.getState());
+            expect(stagedFiles.length === fileList.length).to.be.true;
+            expect(stagedFiles.length).to.equal(fileList.length);
 
-                testStagedFilesCreated(stagedFiles);
-                done();
-            });
+            testStagedFilesCreated(stagedFiles);
         });
 
-        it ("should stop loading on success", (done) => {
-            const store = createMockReduxStore(mockState);
+        it ("should stop loading on success", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
@@ -171,15 +166,13 @@ describe("Selection logics", () => {
             // apply
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
-            store.subscribe(() => {
-                // after
-                expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-                done();
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
         });
 
-        it ("should stop loading on error", (done) => {
-            const store = createMockReduxStore(mockState);
+        it ("should stop loading on error", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
@@ -198,11 +191,9 @@ describe("Selection logics", () => {
             };
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
-            store.subscribe(() => {
-                // after
-                expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-                done();
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
         });
     });
 
@@ -213,8 +204,8 @@ describe("Selection logics", () => {
             filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
         });
 
-        it("Goes to SelectUploadType page if on DragAndDrop page", (done) => {
-            const store = createMockReduxStore(mockState);
+        it("Goes to EnterBarcode page if on DragAndDrop page", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(selections.selectors.getPage(store.getState())).to.equal(Page.DragAndDrop);
@@ -223,37 +214,33 @@ describe("Selection logics", () => {
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
             // after
-            store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
-                done();
-            });
+            await logicMiddleware.whenComplete();
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
         });
 
-        it("Does not change page if not on DragAndDrop page", (done) => {
+        it("Does not change page if not on DragAndDrop page", async () => {
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
                 ...mockSelection,
-                page: Page.SelectUploadType,
+                page: Page.EnterBarcode,
             });
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 selection,
             });
 
             // before
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
 
             // apply
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
             // after
-            store.subscribe(() => {
-                expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
-                done();
-            });
+            await logicMiddleware.whenComplete();
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
         });
 
-        it("Stages all files opened", (done) => {
-            const store = createMockReduxStore(mockState);
+        it("Stages all files opened", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(selections.selectors.getStagedFiles(store.getState()).length).to.equal(0);
@@ -261,18 +248,16 @@ describe("Selection logics", () => {
             // apply
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
-            store.subscribe(() => {
-                // after
-                const stagedFiles = selections.selectors.getStagedFiles(store.getState());
-                expect(stagedFiles.length).to.equal(filePaths.length);
+            // after
+            await logicMiddleware.whenComplete();
+            const stagedFiles = selections.selectors.getStagedFiles(store.getState());
+            expect(stagedFiles.length).to.equal(filePaths.length);
 
-                testStagedFilesCreated(stagedFiles);
-                done();
-            });
+            testStagedFilesCreated(stagedFiles);
         });
 
-        it("Removes child files or directories", (done) => {
-            const store = createMockReduxStore(mockState);
+        it("Removes child files or directories", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(selections.selectors.getStagedFiles(store.getState()).length).to.equal(0);
@@ -285,19 +270,17 @@ describe("Selection logics", () => {
             ];
             store.dispatch(selections.actions.openFilesFromDialog(filePathsWithDuplicates));
 
-            store.subscribe(() => {
-                // after
-                const stagedFiles = selections.selectors.getStagedFiles(store.getState());
-                expect(stagedFiles.length).to.equal(1);
-                expect(stagedFiles[0].isDirectory).to.equal(true);
-                expect(stagedFiles[0].path).to.equal(dirname(FOLDER_FULL_PATH));
-                expect(stagedFiles[0].name).to.equal(FOLDER_NAME);
-                done();
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            const stagedFiles = selections.selectors.getStagedFiles(store.getState());
+            expect(stagedFiles.length).to.equal(1);
+            expect(stagedFiles[0].isDirectory).to.equal(true);
+            expect(stagedFiles[0].path).to.equal(dirname(FOLDER_FULL_PATH));
+            expect(stagedFiles[0].name).to.equal(FOLDER_NAME);
         });
 
-        it ("should stop loading on success", (done) => {
-            const store = createMockReduxStore(mockState);
+        it ("should stop loading on success", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
@@ -305,15 +288,13 @@ describe("Selection logics", () => {
             // apply
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
-            store.subscribe(() => {
-                // after
-                expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-                done();
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
         });
 
-        it ("should stop loading on error", (done) => {
-            const store = createMockReduxStore(mockState);
+        it ("should stop loading on error", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
             expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
@@ -322,16 +303,14 @@ describe("Selection logics", () => {
             filePaths = [resolve(__dirname, TEST_FILES_DIR, "does_not_exist.txt")];
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
-            store.subscribe(() => {
-                // after
-                expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-                done();
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
         });
     });
 
     describe("getFilesInFolderLogic", () => {
-        it("should add child files to folder", (done) => {
+        it("should add child files to folder", async () => {
             const folder = new UploadFileImpl(FOLDER_NAME, dirname(FOLDER_FULL_PATH), true, true);
             const stagedFiles = [
                 new UploadFileImpl(FILE_NAME, dirname(FILE_FULL_PATH), false, true),
@@ -341,7 +320,7 @@ describe("Selection logics", () => {
                 ...mockSelection,
                 stagedFiles,
             });
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 selection,
             });
@@ -353,27 +332,25 @@ describe("Selection logics", () => {
             // apply
             store.dispatch(selections.actions.getFilesInFolder(folder));
 
-            store.subscribe(() => {
-                // after
-                const stagedFilesAfter = selections.selectors.getStagedFiles(store.getState());
-                const stagedFolder = stagedFilesAfter[EXPECTED_FOLDER_INDEX];
-                expect(stagedFolder.files.length).to.equal(2);
+            // after
+            await logicMiddleware.whenComplete();
+            const stagedFilesAfter = selections.selectors.getStagedFiles(store.getState());
+            const stagedFolder = stagedFilesAfter[EXPECTED_FOLDER_INDEX];
+            expect(stagedFolder.files.length).to.equal(2);
 
-                const stagedFolderContainsSecretsFolder = !!stagedFolder.files.find((file) => {
-                    return file.name === "secrets" &&
-                        file.path === FOLDER_FULL_PATH &&
-                        file.isDirectory;
-                });
-                expect(stagedFolderContainsSecretsFolder).to.equal(true);
-
-                const stagedFolderContainsTxtFile = !!stagedFolder.files.find((file) => {
-                    return file.name === "more_cells.txt" &&
-                        file.path === FOLDER_FULL_PATH &&
-                        !file.isDirectory;
-                });
-                expect(stagedFolderContainsTxtFile).to.equal(true);
-                done();
+            const stagedFolderContainsSecretsFolder = !!stagedFolder.files.find((file) => {
+                return file.name === "secrets" &&
+                    file.path === FOLDER_FULL_PATH &&
+                    file.isDirectory;
             });
+            expect(stagedFolderContainsSecretsFolder).to.equal(true);
+
+            const stagedFolderContainsTxtFile = !!stagedFolder.files.find((file) => {
+                return file.name === "more_cells.txt" &&
+                    file.path === FOLDER_FULL_PATH &&
+                    !file.isDirectory;
+            });
+            expect(stagedFolderContainsTxtFile).to.equal(true);
         });
     });
 
@@ -420,92 +397,86 @@ describe("Selection logics", () => {
             };
         });
 
-        it("Adds GET wells request to requests in progress", (done) => {
+        it("Adds GET wells request to requests in progress", async () => {
             const getStub = sinon.stub().onFirstCall().resolves(mockOkGetPlateResponse);
             sandbox.replace(mmsClient, "getPlate", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { actions, logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
+            // before
             expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
-            let storeUpdates = 0;
-            store.subscribe(() => {
-                storeUpdates++;
 
-                if (storeUpdates === 1) {
-                    const state = store.getState();
-                    expect(getRequestsInProgressContains(state, AsyncRequest.GET_PLATE)).to.be.true;
-                    done();
-                }
-            });
-
+            // apply
             store.dispatch(selectBarcode(barcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            expect(actions.includes(addRequestToInProgress(AsyncRequest.GET_PLATE))).to.be.true;
         });
 
-        it ("removes GET wells from requests in progress if GET wells is OK", (done) => {
+        it ("removes GET wells from requests in progress if GET wells is OK",  async () => {
             const getStub = sinon.stub().onFirstCall().callsFake(() => {
-                store.subscribe(() => {
-                    expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
-                    done();
-                });
                 return Promise.resolve(mockOkGetPlateResponse);
             });
             sandbox.replace(mmsClient, "getPlate", getStub);
 
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
+            // apply
             store.dispatch(selectBarcode(barcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
         });
 
-        it("Sets wells, page, barcode, and plateId if GET wells is OK", (done) => {
+        it("Sets wells, page, barcode, and plateId if GET wells is OK",  async () => {
             const getStub = sinon.stub().onFirstCall().callsFake(() => {
-                // we add the subscription after the first store.dispatch because we're testing
-                // the process callback which gets called after the first store update
-                store.subscribe(() => {
-                    const state = store.getState();
-                    expect(getWells(state)).to.not.be.empty;
-                    expect(getPage(state)).to.equal(Page.AssociateFiles);
-                    expect(getSelectedBarcode(state)).to.equal(barcode);
-                    expect(getSelectedPlateId(state)).to.equal(plateId);
-                    done();
-                });
-
                 return Promise.resolve(mockOkGetPlateResponse);
             });
             sandbox.replace(mmsClient, "getPlate", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
+            // apply
             store.dispatch(selectBarcode(barcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            const state = store.getState();
+            expect(getWells(state)).to.not.be.empty;
+            expect(getPage(state)).to.equal(Page.AssociateFiles);
+            expect(getSelectedBarcode(state)).to.equal(barcode);
+            expect(getSelectedPlateId(state)).to.equal(plateId);
         });
 
-        it("Does not retry GET wells request if response is non-Bad Gateway error", (done) => {
+        it("Does not retry GET wells request if response is non-Bad Gateway error",  async () => {
             const getStub = sinon.stub().onFirstCall().callsFake(() => {
-                store.subscribe(() => {
-                    const state = store.getState();
-                    expect(getRequestsInProgressContains(state, AsyncRequest.GET_PLATE)).to.be.false;
-                    expect(getStub.callCount).to.equal(1);
-
-                    const alert = getAlert(state);
-                    expect(alert).to.not.be.undefined;
-
-                    if (alert) {
-                        expect(alert.type).to.equal(AlertType.ERROR);
-                        expect(alert.message).to.equal(GENERIC_GET_WELLS_ERROR_MESSAGE(barcode));
-                    }
-
-                    done();
-                });
-
                 return Promise.reject({
                     ...mockOkGetPlateResponse,
                     status: HTTP_STATUS.BAD_REQUEST,
                 });
             });
             sandbox.replace(mmsClient, "getPlate", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
+            // apply
             store.dispatch(selectBarcode(barcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            const state = store.getState();
+            expect(getRequestsInProgressContains(state, AsyncRequest.GET_PLATE)).to.be.false;
+            expect(getStub.callCount).to.equal(1);
+
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+                expect(alert.message).to.equal(GENERIC_GET_WELLS_ERROR_MESSAGE(barcode));
+            }
         });
 
-        it("Shows error message if it only receives Bad Gateway error for 20 seconds", function(done) {
+        it("Shows error message if it only receives Bad Gateway error for 20 seconds", async function() {
             // here we're using a fake clock so that 20 seconds passes more quickly and to give control
             // over to the test in terms of timing.
             this.clock = sinon.useFakeTimers((new Date()).getTime());
@@ -531,64 +502,59 @@ describe("Selection logics", () => {
                 return Promise.reject(mockBadGatewayResponse);
             });
             sandbox.replace(mmsClient, "getPlate", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
-            store.subscribe(() => {
-                if (secondsPassed >= API_WAIT_TIME_SECONDS) {
-                    const state = store.getState();
-                    const currentAlert: AppAlert | undefined = getAlert(state);
-                    expect(getStub.callCount).to.be.greaterThan(1);
-                    expect(firstAlert).to.not.be.undefined;
-
-                    if (firstAlert) {
-                        expect(firstAlert.type).to.equal(AlertType.WARN);
-                        expect(firstAlert.message).to.equal(MMS_MIGHT_BE_DOWN_MESSAGE);
-                    }
-
-                    expect(currentAlert).to.not.be.undefined;
-
-                    if (currentAlert) {
-                        expect(currentAlert.type).to.equal(AlertType.ERROR);
-                        expect(currentAlert.message).to.equal(MMS_IS_DOWN_MESSAGE);
-                    }
-
-                    done();
-                }
-            });
-
+            // apply
             store.dispatch(selectBarcode(barcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            if (secondsPassed >= API_WAIT_TIME_SECONDS) {
+                const state = store.getState();
+                const currentAlert: AppAlert | undefined = getAlert(state);
+                expect(getStub.callCount).to.be.greaterThan(1);
+                expect(firstAlert).to.not.be.undefined;
+
+                if (firstAlert) {
+                    expect(firstAlert.type).to.equal(AlertType.WARN);
+                    expect(firstAlert.message).to.equal(MMS_MIGHT_BE_DOWN_MESSAGE);
+                }
+
+                expect(currentAlert).to.not.be.undefined;
+
+                if (currentAlert) {
+                    expect(currentAlert.type).to.equal(AlertType.ERROR);
+                    expect(currentAlert.message).to.equal(MMS_IS_DOWN_MESSAGE);
+                }
+            }
         });
 
-        it("Can handle successful response after retrying GET wells request", function(done) {
+        it("Can handle successful response after retrying GET wells request", async function() {
             this.timeout(API_WAIT_TIME_SECONDS * 1000 + 3000);
-            let okResponseReturned = false;
             const getStub = sinon.stub()
                 .onFirstCall().rejects(mockBadGatewayResponse)
                 .onSecondCall().callsFake(() => {
-                    okResponseReturned = true;
                     return Promise.resolve(mockOkGetPlateResponse);
                 });
             sandbox.replace(mmsClient, "getPlate", getStub);
-            const store = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
-            store.subscribe(() => {
-                if (okResponseReturned) {
-                    const state = store.getState();
-                    expect(getWells(state)).to.not.be.empty;
-                    expect(getPage(state)).to.equal(Page.AssociateFiles);
-                    expect(getSelectedBarcode(state)).to.equal(barcode);
-                    expect(getSelectedPlateId(state)).to.equal(plateId);
-                    okResponseReturned = false; // prevent more calls to done
-                    done();
-                }
-            });
+            // apply
             store.dispatch(selectBarcode(barcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            const state = store.getState();
+            expect(getWells(state)).to.not.be.empty;
+            expect(getPage(state)).to.equal(Page.AssociateFiles);
+            expect(getSelectedBarcode(state)).to.equal(barcode);
+            expect(getSelectedPlateId(state)).to.equal(plateId);
         });
     });
 
     describe("openTemplateEditorLogic", () => {
-        it("gets template if template id passed", (done) => {
-            const store = createMockReduxStore({
+        it("gets template if template id passed", async () => {
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 metadata: {
                     ...mockState.metadata,
@@ -599,27 +565,20 @@ describe("Selection logics", () => {
             const getTemplateStub = stub().resolves(mockMMSTemplate);
             sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
 
+            // before
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             expect(getTemplateStub.called).to.be.false;
 
+            // apply
             store.dispatch(openTemplateEditor(1));
 
-            // todo FMS-669 just test that getTemplate action was dispatched using redux-logic-test
-            let storeSubscribeCount = 0;
-            store.subscribe(() => {
-                storeSubscribeCount++;
-
-                if (storeSubscribeCount === 1) {
-                    expect(getTemplateEditorVisible(store.getState())).to.be.true;
-                    expect(getTemplateStub.called).to.be.false;
-                } else if (storeSubscribeCount > 2) {
-                    expect(getTemplateStub.called).to.be.true;
-                    done();
-                }
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            expect(getTemplateEditorVisible(store.getState())).to.be.true;
+            expect(getTemplateStub.called).to.be.true;
         });
         it("sets templateEditorVisible to true", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...mockState,
             });
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
@@ -630,7 +589,7 @@ describe("Selection logics", () => {
 
     describe("closeTemplateEditorLogic", () => {
         it("sets templateEditorVisible to false and resets template draft", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
@@ -644,9 +603,14 @@ describe("Selection logics", () => {
                     },
                 }),
             });
+            // before
             expect(getTemplateEditorVisible(store.getState())).to.be.true;
             expect(getTemplateDraft(store.getState())).to.not.equal(DEFAULT_TEMPLATE_DRAFT);
+
+            // apply
             store.dispatch(closeTemplateEditor());
+
+            // after
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
         });
@@ -654,9 +618,9 @@ describe("Selection logics", () => {
 
     describe("selectPageLogic", () => {
         // This is going forward
-        it("Going from DragAndDrop to SelectUploadType should record which index selection/template/upload state " +
-            "branches are at for the page we went to", (done) => {
-            const store = createMockReduxStore({
+        it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
+            "branches are at for the page we went to", async () => {
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
@@ -665,37 +629,34 @@ describe("Selection logics", () => {
                 }),
             });
 
+            // before
             let state = store.getState();
             expect(getSelectionHistory(state)).to.be.empty;
             expect(getTemplateHistory(state)).to.be.empty;
             expect(getUploadHistory(state)).to.be.empty;
-            let count = 0;
-            store.subscribe(() => {
-                count++;
-                // wait for updatePageHistory to go through reducer
-                if (count === 2) {
-                    state = store.getState();
-                    expect(getSelectionHistory(state)[Page.SelectUploadType]).to.equal(0);
-                    expect(getTemplateHistory(state)[Page.SelectUploadType]).to.equal(0);
-                    expect(getUploadHistory(state)[Page.SelectUploadType]).to.equal(0);
-                    return done();
-                }
-            });
 
-            store.dispatch(selectPage(Page.DragAndDrop, Page.SelectUploadType));
+            // apply
+            store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
+
+            // after
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getSelectionHistory(state)[Page.EnterBarcode]).to.equal(0);
+            expect(getTemplateHistory(state)[Page.EnterBarcode]).to.equal(0);
+            expect(getUploadHistory(state)[Page.EnterBarcode]).to.equal(0);
         });
-        it("Going from SelectUploadType to AssociateFiles should record which index selection/template/upload state " +
-            "branches are at for the page we went to", (done) => {
+        it("Going from EnterBarcode to AssociateFiles should record which index selection/template/upload state " +
+            "branches are at for the page we went to", async () => {
             const startingSelectionHistory = {
-                [Page.SelectUploadType]: 0,
+                [Page.EnterBarcode]: 0,
             };
             const startingTemplateHistory = {
-                [Page.SelectUploadType]: 0,
+                [Page.EnterBarcode]: 0,
             };
             const startingUploadHistory = {
-                [Page.SelectUploadType]: 0,
+                [Page.EnterBarcode]: 0,
             };
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 metadata: {
                     ...mockState.metadata,
@@ -707,8 +668,8 @@ describe("Selection logics", () => {
                 },
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    page: Page.SelectUploadType,
-                    view: Page.SelectUploadType,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
                 }),
             });
             let state = store.getState();
@@ -717,45 +678,41 @@ describe("Selection logics", () => {
             expect(getUploadHistory(state)).to.equal(startingUploadHistory);
 
             store.dispatch(selectBarcode("12345"));
+            // before
             expect(getCurrentSelectionIndex(store.getState())).to.equal(1);
 
-            let count = 0;
-            store.subscribe(() => {
-                count++;
-                // wait for updatePageHistory to go through reducer
-                if (count === 2) {
-                    state = store.getState();
-                    expect(getSelectionHistory(state)).to.deep.equal({
-                        ...startingSelectionHistory,
-                        [Page.AssociateFiles]: 1,
-                    });
-                    expect(getTemplateHistory(state)).to.deep.equal({
-                        ...startingTemplateHistory,
-                        [Page.AssociateFiles]: 0,
-                    });
-                    expect(getUploadHistory(state)).to.deep.equal({
-                        ...startingUploadHistory,
-                        [Page.AssociateFiles]: 0,
-                    });
-                    return done();
-                }
-            });
+            // apply
+            store.dispatch(selectPage(Page.EnterBarcode, Page.AssociateFiles));
 
-            store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
+            // after
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getSelectionHistory(state)).to.deep.equal({
+                ...startingSelectionHistory,
+                [Page.AssociateFiles]: 1,
+            });
+            expect(getTemplateHistory(state)).to.deep.equal({
+                ...startingTemplateHistory,
+                [Page.AssociateFiles]: 0,
+            });
+            expect(getUploadHistory(state)).to.deep.equal({
+                ...startingUploadHistory,
+                [Page.AssociateFiles]: 0,
+            });
         });
-        it("Going from SelectUploadType to DragAndDrop should change index for selection/template/upload to 0" +
-            "and clear history", (done) => {
+        it("Going from EnterBarcode to DragAndDrop should change index for selection/template/upload to 0" +
+            "and clear history", async () => {
             const startingSelectionHistory = {
-                [Page.SelectUploadType]: 1,
+                [Page.EnterBarcode]: 1,
             };
             const startingTemplateHistory = {
-                [Page.SelectUploadType]: 0,
+                [Page.EnterBarcode]: 0,
 
             };
             const startingUploadHistory = {
-                [Page.SelectUploadType]: 0,
+                [Page.EnterBarcode]: 0,
             };
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 metadata: {
                     ...mockState.metadata,
@@ -767,8 +724,8 @@ describe("Selection logics", () => {
                 },
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    page: Page.SelectUploadType,
-                    view: Page.SelectUploadType,
+                    page: Page.EnterBarcode,
+                    view: Page.EnterBarcode,
                 }),
             });
             let state = store.getState();
@@ -777,26 +734,24 @@ describe("Selection logics", () => {
             expect(getUploadHistory(state)).to.equal(startingUploadHistory);
 
             store.dispatch(selectBarcode("12345"));
-            expect(getCurrentSelectionIndex(store.getState())).to.equal(1);
+            await logicMiddleware.whenComplete();
 
-            let count = 0;
-            store.subscribe(() => {
-                count++;
-                // wait for updatePageHistory to go through reducer
-                if (count === 2) {
-                    state = store.getState();
-                    expect(getCurrentSelectionIndex(state)).to.equal(0);
-                    expect(getCurrentTemplateIndex(state)).to.equal(0);
-                    expect(getCurrentUploadIndex(state)).to.equal(0);
+            // before
+            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(0);
 
-                    expect(getSelectionPast(state)).to.be.empty;
-                    expect(getTemplatePast(state)).to.be.empty;
-                    expect(getUploadPast(state)).to.be.empty;
-                    return done();
-                }
-            });
+            // apply
+            store.dispatch(selectPage(Page.EnterBarcode, Page.DragAndDrop));
 
-            store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));
+            // after
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getCurrentSelectionIndex(state)).to.equal(0);
+            expect(getCurrentTemplateIndex(state)).to.equal(0);
+            expect(getCurrentUploadIndex(state)).to.equal(0);
+
+            expect(getSelectionPast(state)).to.be.empty;
+            expect(getTemplatePast(state)).to.be.empty;
+            expect(getUploadPast(state)).to.be.empty;
         });
     });
 });

@@ -57,7 +57,7 @@ import {
     UpdateStagedFilesAction,
 } from "./types";
 
-export const initialState = {
+export const initialState: SelectionStateBranch = {
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
@@ -68,9 +68,6 @@ export const initialState = {
     selectedWells: [],
     selectedWorkflows: [],
     stagedFiles: [],
-    startHistoryIndex: {
-        [Page.DragAndDrop]: 0,
-    },
     templateEditorVisible: false,
     view: Page.UploadSummary,
     wells: [],

@@ -10,7 +10,9 @@ import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
-    getMockStateWithHistory, mockDateAnnotation, mockNumberAnnotation,
+    getMockStateWithHistory,
+    mockDateAnnotation,
+    mockNumberAnnotation,
     mockTemplateStateBranch,
     mockTemplateWithManyValues, mockTextAnnotation,
     nonEmptyStateForInitiatingUpload,
@@ -22,7 +24,7 @@ import { getAppliedTemplateId, getUpload, getUploadSummaryRows } from "../select
 describe("Upload logics", () => {
     describe("associateFileAndWellLogic", () => {
         it("clears files and associates well with file", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
@@ -37,8 +39,8 @@ describe("Upload logics", () => {
     });
 
     describe("applyTemplateLogic", () => {
-        it("updates uploads with a templateId", (done) => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+        it("updates uploads with a templateId", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
@@ -47,25 +49,22 @@ describe("Upload logics", () => {
                 TemplateId: 1,
                 Version: 1,
             };
-            let state = store.getState();
-            expect(getAppliedTemplateId(state)).to.be.undefined;
 
+            // before
+            const state = store.getState();
+            expect(getAppliedTemplateId(state)).to.be.undefined;
             store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
+
+            // apply
             store.dispatch(applyTemplate(schema));
 
-            let doneCalled = false;
-            store.subscribe(() => {
-                if (!doneCalled) {
-                    state = store.getState();
-                    const upload = getUpload(store.getState());
-                    expect(get(upload, [file1, "templateId"])).to.equal(1);
-                    expect(get(upload, [file2, "templateId"])).to.equal(1);
-                    expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
-                    expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
-                    done();
-                    doneCalled = true;
-                }
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            const upload = getUpload(store.getState());
+            expect(get(upload, [file1, "templateId"])).to.equal(1);
+            expect(get(upload, [file2, "templateId"])).to.equal(1);
+            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
         });
     });
 
@@ -76,10 +75,13 @@ describe("Upload logics", () => {
             sandbox.restore();
         });
 
-        it("adds an info alert given valid metadata", (done) => {
+        it("adds an info alert given valid metadata", async () => {
             sandbox.replace(fms, "uploadFiles", stub().resolves());
             sandbox.replace(fms, "validateMetadata", stub().resolves());
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(
+                nonEmptyStateForInitiatingUpload,
+                mockReduxLogicDeps
+            );
 
             // before
             let state = store.getState();
@@ -89,23 +91,21 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
-            let doneCalled = false;
-            store.subscribe(() => {
-                if (!doneCalled) {
-                    state = store.getState();
-                    const alert = getAlert(state);
-                    expect(alert).to.not.be.undefined;
-                    if (alert) {
-                        expect(alert.type).to.equal(AlertType.INFO);
-                    }
-                    done();
-                    doneCalled = true;
-                }
-            });
+            await logicMiddleware.whenComplete();
+
+            state = store.getState();
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.INFO);
+            }
         });
-        it("does not add job given invalid metadata", (done) => {
+        it("does not add job given invalid metadata", async () => {
             sandbox.replace(fms, "validateMetadata", stub().rejects());
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(
+                nonEmptyStateForInitiatingUpload,
+                mockReduxLogicDeps
+            );
 
             // before
             let state = store.getState();
@@ -115,19 +115,13 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
-            let doneCalled = false;
-            store.subscribe(() => {
-                if (!doneCalled) {
-                    state = store.getState();
-                    const alert = getAlert(state);
-                    expect(alert).to.not.be.undefined;
-                    if (alert) {
-                        expect(alert.type).to.equal(AlertType.ERROR);
-                    }
-                    done();
-                    doneCalled = true;
-                }
-            });
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+            }
         });
     });
     describe("updateScenesLogic", () => {
@@ -136,7 +130,7 @@ describe("Upload logics", () => {
         const mockChannel = { channelId: 1, description: "", name: ""};
 
         it("allows positionIndex = 0 to be added", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
             let state = store.getState();
@@ -153,7 +147,7 @@ describe("Upload logics", () => {
         });
 
         it("does not remove well associations from the file row if file does not have a scene", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
             let state = store.getState();
@@ -170,7 +164,7 @@ describe("Upload logics", () => {
             expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
         });
         it("removes well associations from the file row if file has at least one scene", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
             let state = store.getState();
@@ -188,7 +182,7 @@ describe("Upload logics", () => {
             expect(getUpload(state)[fileRowKey].wellIds).to.be.empty;
         });
         it("adds channel-only uploads", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -220,7 +214,7 @@ describe("Upload logics", () => {
             }
         });
         it("adds scene-only uploads", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -252,7 +246,7 @@ describe("Upload logics", () => {
             }
         });
         it("adds scene+channel uploads", () => {
-            const store = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
 
             // before
             let state = store.getState();
@@ -304,7 +298,7 @@ describe("Upload logics", () => {
         });
         it("removes uploads that don't exist anymore", () => {
             const sceneKey = getUploadRowKey(file, 1);
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey(file)]: {
@@ -342,7 +336,7 @@ describe("Upload logics", () => {
         const uploadRowKey = getUploadRowKey("/path/to/file1");
 
         it("converts array of Moment objects to array of dates", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
@@ -379,7 +373,7 @@ describe("Upload logics", () => {
             expect(upload[uploadRowKey][annotation][0] instanceof Date).to.be.true;
         });
         it("converts moment objects to dates", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
@@ -419,7 +413,7 @@ describe("Upload logics", () => {
             expect(upload[uploadRowKey][annotation] instanceof Date).to.be.true;
         });
         it("converts strings to arrays of strings if canHaveManyValues=true and type is TEXT", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
@@ -456,7 +450,7 @@ describe("Upload logics", () => {
             expect(upload[uploadRowKey][annotation]).to.deep.equal(["a", "b", "c"]);
         });
         it("converts strings to arrays of numbers if canHaveManyValues=true and type is NUMBER", () => {
-            const store = createMockReduxStore({
+            const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,

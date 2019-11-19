@@ -80,4 +80,4 @@ git push
 ## Mirroring
 
 The mirror for this repo is at https://github.com/aicsgithub/aics-file-upload-app in order to
-enable electron packaging on Cirrus CI.
+enable electron packaging on Travis CI.

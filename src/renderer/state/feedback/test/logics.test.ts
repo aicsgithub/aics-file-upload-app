@@ -12,7 +12,7 @@ describe("Feedback logics", () => {
 
     describe("setAlertLogic", () => {
         it("Updates message if alert has a recognized statusCode", () => {
-            const store = createMockReduxStore(mockState);
+            const { store } = createMockReduxStore(mockState);
 
             store.dispatch(setAlert({
                 statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -28,7 +28,7 @@ describe("Feedback logics", () => {
         });
 
         it("Does not update message if alert does not have a statusCode", () => {
-            const store = createMockReduxStore(mockState);
+            const { store } = createMockReduxStore(mockState);
             const message = "Hello";
 
             store.dispatch(setAlert({
@@ -45,7 +45,7 @@ describe("Feedback logics", () => {
         });
 
         it("Does not update message if alert already has a message", () => {
-            const store = createMockReduxStore(mockState);
+            const { store } = createMockReduxStore(mockState);
             const message = "Hello world";
 
             store.dispatch(setAlert({

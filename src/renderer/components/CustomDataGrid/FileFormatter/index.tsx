@@ -75,23 +75,17 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         } = this.state;
 
         if (row.channel) {
-            let content = row.channel.name;
-            if (isNil(row.positionIndex)) {
-                content += " (all positions)";
-            }
-
-            return (
-                <div className={styles.container}>
-                    {content}
-                </div>
-            );
+            const channelName = row.channel.name;
+            const content = isNil(row.positionIndex) ? `${channelName} (all positions)` :
+                `Position ${row.positionIndex}, ${channelName}`;
+            return <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>{content}</Tooltip>;
         }
 
         if (!isNil(row.positionIndex)) {
             return (
-                <div className={styles.container}>
+                <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>
                     Position {row.positionIndex}
-                </div>
+                </Tooltip>
             );
         }
 

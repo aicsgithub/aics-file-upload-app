@@ -20,13 +20,13 @@ describe("Job logics", () => {
     });
 
     describe("retrieveJobsLogic", () => {
-        it("Sets jobs given successful JSS query", (done) => {
+        it("Sets jobs given successful JSS query", async () => {
             const callback = stub();
             callback.onCall(0).returns([mockSuccessfulUploadJob]);
             callback.onCall(1).returns([mockSuccessfulCopyJob]);
             callback.returns([mockSuccessfulAddMetadataJob]);
             sandbox.replace(jssClient, "getJobs", callback);
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
             });
 
@@ -40,19 +40,17 @@ describe("Job logics", () => {
             store.dispatch(retrieveJobs());
 
             // after
-            store.subscribe(() => {
-                state = store.getState();
-                expect(getUploadJobs(state)).to.not.be.empty;
-                expect(getCopyJobs(state)).to.not.be.empty;
-                expect(getAddMetadataJobs(state)).to.not.be.empty;
-                done();
-            });
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getUploadJobs(state)).to.not.be.empty;
+            expect(getCopyJobs(state)).to.not.be.empty;
+            expect(getAddMetadataJobs(state)).to.not.be.empty;
         });
 
-        it("Sets an alert given a non OK response from JSS", (done) => {
+        it("Sets an alert given a non OK response from JSS", async () => {
             sandbox.replace(jssClient, "getJobs", stub().rejects());
 
-            const store = createMockReduxStore({
+            const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
             }, mockReduxLogicDeps);
 
@@ -64,11 +62,9 @@ describe("Job logics", () => {
             store.dispatch(retrieveJobs());
 
             // after
-            store.subscribe(() => {
-                alert = getAlert(store.getState());
-                expect(alert).to.not.be.undefined;
-                done();
-            });
+            await logicMiddleware.whenComplete();
+            alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
         });
     });
 });
