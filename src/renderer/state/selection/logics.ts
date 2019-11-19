@@ -251,7 +251,7 @@ const selectBarcodeLogic = createLogic({
                         action,
                         associateByWorkflow(false),
                         receiveMetadata({barcodeSearchResults: []}),
-                        ...getGoForwardActions(Page.EnterBarcode, getState(), remote.Menu.getApplicationMenu()),
+                        ...getGoForwardActions(Page.SelectUploadType, getState(), remote.Menu.getApplicationMenu()),
                     ];
                     dispatch(batchActions(actions));
                 } catch (e) {
@@ -313,7 +313,7 @@ const selectWorkflowPathLogic = createLogic({
         if (action) {
             const actions = [
                 action,
-                ...getGoForwardActions(Page.EnterBarcode, deps.getState(), deps.remote.Menu.getApplicationMenu()),
+                ...getGoForwardActions(Page.SelectUploadType, deps.getState(), deps.remote.Menu.getApplicationMenu()),
                 associateByWorkflow(true),
             ];
             dispatch(batchActions(actions));
@@ -325,7 +325,7 @@ const selectWorkflowPathLogic = createLogic({
 
 const pageOrder: Page[] = [
     Page.DragAndDrop,
-    Page.EnterBarcode,
+    Page.SelectUploadType,
     Page.AssociateFiles,
     Page.AddCustomData,
     Page.UploadSummary,

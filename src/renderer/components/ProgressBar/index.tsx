@@ -22,9 +22,9 @@ const stepOrder: StepInfo = {
         description: "Drag and drop folders/files to upload",
         icon: <Icon type="upload" />,
     },
-    [Page.EnterBarcode]: {
-        description: "Enter the plate barcode associated with your files",
-        icon: <Icon type="barcode" />,
+    [Page.SelectUploadType]: {
+        description: "Choose how you want to associate data with your files",
+        icon: <Icon type="select" />,
     },
     [Page.AssociateFiles]: {
         description: "Associate Wells or Workflows with Files to upload",
@@ -60,7 +60,7 @@ const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
     };
 
     const createTitle = (step: string, index: number): React.ReactNode => (
-        <Tooltip title={`${getStatus(index)}: ${stepOrder[step].description}`}>
+        <Tooltip title={`${getStatus(index)}: ${stepOrder[step].description}`} mouseLeaveDelay={0}>
             {startCase(step)}
         </Tooltip>
     );

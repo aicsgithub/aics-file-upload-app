@@ -26,6 +26,7 @@ import {
     SELECT_PAGE,
     SELECT_VIEW,
     SELECT_WELLS,
+    SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
@@ -48,6 +49,7 @@ import {
     SelectPageAction,
     SelectViewAction,
     SelectWellsAction,
+    SelectWorkflowPathAction,
     SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
@@ -84,6 +86,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
             ...state,
             ...action.payload,
+        }),
+    },
+    [SELECT_WORKFLOW_PATH]: {
+        accepts: (action: AnyAction): action is SelectWorkflowPathAction => action.type === SELECT_WORKFLOW_PATH,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            barcode: undefined,
         }),
     },
     [SET_PLATE]: {

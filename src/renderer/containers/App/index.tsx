@@ -58,8 +58,8 @@ import { FileTagType } from "../../state/upload/types";
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
-import EnterBarcode from "../EnterBarcode";
 import OpenTemplateModal from "../OpenTemplateModal";
+import EnterBarcode from "../SelectUploadType";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -99,7 +99,7 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop" />,
     }],
-    [Page.EnterBarcode, {
+    [Page.SelectUploadType, {
         container:  <EnterBarcode key="enterBarcode"/>,
     }],
     [Page.AssociateFiles, {

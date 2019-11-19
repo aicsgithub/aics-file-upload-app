@@ -104,7 +104,7 @@ describe("Selection logics", () => {
             };
         });
 
-        it("Goes to EnterBarcode page if on DragAndDrop page", async () => {
+        it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
@@ -115,13 +115,13 @@ describe("Selection logics", () => {
 
             // after
             await logicMiddleware.whenComplete();
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("Does not change page if not on DragAndDrop page", async () => {
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
                 ...mockSelection,
-                page: Page.EnterBarcode,
+                page: Page.SelectUploadType,
             });
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -129,14 +129,14 @@ describe("Selection logics", () => {
             });
 
             // before
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
 
             // apply
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
             // after
             await logicMiddleware.whenComplete();
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("stages all files loaded", async () => {
@@ -204,7 +204,7 @@ describe("Selection logics", () => {
             filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
         });
 
-        it("Goes to EnterBarcode page if on DragAndDrop page", async () => {
+        it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
@@ -215,13 +215,13 @@ describe("Selection logics", () => {
 
             // after
             await logicMiddleware.whenComplete();
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("Does not change page if not on DragAndDrop page", async () => {
             const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory({
                 ...mockSelection,
-                page: Page.EnterBarcode,
+                page: Page.SelectUploadType,
             });
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -229,14 +229,14 @@ describe("Selection logics", () => {
             });
 
             // before
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
 
             // apply
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
             // after
             await logicMiddleware.whenComplete();
-            expect(selections.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(selections.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("Stages all files opened", async () => {
@@ -618,7 +618,7 @@ describe("Selection logics", () => {
 
     describe("selectPageLogic", () => {
         // This is going forward
-        it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
+        it("Going from DragAndDrop to SelectUploadType should record which index selection/template/upload state " +
             "branches are at for the page we went to", async () => {
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -636,25 +636,25 @@ describe("Selection logics", () => {
             expect(getUploadHistory(state)).to.be.empty;
 
             // apply
-            store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
+            store.dispatch(selectPage(Page.DragAndDrop, Page.SelectUploadType));
 
             // after
             await logicMiddleware.whenComplete();
             state = store.getState();
-            expect(getSelectionHistory(state)[Page.EnterBarcode]).to.equal(0);
-            expect(getTemplateHistory(state)[Page.EnterBarcode]).to.equal(0);
-            expect(getUploadHistory(state)[Page.EnterBarcode]).to.equal(0);
+            expect(getSelectionHistory(state)[Page.SelectUploadType]).to.equal(0);
+            expect(getTemplateHistory(state)[Page.SelectUploadType]).to.equal(0);
+            expect(getUploadHistory(state)[Page.SelectUploadType]).to.equal(0);
         });
-        it("Going from EnterBarcode to AssociateFiles should record which index selection/template/upload state " +
+        it("Going from SelectUploadType to AssociateFiles should record which index selection/template/upload state " +
             "branches are at for the page we went to", async () => {
             const startingSelectionHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const startingTemplateHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const startingUploadHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -668,8 +668,8 @@ describe("Selection logics", () => {
                 },
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    page: Page.EnterBarcode,
-                    view: Page.EnterBarcode,
+                    page: Page.SelectUploadType,
+                    view: Page.SelectUploadType,
                 }),
             });
             let state = store.getState();
@@ -682,7 +682,7 @@ describe("Selection logics", () => {
             expect(getCurrentSelectionIndex(store.getState())).to.equal(1);
 
             // apply
-            store.dispatch(selectPage(Page.EnterBarcode, Page.AssociateFiles));
+            store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
 
             // after
             await logicMiddleware.whenComplete();
@@ -700,17 +700,17 @@ describe("Selection logics", () => {
                 [Page.AssociateFiles]: 0,
             });
         });
-        it("Going from EnterBarcode to DragAndDrop should change index for selection/template/upload to 0" +
+        it("Going from SelectUploadType to DragAndDrop should change index for selection/template/upload to 0" +
             "and clear history", async () => {
             const startingSelectionHistory = {
-                [Page.EnterBarcode]: 1,
+                [Page.SelectUploadType]: 1,
             };
             const startingTemplateHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
 
             };
             const startingUploadHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.SelectUploadType]: 0,
             };
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -724,8 +724,8 @@ describe("Selection logics", () => {
                 },
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    page: Page.EnterBarcode,
-                    view: Page.EnterBarcode,
+                    page: Page.SelectUploadType,
+                    view: Page.SelectUploadType,
                 }),
             });
             let state = store.getState();
@@ -740,7 +740,7 @@ describe("Selection logics", () => {
             expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(0);
 
             // apply
-            store.dispatch(selectPage(Page.EnterBarcode, Page.DragAndDrop));
+            store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));
 
             // after
             await logicMiddleware.whenComplete();
