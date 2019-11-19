@@ -10,7 +10,9 @@ import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
-    getMockStateWithHistory, mockDateAnnotation, mockNumberAnnotation,
+    getMockStateWithHistory,
+    mockDateAnnotation,
+    mockNumberAnnotation,
     mockTemplateStateBranch,
     mockTemplateWithManyValues, mockTextAnnotation,
     nonEmptyStateForInitiatingUpload,
