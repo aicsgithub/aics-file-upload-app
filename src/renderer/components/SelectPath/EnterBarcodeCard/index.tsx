@@ -1,6 +1,7 @@
 import { Card, Icon, Radio, Select } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { SelectValue } from "antd/es/select";
+import classNames from "classnames";
 import { get } from "lodash";
 import * as React from "react";
 import { BarcodeSelectorOption } from "../../../containers/SelectUploadType";
@@ -74,7 +75,11 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
     };
 
     return (
-        <Card title="Enter Barcode" className={styles.card}>
+        <Card
+            hoverable={true}
+            title="Enter Barcode"
+            className={classNames(styles.card, isSelected && styles.selectedCard)}
+        >
             <p>
                 The barcode you enter below will be used to associate your files with the wells in the
                 matching plate.

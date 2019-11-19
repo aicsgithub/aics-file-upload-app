@@ -1,4 +1,5 @@
 import { Button, Card } from "antd";
+import classNames from "classnames";
 import * as React from "react";
 import SelectedForm from "../SelectedForm";
 
@@ -19,7 +20,11 @@ const SelectWorkflowCard: React.FunctionComponent<Props> = ({
                                                                selectWorkflowPath,
                                                            }: Props) => {
     return (
-        <Card title="Select Workflow" className={styles.card}>
+        <Card
+            hoverable={true}
+            title="Select Workflow"
+            className={classNames(styles.card, isSelected && styles.selectedCard)}
+        >
             <p>
                 This option is in case you do not have a plate nor enough data to create one.
                 In this case you will associate your files with workflows.

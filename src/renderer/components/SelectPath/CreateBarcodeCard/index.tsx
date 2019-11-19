@@ -1,4 +1,5 @@
 import { Card, Select } from "antd";
+import classNames from "classnames";
 import * as React from "react";
 
 import { BarcodePrefix } from "../../../state/metadata/types";
@@ -30,7 +31,11 @@ const CreateBarcodeCard: React.FunctionComponent<Props> = ({
                                                            }: Props) => {
     const prefix = isSelected && barcodePrefixes.find(({ prefixId }) => prefixId === barcodePrefixId);
     return (
-        <Card title="Create Barcode & Plate" className={styles.card}>
+        <Card
+            hoverable={true}
+            title="Create Barcode & Plate"
+            className={classNames(styles.card, isSelected && styles.selectedCard)}
+        >
             <p>
                 Using the barcode prefix you select below we will prompt you to create a LabKey plate
                 on the next page. After which this process will be the same as the Enter Barcode
