@@ -1,6 +1,6 @@
 import { stat as fsStat, Stats } from "fs";
 import * as Logger from "js-logger";
-import { isEmpty, uniq } from "lodash";
+import { isEmpty, isNil, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -369,7 +369,7 @@ const selectPageLogic = createLogic({
             stateBranchHistory.forEach((history) => {
                 const historyForThisStateBranch = history.getHistory(state);
 
-                if (historyForThisStateBranch && historyForThisStateBranch[nextPage]) {
+                if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
                     const index = historyForThisStateBranch[nextPage];
                     if (index > -1) {
                         actions.push(history.jumpToPast(index));
@@ -395,7 +395,8 @@ const selectPageLogic = createLogic({
             const selectionIndex = getCurrentSelectionIndex(state);
             const uploadIndex = getCurrentUploadIndex(state);
             const templateIndex = getCurrentTemplateIndex(state);
-            dispatch(updatePageHistory(getPage(state), selectionIndex, uploadIndex, templateIndex));
+            console.log("storing indexes for page", currentPage);
+            dispatch(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
         }
 
         done();
@@ -438,6 +439,7 @@ const goForwardLogic = createLogic({
         const nextPage = getNextPage(currentPage, 1);
 
         if (nextPage) {
+            console.log("going forward");
             next(selectPage(currentPage, nextPage));
         } else {
            reject();
