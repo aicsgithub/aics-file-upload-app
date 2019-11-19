@@ -369,7 +369,12 @@ const selectPageLogic = createLogic({
             stateBranchHistory.forEach((history) => {
                 const historyForThisStateBranch = history.getHistory(state);
 
-                if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
+                if (nextPageOrder === 0) {
+                    actions.push(
+                        history.jumpToPast(0),
+                        history.clearHistory()
+                    );
+                } else if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
                     const index = historyForThisStateBranch[nextPage];
                     if (index > -1) {
                         actions.push(history.jumpToPast(index));
@@ -378,11 +383,6 @@ const selectPageLogic = createLogic({
                     if (index === 0) {
                         actions.push(history.clearHistory());
                     }
-                } else {
-                    actions.push(
-                        history.jumpToPast(0),
-                        history.clearHistory()
-                    );
                 }
             });
 
