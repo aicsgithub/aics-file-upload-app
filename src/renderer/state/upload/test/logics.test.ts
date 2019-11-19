@@ -37,8 +37,8 @@ describe("Upload logics", () => {
     });
 
     describe("applyTemplateLogic", () => {
-        it("updates uploads with a templateId", (done) => {
-            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+        it("updates uploads with a templateId", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
@@ -47,25 +47,22 @@ describe("Upload logics", () => {
                 TemplateId: 1,
                 Version: 1,
             };
-            let state = store.getState();
-            expect(getAppliedTemplateId(state)).to.be.undefined;
 
+            // before
+            const state = store.getState();
+            expect(getAppliedTemplateId(state)).to.be.undefined;
             store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
+
+            // apply
             store.dispatch(applyTemplate(schema));
 
-            let doneCalled = false;
-            store.subscribe(() => {
-                if (!doneCalled) {
-                    state = store.getState();
-                    const upload = getUpload(store.getState());
-                    expect(get(upload, [file1, "templateId"])).to.equal(1);
-                    expect(get(upload, [file2, "templateId"])).to.equal(1);
-                    expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
-                    expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
-                    done();
-                    doneCalled = true;
-                }
-            });
+            // after
+            await logicMiddleware.whenComplete();
+            const upload = getUpload(store.getState());
+            expect(get(upload, [file1, "templateId"])).to.equal(1);
+            expect(get(upload, [file2, "templateId"])).to.equal(1);
+            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
         });
     });
 
@@ -76,10 +73,13 @@ describe("Upload logics", () => {
             sandbox.restore();
         });
 
-        it("adds an info alert given valid metadata", (done) => {
+        it("adds an info alert given valid metadata", async () => {
             sandbox.replace(fms, "uploadFiles", stub().resolves());
             sandbox.replace(fms, "validateMetadata", stub().resolves());
-            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(
+                nonEmptyStateForInitiatingUpload,
+                mockReduxLogicDeps
+            );
 
             // before
             let state = store.getState();
@@ -89,23 +89,21 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
-            let doneCalled = false;
-            store.subscribe(() => {
-                if (!doneCalled) {
-                    state = store.getState();
-                    const alert = getAlert(state);
-                    expect(alert).to.not.be.undefined;
-                    if (alert) {
-                        expect(alert.type).to.equal(AlertType.INFO);
-                    }
-                    done();
-                    doneCalled = true;
-                }
-            });
+            await logicMiddleware.whenComplete();
+
+            state = store.getState();
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.INFO);
+            }
         });
-        it("does not add job given invalid metadata", (done) => {
+        it("does not add job given invalid metadata", async () => {
             sandbox.replace(fms, "validateMetadata", stub().rejects());
-            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(
+                nonEmptyStateForInitiatingUpload,
+                mockReduxLogicDeps
+            );
 
             // before
             let state = store.getState();
@@ -115,19 +113,13 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
-            let doneCalled = false;
-            store.subscribe(() => {
-                if (!doneCalled) {
-                    state = store.getState();
-                    const alert = getAlert(state);
-                    expect(alert).to.not.be.undefined;
-                    if (alert) {
-                        expect(alert.type).to.equal(AlertType.ERROR);
-                    }
-                    done();
-                    doneCalled = true;
-                }
-            });
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+            }
         });
     });
     describe("updateScenesLogic", () => {

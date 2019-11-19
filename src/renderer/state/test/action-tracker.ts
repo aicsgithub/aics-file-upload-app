@@ -159,7 +159,7 @@ export default class ActionTracker {
     /**
      * Track a Redux action. Intended to be called only by Redux middleware.
      */
-    public track(action: AnyAction): void {
-        this._trackedActions.push(action);
+    public track(...actions: AnyAction[]): void {
+        this._trackedActions.push(...actions);
     }
 }

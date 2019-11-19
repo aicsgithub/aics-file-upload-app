@@ -151,7 +151,11 @@ export function createMockReduxStore(mockState: State = initialState,
     // action tracking middleware
     const actionTracker = new ActionTracker();
     const trackActionsMiddleware: Middleware = () => (next) => (action) => {
-        actionTracker.track(action);
+        if (action.batch) {
+            actionTracker.track(...action.payload);
+        } else {
+            actionTracker.track(action);
+        }
         return next(action);
     };
     const middleware = applyMiddleware(logicMiddleware, trackActionsMiddleware);
