@@ -15,7 +15,7 @@ import { getAlert, getRequestsInProgressContains } from "../../feedback/selector
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
-import { getCurrentTemplateIndex, getTemplateDraft, getTemplatePast } from "../../template/selectors";
+import { getTemplateDraft } from "../../template/selectors";
 import {
     createMockReduxStore,
     mmsClient,
@@ -32,7 +32,6 @@ import {
     mockTemplateStateBranch,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { getCurrentUploadIndex, getUploadPast } from "../../upload/selectors";
 import { closeTemplateEditor, openTemplateEditor, selectBarcode, selectPage } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
@@ -41,7 +40,6 @@ import {
     getPage,
     getSelectedBarcode,
     getSelectedPlateId,
-    getSelectionPast,
     getTemplateEditorVisible,
     getWells,
 } from "../selectors";
@@ -618,8 +616,8 @@ describe("Selection logics", () => {
 
     describe("selectPageLogic", () => {
         // This is going forward
-        it("Going from DragAndDrop to EnterBarcode should record which index selection/template/upload state " +
-            "branches are at for the page we went to", async () => {
+        it("Going from DragAndDrop to EnterBarcode should record the index selection/template/upload state " +
+            "branches were at after leaving that page", async () => {
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 selection: getMockStateWithHistory({
@@ -634,6 +632,7 @@ describe("Selection logics", () => {
             expect(getSelectionHistory(state)).to.be.empty;
             expect(getTemplateHistory(state)).to.be.empty;
             expect(getUploadHistory(state)).to.be.empty;
+            expect(getPage(state)).to.equal(Page.DragAndDrop);
 
             // apply
             store.dispatch(selectPage(Page.DragAndDrop, Page.EnterBarcode));
@@ -641,9 +640,10 @@ describe("Selection logics", () => {
             // after
             await logicMiddleware.whenComplete();
             state = store.getState();
-            expect(getSelectionHistory(state)[Page.EnterBarcode]).to.equal(0);
-            expect(getTemplateHistory(state)[Page.EnterBarcode]).to.equal(0);
-            expect(getUploadHistory(state)[Page.EnterBarcode]).to.equal(0);
+            expect(getSelectionHistory(state)[Page.DragAndDrop]).to.equal(0);
+            expect(getTemplateHistory(state)[Page.DragAndDrop]).to.equal(0);
+            expect(getUploadHistory(state)[Page.DragAndDrop]).to.equal(0);
+            expect(getPage(state)).to.equal(Page.EnterBarcode);
         });
         it("Going from EnterBarcode to AssociateFiles should record which index selection/template/upload state " +
             "branches are at for the page we went to", async () => {
@@ -689,28 +689,29 @@ describe("Selection logics", () => {
             state = store.getState();
             expect(getSelectionHistory(state)).to.deep.equal({
                 ...startingSelectionHistory,
-                [Page.AssociateFiles]: 1,
+                [Page.EnterBarcode]: 1,
             });
             expect(getTemplateHistory(state)).to.deep.equal({
                 ...startingTemplateHistory,
-                [Page.AssociateFiles]: 0,
+                [Page.EnterBarcode]: 0,
             });
             expect(getUploadHistory(state)).to.deep.equal({
                 ...startingUploadHistory,
-                [Page.AssociateFiles]: 0,
+                [Page.EnterBarcode]: 0,
             });
+            expect(getPage(state)).to.equal(Page.AssociateFiles);
         });
-        it("Going from EnterBarcode to DragAndDrop should change index for selection/template/upload to 0" +
-            "and clear history", async () => {
+        it("Going from EnterBarcode to DragAndDrop should change indexes for selection/template/upload to 0" +
+            "back to where they were when the user left the DragAndDrop page", async () => {
             const startingSelectionHistory = {
-                [Page.EnterBarcode]: 1,
+                [Page.DragAndDrop]: 0,
             };
             const startingTemplateHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.DragAndDrop]: 0,
 
             };
             const startingUploadHistory = {
-                [Page.EnterBarcode]: 0,
+                [Page.DragAndDrop]: 0,
             };
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -728,30 +729,20 @@ describe("Selection logics", () => {
                     view: Page.EnterBarcode,
                 }),
             });
-            let state = store.getState();
-            expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
-            expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
-            expect(getUploadHistory(state)).to.equal(startingUploadHistory);
-
             store.dispatch(selectBarcode("12345"));
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(0);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(1);
 
             // apply
             store.dispatch(selectPage(Page.EnterBarcode, Page.DragAndDrop));
 
             // after
             await logicMiddleware.whenComplete();
-            state = store.getState();
+            const state = store.getState();
             expect(getCurrentSelectionIndex(state)).to.equal(0);
-            expect(getCurrentTemplateIndex(state)).to.equal(0);
-            expect(getCurrentUploadIndex(state)).to.equal(0);
-
-            expect(getSelectionPast(state)).to.be.empty;
-            expect(getTemplatePast(state)).to.be.empty;
-            expect(getUploadPast(state)).to.be.empty;
+            expect(getPage(state)).to.equal(Page.DragAndDrop);
         });
     });
 });

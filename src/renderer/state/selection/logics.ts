@@ -346,7 +346,7 @@ const selectPageLogic = createLogic({
 
         // going back - rewind selections, uploads & template to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
-            const actions: AnyAction[] = [];
+            const actions: AnyAction[] = [action];
 
             const stateBranchHistory = [
                 {
@@ -369,20 +369,14 @@ const selectPageLogic = createLogic({
             stateBranchHistory.forEach((history) => {
                 const historyForThisStateBranch = history.getHistory(state);
 
-                if (nextPageOrder === 0) {
+                if (nextPageOrder === 0 && currentPageOrder === pageOrder.length - 1) {
                     actions.push(
                         history.jumpToPast(0),
                         history.clearHistory()
                     );
                 } else if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
                     const index = historyForThisStateBranch[nextPage];
-                    if (index > -1) {
-                        actions.push(history.jumpToPast(index));
-                    }
-
-                    if (index === 0) {
-                        actions.push(history.clearHistory());
-                    }
+                    actions.push(history.jumpToPast(index));
                 }
             });
 

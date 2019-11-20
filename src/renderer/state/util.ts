@@ -45,6 +45,7 @@ export function enableBatching<S>(reducer: Reducer<S>): Reducer<S> {
         if (actionIsBatched(action) && state) {
             return action.payload.reduce(batchingReducer, state);
         }
+        console.log(action.type)
         return reducer(state, action);
     };
 }
