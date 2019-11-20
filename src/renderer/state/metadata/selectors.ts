@@ -1,7 +1,7 @@
 import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
-import { BarcodeSelectorOption } from "../../containers/EnterBarcode";
 
+import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
 import { Annotation, AnnotationOption, AnnotationType, AnnotationWithOptions, ColumnType } from "../template/types";
 import { State } from "../types";

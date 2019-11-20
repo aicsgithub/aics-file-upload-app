@@ -7,6 +7,7 @@ import AssociateWells from "../../components/AssociateWells";
 import AssociateWorkflows from "../../components/AssociateWorkflows";
 import { getWorkflowOptions } from "../../state/metadata/selectors";
 import { goBack, goForward } from "../../state/route/actions";
+import { GoBackAction, NextPageAction } from "../../state/route/types";
 import {
     selectWells,
     selectWorkflows
@@ -20,8 +21,6 @@ import {
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
-    GoBackAction,
-    NextPageAction,
     SelectWellsAction,
     SelectWorkflowsAction,
     Well,

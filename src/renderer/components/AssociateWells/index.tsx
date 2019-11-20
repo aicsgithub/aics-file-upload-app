@@ -3,7 +3,8 @@ import { Tabs } from "antd";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { GoBackAction, NextPageAction, Page, SelectWellsAction, Well } from "../../state/selection/types";
+import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
+import { SelectWellsAction, Well } from "../../state/selection/types";
 import {
     AssociateFilesAndWellsAction,
     UndoFileWellAssociationAction,

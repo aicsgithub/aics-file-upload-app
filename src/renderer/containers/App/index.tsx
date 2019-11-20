@@ -25,7 +25,7 @@ import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
-import { AppPageConfig, SelectViewAction } from "../../state/route/types";
+import { AppPageConfig, Page, SelectViewAction } from "../../state/route/types";
 import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
@@ -40,7 +40,6 @@ import {
     GetFilesInFolderAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
-    Page,
     SelectFileAction,
     UploadFile,
 } from "../../state/selection/types";
@@ -56,8 +55,8 @@ import { FileTagType } from "../../state/upload/types";
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
-import EnterBarcode from "../EnterBarcode";
 import OpenTemplateModal from "../OpenTemplateModal";
+import EnterBarcode from "../SelectUploadType";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -97,7 +96,7 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     [Page.DragAndDrop, {
         container: <DragAndDropSquare key="dragAndDrop" />,
     }],
-    [Page.EnterBarcode, {
+    [Page.SelectUploadType, {
         container:  <EnterBarcode key="enterBarcode"/>,
     }],
     [Page.AssociateFiles, {

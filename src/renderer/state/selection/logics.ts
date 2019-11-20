@@ -23,6 +23,7 @@ import { receiveMetadata, updatePageHistory } from "../metadata/actions";
 import { selectPage } from "../route/actions";
 import { getNextPage } from "../route/constants";
 import { getPage } from "../route/selectors";
+import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import { clearTemplateDraft, getTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
@@ -54,7 +55,6 @@ import { UploadFileImpl } from "./models/upload-file";
 import { getCurrentSelectionIndex, getStagedFiles } from "./selectors";
 import {
     DragAndDropFileList,
-    Page,
     UploadFile
 } from "./types";
 
@@ -246,7 +246,7 @@ const selectBarcodeLogic = createLogic({
                         action,
                         associateByWorkflow(false),
                         receiveMetadata({barcodeSearchResults: []}),
-                        ...getGoForwardActions(Page.EnterBarcode, getState(), remote.Menu.getApplicationMenu()),
+                        ...getGoForwardActions(Page.SelectUploadType, getState(), remote.Menu.getApplicationMenu()),
                     ];
                     dispatch(batchActions(actions));
                 } catch (e) {
@@ -308,7 +308,7 @@ const selectWorkflowPathLogic = createLogic({
         if (action) {
             const actions = [
                 action,
-                ...getGoForwardActions(Page.EnterBarcode, deps.getState(), deps.remote.Menu.getApplicationMenu()),
+                ...getGoForwardActions(Page.SelectUploadType, deps.getState(), deps.remote.Menu.getApplicationMenu()),
                 associateByWorkflow(true),
             ];
             dispatch(batchActions(actions));

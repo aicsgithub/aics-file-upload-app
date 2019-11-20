@@ -1,5 +1,6 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
+import { Page } from "../route/types";
 import { Audited } from "../types";
 
 export interface UploadFile {
@@ -225,22 +226,6 @@ export interface DragAndDropFileList {
 export interface DragAndDropFile {
     readonly name: string;
     readonly path: string;
-}
-
-export enum Page {
-    DragAndDrop = "DragAndDrop",
-    EnterBarcode = "EnterBarcode",
-    AssociateFiles = "AssociateFiles",
-    AddCustomData = "AddCustomData",
-    UploadSummary = "UploadSummary",
-}
-
-export interface GoBackAction {
-    type: string;
-}
-
-export interface NextPageAction {
-    type: string;
 }
 
 export interface JumpToPastSelectionAction {

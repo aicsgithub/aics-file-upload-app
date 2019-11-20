@@ -15,6 +15,7 @@ import { getAlert, getRequestsInProgressContains } from "../../feedback/selector
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
+import { Page } from "../../route/types";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
@@ -42,7 +43,6 @@ import {
 import {
     DragAndDropFileList,
     GetPlateResponse,
-    Page,
     PlateResponse,
     SelectionStateBranch,
     UploadFile,
@@ -98,7 +98,7 @@ describe("Selection logics", () => {
             };
         });
 
-        it("Goes to EnterBarcode page if on DragAndDrop page", async () => {
+        it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
@@ -109,27 +109,27 @@ describe("Selection logics", () => {
 
             // after
             await logicMiddleware.whenComplete();
-            expect(route.selectors.getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(route.selectors.getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("Does not change page if not on DragAndDrop page", async () => {
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 route: {
-                    page: Page.EnterBarcode,
-                    view: Page.EnterBarcode,
+                    page: Page.SelectUploadType,
+                    view: Page.SelectUploadType,
                 },
             });
 
             // before
-            expect(getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
 
             // apply
             store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
             // after
             await logicMiddleware.whenComplete();
-            expect(getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("stages all files loaded", async () => {
@@ -197,7 +197,7 @@ describe("Selection logics", () => {
             filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
         });
 
-        it("Goes to EnterBarcode page if on DragAndDrop page", async () => {
+        it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockState);
 
             // before
@@ -208,27 +208,27 @@ describe("Selection logics", () => {
 
             // after
             await logicMiddleware.whenComplete();
-            expect(getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("Does not change page if not on DragAndDrop page", async () => {
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 route: {
-                    page: Page.EnterBarcode,
-                    view: Page.EnterBarcode,
+                    page: Page.SelectUploadType,
+                    view: Page.SelectUploadType,
                 },
             });
 
             // before
-            expect(getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
 
             // apply
             store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
             // after
             await logicMiddleware.whenComplete();
-            expect(getPage(store.getState())).to.equal(Page.EnterBarcode);
+            expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
         });
 
         it("Stages all files opened", async () => {

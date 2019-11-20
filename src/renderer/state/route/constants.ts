@@ -10,7 +10,7 @@ export const SELECT_VIEW = makeConstant(BRANCH_NAME, "select-view");
 
 export const pageOrder: Page[] = [
     Page.DragAndDrop,
-    Page.EnterBarcode,
+    Page.SelectUploadType,
     Page.AssociateFiles,
     Page.AddCustomData,
     Page.UploadSummary,

@@ -5,8 +5,8 @@ import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { Channel, Unit } from "../metadata/types";
+import { Page } from "../route/types";
 import {
-    Page,
     SelectionStateBranch,
     Well,
     Workflow

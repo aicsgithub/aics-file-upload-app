@@ -15,9 +15,9 @@ import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selector
 import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
-import { SelectViewAction } from "../../state/route/types";
+import { Page, SelectViewAction } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
-import { Page, SelectPageAction, UploadFile } from "../../state/selection/types";
+import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types";
@@ -191,7 +191,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             this.props.selectView(this.props.page);
         } else if (this.props.files.length > 0) {
             // If we already have files staged skip the drag and drop page
-            this.props.selectPage(Page.UploadSummary, Page.EnterBarcode);
+            this.props.selectPage(Page.UploadSummary, Page.SelectUploadType);
         } else {
             this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
         }
