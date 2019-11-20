@@ -73,8 +73,10 @@ describe("Route logics", () => {
             expect(getUploadHistory(state)).to.equal(startingUploadHistory);
 
             store.dispatch(selectBarcode("12345"));
+            await logicMiddleware.whenComplete();
+
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.equal(1);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
 
             // apply
             store.dispatch(selectPage(Page.EnterBarcode, Page.AssociateFiles));
@@ -84,7 +86,7 @@ describe("Route logics", () => {
             state = store.getState();
             expect(getSelectionHistory(state)).to.deep.equal({
                 ...startingSelectionHistory,
-                [Page.EnterBarcode]: 1,
+                [Page.EnterBarcode]: 2,
             });
             expect(getTemplateHistory(state)).to.deep.equal({
                 ...startingTemplateHistory,
@@ -127,7 +129,7 @@ describe("Route logics", () => {
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(1);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
 
             // apply
             store.dispatch(selectPage(Page.EnterBarcode, Page.DragAndDrop));
