@@ -1,26 +1,21 @@
-import { GridCell } from "../../components/AssociateWells/grid-cell";
-
 import {
     CLOSE_OPEN_TEMPLATE_MODAL,
     CLOSE_TEMPLATE_EDITOR,
     OPEN_OPEN_TEMPLATE_MODAL,
     OPEN_TEMPLATE_EDITOR,
 } from "../../../shared/constants";
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
     CLEAR_STAGED_FILES,
     DESELECT_FILES,
     GET_FILES_IN_FOLDER,
-    GO_BACK,
-    GO_FORWARD,
     JUMP_TO_PAST_SELECTION,
     LOAD_FILES,
     OPEN_FILES,
     SELECT_BARCODE,
     SELECT_FILE,
-    SELECT_PAGE,
-    SELECT_VIEW,
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
@@ -32,23 +27,20 @@ import {
 import {
     AddStageFilesAction,
     ClearSelectionHistoryAction,
-    ClearStagedFilesAction, CloseOpenTemplateModalAction,
+    ClearStagedFilesAction,
+    CloseOpenTemplateModalAction,
     CloseTemplateEditorAction,
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
-    GoBackAction,
     JumpToPastSelectionAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
-    NextPageAction, OpenOpenTemplateModalAction,
+    OpenOpenTemplateModalAction,
     OpenTemplateEditorAction,
-    Page,
     PlateResponse,
     SelectBarcodeAction,
     SelectFileAction,
-    SelectPageAction,
-    SelectViewAction,
     SelectWellsAction,
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
@@ -98,13 +90,6 @@ export function stageFiles(files: UploadFile[]): AddStageFilesAction {
 export function clearStagedFiles(): ClearStagedFilesAction {
     return {
         type: CLEAR_STAGED_FILES,
-    };
-}
-
-export function selectPage(currentPage: Page, nextPage: Page): SelectPageAction {
-    return {
-        payload: { currentPage, nextPage },
-        type: SELECT_PAGE,
     };
 }
 
@@ -189,25 +174,6 @@ export function openOpenTemplateModal(): OpenOpenTemplateModalAction {
 export function closeOpenTemplateModal(): CloseOpenTemplateModalAction {
     return {
         type: CLOSE_OPEN_TEMPLATE_MODAL,
-    };
-}
-
-export function selectView(view: string): SelectViewAction {
-    return {
-        payload: view,
-        type: SELECT_VIEW,
-    };
-}
-
-export function goBack(): GoBackAction {
-    return {
-        type: GO_BACK,
-    };
-}
-
-export function goForward(): NextPageAction {
-    return {
-        type: GO_FORWARD,
     };
 }
 

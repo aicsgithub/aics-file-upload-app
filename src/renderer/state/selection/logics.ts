@@ -1,6 +1,6 @@
 import { stat as fsStat, Stats } from "fs";
 import * as Logger from "js-logger";
-import { isEmpty, isNil, uniq } from "lodash";
+import { isEmpty, uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -20,9 +20,11 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata, updatePageHistory } from "../metadata/actions";
-import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
+import { selectPage } from "../route/actions";
+import { getNextPage } from "../route/constants";
+import { getPage } from "../route/selectors";
 import { associateByWorkflow } from "../setting/actions";
-import { clearTemplateDraft, clearTemplateHistory, getTemplate, jumpToPastTemplate } from "../template/actions";
+import { clearTemplateDraft, getTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
     HTTP_STATUS,
@@ -32,14 +34,10 @@ import {
     ReduxLogicTransformDependencies,
     State
 } from "../types";
-import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
 import { getCurrentUploadIndex } from "../upload/selectors";
 import { batchActions, getActionFromBatch } from "../util";
 
 import {
-    clearSelectionHistory,
-    jumpToPastSelection,
-    selectPage,
     setPlate,
     setWells,
     stageFiles,
@@ -47,16 +45,13 @@ import {
 } from "./actions";
 import {
     GET_FILES_IN_FOLDER,
-    GO_BACK,
-    GO_FORWARD,
     LOAD_FILES,
     OPEN_FILES,
     SELECT_BARCODE,
-    SELECT_PAGE,
     SELECT_WORKFLOW_PATH,
 } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
-import { getCurrentSelectionIndex, getPage, getStagedFiles } from "./selectors";
+import { getCurrentSelectionIndex, getStagedFiles } from "./selectors";
 import {
     DragAndDropFileList,
     Page,
@@ -323,142 +318,6 @@ const selectWorkflowPathLogic = createLogic({
     type: SELECT_WORKFLOW_PATH,
 });
 
-const pageOrder: Page[] = [
-    Page.DragAndDrop,
-    Page.EnterBarcode,
-    Page.AssociateFiles,
-    Page.AddCustomData,
-    Page.UploadSummary,
-];
-const selectPageLogic = createLogic({
-    process: (
-        {action, getState, remote}: ReduxLogicProcessDependencies,
-        dispatch: ReduxLogicNextCb,
-        done: ReduxLogicDoneCb
-    ) => {
-        const {currentPage, nextPage} = action.payload;
-        const state = getState();
-
-        const nextPageOrder: number = pageOrder.indexOf(nextPage);
-        const currentPageOrder: number = pageOrder.indexOf(currentPage);
-
-        updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
-
-        // going back - rewind selections, uploads & template to the state they were at when user was on previous page
-        if (nextPageOrder < currentPageOrder) {
-            const actions: AnyAction[] = [action];
-
-            const stateBranchHistory = [
-                {
-                    clearHistory: clearSelectionHistory,
-                    getHistory: getSelectionHistory,
-                    jumpToPast: jumpToPastSelection,
-                },
-                {
-                    clearHistory: clearTemplateHistory,
-                    getHistory: getTemplateHistory,
-                    jumpToPast: jumpToPastTemplate,
-                },
-                {
-                    clearHistory: clearUploadHistory,
-                    getHistory: getUploadHistory,
-                    jumpToPast: jumpToPastUpload,
-                },
-            ];
-
-            stateBranchHistory.forEach((history) => {
-                const historyForThisStateBranch = history.getHistory(state);
-
-                if (nextPageOrder === 0 && currentPageOrder === pageOrder.length - 1) {
-                    actions.push(
-                        history.jumpToPast(0),
-                        history.clearHistory()
-                    );
-                } else if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
-                    const index = historyForThisStateBranch[nextPage];
-                    actions.push(history.jumpToPast(index));
-                }
-            });
-
-            if (!isEmpty(actions)) {
-                dispatch(batchActions(actions));
-            }
-
-        // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
-        } else if (nextPageOrder > currentPageOrder) {
-            const selectionIndex = getCurrentSelectionIndex(state);
-            const uploadIndex = getCurrentUploadIndex(state);
-            const templateIndex = getCurrentTemplateIndex(state);
-            dispatch(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
-        }
-
-        done();
-    },
-    type: SELECT_PAGE,
-});
-
-const goBackLogic = createLogic({
-    transform: ({getState, action, remote}: ReduxLogicTransformDependencies,
-                next: ReduxLogicNextCb, reject: () => void) => {
-        const state = getState();
-        const currentPage = getPage(state);
-        const nextPage = getNextPage(currentPage, -1);
-
-        if (nextPage) {
-            remote.dialog.showMessageBox({
-                buttons: ["Cancel", "Yes"],
-                cancelId: 0,
-                defaultId: 1,
-                message: "Changes will be lost if you go back. Are you sure?",
-                title: "Warning",
-                type: "warning",
-            }, (response: number) => {
-                if (response === 1) {
-                    next(selectPage(currentPage, nextPage));
-                } else {
-                   reject();
-                }
-            });
-        } else {
-            reject();
-        }
-    },
-    type: GO_BACK,
-});
-
-const goForwardLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb, reject: () => void) => {
-        const currentPage = getPage(getState());
-        const nextPage = getNextPage(currentPage, 1);
-
-        if (nextPage) {
-            next(selectPage(currentPage, nextPage));
-        } else {
-           reject();
-        }
-    },
-    type: GO_FORWARD,
-});
-
-/***
- * Helper function for getting a page relative to a given page. Returns null if direction is out of bounds or
- * if current page is not recognized.
- * @param currentPage page to start at
- * @param direction number of steps forward or back (negative) from currentPage
- */
-const getNextPage = (currentPage: Page, direction: number): Page | null => {
-    const currentPageIndex = pageOrder.indexOf(currentPage);
-    if (currentPageIndex > -1) {
-        const nextPageIndex = currentPageIndex + direction;
-
-        if (nextPageIndex > -1 && nextPageIndex < pageOrder.length) {
-            return pageOrder[nextPageIndex];
-        }
-    }
-
-    return null;
-};
-
 // For batching only. Returns new actions
 const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): AnyAction[] => {
     const actions = [];
@@ -500,13 +359,10 @@ const closeTemplateEditorLogic = createLogic({
 
 export default [
     closeTemplateEditorLogic,
-    goBackLogic,
-    goForwardLogic,
     loadFilesLogic,
     openTemplateEditorLogic,
     openFilesLogic,
     getFilesInFolderLogic,
     selectBarcodeLogic,
-    selectPageLogic,
     selectWorkflowPathLogic,
 ];

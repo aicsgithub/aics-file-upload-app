@@ -23,8 +23,6 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_METADATA,
-    SELECT_PAGE,
-    SELECT_VIEW,
     SELECT_WELLS,
     SELECT_WORKFLOWS,
     SET_PLATE,
@@ -40,13 +38,10 @@ import {
     DeselectFilesAction,
     OpenOpenTemplateModalAction,
     OpenTemplateEditorAction,
-    Page,
     SelectBarcodeAction,
     SelectFileAction,
     SelectionStateBranch,
     SelectMetadataAction,
-    SelectPageAction,
-    SelectViewAction,
     SelectWellsAction,
     SelectWorkflowsAction,
     SetPlateAction,
@@ -62,12 +57,10 @@ export const initialState: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
-    page: Page.UploadSummary,
     selectedWells: [],
     selectedWorkflows: [],
     stagedFiles: [],
     templateEditorVisible: false,
-    view: Page.UploadSummary,
     wells: [],
 };
 
@@ -105,21 +98,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectMetadataAction) => ({
             ...state,
             [action.key]: action.payload,
-        }),
-    },
-    [SELECT_PAGE]: {
-        accepts: (action: AnyAction): action is SelectPageAction => action.type === SELECT_PAGE,
-        perform: (state: SelectionStateBranch, action: SelectPageAction) => ({
-            ...state,
-            page: action.payload.nextPage,
-            view: action.payload.nextPage,
-        }),
-    },
-    [SELECT_VIEW]: {
-        accepts: (action: AnyAction): action is SelectViewAction => action.type === SELECT_VIEW,
-        perform: (state: SelectionStateBranch, action: SelectViewAction) => ({
-            ...state,
-            view: action.payload,
         }),
     },
     [SELECT_WORKFLOWS]: {
@@ -217,7 +195,7 @@ const selection = makeReducer<SelectionStateBranch>(actionToConfigMap, initialSt
 
 const options: UndoableOptions = {
     clearHistoryType: CLEAR_SELECTION_HISTORY,
-    filter: getReduxUndoFilterFn([SELECT_PAGE, SELECT_VIEW]),
+    filter: getReduxUndoFilterFn([]),
     initTypes: [RESET_HISTORY],
     jumpToPastType: JUMP_TO_PAST_SELECTION,
     limit: 100,

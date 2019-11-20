@@ -19,7 +19,8 @@ import {
     getTemplates,
 } from "../../state/metadata/selectors";
 import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
-import { goBack, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import { goBack } from "../../state/route/actions";
+import { openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,

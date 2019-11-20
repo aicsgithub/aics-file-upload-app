@@ -30,9 +30,8 @@ import {
     GetBarcodeSearchResultsAction,
     ImagingSession,
 } from "../../state/metadata/types";
+import { goBack, goForward } from "../../state/route/actions";
 import {
-    goBack,
-    goForward,
     selectBarcode,
     selectWorkflowPath
 } from "../../state/selection/actions";

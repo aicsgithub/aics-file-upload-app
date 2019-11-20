@@ -6,9 +6,8 @@ import { ActionCreator } from "redux";
 import AssociateWells from "../../components/AssociateWells";
 import AssociateWorkflows from "../../components/AssociateWorkflows";
 import { getWorkflowOptions } from "../../state/metadata/selectors";
+import { goBack, goForward } from "../../state/route/actions";
 import {
-    goBack,
-    goForward,
     selectWells,
     selectWorkflows
 } from "../../state/selection/actions";

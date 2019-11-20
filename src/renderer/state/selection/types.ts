@@ -27,10 +27,8 @@ export interface SelectionStateBranch {
     wells: WellResponse[];
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
-    page: Page;
     stagedFiles: UploadFile[];
     templateEditorVisible: boolean;
-    view: Page;
 }
 
 export interface ExpandedRows {
@@ -192,11 +190,6 @@ export interface SetPlateAction {
     type: string;
 }
 
-export interface SelectViewAction {
-    payload: string;
-    type: string;
-}
-
 export interface SetWellsAction {
     payload: WellResponse[];
     type: string;
@@ -240,10 +233,6 @@ export enum Page {
     AssociateFiles = "AssociateFiles",
     AddCustomData = "AddCustomData",
     UploadSummary = "UploadSummary",
-}
-
-export interface AppPageConfig {
-    container: JSX.Element;
 }
 
 export interface GoBackAction {

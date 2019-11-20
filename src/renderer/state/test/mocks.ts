@@ -117,12 +117,10 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
-    page: Page.DragAndDrop,
     selectedWells: [],
     selectedWorkflows: [],
     stagedFiles: [],
     templateEditorVisible: false,
-    view: Page.DragAndDrop,
     wells: [],
 };
 
@@ -298,6 +296,10 @@ export const mockState: State = {
         templates: [],
         units: [],
         workflowOptions: [],
+    },
+    route: {
+        page: Page.DragAndDrop,
+        view: Page.DragAndDrop,
     },
     selection: getMockStateWithHistory(mockSelection),
     setting: {
