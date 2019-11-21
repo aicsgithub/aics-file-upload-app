@@ -1,7 +1,12 @@
+import { notification } from "antd";
+import { existsSync } from "fs";
 import * as Logger from "js-logger";
 import { isEmpty, isNil } from "lodash";
+import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { makePosixPathCompatibleWithPlatform } from "../../util";
+
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { clearSelectionHistory, jumpToPastSelection } from "../selection/actions";
@@ -25,6 +30,7 @@ import { Page } from "./types";
 import Menu = Electron.Menu;
 
 import MenuItem = Electron.MenuItem;
+import dialog = Electron.dialog;
 
 interface MenuItemWithSubMenu extends MenuItem {
     submenu?: Menu;
@@ -59,6 +65,28 @@ const selectPageLogic = createLogic({
         done: ReduxLogicDoneCb
     ) => {
         const {currentPage, nextPage} = action.payload;
+
+        if (nextPage === Page.DragAndDrop) {
+            if (existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()))) { // todo use ! again
+                notification.open({
+                    description:
+                        "Click this notification to manually set the allen mount point",
+                    duration: 0,
+                    message: "Could not find allen mount point (/allen/aics).",
+                    onClick: () => {
+                        remote.dialog.showOpenDialog({
+                            properties: ["openDirectory"],
+                            title: "Browse for /allen/aics folder",
+                        }, (folders?: string[]) => {
+                            console.log("folders", folders);
+                            // todo set mount point here.. probably need to update settings and update aicsfiles and set alert
+                            notification.destroy();
+                        });
+                    },
+                });
+            }
+        }
+
         const state = getState();
 
         const nextPageOrder: number = pageOrder.indexOf(nextPage);

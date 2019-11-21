@@ -41,6 +41,7 @@ export interface ReduxLogicDependencies {
         };
         dialog: {
             showMessageBox: SinonStub;
+            showOpenDialog: SinonStub;
         };
     };
     storage: {
@@ -103,6 +104,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         },
         dialog: {
             showMessageBox: stub(),
+            showOpenDialog: stub(),
         },
     },
     storage: {

@@ -150,3 +150,16 @@ export const convertToArray = (value?: any): any[] => !isNil(value) ? castArray(
  */
 export const splitTrimAndFilter = (value: string = ""): any[] =>
     value.split(LIST_DELIMITER_SPLIT).map(trim).filter((v) => !!v);
+
+export function makePosixPathCompatibleWithPlatform(
+    path: string,
+    platform: string
+): string {
+    if (platform === "win32") {
+        path = path.replace(/\//g, "\\");
+        if (path.startsWith("\\allen")) {
+            path = `\\${path}`;
+        }
+    }
+    return path;
+}

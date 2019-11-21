@@ -1,6 +1,6 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
-import { Menu } from "electron";
+import { Menu, MessageBoxOptions, OpenDialogOptions } from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -17,7 +17,6 @@ import { TemplateStateBranch } from "./template/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
-import MessageBoxOptions = Electron.MessageBoxOptions;
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;
@@ -45,6 +44,10 @@ export interface ReduxLogicExtraDependencies {
             getApplicationMenu: () => Menu | null;
         };
         dialog: {
+            showOpenDialog(
+                options: OpenDialogOptions,
+                callback?: (filePaths?: string[], bookmarks?: string[]) => void
+            ): (string[]) | (undefined);
             showMessageBox(
                 options: MessageBoxOptions,
                 callback?: (response: number, checkboxChecked: boolean) => void
