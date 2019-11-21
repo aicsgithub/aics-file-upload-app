@@ -5,8 +5,8 @@ import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { Channel, Unit } from "../metadata/types";
+import { Page } from "../route/types";
 import {
-    Page,
     SelectionStateBranch,
     Well,
     Workflow
@@ -117,12 +117,10 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
-    page: Page.DragAndDrop,
     selectedWells: [],
     selectedWorkflows: [],
     stagedFiles: [],
     templateEditorVisible: false,
-    view: Page.DragAndDrop,
     wells: [],
 };
 
@@ -298,6 +296,10 @@ export const mockState: State = {
         templates: [],
         units: [],
         workflowOptions: [],
+    },
+    route: {
+        page: Page.DragAndDrop,
+        view: Page.DragAndDrop,
     },
     selection: getMockStateWithHistory(mockSelection),
     setting: {

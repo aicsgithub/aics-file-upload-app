@@ -1,5 +1,6 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
+import { Page } from "../route/types";
 import { Audited } from "../types";
 
 export interface UploadFile {
@@ -27,10 +28,8 @@ export interface SelectionStateBranch {
     wells: WellResponse[];
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
-    page: Page;
     stagedFiles: UploadFile[];
     templateEditorVisible: boolean;
-    view: Page;
 }
 
 export interface ExpandedRows {
@@ -192,11 +191,6 @@ export interface SetPlateAction {
     type: string;
 }
 
-export interface SelectViewAction {
-    payload: string;
-    type: string;
-}
-
 export interface SetWellsAction {
     payload: WellResponse[];
     type: string;
@@ -232,26 +226,6 @@ export interface DragAndDropFileList {
 export interface DragAndDropFile {
     readonly name: string;
     readonly path: string;
-}
-
-export enum Page {
-    DragAndDrop = "DragAndDrop",
-    SelectUploadType = "SelectUploadType",
-    AssociateFiles = "AssociateFiles",
-    AddCustomData = "AddCustomData",
-    UploadSummary = "UploadSummary",
-}
-
-export interface AppPageConfig {
-    container: JSX.Element;
-}
-
-export interface GoBackAction {
-    type: string;
-}
-
-export interface NextPageAction {
-    type: string;
 }
 
 export interface JumpToPastSelectionAction {

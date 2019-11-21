@@ -23,27 +23,24 @@ import {
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
+import { selectView } from "../../state/route/actions";
+import { getPage, getView } from "../../state/route/selectors";
+import { AppPageConfig, Page, SelectViewAction } from "../../state/route/types";
 import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
-    selectView,
 } from "../../state/selection/actions";
 import {
-    getPage,
     getSelectedFiles,
     getStagedFiles,
-    getView,
 } from "../../state/selection/selectors";
 import {
-    AppPageConfig,
     ClearStagedFilesAction,
     GetFilesInFolderAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
-    Page,
     SelectFileAction,
-    SelectViewAction,
     UploadFile,
 } from "../../state/selection/types";
 import { gatherSettings, updateSettings } from "../../state/setting/actions";

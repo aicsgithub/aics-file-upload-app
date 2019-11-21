@@ -2,7 +2,8 @@ import { Select, Tabs } from "antd";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { GoBackAction, NextPageAction, Page, SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
+import { SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
     AssociateFilesAndWorkflowsAction,
     UndoFileWorkflowAssociationAction

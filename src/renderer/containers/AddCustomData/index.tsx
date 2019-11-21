@@ -19,17 +19,17 @@ import {
     getTemplates,
 } from "../../state/metadata/selectors";
 import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
-import { goBack, openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import { goBack } from "../../state/route/actions";
+import { GoBackAction, Page } from "../../state/route/types";
+import { openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
     getSelectedImagingSession,
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
-import { Page } from "../../state/selection/types";
 import {
     ExpandedRows,
-    GoBackAction,
     OpenTemplateEditorAction,
     ToggleExpandedUploadJobRowAction,
     Well,

@@ -10,6 +10,7 @@ import MMSClient from "../util/mms-client";
 import { FeedbackStateBranch } from "./feedback/types";
 import { JobStateBranch } from "./job/types";
 import { MetadataStateBranch } from "./metadata/types";
+import { RouteStateBranch } from "./route/types";
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
 import { TemplateStateBranch } from "./template/types";
@@ -68,6 +69,7 @@ export interface State {
     feedback: FeedbackStateBranch;
     job: JobStateBranch;
     metadata: MetadataStateBranch;
+    route: RouteStateBranch;
     selection: StateWithHistory<SelectionStateBranch>;
     setting: SettingStateBranch;
     template: StateWithHistory<TemplateStateBranch>;

@@ -5,10 +5,11 @@ import { OpenDialogOptions } from "electron";
 import DragAndDrop from "../../components/DragAndDrop";
 import ProgressBar from "../../components/ProgressBar";
 import { selection } from "../../state";
+import { Page } from "../../state/route/types";
 import {
     DragAndDropFileList,
     LoadFilesFromDragAndDropAction,
-    LoadFilesFromOpenDialogAction, Page,
+    LoadFilesFromOpenDialogAction,
 } from "../../state/selection/types";
 
 const styles = require("./style.pcss");

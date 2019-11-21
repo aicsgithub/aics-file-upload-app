@@ -20,8 +20,6 @@ export const getSelectedBarcode = (state: State) => state.selection.present.barc
 export const getSelectedPlateId = (state: State) =>
     state.selection.present.plate && state.selection.present.plate.plateId;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
-export const getPage = (state: State) => state.selection.present.page;
-export const getView = (state: State) => state.selection.present.view;
 export const getStagedFiles = (state: State) => state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
 export const getSelectedWorkflows = (state: State) => state.selection.present.selectedWorkflows;
