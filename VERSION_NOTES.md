@@ -1,6 +1,6 @@
 # Version Notes
 
-## 1.0.16:
+## 1.0.17:
 - Feature: Updated the Enter Barcode page to be a Select Upload Type page instead
 - Bugfix: Fixed page navigation issues
 - Bugfix: Behind the scenes improvements for testing
