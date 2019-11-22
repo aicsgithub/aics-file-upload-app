@@ -29,6 +29,22 @@ export interface BatchedAction {
     payload: AnyAction[];
 }
 
+export interface ElectronRemote {
+    Menu: {
+        getApplicationMenu: () => Menu | null;
+    };
+    dialog: {
+        showOpenDialog(
+            options: OpenDialogOptions,
+            callback?: (filePaths?: string[], bookmarks?: string[]) => void
+        ): (string[]) | (undefined);
+        showMessageBox(
+            options: MessageBoxOptions,
+            callback?: (response: number, checkboxChecked: boolean) => void
+        ): number;
+    };
+}
+
 export interface ReduxLogicExtraDependencies {
     ctx?: any;
     fms: FileManagementSystem;
@@ -39,21 +55,7 @@ export interface ReduxLogicExtraDependencies {
     jssClient: JobStatusClient;
     labkeyClient: LabkeyClient;
     mmsClient: MMSClient;
-    remote: {
-        Menu: {
-            getApplicationMenu: () => Menu | null;
-        };
-        dialog: {
-            showOpenDialog(
-                options: OpenDialogOptions,
-                callback?: (filePaths?: string[], bookmarks?: string[]) => void
-            ): (string[]) | (undefined);
-            showMessageBox(
-                options: MessageBoxOptions,
-                callback?: (response: number, checkboxChecked: boolean) => void
-            ): number;
-        };
-    };
+    remote: ElectronRemote;
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;

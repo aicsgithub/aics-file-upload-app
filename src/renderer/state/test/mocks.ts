@@ -119,6 +119,7 @@ export const mockSelection: SelectionStateBranch = {
     openTemplateModalVisible: false,
     selectedWells: [],
     selectedWorkflows: [],
+    settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     wells: [],

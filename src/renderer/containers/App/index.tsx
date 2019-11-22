@@ -5,8 +5,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
-import { LimsUrl } from "../../../shared/types";
+import { SAFELY_CLOSE_WINDOW } from "../../../shared/constants";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
@@ -57,6 +56,7 @@ import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
 import EnterBarcode from "../SelectUploadType";
+import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -118,9 +118,6 @@ class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
-        ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
-            this.props.updateSettings(limsUrl);
-        });
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
             const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
                 " will need to be manually cancelled. Are you sure?";
@@ -224,6 +221,7 @@ class App extends React.Component<AppProps, {}> {
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <TemplateEditorModal/>
                 <OpenTemplateModal/>
+                <SettingsEditorModal/>
             </div>
         );
     }

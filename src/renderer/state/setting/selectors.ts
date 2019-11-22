@@ -6,6 +6,7 @@ export const getAssociateByWorkflow = (state: State) => state.setting.associateB
 export const getLimsHost = (state: State) => state.setting.limsHost;
 export const getLimsPort = (state: State) => state.setting.limsPort;
 export const getLimsProtocol = (state: State) => state.setting.limsProtocol;
+export const getMountPoint = (state: State) => state.setting.mountPoint;
 export const getTemplateIds = (state: State) => state.setting.templateIds;
 
 export const getLimsUrl = createSelector([
