@@ -5,7 +5,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SAFELY_CLOSE_WINDOW } from "../../../shared/constants";
+import { SAFELY_CLOSE_WINDOW, SWITCH_ENVIRONMENT } from "../../../shared/constants";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
@@ -42,10 +42,10 @@ import {
     SelectFileAction,
     UploadFile,
 } from "../../state/selection/types";
-import { gatherSettings, updateSettings } from "../../state/setting/actions";
+import { gatherSettings, switchEnvironment, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
-    GatherSettingsAction,
+    GatherSettingsAction, SwitchEnvironmentAction,
     UpdateSettingsAction,
 } from "../../state/setting/types";
 import { State } from "../../state/types";
@@ -87,6 +87,7 @@ interface AppProps {
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
     selectView: ActionCreator<SelectViewAction>;
+    switchEnvironment: ActionCreator<SwitchEnvironmentAction>;
     page: Page;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     view: Page;
@@ -118,6 +119,7 @@ class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
+        ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
             const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
                 " will need to be manually cancelled. Are you sure?";
@@ -253,6 +255,7 @@ const dispatchToPropsMap = {
     selectFile: selection.actions.selectFile,
     selectView,
     setAlert,
+    switchEnvironment,
     updateSettings,
 };
 
