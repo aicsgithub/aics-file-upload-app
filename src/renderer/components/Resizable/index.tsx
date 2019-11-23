@@ -66,16 +66,13 @@ class Resizable extends React.Component<ResizableProps, ResizableState> {
         };
     }
 
-    public componentWillMount() {
+    public componentDidMount() {
         if (!this.props.width && (this.props.left || this.props.right)) {
             throw Error("Width required if component is supposed to resize horizontally");
         }
         if (!this.props.height && (this.props.top || this.props.bottom)) {
             throw Error("Height required if component is supposed to resize vertically");
         }
-    }
-
-    public componentDidMount() {
         // Have to attach mouseup & mouseover to window because we want them to be able to go outside the div
         window.addEventListener("mouseup", this.onMouseUp);
         window.addEventListener("mousemove", this.onMouseMove);

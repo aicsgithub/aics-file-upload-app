@@ -7,6 +7,8 @@ import {
     OPEN_TEMPLATE_EDITOR,
 } from "../../../shared/constants";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { CLOSE_SET_MOUNT_POINT_NOTIFICATION, OPEN_SET_MOUNT_POINT_NOTIFICATION } from "../feedback/constants";
+import { CloseSetMountPointNotificationAction, OpenSetMountPointNotificationAction } from "../feedback/types";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -210,5 +212,17 @@ export function toggleExpandedUploadJobRow(rowKey: string): ToggleExpandedUpload
     return {
         payload: rowKey,
         type: TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+    };
+}
+
+export function openSetMountPointNotification(): OpenSetMountPointNotificationAction {
+    return {
+        type: OPEN_SET_MOUNT_POINT_NOTIFICATION,
+    };
+}
+
+export function closeSetMountPointNotification(): CloseSetMountPointNotificationAction {
+    return {
+        type: CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     };
 }

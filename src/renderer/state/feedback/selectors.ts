@@ -14,6 +14,7 @@ export const getRequestsInProgressContains = (state: State, request: AsyncReques
     return includes(requestsInProgress, request);
 };
 export const getEvents = (state: State) => state.feedback.events;
+export const getSetMountPointNotificationVisible = (state: State) => state.feedback.setMountPointNotificationVisible;
 
 // COMPOSED SELECTORS
 export const getRecentEvent = createSelector([

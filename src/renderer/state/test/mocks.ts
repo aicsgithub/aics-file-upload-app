@@ -272,6 +272,7 @@ export const mockState: State = {
         events: [],
         isLoading: false,
         requestsInProgress: [],
+        setMountPointNotificationVisible: false,
     },
     job: {
         addMetadataJobs: [],

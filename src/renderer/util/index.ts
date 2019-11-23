@@ -2,8 +2,6 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { constants, promises } from "fs";
 import {
     castArray,
-    forOwn,
-    isFunction,
     isNil,
     startCase,
     trim,
@@ -11,15 +9,6 @@ import {
 import { LIST_DELIMITER_SPLIT } from "../constants";
 import { DragAndDropFileList } from "../state/selection/types";
 import { TemplateAnnotation } from "../state/template/types";
-
-export function bindAll<T>(obj: T, methods: Array<() => any>) {
-    const setOfMethods = new Set(methods);
-    forOwn(obj.constructor.prototype, (value, key) => {
-        if (setOfMethods.has(value) && isFunction(value)) {
-            Object.assign(obj, { [key]: value.bind(obj) });
-        }
-    });
-}
 
 export async function onDrop(files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> {
     if (files.length > 1) {

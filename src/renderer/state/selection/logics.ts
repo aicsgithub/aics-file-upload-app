@@ -1,3 +1,4 @@
+import { Menu, MenuItem } from "electron";
 import { stat as fsStat, Stats } from "fs";
 import * as Logger from "js-logger";
 import { isEmpty, uniq } from "lodash";
@@ -58,9 +59,6 @@ import {
     UploadFile
 } from "./types";
 
-import MenuItem = Electron.MenuItem;
-import Menu = Electron.Menu;
-
 const stat = promisify(fsStat);
 
 interface MenuItemWithSubMenu extends MenuItem {
@@ -110,7 +108,7 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
     }
 };
 
-const openFilesTransformLogic = ({ action, getState, remote }: ReduxLogicProcessDependencies,
+const openFilesTransformLogic = ({ action, getState, remote }: ReduxLogicTransformDependencies,
                                  next: ReduxLogicNextCb) => {
     const actions = [action, startLoading()];
     const page: Page = getPage(getState());

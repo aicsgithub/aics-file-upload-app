@@ -1,19 +1,16 @@
-import { notification } from "antd";
-import { existsSync } from "fs";
 import { map, uniq } from "lodash";
-import { platform } from "os";
 import { basename } from "path";
 import { createLogic } from "redux-logic";
 
 import { SWITCH_ENVIRONMENT, USER_SETTINGS_KEY } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
-import { makePosixPathCompatibleWithPlatform } from "../../util";
 import { setAlert } from "../feedback/actions";
+import { getSetMountPointNotificationVisible } from "../feedback/selectors";
 import { AlertType } from "../feedback/types";
 import { retrieveJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
+import { closeSetMountPointNotification } from "../selection/actions";
 import {
-    ElectronRemote,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
@@ -22,12 +19,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
-import {
-    ADD_TEMPLATE_ID_TO_SETTINGS,
-    GATHER_SETTINGS,
-    SET_MOUNT_POINT,
-    UPDATE_SETTINGS,
-} from "./constants";
+import { ADD_TEMPLATE_ID_TO_SETTINGS, GATHER_SETTINGS, SET_MOUNT_POINT, UPDATE_SETTINGS } from "./constants";
 import { getLimsHost, getLimsPort, getMountPoint, getTemplateIds } from "./selectors";
 
 const updateSettingsLogic = createLogic({
@@ -70,8 +62,9 @@ const updateSettingsLogic = createLogic({
 
         done();
     },
-    transform: ({action, ctx, getState, storage}: ReduxLogicTransformDependencies,
-                next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
+    type: UPDATE_SETTINGS,
+    validate: ({action, ctx, getState, storage}: ReduxLogicTransformDependencies,
+               next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         try {
             // payload is a partial of the Setting State branch so it could be undefined.
             if (action.payload) {
@@ -84,7 +77,7 @@ const updateSettingsLogic = createLogic({
                 });
                 next(action);
             } else {
-                reject();
+                reject(action);
             }
         } catch (e) {
             next(batchActions([
@@ -96,7 +89,6 @@ const updateSettingsLogic = createLogic({
             ]));
         }
     },
-    type: UPDATE_SETTINGS,
 });
 
 const gatherSettingsLogic = createLogic({
@@ -125,45 +117,34 @@ const addTemplateIdToSettingsLogic = createLogic({
     type: ADD_TEMPLATE_ID_TO_SETTINGS,
 });
 
-const openSetMountPointNotification = (remote: ElectronRemote, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb,
-                                       message?: string): void => {
-    // todo check settings
-    if (existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()))) { // todo use ! again
-        notification.open({
-            description:
-                "Click this notification to manually set the allen mount point",
-            duration: 0,
-            message: message || "Could not find allen mount point (/allen/aics).",
-            onClick: () => {
-                notification.destroy();
-                remote.dialog.showOpenDialog({
-                    properties: ["openDirectory"],
-                    title: "Browse to the folder that is mounted to /allen/aics",
-                }, async (folders?: string[]) => {
-                    if (folders && folders.length) {
-                        const folder = basename(folders[0]);
-                        if (folder !== "aics") {
-                            openSetMountPointNotification(remote, dispatch, done,
-                                "Folder selected was not named \"aics\"");
-                        } else {
-                            dispatch(updateSettings({mountPoint: folders[0]}));
-                            dispatch(setAlert({
-                                message: "Successfully set the allen mount point",
-                                type: AlertType.SUCCESS,
-                            }));
-                            done();
-                        }
-                    }
-                });
-            },
-        });
-    }
-};
-
 const setMountPointLogic = createLogic({
-    process: ({remote}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: ({getState, remote}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
               done: ReduxLogicDoneCb) => {
-        openSetMountPointNotification(remote, dispatch, done);
+        if (getSetMountPointNotificationVisible(getState())) {
+            dispatch(closeSetMountPointNotification());
+        }
+
+        remote.dialog.showOpenDialog({
+            properties: ["openDirectory"],
+            title: "Browse to the folder that is mounted to /allen/aics",
+        }, async (folders?: string[]) => {
+            if (folders && folders.length) {
+                const folder = basename(folders[0]);
+                if (folder !== "aics") {
+                    dispatch(setAlert({
+                        message: "Folder selected was not named \"aics\"",
+                        type: AlertType.ERROR,
+                    }));
+                } else {
+                    dispatch(updateSettings({mountPoint: folders[0]}));
+                    dispatch(setAlert({
+                        message: "Successfully set the allen mount point",
+                        type: AlertType.SUCCESS,
+                    }));
+                }
+            }
+            done();
+        });
     },
     type: SET_MOUNT_POINT,
 });
