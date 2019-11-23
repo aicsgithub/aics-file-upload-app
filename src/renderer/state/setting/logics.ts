@@ -4,12 +4,11 @@ import { createLogic } from "redux-logic";
 
 import { SWITCH_ENVIRONMENT, USER_SETTINGS_KEY } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
-import { setAlert } from "../feedback/actions";
+import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
 import { AlertType } from "../feedback/types";
 import { retrieveJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
-import { closeSetMountPointNotification } from "../selection/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
