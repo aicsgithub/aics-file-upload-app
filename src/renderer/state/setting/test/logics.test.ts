@@ -30,6 +30,7 @@ describe("Setting logics", () => {
 
     let fmsHostSetterSpy: SinonSpy;
     let fmsPortSetterSpy: SinonSpy;
+    let fmsMountPointSetterSpy: SinonSpy;
     let jssHostSetterSpy: SinonSpy;
     let jssPortSetterSpy: SinonSpy;
     let labkeyClientHostSetterSpy: SinonSpy;
@@ -40,6 +41,7 @@ describe("Setting logics", () => {
     beforeEach(() => {
         fmsHostSetterSpy = spy();
         fmsPortSetterSpy = spy();
+        fmsMountPointSetterSpy = spy();
         jssHostSetterSpy = spy();
         jssPortSetterSpy = spy();
         labkeyClientHostSetterSpy = spy();
@@ -77,6 +79,7 @@ describe("Setting logics", () => {
         sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
         sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
         sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+        sandbox.replace(fms, "setMountPoint", fmsMountPointSetterSpy);
 
     });
 
@@ -116,6 +119,19 @@ describe("Setting logics", () => {
             expect(fmsPortSetterSpy.called).to.be.true;
             expect(jssHostSetterSpy.called).to.be.true;
             expect(jssPortSetterSpy.called).to.be.true;
+        });
+
+        it("sets mount point on FMS", () => {
+            const { store } = createMockReduxStore(mockState);
+
+            // before
+            expect(fmsMountPointSetterSpy.called).to.be.false;
+
+            // apply
+            store.dispatch(updateSettings({mountPoint: "/test/aics"}));
+
+            // after
+            expect(fmsMountPointSetterSpy.called).to.be.true;
         });
 
         it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
