@@ -17,7 +17,6 @@ import { TemplateStateBranch } from "./template/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
-import Pass = CreateLogic.Config.Pass;
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;
@@ -68,7 +67,7 @@ export type ReduxLogicProcessDependencies = Process.DepObj<State, AnyAction, Red
 export type ReduxLogicTransformDependencies = DepObj<State, AnyAction, ReduxLogicExtraDependencies>;
 
 export type ReduxLogicNextCb = (action: AnyAction) => void;
-export type ReduxLogicRejectCb = Pass<AnyAction, undefined>;
+export type ReduxLogicRejectCb = (action: AnyAction) => void;
 export type ReduxLogicDoneCb = () => void;
 
 export interface State {
