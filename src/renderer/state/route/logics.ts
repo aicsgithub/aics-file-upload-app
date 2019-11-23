@@ -11,6 +11,7 @@ import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { clearSelectionHistory, jumpToPastSelection, openSetMountPointNotification } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
+import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
@@ -64,8 +65,9 @@ const selectPageLogic = createLogic({
         const {currentPage, nextPage} = action.payload;
 
         if (nextPage === Page.DragAndDrop) {
-            // todo check settings
-            if (existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()))) { // todo use ! again
+            const isMountedAsExpected = existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()));
+            const mountPoint = getMountPoint(getState());
+            if (!isMountedAsExpected && !mountPoint) {
                 dispatch(openSetMountPointNotification());
             }
         }
