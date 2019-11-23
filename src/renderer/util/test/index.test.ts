@@ -2,7 +2,13 @@
 
 import { expect } from "chai";
 
-import { alphaOrderComparator, convertToArray, splitTrimAndFilter, titleCase } from "../";
+import {
+    alphaOrderComparator,
+    convertToArray,
+    makePosixPathCompatibleWithPlatform,
+    splitTrimAndFilter,
+    titleCase,
+} from "../";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
@@ -108,6 +114,39 @@ describe("General utilities", () => {
         it("returns empty array give comma", () => {
             const result = splitTrimAndFilter(",");
             expect(result).to.deep.equal([]);
+        });
+    });
+
+    describe("makePosixPathCompatibleWithPlatform", () => {
+        const posixPath = "/arbitrary/path";
+
+        it('doesn\'t change path if platform is "darwin"', () => {
+            expect(
+                makePosixPathCompatibleWithPlatform(posixPath, "darwin")
+            ).to.equal(posixPath);
+        });
+        it('doesn\'t change path if platform is "linux"', () => {
+            expect(
+                makePosixPathCompatibleWithPlatform(posixPath, "linux")
+            ).to.equal(posixPath);
+        });
+        it('updates path if platform is "win32"', () => {
+            const expectedPath = "\\arbitrary\\path";
+            expect(
+                makePosixPathCompatibleWithPlatform(posixPath, "win32")
+            ).to.equal(expectedPath);
+        });
+        it('adds additional backward slash if path starts with /allen and platform is "win32"', () => {
+            const expectedPath = "\\\\allen\\aics\\sw";
+            expect(
+                makePosixPathCompatibleWithPlatform("/allen/aics/sw", "win32")
+            ).to.equal(expectedPath);
+        });
+        it('doesn\'t add additional backward slash if path starts with //allen and platform is "win32"', () => {
+            const expectedPath = "\\\\allen\\aics\\sw";
+            expect(
+                makePosixPathCompatibleWithPlatform("//allen/aics/sw", "win32")
+            ).to.equal(expectedPath);
         });
     });
 });

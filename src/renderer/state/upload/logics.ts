@@ -131,6 +131,7 @@ const initiateUploadLogic = createLogic({
         dispatch(removePendingJobs(ctx.name));
         done();
     },
+    type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                      rejectCb: ReduxLogicRejectCb) => {
         try {
@@ -151,7 +152,6 @@ const initiateUploadLogic = createLogic({
             }));
         }
     },
-    type: INITIATE_UPLOAD,
 });
 
 const cancelUploadLogic = createLogic({
