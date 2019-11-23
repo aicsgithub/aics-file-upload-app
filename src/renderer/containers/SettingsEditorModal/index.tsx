@@ -57,9 +57,8 @@ class SettingsEditorModal extends React.Component<Props, {}> {
                 className={className}
                 title="Settings"
                 visible={visible}
-                onOk={this.saveAndClose}
                 onCancel={closeModal}
-                okText="Save"
+                onOk={closeModal}
                 maskClosable={false}
             >
                 {this.renderBody()}
@@ -90,10 +89,6 @@ class SettingsEditorModal extends React.Component<Props, {}> {
                     </Button>
                 </div>
             </>);
-    }
-
-    private saveAndClose = () => {
-        this.props.closeModal();
     }
 }
 

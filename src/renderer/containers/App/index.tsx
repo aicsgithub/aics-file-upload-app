@@ -50,7 +50,8 @@ import {
 import { gatherSettings, setMountPoint, switchEnvironment, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
-    GatherSettingsAction, SetMountPointAction,
+    GatherSettingsAction,
+    SetMountPointAction,
     SwitchEnvironmentAction,
     UpdateSettingsAction,
 } from "../../state/setting/types";
