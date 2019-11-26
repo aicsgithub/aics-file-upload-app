@@ -22,6 +22,9 @@ export const getWorkflowOptions = (state: State) => state.metadata.workflowOptio
 export const getBarcodeSearchResults = (state: State) => state.metadata.barcodeSearchResults;
 export const getTemplates = (state: State) => state.metadata.templates;
 export const getChannels = (state: State) => state.metadata.channels;
+export const getFileMetadataSearchResults = (state: State) => state.metadata.fileMetadataSearchResults;
+export const getFileMetadataSearchResultsAsTable = (state: State) => state.metadata.fileMetadataSearchResultsAsTable;
+export const getOptionsForLookup = (state: State) => state.metadata.optionsForLookup;
 
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([

@@ -45,14 +45,17 @@ export interface ClearAlertAction {
 
 export enum AsyncRequest {
     CANCEL_UPLOAD = "CANCEL_UPLOAD",
+    EXPORT_FILE_METADATA = "EXPORT_FILE_METADATA",
     GET_ANNOTATIONS = "GET_ANNOTATIONS",
     GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
     GET_PLATE = "GET_PLATE",
     GET_JOBS = "GET_JOBS",
+    GET_OPTIONS_FOR_LOOKUP = "GET_OPTIONS_FOR_LOOKUP",
     GET_TEMPLATE = "GET_TEMPLATE", // full template with annotations from MMS
     GET_TEMPLATES = "GET_TEMPLATES", // just template name from Labkey
     RETRY_UPLOAD = "RETRY_UPLOAD",
     SAVE_TEMPLATE = "SAVE_TEMPLATE",
+    SEARCH_FILE_METADATA = "SEARCH_FILE_METADATA",
 }
 
 export interface AddRequestInProgressAction {
