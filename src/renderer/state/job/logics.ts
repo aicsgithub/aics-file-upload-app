@@ -87,15 +87,15 @@ const retrieveJobsLogic = createLogic({
             done();
         }
     },
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
-                reject: ReduxLogicRejectCb) => {
+    type: RETRIEVE_JOBS,
+    validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
         if (getRequestsInProgressContains(getState(), AsyncRequest.GET_JOBS)) {
-            reject();
+            reject(action);
         } else {
             next(addRequestToInProgress(AsyncRequest.GET_JOBS));
         }
     },
-    type: RETRIEVE_JOBS,
 });
 
 export default [

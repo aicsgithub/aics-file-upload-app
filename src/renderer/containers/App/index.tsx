@@ -1,18 +1,22 @@
 import "@aics/aics-react-labkey/dist/styles.css";
-import { message, Tabs } from "antd";
+import { message, notification, Tabs } from "antd";
 import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SAFELY_CLOSE_WINDOW, SET_LIMS_URL } from "../../../shared/constants";
-import { LimsUrl } from "../../../shared/types";
+import { SAFELY_CLOSE_WINDOW, SWITCH_ENVIRONMENT } from "../../../shared/constants";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import { clearAlert, setAlert } from "../../state/feedback/actions";
-import { getAlert, getIsLoading, getRecentEvent } from "../../state/feedback/selectors";
+import {
+    getAlert,
+    getIsLoading,
+    getRecentEvent,
+    getSetMountPointNotificationVisible,
+} from "../../state/feedback/selectors";
 import {
     AlertType,
     AppAlert,
@@ -43,10 +47,12 @@ import {
     SelectFileAction,
     UploadFile,
 } from "../../state/selection/types";
-import { gatherSettings, updateSettings } from "../../state/setting/actions";
+import { gatherSettings, setMountPoint, switchEnvironment, updateSettings } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
     GatherSettingsAction,
+    SetMountPointAction,
+    SwitchEnvironmentAction,
     UpdateSettingsAction,
 } from "../../state/setting/types";
 import { State } from "../../state/types";
@@ -57,6 +63,7 @@ import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
 import EnterBarcode from "../SelectUploadType";
+import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -87,6 +94,9 @@ interface AppProps {
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
     selectView: ActionCreator<SelectViewAction>;
+    setMountPoint: ActionCreator<SetMountPointAction>;
+    setMountPointNotificationVisible: boolean;
+    switchEnvironment: ActionCreator<SwitchEnvironmentAction>;
     page: Page;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     view: Page;
@@ -118,9 +128,7 @@ class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
-        ipcRenderer.on(SET_LIMS_URL, (event: Event, limsUrl: LimsUrl) => {
-            this.props.updateSettings(limsUrl);
-        });
+        ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
             const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
                 " will need to be manually cancelled. Are you sure?";
@@ -141,8 +149,8 @@ class App extends React.Component<AppProps, {}> {
         });
     }
 
-    public componentDidUpdate() {
-        const { alert, clearAlert: dispatchClearAlert } = this.props;
+    public componentDidUpdate(prevProps: AppProps) {
+        const { alert, clearAlert: dispatchClearAlert, setMountPointNotificationVisible } = this.props;
         if (alert) {
             const { message: alertText, manualClear, type} = alert;
             const alertBody = <div>{alertText}</div>;
@@ -164,6 +172,19 @@ class App extends React.Component<AppProps, {}> {
             }
 
             dispatchClearAlert();
+        }
+        if (setMountPointNotificationVisible &&
+            setMountPointNotificationVisible !== prevProps.setMountPointNotificationVisible) {
+            notification.open({
+                description:
+                    "Click this notification to manually set the allen mount point",
+                duration: 0,
+                message: "Could not find allen mount point (/allen/aics).",
+                onClick: () => {
+                    notification.destroy();
+                    this.props.setMountPoint();
+                },
+            });
         }
     }
 
@@ -224,6 +245,7 @@ class App extends React.Component<AppProps, {}> {
                 <StatusBar className={styles.statusBar} event={recentEvent} limsUrl={limsUrl}/>
                 <TemplateEditorModal/>
                 <OpenTemplateModal/>
+                <SettingsEditorModal/>
             </div>
         );
     }
@@ -240,6 +262,7 @@ function mapStateToProps(state: State) {
         page: getPage(state),
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
+        setMountPointNotificationVisible: getSetMountPointNotificationVisible(state),
         view: getView(state),
     };
 }
@@ -255,6 +278,8 @@ const dispatchToPropsMap = {
     selectFile: selection.actions.selectFile,
     selectView,
     setAlert,
+    setMountPoint,
+    switchEnvironment,
     updateSettings,
 };
 

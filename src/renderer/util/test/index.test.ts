@@ -2,54 +2,16 @@
 
 import { expect } from "chai";
 
-import { alphaOrderComparator, bindAll, convertToArray, splitTrimAndFilter, titleCase } from "../";
+import {
+    alphaOrderComparator,
+    convertToArray,
+    makePosixPathCompatibleWithPlatform,
+    splitTrimAndFilter,
+    titleCase,
+} from "../";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
-    describe("bindAll", () => {
-       it("binds class methods to a class", () => {
-           class Foo {
-               private message = "Hello from Foo";
-
-               constructor() {
-                   bindAll(this, [this.bar]);
-               }
-
-               public bar() {
-                   return this.message;
-               }
-           }
-
-           const foo = new Foo();
-           const bar = foo.bar;
-           expect(foo.bar()).to.equal(bar());
-       });
-
-       it("does not bind a method that it was not asked to bind", () => {
-           class Foo {
-               private message = "Hello from Foo";
-
-               constructor() {
-                   bindAll(this, [this.bar]);
-               }
-
-               public bar() {
-                   return this.message;
-               }
-
-               public baz() {
-                   return this.message;
-               }
-           }
-
-           const foo = new Foo();
-           const baz = foo.baz;
-
-           expect(foo.baz()).to.equal("Hello from Foo");
-           expect(baz).to.throw(TypeError);
-       });
-    });
-
     describe("getWellLabel", () => {
        it("should display A1 given {row: 0, col: 0}", () => {
            const wellLabel = getWellLabel({row: 0, col: 0});
@@ -152,6 +114,39 @@ describe("General utilities", () => {
         it("returns empty array give comma", () => {
             const result = splitTrimAndFilter(",");
             expect(result).to.deep.equal([]);
+        });
+    });
+
+    describe("makePosixPathCompatibleWithPlatform", () => {
+        const posixPath = "/arbitrary/path";
+
+        it('doesn\'t change path if platform is "darwin"', () => {
+            expect(
+                makePosixPathCompatibleWithPlatform(posixPath, "darwin")
+            ).to.equal(posixPath);
+        });
+        it('doesn\'t change path if platform is "linux"', () => {
+            expect(
+                makePosixPathCompatibleWithPlatform(posixPath, "linux")
+            ).to.equal(posixPath);
+        });
+        it('updates path if platform is "win32"', () => {
+            const expectedPath = "\\arbitrary\\path";
+            expect(
+                makePosixPathCompatibleWithPlatform(posixPath, "win32")
+            ).to.equal(expectedPath);
+        });
+        it('adds additional backward slash if path starts with /allen and platform is "win32"', () => {
+            const expectedPath = "\\\\allen\\aics\\sw";
+            expect(
+                makePosixPathCompatibleWithPlatform("/allen/aics/sw", "win32")
+            ).to.equal(expectedPath);
+        });
+        it('doesn\'t add additional backward slash if path starts with //allen and platform is "win32"', () => {
+            const expectedPath = "\\\\allen\\aics\\sw";
+            expect(
+                makePosixPathCompatibleWithPlatform("//allen/aics/sw", "win32")
+            ).to.equal(expectedPath);
         });
     });
 });

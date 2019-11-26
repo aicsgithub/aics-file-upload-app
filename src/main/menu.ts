@@ -1,6 +1,11 @@
 import electron, { dialog, Menu, shell } from "electron";
-import { OPEN_OPEN_TEMPLATE_MODAL, OPEN_TEMPLATE_EDITOR, SCHEMA_SYNONYM, SET_LIMS_URL } from "../shared/constants";
-import { LimsUrl } from "../shared/types";
+import {
+    OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_SETTINGS_EDITOR,
+    OPEN_TEMPLATE_EDITOR,
+    SCHEMA_SYNONYM,
+    SWITCH_ENVIRONMENT,
+} from "../shared/constants";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 import WebContents = Electron.WebContents;
@@ -51,38 +56,14 @@ export const setMenu = (webContents: WebContents) => {
                         },
                     ],
                 },
+                { type: "separator" },
                 {
-                    click: () => {
-                        dialog.showMessageBox({
-                            buttons: ["Cancel", "Local", "Staging", "Production"],
-                            cancelId: 0,
-                            message: "Switch environment?",
-                            type: "question",
-
-                        }, (response: number) => {
-                            if (response > 0) {
-                                const urlMap: {[index: number]: LimsUrl} = {
-                                    1: {
-                                        limsHost: "localhost",
-                                        limsPort: "8080",
-                                        limsProtocol: "http",
-                                    },
-                                    2: {
-                                        limsHost: "stg-aics.corp.alleninstitute.org",
-                                        limsPort: "80",
-                                        limsProtocol: "http",
-                                    },
-                                    3: {
-                                        limsHost: "aics.corp.alleninstitute.org",
-                                        limsPort: "80",
-                                        limsProtocol: "http",
-                                    },
-                                };
-                                webContents.send(SET_LIMS_URL, urlMap[response]);
-                            }
-
-                        });
-                    },
+                    click: () => webContents.send(OPEN_SETTINGS_EDITOR),
+                    label: "Settings",
+                },
+                { type: "separator" },
+                {
+                    click: () => webContents.send(SWITCH_ENVIRONMENT),
                     enabled: true,
                     label: "Switch environment",
                 },

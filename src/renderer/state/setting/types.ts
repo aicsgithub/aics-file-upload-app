@@ -2,6 +2,7 @@ import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
+    mountPoint?: string;
     templateIds: number[];
 }
 
@@ -14,16 +15,19 @@ export interface AssociateByWorkflowAction {
     type: string;
 }
 
-export interface RemoveTemplateIdFromSettingsAction {
-    payload: number;
-    type: string;
-}
-
 export interface UpdateSettingsAction {
     payload: Partial<SettingStateBranch>;
     type: string;
 }
 
 export interface GatherSettingsAction {
+    type: string;
+}
+
+export interface SetMountPointAction {
+    type: string;
+}
+
+export interface SwitchEnvironmentAction {
     type: string;
 }

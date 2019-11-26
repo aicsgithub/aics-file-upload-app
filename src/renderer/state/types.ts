@@ -1,6 +1,6 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
-import { Menu } from "electron";
+import { Menu, MessageBoxOptions, OpenDialogOptions } from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -17,7 +17,6 @@ import { TemplateStateBranch } from "./template/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
-import MessageBoxOptions = Electron.MessageBoxOptions;
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;
@@ -30,6 +29,22 @@ export interface BatchedAction {
     payload: AnyAction[];
 }
 
+export interface ElectronRemote {
+    Menu: {
+        getApplicationMenu: () => Menu | null;
+    };
+    dialog: {
+        showOpenDialog(
+            options: OpenDialogOptions,
+            callback?: (filePaths?: string[], bookmarks?: string[]) => void
+        ): (string[]) | (undefined);
+        showMessageBox(
+            options: MessageBoxOptions,
+            callback?: (response: number, checkboxChecked: boolean) => void
+        ): number;
+    };
+}
+
 export interface ReduxLogicExtraDependencies {
     ctx?: any;
     fms: FileManagementSystem;
@@ -40,17 +55,7 @@ export interface ReduxLogicExtraDependencies {
     jssClient: JobStatusClient;
     labkeyClient: LabkeyClient;
     mmsClient: MMSClient;
-    remote: {
-        Menu: {
-            getApplicationMenu: () => Menu | null;
-        };
-        dialog: {
-            showMessageBox(
-                options: MessageBoxOptions,
-                callback?: (response: number, checkboxChecked: boolean) => void
-            ): number;
-        };
-    };
+    remote: ElectronRemote;
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;
@@ -58,11 +63,11 @@ export interface ReduxLogicExtraDependencies {
     };
 }
 
-export type ReduxLogicProcessDependencies = Process.DepObj<State, AnyAction, ReduxLogicExtraDependencies>;
+export type ReduxLogicProcessDependencies = Process.DepObj<State, AnyAction, ReduxLogicExtraDependencies, undefined>;
 export type ReduxLogicTransformDependencies = DepObj<State, AnyAction, ReduxLogicExtraDependencies>;
 
 export type ReduxLogicNextCb = (action: AnyAction) => void;
-export type ReduxLogicRejectCb = (action?: AnyAction) => void;
+export type ReduxLogicRejectCb = (action: AnyAction) => void;
 export type ReduxLogicDoneCb = () => void;
 
 export interface State {

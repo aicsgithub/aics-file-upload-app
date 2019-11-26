@@ -119,6 +119,7 @@ export const mockSelection: SelectionStateBranch = {
     openTemplateModalVisible: false,
     selectedWells: [],
     selectedWorkflows: [],
+    settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     wells: [],
@@ -271,6 +272,7 @@ export const mockState: State = {
         events: [],
         isLoading: false,
         requestsInProgress: [],
+        setMountPointNotificationVisible: false,
     },
     job: {
         addMetadataJobs: [],

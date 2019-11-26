@@ -3,6 +3,7 @@ export interface FeedbackStateBranch {
     events: AppEvent[];
     isLoading: boolean;
     requestsInProgress: AsyncRequest[];
+    setMountPointNotificationVisible: boolean;
 }
 
 export interface StartLoadingAction {
@@ -62,6 +63,14 @@ export interface AddRequestInProgressAction {
 export interface RemoveRequestInProgressAction {
     type: string;
     payload: AsyncRequest;
+}
+
+export interface OpenSetMountPointNotificationAction {
+    type: string;
+}
+
+export interface CloseSetMountPointNotificationAction {
+    type: string;
 }
 
 export interface AddEventAction {

@@ -131,8 +131,9 @@ const initiateUploadLogic = createLogic({
         dispatch(removePendingJobs(ctx.name));
         done();
     },
-    transform: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
-                      rejectCb: ReduxLogicRejectCb) => {
+    type: INITIATE_UPLOAD,
+    validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+                     rejectCb: ReduxLogicRejectCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
             ctx.name = getUploadJobName(getState());
@@ -151,7 +152,6 @@ const initiateUploadLogic = createLogic({
             }));
         }
     },
-    type: INITIATE_UPLOAD,
 });
 
 const cancelUploadLogic = createLogic({
@@ -189,8 +189,9 @@ const cancelUploadLogic = createLogic({
         dispatch(removeRequestFromInProgress(AsyncRequest.CANCEL_UPLOAD));
         done();
     },
-    transform: ({ action, ctx, fms, getState, remote }: ReduxLogicTransformDependencies,
-                next: ReduxLogicNextCb, reject: () => void) => {
+    type: CANCEL_UPLOAD,
+    validate: ({ action, ctx, fms, getState, remote }: ReduxLogicTransformDependencies,
+               next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
         if (!uploadJob) {
             next(setAlert({
@@ -209,12 +210,11 @@ const cancelUploadLogic = createLogic({
                 if (response === 1) {
                     next(action);
                 } else {
-                    reject();
+                    reject(action);
                 }
             });
         }
     },
-    type: CANCEL_UPLOAD,
 });
 
 const retryUploadLogic = createLogic({

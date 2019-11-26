@@ -1,17 +1,25 @@
+import { Menu, MenuItem } from "electron";
+import { existsSync } from "fs";
 import * as Logger from "js-logger";
 import { isEmpty, isNil } from "lodash";
+import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { makePosixPathCompatibleWithPlatform } from "../../util";
+import { openSetMountPointNotification } from "../feedback/actions";
+
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { clearSelectionHistory, jumpToPastSelection } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
+import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
 import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
@@ -22,9 +30,6 @@ import { selectPage } from "./actions";
 import { getNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
 import { getPage } from "./selectors";
 import { Page } from "./types";
-import Menu = Electron.Menu;
-
-import MenuItem = Electron.MenuItem;
 
 interface MenuItemWithSubMenu extends MenuItem {
     submenu?: Menu;
@@ -59,6 +64,15 @@ const selectPageLogic = createLogic({
         done: ReduxLogicDoneCb
     ) => {
         const {currentPage, nextPage} = action.payload;
+
+        if (nextPage === Page.DragAndDrop) {
+            const isMountedAsExpected = existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()));
+            const mountPoint = getMountPoint(getState());
+            if (!isMountedAsExpected && !mountPoint) {
+                dispatch(openSetMountPointNotification());
+            }
+        }
+
         const state = getState();
 
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
@@ -120,8 +134,9 @@ const selectPageLogic = createLogic({
 });
 
 const goBackLogic = createLogic({
-    transform: ({getState, action, remote}: ReduxLogicTransformDependencies,
-                next: ReduxLogicNextCb, reject: () => void) => {
+    type: GO_BACK,
+    validate: ({getState, action, remote}: ReduxLogicTransformDependencies,
+               next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const state = getState();
         const currentPage = getPage(state);
         const nextPage = getNextPage(currentPage, -1);
@@ -138,28 +153,28 @@ const goBackLogic = createLogic({
                 if (response === 1) {
                     next(selectPage(currentPage, nextPage));
                 } else {
-                   reject();
+                    reject(action);
                 }
             });
         } else {
-            reject();
+            reject(action);
         }
     },
-    type: GO_BACK,
 });
 
 const goForwardLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb, reject: () => void) => {
+    type: GO_FORWARD,
+    validate: ({action, getState}: ReduxLogicTransformDependencies,
+               next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const currentPage = getPage(getState());
         const nextPage = getNextPage(currentPage, 1);
 
         if (nextPage) {
             next(selectPage(currentPage, nextPage));
         } else {
-           reject();
+           reject(action);
         }
     },
-    type: GO_FORWARD,
 });
 
 export default [

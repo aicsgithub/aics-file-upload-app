@@ -9,3 +9,5 @@ export const STOP_LOADING = makeConstant(BRANCH_NAME, "stop-loading");
 export const ADD_REQUEST_IN_PROGRESS = makeConstant(BRANCH_NAME, "add-request-in-progress");
 export const REMOVE_REQUEST_IN_PROGRESS = makeConstant(BRANCH_NAME, "remove-request-in-progress");
 export const ADD_EVENT = makeConstant(BRANCH_NAME, "add-event");
+export const CLOSE_SET_MOUNT_POINT_NOTIFICATION = makeConstant(BRANCH_NAME, "close-set-mount-point-notification");
+export const OPEN_SET_MOUNT_POINT_NOTIFICATION = makeConstant(BRANCH_NAME, "open-set-mount-point-notification");

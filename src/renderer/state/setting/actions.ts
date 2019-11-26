@@ -1,14 +1,19 @@
+import { SWITCH_ENVIRONMENT } from "../../../shared/constants";
+
 import {
     ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
-    UPDATE_SETTINGS
+    SET_MOUNT_POINT,
+    UPDATE_SETTINGS,
 } from "./constants";
 import {
     AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     GatherSettingsAction,
+    SetMountPointAction,
     SettingStateBranch,
+    SwitchEnvironmentAction,
     UpdateSettingsAction,
 } from "./types";
 
@@ -36,5 +41,17 @@ export function associateByWorkflow(shouldAssociateByWorkflow: boolean): Associa
     return {
         payload: shouldAssociateByWorkflow,
         type: ASSOCIATE_BY_WORKFLOW,
+    };
+}
+
+export function setMountPoint(): SetMountPointAction {
+    return {
+        type: SET_MOUNT_POINT,
+    };
+}
+
+export function switchEnvironment(): SwitchEnvironmentAction {
+    return {
+        type: SWITCH_ENVIRONMENT,
     };
 }

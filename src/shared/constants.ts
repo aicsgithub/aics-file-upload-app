@@ -9,8 +9,8 @@ export const OPEN_CREATE_PLATE_STANDALONE = "OPEN_CREATE_PLATE";
 // emitted by main process when user creates a plate through standalone
 export const PLATE_CREATED = "PLATE-CREATED";
 
-// emitted by main process when user wants to switch environments
-export const SET_LIMS_URL = "SET_LIMS_URL";
+// emitted by main process when user selects File > Switch Environment
+export const SWITCH_ENVIRONMENT = "SWITCH_ENVIRONMENT";
 
 // emitted by main process when user tries to exit the app
 export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
@@ -22,6 +22,10 @@ export const CLOSE_TEMPLATE_EDITOR = "CLOSE_TEMPLATE_EDITOR";
 // emitted by main process when user selects File > Open > Template
 export const OPEN_OPEN_TEMPLATE_MODAL = "OPEN_OPEN_TEMPLATE_MODAL";
 export const CLOSE_OPEN_TEMPLATE_MODAL = "CLOSE_OPEN_TEMPLATE_MODAL";
+
+// emitted by main process when user selects File > Settings
+export const OPEN_SETTINGS_EDITOR = "OPEN_SETTINGS_MODAL";
+export const CLOSE_SETTINGS_EDITOR = "CLOSE_SETTINGS_MODAL";
 
 // User settings
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";

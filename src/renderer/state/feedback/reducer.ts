@@ -1,6 +1,7 @@
 import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
+import { SelectionStateBranch } from "../selection/types";
 import {
     TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
@@ -9,6 +10,8 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
+    CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+    OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
     START_LOADING,
@@ -18,17 +21,20 @@ import {
     AddEventAction,
     AddRequestInProgressAction,
     ClearAlertAction,
+    CloseSetMountPointNotificationAction,
     FeedbackStateBranch,
+    OpenSetMountPointNotificationAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
     StartLoadingAction,
-    StopLoadingAction
+    StopLoadingAction,
 } from "./types";
 
 export const initialState: FeedbackStateBranch = {
     events: [],
     isLoading: false,
     requestsInProgress: [],
+    setMountPointNotificationVisible: false,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -95,6 +101,22 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 events: [...state.events, action.payload],
             };
         },
+    },
+    [OPEN_SET_MOUNT_POINT_NOTIFICATION]: {
+        accepts: (action: AnyAction): action is OpenSetMountPointNotificationAction =>
+            action.type === OPEN_SET_MOUNT_POINT_NOTIFICATION,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            setMountPointNotificationVisible: true,
+        }),
+    },
+    [CLOSE_SET_MOUNT_POINT_NOTIFICATION]: {
+        accepts: (action: AnyAction): action is CloseSetMountPointNotificationAction =>
+            action.type === CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            setMountPointNotificationVisible: false,
+        }),
     },
 };
 

@@ -2,10 +2,12 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
+    CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+    OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
     START_LOADING,
-    STOP_LOADING
+    STOP_LOADING,
 } from "./constants";
 
 import {
@@ -15,6 +17,8 @@ import {
     AppAlert,
     AsyncRequest,
     ClearAlertAction,
+    CloseSetMountPointNotificationAction,
+    OpenSetMountPointNotificationAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
     StartLoadingAction,
@@ -67,5 +71,17 @@ export function addEvent(message: string, type: AlertType, date: Date): AddEvent
             type,
         },
         type: ADD_EVENT,
+    };
+}
+
+export function openSetMountPointNotification(): OpenSetMountPointNotificationAction {
+    return {
+        type: OPEN_SET_MOUNT_POINT_NOTIFICATION,
+    };
+}
+
+export function closeSetMountPointNotification(): CloseSetMountPointNotificationAction {
+    return {
+        type: CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     };
 }

@@ -10,8 +10,10 @@ import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
     CLOSE_OPEN_TEMPLATE_MODAL,
+    CLOSE_SETTINGS_EDITOR,
     CLOSE_TEMPLATE_EDITOR,
     OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_SETTINGS_EDITOR,
     OPEN_TEMPLATE_EDITOR,
 } from "../../../shared/constants";
 import {
@@ -35,9 +37,11 @@ import {
     AddStageFilesAction,
     ClearStagedFilesAction,
     CloseOpenTemplateModalAction,
+    CloseSettingsEditorAction,
     CloseTemplateEditorAction,
     DeselectFilesAction,
     OpenOpenTemplateModalAction,
+    OpenSettingsEditorAction,
     OpenTemplateEditorAction,
     SelectBarcodeAction,
     SelectFileAction,
@@ -61,6 +65,7 @@ export const initialState: SelectionStateBranch = {
     openTemplateModalVisible: false,
     selectedWells: [],
     selectedWorkflows: [],
+    settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     wells: [],
@@ -185,6 +190,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             openTemplateModalVisible: false,
+        }),
+    },
+    [OPEN_SETTINGS_EDITOR]: {
+        accepts: (action: AnyAction): action is OpenSettingsEditorAction => action.type === OPEN_SETTINGS_EDITOR,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            settingsEditorVisible: true,
+        }),
+    },
+    [CLOSE_SETTINGS_EDITOR]: {
+        accepts: (action: AnyAction): action is CloseSettingsEditorAction => action.type === CLOSE_SETTINGS_EDITOR,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            settingsEditorVisible: false,
         }),
     },
     [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {

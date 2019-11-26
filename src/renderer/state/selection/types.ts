@@ -28,6 +28,7 @@ export interface SelectionStateBranch {
     wells: WellResponse[];
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
+    settingsEditorVisible: boolean;
     stagedFiles: UploadFile[];
     templateEditorVisible: boolean;
 }
@@ -215,6 +216,14 @@ export interface OpenOpenTemplateModalAction {
 }
 
 export interface CloseOpenTemplateModalAction {
+    type: string;
+}
+
+export interface OpenSettingsEditorAction {
+    type: string;
+}
+
+export interface CloseSettingsEditorAction {
     type: string;
 }
 
