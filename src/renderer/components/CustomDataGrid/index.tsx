@@ -170,13 +170,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 </div>
                 <div className={classNames(styles.dataGrid, className)}>
                     {sortedRows.length ?
-                        // @ts-ignore
-                        // types do not include getSubRowDetails and onCellExpand yet
+
                         <ReactDataGrid
                             cellNavigationMode="changeRow"
                             columns={this.getColumns()}
                             enableCellSelect={true}
                             enableDragAndDrop={true}
+                            // @ts-ignore
                             getSubRowDetails={this.getSubRowDetails}
                             minHeight={550}
                             onGridRowsUpdated={this.updateRow}
