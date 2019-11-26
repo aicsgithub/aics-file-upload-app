@@ -67,6 +67,7 @@ import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
+import SearchFiles from "../SearchFiles";
 import { getFileToTags } from "./selectors";
 
 const styles = require("./styles.pcss");
@@ -233,6 +234,9 @@ class App extends React.Component<AppProps, {}> {
                         >
                             <TabPane className={styles.tabContent} tab="Summary" key={Page.UploadSummary}>
                                 {uploadSummaryConfig.container}
+                            </TabPane>
+                            <TabPane className={styles.tabContent} tab="Search Files" key={Page.SearchFiles}>
+                                <SearchFiles key="searchFiles"/>
                             </TabPane>
                             {page !== Page.UploadSummary && (
                                 <TabPane className={styles.tabContent} tab="Current Upload" key={page}>
