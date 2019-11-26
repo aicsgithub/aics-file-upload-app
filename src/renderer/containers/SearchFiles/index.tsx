@@ -30,8 +30,7 @@ import {
     GetOptionsForLookupAction,
     SearchFileMetadataAction
 } from "../../state/metadata/types";
-import { getPage } from "../../state/selection/selectors";
-import { Page } from "../../state/selection/types";
+import { Page } from "../../state/route/types";
 import { Annotation, AnnotationLookup } from "../../state/template/types";
 import { State } from "../../state/types";
 
@@ -111,7 +110,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 saveButtonName={"Export CSV"}
                 onSave={this.exportCSV}
                 saveButtonDisabled={!fileIds || !fileIds.length || exportingCSV}
-                page={Page.UploadSummary}
+                page={Page.SearchFiles}
             >
                 <Row>
                     <Button
@@ -276,7 +275,6 @@ function mapStateToProps(state: State) {
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
         optionsForLookup: getOptionsForLookup(state),
         optionsForLookupLoading: getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
-        page: getPage(state),
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),
         searchResultsAsTable: getFileMetadataSearchResultsAsTable(state),
