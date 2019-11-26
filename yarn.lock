@@ -926,10 +926,10 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
-"@types/react-data-grid@4.0.4":
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.4.tgz#234ff82ebae3af0cd7fc663bd6550476b2b54d3c"
-  integrity sha512-s5tnTp6FUJVaqDIwY4vDhGHp9S8/lvONyULX6cRnkLH8Dx5aY5Xog3kCezMP9hZ65PMf6sAzYJqRQ9O84pwu2A==
+"@types/react-data-grid@^4.0.5":
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.5.tgz#183d1684057236dc6c44d577dcc4c43e5a70158c"
+  integrity sha512-TVJt6Ss60H9z9V2sgPTUrN39UM2YZ7Ij+NnK8E1OKC+3A60L9kEY+noK2G5wKpvVRy68RamGUkgAHYJg2M39lA==
   dependencies:
     "@types/react" "*"
 
@@ -9725,7 +9725,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.7.2:
+typescript@3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
   integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
