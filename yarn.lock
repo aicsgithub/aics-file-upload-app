@@ -24,10 +24,10 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.0.8":
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.0.8.tgz#4b7cf7c569c1aca953e97801d40084a8927ab697"
-  integrity sha512-5Z9ICAPVxcRkQDb/XdNOm4VvKyi4s/k9OgrXjDvCPFtHJVGDIOdcwvFAHvqhsLJqu1ca6YgMXZb6g/Zr/hyejw==
+"@aics/aicsfiles@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.1.0.tgz#e91f06f7de5818bece9af1b77a7788a765ea0c62"
+  integrity sha512-vkmNsfAY28B+ViLjZM2li9z9hvCMRsywkvsc6HGJwIgm1NI2QXVpeUO6+D2STMTxhjWiRpqvB3LlkyeaEcutLQ==
   dependencies:
     "@aics/job-status-client" "^1.0.8"
     "@babel/polyfill" "^7.4.4"
@@ -926,7 +926,7 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
-"@types/react-data-grid@^4.0.5":
+"@types/react-data-grid@4.0.5":
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/@types/react-data-grid/-/react-data-grid-4.0.5.tgz#183d1684057236dc6c44d577dcc4c43e5a70158c"
   integrity sha512-TVJt6Ss60H9z9V2sgPTUrN39UM2YZ7Ij+NnK8E1OKC+3A60L9kEY+noK2G5wKpvVRy68RamGUkgAHYJg2M39lA==
