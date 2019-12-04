@@ -149,14 +149,22 @@ const requestAnnotations = createLogic({
 });
 
 const requestOptionsForLookup = createLogic({
-    process: async ({ action, labkeyClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: async ({ action: { payload }, getState, labkeyClient }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        const { payload } = action;
         if (payload) {
-            dispatch(addRequestToInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
             try {
-                const optionsForLookup: string[] = await labkeyClient.getOptionsForLookup(payload);
-                optionsForLookup.sort();
+                dispatch(addRequestToInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
+                const { metadata: { annotationLookups, annotations } } = getState();
+                const annotationOption = annotations.find(({ name }) => name === payload);
+                const lookup = annotationOption &&
+                    annotationLookups.find(({ annotationId }) => annotationId === annotationOption.annotationId);
+                let optionsForLookup;
+                if (lookup) {
+                    optionsForLookup = await labkeyClient.getOptionsForLookup(lookup.lookupId);
+                    optionsForLookup.sort();
+                }
+
                 dispatch(batchActions([
                     receiveMetadata({ optionsForLookup }),
                     removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
@@ -177,7 +185,8 @@ const requestOptionsForLookup = createLogic({
 });
 
 const requestTemplates = createLogic({
-    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATES));
         try {
@@ -206,11 +215,10 @@ const searchFileMetadataLogic = createLogic({
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
             const { annotationName, searchValue } = action.payload;
-            const fileMetadataSearchResults = await fms.getFilesByAnnotation(annotationName, searchValue);
-            const fileMetadataSearchResultsAsTable =
-                await fms.transformFileMetadataIntoTable(fileMetadataSearchResults);
+            const fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotationName, searchValue);
+            const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
             dispatch(batchActions([
-                receiveMetadata({ fileMetadataSearchResults, fileMetadataSearchResultsAsTable }),
+                receiveMetadata({ fileMetadataSearchResults }),
                 removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
             ]));
         } catch (e) {
@@ -233,9 +241,9 @@ const exportFileMetadata = createLogic({
         dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
         try {
             const { payload } = action;
-            const { metadata: { fileMetadataSearchResultsAsTable } } = getState();
-            if (fileMetadataSearchResultsAsTable) {
-                const exportData = await fms.transformTableIntoCSV(fileMetadataSearchResultsAsTable);
+            const { metadata: { fileMetadataSearchResults } } = getState();
+            if (fileMetadataSearchResults) {
+                const exportData = await fms.transformTableIntoCSV(fileMetadataSearchResults);
                 await fs.writeFileSync(payload, exportData);
                 dispatch(batchActions([
                     removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),

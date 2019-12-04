@@ -1,4 +1,5 @@
-import { FileToFileMetadata, TableInfo } from "@aics/aicsfiles/type-declarations/types";
+import { TableInfo } from "@aics/aicsfiles/type-declarations/types";
+import { ColumnProps } from "antd/lib/table";
 import { LabkeyPlateResponse, LabkeyTemplate } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
 import { Annotation, AnnotationLookup, AnnotationOption, AnnotationType, Lookup } from "../template/types";
@@ -12,8 +13,7 @@ export interface MetadataStateBranch {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
     channels: Channel[];
-    fileMetadataSearchResults?: FileToFileMetadata;
-    fileMetadataSearchResultsAsTable?: TableInfo;
+    fileMetadataSearchResults?: TableInfo;
     imagingSessions: ImagingSession[];
     lookups: Lookup[];
     optionsForLookup?: string[];
@@ -47,12 +47,21 @@ export interface ImagingSession {
     description: string;
 }
 
+export interface SearchResultRow {
+    [key: string]: string | number;
+}
+
+export interface SearchResultsTable {
+    header: Array<ColumnProps<SearchResultRow>>;
+    rows: SearchResultRow[];
+}
+
 export interface GetAnnotationsAction {
     type: string;
 }
 
 export interface GetOptionsForLookupAction {
-    payload: number;
+    payload: string;
     type: string;
 }
 

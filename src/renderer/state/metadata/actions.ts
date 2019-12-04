@@ -34,7 +34,7 @@ export function requestAnnotations(): GetAnnotationsAction {
     };
 }
 
-export function retrieveOptionsForLookup(payload: number): GetOptionsForLookupAction {
+export function retrieveOptionsForLookup(payload: string): GetOptionsForLookupAction {
     return {
         payload,
         type: GET_OPTIONS_FOR_LOOKUP,
