@@ -1,10 +1,11 @@
+import { TableInfo } from "@aics/aicsfiles/type-declarations/types";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
 import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
 import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { Channel, Unit } from "../metadata/types";
+import { Channel, SearchResultsTable, Unit } from "../metadata/types";
 import { Page } from "../route/types";
 import {
     SelectionStateBranch,
@@ -98,6 +99,12 @@ export const mockAnnotations = [
     mockNotesAnnotation,
 ];
 
+export const mockLookupOptions = [
+    "option1",
+    "option2",
+    "option3",
+];
+
 export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     return {
         _latestUnfiltered: {...state},
@@ -111,6 +118,7 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
 };
 
 export const mockSelection: SelectionStateBranch = {
+    annotation: "Dataset",
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
@@ -313,6 +321,44 @@ export const mockState: State = {
     },
     template: getMockStateWithHistory(mockTemplateStateBranch),
     upload: getMockStateWithHistory(mockWellUpload),
+};
+
+export const mockSearchResults: TableInfo = {
+    annotationToColumnMap: {
+        FileId: 0,
+        PositionIndex: 1,
+    },
+    imageModelToFileMetadata: {
+        "abc123": [["abc123"], []],
+        "abc123-1": [["abc123"], [1]],
+    },
+};
+
+export const mockSearchResultsAsTable: SearchResultsTable = {
+    header: [
+        {
+            dataIndex: "FileId",
+            key: "FileId",
+            title: "FileId",
+        },
+        {
+            dataIndex: "PositionIndex",
+            key: "PositionIndex",
+            title: "PositionIndex",
+        },
+    ],
+    rows: [
+        {
+            FileId: "abc123",
+            PositionIndex: "",
+            key: "abc123",
+        },
+        {
+            FileId: "abc123",
+            PositionIndex: "1",
+            key: "abc123-1",
+        },
+    ],
 };
 
 export const mockUnits: Unit[] = [
@@ -552,6 +598,10 @@ export const mockAnnotationLookups: AnnotationLookup[] = [
     {
         annotationId: 1,
         lookupId: 1,
+    },
+    {
+        annotationId: 2,
+        lookupId: 2,
     },
 ];
 

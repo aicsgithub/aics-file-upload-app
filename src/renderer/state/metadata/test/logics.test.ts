@@ -4,7 +4,7 @@ import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { createMockReduxStore, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, fms, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     mockAnnotationLookups,
     mockAnnotationOptions,
@@ -13,12 +13,20 @@ import {
     mockBarcodePrefixes,
     mockChannels,
     mockImagingSessions,
+    mockLookupOptions,
     mockLookups,
+    mockSearchResults,
     mockSelectedWorkflows,
     mockState,
     mockUnit,
 } from "../../test/mocks";
-import { requestAnnotations, requestMetadata, requestTemplates } from "../actions";
+import {
+    requestAnnotations,
+    requestMetadata,
+    requestTemplates,
+    retrieveOptionsForLookup,
+    searchFileMetadata
+} from "../actions";
 
 import {
     getAnnotationLookups,
@@ -27,8 +35,10 @@ import {
     getAnnotationTypes,
     getBarcodePrefixes,
     getChannels,
+    getFileMetadataSearchResults,
     getImagingSessions,
     getLookups,
+    getOptionsForLookup,
     getTemplates,
     getUnits,
     getWorkflowOptions,
@@ -163,6 +173,78 @@ describe("Metadata logics", () => {
             expect(getAlert(state)).to.be.undefined;
 
             store.dispatch(requestTemplates());
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getAlert(state)).to.not.be.undefined;
+        });
+    });
+    describe("requestOptionsForLookup", () => {
+        const mockStateWithAnnotations = {
+            ...mockState,
+            metadata: {
+                ...mockState.metadata,
+                annotationLookups: mockAnnotationLookups,
+                annotations: mockAnnotations,
+            },
+        };
+        it("sets lookupOptions given OK response", async () => {
+            const getOptionsStub = stub().resolves(mockLookupOptions);
+            sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithAnnotations, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getOptionsForLookup(state)).to.be.undefined;
+
+            store.dispatch(retrieveOptionsForLookup("Well"));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getOptionsForLookup(state)).to.not.be.empty;
+        });
+        it("sets lookupOptions given not OK response", async () => {
+            const getOptionsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithAnnotations, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(retrieveOptionsForLookup("Well"));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getAlert(state)).to.not.be.undefined;
+        });
+    });
+    describe("searchFileMetadataLogic", () => {
+        it("sets searchResults given OK response", async () => {
+            const getSearchResultsAsMapStub = stub().resolves({});
+            sandbox.replace(fms, "getFilesByAnnotation", getSearchResultsAsMapStub);
+            const getSearchResultsStub = stub().resolves(mockSearchResults);
+            sandbox.replace(fms, "transformFileMetadataIntoTable", getSearchResultsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getFileMetadataSearchResults(state)).to.be.undefined;
+
+            store.dispatch(searchFileMetadata("Dataset", "Pipeline"));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
+        });
+        it("sets searchResults given not OK response", async () => {
+            const getSearchResultsAsMapStub = stub().resolves({});
+            sandbox.replace(fms, "getFilesByAnnotation", getSearchResultsAsMapStub);
+            const getSearchResultsStub = stub().rejects();
+            sandbox.replace(fms, "transformFileMetadataIntoTable", getSearchResultsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(searchFileMetadata("Dataset", "Pipeline"));
 
             await logicMiddleware.whenComplete();
             state = store.getState();
