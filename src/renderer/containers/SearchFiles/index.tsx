@@ -1,7 +1,5 @@
-import { FileToFileMetadata, TableInfo } from "@aics/aicsfiles/type-declarations/types";
 import { Button, Col, Icon, Input, Row, Select, Table } from "antd";
 import { remote } from "electron";
-import { map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -21,27 +19,32 @@ import {
     getAnnotationLookups,
     getAnnotations,
     getFileMetadataSearchResults,
-    getFileMetadataSearchResultsAsTable,
-    getOptionsForLookup
+    getNumberOfFiles,
+    getOptionsForLookup,
+    getSearchResultsAsTable
 } from "../../state/metadata/selectors";
 import {
     ExportFileMetadataAction,
     GetAnnotationsAction,
     GetOptionsForLookupAction,
-    SearchFileMetadataAction
+    SearchFileMetadataAction,
+    SearchResultsTable
 } from "../../state/metadata/types";
 import { Page } from "../../state/route/types";
+import { selectAnnotation } from "../../state/selection/actions";
+import { getAnnotation } from "../../state/selection/selectors";
+import { SelectAnnotationAction } from "../../state/selection/types";
 import { Annotation, AnnotationLookup } from "../../state/template/types";
 import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
-const DATASET = "Dataset";
-
 interface Props {
+    annotation: string;
     annotationLookups: AnnotationLookup[];
     annotations: Annotation[];
     className?: string;
+    numberOfFilesFound: number;
     exportFileMetadataCSV: ActionCreator<ExportFileMetadataAction>;
     exportingCSV: boolean;
     optionsForLookup?: string[];
@@ -50,20 +53,15 @@ interface Props {
     retrieveOptionsForLookup: ActionCreator<GetOptionsForLookupAction>;
     searchFileMetadata: ActionCreator<SearchFileMetadataAction>;
     searchLoading: boolean;
-    searchResults?: FileToFileMetadata;
-    searchResultsAsTable?: TableInfo;
+    searchResultsAsTable?: SearchResultsTable;
+    selectAnnotation: ActionCreator<SelectAnnotationAction>;
     setAlert: ActionCreator<SetAlertAction>;
 }
 
 interface SearchFilesState {
-    annotation?: string;
     isLookup: boolean;
     searchValue?: string;
     selectedJobId?: string;
-}
-
-interface FileMetadataRow {
-    [key: string]: string | number;
 }
 
 /*
@@ -81,27 +79,22 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
     public componentDidMount(): void {
         this.props.requestAnnotations();
-    }
-
-    public componentDidUpdate(prevProps: Props): void {
-        // Set default annotation to Dataset
-        if (this.props.annotations && this.props.annotations.length && !this.state.annotation) {
-            this.selectAnnotation(DATASET);
-        }
+        this.props.retrieveOptionsForLookup(this.props.annotation);
     }
 
     public render() {
         const {
+            annotation,
             annotations,
             className,
+            numberOfFilesFound,
             exportingCSV,
             optionsForLookup,
             optionsForLookupLoading,
-            searchResults,
             searchLoading,
+            searchResultsAsTable,
         } = this.props;
-        const { annotation, searchValue, isLookup } = this.state;
-        const fileIds = searchResults && Object.keys(searchResults);
+        const { searchValue } = this.state;
         return (
             <FormPage
                 className={className}
@@ -109,13 +102,13 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 formPrompt="Select an annotation and search value to find and export matching files and their metadata"
                 saveButtonName={"Export CSV"}
                 onSave={this.exportCSV}
-                saveButtonDisabled={!fileIds || !fileIds.length || exportingCSV}
+                saveButtonDisabled={!numberOfFilesFound || exportingCSV}
                 page={Page.SearchFiles}
             >
                 <Row>
                     <Button
                         disabled={searchLoading}
-                        onClick={this.refreshTab}
+                        onClick={this.props.requestAnnotations}
                         className={styles.refreshButton}
                     ><Icon type="sync" />Refresh Annotations
                     </Button>
@@ -142,12 +135,12 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     </Col>
                     <Col xs={12} xl={14} xxl={15}>
                         <LabeledInput label="Search Value">
-                            {isLookup ? (
+                            {(optionsForLookupLoading || optionsForLookup) ? (
                                 <Select
                                     allowClear={true}
                                     showSearch={true}
                                     value={searchValue}
-                                    loading={!optionsForLookup || optionsForLookupLoading}
+                                    loading={optionsForLookupLoading}
                                     disabled={!optionsForLookup || optionsForLookupLoading}
                                     onChange={this.selectSearchValue}
                                     placeholder="Select Search Value"
@@ -171,7 +164,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     </Col>
                     <Col xs={6} xl={4} xxl={3}>
                         <Button
-                            loading={searchLoading || exportingCSV}
+                            loading={searchLoading}
                             disabled={!annotation || !searchValue || searchLoading || exportingCSV}
                             size="large"
                             type="primary"
@@ -183,37 +176,22 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 </Row>
                 {searchLoading && <p>Searching...</p>}
                 {exportingCSV && <p>Exporting...</p>}
-                {fileIds && (
+                {!!numberOfFilesFound && (
                     <Row>
-                        <p>Search found {fileIds.length} files matching query.</p>
+                        <p>Search found {numberOfFilesFound} files matching query.</p>
                     </Row>
                 )}
-                {this.renderSearchResults()}
+                {searchResultsAsTable && (
+                    <Table dataSource={searchResultsAsTable.rows} columns={searchResultsAsTable.header} />
+                )}
             </FormPage>
         );
     }
 
-    private renderSearchResults = (): JSX.Element | null => {
-        const { searchResultsAsTable } = this.props;
-        if (!searchResultsAsTable) {
-            return null;
-        }
-        const { annotationToColumnMap, imageModelToFileMetadata } = searchResultsAsTable;
-        const headerInfo = Object.keys(annotationToColumnMap);
-        const header = headerInfo.map((annotation) => ({
-            dataIndex: annotation,
-            key: annotation,
-            title: annotation,
-        }));
-        // Map each ImageModel metadata row into a antd Table row
-        const bodyInfo = map(imageModelToFileMetadata, (row, key) => (
-            // Reduce the row of value arrays into an object where the key is the column name
-            row.reduce((allMetadataForRow: FileMetadataRow, metadata: Array<string | number>, index: number) => ({
-                ...allMetadataForRow,
-                [headerInfo[index]]: metadata.join(", "),
-            }), { key })
-        ));
-        return <Table dataSource={bodyInfo} columns={header} />;
+    private selectAnnotation = (annotation: string) => {
+        this.props.selectAnnotation(annotation);
+        this.props.retrieveOptionsForLookup(annotation);
+        this.setState({ searchValue: undefined });
     }
 
     private selectSearchValue = (searchValue: string) => {
@@ -224,30 +202,8 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         this.selectSearchValue(e.target.value);
     }
 
-    // The user may have created annotations in between when this tab is created and now
-    private refreshTab = () => {
-        this.props.requestAnnotations();
-        this.selectAnnotation(this.state.annotation || DATASET);
-    }
-
-    private retrieveOptionsForLookup = (lookupId: number) => {
-        this.props.retrieveOptionsForLookup(lookupId);
-    }
-
-    private selectAnnotation = (annotation: string): void => {
-        const { annotations, annotationLookups } = this.props;
-        const annotationOption = annotations.find(({ name }) => name === annotation);
-        const lookup = annotationOption &&
-            annotationLookups.find(({ annotationId }) => annotationId === annotationOption.annotationId);
-        if (lookup) {
-            this.retrieveOptionsForLookup(lookup.lookupId);
-        }
-        this.setState({ annotation, isLookup: !!lookup, searchValue: undefined });
-    }
-
     private searchForFiles = () => {
-        const { annotation, searchValue } = this.state;
-        this.props.searchFileMetadata(annotation, searchValue);
+        this.props.searchFileMetadata(this.props.annotation, this.state.searchValue);
     }
 
     private exportCSV = () => {
@@ -270,14 +226,16 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
 function mapStateToProps(state: State) {
     return {
+        annotation: getAnnotation(state),
         annotationLookups: getAnnotationLookups(state),
         annotations: getAnnotations(state),
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
+        numberOfFilesFound: getNumberOfFiles(state),
         optionsForLookup: getOptionsForLookup(state),
         optionsForLookupLoading: getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),
-        searchResultsAsTable: getFileMetadataSearchResultsAsTable(state),
+        searchResultsAsTable: getSearchResultsAsTable(state),
     };
 }
 
@@ -286,6 +244,7 @@ const dispatchToPropsMap = {
     requestAnnotations,
     retrieveOptionsForLookup,
     searchFileMetadata,
+    selectAnnotation,
     setAlert,
 };
 

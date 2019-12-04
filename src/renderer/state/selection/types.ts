@@ -18,6 +18,7 @@ export interface DeselectFilesAction {
 }
 
 export interface SelectionStateBranch {
+    annotation: string;
     barcode?: string;
     expandedUploadJobRows: ExpandedRows;
     files: string[];
@@ -199,6 +200,11 @@ export interface SetWellsAction {
 
 export interface SelectWellsAction {
     payload: GridCell[];
+    type: string;
+}
+
+export interface SelectAnnotationAction {
+    payload: string;
     type: string;
 }
 
