@@ -214,12 +214,14 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 { name: "CSV files", extensions: ["csv"] },
             ],
             title: "Save File Metadata as CSV",
-        }, (fileName: string = "FileMetadata.csv") => {
-            let actualFileName = fileName;
-            if (actualFileName.length < 4 || actualFileName.slice(-4) !== ".csv") {
-                actualFileName += ".csv";
+        }, (fileName?: string) => {
+            if (fileName) {
+                let actualFileName = fileName;
+                if (actualFileName.length < 4 || actualFileName.slice(-4) !== ".csv") {
+                    actualFileName += ".csv";
+                }
+                this.props.exportFileMetadataCSV(actualFileName);
             }
-            this.props.exportFileMetadataCSV(actualFileName);
         });
     }
 }
