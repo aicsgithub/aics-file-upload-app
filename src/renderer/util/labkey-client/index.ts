@@ -19,7 +19,7 @@ import {
     LabKeyPlateBarcodePrefix,
     LabkeyPlateResponse,
     LabkeyResponse,
-    LabkeyTemplate,
+    LabkeyTemplate, LabkeyUser,
     LabKeyWorkflow,
 } from "./types";
 
@@ -163,6 +163,12 @@ export default class LabkeyClient extends BaseServiceClient {
             type: unit.Type,
             unitsId: unit.UnitsId,
         }));
+    }
+
+    public async getUsers(): Promise<LabkeyUser[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "User");
+        const response = await this.httpClient.get(query);
+        return response.rows;
     }
 
     public async getColumnValues(schemaName: string,

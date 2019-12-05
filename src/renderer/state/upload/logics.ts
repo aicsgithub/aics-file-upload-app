@@ -22,7 +22,8 @@ import { ColumnType } from "../template/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
-    ReduxLogicProcessDependencies, ReduxLogicRejectCb,
+    ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
@@ -122,6 +123,7 @@ const initiateUploadLogic = createLogic({
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
+            // TODO: Add to Settings a statement saying whether the last job was a failure
             dispatch(setAlert({
                 message: `Upload Failed: ${e.message}`,
                 type: AlertType.ERROR,

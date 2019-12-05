@@ -1,5 +1,5 @@
-import { TableInfo } from "@aics/aicsfiles/type-declarations/types";
-import { map, uniq, uniqBy } from "lodash";
+import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { uniq, uniqBy, startCase, without } from "lodash";
 import { createSelector } from "reselect";
 
 import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
@@ -26,6 +26,7 @@ export const getTemplates = (state: State) => state.metadata.templates;
 export const getChannels = (state: State) => state.metadata.channels;
 export const getFileMetadataSearchResults = (state: State) => state.metadata.fileMetadataSearchResults;
 export const getOptionsForLookup = (state: State) => state.metadata.optionsForLookup;
+export const getUsers = (state: State) => state.metadata.users;
 
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([
@@ -45,38 +46,34 @@ export const getUniqueBarcodeSearchResults = createSelector([
 
 export const getSearchResultsAsTable = createSelector([
     getFileMetadataSearchResults,
-], (searchResults): SearchResultsTable | undefined => {
-    if (!searchResults) {
+], (rows?: ImageModelMetadata[]): SearchResultsTable | undefined => {
+    if (!rows) {
         return undefined;
     }
-    const { annotationToColumnMap, imageModelToFileMetadata } = searchResults;
-    const headerInfo = Object.keys(annotationToColumnMap);
-    const header = headerInfo.map((annotation) => ({
-        dataIndex: annotation,
-        key: annotation,
-        title: annotation,
+    const STATIC_COLUMNS = ["filename", "positionIndex", "channel", "template"];
+    const UNIMPORTANT_COLUMNS: string[] = [...STATIC_COLUMNS, "key", "thumbnailId", "fileId", "fileSize", "fileType", "uploaded", "uploadedBy", "modified", "modifiedBy", "templateId", "localFilePath", "publicFilePath", "archiveFilePath", "thumbnailLocalFilePath"];
+    let columns: string[] = [];
+    rows.forEach((row) => {
+        columns.push(...Object.keys(row));
+    });
+    columns = without(uniq(columns), ...UNIMPORTANT_COLUMNS);
+    const header = [...STATIC_COLUMNS, ...columns].map((column) => ({
+        dataIndex: column,
+        key: column,
+        sort: column === 'fileId' ? 'descend' : undefined,
+        sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
+        title: startCase(column),
     }));
-    // Map each ImageModel metadata row into a antd Table row
-    const rows = map(imageModelToFileMetadata, (row, key) => (
-        // Reduce the row of value arrays into an object where the key is the column name
-        row.reduce((allMetadataForRow: SearchResultRow, metadata: Array<string | number>, index: number) => ({
-            ...allMetadataForRow,
-            [headerInfo[index]]: metadata.join(", "),
-        }), { key })
-    ));
     return { header, rows };
 });
 
 export const getNumberOfFiles = createSelector([
     getFileMetadataSearchResults,
-], (table?: TableInfo): number => {
-    if (!table || table.imageModelToFileMetadata.length) {
+], (rows?: ImageModelMetadata[]): number => {
+    if (!rows || rows.length) {
         return 0;
     }
-    const { annotationToColumnMap , imageModelToFileMetadata } = table;
-    return uniq(map(imageModelToFileMetadata, (row: Array<Array<string | number>>): string | number => (
-        row[annotationToColumnMap.FileId][0]
-    ))).length;
+    return uniq(rows.map(({ fileId }) => fileId)).length;
 });
 
 export const getBooleanAnnotationTypeId = createSelector([

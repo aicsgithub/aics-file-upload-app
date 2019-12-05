@@ -1,6 +1,8 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Alert, Button, Col, Modal, Row, Table } from "antd";
+import { Alert, Button, Col, Empty, Modal, Radio, Row, Table } from "antd";
+import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
+import { map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -10,9 +12,17 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { retrieveJobs } from "../../state/job/actions";
-import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
-import { RetrieveJobsAction } from "../../state/job/types";
+import { retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import {
+    getAreAllJobsComplete,
+    getJobFilter,
+    getJobsForTable
+} from "../../state/job/selectors";
+import {
+    JobStatus,
+    RetrieveJobsAction,
+    SelectJobFilterAction,
+} from "../../state/job/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import { Page, SelectViewAction } from "../../state/route/types";
@@ -24,6 +34,8 @@ import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types"
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
+
+const jobStatusOptions: JobStatus[] = map(JobStatus, (value) => value);
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
@@ -37,12 +49,14 @@ interface Props {
     className?: string;
     files: UploadFile[];
     loading: boolean;
+    jobFilter: JobStatus;
     jobs: UploadSummaryTableRow[];
     page: Page;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     retryUpload: ActionCreator<RetryUploadAction>;
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
+    selectJobFilter: ActionCreator<SelectJobFilterAction>;
 }
 
 interface UploadSummaryState {
@@ -93,6 +107,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     public render() {
         const {
             className,
+            jobFilter,
             jobs,
             loading,
             page,
@@ -102,7 +117,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             <FormPage
                 className={className}
                 formTitle="YOUR UPLOADS"
-                formPrompt=""
+                formPrompt="Your upload jobs will appear below"
                 onSave={this.onFormSave}
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
                 page={Page.UploadSummary}
@@ -125,12 +140,25 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                         </Col>
                     </Row>
                 )}
-                <Table
-                    className={styles.jobTable}
-                    columns={this.columns}
-                    dataSource={jobs}
-                    onRow={this.onRow}
-                />
+                <Row>
+                    Show{' '}
+                    <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
+                        {jobStatusOptions.map((option) => (
+                            <Radio.Button value={option}>{option}</Radio.Button>
+                        ))}
+                    </Radio.Group>
+                    {' '}Uploads
+                </Row>
+                {jobs.length ? (
+                    <Table
+                        className={styles.jobTable}
+                        columns={this.columns}
+                        dataSource={jobs}
+                        onRow={this.onRow}
+                    />
+                ) : (
+                    <Empty description={`No ${jobFilter === JobStatus.All ? "" : `${jobFilter} `} Uploads`} />
+                )}
                 {selectedJob && <Modal
                     title="Upload Job"
                     width="90%"
@@ -147,6 +175,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 </Modal>}
             </FormPage>
         );
+    }
+
+    private selectJobFilter = (e: RadioChangeEvent): void => {
+        if (!this.interval) {
+            this.setJobInterval();
+        }
+        this.props.selectJobFilter(e.target.value);
     }
 
     // Auto-refresh jobs every 2 seconds for 3 minutes
@@ -214,6 +249,7 @@ function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
         files: getStagedFiles(state),
+        jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)
             || getRequestsInProgressContains(state, AsyncRequest.CANCEL_UPLOAD),
@@ -225,6 +261,7 @@ const dispatchToPropsMap = {
     cancelUpload,
     retrieveJobs,
     retryUpload,
+    selectJobFilter,
     selectPage,
     selectView,
 };

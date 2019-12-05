@@ -31,11 +31,21 @@ const retrieveJobsLogic = createLogic({
                     done: ReduxLogicDoneCb) => {
         try {
             // get all uploadJobs for user from jss
-            // TODO in the future allow user to set params for querying for uploadJobs
+            const SUCCESSFUL_STATUS = "SUCCEEDED"; // TODO
+            const FAILED_STATUSES = ["FAILED", "UNRECOVERABLE"]; // TODO
+            const statusesToExclude = [];
+            const { job: { includeSuccessfulJobs, includeFailedJobs } } = getState();
+            if (!includeFailedJobs) {
+                statusesToExclude.push(...FAILED_STATUSES);
+            }
+            if (!includeSuccessfulJobs) {
+                statusesToExclude.push(SUCCESSFUL_STATUS);
+            }
             const getUploadJobsPromise = jssClient.getJobs({
                 serviceFields: {
                     type: "upload",
                 },
+                status: { "$nin": statusesToExclude },
                 user: userInfo().username,
 
             });
@@ -43,12 +53,14 @@ const retrieveJobsLogic = createLogic({
                 serviceFields: {
                     type: "copy",
                 },
+                status: { "$nin": statusesToExclude },
                 user: userInfo().username,
             });
             const getAddMetadataPromise = jssClient.getJobs({
                 serviceFields: {
                     type: "add_metadata",
                 },
+                status: { "$nin": statusesToExclude },
                 user: userInfo().username,
             });
 

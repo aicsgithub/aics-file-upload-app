@@ -1,6 +1,6 @@
-import { TableInfo } from "@aics/aicsfiles/type-declarations/types";
+import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ColumnProps } from "antd/lib/table";
-import { LabkeyPlateResponse, LabkeyTemplate } from "../../util/labkey-client/types";
+import { LabkeyPlateResponse, LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
 import { Annotation, AnnotationLookup, AnnotationOption, AnnotationType, Lookup } from "../template/types";
 
@@ -13,11 +13,12 @@ export interface MetadataStateBranch {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
     channels: Channel[];
-    fileMetadataSearchResults?: TableInfo;
+    fileMetadataSearchResults?: ImageModelMetadata[];
     imagingSessions: ImagingSession[];
     lookups: Lookup[];
     optionsForLookup?: string[];
     templates: LabkeyTemplate[];
+    users: LabkeyUser[];
     units: Unit[];
     // Gets updated every time app changes pages.
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
@@ -54,6 +55,13 @@ export interface SearchResultRow {
 export interface SearchResultsTable {
     header: Array<ColumnProps<SearchResultRow>>;
     rows: SearchResultRow[];
+}
+
+export interface SearchConfig {
+    annotation?: string;
+    searchValue?: string;
+    template?: string;
+    user?: string;
 }
 
 export interface GetAnnotationsAction {
@@ -126,10 +134,7 @@ export interface ResetHistoryAction {
 }
 
 export interface SearchFileMetadataAction {
-    payload: {
-        annotationName: string,
-        searchValue: string,
-    };
+    payload: SearchConfig;
     type: string;
 }
 

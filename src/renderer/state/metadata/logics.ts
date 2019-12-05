@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { sortBy } from "lodash";
+import { sortBy, startCase, omit } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -27,6 +27,7 @@ import {
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
 } from "./constants";
+import { FileToFileMetadata } from "@aics/aicsfiles/type-declarations/types";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -58,6 +59,7 @@ const requestMetadata = createLogic({
                 imagingSessions,
                 lookups,
                 units,
+                users,
                 workflowOptions,
             ] = await Promise.all([
                 labkeyClient.getAnnotationLookups(),
@@ -67,6 +69,7 @@ const requestMetadata = createLogic({
                 labkeyClient.getImagingSessions(),
                 labkeyClient.getLookups(),
                 labkeyClient.getUnits(),
+                labkeyClient.getUsers(),
                 labkeyClient.getWorkflows(),
             ]);
             dispatch(receiveMetadata({
@@ -77,6 +80,7 @@ const requestMetadata = createLogic({
                 imagingSessions,
                 lookups,
                 units,
+                users,
                 workflowOptions,
             }));
         } catch (reason) {
@@ -212,15 +216,38 @@ const requestTemplates = createLogic({
 const searchFileMetadataLogic = createLogic({
     process: async ({ action, fms }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        const { annotation, searchValue, template, user } = action.payload;
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
-            const { annotationName, searchValue } = action.payload;
-            const fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotationName, searchValue);
-            const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
-            dispatch(batchActions([
-                receiveMetadata({ fileMetadataSearchResults }),
-                removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
-            ]));
+            let fileMetadataSearchResultsAsMap: FileToFileMetadata | undefined = undefined;
+            if (annotation && searchValue) {
+                fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotation, searchValue);
+            }
+            if (template) {
+                const fileMetadataForTemplate = await fms.getFilesByTemplate(template);
+                fileMetadataSearchResultsAsMap = fms.innerJoinFileMetadata(fileMetadataForTemplate, fileMetadataSearchResultsAsMap);
+            }
+            if (user) {
+                const fileMetadataForUser = await fms.getFilesByUser(user);
+                fileMetadataSearchResultsAsMap = fms.innerJoinFileMetadata(fileMetadataForUser, fileMetadataSearchResultsAsMap);
+            }
+            if (fileMetadataSearchResultsAsMap) {
+                console.log("fileMetadataSearchResultsAsMap:", fileMetadataSearchResultsAsMap);
+                const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
+                console.log('fileMetadataSearchResults:', fileMetadataSearchResults);
+                dispatch(batchActions([
+                    receiveMetadata({ fileMetadataSearchResults }),
+                    removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
+                ]));
+            } else {
+                dispatch(batchActions([
+                    removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
+                    setAlert({
+                        message: "Could not perform search, no query params provided",
+                        type: AlertType.ERROR,
+                    }),
+                ]));
+            }
         } catch (e) {
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
@@ -243,6 +270,7 @@ const exportFileMetadata = createLogic({
             const { payload } = action;
             const { metadata: { fileMetadataSearchResults } } = getState();
             if (fileMetadataSearchResults) {
+                const fileMetadataCsv = await fms.transformTableIntoCSV(["fileId", "workflow"].map((title) => startCase(title)), fileMetadataSearchResults);
                 const exportData = await fms.transformTableIntoCSV(fileMetadataSearchResults);
                 await fs.writeFileSync(payload, exportData);
                 dispatch(batchActions([
