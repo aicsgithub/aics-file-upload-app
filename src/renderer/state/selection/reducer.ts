@@ -22,6 +22,7 @@ import {
     CLEAR_STAGED_FILES,
     DESELECT_FILES,
     JUMP_TO_PAST_SELECTION,
+    SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_METADATA,
@@ -43,6 +44,7 @@ import {
     OpenOpenTemplateModalAction,
     OpenSettingsEditorAction,
     OpenTemplateEditorAction,
+    SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
     SelectionStateBranch,
@@ -56,7 +58,10 @@ import {
     UpdateStagedFilesAction,
 } from "./types";
 
+const DEFAULT_ANNOTATION = "Dataset";
+
 export const initialState: SelectionStateBranch = {
+    annotation: DEFAULT_ANNOTATION,
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
@@ -77,6 +82,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             files: [],
+        }),
+    },
+    [SELECT_ANNOTATION]: {
+        accepts: (action: AnyAction): action is SelectAnnotationAction => action.type === SELECT_ANNOTATION,
+        perform: (state: SelectionStateBranch, action: SelectAnnotationAction) => ({
+            ...state,
+            annotation: action.payload,
         }),
     },
     [SELECT_BARCODE]: {

@@ -3,11 +3,12 @@ import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { RECEIVE_METADATA, RESET_HISTORY, UPDATE_PAGE_HISTORY } from "./constants";
+import { RECEIVE_METADATA, RESET_HISTORY, SEARCH_FILE_METADATA, UPDATE_PAGE_HISTORY } from "./constants";
 import {
     MetadataStateBranch,
     ReceiveMetadataAction,
     ResetHistoryAction,
+    SearchFileMetadataAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -45,6 +46,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 template: {},
                 upload: {},
             },
+        }),
+    },
+    [SEARCH_FILE_METADATA]: {
+        accepts: (action: AnyAction): action is SearchFileMetadataAction => action.type === SEARCH_FILE_METADATA,
+        perform: (state: MetadataStateBranch) => ({
+            ...state,
+            fileMetadataSearchResults: undefined,
+            fileMetadataSearchResultsAsTable: undefined,
         }),
     },
     [UPDATE_PAGE_HISTORY]: {

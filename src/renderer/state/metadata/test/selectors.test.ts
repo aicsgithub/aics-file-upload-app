@@ -3,6 +3,8 @@ import { ColumnType } from "../../template/types";
 import {
     mockAuditInfo,
     mockNotesAnnotation,
+    mockSearchResults,
+    mockSearchResultsAsTable,
     mockState,
     mockWellAnnotation,
     mockWorkflowAnnotation,
@@ -13,6 +15,8 @@ import {
     getBooleanAnnotationTypeId,
     getLookupAnnotationTypeId,
     getNotesAnnotation,
+    getNumberOfFiles,
+    getSearchResultsAsTable,
     getUniqueBarcodeSearchResults,
     getWellAnnotation,
     getWorkflowAnnotation,
@@ -144,6 +148,22 @@ describe("Metadata selectors", () => {
             expect(result).to.be.undefined;
         });
     });
+    describe("getSearchResultsAsTable", () => {
+        it("returns searchResultsAsTable if searchResults exist", () => {
+            const result = getSearchResultsAsTable({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    fileMetadataSearchResults: mockSearchResults,
+                },
+            });
+            expect(result).to.deep.equal(mockSearchResultsAsTable);
+        });
+        it("returns undefined if searchResults don't exist", () => {
+            const result = getSearchResultsAsTable(mockState);
+            expect(result).to.be.undefined;
+        });
+    });
     describe("getAnnotationsWithAnnotationOptions", () => {
         const mockAnnotation = {
             ...mockAuditInfo,
@@ -186,6 +206,24 @@ describe("Metadata selectors", () => {
                     annotationOptions: undefined,
                 },
             ]);
+        });
+    });
+
+    describe("getNumberOfFiles", () => {
+        it("returns 0 if nothing match search", () => {
+            const result = getNumberOfFiles(mockState);
+            expect(result).to.equal(0);
+        });
+
+        it("returns correct number of files if files match search", () => {
+            const result = getNumberOfFiles({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    fileMetadataSearchResults: mockSearchResults,
+                },
+            });
+            expect(result).to.equal(1);
         });
     });
 });

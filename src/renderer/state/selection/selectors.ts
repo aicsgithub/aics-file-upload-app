@@ -24,6 +24,7 @@ export const getStagedFiles = (state: State) => state.selection.present.stagedFi
 export const getWells = (state: State) => state.selection.present.wells;
 export const getSelectedWorkflows = (state: State) => state.selection.present.selectedWorkflows;
 export const getSelectedWells = (state: State) => state.selection.present.selectedWells;
+export const getAnnotation = (state: State) => state.selection.present.annotation;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;

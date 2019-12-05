@@ -17,6 +17,7 @@ export interface NextPageAction {
 
 export enum Page {
     DragAndDrop = "DragAndDrop",
+    SearchFiles = "SearchFiles",
     SelectUploadType = "SelectUploadType",
     AssociateFiles = "AssociateFiles",
     AddCustomData = "AddCustomData",

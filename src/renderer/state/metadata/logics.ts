@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import fs from "fs";
 import { sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -18,10 +19,13 @@ import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
+    EXPORT_FILE_METADATA,
     GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
+    GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
     REQUEST_METADATA,
+    SEARCH_FILE_METADATA,
 } from "./constants";
 
 const createBarcode = createLogic({
@@ -64,7 +68,6 @@ const requestMetadata = createLogic({
                 labkeyClient.getLookups(),
                 labkeyClient.getUnits(),
                 labkeyClient.getWorkflows(),
-
             ]);
             dispatch(receiveMetadata({
                 annotationLookups,
@@ -145,8 +148,45 @@ const requestAnnotations = createLogic({
     type: GET_ANNOTATIONS,
 });
 
+const requestOptionsForLookup = createLogic({
+    process: async ({ action: { payload }, getState, labkeyClient }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        if (payload) {
+            try {
+                dispatch(addRequestToInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
+                const { metadata: { annotationLookups, annotations } } = getState();
+                const annotationOption = annotations.find(({ name }) => name === payload);
+                const lookup = annotationOption &&
+                    annotationLookups.find(({ annotationId }) => annotationId === annotationOption.annotationId);
+                let optionsForLookup;
+                if (lookup) {
+                    optionsForLookup = await labkeyClient.getOptionsForLookup(lookup.lookupId);
+                    optionsForLookup.sort();
+                }
+
+                dispatch(batchActions([
+                    receiveMetadata({ optionsForLookup }),
+                    removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
+                ]));
+            } catch (e) {
+                dispatch(batchActions([
+                    removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
+                    setAlert({
+                        message: "Could not retrieve options for lookup annotation: " + e.message,
+                        type: AlertType.ERROR,
+                    }),
+                ]));
+            }
+        }
+        done();
+    },
+    type: GET_OPTIONS_FOR_LOOKUP,
+});
+
 const requestTemplates = createLogic({
-    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATES));
         try {
@@ -169,10 +209,71 @@ const requestTemplates = createLogic({
     type: GET_TEMPLATES,
 });
 
+const searchFileMetadataLogic = createLogic({
+    process: async ({ action, fms }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
+        try {
+            const { annotationName, searchValue } = action.payload;
+            const fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotationName, searchValue);
+            const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
+            dispatch(batchActions([
+                receiveMetadata({ fileMetadataSearchResults }),
+                removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
+            ]));
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
+                setAlert({
+                    message: "Could not perform search: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: SEARCH_FILE_METADATA,
+});
+
+const exportFileMetadata = createLogic({
+    process: async ({ action, fms, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
+        try {
+            const { payload } = action;
+            const { metadata: { fileMetadataSearchResults } } = getState();
+            if (fileMetadataSearchResults) {
+                const exportData = await fms.transformTableIntoCSV(fileMetadataSearchResults);
+                await fs.writeFileSync(payload, exportData);
+                dispatch(batchActions([
+                    removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
+                    setAlert({
+                        message: "Exported successfully",
+                        type: AlertType.SUCCESS,
+                    }),
+                ]));
+            }
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
+                setAlert({
+                    message: "Could not export: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: EXPORT_FILE_METADATA,
+});
+
 export default [
     createBarcode,
+    exportFileMetadata,
     requestAnnotations,
     requestBarcodes,
     requestMetadata,
+    requestOptionsForLookup,
     requestTemplates,
+    searchFileMetadataLogic,
 ];

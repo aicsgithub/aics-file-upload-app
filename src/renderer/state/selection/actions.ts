@@ -16,6 +16,7 @@ import {
     JUMP_TO_PAST_SELECTION,
     LOAD_FILES,
     OPEN_FILES,
+    SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_WELLS,
@@ -43,6 +44,7 @@ import {
     OpenSettingsEditorAction,
     OpenTemplateEditorAction,
     PlateResponse,
+    SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
     SelectWellsAction,
@@ -190,6 +192,13 @@ export function openSettingsEditor(): OpenSettingsEditorAction {
 export function closeSettingsEditor(): CloseSettingsEditorAction {
     return {
         type: CLOSE_SETTINGS_EDITOR,
+    };
+}
+
+export function selectAnnotation(annotation: string): SelectAnnotationAction {
+    return {
+        payload: annotation,
+        type: SELECT_ANNOTATION,
     };
 }
 
