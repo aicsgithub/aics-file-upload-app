@@ -1,4 +1,4 @@
-import { Button, Checkbox } from "antd";
+import { Button, Checkbox, Typography } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import { map } from "lodash";
 import * as React from "react";
@@ -14,6 +14,7 @@ import { getFileToArchive, getFileToStoreOnIsilon, getUploadFiles } from "../../
 import { FilepathToBoolean, UpdateFilesToArchive, UpdateFilesToStoreOnIsilon } from "../../state/upload/types";
 
 const styles = require("./styles.pcss");
+const { Text } = Typography;
 
 interface SelectStorageIntentProps {
     className?: string;
@@ -30,8 +31,7 @@ class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> 
     public render() {
         return (
             <FormPage
-                formPrompt={`Choose where to store each file. Select Isilon if this file needs to be downloaded again.
-                Select Archive if you would like to back up this file.`}
+                formPrompt="Where should these files be stored?"
                 formTitle="SELECT STORAGE LOCATIONS"
                 onBack={this.props.goBack}
                 onSave={this.props.goForward}
@@ -60,16 +60,16 @@ class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> 
                     className={styles.selectAllCheckbox}
                     onChange={this.selectAllIsilon}
                 >
-                    Isilon
+                    Isilon <Text type="secondary">(Necessary if this file will be downloaded again)</Text>
                 </Checkbox>
                 <Checkbox
                     checked={allFilesShouldBeInArchive}
                     className={styles.selectAllCheckbox}
                     onChange={this.selectAllArchive}
                 >
-                    Archive
+                    Archive <Text type="secondary">(File will be backed up but not downloadable)</Text>
                 </Checkbox>
-                <Button type="link">Customize</Button>
+                <Button type="link">Customize by File</Button>
             </>
         );
     }
