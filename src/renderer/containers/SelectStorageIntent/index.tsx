@@ -46,25 +46,26 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
     }
 
     public render() {
-        const { canGoForward } = this.props;
+        const { canGoForward, files } = this.props;
         const { customizeByFile } = this.state;
+        const moreThanOneFile = files.length > 1;
         return (
             <FormPage
-                formPrompt="Where should these files be stored?"
+                formPrompt={`Where should ${moreThanOneFile ? "these files" : "this file"} be stored?`}
                 formTitle="SELECT STORAGE LOCATIONS"
                 onBack={this.props.goBack}
                 onSave={this.props.goForward}
                 page={Page.SelectStorageLocation}
                 saveButtonDisabled={!canGoForward}
             >
-                <div className={styles.switchRow}>
+                {moreThanOneFile && <div className={styles.switchRow}>
                     <Switch
                         checked={customizeByFile}
                         className={styles.switch}
                         onChange={this.setCustomizeByFile}
                     />
                     <span className={styles.switchLabel}>Customize by File</span>
-                </div>
+                </div>}
                 {!customizeByFile && this.renderSimpleForm()}
                 {customizeByFile && this.renderGridForm()}
             </FormPage>
