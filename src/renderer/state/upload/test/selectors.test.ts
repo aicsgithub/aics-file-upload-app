@@ -61,6 +61,8 @@ describe("Upload selectors", () => {
                         file: "/path/to.dot/image.tiff",
                         ["Favorite Color"]: "blue",
                         plateId: 4,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [],
                         wellLabels: [],
                     },
@@ -80,6 +82,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "red",
                         file: "/path/to/image.czi",
                         plateId: 4,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [1],
                         wellLabels: ["A1"],
                     },
@@ -88,6 +92,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "green",
                         file: "/path/to/image.ome.tiff",
                         plateId: 2,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [2],
                         wellLabels: ["A1"],
                     },
@@ -96,6 +102,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "purple",
                         file: "/path/to/image.png",
                         plateId: 5,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [3],
                         wellLabels: ["A1"],
                     },
@@ -104,6 +112,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "orange",
                         file: "/path/to/image.tiff",
                         plateId: 3,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [4],
                         wellLabels: ["A1"],
                     },
@@ -112,6 +122,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "pink",
                         file: "/path/to/multi-well.txt",
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [5, 6, 7],
                         wellLabels: ["A1", "A2", "A3"],
                     },
@@ -120,6 +132,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "gold",
                         file: "/path/to/no-extension",
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [7],
                         wellLabels: ["A1"],
                     },
@@ -128,6 +142,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "grey",
                         file: "/path/to/not-image.csv",
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [8],
                         wellLabels: ["A1"],
                     },
@@ -136,6 +152,8 @@ describe("Upload selectors", () => {
                         ["Favorite Color"]: "black",
                         file: "/path/to/not-image.txt",
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [5],
                         wellLabels: ["A1"],
                     },
@@ -179,6 +197,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to.dot/image.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [6],
@@ -207,6 +227,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.czi",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [1],
@@ -235,6 +257,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.ome.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [2],
@@ -263,6 +287,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.png",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [3],
@@ -291,6 +317,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [4],
@@ -319,6 +347,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/multi-well.txt",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [5, 6, 7],
@@ -347,6 +377,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.OTHER,
                         originalPath: "/path/to/no-extension",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [7],
@@ -375,6 +407,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.CSV,
                         originalPath: "/path/to/not-image.csv",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [8],
@@ -403,6 +437,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/not-image.txt",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [5],

@@ -402,6 +402,11 @@ export const getUploadPayload = createSelector([
         // per file, we set these values to a uniq list of all of the values found across each "dimension"
         const wellIds = uniq(flatMap(metadata, (m) => m.wellIds)).filter((w) => !!w);
         const workflows = uniq(flatMap(metadata, (m) => m.workflows || [])).filter((w) => !!w);
+        const fileRows = metadata.filter(isFileRow);
+        const shouldBeInArchive = fileRows.length && !isNil(fileRows[0].shouldBeInArchive) ?
+            fileRows[0].shouldBeInArchive : true;
+        const shouldBeInLocal = fileRows.length && !isNil(fileRows[0].shouldBeInLocal) ?
+            fileRows[0].shouldBeInLocal : true;
         result = {
             ...result,
             [fullPath]: {
@@ -412,6 +417,8 @@ export const getUploadPayload = createSelector([
                 file: {
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     originalPath: fullPath,
+                    shouldBeInArchive,
+                    shouldBeInLocal,
                 },
                 microscopy: {
                     ...(wellIds.length && { wellIds }),
