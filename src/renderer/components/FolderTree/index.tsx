@@ -226,7 +226,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             if (tags) {
                 tagEls = tags.map(
                     (tag: { title: string, color: string }) => (
-                        <Tag className={styles.tag} color={tag.color} key={tag.title}>{tag.title}</Tag>
+                        <Tag className={styles.tagSpacing} color={tag.color} key={tag.title}>{tag.title}</Tag>
                     ));
             }
 
