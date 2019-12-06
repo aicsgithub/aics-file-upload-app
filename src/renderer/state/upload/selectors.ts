@@ -30,7 +30,14 @@ import { getCompleteAppliedTemplate } from "../template/selectors";
 import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
-import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
+import {
+    FilepathToBoolean,
+    FileType,
+    MMSAnnotationValueRequest,
+    UploadJobTableRow,
+    UploadMetadata,
+    UploadStateBranch,
+} from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -56,6 +63,8 @@ const EXCLUDED_UPLOAD_FIELDS = [
     "key",
     "plateId",
     "positionIndex",
+    "shouldBeInArchive",
+    "shouldBeInLocal",
     "templateId",
     "wellLabels",
 ];
@@ -443,3 +452,29 @@ export const getUploadJobName = createSelector([
     const numberOfJobsWithBarcode = jobNamesForBarcode.length;
     return numberOfJobsWithBarcode === 0 ? barcode : `${barcode} (${numberOfJobsWithBarcode})`;
 });
+
+export const getUploadFiles = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) => uniq(values(upload).map((u: UploadMetadata) => u.file)));
+
+export const getFileToArchive = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) =>
+    values(upload)
+        .filter(isFileRow)
+        .reduce((accum: FilepathToBoolean, {file, shouldBeInArchive}: UploadMetadata) => ({
+            ...accum,
+            [file]: shouldBeInArchive,
+        }), {})
+);
+
+export const getFileToStoreOnIsilon = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) =>
+    values(upload)
+        .filter(isFileRow)
+        .reduce((accum: FilepathToBoolean, {file, shouldBeInLocal}: UploadMetadata) => ({
+            ...accum,
+            [file]: shouldBeInLocal,
+        }), {})
+);

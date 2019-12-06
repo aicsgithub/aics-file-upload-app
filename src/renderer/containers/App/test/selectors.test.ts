@@ -4,6 +4,12 @@ import { get } from "lodash";
 import { getMockStateWithHistory, mockSelection, mockState, mockWells } from "../../../state/test/mocks";
 import { getFileToTags } from "../selectors";
 
+const DEFAULT_UPLOAD = {
+    notes: undefined,
+    shouldBeInArchive: true,
+    shouldBeInLocal: true,
+};
+
 describe("App selectors", () => {
     describe("getFileToTags", () => {
         it("creates human readable info from wells", () => {
@@ -16,9 +22,20 @@ describe("App selectors", () => {
                     wells: mockWells,
                 }),
                 upload: getMockStateWithHistory({
-                    [filePath1]: { barcode: "test_barcode", file: filePath1,
-                        wellIds: [1, 3], wellLabels: ["A1", "A3"] },
-                    [filePath2]: { barcode: "test_barcode", file: filePath2, wellIds: [4], wellLabels: ["A4"] },
+                    [filePath1]: {
+                        ...DEFAULT_UPLOAD,
+                        barcode: "test_barcode",
+                        file: filePath1,
+                        wellIds: [1, 3],
+                        wellLabels: ["A1", "A3"],
+                    },
+                    [filePath2]: {
+                        ...DEFAULT_UPLOAD,
+                        barcode: "test_barcode",
+                        file: filePath2,
+                        wellIds: [4],
+                        wellLabels: ["A4"],
+                    },
                 }),
             });
 
@@ -44,11 +61,24 @@ describe("App selectors", () => {
                     wells: mockWells,
                 }),
                 upload: getMockStateWithHistory({
-                    [filePath1]: { barcode: "test_barcode", file: filePath1, wellIds: [], wellLabels: [], workflows: [
+                    [filePath1]: {
+                        ...DEFAULT_UPLOAD,
+                        barcode: "test_barcode",
+                        file: filePath1,
+                        wellIds: [],
+                        wellLabels: [],
+                        workflows: [
                             "work3",
                             "work4",
-                        ]},
-                    [filePath2]: { barcode: "test_barcode", file: filePath2, wellIds: [], wellLabels: [], workflows: [
+                        ],
+                    },
+                    [filePath2]: {
+                        ...DEFAULT_UPLOAD,
+                        barcode: "test_barcode",
+                        file: filePath2,
+                        wellIds: [],
+                        wellLabels: [],
+                        workflows: [
                             "work2",
                         ]},
                 }),

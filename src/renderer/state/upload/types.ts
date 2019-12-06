@@ -15,6 +15,8 @@ export interface UploadMetadata {
     file: string;
     notes?: string;
     positionIndex?: number;
+    shouldBeInArchive: boolean;
+    shouldBeInLocal: boolean;
     templateId?: number;
     wellIds: number[];
     wellLabels: string[];
@@ -172,6 +174,20 @@ export interface UpdateScenesAction {
         positionIndexes: number[];
         row: UploadJobTableRow;
     };
+    type: string;
+}
+
+export interface FilepathToBoolean {
+    [filepath: string]: boolean;
+}
+
+export interface UpdateFilesToArchive {
+    payload: FilepathToBoolean;
+    type: string;
+}
+
+export interface UpdateFilesToStoreOnIsilon {
+    payload: FilepathToBoolean;
     type: string;
 }
 

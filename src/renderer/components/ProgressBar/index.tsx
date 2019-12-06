@@ -30,6 +30,10 @@ const stepOrder: StepInfo = {
         description: "Associate Wells or Workflows with Files to upload",
         icon: <Icon type="file" />,
     },
+    [Page.SelectStorageLocation]: {
+        description: "Select where to store files",
+        icon: <Icon type="compass" />,
+    },
     [Page.AddCustomData]: {
         description: "Add additional custom metadata to the files",
         icon: <Icon type="form"/>,

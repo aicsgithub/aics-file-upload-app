@@ -27,7 +27,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removeUploads, updateUploads } from "./actions";
+import { removeUploads, updateUpload, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
@@ -42,6 +42,17 @@ import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
 
 const associateFileAndWellLogic = createLogic({
+    process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dispatch(batchActions([
+            ...action.payload.fullPaths.map(
+                (fullpath: string) => updateUpload(getUploadRowKey(fullpath), {
+                    shouldBeInArchive: true,
+                    shouldBeInLocal: true,
+                })
+            ),
+        ]));
+        done();
+    },
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const state = getState();
         action.payload = {

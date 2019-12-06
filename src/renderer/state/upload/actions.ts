@@ -17,6 +17,8 @@ import {
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
+    UPDATE_FILES_TO_ARCHIVE,
+    UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SCENES,
     UPDATE_UPLOAD,
     UPDATE_UPLOADS,
@@ -26,7 +28,7 @@ import {
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     CancelUploadAction,
-    ClearUploadHistoryAction,
+    ClearUploadHistoryAction, FilepathToBoolean,
     InitiateUploadAction,
     JumpToPastUploadAction,
     JumpToUploadAction,
@@ -34,6 +36,8 @@ import {
     RetryUploadAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
+    UpdateFilesToArchive,
+    UpdateFilesToStoreOnIsilon,
     UpdateScenesAction,
     UpdateUploadAction,
     UpdateUploadsAction,
@@ -171,5 +175,20 @@ export function updateScenes(row: UploadJobTableRow, positionIndexes: number[], 
             row,
         },
         type: UPDATE_SCENES,
+    };
+}
+
+export function updateFilesToArchive(filesToArchive: FilepathToBoolean): UpdateFilesToArchive {
+    return {
+        payload: filesToArchive,
+        type: UPDATE_FILES_TO_ARCHIVE,
+    };
+}
+
+export function updateFilesToStoreOnIsilon(filesToStoreOnIsilon: FilepathToBoolean):
+    UpdateFilesToStoreOnIsilon {
+    return {
+        payload: filesToStoreOnIsilon,
+        type: UPDATE_FILES_TO_STORE_ON_ISILON,
     };
 }
