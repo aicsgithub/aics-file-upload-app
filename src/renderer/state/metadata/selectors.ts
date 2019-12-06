@@ -1,12 +1,15 @@
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { ColumnProps } from "antd/lib/table";
 import { uniq, uniqBy, startCase, without } from "lodash";
 import { createSelector } from "reselect";
 
 import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
+import { getMetadataColumns } from "../setting/selectors";
 import { Annotation, AnnotationOption, AnnotationType, AnnotationWithOptions, ColumnType } from "../template/types";
 import { State } from "../types";
-import { SearchResultRow, SearchResultsTable } from "./types";
+import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
+import { SearchResultRow } from "./types";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
@@ -44,33 +47,31 @@ export const getUniqueBarcodeSearchResults = createSelector([
     });
 });
 
-export const getSearchResultsAsTable = createSelector([
+export const getSearchResultsHeader = createSelector([
     getFileMetadataSearchResults,
-], (rows?: ImageModelMetadata[]): SearchResultsTable | undefined => {
+    getMetadataColumns,
+], (rows, extraMetadataColumns): Array<ColumnProps<SearchResultRow>> | undefined => {
     if (!rows) {
         return undefined;
     }
-    const STATIC_COLUMNS = ["filename", "positionIndex", "channel", "template"];
-    const UNIMPORTANT_COLUMNS: string[] = [...STATIC_COLUMNS, "key", "thumbnailId", "fileId", "fileSize", "fileType", "uploaded", "uploadedBy", "modified", "modifiedBy", "templateId", "localFilePath", "publicFilePath", "archiveFilePath", "thumbnailLocalFilePath"];
     let columns: string[] = [];
     rows.forEach((row) => {
         columns.push(...Object.keys(row));
     });
-    columns = without(uniq(columns), ...UNIMPORTANT_COLUMNS);
-    const header = [...STATIC_COLUMNS, ...columns].map((column) => ({
+    columns = without(uniq(columns), ...MAIN_FILE_COLUMNS, ...UNIMPORTANT_COLUMNS); // TODO: Do they even need to be added here???
+    return [...MAIN_FILE_COLUMNS, ...columns, ...extraMetadataColumns].map((column) => ({
         dataIndex: column,
         key: column,
         sort: column === 'fileId' ? 'descend' : undefined,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
         title: startCase(column),
     }));
-    return { header, rows };
 });
 
 export const getNumberOfFiles = createSelector([
     getFileMetadataSearchResults,
 ], (rows?: ImageModelMetadata[]): number => {
-    if (!rows || rows.length) {
+    if (!rows || !rows.length) {
         return 0;
     }
     return uniq(rows.map(({ fileId }) => fileId)).length;

@@ -13,7 +13,7 @@ import {
 } from "./constants";
 import {
     AddPendingJobAction,
-    JobStateBranch, JobStatus,
+    JobStateBranch, JobFilter,
     RemovePendingJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
@@ -24,7 +24,7 @@ import {
 export const initialState = {
     addMetadataJobs: [],
     copyJobs: [],
-    jobFilter: JobStatus.Pending,
+    jobFilter: JobFilter.Pending,
     pendingJobs: [],
     uploadJobs: [],
 };

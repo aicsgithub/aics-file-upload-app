@@ -13,3 +13,21 @@ export const REQUEST_METADATA = makeConstant(BRANCH_NAME, "request");
 export const RESET_HISTORY = makeConstant(BRANCH_NAME, "reset-history");
 export const SEARCH_FILE_METADATA = makeConstant(BRANCH_NAME, "search-file-metadata");
 export const UPDATE_PAGE_HISTORY = makeConstant(BRANCH_NAME, "update-page-history");
+
+export const MAIN_FILE_COLUMNS = ["filename", "positionIndex", "channel", "template"];
+export const UNIMPORTANT_COLUMNS = [
+    "localFilePath",
+    "publicFilePath",
+    "archiveFilePath",
+    "thumbnailLocalFilePath",
+    "uploaded",
+    "uploadedBy",
+    "modified",
+    "modifiedBy",
+    "fileType",
+    "fileSize",
+    "templateId",
+    "fileId",
+    "thumbnailId",
+    "key",
+];

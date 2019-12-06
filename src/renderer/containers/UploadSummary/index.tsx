@@ -19,7 +19,7 @@ import {
     getJobsForTable
 } from "../../state/job/selectors";
 import {
-    JobStatus,
+    JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
 } from "../../state/job/types";
@@ -35,7 +35,7 @@ import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
 
-const jobStatusOptions: JobStatus[] = map(JobStatus, (value) => value);
+const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
@@ -49,7 +49,7 @@ interface Props {
     className?: string;
     files: UploadFile[];
     loading: boolean;
-    jobFilter: JobStatus;
+    jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
     page: Page;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
@@ -144,7 +144,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     Show{' '}
                     <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
                         {jobStatusOptions.map((option) => (
-                            <Radio.Button value={option}>{option}</Radio.Button>
+                            <Radio.Button key={option} value={option}>{option}</Radio.Button>
                         ))}
                     </Radio.Group>
                     {' '}Uploads
@@ -157,7 +157,10 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                         onRow={this.onRow}
                     />
                 ) : (
-                    <Empty description={`No ${jobFilter === JobStatus.All ? "" : `${jobFilter} `} Uploads`} />
+                    <Empty
+                        className={styles.empty}
+                        description={`No ${jobFilter === JobFilter.All ? "" : `${jobFilter} `} Uploads`}
+                    />
                 )}
                 {selectedJob && <Modal
                     title="Upload Job"

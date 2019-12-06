@@ -9,7 +9,7 @@ import {
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
-    AddPendingJobAction, JobStatus,
+    AddPendingJobAction, JobFilter,
     PendingJob,
     RemovePendingJobsAction,
     RetrieveJobsAction, SelectJobFilterAction,
@@ -59,7 +59,7 @@ export function removePendingJobs(jobNames: string[]): RemovePendingJobsAction {
     };
 }
 
-export function selectJobFilter(jobFilter: JobStatus): SelectJobFilterAction {
+export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
     return {
         payload: jobFilter,
         type: SELECT_JOB_FILTER,

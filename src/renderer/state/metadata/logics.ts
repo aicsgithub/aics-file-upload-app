@@ -1,6 +1,7 @@
+import { FileManagementSystem } from "@aics/aicsfiles";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { sortBy, startCase, omit } from "lodash";
+import { sortBy, startCase } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -26,8 +27,10 @@ import {
     GET_TEMPLATES,
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
+    UNIMPORTANT_COLUMNS,
 } from "./constants";
 import { FileToFileMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { getSearchResultsHeader } from "./selectors";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -225,16 +228,22 @@ const searchFileMetadataLogic = createLogic({
             }
             if (template) {
                 const fileMetadataForTemplate = await fms.getFilesByTemplate(template);
-                fileMetadataSearchResultsAsMap = fms.innerJoinFileMetadata(fileMetadataForTemplate, fileMetadataSearchResultsAsMap);
+                if (fileMetadataSearchResultsAsMap) {
+                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForTemplate, fileMetadataSearchResultsAsMap);
+                } else {
+                    fileMetadataSearchResultsAsMap = fileMetadataForTemplate;
+                }
             }
             if (user) {
                 const fileMetadataForUser = await fms.getFilesByUser(user);
-                fileMetadataSearchResultsAsMap = fms.innerJoinFileMetadata(fileMetadataForUser, fileMetadataSearchResultsAsMap);
+                if (fileMetadataSearchResultsAsMap) {
+                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForUser, fileMetadataSearchResultsAsMap);
+                } else {
+                    fileMetadataSearchResultsAsMap = fileMetadataForUser;
+                }
             }
             if (fileMetadataSearchResultsAsMap) {
-                console.log("fileMetadataSearchResultsAsMap:", fileMetadataSearchResultsAsMap);
                 const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
-                console.log('fileMetadataSearchResults:', fileMetadataSearchResults);
                 dispatch(batchActions([
                     receiveMetadata({ fileMetadataSearchResults }),
                     removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
@@ -268,11 +277,13 @@ const exportFileMetadata = createLogic({
         dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
         try {
             const { payload } = action;
-            const { metadata: { fileMetadataSearchResults } } = getState();
-            if (fileMetadataSearchResults) {
-                const fileMetadataCsv = await fms.transformTableIntoCSV(["fileId", "workflow"].map((title) => startCase(title)), fileMetadataSearchResults);
-                const exportData = await fms.transformTableIntoCSV(fileMetadataSearchResults);
-                await fs.writeFileSync(payload, exportData);
+            const state = getState();
+            const tableHeader = getSearchResultsHeader(state);
+            const { metadata: { fileMetadataSearchResults } } = state;
+            if (fileMetadataSearchResults && tableHeader) {
+                const header = tableHeader.map(({ title }) => title);
+                const csv = fms.transformTableIntoCSV(header, fileMetadataSearchResults);
+                await fs.writeFileSync(payload, csv);
                 dispatch(batchActions([
                     removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
                     setAlert({

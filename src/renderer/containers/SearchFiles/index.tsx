@@ -1,5 +1,19 @@
-import { Button, Col, Icon, Input, Row, Select, Table, Radio, Modal } from "antd";
+import {
+    Button,
+    Col,
+    Icon,
+    Input,
+    Row,
+    Select,
+    Table,
+    Radio,
+    Empty,
+    Checkbox,
+} from "antd";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
+import CheckboxGroup, { CheckboxValueType } from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
+import { ColumnProps } from "antd/lib/table";
 import { remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -12,43 +26,57 @@ import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import {
     exportFileMetadataCSV,
-    requestAnnotations, requestTemplates,
+    requestAnnotations,
+    requestTemplates,
     retrieveOptionsForLookup,
     searchFileMetadata
 } from "../../state/metadata/actions";
+import { UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
 import {
     getAnnotationLookups,
     getAnnotations,
     getFileMetadataSearchResults,
     getNumberOfFiles,
     getOptionsForLookup,
-    getSearchResultsAsTable, getTemplates, getUsers
+    getSearchResultsHeader,
+    getTemplates,
+    getUsers
 } from "../../state/metadata/selectors";
 import {
     ExportFileMetadataAction,
     GetAnnotationsAction,
-    GetOptionsForLookupAction, GetTemplatesAction, SearchConfig,
-    SearchFileMetadataAction, SearchResultRow,
-    SearchResultsTable
+    GetOptionsForLookupAction,
+    GetTemplatesAction,
+    SearchFileMetadataAction,
+    SearchResultRow,
 } from "../../state/metadata/types";
 import { Page } from "../../state/route/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import { getAnnotation, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
+import { setMetadataColumns } from "../../state/setting/actions";
+import { getMetadataColumns } from "../../state/setting/selectors";
+import { SetMetadataColumnsAction } from "../../state/setting/types";
 import { Annotation, AnnotationLookup } from "../../state/template/types";
 import { State } from "../../state/types";
-import { map } from "lodash";
+import { map, startCase, difference } from "lodash";
 import { LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
+import FileMetadataModal from "./FileMetadataModal";
 
 const styles = require("./styles.pcss");
 
 enum SearchMode {
     Annotation = "Annotation",
     User = "User",
-    Template = "Template"
+    Template = "Template",
+    UserAndTemplate = "User & Template",
 }
 
 const searchModeOptions: SearchMode[] = map(SearchMode, (value) => value);
+const EXTRA_COLUMN_OPTIONS = UNIMPORTANT_COLUMNS.map((value) => ({
+    label: startCase(value),
+    value
+}));
 
 interface Props {
     annotation: string;
@@ -58,6 +86,7 @@ interface Props {
     numberOfFilesFound: number;
     exportFileMetadataCSV: ActionCreator<ExportFileMetadataAction>;
     exportingCSV: boolean;
+    metadataColumns: string[];
     optionsForLookup?: string[];
     optionsForLookupLoading: boolean;
     requestAnnotations: ActionCreator<GetAnnotationsAction>;
@@ -65,22 +94,23 @@ interface Props {
     retrieveOptionsForLookup: ActionCreator<GetOptionsForLookupAction>;
     searchFileMetadata: ActionCreator<SearchFileMetadataAction>;
     searchLoading: boolean;
-    searchResultsAsTable?: SearchResultsTable;
+    searchResults?: SearchResultRow[];
+    searchResultsHeader?: Array<ColumnProps<SearchResultRow>>;
     selectAnnotation: ActionCreator<SelectAnnotationAction>;
     selectUser: ActionCreator<SelectUserAction>;
     setAlert: ActionCreator<SetAlertAction>;
+    setMetadataColumns: ActionCreator<SetMetadataColumnsAction>;
     templates: LabkeyTemplate[];
     user: string;
     users: LabkeyUser[];
 }
 
 interface SearchFilesState {
-    showFileDetailModal: boolean;
-    isLookup: boolean;
     selectedRow?: SearchResultRow;
     searchMode: SearchMode;
     searchValue?: string;
     selectedJobId?: string;
+    showExtraColumnOptions: boolean;
     template?: string;
 }
 
@@ -93,8 +123,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            showFileDetailModal: false,
-            isLookup: false,
+            showExtraColumnOptions: false,
             searchMode: SearchMode.Annotation
         };
     }
@@ -110,10 +139,13 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
             className,
             numberOfFilesFound,
             exportingCSV,
+            metadataColumns,
             searchLoading,
-            searchResultsAsTable,
+            searchResults,
+            searchResultsHeader,
         } = this.props;
-        const { showFileDetailModal, selectedRow, searchMode } = this.state;
+        const { selectedRow, searchMode, showExtraColumnOptions } = this.state;
+        const allAreChecked = !difference(UNIMPORTANT_COLUMNS, metadataColumns).length;
         return (
             <FormPage
                 className={className}
@@ -128,45 +160,75 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     <LabeledInput label="Search Mode">
                         <Radio.Group buttonStyle="solid" onChange={this.selectSearchMode} value={searchMode}>
                             {searchModeOptions.map((option) => (
-                                <Radio.Button value={option}>{option}</Radio.Button>
+                                <Radio.Button key={option} value={option}>{option}</Radio.Button>
                             ))}
                         </Radio.Group>
                     </LabeledInput>
                 </Row>
                 {searchMode === SearchMode.Annotation && this.renderAnnotationForm()}
-                {searchMode === SearchMode.User && this.renderUserForm()}
                 {searchMode === SearchMode.Template && this.renderTemplateForm()}
+                {searchMode === SearchMode.User && this.renderUserForm()}
+                {searchMode === SearchMode.UserAndTemplate && this.renderUserAndTemplateForm()}
                 {searchLoading && <p>Searching...</p>}
                 {exportingCSV && <p>Exporting...</p>}
-                {!!numberOfFilesFound && (
-                    <Row>
-                        <p>Search found {numberOfFilesFound} files matching query.</p>
-                    </Row>
+                {numberOfFilesFound > 0 && (
+                    <>
+                        <Row>
+                            <p className={styles.includeExtraColumns}>
+                                Include Extra Columns{' '}
+                                <Icon
+                                    onClick={this.toggleShowExtraColumnOptions}
+                                    type={showExtraColumnOptions ? "caret-down" : "caret-up"}
+                                />
+                            </p>
+                            {showExtraColumnOptions && (
+                                <>
+                                    <Checkbox
+                                        className={styles.checkAll}
+                                        onChange={this.toggleCheckAll}
+                                        indeterminate={!allAreChecked && !!metadataColumns.length}
+                                        checked={allAreChecked}
+                                    >
+                                        Check All
+                                    </Checkbox>
+                                    <CheckboxGroup
+                                        value={metadataColumns}
+                                        options={EXTRA_COLUMN_OPTIONS}
+                                        onChange={this.setMetadataColumns}
+                                    />
+                                </>
+                            )}
+                        </Row>
+                        <Table
+                            dataSource={searchResults}
+                            columns={searchResultsHeader}
+                            title={() => `Search found ${numberOfFilesFound} files matching query`}
+                            onRow={(record) => ({ onClick: () => this.toggleFileDetailModal(undefined, record) })}
+                        />
+                    </>
                 )}
-                {searchResultsAsTable && (
-                    <Table
-                        columns={searchResultsAsTable.header}
-                        dataSource={searchResultsAsTable.rows}
-                        onRow={(record) => ({
-                            onClick: () => this.toggleFileDetailModal(undefined, record)
-                        })}
-                    />
+                {(searchResultsHeader && !numberOfFilesFound) && (
+                    <Empty className={styles.empty} description="No Files found matching search" />
                 )}
-                <Modal
-                    footer={null}
-                    closable={true}
-                    visible={showFileDetailModal}
-                    onCancel={this.toggleFileDetailModal}
-                    title={`File Details for ${selectedRow && selectedRow.filename}`}
-                >
-                    <div>hello {console.log(selectedRow)}</div>
-                </Modal>
+                <FileMetadataModal fileMetadata={selectedRow} toggleFileDetailModal={this.toggleFileDetailModal} />
             </FormPage>
         );
     }
 
+    private toggleShowExtraColumnOptions = () => {
+        this.setState({ showExtraColumnOptions: !this.state.showExtraColumnOptions });
+    }
+
+    private toggleCheckAll = (e: CheckboxChangeEvent) => {
+        this.setMetadataColumns(e.target.checked ? UNIMPORTANT_COLUMNS : []);
+    }
+
+    private setMetadataColumns = (metadataColumns: CheckboxValueType[]): void => {
+        this.props.setMetadataColumns(metadataColumns);
+    }
+
     private toggleFileDetailModal = (e?: any, selectedRow?: SearchResultRow): void => {
-        this.setState({ selectedRow, showFileDetailModal: !this.state.showFileDetailModal });
+        this.setState({ selectedRow });
     }
 
     private renderAnnotationForm = (): JSX.Element => {
@@ -254,7 +316,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         );
     }
 
-    private renderUserForm = (): JSX.Element => {
+    private renderUserAndTemplateForm = (): JSX.Element => {
         const {
             exportingCSV,
             searchLoading,
@@ -312,7 +374,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     <Col xs={6} xl={4} xxl={3}>
                         <Button
                             loading={searchLoading}
-                            disabled={!user || searchLoading || exportingCSV}
+                            disabled={!template || !user || searchLoading || exportingCSV}
                             size="large"
                             type="primary"
                             onClick={this.searchForFiles}
@@ -323,6 +385,47 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 </Row>
             </>
         );
+    }
+
+    private renderUserForm = (): JSX.Element => {
+        const {
+            exportingCSV,
+            searchLoading,
+            user,
+            users,
+        } = this.props;
+        return (
+            <Row style={{ marginTop: '32px' }}>
+                <Col xs={18} xl={20} xxl={21}>
+                    <LabeledInput label="User">
+                        <Select
+                            showSearch={true}
+                            value={user}
+                            loading={!users.length}
+                            disabled={!users.length}
+                            onChange={this.props.selectUser}
+                            placeholder="Select User"
+                            className={styles.fullWidth}
+                        >
+                            {users.map(({ DisplayName }) => (
+                                <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
+                            ))}
+                        </Select>
+                    </LabeledInput>
+                </Col>
+                <Col xs={6} xl={4} xxl={3}>
+                    <Button
+                        loading={searchLoading}
+                        disabled={!user || searchLoading || exportingCSV}
+                        size="large"
+                        type="primary"
+                        onClick={this.searchForFiles}
+                        className={styles.searchButton}
+                    ><Icon type="search" /> Search
+                    </Button>
+                </Col>
+            </Row>
+        )
     }
 
     private renderTemplateForm = (): JSX.Element => {
@@ -400,18 +503,22 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     }
 
     private searchForFiles = () => {
-        const { searchMode } = this.state;
-        const searchConfig: SearchConfig = {};
-        if (searchMode === SearchMode.Annotation) {
-            searchConfig.annotation = this.props.annotation;
-            searchConfig.searchValue = this.state.searchValue;
-        } else if (searchMode === SearchMode.User) {
-            searchConfig.template = this.state.template;
-            searchConfig.user = this.props.user;
-        } else { // searchMode === SearchMode.Template
-            searchConfig.template = this.state.template;
+        const { annotation, user } = this.props;
+        const { searchMode, searchValue, template } = this.state;
+        switch (searchMode) {
+            case SearchMode.Annotation:
+                this.props.searchFileMetadata({ annotation, searchValue });
+                return;
+            case SearchMode.Template:
+                this.props.searchFileMetadata({ template });
+                return;
+            case SearchMode.User:
+                this.props.searchFileMetadata({ user });
+                return;
+            default: // case SearchMode.UserAndTemplate:
+                this.props.searchFileMetadata({ template, user });
+                return;
         }
-        this.props.searchFileMetadata(searchConfig);
     }
 
     private exportCSV = () => {
@@ -438,12 +545,13 @@ function mapStateToProps(state: State) {
         annotationLookups: getAnnotationLookups(state),
         annotations: getAnnotations(state),
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
+        metadataColumns: getMetadataColumns(state),
         numberOfFilesFound: getNumberOfFiles(state),
         optionsForLookup: getOptionsForLookup(state),
         optionsForLookupLoading: getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),
-        searchResultsAsTable: getSearchResultsAsTable(state),
+        searchResultsHeader: getSearchResultsHeader(state),
         templates: getTemplates(state),
         user: getUser(state),
         users: getUsers(state),
@@ -459,6 +567,7 @@ const dispatchToPropsMap = {
     selectAnnotation,
     selectUser,
     setAlert,
+    setMetadataColumns,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(SearchFiles);
