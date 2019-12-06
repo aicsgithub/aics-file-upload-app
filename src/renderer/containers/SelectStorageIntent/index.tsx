@@ -28,16 +28,19 @@ interface SelectStorageIntentProps {
 
 class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> {
     public render() {
-       return (
-           <FormPage
-               formPrompt={`Choose where to store each file. Select Isilon if this file needs to be downloaded again.
+        return (
+            <FormPage
+                formPrompt={`Choose where to store each file. Select Isilon if this file needs to be downloaded again.
                 Select Archive if you would like to back up this file.`}
-               formTitle="SELECT STORAGE LOCATIONS"
-               page={Page.SelectStorageLocation}
-           >
-               {this.renderSimpleForm()}
-           </FormPage>
-       );
+                formTitle="SELECT STORAGE LOCATIONS"
+                onBack={this.props.goBack}
+                onSave={this.props.goForward}
+                page={Page.SelectStorageLocation}
+                saveButtonDisabled={false} // todo
+            >
+                {this.renderSimpleForm()}
+            </FormPage>
+        );
     }
 
     public renderSimpleForm() {
