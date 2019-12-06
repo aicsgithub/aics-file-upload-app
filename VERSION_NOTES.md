@@ -1,5 +1,12 @@
 # Version Notes
 
+## 1.0.19:
+- Feature: Added Search tab for searching for files based on the annotation name and value (strict equality)
+
+## 1.0.18:
+- Feature: Allow users to set /allen/aics mount point
+- Bugfix: small style changes
+
 ## 1.0.17:
 - Feature: Updated the Enter Barcode page to be a Select Upload Type page instead
 - Bugfix: Fixed page navigation issues
