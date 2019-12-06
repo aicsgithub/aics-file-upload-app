@@ -1,4 +1,4 @@
-import { Button, Checkbox, Typography } from "antd";
+import { Checkbox, Switch, Typography } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import { map } from "lodash";
 import * as React from "react";
@@ -21,7 +21,7 @@ import { FilepathToBoolean, UpdateFilesToArchive, UpdateFilesToStoreOnIsilon } f
 const styles = require("./styles.pcss");
 const { Text } = Typography;
 
-interface SelectStorageIntentProps {
+interface Props {
     canGoForward: boolean;
     className?: string;
     fileToArchive: FilepathToBoolean;
@@ -33,9 +33,21 @@ interface SelectStorageIntentProps {
     updateFilesToStoreOnIsilon: ActionCreator<UpdateFilesToStoreOnIsilon>;
 }
 
-class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> {
+interface SelectStorageIntentState {
+    customizeByFile: boolean;
+}
+
+class SelectStorageIntent extends React.Component<Props, SelectStorageIntentState> {
+    public constructor(props: Props) {
+        super(props);
+        this.state = {
+            customizeByFile: false,
+        };
+    }
+
     public render() {
         const { canGoForward } = this.props;
+        const { customizeByFile } = this.state;
         return (
             <FormPage
                 formPrompt="Where should these files be stored?"
@@ -45,12 +57,21 @@ class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> 
                 page={Page.SelectStorageLocation}
                 saveButtonDisabled={!canGoForward}
             >
-                {this.renderSimpleForm()}
+                <div className={styles.switchRow}>
+                    <Switch
+                        checked={customizeByFile}
+                        className={styles.switch}
+                        onChange={this.setCustomizeByFile}
+                    />
+                    <span className={styles.switchLabel}>Customize by File</span>
+                </div>
+                {!customizeByFile && this.renderSimpleForm()}
+                {customizeByFile && this.renderGridForm()}
             </FormPage>
         );
     }
 
-    public renderSimpleForm() {
+    public renderSimpleForm = () => {
         const {
             fileToArchive,
             fileToStoreOnIsilon,
@@ -76,10 +97,17 @@ class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> 
                 >
                     Archive <Text type="secondary">(File will be backed up but not downloadable)</Text>
                 </Checkbox>
-                <Button type="link">Customize by File</Button>
             </>
         );
     }
+
+    public renderGridForm = () => {
+        return (
+            <div>Grid</div>
+        );
+    }
+
+    public setCustomizeByFile = (checked: boolean) => this.setState({customizeByFile: checked});
 
     public selectAllIsilon = (e: CheckboxChangeEvent) => {
         this.props.updateFilesToStoreOnIsilon(
