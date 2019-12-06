@@ -478,3 +478,10 @@ export const getFileToStoreOnIsilon = createSelector([
             [file]: Boolean(shouldBeInLocal),
         }), {})
 );
+
+export const getCanGoForwardFromSelectStorageLocationPage = createSelector([
+    getUploadFiles,
+    getFileToArchive,
+    getFileToStoreOnIsilon,
+], (files: string[], fileToArchive: FilepathToBoolean, fileToStoreOnIsilon: FilepathToBoolean) =>
+    !some(files, (f: string) => !fileToArchive[f] && !fileToStoreOnIsilon[f]));

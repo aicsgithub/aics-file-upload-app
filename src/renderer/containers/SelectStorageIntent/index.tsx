@@ -10,13 +10,19 @@ import { goBack, goForward } from "../../state/route/actions";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { State } from "../../state/types";
 import { updateFilesToArchive, updateFilesToStoreOnIsilon } from "../../state/upload/actions";
-import { getFileToArchive, getFileToStoreOnIsilon, getUploadFiles } from "../../state/upload/selectors";
+import {
+    getCanGoForwardFromSelectStorageLocationPage,
+    getFileToArchive,
+    getFileToStoreOnIsilon,
+    getUploadFiles,
+} from "../../state/upload/selectors";
 import { FilepathToBoolean, UpdateFilesToArchive, UpdateFilesToStoreOnIsilon } from "../../state/upload/types";
 
 const styles = require("./styles.pcss");
 const { Text } = Typography;
 
 interface SelectStorageIntentProps {
+    canGoForward: boolean;
     className?: string;
     fileToArchive: FilepathToBoolean;
     fileToStoreOnIsilon: FilepathToBoolean;
@@ -29,6 +35,7 @@ interface SelectStorageIntentProps {
 
 class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> {
     public render() {
+        const { canGoForward } = this.props;
         return (
             <FormPage
                 formPrompt="Where should these files be stored?"
@@ -36,7 +43,7 @@ class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> 
                 onBack={this.props.goBack}
                 onSave={this.props.goForward}
                 page={Page.SelectStorageLocation}
-                saveButtonDisabled={false} // todo
+                saveButtonDisabled={!canGoForward}
             >
                 {this.renderSimpleForm()}
             </FormPage>
@@ -97,6 +104,7 @@ class SelectStorageIntent extends React.Component<SelectStorageIntentProps, {}> 
 
 function mapStateToProps(state: State) {
     return {
+        canGoForward: getCanGoForwardFromSelectStorageLocationPage(state),
         fileToArchive: getFileToArchive(state),
         fileToStoreOnIsilon: getFileToStoreOnIsilon(state),
         files: getUploadFiles(state),

@@ -20,6 +20,7 @@ import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 
 import {
+    getCanGoForwardFromSelectStorageLocationPage,
     getFileToAnnotationHasValueMap,
     getFileToArchive,
     getUploadFiles,
@@ -993,6 +994,32 @@ describe("Upload selectors", () => {
                 "/path/to/file2": false,
                 "/path/to/file3": true,
             });
+        });
+    });
+
+    describe("getCanGoForwardFromSelectStorageLocationPage", () => {
+        it("returns true if all files have a place to go", () => {
+            const result = getCanGoForwardFromSelectStorageLocationPage({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+            expect(result).to.be.true;
+        });
+        it("returns false if a file does not have a place to go", () => {
+            const result = getCanGoForwardFromSelectStorageLocationPage({
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey("/path/to/file1")]: {
+                        barcode: "1234",
+                        file: "/path/to/file1",
+                        key: getUploadRowKey("/path/to/file"),
+                        shouldBeInArchive: false,
+                        shouldBeInLocal: false,
+                        wellIds: [1],
+                        wellLabels: ["A1"],
+                    },
+                }),
+            });
+            expect(result).to.be.false;
         });
     });
 });
