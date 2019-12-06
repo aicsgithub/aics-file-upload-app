@@ -1,4 +1,4 @@
-import { Checkbox, Switch, Typography } from "antd";
+import { Checkbox, Icon, Switch, Typography } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import { map } from "lodash";
 import * as React from "react";
@@ -102,8 +102,33 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
     }
 
     public renderGridForm = () => {
-        return (
-            <div>Grid</div>
+        const {
+            fileToArchive,
+            fileToStoreOnIsilon,
+            files,
+        } = this.props;
+        return files.map((f: string) => (
+                <div className={styles.fileRow} key={f}>
+                    <div className={styles.file}>
+                        <Icon className={styles.icon} type="file"/>
+                        {f}
+                    </div>
+                    <div className={styles.checkboxes}>
+                        <Checkbox
+                            checked={fileToStoreOnIsilon[f]}
+                            onChange={this.onStoreOnIsilonChange(f)}
+                        >
+                            Isilon
+                        </Checkbox>
+                        <Checkbox
+                            checked={fileToArchive[f]}
+                            onChange={this.onArchiveChange(f)}
+                        >
+                            Archive
+                        </Checkbox>
+                    </div>
+                </div>
+            )
         );
     }
 
@@ -128,6 +153,12 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
                 }), {})
         );
     }
+
+    public onStoreOnIsilonChange = (file: string) => (e: CheckboxChangeEvent) =>
+        this.props.updateFilesToStoreOnIsilon({[file]: e.target.checked})
+
+    public onArchiveChange = (file: string) => (e: CheckboxChangeEvent) =>
+        this.props.updateFilesToArchive({[file]: e.target.checked})
 }
 
 function mapStateToProps(state: State) {
