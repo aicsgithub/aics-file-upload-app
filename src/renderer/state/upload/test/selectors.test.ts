@@ -49,12 +49,6 @@ const standardizeUploads = (uploads: Uploads): Uploads => {
     return result;
 };
 
-const DEFAULT_UPLOAD = {
-    notes: undefined,
-    shouldBeInArchive: true,
-    shouldBeInLocal: true,
-};
-
 describe("Upload selectors", () => {
     describe("getUploadPayload", () => {
         it("Converts upload state branch into correct payload for aicsfiles-js", () => {
@@ -62,7 +56,6 @@ describe("Upload selectors", () => {
                 ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
                     "/path/to.dot/image.tiff": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "452",
                         file: "/path/to.dot/image.tiff",
                         ["Favorite Color"]: "blue",
@@ -71,7 +64,6 @@ describe("Upload selectors", () => {
                         wellLabels: [],
                     },
                     "/path/to.dot/image.tiffscene:1channel:1": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "452",
                         channel: mockChannel,
                         ["Favorite Color"]: "yellow",
@@ -83,7 +75,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/image.czi": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "567",
                         ["Favorite Color"]: "red",
                         file: "/path/to/image.czi",
@@ -92,7 +83,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/image.ome.tiff": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "123",
                         ["Favorite Color"]: "green",
                         file: "/path/to/image.ome.tiff",
@@ -101,7 +91,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/image.png": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "345",
                         ["Favorite Color"]: "purple",
                         file: "/path/to/image.png",
@@ -110,7 +99,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/image.tiff": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "234",
                         ["Favorite Color"]: "orange",
                         file: "/path/to/image.tiff",
@@ -119,7 +107,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/multi-well.txt": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "456",
                         ["Favorite Color"]: "pink",
                         file: "/path/to/multi-well.txt",
@@ -128,7 +115,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1", "A2", "A3"],
                     },
                     "/path/to/no-extension": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "888",
                         ["Favorite Color"]: "gold",
                         file: "/path/to/no-extension",
@@ -137,7 +123,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/not-image.csv": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "578",
                         ["Favorite Color"]: "grey",
                         file: "/path/to/not-image.csv",
@@ -146,7 +131,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     "/path/to/not-image.txt": {
-                        ...DEFAULT_UPLOAD,
                         barcode: "456",
                         ["Favorite Color"]: "black",
                         file: "/path/to/not-image.txt",
@@ -536,14 +520,12 @@ describe("Upload selectors", () => {
                 ...mockState,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey("/path/to/file1")]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                         wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1235",
                         file: "/path/to/file1",
                         positionIndex: 1,
@@ -554,7 +536,6 @@ describe("Upload selectors", () => {
             });
             expect(rows.length).to.equal(1);
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [],
                 file: "/path/to/file1",
@@ -580,14 +561,12 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [getUploadRowKey("/path/to/file1")]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                         wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
@@ -598,7 +577,6 @@ describe("Upload selectors", () => {
             });
             expect(rows.length).to.equal(2);
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [],
                 file: "/path/to/file1",
@@ -613,7 +591,6 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [],
                 file: "/path/to/file1",
@@ -634,7 +611,6 @@ describe("Upload selectors", () => {
                 ...mockState,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey("/path/to/file1", 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         key: getUploadRowKey("/path/to/file1", 1),
@@ -643,7 +619,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A2"],
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
@@ -656,7 +631,6 @@ describe("Upload selectors", () => {
             });
             expect(rows.length).to.equal(2);
             expect(rows[0]).to.deep.equal({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channel: mockChannel,
                 channelIds: [],
@@ -673,7 +647,6 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
             expect(rows[1]).to.deep.equal({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [],
                 file: "/path/to/file1",
@@ -700,14 +673,12 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [getUploadRowKey("/path/to/file1")]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [1],
                         wellLabels: ["A1"],
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
@@ -719,7 +690,6 @@ describe("Upload selectors", () => {
             });
             expect(rows.length).to.equal(2);
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [1],
                 file: "/path/to/file1",
@@ -734,7 +704,6 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channel: mockChannel,
                 channelIds: [],
@@ -763,14 +732,12 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [getUploadRowKey("/path/to/file1")]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                         wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
@@ -778,7 +745,6 @@ describe("Upload selectors", () => {
                         wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1, 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
@@ -787,7 +753,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
@@ -798,7 +763,6 @@ describe("Upload selectors", () => {
             });
             expect(rows.length).to.equal(4);
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [1],
                 file: "/path/to/file1",
@@ -813,7 +777,6 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channelIds: [],
                 file: "/path/to/file1",
@@ -829,7 +792,6 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channel: mockChannel,
                 channelIds: [],
@@ -846,7 +808,6 @@ describe("Upload selectors", () => {
                 workflows: "",
             });
             expect(rows).to.deep.include({
-                ...DEFAULT_UPLOAD,
                 barcode: "1234",
                 channel: mockChannel,
                 channelIds: [],
@@ -897,7 +858,6 @@ describe("Upload selectors", () => {
                 ...mockState,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey(file)]: {
-                        ...DEFAULT_UPLOAD,
                         age: undefined,
                         barcode: "abcd",
                         file,
@@ -905,7 +865,6 @@ describe("Upload selectors", () => {
                         wellLabels: [],
                     },
                     [getUploadRowKey(file, 1)]: {
-                        ...DEFAULT_UPLOAD,
                         age: undefined,
                         barcode: "abcd",
                         file,
@@ -913,7 +872,6 @@ describe("Upload selectors", () => {
                         wellLabels: ["A1"],
                     },
                     [getUploadRowKey(file, 1, 1)]: {
-                        ...DEFAULT_UPLOAD,
                         age: 19,
                         barcode: "abcd",
                         file,
@@ -923,11 +881,9 @@ describe("Upload selectors", () => {
                 }),
             });
             expect(result[file]).to.deep.equal({
-                ...DEFAULT_UPLOAD,
                 age: true,
                 barcode: true,
                 file: true,
-                notes: false,
                 wellIds: true,
                 wellLabels: true,
             });
@@ -945,7 +901,6 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        ...DEFAULT_UPLOAD,
                         "Another Garbage Text Annotation": ["valid", "valid"],
                         "Birth Date": [new Date()],
                         "Cas9": [],
@@ -977,7 +932,6 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        ...DEFAULT_UPLOAD,
                         "Another Garbage Text Annotation": "should, not, be, a, string",
                         "Birth Date": [new Date()],
                         "Cas9": [],

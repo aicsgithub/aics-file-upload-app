@@ -35,6 +35,8 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
+    UPDATE_FILES_TO_ARCHIVE,
+    UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SCENES,
     UPDATE_UPLOAD,
 } from "./constants";
@@ -42,17 +44,6 @@ import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
 
 const associateFileAndWellLogic = createLogic({
-    process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        dispatch(batchActions([
-            ...action.payload.fullPaths.map(
-                (fullpath: string) => updateUpload(getUploadRowKey(fullpath), {
-                    shouldBeInArchive: true,
-                    shouldBeInLocal: true,
-                })
-            ),
-        ]));
-        done();
-    },
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const state = getState();
         action.payload = {
@@ -483,6 +474,30 @@ const updateUploadLogic = createLogic({
     type: UPDATE_UPLOAD,
 });
 
+const updateFilesToStoreOnIsilonLogic = createLogic({
+    transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const updates = map(
+            action.payload,
+            (shouldBeInLocal: boolean, filepath: string) =>
+                updateUpload(getUploadRowKey(filepath), {shouldBeInLocal})
+        );
+        next(batchActions(updates));
+    },
+    type: UPDATE_FILES_TO_STORE_ON_ISILON,
+});
+
+const updateFilesToStoreInArchiveLogic = createLogic({
+    transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const updates = map(
+            action.payload,
+            (shouldBeInArchive: boolean, filepath: string) =>
+                updateUpload(getUploadRowKey(filepath), {shouldBeInArchive})
+        );
+        next(batchActions(updates));
+    },
+    type: UPDATE_FILES_TO_ARCHIVE,
+});
+
 export default [
     applyTemplateLogic,
     associateFileAndWellLogic,
@@ -491,4 +506,6 @@ export default [
     retryUploadLogic,
     updateScenesLogic,
     updateUploadLogic,
+    updateFilesToStoreOnIsilonLogic,
+    updateFilesToStoreInArchiveLogic,
 ];

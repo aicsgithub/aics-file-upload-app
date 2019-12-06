@@ -15,8 +15,8 @@ export interface UploadMetadata {
     file: string;
     notes?: string;
     positionIndex?: number;
-    shouldBeInArchive: boolean;
-    shouldBeInLocal: boolean;
+    shouldBeInArchive?: boolean;
+    shouldBeInLocal?: boolean;
     templateId?: number;
     wellIds: number[];
     wellLabels: string[];

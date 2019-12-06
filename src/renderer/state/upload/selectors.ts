@@ -464,7 +464,7 @@ export const getFileToArchive = createSelector([
         .filter(isFileRow)
         .reduce((accum: FilepathToBoolean, {file, shouldBeInArchive}: UploadMetadata) => ({
             ...accum,
-            [file]: shouldBeInArchive,
+            [file]: Boolean(shouldBeInArchive),
         }), {})
 );
 
@@ -475,6 +475,6 @@ export const getFileToStoreOnIsilon = createSelector([
         .filter(isFileRow)
         .reduce((accum: FilepathToBoolean, {file, shouldBeInLocal}: UploadMetadata) => ({
             ...accum,
-            [file]: shouldBeInLocal,
+            [file]: Boolean(shouldBeInLocal),
         }), {})
 );

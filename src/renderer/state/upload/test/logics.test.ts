@@ -304,8 +304,6 @@ describe("Upload logics", () => {
                     [getUploadRowKey(file)]: {
                         barcode: "1234",
                         file: "/path/to/file1",
-                        shouldBeInArchive: true,
-                        shouldBeInLocal: true,
                         wellIds: [],
                         wellLabels: [],
                     },
@@ -313,8 +311,6 @@ describe("Upload logics", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
-                        shouldBeInArchive: true,
-                        shouldBeInLocal: true,
                         wellIds: [1],
                         wellLabels: ["A1"],
                     },

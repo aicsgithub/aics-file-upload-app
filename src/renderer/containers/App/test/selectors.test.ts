@@ -4,12 +4,6 @@ import { get } from "lodash";
 import { getMockStateWithHistory, mockSelection, mockState, mockWells } from "../../../state/test/mocks";
 import { getFileToTags } from "../selectors";
 
-const DEFAULT_UPLOAD = {
-    notes: undefined,
-    shouldBeInArchive: true,
-    shouldBeInLocal: true,
-};
-
 describe("App selectors", () => {
     describe("getFileToTags", () => {
         it("creates human readable info from wells", () => {
@@ -23,16 +17,18 @@ describe("App selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [filePath1]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "test_barcode",
                         file: filePath1,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: true,
                         wellIds: [1, 3],
                         wellLabels: ["A1", "A3"],
                     },
                     [filePath2]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "test_barcode",
                         file: filePath2,
+                        shouldBeInArchive: false,
+                        shouldBeInLocal: false,
                         wellIds: [4],
                         wellLabels: ["A4"],
                     },
@@ -40,9 +36,11 @@ describe("App selectors", () => {
             });
 
             const file1Tags = map.get(filePath1) || [];
-            expect(file1Tags.length).to.equal(2);
+            expect(file1Tags.length).to.equal(4);
             expect(file1Tags.map((t) => t.title)).to.contain("A1");
             expect(file1Tags.map((t) => t.title)).to.contain("A3");
+            expect(file1Tags.map((t) => t.title)).to.contain("Isilon");
+            expect(file1Tags.map((t) => t.title)).to.contain("Archive");
 
             const file2Tags = map.get(filePath2) || [];
             expect(file2Tags.length).to.equal(1);
@@ -62,7 +60,6 @@ describe("App selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [filePath1]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "test_barcode",
                         file: filePath1,
                         wellIds: [],
@@ -73,7 +70,6 @@ describe("App selectors", () => {
                         ],
                     },
                     [filePath2]: {
-                        ...DEFAULT_UPLOAD,
                         barcode: "test_barcode",
                         file: filePath2,
                         wellIds: [],
