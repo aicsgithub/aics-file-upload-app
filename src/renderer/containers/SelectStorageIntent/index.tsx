@@ -84,18 +84,18 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
         return (
             <>
                 <Checkbox
-                    checked={allFilesShouldBeInIsilon}
-                    className={styles.selectAllCheckbox}
-                    onChange={this.selectAllIsilon}
-                >
-                    Isilon <Text type="secondary">(Necessary if this file will be downloaded again)</Text>
-                </Checkbox>
-                <Checkbox
                     checked={allFilesShouldBeInArchive}
                     className={styles.selectAllCheckbox}
                     onChange={this.selectAllArchive}
                 >
                     Archive <Text type="secondary">(File will be backed up but not downloadable)</Text>
+                </Checkbox>
+                <Checkbox
+                    checked={allFilesShouldBeInIsilon}
+                    className={styles.selectAllCheckbox}
+                    onChange={this.selectAllIsilon}
+                >
+                    Isilon <Text type="secondary">(Necessary if this file will be downloaded again)</Text>
                 </Checkbox>
             </>
         );
@@ -115,16 +115,16 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
                     </div>
                     <div className={styles.checkboxes}>
                         <Checkbox
-                            checked={fileToStoreOnIsilon[f]}
-                            onChange={this.onStoreOnIsilonChange(f)}
-                        >
-                            Isilon
-                        </Checkbox>
-                        <Checkbox
                             checked={fileToArchive[f]}
                             onChange={this.onArchiveChange(f)}
                         >
                             Archive
+                        </Checkbox>
+                        <Checkbox
+                            checked={fileToStoreOnIsilon[f]}
+                            onChange={this.onStoreOnIsilonChange(f)}
+                        >
+                            Isilon
                         </Checkbox>
                     </div>
                 </div>
