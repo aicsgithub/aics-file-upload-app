@@ -118,8 +118,6 @@ describe("Template Logics", () => {
                     [key]: {
                         barcode: "abc",
                         file: key,
-                        shouldBeInArchive: true,
-                        shouldBeInLocal: true,
                         wellIds: [1, 2],
                         wellLabels: ["A1", "A2"],
                     },
