@@ -1,4 +1,3 @@
-import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ColumnProps } from "antd/lib/table";
 import { LabkeyPlateResponse, LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
 import { Workflow } from "../selection/types";
@@ -13,7 +12,8 @@ export interface MetadataStateBranch {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
     channels: Channel[];
-    fileMetadataSearchResults?: ImageModelMetadata[];
+    fileMetadataForJob?: SearchResultRow[];
+    fileMetadataSearchResults?: SearchResultRow[];
     imagingSessions: ImagingSession[];
     lookups: Lookup[];
     optionsForLookup?: string[];

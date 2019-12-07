@@ -1,4 +1,3 @@
-import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ColumnProps } from "antd/lib/table";
 import { uniq, uniqBy, startCase, without } from "lodash";
 import { createSelector } from "reselect";
@@ -30,6 +29,7 @@ export const getChannels = (state: State) => state.metadata.channels;
 export const getFileMetadataSearchResults = (state: State) => state.metadata.fileMetadataSearchResults;
 export const getOptionsForLookup = (state: State) => state.metadata.optionsForLookup;
 export const getUsers = (state: State) => state.metadata.users;
+export const getFileMetadataForJob = (state: State) => state.metadata.fileMetadataForJob;
 
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([
@@ -47,11 +47,8 @@ export const getUniqueBarcodeSearchResults = createSelector([
     });
 });
 
-export const getSearchResultsHeader = createSelector([
-    getFileMetadataSearchResults,
-    getMetadataColumns,
-], (rows, extraMetadataColumns): Array<ColumnProps<SearchResultRow>> | undefined => {
-    if (!rows) {
+const getHeaderForFileMetadata = (rows?: SearchResultRow[], extraMetadataColumns?: string[]): Array<ColumnProps<SearchResultRow>> | undefined => {
+    if (!rows || !extraMetadataColumns) {
         return undefined;
     }
     let columns: string[] = [];
@@ -66,11 +63,24 @@ export const getSearchResultsHeader = createSelector([
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
         title: startCase(column),
     }));
+};
+
+export const getSearchResultsHeader = createSelector([
+    getFileMetadataSearchResults,
+    getMetadataColumns,
+], (rows, extraMetadataColumns): Array<ColumnProps<SearchResultRow>> | undefined => {
+    return getHeaderForFileMetadata(rows, extraMetadataColumns);
+});
+
+export const getFileMetadataForJobHeader = createSelector([
+    getFileMetadataForJob,
+], (rows): Array<ColumnProps<SearchResultRow>> | undefined => {
+    return getHeaderForFileMetadata(rows, []);
 });
 
 export const getNumberOfFiles = createSelector([
     getFileMetadataSearchResults,
-], (rows?: ImageModelMetadata[]): number => {
+], (rows?: SearchResultRow[]): number => {
     if (!rows || !rows.length) {
         return 0;
     }

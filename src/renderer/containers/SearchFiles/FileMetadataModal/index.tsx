@@ -1,7 +1,5 @@
 import { Alert, Button, Divider, List, Modal, Row } from "antd";
-import { shell } from "electron";
 import { startCase, forOwn, isNil } from "lodash";
-import os from 'os';
 import * as React from "react";
 
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "../../../state/metadata/constants";
@@ -11,6 +9,7 @@ const styles = require("./styles.pcss");
 
 interface FileMetadataProps {
     fileMetadata?: SearchResultRow;
+    onBrowse: (filePath: string) => void;
     toggleFileDetailModal: () => void;
 }
 
@@ -19,10 +18,10 @@ interface ListItem {
     value?: any;
 }
 
-const MAC = 'Darwin';
-const WINDOWS = 'Windows_NT';
-
-const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({ fileMetadata, toggleFileDetailModal }) => {
+const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
+                                                                           fileMetadata,
+                                                                           onBrowse,
+                                                                           toggleFileDetailModal }) => {
     if (!fileMetadata) {
         return null;
     }
@@ -45,26 +44,9 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({ fileMet
             <span className={styles.value}>{value || 'None'}</span>
         </List.Item>
     ));
-    const userOS = os.type();
     const isLocal = !!fileMetadata.localFilePath;
     const isPublic = !!fileMetadata.publicFilePath;
     const isArchive = !!fileMetadata.archiveFilePath;
-    const download = (filePath: string | number): void => {
-        const path = filePath as string;
-        let downloadPath;
-        if (userOS === WINDOWS) {
-            downloadPath = path.replace(/\//g, '\\');
-        } else if (userOS === MAC) {
-            downloadPath = path;
-        } else { // Linux
-            downloadPath = path;
-        }
-        const success = shell.showItemInFolder(downloadPath); // TODO: Test on different OS
-        if (!success) {
-            // set error!
-            console.log('error!');
-        }
-    };
     return (
         <Modal
             footer={null}
@@ -102,7 +84,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({ fileMet
                     <Button
                         type="primary"
                         className={styles.downloadButton}
-                        onClick={() => download(fileMetadata.publicFilePath)}
+                        onClick={() => onBrowse(fileMetadata.publicFilePath as string)}
                     >Browse To Public File
                     </Button>
                 )}
@@ -110,7 +92,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({ fileMet
                     <Button
                         type="primary"
                         className={styles.downloadButton}
-                        onClick={() => download(fileMetadata.localFilePath)}
+                        onClick={() => onBrowse(fileMetadata.localFilePath as string)}
                     >Browse To Local File
                     </Button>
                 )}

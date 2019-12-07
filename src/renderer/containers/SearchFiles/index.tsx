@@ -1,20 +1,11 @@
-import {
-    Button,
-    Col,
-    Icon,
-    Input,
-    Row,
-    Select,
-    Table,
-    Radio,
-    Empty,
-    Checkbox,
-} from "antd";
+import { Button, Checkbox, Col, Empty, Icon, Input, Radio, Row, Select, Table, } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import CheckboxGroup, { CheckboxValueType } from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
-import { remote } from "electron";
+import { remote, shell } from "electron";
+import { difference, map, startCase } from "lodash";
+import os from "os";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -23,7 +14,7 @@ import FormPage from "../../components/FormPage";
 import LabeledInput from "../../components/LabeledInput";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import {
     exportFileMetadataCSV,
     requestAnnotations,
@@ -33,7 +24,6 @@ import {
 } from "../../state/metadata/actions";
 import { UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
 import {
-    getAnnotationLookups,
     getAnnotations,
     getFileMetadataSearchResults,
     getNumberOfFiles,
@@ -57,9 +47,8 @@ import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/
 import { setMetadataColumns } from "../../state/setting/actions";
 import { getMetadataColumns } from "../../state/setting/selectors";
 import { SetMetadataColumnsAction } from "../../state/setting/types";
-import { Annotation, AnnotationLookup } from "../../state/template/types";
+import { Annotation } from "../../state/template/types";
 import { State } from "../../state/types";
-import { map, startCase, difference } from "lodash";
 import { LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
 import FileMetadataModal from "./FileMetadataModal";
 
@@ -80,7 +69,6 @@ const EXTRA_COLUMN_OPTIONS = UNIMPORTANT_COLUMNS.map((value) => ({
 
 interface Props {
     annotation: string;
-    annotationLookups: AnnotationLookup[];
     annotations: Annotation[];
     className?: string;
     numberOfFilesFound: number;
@@ -113,6 +101,9 @@ interface SearchFilesState {
     showExtraColumnOptions: boolean;
     template?: string;
 }
+
+const MAC = 'Darwin';
+const WINDOWS = 'Windows_NT';
 
 /*
     This container represents the Search Files tab, in this tab the user can query for files and their metadata
@@ -210,9 +201,32 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 {(searchResultsHeader && !numberOfFilesFound) && (
                     <Empty className={styles.empty} description="No Files found matching search" />
                 )}
-                <FileMetadataModal fileMetadata={selectedRow} toggleFileDetailModal={this.toggleFileDetailModal} />
+                <FileMetadataModal
+                    fileMetadata={selectedRow}
+                    onBrowse={this.onBrowseToFile}
+                    toggleFileDetailModal={this.toggleFileDetailModal}
+                />
             </FormPage>
         );
+    }
+
+    private onBrowseToFile = (filePath: string) => {
+        let downloadPath;
+        const userOS = os.type();
+        if (userOS === WINDOWS) {
+            downloadPath = filePath.replace(/\//g, '\\');
+        } else if (userOS === MAC) {
+            downloadPath = filePath;
+        } else { // Linux
+            downloadPath = filePath;
+        }
+        if (!shell.showItemInFolder(downloadPath)) {
+            setAlert({
+                message: "Failed to browse to file, contact software or browse to file path " +
+                    "using files path(s) shown in metadata",
+                type: AlertType.ERROR
+            });
+        }
     }
 
     private toggleShowExtraColumnOptions = () => {
@@ -542,7 +556,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 function mapStateToProps(state: State) {
     return {
         annotation: getAnnotation(state),
-        annotationLookups: getAnnotationLookups(state),
         annotations: getAnnotations(state),
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
         metadataColumns: getMetadataColumns(state),

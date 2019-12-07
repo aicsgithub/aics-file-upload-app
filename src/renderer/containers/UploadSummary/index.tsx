@@ -2,7 +2,9 @@ import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/
 import { Alert, Button, Col, Empty, Modal, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
+import { shell } from "electron";
 import { map } from "lodash";
+import os from "os";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -10,8 +12,9 @@ import { ActionCreator } from "redux";
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
+import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
+import { AlertType, AsyncRequest } from "../../state/feedback/types";
 import { retrieveJobs, selectJobFilter } from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
@@ -23,6 +26,8 @@ import {
     RetrieveJobsAction,
     SelectJobFilterAction,
 } from "../../state/job/types";
+import { getFileMetadataForJob, getFileMetadataForJobHeader } from "../../state/metadata/selectors";
+import { SearchResultRow } from "../../state/metadata/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import { Page, SelectViewAction } from "../../state/route/types";
@@ -31,6 +36,7 @@ import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types";
+import FileMetadataModal from "../SearchFiles/FileMetadataModal";
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
@@ -47,6 +53,8 @@ interface Props {
     allJobsComplete: boolean;
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
+    fileMetadataForJob?: SearchResultRow[];
+    fileMetadataForJobHeader?: ColumnProps<SearchResultRow>[];
     files: UploadFile[];
     loading: boolean;
     jobFilter: JobFilter;
@@ -60,7 +68,8 @@ interface Props {
 }
 
 interface UploadSummaryState {
-    selectedJobId?: string;
+    selectedJobId?: string
+    selectedRowInUpload?: SearchResultRow;
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
@@ -107,6 +116,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     public render() {
         const {
             className,
+            fileMetadataForJob,
+            fileMetadataForJobHeader,
             jobFilter,
             jobs,
             loading,
@@ -174,10 +185,43 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                        job={selectedJob}
                        retryUpload={this.retryUpload}
                        loading={loading}
+                       fileMetadataForJob={fileMetadataForJob}
+                       fileMetadataForJobHeader={fileMetadataForJobHeader}
+                       toggleFileDetailModal={this.toggleFileDetailModal}
                    />
+                    <FileMetadataModal
+                        fileMetadata={undefined}
+                        onBrowse={this.onBrowseToFile}
+                        toggleFileDetailModal={this.toggleFileDetailModal}
+                    />
                 </Modal>}
             </FormPage>
         );
+    }
+
+
+
+    private toggleFileDetailModal = (e?: any, selectedRowInUpload?: SearchResultRow): void => {
+        this.setState({ selectedRowInUpload });
+    }
+
+    private onBrowseToFile = (filePath: string) => {
+        let downloadPath;
+        const userOS = os.type();
+        if (userOS === "") { // TODO:
+            downloadPath = filePath.replace(/\//g, '\\');
+        } else if (userOS === "") { // TODO:
+            downloadPath = filePath;
+        } else { // Linux
+            downloadPath = filePath;
+        }
+        if (!shell.showItemInFolder(downloadPath)) {
+            setAlert({
+                message: "Failed to browse to file, contact software or browse to file path " +
+                    "using files path(s) shown in metadata",
+                type: AlertType.ERROR
+            });
+        }
     }
 
     private selectJobFilter = (e: RadioChangeEvent): void => {
@@ -244,13 +288,16 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private closeModal = () => {
-        this.setState({selectedJobId: undefined});
+        // TODO: clear fileMetadataForJob && fileMetadataForJobHeader
+        this.setState({ selectedJobId: undefined, selectedRowInUpload: undefined });
     }
 }
 
 function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
+        fileMetadataForJob: getFileMetadataForJob(state),
+        fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
         files: getStagedFiles(state),
         jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
