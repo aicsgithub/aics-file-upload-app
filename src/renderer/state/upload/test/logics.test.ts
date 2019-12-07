@@ -14,13 +14,15 @@ import {
     mockDateAnnotation,
     mockNumberAnnotation,
     mockTemplateStateBranch,
-    mockTemplateWithManyValues, mockTextAnnotation,
+    mockTemplateWithManyValues,
+    mockTextAnnotation,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
     applyTemplate,
     associateFilesAndWells,
-    initiateUpload, updateFilesToArchive,
+    initiateUpload,
+    updateFilesToArchive,
     updateFilesToStoreOnIsilon,
     updateScenes,
     updateUpload,
