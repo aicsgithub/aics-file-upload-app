@@ -18,9 +18,8 @@ import {
 import { batchActions } from "../util";
 import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs } from "./actions";
 
-import { FAILED_STATUSES, PENDING_STATUSES, RETRIEVE_JOBS, SUCCESSFUL_STATUS } from "./constants";
+import { RETRIEVE_JOBS } from "./constants";
 import { getPendingJobNames } from "./selectors";
-import { JobFilter } from "./types";
 
 const convertJobDates = (j: JSSJob) => ({
     ...j,
@@ -31,22 +30,12 @@ const retrieveJobsLogic = createLogic({
     process: async ({ action, getState, jssClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         try {
-            const statusesToInclude = [];
-            const { job: { jobFilter } } = getState();
-            if (jobFilter === JobFilter.Failed || jobFilter === JobFilter.All) {
-                statusesToInclude.push(...FAILED_STATUSES);
-            }
-            if (jobFilter === JobFilter.Successful || jobFilter === JobFilter.All) {
-                statusesToInclude.push(SUCCESSFUL_STATUS);
-            }
-            if (jobFilter === JobFilter.Pending || jobFilter === JobFilter.All) {
-                statusesToInclude.push(...PENDING_STATUSES);
-            }
+            // get all uploadJobs for user from jss
+            // TODO in the future allow user to set params for querying for uploadJobs
             const getUploadJobsPromise = jssClient.getJobs({
                 serviceFields: {
                     type: "upload",
                 },
-                status: { $in: statusesToInclude },
                 user: userInfo().username,
 
             });
@@ -54,14 +43,12 @@ const retrieveJobsLogic = createLogic({
                 serviceFields: {
                     type: "copy",
                 },
-                status: { $in: statusesToInclude },
                 user: userInfo().username,
             });
             const getAddMetadataPromise = jssClient.getJobs({
                 serviceFields: {
                     type: "add_metadata",
                 },
-                status: { $in: statusesToInclude },
                 user: userInfo().username,
             });
 

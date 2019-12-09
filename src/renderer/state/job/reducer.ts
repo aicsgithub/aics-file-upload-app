@@ -6,17 +6,14 @@ import { makeReducer } from "../util";
 import {
     ADD_PENDING_JOB,
     REMOVE_PENDING_JOB,
-    SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS
 } from "./constants";
 import {
     AddPendingJobAction,
-    JobFilter,
     JobStateBranch,
     RemovePendingJobsAction,
-    SelectJobFilterAction,
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
@@ -25,7 +22,6 @@ import {
 export const initialState = {
     addMetadataJobs: [],
     copyJobs: [],
-    jobFilter: JobFilter.Pending,
     pendingJobs: [],
     uploadJobs: [],
 };
@@ -75,15 +71,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             return {
                 ...state,
                 pendingJobs: filter(state.pendingJobs, ({jobName}) => !includes(action.payload, jobName)),
-            };
-        },
-    },
-    [SELECT_JOB_FILTER]: {
-        accepts: (action: AnyAction): action is SelectJobFilterAction => action.type === SELECT_JOB_FILTER,
-        perform: (state: JobStateBranch, action: SelectJobFilterAction) => {
-            return {
-                ...state,
-                jobFilter: action.payload,
             };
         },
     },

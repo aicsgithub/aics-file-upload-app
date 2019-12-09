@@ -1,34 +1,18 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Alert, Button, Col, Empty, Modal, Radio, Row, Table } from "antd";
-import { RadioChangeEvent } from "antd/es/radio";
+import { Alert, Button, Modal, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
-import { shell } from "electron";
-import { map } from "lodash";
-import os from "os";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import FileMetadataModal from "../../components/FileMetadataModal";
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
-import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AlertType, AsyncRequest } from "../../state/feedback/types";
-import { retrieveJobs, selectJobFilter } from "../../state/job/actions";
-import {
-    getAreAllJobsComplete,
-    getJobFilter,
-    getJobsForTable
-} from "../../state/job/selectors";
-import {
-    JobFilter,
-    RetrieveJobsAction,
-    SelectJobFilterAction,
-} from "../../state/job/types";
-import { getFileMetadataForJob, getFileMetadataForJobHeader } from "../../state/metadata/selectors";
-import { SearchResultRow, SearchResultsHeader } from "../../state/metadata/types";
+import { AsyncRequest } from "../../state/feedback/types";
+import { retrieveJobs } from "../../state/job/actions";
+import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
+import { RetrieveJobsAction } from "../../state/job/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import { Page, SelectViewAction } from "../../state/route/types";
@@ -41,8 +25,6 @@ import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
 
-const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
-
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
     // used by antd's Table component to uniquely identify rows
@@ -53,23 +35,18 @@ interface Props {
     allJobsComplete: boolean;
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
-    fileMetadataForJob?: SearchResultRow[];
-    fileMetadataForJobHeader?: SearchResultsHeader[];
     files: UploadFile[];
     loading: boolean;
-    jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
     page: Page;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     retryUpload: ActionCreator<RetryUploadAction>;
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
-    selectJobFilter: ActionCreator<SelectJobFilterAction>;
 }
 
 interface UploadSummaryState {
     selectedJobId?: string;
-    selectedRowInUpload?: SearchResultRow;
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
@@ -116,9 +93,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     public render() {
         const {
             className,
-            fileMetadataForJob,
-            fileMetadataForJobHeader,
-            jobFilter,
             jobs,
             loading,
             page,
@@ -128,51 +102,34 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             <FormPage
                 className={className}
                 formTitle="YOUR UPLOADS"
-                formPrompt="Your upload jobs will appear below"
+                formPrompt=""
                 onSave={this.onFormSave}
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
                 page={Page.UploadSummary}
             >
                 {!this.interval && (
-                    <Row className={styles.refreshContainer}>
-                        <Col xs={4}>
-                            <Button
-                                size="large"
-                                type="primary"
-                                onClick={this.setJobInterval}
-                            >Refresh Jobs
-                            </Button>
-                        </Col>
-                        <Col xs={20}>
-                            <Alert
-                                type="info"
-                                message="Uploads no longer auto-updating, click refresh to begin updating again"
-                            />
-                        </Col>
-                    </Row>
+                    <div className={styles.refreshContainer}>
+                        <Button
+                            size="large"
+                            type="primary"
+                            onClick={this.setJobInterval}
+                            className={styles.refreshButton}
+                        >Refresh Jobs
+                        </Button>
+                        <Alert
+                            className={styles.alert}
+                            type="info"
+                            message="Uploads no longer auto-updating, click refresh to begin updating again"
+                            showIcon={true}
+                        />
+                    </div>
                 )}
-                <Row>
-                    Show{" "}
-                    <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
-                        {jobStatusOptions.map((option) => (
-                            <Radio.Button key={option} value={option}>{option}</Radio.Button>
-                        ))}
-                    </Radio.Group>
-                    {" "}Uploads
-                </Row>
-                {jobs.length ? (
-                    <Table
-                        className={styles.jobTable}
-                        columns={this.columns}
-                        dataSource={jobs}
-                        onRow={this.onRow}
-                    />
-                ) : (
-                    <Empty
-                        className={styles.empty}
-                        description={`No ${jobFilter === JobFilter.All ? "" : `${jobFilter} `} Uploads`}
-                    />
-                )}
+                <Table
+                    className={styles.jobTable}
+                    columns={this.columns}
+                    dataSource={jobs}
+                    onRow={this.onRow}
+                />
                 {selectedJob && <Modal
                     title="Upload Job"
                     width="90%"
@@ -185,48 +142,10 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                        job={selectedJob}
                        retryUpload={this.retryUpload}
                        loading={loading}
-                       fileMetadataForJob={fileMetadataForJob}
-                       fileMetadataForJobHeader={fileMetadataForJobHeader}
-                       openFileDetailModal={this.toggleFileDetailModal}
                    />
-                    <FileMetadataModal
-                        fileMetadata={undefined}
-                        onBrowse={this.onBrowseToFile}
-                        closeFileDetailModal={this.toggleFileDetailModal}
-                    />
                 </Modal>}
             </FormPage>
         );
-    }
-
-    private toggleFileDetailModal = (e?: any, selectedRowInUpload?: SearchResultRow): void => {
-        this.setState({ selectedRowInUpload });
-    }
-
-    private onBrowseToFile = (filePath: string) => {
-        let downloadPath;
-        const userOS = os.type();
-        if (userOS === "") { // TODO:
-            downloadPath = filePath.replace(/\//g, "\\");
-        } else if (userOS === "") { // TODO:
-            downloadPath = filePath;
-        } else { // Linux
-            downloadPath = filePath;
-        }
-        if (!shell.showItemInFolder(downloadPath)) {
-            setAlert({
-                message: "Failed to browse to file, contact software or browse to file path " +
-                    "using files path(s) shown in metadata",
-                type: AlertType.ERROR,
-            });
-        }
-    }
-
-    private selectJobFilter = (e: RadioChangeEvent): void => {
-        if (!this.interval) {
-            this.setJobInterval();
-        }
-        this.props.selectJobFilter(e.target.value);
     }
 
     // Auto-refresh jobs every 2 seconds for 3 minutes
@@ -286,18 +205,14 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private closeModal = () => {
-        // TODO: clear fileMetadataForJob && fileMetadataForJobHeader
-        this.setState({ selectedJobId: undefined, selectedRowInUpload: undefined });
+        this.setState({selectedJobId: undefined});
     }
 }
 
 function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
-        fileMetadataForJob: getFileMetadataForJob(state),
-        fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
         files: getStagedFiles(state),
-        jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)
             || getRequestsInProgressContains(state, AsyncRequest.CANCEL_UPLOAD),
@@ -309,7 +224,6 @@ const dispatchToPropsMap = {
     cancelUpload,
     retrieveJobs,
     retryUpload,
-    selectJobFilter,
     selectPage,
     selectView,
 };
