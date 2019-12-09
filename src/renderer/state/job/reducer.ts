@@ -13,7 +13,8 @@ import {
 } from "./constants";
 import {
     AddPendingJobAction,
-    JobFilter, JobStateBranch,
+    JobFilter,
+    JobStateBranch,
     RemovePendingJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
