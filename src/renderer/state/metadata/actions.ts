@@ -23,7 +23,8 @@ import {
     MetadataStateBranch,
     ReceiveMetadataAction,
     RequestMetadataAction,
-    ResetHistoryAction, SearchConfig,
+    ResetHistoryAction,
+    SearchConfig,
     SearchFileMetadataAction,
     UpdatePageHistoryMapAction,
 } from "./types";
