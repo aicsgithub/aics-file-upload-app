@@ -83,11 +83,13 @@ const applyTemplateLogic = createLogic({
         map(uploads,  (upload: UploadMetadata, filepath: string) => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
-            const { barcode, notes, wellIds, wellLabels, workflows } = upload;
+            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, wellLabels, workflows } = upload;
             action.payload.uploads[getUploadRowKey(filepath)] = {
                 barcode,
                 file: upload.file,
                 notes,
+                shouldBeInArchive,
+                shouldBeInLocal,
                 templateId: template ? template.TemplateId : undefined,
                 wellIds,
                 wellLabels,
