@@ -1,12 +1,14 @@
 import { UploadMetadata } from "@aics/aicsfiles/type-declarations/types";
-import { Alert, Table } from "antd";
-import { ColumnProps } from "antd/es/table";
+import { Alert, Collapse, Descriptions } from "antd";
+import CollapsePanel from "antd/lib/collapse/CollapsePanel";
 import { get, isEmpty } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../../state/constants";
-import { SearchResultRow } from "../../state/metadata/types";
 import JobOverviewDisplay from "../JobOverviewDisplay";
+
+const Item = Descriptions.Item;
+const styles = require("./styles.pcss");
 
 interface UploadJobDisplayProps {
     className?: string;
@@ -14,9 +16,6 @@ interface UploadJobDisplayProps {
     job: UploadSummaryTableRow;
     loading: boolean;
     retryUpload: () => void;
-    fileMetadataForJob?: SearchResultRow[];
-    fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
-    openFileDetailModal: (e?: any, row?: SearchResultRow) => void;
 }
 
 interface ResultFile {
@@ -31,9 +30,6 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               job,
                                                                               loading,
                                                                               retryUpload,
-                                                                              fileMetadataForJob,
-                                                                              fileMetadataForJobHeader,
-                                                                              openFileDetailModal,
                                                                           }: UploadJobDisplayProps) => {
     const { serviceFields } = job;
     const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
@@ -57,8 +53,6 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     const error = job.serviceFields && job.serviceFields.error && (
         <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
     );
-    const tableTitle = () => `${files.length} In This Job`;
-    const onRow = (record: SearchResultRow) => ({ onClick: () => openFileDetailModal(undefined, record) });
     return (
         <div className={className}>
             {error}
@@ -76,12 +70,27 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
             {showFiles && (
                 <>
                     <div className="ant-descriptions-title">Files</div>
-                    <Table
-                        dataSource={fileMetadataForJob}
-                        columns={fileMetadataForJobHeader}
-                        title={tableTitle}
-                        onRow={onRow}
-                    />
+                    <Collapse className={styles.files}>
+                        {files.map(({metadata, result}: {metadata: UploadMetadata, result?: ResultFile}) => {
+                            if (!metadata.file.originalPath) {
+                                return null;
+                            }
+
+                            const header = result ? result.fileName : metadata.file.originalPath;
+                            return (
+                                <CollapsePanel header={header} key={header}>
+                                    {result && <Descriptions
+                                        size="small"
+                                        title="Upload Result"
+                                        column={{xs: 1}}
+                                    >
+                                        <Item label="File Id">{result.fileId}</Item>
+                                        <Item label="Location">{result.readPath}</Item>
+                                    </Descriptions>}
+                                </CollapsePanel>
+                            );
+                        })}
+                    </Collapse>
                 </>
             )}
         </div>
