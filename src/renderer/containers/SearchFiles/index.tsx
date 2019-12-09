@@ -190,10 +190,9 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 {numberOfFilesFound > 0 && (
                     <>
                         <Row>
-                            <p className={styles.includeExtraColumns}>
+                            <p className={styles.includeExtraColumns} onClick={this.toggleShowExtraColumnOptions}>
                                 Include Extra Columns{" "}
                                 <Icon
-                                    onClick={this.toggleShowExtraColumnOptions}
                                     type={showExtraColumnOptions ? "caret-down" : "caret-up"}
                                 />
                             </p>
@@ -224,7 +223,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     </>
                 )}
                 {(searchResultsHeader && !numberOfFilesFound) && (
-                    <Empty className={styles.empty} description="No Files found matching search" />
+                    <Empty className={styles.empty} description="No files found matching your search criteria" />
                 )}
                 <FileMetadataModal
                     fileMetadata={selectedRow}
