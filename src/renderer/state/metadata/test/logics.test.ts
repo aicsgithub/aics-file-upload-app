@@ -18,7 +18,8 @@ import {
     mockSearchResults,
     mockSelectedWorkflows,
     mockState,
-    mockUnit, mockUsers,
+    mockUnit,
+    mockUsers,
 } from "../../test/mocks";
 import {
     requestAnnotations,
@@ -40,7 +41,8 @@ import {
     getLookups,
     getOptionsForLookup,
     getTemplates,
-    getUnits, getUsers,
+    getUnits,
+    getUsers,
     getWorkflowOptions,
 } from "../selectors";
 

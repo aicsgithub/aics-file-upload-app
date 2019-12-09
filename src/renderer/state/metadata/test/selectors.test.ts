@@ -159,6 +159,7 @@ describe("Metadata selectors", () => {
             });
             expect(result).to.not.be.undefined;
             if (result) {
+                // Can't use deep equals because the sort function doesn't get properly diffed
                 expect(result.length).to.eq(mockSearchResultsHeader.length);
                 expect(result[0].dataIndex).to.eq(mockSearchResultsHeader[0].dataIndex);
                 expect(result[0].title).to.eq(mockSearchResultsHeader[0].title);
