@@ -1,5 +1,5 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Alert, Button, Modal, Table } from "antd";
+import { Alert, Button, Col, Modal, Row, Table } from "antd";
 import { ColumnProps } from "antd/lib/table";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -108,21 +108,22 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 page={Page.UploadSummary}
             >
                 {!this.interval && (
-                    <div className={styles.refreshContainer}>
-                        <Button
-                            size="large"
-                            type="primary"
-                            onClick={this.setJobInterval}
-                            className={styles.refreshButton}
-                        >Refresh Jobs
-                        </Button>
-                        <Alert
-                            className={styles.alert}
-                            type="info"
-                            message="Uploads no longer auto-updating, click refresh to begin updating again"
-                            showIcon={true}
-                        />
-                    </div>
+                    <Row className={styles.refreshContainer}>
+                        <Col xs={4}>
+                            <Button
+                                size="large"
+                                type="primary"
+                                onClick={this.setJobInterval}
+                            >Refresh Jobs
+                            </Button>
+                        </Col>
+                        <Col xs={20}>
+                            <Alert
+                                type="info"
+                                message="Uploads no longer auto-updating, click refresh to begin updating again"
+                            />
+                        </Col>
+                    </Row>
                 )}
                 <Table
                     className={styles.jobTable}
