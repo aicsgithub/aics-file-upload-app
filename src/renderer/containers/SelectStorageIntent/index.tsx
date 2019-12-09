@@ -1,6 +1,6 @@
 import { Checkbox, Icon, Switch, Typography } from "antd";
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
-import { map } from "lodash";
+import { every } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -72,16 +72,13 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
         );
     }
 
-    public renderSimpleForm = () => {
+    private renderSimpleForm = () => {
         const {
             fileToArchive,
             fileToStoreOnIsilon,
-            files,
         } = this.props;
-        const allFilesShouldBeInIsilon = map(fileToStoreOnIsilon, (store: boolean) => store)
-            .filter((store) => Boolean(store)).length === files.length;
-        const allFilesShouldBeInArchive = map(fileToArchive, (store: boolean) => store)
-            .filter((store) => Boolean(store)).length === files.length;
+        const allFilesShouldBeInIsilon = every(fileToStoreOnIsilon, (store: boolean) => Boolean(store));
+        const allFilesShouldBeInArchive = every(fileToArchive, (store: boolean) => Boolean(store));
         return (
             <>
                 <Checkbox
@@ -102,7 +99,7 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
         );
     }
 
-    public renderGridForm = () => {
+    private renderGridForm = () => {
         const {
             fileToArchive,
             fileToStoreOnIsilon,
@@ -133,9 +130,9 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
         );
     }
 
-    public setCustomizeByFile = (checked: boolean) => this.setState({customizeByFile: checked});
+    private setCustomizeByFile = (checked: boolean) => this.setState({customizeByFile: checked});
 
-    public selectAllIsilon = (e: CheckboxChangeEvent) => {
+    private selectAllIsilon = (e: CheckboxChangeEvent) => {
         this.props.updateFilesToStoreOnIsilon(
             this.props.files
                 .reduce((accum: FilepathToBoolean, file: string) => ({
@@ -145,7 +142,7 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
         );
     }
 
-    public selectAllArchive = (e: CheckboxChangeEvent) => {
+    private selectAllArchive = (e: CheckboxChangeEvent) => {
         this.props.updateFilesToArchive(
             this.props.files
                 .reduce((accum: FilepathToBoolean, file: string) => ({
@@ -155,10 +152,10 @@ class SelectStorageIntent extends React.Component<Props, SelectStorageIntentStat
         );
     }
 
-    public onStoreOnIsilonChange = (file: string) => (e: CheckboxChangeEvent) =>
+    private onStoreOnIsilonChange = (file: string) => (e: CheckboxChangeEvent) =>
         this.props.updateFilesToStoreOnIsilon({[file]: e.target.checked})
 
-    public onArchiveChange = (file: string) => (e: CheckboxChangeEvent) =>
+    private onArchiveChange = (file: string) => (e: CheckboxChangeEvent) =>
         this.props.updateFilesToArchive({[file]: e.target.checked})
 }
 
