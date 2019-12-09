@@ -14,12 +14,27 @@ import {
     mockDateAnnotation,
     mockNumberAnnotation,
     mockTemplateStateBranch,
-    mockTemplateWithManyValues, mockTextAnnotation,
+    mockTemplateWithManyValues,
+    mockTextAnnotation,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { applyTemplate, associateFilesAndWells, initiateUpload, updateScenes, updateUpload } from "../actions";
+import {
+    applyTemplate,
+    associateFilesAndWells,
+    initiateUpload,
+    updateFilesToArchive,
+    updateFilesToStoreOnIsilon,
+    updateScenes,
+    updateUpload,
+} from "../actions";
 import { getUploadRowKey } from "../constants";
-import { getAppliedTemplateId, getUpload, getUploadSummaryRows } from "../selectors";
+import {
+    getAppliedTemplateId,
+    getFileToArchive,
+    getFileToStoreOnIsilon,
+    getUpload,
+    getUploadSummaryRows,
+} from "../selectors";
 
 describe("Upload logics", () => {
     describe("associateFileAndWellLogic", () => {
@@ -351,6 +366,8 @@ describe("Upload logics", () => {
                         "barcode": "",
                         "file": "/path/to/file3",
                         "notes": undefined,
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
                         "templateId": 8,
                         "wellIds": [],
                         "wellLabels": [],
@@ -391,6 +408,8 @@ describe("Upload logics", () => {
                         "barcode": "",
                         "file": "/path/to/file3",
                         "notes": undefined,
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
                         "templateId": 8,
                         "wellIds": [],
                         "wellLabels": [],
@@ -428,6 +447,8 @@ describe("Upload logics", () => {
                         "barcode": "",
                         "file": "/path/to/file3",
                         "notes": undefined,
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
                         "templateId": 8,
                         "wellIds": [],
                         "wellLabels": [],
@@ -465,6 +486,8 @@ describe("Upload logics", () => {
                         "barcode": "",
                         "file": "/path/to/file3",
                         "notes": undefined,
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
                         "templateId": 8,
                         "wellIds": [],
                         "wellLabels": [],
@@ -485,6 +508,40 @@ describe("Upload logics", () => {
             // after
             const upload = getUpload(store.getState());
             expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2, 3]);
+        });
+    });
+    describe("updateFilesToStoreOnIsilonLogic", () => {
+        it("sets shouldBeInLocal on each file in payload", async () => {
+            const { store, logicMiddleware } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+
+            // before
+            expect(getFileToStoreOnIsilon(store.getState())["/path/to/file1"]).to.be.true;
+
+            // apply
+            store.dispatch(updateFilesToStoreOnIsilon({"/path/to/file1": false}));
+
+            // after
+            await logicMiddleware.whenComplete();
+            expect(getFileToStoreOnIsilon(store.getState())["/path/to/file1"]).to.be.false;
+        });
+    });
+    describe("updateFilesToStoreInArchiveLogic", () => {
+        it("sets shouldBeInArchive on each file in payload", async () => {
+            const { store, logicMiddleware } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+
+            // before
+            expect(getFileToArchive(store.getState())["/path/to/file1"]).to.be.true;
+
+            // apply
+            store.dispatch(updateFilesToArchive({"/path/to/file1": false}));
+
+            // after
+            await logicMiddleware.whenComplete();
+            expect(getFileToArchive(store.getState())["/path/to/file1"]).to.be.false;
         });
     });
 });

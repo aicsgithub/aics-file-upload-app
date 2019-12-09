@@ -20,7 +20,10 @@ import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 
 import {
+    getCanGoForwardFromSelectStorageLocationPage,
     getFileToAnnotationHasValueMap,
+    getFileToArchive,
+    getUploadFiles,
     getUploadJobName,
     getUploadPayload,
     getUploadSummaryRows,
@@ -57,8 +60,9 @@ describe("Upload selectors", () => {
                         barcode: "452",
                         file: "/path/to.dot/image.tiff",
                         ["Favorite Color"]: "blue",
-                        notes: undefined,
                         plateId: 4,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [],
                         wellLabels: [],
                     },
@@ -77,8 +81,9 @@ describe("Upload selectors", () => {
                         barcode: "567",
                         ["Favorite Color"]: "red",
                         file: "/path/to/image.czi",
-                        notes: undefined,
                         plateId: 4,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [1],
                         wellLabels: ["A1"],
                     },
@@ -86,8 +91,9 @@ describe("Upload selectors", () => {
                         barcode: "123",
                         ["Favorite Color"]: "green",
                         file: "/path/to/image.ome.tiff",
-                        notes: undefined,
                         plateId: 2,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [2],
                         wellLabels: ["A1"],
                     },
@@ -95,8 +101,9 @@ describe("Upload selectors", () => {
                         barcode: "345",
                         ["Favorite Color"]: "purple",
                         file: "/path/to/image.png",
-                        notes: undefined,
                         plateId: 5,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [3],
                         wellLabels: ["A1"],
                     },
@@ -104,8 +111,9 @@ describe("Upload selectors", () => {
                         barcode: "234",
                         ["Favorite Color"]: "orange",
                         file: "/path/to/image.tiff",
-                        notes: undefined,
                         plateId: 3,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [4],
                         wellLabels: ["A1"],
                     },
@@ -113,8 +121,9 @@ describe("Upload selectors", () => {
                         barcode: "456",
                         ["Favorite Color"]: "pink",
                         file: "/path/to/multi-well.txt",
-                        notes: undefined,
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [5, 6, 7],
                         wellLabels: ["A1", "A2", "A3"],
                     },
@@ -122,8 +131,9 @@ describe("Upload selectors", () => {
                         barcode: "888",
                         ["Favorite Color"]: "gold",
                         file: "/path/to/no-extension",
-                        notes: undefined,
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [7],
                         wellLabels: ["A1"],
                     },
@@ -131,8 +141,9 @@ describe("Upload selectors", () => {
                         barcode: "578",
                         ["Favorite Color"]: "grey",
                         file: "/path/to/not-image.csv",
-                        notes: undefined,
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [8],
                         wellLabels: ["A1"],
                     },
@@ -140,8 +151,9 @@ describe("Upload selectors", () => {
                         barcode: "456",
                         ["Favorite Color"]: "black",
                         file: "/path/to/not-image.txt",
-                        notes: undefined,
                         plateId: 7,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                         wellIds: [5],
                         wellLabels: ["A1"],
                     },
@@ -185,6 +197,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to.dot/image.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [6],
@@ -213,6 +227,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.czi",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [1],
@@ -241,6 +257,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.ome.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [2],
@@ -269,6 +287,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.png",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [3],
@@ -297,6 +317,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.IMAGE,
                         originalPath: "/path/to/image.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [4],
@@ -325,6 +347,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/multi-well.txt",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [5, 6, 7],
@@ -353,6 +377,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.OTHER,
                         originalPath: "/path/to/no-extension",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [7],
@@ -381,6 +407,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.CSV,
                         originalPath: "/path/to/not-image.csv",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [8],
@@ -409,6 +437,8 @@ describe("Upload selectors", () => {
                     file: {
                         fileType: FileType.TEXT,
                         originalPath: "/path/to/not-image.txt",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
                     },
                     microscopy: {
                         wellIds: [5],
@@ -481,6 +511,8 @@ describe("Upload selectors", () => {
                 key: getUploadRowKey("/path/to/file1"),
                 numberSiblings: 3,
                 positionIndexes: [],
+                shouldBeInArchive: true,
+                shouldBeInLocal: true,
                 siblingIndex: 0,
                 treeDepth: 0,
                 wellIds: [1],
@@ -495,6 +527,8 @@ describe("Upload selectors", () => {
                 key: getUploadRowKey("/path/to/file2"),
                 numberSiblings: 3,
                 positionIndexes: [],
+                shouldBeInArchive: false,
+                shouldBeInLocal: true,
                 siblingIndex: 1,
                 treeDepth: 0,
                 wellIds: [2],
@@ -509,6 +543,8 @@ describe("Upload selectors", () => {
                 key: getUploadRowKey("/path/to/file3"),
                 numberSiblings: 3,
                 positionIndexes: [],
+                shouldBeInArchive: true,
+                shouldBeInLocal: false,
                 siblingIndex: 2,
                 treeDepth: 0,
                 wellIds: [1, 2, 3],
@@ -836,6 +872,8 @@ describe("Upload selectors", () => {
                         age: undefined,
                         barcode: "abcd",
                         file,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: true,
                         wellIds: [],
                         wellLabels: [],
                     },
@@ -845,6 +883,8 @@ describe("Upload selectors", () => {
                 age: false,
                 barcode: true,
                 file: true,
+                shouldBeInArchive: true,
+                shouldBeInLocal: true,
                 wellIds: false,
                 wellLabels: false,
             });
@@ -955,6 +995,67 @@ describe("Upload selectors", () => {
                     "Clone Number Garbage": error,
                 },
             });
+        });
+    });
+
+    describe("getUploadFiles", () => {
+        it("returns a unique set of files to be uploaded", () => {
+            const result = getUploadFiles({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+            expect(result.sort()).to.deep.equal(["/path/to/file1", "/path/to/file2", "/path/to/file3"]);
+        });
+    });
+
+    describe("getFileToArchive", () => {
+        it("returns a map of files to booleans representing whether to archive the file", () => {
+            const result = getFileToArchive({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+            expect(result).to.deep.equal({
+                "/path/to/file1": true,
+                "/path/to/file2": false,
+                "/path/to/file3": true,
+            });
+        });
+    });
+
+    describe("getFileToStoreOnIsilon", () => {
+        it("returns a map of files to booleans representing whether to archive the file", () => {
+            const result = getFileToArchive({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+            expect(result).to.deep.equal({
+                "/path/to/file1": true,
+                "/path/to/file2": false,
+                "/path/to/file3": true,
+            });
+        });
+    });
+
+    describe("getCanGoForwardFromSelectStorageLocationPage", () => {
+        it("returns true if all files have a place to go", () => {
+            const result = getCanGoForwardFromSelectStorageLocationPage({
+                ...nonEmptyStateForInitiatingUpload,
+            });
+            expect(result).to.be.true;
+        });
+        it("returns false if a file does not have a place to go", () => {
+            const result = getCanGoForwardFromSelectStorageLocationPage({
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey("/path/to/file1")]: {
+                        barcode: "1234",
+                        file: "/path/to/file1",
+                        key: getUploadRowKey("/path/to/file"),
+                        shouldBeInArchive: false,
+                        shouldBeInLocal: false,
+                        wellIds: [1],
+                        wellLabels: ["A1"],
+                    },
+                }),
+            });
+            expect(result).to.be.false;
         });
     });
 });
