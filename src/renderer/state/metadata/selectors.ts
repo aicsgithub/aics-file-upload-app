@@ -1,5 +1,5 @@
 import { ColumnProps } from "antd/lib/table";
-import { uniq, uniqBy, startCase, without } from "lodash";
+import { uniq, uniqBy, startCase } from "lodash";
 import { createSelector } from "reselect";
 
 import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
@@ -51,12 +51,18 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[], extraMetadataColumns
     if (!rows || !extraMetadataColumns) {
         return undefined;
     }
-    let columns: string[] = [];
+    let annotationColumns = new Set<string>();
     rows.forEach((row) => {
-        columns.push(...Object.keys(row));
+        Object.keys(row).forEach((column) => {
+            // Exclude all columns that aren't annotations
+            if (!MAIN_FILE_COLUMNS.includes(column) && !UNIMPORTANT_COLUMNS.includes(column)) {
+                annotationColumns.add(column);
+            }
+        });
     });
-    columns = without(uniq(columns), ...MAIN_FILE_COLUMNS, ...UNIMPORTANT_COLUMNS); // TODO: Do they even need to be added here???
-    return [...MAIN_FILE_COLUMNS, ...columns, ...extraMetadataColumns].map((column) => ({
+    // Spread the columns back in the order of MAIN_COLUMNS then ANNOTATIONS then EXTRA_FILE_METADATA
+    const columns = [...MAIN_FILE_COLUMNS, ...annotationColumns, ...extraMetadataColumns];
+    return columns.map((column) => ({
         dataIndex: column,
         key: column,
         sort: column === 'fileId' ? 'descend' : undefined,

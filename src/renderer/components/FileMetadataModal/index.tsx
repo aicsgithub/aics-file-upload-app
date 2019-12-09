@@ -2,32 +2,32 @@ import { Alert, Button, Divider, List, Modal, Row } from "antd";
 import { startCase, forOwn, isNil } from "lodash";
 import * as React from "react";
 
-import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "../../../state/metadata/constants";
-import { SearchResultRow } from "../../../state/metadata/types";
+import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
+import { SearchResultRow } from "../../state/metadata/types";
 
 const styles = require("./styles.pcss");
 
 interface FileMetadataProps {
+    closeFileDetailModal: () => void;
     fileMetadata?: SearchResultRow;
     onBrowse: (filePath: string) => void;
-    toggleFileDetailModal: () => void;
 }
 
 interface ListItem {
     key: string;
-    value?: any;
+    value: string | number;
 }
 
 const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
+                                                                           closeFileDetailModal,
                                                                            fileMetadata,
-                                                                           onBrowse,
-                                                                           toggleFileDetailModal }) => {
+                                                                           onBrowse }) => {
     if (!fileMetadata) {
         return null;
     }
     const fileMetadataCategories: { [key: string]: ListItem[] } = { annotations: [], extra: [], info: [] };
     forOwn(fileMetadata, (value, key) => {
-        // Exclude Filename since it is already shown in title
+        // Exclude Filename since it is already shown in title & key since its just for programmatic use
         if (!isNil(value) && key !== 'filename' && key !== 'key') {
             if (MAIN_FILE_COLUMNS.includes(key)) {
                 fileMetadataCategories.info.push({ key, value });
@@ -39,9 +39,10 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
         }
     });
     const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
+        // Had to use inline style to override List.Item's border rules
         <List.Item style={{ border: '1px solid #e8e8e8' }}>
             <h4 className={styles.key}>{startCase(key)}</h4>
-            <span className={styles.value}>{value || 'None'}</span>
+            <span className={styles.value}>{value}</span>
         </List.Item>
     ));
     const isLocal = !!fileMetadata.localFilePath;
@@ -53,7 +54,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
             visible={true}
             closable={true}
             width="90%"
-            onCancel={toggleFileDetailModal}
+            onCancel={closeFileDetailModal}
             title={<h3>File Details For <strong>{fileMetadata.filename}</strong></h3>}
         >
             <List
@@ -79,15 +80,10 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
             {(!isArchive && !isPublic && !isLocal) && (
                 <Alert type="error" message="File doesn't appear to be available for download from anywhere" />
             )}
+            {isPublic && (
+                <Alert type="error" message="Currently not supporting public files" />
+            )}
             <Row>
-                {isPublic && (
-                    <Button
-                        type="primary"
-                        className={styles.downloadButton}
-                        onClick={() => onBrowse(fileMetadata.publicFilePath as string)}
-                    >Browse To Public File
-                    </Button>
-                )}
                 {isLocal && (
                     <Button
                         type="primary"

@@ -1,10 +1,10 @@
-import { Button, Checkbox, Col, Empty, Icon, Input, Radio, Row, Select, Table, } from "antd";
+import { Button, Checkbox, Empty, Icon, Radio, Row, Table, } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
-import CheckboxGroup, { CheckboxValueType } from "antd/es/checkbox/Group";
+import CheckboxGroup  from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { remote, shell } from "electron";
-import { difference, map, startCase } from "lodash";
+import { map, startCase } from "lodash";
 import os from "os";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -45,20 +45,24 @@ import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import { getAnnotation, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
 import { setMetadataColumns } from "../../state/setting/actions";
-import { getMetadataColumns } from "../../state/setting/selectors";
+import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../state/setting/selectors";
 import { SetMetadataColumnsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
 import { State } from "../../state/types";
 import { LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
-import FileMetadataModal from "./FileMetadataModal";
+import FileMetadataModal from "../../components/FileMetadataModal";
+import AnnotationForm from "./AnnotationForm";
+import TemplateForm from "./TemplateForm";
+import UserAndTemplateForm from "./UserAndTemplateForm";
+import UserForm from "./UserForm";
 
 const styles = require("./styles.pcss");
 
 enum SearchMode {
-    Annotation = "Annotation",
-    User = "User",
-    Template = "Template",
-    UserAndTemplate = "User & Template",
+    ANNOTATION = "Annotation",
+    USER = "User",
+    TEMPLATE = "Template",
+    USER_AND_TEMPLATE = "User & Template",
 }
 
 const searchModeOptions: SearchMode[] = map(SearchMode, (value) => value);
@@ -68,6 +72,7 @@ const EXTRA_COLUMN_OPTIONS = UNIMPORTANT_COLUMNS.map((value) => ({
 }));
 
 interface Props {
+    allMetadataColumnsSelected: boolean;
     annotation: string;
     annotations: Annotation[];
     className?: string;
@@ -89,7 +94,7 @@ interface Props {
     setAlert: ActionCreator<SetAlertAction>;
     setMetadataColumns: ActionCreator<SetMetadataColumnsAction>;
     templates: LabkeyTemplate[];
-    user: string;
+    user?: string;
     users: LabkeyUser[];
 }
 
@@ -115,7 +120,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         super(props);
         this.state = {
             showExtraColumnOptions: false,
-            searchMode: SearchMode.Annotation
+            searchMode: SearchMode.ANNOTATION
         };
     }
 
@@ -127,6 +132,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
     public render() {
         const {
+            allMetadataColumnsSelected,
             className,
             numberOfFilesFound,
             exportingCSV,
@@ -136,7 +142,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
             searchResultsHeader,
         } = this.props;
         const { selectedRow, searchMode, showExtraColumnOptions } = this.state;
-        const allAreChecked = !difference(UNIMPORTANT_COLUMNS, metadataColumns).length;
         return (
             <FormPage
                 className={className}
@@ -155,11 +160,26 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                             ))}
                         </Radio.Group>
                     </LabeledInput>
+                    {searchMode === SearchMode.ANNOTATION && (
+                        <Button
+                            disabled={searchLoading}
+                            onClick={requestAnnotations}
+                            className={styles.refreshButton}
+                        ><Icon type="sync" />Refresh Annotations
+                        </Button>
+                    )}
+                    {(searchMode === SearchMode.TEMPLATE || searchMode === SearchMode.USER_AND_TEMPLATE) && (
+                        <Button
+                            disabled={searchLoading}
+                            onClick={this.props.requestTemplates}
+                            className={styles.refreshButton}
+                        ><Icon type="sync" />Refresh Templates
+                        </Button>
+                    )}
                 </Row>
-                {searchMode === SearchMode.Annotation && this.renderAnnotationForm()}
-                {searchMode === SearchMode.Template && this.renderTemplateForm()}
-                {searchMode === SearchMode.User && this.renderUserForm()}
-                {searchMode === SearchMode.UserAndTemplate && this.renderUserAndTemplateForm()}
+                <Row gutter={8} className={styles.fullWidth}>
+                    {this.renderSearchForm()}
+                </Row>
                 {searchLoading && <p>Searching...</p>}
                 {exportingCSV && <p>Exporting...</p>}
                 {numberOfFilesFound > 0 && (
@@ -177,15 +197,15 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                                     <Checkbox
                                         className={styles.checkAll}
                                         onChange={this.toggleCheckAll}
-                                        indeterminate={!allAreChecked && !!metadataColumns.length}
-                                        checked={allAreChecked}
+                                        indeterminate={!allMetadataColumnsSelected && !!metadataColumns.length}
+                                        checked={allMetadataColumnsSelected}
                                     >
                                         Check All
                                     </Checkbox>
                                     <CheckboxGroup
                                         value={metadataColumns}
                                         options={EXTRA_COLUMN_OPTIONS}
-                                        onChange={this.setMetadataColumns}
+                                        onChange={this.props.setMetadataColumns}
                                     />
                                 </>
                             )}
@@ -204,10 +224,76 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 <FileMetadataModal
                     fileMetadata={selectedRow}
                     onBrowse={this.onBrowseToFile}
-                    toggleFileDetailModal={this.toggleFileDetailModal}
+                    closeFileDetailModal={this.toggleFileDetailModal}
                 />
             </FormPage>
         );
+    }
+
+    private renderSearchForm = (): JSX.Element => {
+        const {
+            annotation,
+            annotations,
+            exportingCSV,
+            optionsForLookup,
+            optionsForLookupLoading,
+            searchLoading,
+            templates,
+            user,
+            users,
+        } = this.props;
+        const { searchMode, searchValue, template } = this.state;
+        if (searchMode === SearchMode.ANNOTATION) {
+            return (
+                <AnnotationForm
+                    annotation={annotation}
+                    annotations={annotations}
+                    exportingCSV={exportingCSV}
+                    optionsForLookup={optionsForLookup}
+                    optionsForLookupLoading={optionsForLookupLoading}
+                    onSearch={this.searchForFiles}
+                    searchLoading={searchLoading}
+                    searchValue={searchValue}
+                    selectAnnotation={this.selectAnnotation}
+                    selectSearchValue={this.selectSearchValue}
+                    setSearchValue={this.setSearchValue}
+                />);
+        }
+        if (searchMode === SearchMode.TEMPLATE) {
+            return (
+                <TemplateForm
+                    exportingCSV={exportingCSV}
+                    searchLoading={searchLoading}
+                    onSearch={this.searchForFiles}
+                    template={template}
+                    templates={templates}
+                    selectTemplate={this.selectTemplate}
+                />);
+        }
+        if (searchMode === SearchMode.USER) {
+            return (
+                <UserForm
+                    exportingCSV={exportingCSV}
+                    searchLoading={searchLoading}
+                    onSearch={this.searchForFiles}
+                    user={user}
+                    users={users}
+                    selectUser={this.props.selectUser}
+                />);
+        }
+        // searchMode === SearchMode.USER_AND_TEMPLATE
+        return (
+            <UserAndTemplateForm
+                exportingCSV={exportingCSV}
+                searchLoading={searchLoading}
+                onSearch={this.searchForFiles}
+                template={template}
+                templates={templates}
+                user={user}
+                users={users}
+                selectUser={this.props.selectUser}
+                selectTemplate={this.selectTemplate}
+            />);
     }
 
     private onBrowseToFile = (filePath: string) => {
@@ -234,267 +320,14 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     }
 
     private toggleCheckAll = (e: CheckboxChangeEvent) => {
-        this.setMetadataColumns(e.target.checked ? UNIMPORTANT_COLUMNS : []);
-    }
-
-    private setMetadataColumns = (metadataColumns: CheckboxValueType[]): void => {
-        this.props.setMetadataColumns(metadataColumns);
+        this.props.setMetadataColumns(e.target.checked ? UNIMPORTANT_COLUMNS : []);
     }
 
     private toggleFileDetailModal = (e?: any, selectedRow?: SearchResultRow): void => {
         this.setState({ selectedRow });
     }
 
-    private renderAnnotationForm = (): JSX.Element => {
-        const {
-            annotation,
-            annotations,
-            exportingCSV,
-            optionsForLookup,
-            optionsForLookupLoading,
-            searchLoading,
-        } = this.props;
-        const { searchValue } = this.state;
-        return (
-            <>
-                <Row>
-                    <Button
-                        disabled={searchLoading}
-                        onClick={this.props.requestAnnotations}
-                        className={styles.refreshButton}
-                    ><Icon type="sync" />Refresh Annotations
-                    </Button>
-                </Row>
-                <Row gutter={8} className={styles.fullWidth}>
-                    <Col xs={6}>
-                        <LabeledInput label="Annotation">
-                            <Select
-                                showSearch={true}
-                                value={annotation}
-                                loading={!annotations.length}
-                                disabled={!annotations.length}
-                                onChange={this.selectAnnotation}
-                                placeholder="Select Annotation"
-                                className={styles.fullWidth}
-                            >
-                                {annotations.map(({ annotationId, name }) => (
-                                    <Select.Option key={annotationId} value={name}>
-                                        {name}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        </LabeledInput>
-                    </Col>
-                    <Col xs={12} xl={14} xxl={15}>
-                        <LabeledInput label="Search Value">
-                            {(optionsForLookupLoading || optionsForLookup) ? (
-                                <Select
-                                    allowClear={true}
-                                    showSearch={true}
-                                    value={searchValue}
-                                    loading={optionsForLookupLoading}
-                                    disabled={!optionsForLookup || optionsForLookupLoading}
-                                    onChange={this.selectSearchValue}
-                                    placeholder="Select Search Value"
-                                    className={styles.fullWidth}
-                                >
-                                    {optionsForLookup && optionsForLookup.map((option) => (
-                                        <Select.Option key={option} value={option}>{option}</Select.Option>
-                                    ))}
-                                </Select>
-                            ) : (
-                                <Input
-                                    allowClear={true}
-                                    disabled={!annotation}
-                                    value={searchValue}
-                                    onChange={this.setSearchValue}
-                                    onPressEnter={this.searchForFiles}
-                                    placeholder="Enter Search Value"
-                                />
-                            )}
-                        </LabeledInput>
-                    </Col>
-                    <Col xs={6} xl={4} xxl={3}>
-                        <Button
-                            loading={searchLoading}
-                            disabled={!annotation || !searchValue || searchLoading || exportingCSV}
-                            size="large"
-                            type="primary"
-                            onClick={this.searchForFiles}
-                            className={styles.searchButton}
-                        ><Icon type="search" /> Search
-                        </Button>
-                    </Col>
-                </Row>
-            </>
-        );
-    }
-
-    private renderUserAndTemplateForm = (): JSX.Element => {
-        const {
-            exportingCSV,
-            searchLoading,
-            templates,
-            user,
-            users,
-        } = this.props;
-        const { template } = this.state;
-        return (
-            <>
-                <Row>
-                    <Button
-                        disabled={searchLoading}
-                        onClick={this.props.requestTemplates}
-                        className={styles.refreshButton}
-                    ><Icon type="sync" />Refresh Templates
-                    </Button>
-                </Row>
-                <Row>
-                    <Col xs={6}>
-                        <LabeledInput label="User">
-                            <Select
-                                showSearch={true}
-                                value={user}
-                                loading={!users.length}
-                                disabled={!users.length}
-                                onChange={this.props.selectUser}
-                                placeholder="Select User"
-                                className={styles.fullWidth}
-                            >
-                                {users.map(({ DisplayName }) => (
-                                    <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
-                                ))}
-                            </Select>
-                        </LabeledInput>
-                    </Col>
-                    <Col xs={12} xl={14} xxl={15}>
-                        <LabeledInput label="Template">
-                            <Select
-                                allowClear={true}
-                                showSearch={true}
-                                value={template}
-                                loading={!templates.length}
-                                disabled={!templates.length}
-                                onChange={this.selectTemplate}
-                                placeholder="Select Template"
-                                className={styles.fullWidth}
-                            >
-                                {templates.map(({ Name }) => (
-                                    <Select.Option key={Name} value={Name}>{Name}</Select.Option>
-                                ))}
-                            </Select>
-                        </LabeledInput>
-                    </Col>
-                    <Col xs={6} xl={4} xxl={3}>
-                        <Button
-                            loading={searchLoading}
-                            disabled={!template || !user || searchLoading || exportingCSV}
-                            size="large"
-                            type="primary"
-                            onClick={this.searchForFiles}
-                            className={styles.searchButton}
-                        ><Icon type="search" /> Search
-                        </Button>
-                    </Col>
-                </Row>
-            </>
-        );
-    }
-
-    private renderUserForm = (): JSX.Element => {
-        const {
-            exportingCSV,
-            searchLoading,
-            user,
-            users,
-        } = this.props;
-        return (
-            <Row style={{ marginTop: '32px' }}>
-                <Col xs={18} xl={20} xxl={21}>
-                    <LabeledInput label="User">
-                        <Select
-                            showSearch={true}
-                            value={user}
-                            loading={!users.length}
-                            disabled={!users.length}
-                            onChange={this.props.selectUser}
-                            placeholder="Select User"
-                            className={styles.fullWidth}
-                        >
-                            {users.map(({ DisplayName }) => (
-                                <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
-                            ))}
-                        </Select>
-                    </LabeledInput>
-                </Col>
-                <Col xs={6} xl={4} xxl={3}>
-                    <Button
-                        loading={searchLoading}
-                        disabled={!user || searchLoading || exportingCSV}
-                        size="large"
-                        type="primary"
-                        onClick={this.searchForFiles}
-                        className={styles.searchButton}
-                    ><Icon type="search" /> Search
-                    </Button>
-                </Col>
-            </Row>
-        )
-    }
-
-    private renderTemplateForm = (): JSX.Element => {
-        const {
-            exportingCSV,
-            searchLoading,
-            templates,
-        } = this.props;
-        const { template } = this.state;
-        return (
-            <>
-                <Row>
-                    <Button
-                        disabled={searchLoading}
-                        onClick={this.props.requestTemplates}
-                        className={styles.refreshButton}
-                    ><Icon type="sync" />Refresh Templates
-                    </Button>
-                </Row>
-                <Row>
-                    <Col xs={18} xl={20} xxl={21}>
-                        <LabeledInput label="Template">
-                            <Select
-                                allowClear={true}
-                                showSearch={true}
-                                value={template}
-                                loading={!templates.length}
-                                disabled={!templates.length}
-                                onChange={this.selectTemplate}
-                                placeholder="Select Template"
-                                className={styles.fullWidth}
-                            >
-                                {templates.map(({ Name }) => (
-                                    <Select.Option key={Name} value={Name}>{Name}</Select.Option>
-                                ))}
-                            </Select>
-                        </LabeledInput>
-                    </Col>
-                    <Col xs={6} xl={4} xxl={3}>
-                        <Button
-                            loading={searchLoading}
-                            disabled={!template || searchLoading || exportingCSV}
-                            size="large"
-                            type="primary"
-                            onClick={this.searchForFiles}
-                            className={styles.searchButton}
-                        ><Icon type="search" /> Search
-                        </Button>
-                    </Col>
-                </Row>
-            </>
-        );
-    }
-
-    private selectTemplate = (template: string): void => {
+    private selectTemplate = (template?: string): void => {
         this.setState({ template });
     }
 
@@ -508,7 +341,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         this.setState({ searchValue: undefined });
     }
 
-    private selectSearchValue = (searchValue: string) => {
+    private selectSearchValue = (searchValue?: string) => {
         this.setState({ searchValue });
     }
 
@@ -520,16 +353,16 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         const { annotation, user } = this.props;
         const { searchMode, searchValue, template } = this.state;
         switch (searchMode) {
-            case SearchMode.Annotation:
+            case SearchMode.ANNOTATION:
                 this.props.searchFileMetadata({ annotation, searchValue });
                 return;
-            case SearchMode.Template:
+            case SearchMode.TEMPLATE:
                 this.props.searchFileMetadata({ template });
                 return;
-            case SearchMode.User:
+            case SearchMode.USER:
                 this.props.searchFileMetadata({ user });
                 return;
-            default: // case SearchMode.UserAndTemplate:
+            default: // case SearchMode.USER_AND_TEMPLATE:
                 this.props.searchFileMetadata({ template, user });
                 return;
         }
@@ -555,6 +388,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
 function mapStateToProps(state: State) {
     return {
+        allMetadataColumnsSelected: getAreAllMetadataColumnsSelected(state),
         annotation: getAnnotation(state),
         annotations: getAnnotations(state),
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),

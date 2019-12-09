@@ -36,7 +36,7 @@ import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types";
-import FileMetadataModal from "../SearchFiles/FileMetadataModal";
+import FileMetadataModal from "../../components/FileMetadataModal";
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");

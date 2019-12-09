@@ -19,7 +19,8 @@ import {
     LabKeyPlateBarcodePrefix,
     LabkeyPlateResponse,
     LabkeyResponse,
-    LabkeyTemplate, LabkeyUser,
+    LabkeyTemplate,
+    LabkeyUser,
     LabKeyWorkflow,
 } from "./types";
 
@@ -165,6 +166,9 @@ export default class LabkeyClient extends BaseServiceClient {
         }));
     }
 
+    /**
+     * Retrieves all users in LabKey from a special view
+     */
     public async getUsers(): Promise<LabkeyUser[]> {
         const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "User");
         const response = await this.httpClient.get(query);

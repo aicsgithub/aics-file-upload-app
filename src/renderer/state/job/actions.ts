@@ -9,10 +9,12 @@ import {
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
-    AddPendingJobAction, JobFilter,
+    AddPendingJobAction,
+    JobFilter,
     PendingJob,
     RemovePendingJobsAction,
-    RetrieveJobsAction, SelectJobFilterAction,
+    RetrieveJobsAction,
+    SelectJobFilterAction,
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
