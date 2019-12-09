@@ -1,17 +1,13 @@
-import { TableInfo } from "@aics/aicsfiles/type-declarations/types";
+import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
-import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
-import { JobStateBranch, PendingJob } from "../job/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { Channel, SearchResultsTable, Unit } from "../metadata/types";
+import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
+import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
+import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
-import {
-    SelectionStateBranch,
-    Well,
-    Workflow
-} from "../selection/types";
+import { SelectionStateBranch, Well, Workflow } from "../selection/types";
 import {
     Annotation,
     AnnotationDraft,
@@ -130,6 +126,7 @@ export const mockSelection: SelectionStateBranch = {
     settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
+    user: "fake_user",
     wells: [],
 };
 
@@ -285,6 +282,7 @@ export const mockState: State = {
     job: {
         addMetadataJobs: [],
         copyJobs: [],
+        jobFilter: JobFilter.Pending,
         pendingJobs: [],
         uploadJobs: [],
     },
@@ -305,6 +303,7 @@ export const mockState: State = {
         lookups: [],
         templates: [],
         units: [],
+        users: [],
         workflowOptions: [],
     },
     route: {
@@ -317,49 +316,49 @@ export const mockState: State = {
         limsHost: "localhost",
         limsPort: "8080",
         limsProtocol: "http",
+        metadataColumns: [],
         templateIds: [],
     },
     template: getMockStateWithHistory(mockTemplateStateBranch),
     upload: getMockStateWithHistory(mockWellUpload),
 };
 
-export const mockSearchResults: TableInfo = {
-    annotationToColumnMap: {
-        FileId: 0,
-        PositionIndex: 1,
-    },
-    imageModelToFileMetadata: {
-        "abc123": [["abc123"], []],
-        "abc123-1": [["abc123"], [1]],
-    },
-};
+export const mockSearchResults: ImageModelMetadata[] = [
+    { fileId: "abc123", positionIndex: undefined, channel: undefined },
+    { fileId: "abc123", positionIndex: 1, channel: undefined },
+    { fileId: "abc123-1", positionIndex: undefined, channel: undefined },
+];
 
-export const mockSearchResultsAsTable: SearchResultsTable = {
-    header: [
-        {
-            dataIndex: "FileId",
-            key: "FileId",
-            title: "FileId",
-        },
-        {
-            dataIndex: "PositionIndex",
-            key: "PositionIndex",
-            title: "PositionIndex",
-        },
-    ],
-    rows: [
-        {
-            FileId: "abc123",
-            PositionIndex: "",
-            key: "abc123",
-        },
-        {
-            FileId: "abc123",
-            PositionIndex: "1",
-            key: "abc123-1",
-        },
-    ],
-};
+export const mockSearchResultsHeader: SearchResultsHeader[] = [
+    {
+        dataIndex: "filename",
+        key: "filename",
+        sortOrder: undefined,
+        sorter: (a, b) => `${a}`.localeCompare(`${b}`),
+        title: "Filename",
+    },
+    {
+        dataIndex: "positionIndex",
+        key: "positionIndex",
+        sortOrder: undefined,
+        sorter: (a, b) => `${a}`.localeCompare(`${b}`),
+        title: "Position Index",
+    },
+    {
+        dataIndex: "channel",
+        key: "channel",
+        sortOrder: undefined,
+        sorter: (a, b) => `${a}`.localeCompare(`${b}`),
+        title: "Channel",
+    },
+    {
+        dataIndex: "template",
+        key: "template",
+        sortOrder: undefined,
+        sorter: (a, b) => `${a}`.localeCompare(`${b}`),
+        title: "Template",
+    },
+];
 
 export const mockUnits: Unit[] = [
     {
@@ -415,6 +414,16 @@ export const mockSelectedWorkflows: Workflow[] = [
     { workflowId: 2, name: "name2", description: "cool workflow"},
     { workflowId: 3, name: "name3", description: "cool workflow"},
     { workflowId: 4, name: "name4", description: "cool workflow"},
+];
+
+export const mockUsers = [
+    {
+        DisplayName: "fake1",
+        UserId: 1,
+    }, {
+        DisplayName: "fake2",
+        UserId: 2,
+    },
 ];
 
 export const mockSuccessfulUploadJob: JSSJob = {

@@ -1,4 +1,3 @@
-import { ColumnProps } from "antd/lib/table";
 import { startCase, uniq, uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
@@ -8,7 +7,7 @@ import { getMetadataColumns } from "../setting/selectors";
 import { Annotation, AnnotationOption, AnnotationType, AnnotationWithOptions, ColumnType } from "../template/types";
 import { State } from "../types";
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
-import { SearchResultRow } from "./types";
+import { SearchResultRow, SearchResultsHeader } from "./types";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
@@ -48,7 +47,7 @@ export const getUniqueBarcodeSearchResults = createSelector([
 });
 
 const getHeaderForFileMetadata = (rows?: SearchResultRow[],
-                                  extraMetadataColumns?: string[]): Array<ColumnProps<SearchResultRow>> | undefined => {
+                                  extraMetadataColumns?: string[]): SearchResultsHeader[] | undefined => {
     if (!rows || !extraMetadataColumns) {
         return undefined;
     }
@@ -66,7 +65,7 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[],
     return columns.map((column) => ({
         dataIndex: column,
         key: column,
-        sort: column === "fileId" ? "descend" : undefined,
+        sortOrder: column === "fileId" ? "descend" : undefined,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
         title: startCase(column),
     }));
@@ -75,13 +74,13 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[],
 export const getSearchResultsHeader = createSelector([
     getFileMetadataSearchResults,
     getMetadataColumns,
-], (rows, extraMetadataColumns): Array<ColumnProps<SearchResultRow>> | undefined => {
+], (rows, extraMetadataColumns): SearchResultsHeader[] | undefined => {
     return getHeaderForFileMetadata(rows, extraMetadataColumns);
 });
 
 export const getFileMetadataForJobHeader = createSelector([
     getFileMetadataForJob,
-], (rows): Array<ColumnProps<SearchResultRow>> | undefined => {
+], (rows): SearchResultsHeader[] | undefined => {
     return getHeaderForFileMetadata(rows, []);
 });
 

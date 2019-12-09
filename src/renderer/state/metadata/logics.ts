@@ -1,7 +1,7 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { sortBy, startCase } from "lodash";
+import { sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -28,7 +28,6 @@ import {
     GET_TEMPLATES,
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
-    UNIMPORTANT_COLUMNS,
 } from "./constants";
 import { getSearchResultsHeader } from "./selectors";
 

@@ -28,7 +28,7 @@ import {
     SelectJobFilterAction,
 } from "../../state/job/types";
 import { getFileMetadataForJob, getFileMetadataForJobHeader } from "../../state/metadata/selectors";
-import { SearchResultRow } from "../../state/metadata/types";
+import { SearchResultRow, SearchResultsHeader } from "../../state/metadata/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import { Page, SelectViewAction } from "../../state/route/types";
@@ -54,7 +54,7 @@ interface Props {
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
     fileMetadataForJob?: SearchResultRow[];
-    fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
+    fileMetadataForJobHeader?: SearchResultsHeader[];
     files: UploadFile[];
     loading: boolean;
     jobFilter: JobFilter;

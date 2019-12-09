@@ -49,12 +49,12 @@ export interface ImagingSession {
 }
 
 export interface SearchResultRow {
-    [key: string]: string | number;
+    [key: string]: string | number | undefined;
 }
 
-export interface SearchResultsTable {
-    header: Array<ColumnProps<SearchResultRow>>;
-    rows: SearchResultRow[];
+// This wrapper interface is merely to convince ts-lint that title is always present
+export interface SearchResultsHeader extends ColumnProps<SearchResultRow> {
+    title: string;
 }
 
 export interface SearchConfig {

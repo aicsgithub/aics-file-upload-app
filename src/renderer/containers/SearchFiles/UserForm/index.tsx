@@ -27,7 +27,7 @@ const UserForm: React.FunctionComponent<UserFormProps> = ({
                                                                                 }) => {
     return (
         <>
-            <Col xs={6}>
+            <Col xs={18} xl={20} xxl={21}>
                 <LabeledInput label="User">
                     <Select
                         showSearch={true}
