@@ -333,28 +333,24 @@ export const mockSearchResultsHeader: SearchResultsHeader[] = [
     {
         dataIndex: "filename",
         key: "filename",
-        sortOrder: undefined,
         sorter: (a, b) => `${a}`.localeCompare(`${b}`),
         title: "Filename",
     },
     {
         dataIndex: "positionIndex",
         key: "positionIndex",
-        sortOrder: undefined,
         sorter: (a, b) => `${a}`.localeCompare(`${b}`),
         title: "Position Index",
     },
     {
         dataIndex: "channel",
         key: "channel",
-        sortOrder: undefined,
         sorter: (a, b) => `${a}`.localeCompare(`${b}`),
         title: "Channel",
     },
     {
         dataIndex: "template",
         key: "template",
-        sortOrder: undefined,
         sorter: (a, b) => `${a}`.localeCompare(`${b}`),
         title: "Template",
     },

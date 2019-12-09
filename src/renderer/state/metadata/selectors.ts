@@ -65,7 +65,6 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[],
     return columns.map((column) => ({
         dataIndex: column,
         key: column,
-        sortOrder: column === "fileId" ? "descend" : undefined,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
         title: startCase(column),
     }));
