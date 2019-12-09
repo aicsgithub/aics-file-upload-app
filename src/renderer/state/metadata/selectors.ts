@@ -66,7 +66,7 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[],
         dataIndex: column,
         key: column,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
-        title: startCase(column),
+        title: column === "fileSize" ? "File Size (in bytes)" : startCase(column),
     }));
 };
 
