@@ -10,6 +10,7 @@ import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 
+import { FileToFileMetadata } from "@aics/aicsfiles/type-declarations/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -29,7 +30,6 @@ import {
     SEARCH_FILE_METADATA,
     UNIMPORTANT_COLUMNS,
 } from "./constants";
-import { FileToFileMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { getSearchResultsHeader } from "./selectors";
 
 const createBarcode = createLogic({
@@ -222,14 +222,15 @@ const searchFileMetadataLogic = createLogic({
         const { annotation, searchValue, template, user } = action.payload;
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
-            let fileMetadataSearchResultsAsMap: FileToFileMetadata | undefined = undefined;
+            let fileMetadataSearchResultsAsMap: FileToFileMetadata | undefined;
             if (annotation && searchValue) {
                 fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotation, searchValue);
             }
             if (template) {
                 const fileMetadataForTemplate = await fms.getFilesByTemplate(template);
                 if (fileMetadataSearchResultsAsMap) {
-                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForTemplate, fileMetadataSearchResultsAsMap);
+                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForTemplate,
+                        fileMetadataSearchResultsAsMap);
                 } else {
                     fileMetadataSearchResultsAsMap = fileMetadataForTemplate;
                 }
@@ -237,13 +238,15 @@ const searchFileMetadataLogic = createLogic({
             if (user) {
                 const fileMetadataForUser = await fms.getFilesByUser(user);
                 if (fileMetadataSearchResultsAsMap) {
-                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForUser, fileMetadataSearchResultsAsMap);
+                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForUser,
+                        fileMetadataSearchResultsAsMap);
                 } else {
                     fileMetadataSearchResultsAsMap = fileMetadataForUser;
                 }
             }
             if (fileMetadataSearchResultsAsMap) {
-                const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
+                const fileMetadataSearchResults =
+                    await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
                 dispatch(batchActions([
                     receiveMetadata({ fileMetadataSearchResults }),
                     removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),

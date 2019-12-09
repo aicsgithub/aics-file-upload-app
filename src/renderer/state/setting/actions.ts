@@ -12,8 +12,8 @@ import {
     AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     GatherSettingsAction,
-    SetMountPointAction,
     SetMetadataColumnsAction,
+    SetMountPointAction,
     SettingStateBranch,
     SwitchEnvironmentAction,
     UpdateSettingsAction,
@@ -62,5 +62,5 @@ export function setMetadataColumns(extraMetadataColumns: string[]): SetMetadataC
     return {
         payload: extraMetadataColumns,
         type: SET_METADATA_COLUMNS,
-    }
+    };
 }

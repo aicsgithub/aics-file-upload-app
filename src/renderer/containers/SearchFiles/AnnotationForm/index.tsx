@@ -94,6 +94,6 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
             </Col>
         </>
     );
-}
+};
 
 export default AnnotationForm;

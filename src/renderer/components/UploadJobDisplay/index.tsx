@@ -15,8 +15,8 @@ interface UploadJobDisplayProps {
     loading: boolean;
     retryUpload: () => void;
     fileMetadataForJob?: SearchResultRow[];
-    fileMetadataForJobHeader?: ColumnProps<SearchResultRow>[];
-    toggleFileDetailModal: (e?: any, row?: SearchResultRow) => void;
+    fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
+    openFileDetailModal: (e?: any, row?: SearchResultRow) => void;
 }
 
 interface ResultFile {
@@ -33,7 +33,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               retryUpload,
                                                                               fileMetadataForJob,
                                                                               fileMetadataForJobHeader,
-                                                                              toggleFileDetailModal
+                                                                              openFileDetailModal,
                                                                           }: UploadJobDisplayProps) => {
     const { serviceFields } = job;
     const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
@@ -57,6 +57,8 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     const error = job.serviceFields && job.serviceFields.error && (
         <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
     );
+    const tableTitle = () => `${files.length} In This Job`;
+    const onRow = (record: SearchResultRow) => ({ onClick: () => openFileDetailModal(undefined, record) });
     return (
         <div className={className}>
             {error}
@@ -77,8 +79,8 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                     <Table
                         dataSource={fileMetadataForJob}
                         columns={fileMetadataForJobHeader}
-                        title={() => `${files.length} In This Job`}
-                        onRow={(record) => ({ onClick: () => toggleFileDetailModal(undefined, record) })}
+                        title={tableTitle}
+                        onRow={onRow}
                     />
                 </>
             )}

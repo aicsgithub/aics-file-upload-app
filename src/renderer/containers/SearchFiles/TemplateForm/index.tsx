@@ -54,6 +54,6 @@ const TemplateForm: React.FunctionComponent<TemplateFormProps> = ({
             </Col>
         </>
     );
-}
+};
 
 export default TemplateForm;

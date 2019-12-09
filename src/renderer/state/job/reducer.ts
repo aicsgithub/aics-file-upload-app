@@ -13,7 +13,7 @@ import {
 } from "./constants";
 import {
     AddPendingJobAction,
-    JobStateBranch, JobFilter,
+    JobFilter, JobStateBranch,
     RemovePendingJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
@@ -85,7 +85,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 jobFilter: action.payload,
             };
         },
-    }
+    },
 };
 
 export default makeReducer<JobStateBranch>(actionToConfigMap, initialState);

@@ -9,6 +9,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import FileMetadataModal from "../../components/FileMetadataModal";
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
@@ -36,7 +37,6 @@ import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types";
-import FileMetadataModal from "../../components/FileMetadataModal";
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
@@ -54,7 +54,7 @@ interface Props {
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
     fileMetadataForJob?: SearchResultRow[];
-    fileMetadataForJobHeader?: ColumnProps<SearchResultRow>[];
+    fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
     files: UploadFile[];
     loading: boolean;
     jobFilter: JobFilter;
@@ -68,7 +68,7 @@ interface Props {
 }
 
 interface UploadSummaryState {
-    selectedJobId?: string
+    selectedJobId?: string;
     selectedRowInUpload?: SearchResultRow;
 }
 
@@ -152,13 +152,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     </Row>
                 )}
                 <Row>
-                    Show{' '}
+                    Show{" "}
                     <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
                         {jobStatusOptions.map((option) => (
                             <Radio.Button key={option} value={option}>{option}</Radio.Button>
                         ))}
                     </Radio.Group>
-                    {' '}Uploads
+                    {" "}Uploads
                 </Row>
                 {jobs.length ? (
                     <Table
@@ -187,19 +187,17 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                        loading={loading}
                        fileMetadataForJob={fileMetadataForJob}
                        fileMetadataForJobHeader={fileMetadataForJobHeader}
-                       toggleFileDetailModal={this.toggleFileDetailModal}
+                       openFileDetailModal={this.toggleFileDetailModal}
                    />
                     <FileMetadataModal
                         fileMetadata={undefined}
                         onBrowse={this.onBrowseToFile}
-                        toggleFileDetailModal={this.toggleFileDetailModal}
+                        closeFileDetailModal={this.toggleFileDetailModal}
                     />
                 </Modal>}
             </FormPage>
         );
     }
-
-
 
     private toggleFileDetailModal = (e?: any, selectedRowInUpload?: SearchResultRow): void => {
         this.setState({ selectedRowInUpload });
@@ -209,7 +207,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         let downloadPath;
         const userOS = os.type();
         if (userOS === "") { // TODO:
-            downloadPath = filePath.replace(/\//g, '\\');
+            downloadPath = filePath.replace(/\//g, "\\");
         } else if (userOS === "") { // TODO:
             downloadPath = filePath;
         } else { // Linux
@@ -219,7 +217,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             setAlert({
                 message: "Failed to browse to file, contact software or browse to file path " +
                     "using files path(s) shown in metadata",
-                type: AlertType.ERROR
+                type: AlertType.ERROR,
             });
         }
     }

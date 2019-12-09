@@ -1,5 +1,5 @@
 import { Alert, Button, Divider, List, Modal, Row } from "antd";
-import { startCase, forOwn, isNil } from "lodash";
+import { forOwn, isNil, startCase } from "lodash";
 import * as React from "react";
 
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
@@ -28,7 +28,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
     const fileMetadataCategories: { [key: string]: ListItem[] } = { annotations: [], extra: [], info: [] };
     forOwn(fileMetadata, (value, key) => {
         // Exclude Filename since it is already shown in title & key since its just for programmatic use
-        if (!isNil(value) && key !== 'filename' && key !== 'key') {
+        if (!isNil(value) && key !== "filename" && key !== "key") {
             if (MAIN_FILE_COLUMNS.includes(key)) {
                 fileMetadataCategories.info.push({ key, value });
             } else if (UNIMPORTANT_COLUMNS.includes(key)) {
@@ -40,7 +40,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
     });
     const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
         // Had to use inline style to override List.Item's border rules
-        <List.Item style={{ border: '1px solid #e8e8e8' }}>
+        <List.Item style={{ border: "1px solid #e8e8e8" }}>
             <h4 className={styles.key}>{startCase(key)}</h4>
             <span className={styles.value}>{value}</span>
         </List.Item>
@@ -48,6 +48,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
     const isLocal = !!fileMetadata.localFilePath;
     const isPublic = !!fileMetadata.publicFilePath;
     const isArchive = !!fileMetadata.archiveFilePath;
+    const onBrowseClick = () => onBrowse(fileMetadata.localFilePath as string);
     return (
         <Modal
             footer={null}
@@ -87,14 +88,14 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
                 {isLocal && (
                     <Button
                         type="primary"
-                        className={styles.downloadButton}
-                        onClick={() => onBrowse(fileMetadata.localFilePath as string)}
+                        className={styles.browseButton}
+                        onClick={onBrowseClick}
                     >Browse To Local File
                     </Button>
                 )}
             </Row>
         </Modal>
     );
-}
+};
 
 export default FileMetadataModal;

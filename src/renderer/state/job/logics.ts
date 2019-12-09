@@ -46,7 +46,7 @@ const retrieveJobsLogic = createLogic({
                 serviceFields: {
                     type: "upload",
                 },
-                status: { "$in": statusesToInclude },
+                status: { $in: statusesToInclude },
                 user: userInfo().username,
 
             });
@@ -54,14 +54,14 @@ const retrieveJobsLogic = createLogic({
                 serviceFields: {
                     type: "copy",
                 },
-                status: { "$in": statusesToInclude },
+                status: { $in: statusesToInclude },
                 user: userInfo().username,
             });
             const getAddMetadataPromise = jssClient.getJobs({
                 serviceFields: {
                     type: "add_metadata",
                 },
-                status: { "$in": statusesToInclude },
+                status: { $in: statusesToInclude },
                 user: userInfo().username,
             });
 

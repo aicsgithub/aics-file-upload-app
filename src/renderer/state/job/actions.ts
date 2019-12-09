@@ -65,5 +65,5 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
     return {
         payload: jobFilter,
         type: SELECT_JOB_FILTER,
-    }
+    };
 }

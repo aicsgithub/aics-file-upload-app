@@ -239,7 +239,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 [action.payload]: !state.expandedUploadJobRows[action.payload],
             },
         }),
-    }
+    },
 };
 
 const selection = makeReducer<SelectionStateBranch>(actionToConfigMap, initialState);

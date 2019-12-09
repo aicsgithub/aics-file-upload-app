@@ -25,6 +25,6 @@ const SearchButton: React.FunctionComponent<SearchButtonProps> = ({
         ><Icon type="search" /> Search
         </Button>
     );
-}
+};
 
 export default SearchButton;

@@ -53,6 +53,6 @@ const UserForm: React.FunctionComponent<UserFormProps> = ({
             </Col>
         </>
     );
-}
+};
 
 export default UserForm;

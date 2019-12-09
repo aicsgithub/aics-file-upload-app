@@ -77,6 +77,6 @@ const UserAndTemplateForm: React.FunctionComponent<UserAndTemplateFormProps> = (
             </Col>
         </>
     );
-}
+};
 
 export default UserAndTemplateForm;

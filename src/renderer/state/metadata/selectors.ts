@@ -1,5 +1,5 @@
 import { ColumnProps } from "antd/lib/table";
-import { uniq, uniqBy, startCase } from "lodash";
+import { startCase, uniq, uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
@@ -47,11 +47,12 @@ export const getUniqueBarcodeSearchResults = createSelector([
     });
 });
 
-const getHeaderForFileMetadata = (rows?: SearchResultRow[], extraMetadataColumns?: string[]): Array<ColumnProps<SearchResultRow>> | undefined => {
+const getHeaderForFileMetadata = (rows?: SearchResultRow[],
+                                  extraMetadataColumns?: string[]): Array<ColumnProps<SearchResultRow>> | undefined => {
     if (!rows || !extraMetadataColumns) {
         return undefined;
     }
-    let annotationColumns = new Set<string>();
+    const annotationColumns = new Set<string>();
     rows.forEach((row) => {
         Object.keys(row).forEach((column) => {
             // Exclude all columns that aren't annotations
@@ -65,7 +66,7 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[], extraMetadataColumns
     return columns.map((column) => ({
         dataIndex: column,
         key: column,
-        sort: column === 'fileId' ? 'descend' : undefined,
+        sort: column === "fileId" ? "descend" : undefined,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
         title: startCase(column),
     }));

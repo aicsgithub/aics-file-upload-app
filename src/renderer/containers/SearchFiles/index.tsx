@@ -1,6 +1,6 @@
-import { Button, Checkbox, Empty, Icon, Radio, Row, Table, } from "antd";
+import { Button, Checkbox, Col, Empty, Icon, Radio, Row, Table } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
-import CheckboxGroup  from "antd/es/checkbox/Group";
+import CheckboxGroup from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { remote, shell } from "electron";
@@ -11,6 +11,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 import FormPage from "../../components/FormPage";
 
+import FileMetadataModal from "../../components/FileMetadataModal";
 import LabeledInput from "../../components/LabeledInput";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
@@ -50,7 +51,6 @@ import { SetMetadataColumnsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
 import { State } from "../../state/types";
 import { LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
-import FileMetadataModal from "../../components/FileMetadataModal";
 import AnnotationForm from "./AnnotationForm";
 import TemplateForm from "./TemplateForm";
 import UserAndTemplateForm from "./UserAndTemplateForm";
@@ -68,7 +68,7 @@ enum SearchMode {
 const searchModeOptions: SearchMode[] = map(SearchMode, (value) => value);
 const EXTRA_COLUMN_OPTIONS = UNIMPORTANT_COLUMNS.map((value) => ({
     label: startCase(value),
-    value
+    value,
 }));
 
 interface Props {
@@ -107,8 +107,8 @@ interface SearchFilesState {
     template?: string;
 }
 
-const MAC = 'Darwin';
-const WINDOWS = 'Windows_NT';
+const MAC = "Darwin";
+const WINDOWS = "Windows_NT";
 
 /*
     This container represents the Search Files tab, in this tab the user can query for files and their metadata
@@ -119,8 +119,8 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     constructor(props: Props) {
         super(props);
         this.state = {
+            searchMode: SearchMode.ANNOTATION,
             showExtraColumnOptions: false,
-            searchMode: SearchMode.ANNOTATION
         };
     }
 
@@ -142,6 +142,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
             searchResultsHeader,
         } = this.props;
         const { selectedRow, searchMode, showExtraColumnOptions } = this.state;
+        const tableTitle = () => `Search found ${numberOfFilesFound} files matching query`;
         return (
             <FormPage
                 className={className}
@@ -153,29 +154,33 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 page={Page.SearchFiles}
             >
                 <Row>
-                    <LabeledInput label="Search Mode">
-                        <Radio.Group buttonStyle="solid" onChange={this.selectSearchMode} value={searchMode}>
-                            {searchModeOptions.map((option) => (
-                                <Radio.Button key={option} value={option}>{option}</Radio.Button>
-                            ))}
-                        </Radio.Group>
-                    </LabeledInput>
-                    {searchMode === SearchMode.ANNOTATION && (
-                        <Button
-                            disabled={searchLoading}
-                            onClick={requestAnnotations}
-                            className={styles.refreshButton}
-                        ><Icon type="sync" />Refresh Annotations
-                        </Button>
-                    )}
-                    {(searchMode === SearchMode.TEMPLATE || searchMode === SearchMode.USER_AND_TEMPLATE) && (
-                        <Button
-                            disabled={searchLoading}
-                            onClick={this.props.requestTemplates}
-                            className={styles.refreshButton}
-                        ><Icon type="sync" />Refresh Templates
-                        </Button>
-                    )}
+                    <Col xs={16}>
+                        <LabeledInput label="Search Mode">
+                            <Radio.Group buttonStyle="solid" onChange={this.selectSearchMode} value={searchMode}>
+                                {searchModeOptions.map((option) => (
+                                    <Radio.Button key={option} value={option}>{option}</Radio.Button>
+                                ))}
+                            </Radio.Group>
+                        </LabeledInput>
+                    </Col>
+                    <Col xs={8}>
+                        {searchMode === SearchMode.ANNOTATION && (
+                            <Button
+                                disabled={searchLoading}
+                                onClick={requestAnnotations}
+                                className={styles.refreshButton}
+                            ><Icon type="sync" />Refresh Annotations
+                            </Button>
+                        )}
+                        {(searchMode === SearchMode.TEMPLATE || searchMode === SearchMode.USER_AND_TEMPLATE) && (
+                            <Button
+                                disabled={searchLoading}
+                                onClick={this.props.requestTemplates}
+                                className={styles.refreshButton}
+                            ><Icon type="sync" />Refresh Templates
+                            </Button>
+                        )}
+                    </Col>
                 </Row>
                 <Row gutter={8} className={styles.fullWidth}>
                     {this.renderSearchForm()}
@@ -186,7 +191,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     <>
                         <Row>
                             <p className={styles.includeExtraColumns}>
-                                Include Extra Columns{' '}
+                                Include Extra Columns{" "}
                                 <Icon
                                     onClick={this.toggleShowExtraColumnOptions}
                                     type={showExtraColumnOptions ? "caret-down" : "caret-up"}
@@ -213,8 +218,8 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                         <Table
                             dataSource={searchResults}
                             columns={searchResultsHeader}
-                            title={() => `Search found ${numberOfFilesFound} files matching query`}
-                            onRow={(record) => ({ onClick: () => this.toggleFileDetailModal(undefined, record) })}
+                            title={tableTitle}
+                            onRow={this.onRow}
                         />
                     </>
                 )}
@@ -300,7 +305,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         let downloadPath;
         const userOS = os.type();
         if (userOS === WINDOWS) {
-            downloadPath = filePath.replace(/\//g, '\\');
+            downloadPath = filePath.replace(/\//g, "\\");
         } else if (userOS === MAC) {
             downloadPath = filePath;
         } else { // Linux
@@ -310,10 +315,14 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
             setAlert({
                 message: "Failed to browse to file, contact software or browse to file path " +
                     "using files path(s) shown in metadata",
-                type: AlertType.ERROR
+                type: AlertType.ERROR,
             });
         }
     }
+
+    private onRow = (row: SearchResultRow) => ({
+        onClick: () => this.toggleFileDetailModal(undefined, row),
+    })
 
     private toggleShowExtraColumnOptions = () => {
         this.setState({ showExtraColumnOptions: !this.state.showExtraColumnOptions });
