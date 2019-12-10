@@ -24,7 +24,7 @@ interface UploadJobDisplayProps {
 
 const determineError = (error: string): string => {
     if (error.toLowerCase().includes('chmod')) {
-        return `You did not have permission to read one of these files. The full error was: ${error}`;
+        return `You and/or FMS did not have permission to read one of these files. The full error was: ${error}`;
     }
     return error;
 };
