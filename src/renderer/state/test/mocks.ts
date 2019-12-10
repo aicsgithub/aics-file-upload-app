@@ -329,9 +329,36 @@ export const mockState: State = {
 };
 
 export const mockSearchResults: ImageModelMetadata[] = [
-    { fileId: "abc123", positionIndex: undefined, channel: undefined },
-    { fileId: "abc123", positionIndex: 1, channel: undefined },
-    { fileId: "abc123-1", positionIndex: undefined, channel: undefined },
+    {
+        channel: undefined,
+        fileId: "abc123",
+        fileSize: 1,
+        fileType: "image",
+        filename: "example.img",
+        modified: "sometime",
+        modifiedBy: "somebody",
+        positionIndex: undefined,
+    },
+    {
+        channel: undefined,
+        fileId: "abc123",
+        fileSize: 1,
+        fileType: "image",
+        filename: "example.img",
+        modified: "sometime",
+        modifiedBy: "somebody",
+        positionIndex: 1,
+    },
+    {
+        channel: undefined,
+        fileId: "abc123-1",
+        fileSize: 1,
+        fileType: "image",
+        filename: "example.img",
+        modified: "sometime",
+        modifiedBy: "somebody",
+        positionIndex: undefined,
+    },
 ];
 
 export const mockSearchResultsHeader: SearchResultsHeader[] = [
