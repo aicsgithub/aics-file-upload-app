@@ -23,6 +23,7 @@ import {
 } from "../../test/mocks";
 import {
     requestAnnotations,
+    requestFileMetadataForJob,
     requestMetadata,
     requestTemplates,
     retrieveOptionsForLookup,
@@ -36,6 +37,7 @@ import {
     getAnnotationTypes,
     getBarcodePrefixes,
     getChannels,
+    getFileMetadataForJob,
     getFileMetadataSearchResults,
     getImagingSessions,
     getLookups,
@@ -267,6 +269,40 @@ describe("Metadata logics", () => {
             expect(getAlert(state)).to.be.undefined;
 
             store.dispatch(searchFileMetadata({ user: "fake_user" }));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getAlert(state)).to.not.be.undefined;
+        });
+    });
+    describe("retrieveFileMetadataForJob", () => {
+        it("sets fileMetadataForJob given OK response", async () => {
+            const getSearchResultsAsMapStub = stub().resolves({ abc123: "blah" });
+            sandbox.replace(fms, "getCustomMetadataForFile", getSearchResultsAsMapStub);
+            const getSearchResultsStub = stub().resolves(mockSearchResults);
+            sandbox.replace(fms, "transformFileMetadataIntoTable", getSearchResultsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getFileMetadataForJob(state)).to.be.undefined;
+
+            store.dispatch(requestFileMetadataForJob(["1", "2"]));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getFileMetadataForJob(state)).to.not.be.undefined;
+        });
+        it("sets alert given not OK response", async () => {
+            const getSearchResultsAsMapStub = stub().rejects();
+            sandbox.replace(fms, "getCustomMetadataForFile", getSearchResultsAsMapStub);
+            const getSearchResultsStub = stub().rejects();
+            sandbox.replace(fms, "transformFileMetadataIntoTable", getSearchResultsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(requestFileMetadataForJob(["1", "2"]));
 
             await logicMiddleware.whenComplete();
             state = store.getState();
