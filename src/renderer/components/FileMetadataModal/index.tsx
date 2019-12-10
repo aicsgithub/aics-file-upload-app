@@ -22,7 +22,6 @@ interface ListItem {
     value: string | number;
 }
 
-
 const MAC = "Darwin";
 const WINDOWS = "Windows_NT";
 
@@ -35,7 +34,7 @@ const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
 ));
 
 const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({   closeFileDetailModal,
-                                                                           fileMetadata
+                                                                           fileMetadata,
                                                                         }) => {
     if (!fileMetadata) {
         return null;

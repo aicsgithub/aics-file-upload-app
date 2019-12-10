@@ -1,8 +1,8 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
-import { FileToFileMetadata, FileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { sortBy, reduce } from "lodash";
+import { reduce, sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 

@@ -1,6 +1,6 @@
 import { Alert, Empty, Table } from "antd";
 import { ColumnProps } from "antd/es/table";
-import { uniq, isEmpty } from "lodash";
+import { isEmpty, uniq } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../../state/constants";
@@ -8,7 +8,7 @@ import { SearchResultRow } from "../../state/metadata/types";
 import { titleCase } from "../../util";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
-const styles = require('./styles.pcss');
+const styles = require("./styles.pcss");
 
 interface UploadJobDisplayProps {
     className?: string;
@@ -23,7 +23,7 @@ interface UploadJobDisplayProps {
 }
 
 const determineError = (error: string): string => {
-    if (error.toLowerCase().includes('chmod')) {
+    if (error.toLowerCase().includes("chmod")) {
         return `You and/or FMS did not have permission to read one of these files. The full error was: ${error}`;
     }
     return error;
@@ -47,7 +47,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
         const tableTitle = () => fileMetadataForJobLoading ? (
             "...Loading File Metadata"
         ) : (
-            `${fileCount} ${fileCount === 1 ? 'File Was' : 'Files Were'} Part Of This Job`
+            `${fileCount} ${fileCount === 1 ? "File Was" : "Files Were"} Part Of This Job`
         );
         const onRow = (record: SearchResultRow) => ({ onClick: () => onFileRowClick(record) });
         fileMetadata = (
@@ -58,7 +58,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                 title={tableTitle}
                 onRow={onRow}
             />
-        )
+        );
     } else if (job.serviceFields
         && job.serviceFields.files
         && !isEmpty(job.serviceFields.files)
@@ -66,20 +66,21 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
         && job.serviceFields.files[0].file.originalPath) {
         const rows = job.serviceFields.files.map((file: { file: { originalPath: string } }) => {
             const { originalPath } = file.file;
-            const filePathSections = originalPath.split('/');
+            const filePathSections = originalPath.split("/");
             return { filename: filePathSections[filePathSections.length - 1], originalPath, key: originalPath };
         });
+        const tableTitle = () => "Incomplete File Information Retrieved From Job";
         fileMetadata = (
             <Table
                 dataSource={rows}
                 columns={["filename", "originalPath"].map((column) =>
                     ({ dataIndex: column, title: titleCase(column) })
                 )}
-                title={() => "Incomplete File Information Retrieved From Job"}
+                title={tableTitle}
             />
-        )
+        );
     } else {
-        fileMetadata = <Empty description={"Unable to determine files for this job"} />
+        fileMetadata = <Empty description={"Unable to determine files for this job"} />;
     }
     const error = job.serviceFields && job.serviceFields.error && (
         <Alert

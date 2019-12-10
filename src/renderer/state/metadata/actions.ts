@@ -7,8 +7,8 @@ import {
     GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
     RECEIVE_METADATA,
-    REQUEST_METADATA,
     REQUEST_FILE_METADATA_FOR_JOB,
+    REQUEST_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
     UPDATE_PAGE_HISTORY,
@@ -25,8 +25,8 @@ import {
     GetTemplatesAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
-    RequestMetadataAction,
     RequestFileMetadataForJobAction,
+    RequestMetadataAction,
     ResetHistoryAction,
     SearchConfig,
     SearchFileMetadataAction,
@@ -114,13 +114,13 @@ export function requestFileMetadataForJob(fileIds: string[]): RequestFileMetadat
     return {
         payload: fileIds,
         type: REQUEST_FILE_METADATA_FOR_JOB,
-    }
+    };
 }
 
 export function clearFileMetadataForJob(): ClearFileMetadataForJobAction {
     return {
         type: CLEAR_FILE_METADATA_FOR_JOB,
-    }
+    };
 }
 
 export function exportFileMetadataCSV(fileName: string): ExportFileMetadataAction {

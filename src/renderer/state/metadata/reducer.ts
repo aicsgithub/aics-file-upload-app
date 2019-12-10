@@ -86,12 +86,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         }),
     },
     [CLEAR_FILE_METADATA_FOR_JOB]: {
-        accepts: (action: AnyAction): action is ClearFileMetadataForJobAction => action.type === CLEAR_FILE_METADATA_FOR_JOB,
+        accepts: (action: AnyAction): action is ClearFileMetadataForJobAction =>
+            action.type === CLEAR_FILE_METADATA_FOR_JOB,
         perform: (state: MetadataStateBranch) => ({
             ...state,
             fileMetadataForJob: undefined,
         }),
-    }
+    },
 };
 
 export default makeReducer<MetadataStateBranch>(actionToConfigMap, initialState);

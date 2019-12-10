@@ -2,7 +2,7 @@ import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/
 import { Alert, Button, Col, Empty, Modal, Progress, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
-import { map, isEmpty } from "lodash";
+import { isEmpty, map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -79,53 +79,13 @@ interface UploadSummaryState {
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
-    private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
-        {
-            align: "center",
-            dataIndex: "status",
-            key: "status",
-            render: (status: JSSJobStatus) => <StatusCircle status={status}/>,
-            title: "Status",
-            width: '90px'
-        },
-        {
-            dataIndex: "currentStage",
-            key: "currentStage",
-            render: (stage: string, { status }) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(status) ? (
-                <Progress
-                    showInfo={false}
-                    status="active"
-                    percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
-                    successPercent={50}
-                />
-            ) : status,
-            title: "Progress",
-            width: '190px'
-        },
-        {
-            dataIndex: "fileId",
-            key: "fileName",
-            title: "File Names",
-            ellipsis: true,
-            render: (fileId, row: UploadSummaryTableRow) => UploadSummary.EXTRACT_FILE_OR_JOB_NAME(row),
-            width: '100%'
-        },
-        {
-            dataIndex: "modified",
-            key: "modified",
-            render: (modified: Date) => modified.toLocaleString(),
-            title: "Last Modified",
-            width: '250px'
-        },
-    ];
-    private interval: Timeout | null = null;
 
     private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
         try {
             return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
-                const filePathSections = originalPath.split('/');
+                const filePathSections = originalPath.split("/");
                 return filePathSections[filePathSections.length - 1];
-            }).sort().join(', ')
+            }).sort().join(", ");
         } catch (e) {
             return row.jobName || "CAN'T FIND FILE OR JOB NAME";
         }
@@ -143,6 +103,46 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         }
         return 0;
     }
+    private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
+        {
+            align: "center",
+            dataIndex: "status",
+            key: "status",
+            render: (status: JSSJobStatus) => <StatusCircle status={status}/>,
+            title: "Status",
+            width: "90px",
+        },
+        {
+            dataIndex: "currentStage",
+            key: "currentStage",
+            render: (stage: string, { status }) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(status) ? (
+                <Progress
+                    showInfo={false}
+                    status="active"
+                    percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
+                    successPercent={50}
+                />
+            ) : status,
+            title: "Progress",
+            width: "190px",
+        },
+        {
+            dataIndex: "fileId",
+            ellipsis: true,
+            key: "fileName",
+            render: (fileId, row: UploadSummaryTableRow) => UploadSummary.EXTRACT_FILE_OR_JOB_NAME(row),
+            title: "File Names",
+            width: "100%",
+        },
+        {
+            dataIndex: "modified",
+            key: "modified",
+            render: (modified: Date) => modified.toLocaleString(),
+            title: "Last Modified",
+            width: "250px",
+        },
+    ];
+    private interval: Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -352,9 +352,9 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
+    requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,
-    requestFileMetadataForJob,
     selectJobFilter,
     selectPage,
     selectView,
