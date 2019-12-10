@@ -1,11 +1,14 @@
-import { startCase, uniq, uniqBy } from "lodash";
+import { uniq, uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
+import { titleCase } from "../../util";
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
+
 import { getMetadataColumns } from "../setting/selectors";
 import { Annotation, AnnotationOption, AnnotationType, AnnotationWithOptions, ColumnType } from "../template/types";
 import { State } from "../types";
+
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
 import { SearchResultRow, SearchResultsHeader } from "./types";
 
@@ -66,7 +69,7 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[],
         dataIndex: column,
         key: column,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
-        title: column === "fileSize" ? "File Size (in bytes)" : startCase(column),
+        title: column === "fileSize" ? "File Size (in bytes)" : titleCase(column),
     }));
 };
 
