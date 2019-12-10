@@ -62,6 +62,7 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
+import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
@@ -112,6 +113,9 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     }],
     [Page.AssociateFiles, {
         container:  <AssociateFiles key="associateFiles"/>,
+    }],
+    [Page.SelectStorageLocation, {
+        container:  <SelectStorageIntent key="selectStorageIntent"/>,
     }],
     [Page.AddCustomData, {
         container: <AddCustomData key="addCustomData"/>,
