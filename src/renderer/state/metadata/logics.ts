@@ -10,7 +10,7 @@ import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 
-import { FileToFileMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -285,7 +285,7 @@ const exportFileMetadata = createLogic({
             const { metadata: { fileMetadataSearchResults } } = state;
             if (fileMetadataSearchResults && tableHeader) {
                 const header = tableHeader.map(({ title }) => title);
-                const csv = fms.transformTableIntoCSV(header, fileMetadataSearchResults);
+                const csv = fms.transformTableIntoCSV(header, fileMetadataSearchResults as ImageModelMetadata[]);
                 await fs.writeFileSync(filePath, csv);
                 dispatch(batchActions([
                     removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
