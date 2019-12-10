@@ -1,6 +1,6 @@
 import { Alert, Button, Divider, List, Modal, Row } from "antd";
 import { shell } from "electron";
-import { forOwn, isNil, startCase } from "lodash";
+import { forOwn, isNil } from "lodash";
 import os from "os";
 import * as React from "react";
 
@@ -8,6 +8,7 @@ import { setAlert } from "../../state/feedback/actions";
 import { AlertType } from "../../state/feedback/types";
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
 import { SearchResultRow } from "../../state/metadata/types";
+import { titleCase } from "../../util";
 
 const styles = require("./styles.pcss");
 
@@ -28,7 +29,7 @@ const WINDOWS = "Windows_NT";
 const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
     // Had to use inline style to override List.Item's border rules
     <List.Item style={{ border: "1px solid #e8e8e8" }}>
-        <h4 className={styles.key}>{startCase(key)}</h4>
+        <h4 className={styles.key}>{titleCase(key)}</h4>
         <span className={styles.value}>{value}</span>
     </List.Item>
 ));

@@ -4,7 +4,7 @@ import { StateWithHistory } from "redux-undo";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
-import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
+import { JobStateBranch, PendingJob } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
 import { SelectionStateBranch, Well, Workflow } from "../selection/types";
@@ -135,6 +135,8 @@ export const mockWellUpload: UploadStateBranch = {
         barcode: "1234",
         file: "/path/to/file1",
         key: getUploadRowKey("/path/to/file"),
+        shouldBeInArchive: true,
+        shouldBeInLocal: true,
         wellIds: [1],
         wellLabels: ["A1"],
     },
@@ -142,6 +144,8 @@ export const mockWellUpload: UploadStateBranch = {
         barcode: "1235",
         file: "/path/to/file2",
         key: getUploadRowKey("/path/to/file2"),
+        shouldBeInArchive: false,
+        shouldBeInLocal: true,
         wellIds: [2],
         wellLabels: ["A2"],
     },
@@ -149,6 +153,8 @@ export const mockWellUpload: UploadStateBranch = {
         barcode: "1236",
         file: "/path/to/file3",
         key: getUploadRowKey("/path/to/file3"),
+        shouldBeInArchive: true,
+        shouldBeInLocal: false,
         wellIds: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
     },
@@ -282,7 +288,6 @@ export const mockState: State = {
     job: {
         addMetadataJobs: [],
         copyJobs: [],
-        jobFilter: JobFilter.Pending,
         pendingJobs: [],
         uploadJobs: [],
     },
@@ -324,9 +329,36 @@ export const mockState: State = {
 };
 
 export const mockSearchResults: ImageModelMetadata[] = [
-    { fileId: "abc123", positionIndex: undefined, channel: undefined },
-    { fileId: "abc123", positionIndex: 1, channel: undefined },
-    { fileId: "abc123-1", positionIndex: undefined, channel: undefined },
+    {
+        channel: undefined,
+        fileId: "abc123",
+        fileSize: 1,
+        fileType: "image",
+        filename: "example.img",
+        modified: "sometime",
+        modifiedBy: "somebody",
+        positionIndex: undefined,
+    },
+    {
+        channel: undefined,
+        fileId: "abc123",
+        fileSize: 1,
+        fileType: "image",
+        filename: "example.img",
+        modified: "sometime",
+        modifiedBy: "somebody",
+        positionIndex: 1,
+    },
+    {
+        channel: undefined,
+        fileId: "abc123-1",
+        fileSize: 1,
+        fileType: "image",
+        filename: "example.img",
+        modified: "sometime",
+        modifiedBy: "somebody",
+        positionIndex: undefined,
+    },
 ];
 
 export const mockSearchResultsHeader: SearchResultsHeader[] = [

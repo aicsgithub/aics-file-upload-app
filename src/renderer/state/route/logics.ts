@@ -22,8 +22,9 @@ import {
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { clearUploadHistory, jumpToPastUpload } from "../upload/actions";
-import { getCurrentUploadIndex } from "../upload/selectors";
+import { clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
+import { getUploadRowKey } from "../upload/constants";
+import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { selectPage } from "./actions";
@@ -125,7 +126,16 @@ const selectPageLogic = createLogic({
             const selectionIndex = getCurrentSelectionIndex(state);
             const uploadIndex = getCurrentUploadIndex(state);
             const templateIndex = getCurrentTemplateIndex(state);
-            dispatch(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
+            const actions: AnyAction[] = [updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex)];
+            if (nextPage === Page.SelectStorageLocation) {
+                const files = getUploadFiles(state);
+                const uploadPartial = {
+                    shouldBeInArchive: true,
+                    shouldBeInLocal: true,
+                };
+                actions.push(...files.map((f: string) => updateUpload(getUploadRowKey(f), uploadPartial)));
+            }
+            dispatch(batchActions(actions));
         }
 
         done();

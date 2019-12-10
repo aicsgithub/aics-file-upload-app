@@ -18,41 +18,39 @@ interface UserFormProps {
 }
 
 const UserForm: React.FunctionComponent<UserFormProps> = ({
-                                                                                    exportingCSV,
-                                                                                    onSearch,
-                                                                                    searchLoading,
-                                                                                    selectUser,
-                                                                                    user,
-                                                                                    users,
-                                                                                }) => {
-    return (
-        <>
-            <Col xs={18} xl={20} xxl={21}>
-                <LabeledInput label="User">
-                    <Select
-                        showSearch={true}
-                        value={user}
-                        loading={!users.length}
-                        disabled={!users.length}
-                        onChange={selectUser}
-                        placeholder="Select User"
-                        className={styles.fullWidth}
-                    >
-                        {users.map(({ DisplayName }) => (
-                            <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
-                        ))}
-                    </Select>
-                </LabeledInput>
-            </Col>
-            <Col xs={6} xl={4} xxl={3}>
-                <SearchButton
-                    disabled={!user || searchLoading || exportingCSV}
-                    loading={searchLoading}
-                    onSearch={onSearch}
-                />
-            </Col>
-        </>
-    );
-};
+                                                                exportingCSV,
+                                                                onSearch,
+                                                                searchLoading,
+                                                                selectUser,
+                                                                user,
+                                                                users,
+                                                            }) => (
+    <>
+        <Col xs={18} xl={20} xxl={21}>
+            <LabeledInput label="User">
+                <Select
+                    showSearch={true}
+                    value={user}
+                    loading={!users.length}
+                    disabled={!users.length}
+                    onChange={selectUser}
+                    placeholder="Select User"
+                    className={styles.fullWidth}
+                >
+                    {users.map(({ DisplayName }) => (
+                        <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
+                    ))}
+                </Select>
+            </LabeledInput>
+        </Col>
+        <Col xs={6} xl={4} xxl={3}>
+            <SearchButton
+                disabled={!user || searchLoading || exportingCSV}
+                loading={searchLoading}
+                onSearch={onSearch}
+            />
+        </Col>
+    </>
+);
 
 export default UserForm;

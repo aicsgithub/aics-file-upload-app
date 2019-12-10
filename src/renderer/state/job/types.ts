@@ -5,7 +5,6 @@ export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
     addMetadataJobs: JSSJob[];
-    jobFilter: JobFilter;
     pendingJobs: PendingJob[];
 }
 
@@ -13,13 +12,6 @@ export interface JobStateBranch {
 // in this form first
 export interface PendingJob extends JSSJob {
     uploads: Uploads;
-}
-
-export enum JobFilter {
-    All = "All",
-    Failed = "Failed",
-    Pending = "Pending",
-    Successful = "Successful",
 }
 
 export interface RetrieveJobsAction {
@@ -48,10 +40,5 @@ export interface AddPendingJobAction {
 
 export interface RemovePendingJobsAction {
     payload: string[]; // jobNames
-    type: string;
-}
-
-export interface SelectJobFilterAction {
-    payload: JobFilter;
     type: string;
 }

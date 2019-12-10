@@ -21,6 +21,8 @@ export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
 export const UPDATE_SCENES = makeConstant(BRANCH_NAME, "add-scenes");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
 export const UPDATE_UPLOADS = makeConstant(BRANCH_NAME, "update-uploads");
+export const UPDATE_FILES_TO_ARCHIVE = makeConstant(BRANCH_NAME, "update-files-to-archive");
+export const UPDATE_FILES_TO_STORE_ON_ISILON = makeConstant(BRANCH_NAME, "update-files-to-store-on-isilon");
 
 // todo could do hash eventually but we're being safe for now
 export const getUploadRowKey = (file: string, positionIndex?: number, channelId?: number) => {

@@ -187,10 +187,9 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 {numberOfFilesFound > 0 && (
                     <>
                         <Row>
-                            <p className={styles.includeExtraColumns}>
+                            <p className={styles.includeExtraColumns} onClick={this.toggleShowExtraColumnOptions}>
                                 Include Extra Columns{" "}
                                 <Icon
-                                    onClick={this.toggleShowExtraColumnOptions}
                                     type={showExtraColumnOptions ? "caret-down" : "caret-up"}
                                 />
                             </p>
@@ -221,7 +220,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     </>
                 )}
                 {(searchResultsHeader && !numberOfFilesFound) && (
-                    <Empty className={styles.empty} description="No Files found matching search" />
+                    <Empty className={styles.empty} description="No files found matching your search criteria" />
                 )}
                 <FileMetadataModal
                     fileMetadata={selectedRow}
@@ -362,12 +361,14 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 { name: "CSV files", extensions: ["csv"] },
             ],
             title: "Save File Metadata as CSV",
-        }, (fileName: string = "FileMetadata.csv") => {
-            let actualFileName = fileName;
-            if (actualFileName.length < 4 || actualFileName.slice(-4) !== ".csv") {
-                actualFileName += ".csv";
+        }, (fileName?: string) => {
+            if (fileName) {
+                let actualFileName = fileName;
+                if (actualFileName.length < 4 || actualFileName.slice(-4) !== ".csv") {
+                    actualFileName += ".csv";
+                }
+                this.props.exportFileMetadataCSV(actualFileName);
             }
-            this.props.exportFileMetadataCSV(actualFileName);
         });
     }
 }

@@ -1,5 +1,5 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
-import { FileToFileMetadata, FileMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { FileToFileMetadata, FileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
 import { sortBy, reduce } from "lodash";
@@ -31,6 +31,7 @@ import {
     SEARCH_FILE_METADATA,
 } from "./constants";
 import { getSearchResultsHeader } from "./selectors";
+import { SearchConfig } from "./types";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -312,14 +313,14 @@ const exportFileMetadata = createLogic({
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
         try {
-            const { payload } = action;
+            const filePath: string = action.payload;
             const state = getState();
             const tableHeader = getSearchResultsHeader(state);
             const { metadata: { fileMetadataSearchResults } } = state;
             if (fileMetadataSearchResults && tableHeader) {
                 const header = tableHeader.map(({ title }) => title);
-                const csv = fms.transformTableIntoCSV(header, fileMetadataSearchResults);
-                await fs.writeFileSync(payload, csv);
+                const csv = fms.transformTableIntoCSV(header, fileMetadataSearchResults as ImageModelMetadata[]);
+                await fs.writeFileSync(filePath, csv);
                 dispatch(batchActions([
                     removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
                     setAlert({
