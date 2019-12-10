@@ -219,7 +219,7 @@ const requestTemplates = createLogic({
 const searchFileMetadataLogic = createLogic({
     process: async ({ action, fms }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        const { annotation, searchValue, template, user } : SearchConfig = action.payload;
+        const { annotation, searchValue, template, user }: SearchConfig = action.payload;
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
             let fileMetadataSearchResultsAsMap: FileToFileMetadata | undefined;
