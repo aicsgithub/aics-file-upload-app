@@ -17,6 +17,7 @@ export const GET_FILES_IN_FOLDER = makeConstant(BRANCH_NAME, "get-files-in-folde
 export const SET_WELLS = makeConstant(BRANCH_NAME, "set-wells");
 export const SELECT_WELLS = makeConstant(BRANCH_NAME, "select-wells");
 export const SELECT_ANNOTATION = makeConstant(BRANCH_NAME, "select-annotation");
+export const SELECT_USER = makeConstant(BRANCH_NAME, "select-user");
 export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");
 export const CLEAR_SELECTION_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const CLEAR_STAGED_FILES = makeConstant(BRANCH_NAME, "clear-staged-files");

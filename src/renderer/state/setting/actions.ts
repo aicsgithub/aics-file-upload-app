@@ -4,6 +4,7 @@ import {
     ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
+    SET_METADATA_COLUMNS,
     SET_MOUNT_POINT,
     UPDATE_SETTINGS,
 } from "./constants";
@@ -11,6 +12,7 @@ import {
     AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     GatherSettingsAction,
+    SetMetadataColumnsAction,
     SetMountPointAction,
     SettingStateBranch,
     SwitchEnvironmentAction,
@@ -53,5 +55,12 @@ export function setMountPoint(): SetMountPointAction {
 export function switchEnvironment(): SwitchEnvironmentAction {
     return {
         type: SWITCH_ENVIRONMENT,
+    };
+}
+
+export function setMetadataColumns(extraMetadataColumns: string[]): SetMetadataColumnsAction {
+    return {
+        payload: extraMetadataColumns,
+        type: SET_METADATA_COLUMNS,
     };
 }

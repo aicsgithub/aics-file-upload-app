@@ -19,6 +19,7 @@ import {
     SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
+    SELECT_USER,
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
@@ -47,6 +48,7 @@ import {
     SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
+    SelectUserAction,
     SelectWellsAction,
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
@@ -199,6 +201,13 @@ export function selectAnnotation(annotation: string): SelectAnnotationAction {
     return {
         payload: annotation,
         type: SELECT_ANNOTATION,
+    };
+}
+
+export function selectUser(user: string): SelectUserAction {
+    return {
+        payload: user,
+        type: SELECT_USER,
     };
 }
 

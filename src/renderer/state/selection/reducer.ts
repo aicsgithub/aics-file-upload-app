@@ -1,4 +1,5 @@
 import { castArray } from "lodash";
+import { userInfo } from "os";
 import { AnyAction } from "redux";
 import undoable, {
     UndoableOptions,
@@ -26,6 +27,7 @@ import {
     SELECT_BARCODE,
     SELECT_FILE,
     SELECT_METADATA,
+    SELECT_USER,
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
@@ -49,6 +51,7 @@ import {
     SelectFileAction,
     SelectionStateBranch,
     SelectMetadataAction,
+    SelectUserAction,
     SelectWellsAction,
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
@@ -73,6 +76,7 @@ export const initialState: SelectionStateBranch = {
     settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
+    user: userInfo().username,
     wells: [],
 };
 
@@ -89,6 +93,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectAnnotationAction) => ({
             ...state,
             annotation: action.payload,
+        }),
+    },
+    [SELECT_USER]: {
+        accepts: (action: AnyAction): action is SelectUserAction => action.type === SELECT_USER,
+        perform: (state: SelectionStateBranch, action: SelectUserAction) => ({
+            ...state,
+            user: action.payload,
         }),
     },
     [SELECT_BARCODE]: {

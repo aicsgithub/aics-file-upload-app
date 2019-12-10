@@ -22,7 +22,8 @@ import { ColumnType } from "../template/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
-    ReduxLogicProcessDependencies, ReduxLogicRejectCb,
+    ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";

@@ -19,6 +19,7 @@ import {
     mockSelectedWorkflows,
     mockState,
     mockUnit,
+    mockUsers,
 } from "../../test/mocks";
 import {
     requestAnnotations,
@@ -41,6 +42,7 @@ import {
     getOptionsForLookup,
     getTemplates,
     getUnits,
+    getUsers,
     getWorkflowOptions,
 } from "../selectors";
 
@@ -61,6 +63,7 @@ describe("Metadata logics", () => {
             const getLookupsStub = stub().resolves(mockLookups);
             const getUnitsStub = stub().resolves([mockUnit]);
             const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
+            const getUsersStub = stub().resolves(mockUsers);
 
             sandbox.replace(labkeyClient, "getAnnotationLookups", getAnnotationLookupsStub);
             sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
@@ -70,6 +73,7 @@ describe("Metadata logics", () => {
             sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
             sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
             sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+            sandbox.replace(labkeyClient, "getUsers", getUsersStub);
 
             const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
@@ -82,6 +86,7 @@ describe("Metadata logics", () => {
             expect(getLookups(state)).to.be.empty;
             expect(getUnits(state)).to.be.empty;
             expect(getWorkflowOptions(state)).to.be.empty;
+            expect(getUsers(state)).to.be.empty;
 
             store.dispatch(requestMetadata());
 
@@ -95,6 +100,7 @@ describe("Metadata logics", () => {
             expect(getLookups(state)).to.not.be.empty;
             expect(getUnits(state)).to.not.be.empty;
             expect(getWorkflowOptions(state)).to.not.be.empty;
+            expect(getUsers(state)).to.not.be.empty;
         });
         it("sets alert given non-OK response", async () => {
             const getImagingSessionsStub = stub().rejects();
@@ -218,7 +224,7 @@ describe("Metadata logics", () => {
         });
     });
     describe("searchFileMetadataLogic", () => {
-        it("sets searchResults given OK response", async () => {
+        it("sets searchResults given annotation and searchValue to search for", async () => {
             const getSearchResultsAsMapStub = stub().resolves({});
             sandbox.replace(fms, "getFilesByAnnotation", getSearchResultsAsMapStub);
             const getSearchResultsStub = stub().resolves(mockSearchResults);
@@ -228,7 +234,23 @@ describe("Metadata logics", () => {
             let state = store.getState();
             expect(getFileMetadataSearchResults(state)).to.be.undefined;
 
-            store.dispatch(searchFileMetadata("Dataset", "Pipeline"));
+            store.dispatch(searchFileMetadata({ annotation: "fake_user", searchValue: "mms" }));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
+        });
+        it("sets searchResults given user to search for", async () => {
+            const getSearchResultsAsMapStub = stub().resolves({});
+            sandbox.replace(fms, "getFilesByUser", getSearchResultsAsMapStub);
+            const getSearchResultsStub = stub().resolves(mockSearchResults);
+            sandbox.replace(fms, "transformFileMetadataIntoTable", getSearchResultsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getFileMetadataSearchResults(state)).to.be.undefined;
+
+            store.dispatch(searchFileMetadata({ user: "fake_user" }));
 
             await logicMiddleware.whenComplete();
             state = store.getState();
@@ -244,7 +266,7 @@ describe("Metadata logics", () => {
             let state = store.getState();
             expect(getAlert(state)).to.be.undefined;
 
-            store.dispatch(searchFileMetadata("Dataset", "Pipeline"));
+            store.dispatch(searchFileMetadata({ user: "fake_user" }));
 
             await logicMiddleware.whenComplete();
             state = store.getState();

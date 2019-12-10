@@ -52,6 +52,11 @@ export interface LabkeyTemplate {
     Version: number;
 }
 
+export interface LabkeyUser {
+    DisplayName: string;
+    UserId: number;
+}
+
 export interface GetTablesResponseColumn {
     caption: string; // name with spaces (ex. DonorPlasmidBatch -> Donor Plasmid Batch)
     name: string; // actual name

@@ -24,10 +24,10 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.1.3":
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.1.3.tgz#07beeddb8660fea453e0c6c4c1785511fb5178d3"
-  integrity sha512-QO8OhTQwhEMfNi4LD+elvtUhzRmkhcunAP34qji+IwFIJAV0KZqQ4FhOpHdt4o1pTrZYsK77XskaeUZFYc/nGg==
+"@aics/aicsfiles@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.2.0.tgz#d580bdccd70c98349c0e2d3b70b76cfc8a187996"
+  integrity sha512-J2TI/qniFxQUfP/X68E4Y48jzB20tI7sbD4f7AZfbxQQl3fmjLMN1+9wlv+HXfb1s27XqEdhxw9+ia0ADS7QgA==
   dependencies:
     "@aics/job-status-client" "^1.0.8"
     "@babel/polyfill" "^7.4.4"
@@ -1283,7 +1283,7 @@ ansi-styles@^3.2.0, ansi-styles@^3.2.1:
   dependencies:
     color-convert "^1.9.0"
 
-antd@^3.26.0:
+antd@3.26.0:
   version "3.26.0"
   resolved "https://registry.yarnpkg.com/antd/-/antd-3.26.0.tgz#0a6a43fdd8577e61708932b7bc34ba0234d0f138"
   integrity sha512-sx8Tmg1o3yQhYhodxG2sc+awlpdmY0Qf3PHCUdWAdvmiSzkRIyx1vAfqnQ30tF1EF90pKXgy8+MJ8DhC9UCjbg==

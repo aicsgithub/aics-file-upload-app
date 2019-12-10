@@ -32,6 +32,7 @@ export interface SelectionStateBranch {
     settingsEditorVisible: boolean;
     stagedFiles: UploadFile[];
     templateEditorVisible: boolean;
+    user: string;
 }
 
 export interface ExpandedRows {
@@ -204,6 +205,11 @@ export interface SelectWellsAction {
 }
 
 export interface SelectAnnotationAction {
+    payload: string;
+    type: string;
+}
+
+export interface SelectUserAction {
     payload: string;
     type: string;
 }
