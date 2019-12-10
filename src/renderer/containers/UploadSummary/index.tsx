@@ -120,6 +120,17 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     ];
     private interval: Timeout | null = null;
 
+    private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
+        try {
+            return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
+                const filePathSections = originalPath.split('/');
+                return filePathSections[filePathSections.length - 1];
+            }).sort().join(', ')
+        } catch (e) {
+            return row.jobName || "CAN'T FIND FILE OR JOB NAME";
+        }
+    }
+
     private static STAGE_TO_PROGRESS = (stage: string): number => {
         if (stage === "Copy file") {
             return 25;
@@ -131,17 +142,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             return 75;
         }
         return 0;
-    }
-
-    private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
-        try {
-            return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
-                const filePathSections = originalPath.split('/');
-                return filePathSections[filePathSections.length - 1];
-            }).sort().join(', ')
-        } catch (e) {
-            return row.jobName || "CAN'T FIND FILE OR JOB NAME";
-        }
     }
 
     constructor(props: Props) {
@@ -234,7 +234,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                        fileMetadataForJob={fileMetadataForJob}
                        fileMetadataForJobHeader={fileMetadataForJobHeader}
                        fileMetadataForJobLoading={fileMetadataForJobLoading}
-                       openFileDetailModal={this.toggleFileDetailModal}
+                       onFileRowClick={this.toggleFileDetailModal}
                    />
                     <FileMetadataModal
                         fileMetadata={selectedRowInJob}
@@ -245,7 +245,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         );
     }
 
-    private toggleFileDetailModal = (e?: any, selectedRowInJob?: SearchResultRow): void => {
+    private toggleFileDetailModal = (selectedRowInJob?: SearchResultRow): void => {
         this.setState({ selectedRowInJob });
     }
 

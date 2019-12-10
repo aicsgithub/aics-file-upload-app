@@ -1,10 +1,11 @@
 import { Alert, Empty, Table } from "antd";
 import { ColumnProps } from "antd/es/table";
-import { uniq } from "lodash";
+import { uniq, isEmpty } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../../state/constants";
 import { SearchResultRow } from "../../state/metadata/types";
+import { titleCase } from "../../util";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const styles = require('./styles.pcss');
@@ -18,8 +19,15 @@ interface UploadJobDisplayProps {
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
     fileMetadataForJobLoading: boolean;
-    openFileDetailModal: (e?: any, row?: SearchResultRow) => void;
+    onFileRowClick: (row?: SearchResultRow) => void;
 }
+
+const determineError = (error: string): string => {
+    if (error.toLowerCase().includes('chmod')) {
+        return `You did not have permission to read one of these files. The full error was: ${error}`;
+    }
+    return error;
+};
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               cancelUpload,
@@ -30,9 +38,9 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               fileMetadataForJob,
                                                                               fileMetadataForJobHeader,
                                                                               fileMetadataForJobLoading,
-                                                                              openFileDetailModal,
+                                                                              onFileRowClick,
                                                                           }: UploadJobDisplayProps) => {
-    let fileMetadataTable;
+    let fileMetadata;
     if (fileMetadataForJob || fileMetadataForJobLoading) {
         const fileCount = fileMetadataForJob &&
             uniq(fileMetadataForJob.map((metadata) => metadata.fileId)).length;
@@ -41,8 +49,8 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
         ) : (
             `${fileCount} ${fileCount === 1 ? 'File Was' : 'Files Were'} Part Of This Job`
         );
-        const onRow = (record: SearchResultRow) => ({ onClick: () => openFileDetailModal(undefined, record) });
-        fileMetadataTable = (
+        const onRow = (record: SearchResultRow) => ({ onClick: () => onFileRowClick(record) });
+        fileMetadata = (
             <Table
                 dataSource={fileMetadataForJob}
                 columns={fileMetadataForJobHeader}
@@ -51,13 +59,34 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                 onRow={onRow}
             />
         )
+    } else if (job.serviceFields
+        && job.serviceFields.files
+        && !isEmpty(job.serviceFields.files)
+        && job.serviceFields.files[0].file
+        && job.serviceFields.files[0].file.originalPath) {
+        const rows = job.serviceFields.files.map((file: { file: { originalPath: string } }) => {
+            const { originalPath } = file.file;
+            const filePathSections = originalPath.split('/');
+            return { filename: filePathSections[filePathSections.length - 1], originalPath, key: originalPath };
+        });
+        fileMetadata = (
+            <Table
+                dataSource={rows}
+                columns={["filename", "originalPath"].map((column) =>
+                    ({ dataIndex: column, title: titleCase(column) })
+                )}
+                title={() => "Incomplete File Information Retrieved From Job"}
+            />
+        )
+    } else {
+        fileMetadata = <Empty description={"Unable to determine files for this job"} />
     }
     const error = job.serviceFields && job.serviceFields.error && (
         <Alert
             className={styles.errorAlert}
             type="error"
             message="Error"
-            description={job.serviceFields.error}
+            description={determineError(job.serviceFields.error)}
             showIcon={true}
         />
     );
@@ -77,7 +106,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                 retryUpload={retryUpload}
             />
             <div className="ant-descriptions-title">Files</div>
-            {fileMetadataTable || <Empty description={"Unable to determine files for this job"} />}
+            {fileMetadata}
         </div>
     );
 };
