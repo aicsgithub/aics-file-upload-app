@@ -21,62 +21,60 @@ interface UserAndTemplateFormProps {
 }
 
 const UserAndTemplateForm: React.FunctionComponent<UserAndTemplateFormProps> = ({
-                                                                      exportingCSV,
-                                                                      onSearch,
-                                                                      searchLoading,
-                                                                      selectTemplate,
-                                                                      selectUser,
-                                                                      template,
-                                                                      templates,
-                                                                      user,
-                                                                      users,
-                                                                  }) => {
-    return (
-        <>
-            <Col xs={6}>
-                <LabeledInput label="User">
-                    <Select
-                        showSearch={true}
-                        value={user}
-                        loading={!users.length}
-                        disabled={!users.length}
-                        onChange={selectUser}
-                        placeholder="Select User"
-                        className={styles.fullWidth}
-                    >
-                        {users.map(({ DisplayName }) => (
-                            <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
-                        ))}
-                    </Select>
-                </LabeledInput>
-            </Col>
-            <Col xs={12} xl={14} xxl={15}>
-                <LabeledInput label="Template">
-                    <Select
-                        allowClear={true}
-                        showSearch={true}
-                        value={template}
-                        loading={!templates.length}
-                        disabled={!templates.length}
-                        onChange={selectTemplate}
-                        placeholder="Select Template"
-                        className={styles.fullWidth}
-                    >
-                        {templates.map(({ Name }) => (
-                            <Select.Option key={Name} value={Name}>{Name}</Select.Option>
-                        ))}
-                    </Select>
-                </LabeledInput>
-            </Col>
-            <Col xs={6} xl={4} xxl={3}>
-                <SearchButton
-                    disabled={!template || !user || searchLoading || exportingCSV}
-                    loading={searchLoading}
-                    onSearch={onSearch}
-                />
-            </Col>
-        </>
-    );
-};
+                                                                                  exportingCSV,
+                                                                                  onSearch,
+                                                                                  searchLoading,
+                                                                                  selectTemplate,
+                                                                                  selectUser,
+                                                                                  template,
+                                                                                  templates,
+                                                                                  user,
+                                                                                  users,
+                                                                              }) => (
+    <>
+        <Col xs={6}>
+            <LabeledInput label="User">
+                <Select
+                    showSearch={true}
+                    value={user}
+                    loading={!users.length}
+                    disabled={!users.length}
+                    onChange={selectUser}
+                    placeholder="Select User"
+                    className={styles.fullWidth}
+                >
+                    {users.map(({ DisplayName }) => (
+                        <Select.Option key={DisplayName} value={DisplayName}>{DisplayName}</Select.Option>
+                    ))}
+                </Select>
+            </LabeledInput>
+        </Col>
+        <Col xs={12} xl={14} xxl={15}>
+            <LabeledInput label="Template">
+                <Select
+                    allowClear={true}
+                    showSearch={true}
+                    value={template}
+                    loading={!templates.length}
+                    disabled={!templates.length}
+                    onChange={selectTemplate}
+                    placeholder="Select Template"
+                    className={styles.fullWidth}
+                >
+                    {templates.map(({ Name }) => (
+                        <Select.Option key={Name} value={Name}>{Name}</Select.Option>
+                    ))}
+                </Select>
+            </LabeledInput>
+        </Col>
+        <Col xs={6} xl={4} xxl={3}>
+            <SearchButton
+                disabled={!template || !user || searchLoading || exportingCSV}
+                loading={searchLoading}
+                onSearch={onSearch}
+            />
+        </Col>
+    </>
+);
 
 export default UserAndTemplateForm;
