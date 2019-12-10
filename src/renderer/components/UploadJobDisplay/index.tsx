@@ -1,12 +1,13 @@
-import { UploadMetadata } from "@aics/aicsfiles/type-declarations/types";
-import { Alert, Table } from "antd";
+import { Alert, Empty, Table } from "antd";
 import { ColumnProps } from "antd/es/table";
-import { get, isEmpty } from "lodash";
+import { uniq } from "lodash";
 import * as React from "react";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../../state/constants";
 import { SearchResultRow } from "../../state/metadata/types";
 import JobOverviewDisplay from "../JobOverviewDisplay";
+
+const styles = require('./styles.pcss');
 
 interface UploadJobDisplayProps {
     className?: string;
@@ -16,13 +17,8 @@ interface UploadJobDisplayProps {
     retryUpload: () => void;
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
+    fileMetadataForJobLoading: boolean;
     openFileDetailModal: (e?: any, row?: SearchResultRow) => void;
-}
-
-interface ResultFile {
-    fileName: string;
-    fileId: string;
-    readPath: string;
 }
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
@@ -33,38 +29,46 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               retryUpload,
                                                                               fileMetadataForJob,
                                                                               fileMetadataForJobHeader,
+                                                                              fileMetadataForJobLoading,
                                                                               openFileDetailModal,
                                                                           }: UploadJobDisplayProps) => {
-    const { serviceFields } = job;
-    const showFiles = serviceFields && serviceFields.files && Array.isArray(serviceFields.files)
-        && !isEmpty(serviceFields.files);
-
-    let files;
-
-    if (showFiles) {
-        files = serviceFields.files.map((file: UploadMetadata) => {
-            const result = get(serviceFields, "result", [])
-                .find((resultFile: ResultFile) => get(file, ["file", "originalPath"], "")
-                    .endsWith(resultFile.fileName));
-            return {
-                metadata: file,
-                result,
-            };
-        });
+    let fileMetadataTable;
+    if (fileMetadataForJob || fileMetadataForJobLoading) {
+        const fileCount = fileMetadataForJob &&
+            uniq(fileMetadataForJob.map((metadata) => metadata.fileId)).length;
+        const tableTitle = () => fileMetadataForJobLoading ? (
+            "...Loading File Metadata"
+        ) : (
+            `${fileCount} ${fileCount === 1 ? 'File Was' : 'Files Were'} Part Of This Job`
+        );
+        const onRow = (record: SearchResultRow) => ({ onClick: () => openFileDetailModal(undefined, record) });
+        fileMetadataTable = (
+            <Table
+                dataSource={fileMetadataForJob}
+                columns={fileMetadataForJobHeader}
+                loading={fileMetadataForJobLoading}
+                title={tableTitle}
+                onRow={onRow}
+            />
+        )
     }
-    const allowCancel = IN_PROGRESS_STATUSES.includes(job.status);
-
     const error = job.serviceFields && job.serviceFields.error && (
-        <Alert type="error" message="Error" description={job.serviceFields.error} showIcon={true}/>
+        <Alert
+            className={styles.errorAlert}
+            type="error"
+            message="Error"
+            description={job.serviceFields.error}
+            showIcon={true}
+        />
     );
-    const tableTitle = () => `${files.length} In This Job`;
-    const onRow = (record: SearchResultRow) => ({ onClick: () => openFileDetailModal(undefined, record) });
+    const allowCancel = IN_PROGRESS_STATUSES.includes(job.status);
+    const warning = allowCancel && (
+        <Alert closable={true} type="warning" message="Cancelling will make this upload unrecoverable" />
+    );
     return (
         <div className={className}>
             {error}
-            {allowCancel && (
-                <Alert closable={true} type="warning" message="Cancelling will make this upload unrecoverable" />
-            )}
+            {warning}
             <JobOverviewDisplay
                 allowCancel={allowCancel}
                 cancelUpload={cancelUpload}
@@ -72,18 +76,8 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                 loading={loading}
                 retryUpload={retryUpload}
             />
-
-            {showFiles && (
-                <>
-                    <div className="ant-descriptions-title">Files</div>
-                    <Table
-                        dataSource={fileMetadataForJob}
-                        columns={fileMetadataForJobHeader}
-                        title={tableTitle}
-                        onRow={onRow}
-                    />
-                </>
-            )}
+            <div className="ant-descriptions-title">Files</div>
+            {fileMetadataTable || <Empty description={"Unable to determine files for this job"} />}
         </div>
     );
 };

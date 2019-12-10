@@ -3,8 +3,15 @@ import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { RECEIVE_METADATA, RESET_HISTORY, SEARCH_FILE_METADATA, UPDATE_PAGE_HISTORY } from "./constants";
 import {
+    CLEAR_FILE_METADATA_FOR_JOB,
+    RECEIVE_METADATA,
+    RESET_HISTORY,
+    SEARCH_FILE_METADATA,
+    UPDATE_PAGE_HISTORY
+} from "./constants";
+import {
+    ClearFileMetadataForJobAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     ResetHistoryAction,
@@ -78,6 +85,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
             },
         }),
     },
+    [CLEAR_FILE_METADATA_FOR_JOB]: {
+        accepts: (action: AnyAction): action is ClearFileMetadataForJobAction => action.type === CLEAR_FILE_METADATA_FOR_JOB,
+        perform: (state: MetadataStateBranch) => ({
+            ...state,
+            fileMetadataForJob: undefined,
+        }),
+    }
 };
 
 export default makeReducer<MetadataStateBranch>(actionToConfigMap, initialState);

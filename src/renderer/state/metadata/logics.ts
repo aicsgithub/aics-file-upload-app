@@ -1,7 +1,8 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
+import { FileToFileMetadata, FileMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { sortBy } from "lodash";
+import { sortBy, reduce } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -10,7 +11,6 @@ import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 
-import { FileToFileMetadata } from "@aics/aicsfiles/type-declarations/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -26,6 +26,7 @@ import {
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
+    REQUEST_FILE_METADATA_FOR_JOB,
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
 } from "./constants";
@@ -215,37 +216,36 @@ const requestTemplates = createLogic({
     type: GET_TEMPLATES,
 });
 
+const innerJoinOrDefault = (fms: FileManagementSystem,
+                            defaultSearchResults: FileToFileMetadata,
+                            searchResultsAsMap?: FileToFileMetadata): FileToFileMetadata => {
+    if (!searchResultsAsMap) {
+        return defaultSearchResults;
+    }
+    return FileManagementSystem.innerJoinFileMetadata(defaultSearchResults, searchResultsAsMap);
+};
+
 const searchFileMetadataLogic = createLogic({
     process: async ({ action, fms }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        const { annotation, searchValue, template, user } = action.payload;
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
-            let fileMetadataSearchResultsAsMap: FileToFileMetadata | undefined;
+            const { annotation, searchValue, template, user } = action.payload;
+            let searchResultsAsMap: FileToFileMetadata | undefined;
             if (annotation && searchValue) {
-                fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotation, searchValue);
+                searchResultsAsMap = await fms.getFilesByAnnotation(annotation, searchValue);
             }
             if (template) {
                 const fileMetadataForTemplate = await fms.getFilesByTemplate(template);
-                if (fileMetadataSearchResultsAsMap) {
-                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForTemplate,
-                        fileMetadataSearchResultsAsMap);
-                } else {
-                    fileMetadataSearchResultsAsMap = fileMetadataForTemplate;
-                }
+                searchResultsAsMap = innerJoinOrDefault(fms, fileMetadataForTemplate, searchResultsAsMap);
             }
             if (user) {
                 const fileMetadataForUser = await fms.getFilesByUser(user);
-                if (fileMetadataSearchResultsAsMap) {
-                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForUser,
-                        fileMetadataSearchResultsAsMap);
-                } else {
-                    fileMetadataSearchResultsAsMap = fileMetadataForUser;
-                }
+                searchResultsAsMap = innerJoinOrDefault(fms, fileMetadataForUser, searchResultsAsMap);
             }
-            if (fileMetadataSearchResultsAsMap) {
+            if (searchResultsAsMap) {
                 const fileMetadataSearchResults =
-                    await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
+                    await fms.transformFileMetadataIntoTable(searchResultsAsMap);
                 dispatch(batchActions([
                     receiveMetadata({ fileMetadataSearchResults }),
                     removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
@@ -271,6 +271,40 @@ const searchFileMetadataLogic = createLogic({
         done();
     },
     type: SEARCH_FILE_METADATA,
+});
+
+const retrieveFileMetadataForJob = createLogic({
+    process: async ({ action, fms, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        dispatch(addRequestToInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
+        try {
+            const fileIds: string[] = action.payload;
+            const resolvedPromises: FileMetadata[] = await Promise.all(
+                fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
+            );
+            const fileMetadataForFileIds = reduce(
+                resolvedPromises,
+                (filesToFileMetadata: FileToFileMetadata, fileMetadata: FileMetadata) => ({
+                    ...filesToFileMetadata,
+                    [fileMetadata.fileId]: fileMetadata,
+                }), {});
+            const fileMetadataForJob = await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
+            dispatch(batchActions([
+                receiveMetadata({ fileMetadataForJob }),
+                removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+            ]));
+        } catch (e) {
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+                setAlert({
+                    message: "Could retrieve metadata for job: " + e.message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+        }
+        done();
+    },
+    type: REQUEST_FILE_METADATA_FOR_JOB,
 });
 
 const exportFileMetadata = createLogic({
@@ -313,6 +347,7 @@ export default [
     exportFileMetadata,
     requestAnnotations,
     requestBarcodes,
+    retrieveFileMetadataForJob,
     requestMetadata,
     requestOptionsForLookup,
     requestTemplates,

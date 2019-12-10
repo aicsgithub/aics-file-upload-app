@@ -59,6 +59,7 @@ export interface SearchResultsHeader extends ColumnProps<SearchResultRow> {
 
 export interface SearchConfig {
     annotation?: string;
+    fileIds?: string[];
     searchValue?: string;
     template?: string;
     user?: string;
@@ -75,6 +76,15 @@ export interface GetOptionsForLookupAction {
 
 export interface PageToIndexMap {
     [page: string]: number;
+}
+
+export interface RequestFileMetadataForJobAction {
+    payload: string[];
+    type: string;
+}
+
+export interface ClearFileMetadataForJobAction {
+    type: string;
 }
 
 export interface ReceiveMetadataAction {

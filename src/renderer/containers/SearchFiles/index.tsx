@@ -107,9 +107,6 @@ interface SearchFilesState {
     template?: string;
 }
 
-const MAC = "Darwin";
-const WINDOWS = "Windows_NT";
-
 /*
     This container represents the Search Files tab, in this tab the user can query for files and their metadata
     by annotation name and value returning all files that have a matching name and value somewhere in their custom
@@ -228,7 +225,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 )}
                 <FileMetadataModal
                     fileMetadata={selectedRow}
-                    onBrowse={this.onBrowseToFile}
                     closeFileDetailModal={this.toggleFileDetailModal}
                 />
             </FormPage>
@@ -299,25 +295,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 selectUser={this.props.selectUser}
                 selectTemplate={this.selectTemplate}
             />);
-    }
-
-    private onBrowseToFile = (filePath: string) => {
-        let downloadPath;
-        const userOS = os.type();
-        if (userOS === WINDOWS) {
-            downloadPath = filePath.replace(/\//g, "\\");
-        } else if (userOS === MAC) {
-            downloadPath = filePath;
-        } else { // Linux
-            downloadPath = filePath;
-        }
-        if (!shell.showItemInFolder(downloadPath)) {
-            setAlert({
-                message: "Failed to browse to file, contact software or browse to file path " +
-                    "using files path(s) shown in metadata",
-                type: AlertType.ERROR,
-            });
-        }
     }
 
     private onRow = (row: SearchResultRow) => ({

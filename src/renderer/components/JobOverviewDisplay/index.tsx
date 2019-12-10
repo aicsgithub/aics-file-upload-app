@@ -6,6 +6,8 @@ import { FAILED_STATUS } from "../../state/constants";
 
 const Item = Descriptions.Item;
 
+const styles = require("./styles.pcss");
+
 interface Props {
     allowCancel: boolean;
     cancelUpload: () => void;
@@ -24,25 +26,32 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
                                                                 retryUpload}: Props) => {
     const {
         created,
-        currentStage,
-        currentHost,
         jobId,
-        jobName,
-        modified,
-        originationHost,
         status,
         user,
     } = job;
     let extraStatusActionButton: JSX.Element | undefined;
     if (allowCancel) {
         extraStatusActionButton = (
-            <Button onClick={cancelUpload} type="danger" disabled={loading} loading={loading}>
+            <Button
+                className={styles.actionButton}
+                type="danger"
+                loading={loading}
+                disabled={loading}
+                onClick={cancelUpload}
+            >
                 Cancel
             </Button>
         );
     } else if (status === FAILED_STATUS) {
         extraStatusActionButton = (
-            <Button onClick={retryUpload} type="primary" disabled={loading} loading={loading}>
+            <Button
+                className={styles.actionButton}
+                type="primary"
+                loading={loading}
+                disabled={loading}
+                onClick={retryUpload}
+            >
                 Retry
             </Button>
         );
@@ -51,18 +60,12 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
         <Descriptions
             className={className}
             size="small"
-            title="Job Overview"
+            title={<div>Job Overview {extraStatusActionButton}</div>}
             column={{ xxl: 3, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
         >
             <Item label="Job Id">{jobId}</Item>
-            <Item label="Job Name">{jobName}</Item>
-            <Item label="Status">{status} {extraStatusActionButton}</Item>
             <Item label="Created">{created.toLocaleString()}</Item>
             <Item label="Created By">{user}</Item>
-            <Item label="Origination Host">{originationHost}</Item>
-            <Item label="Current Host">{currentHost}</Item>
-            <Item label="Modified">{modified.toLocaleString()}</Item>
-            <Item label="Current Stage">{currentStage}</Item>
         </Descriptions>
     );
 };
