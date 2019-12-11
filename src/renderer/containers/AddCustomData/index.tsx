@@ -151,7 +151,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     </div>
                 )}
                 {appliedTemplate && this.renderPlateInfo()}
-                {appliedTemplate && (
+                {!loading && appliedTemplate && (
                     <CustomDataGrid
                         allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                         annotationTypes={annotationTypes}

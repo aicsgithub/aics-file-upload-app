@@ -2,6 +2,7 @@ import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
+    metadataColumns: string[];
     mountPoint?: string;
     templateIds: number[];
 }
@@ -29,5 +30,10 @@ export interface SetMountPointAction {
 }
 
 export interface SwitchEnvironmentAction {
+    type: string;
+}
+
+export interface SetMetadataColumnsAction {
+    payload: string[];
     type: string;
 }

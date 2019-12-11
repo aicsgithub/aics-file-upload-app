@@ -29,6 +29,7 @@ export const initialState: MetadataStateBranch = {
     lookups: [],
     templates: [],
     units: [],
+    users: [],
     workflowOptions: [],
 };
 

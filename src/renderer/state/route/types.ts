@@ -20,6 +20,7 @@ export enum Page {
     SearchFiles = "SearchFiles",
     SelectUploadType = "SelectUploadType",
     AssociateFiles = "AssociateFiles",
+    SelectStorageLocation = "SelectStorageIntent",
     AddCustomData = "AddCustomData",
     UploadSummary = "UploadSummary",
 }

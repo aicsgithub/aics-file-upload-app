@@ -30,7 +30,14 @@ import { getCompleteAppliedTemplate } from "../template/selectors";
 import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
-import { FileType, MMSAnnotationValueRequest, UploadJobTableRow, UploadMetadata, UploadStateBranch } from "./types";
+import {
+    FilepathToBoolean,
+    FileType,
+    MMSAnnotationValueRequest,
+    UploadJobTableRow,
+    UploadMetadata,
+    UploadStateBranch,
+} from "./types";
 
 export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
@@ -56,6 +63,8 @@ const EXCLUDED_UPLOAD_FIELDS = [
     "key",
     "plateId",
     "positionIndex",
+    "shouldBeInArchive",
+    "shouldBeInLocal",
     "templateId",
     "wellLabels",
 ];
@@ -393,6 +402,11 @@ export const getUploadPayload = createSelector([
         // per file, we set these values to a uniq list of all of the values found across each "dimension"
         const wellIds = uniq(flatMap(metadata, (m) => m.wellIds)).filter((w) => !!w);
         const workflows = uniq(flatMap(metadata, (m) => m.workflows || [])).filter((w) => !!w);
+        const fileRows = metadata.filter(isFileRow);
+        const shouldBeInArchive = fileRows.length && !isNil(fileRows[0].shouldBeInArchive) ?
+            fileRows[0].shouldBeInArchive : true;
+        const shouldBeInLocal = fileRows.length && !isNil(fileRows[0].shouldBeInLocal) ?
+            fileRows[0].shouldBeInLocal : true;
         result = {
             ...result,
             [fullPath]: {
@@ -403,6 +417,8 @@ export const getUploadPayload = createSelector([
                 file: {
                     fileType: extensionToFileTypeMap[extname(fullPath).toLowerCase()] || FileType.OTHER,
                     originalPath: fullPath,
+                    shouldBeInArchive,
+                    shouldBeInLocal,
                 },
                 microscopy: {
                     ...(wellIds.length && { wellIds }),
@@ -443,3 +459,36 @@ export const getUploadJobName = createSelector([
     const numberOfJobsWithBarcode = jobNamesForBarcode.length;
     return numberOfJobsWithBarcode === 0 ? barcode : `${barcode} (${numberOfJobsWithBarcode})`;
 });
+
+export const getUploadFiles = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) => uniq(values(upload).map((u: UploadMetadata) => u.file)));
+
+export const getFileToArchive = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) =>
+    values(upload)
+        .filter(isFileRow)
+        .reduce((accum: FilepathToBoolean, {file, shouldBeInArchive}: UploadMetadata) => ({
+            ...accum,
+            [file]: Boolean(shouldBeInArchive),
+        }), {})
+);
+
+export const getFileToStoreOnIsilon = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) =>
+    values(upload)
+        .filter(isFileRow)
+        .reduce((accum: FilepathToBoolean, {file, shouldBeInLocal}: UploadMetadata) => ({
+            ...accum,
+            [file]: Boolean(shouldBeInLocal),
+        }), {})
+);
+
+export const getCanGoForwardFromSelectStorageLocationPage = createSelector([
+    getUploadFiles,
+    getFileToArchive,
+    getFileToStoreOnIsilon,
+], (files: string[], fileToArchive: FilepathToBoolean, fileToStoreOnIsilon: FilepathToBoolean) =>
+    !some(files, (f: string) => !fileToArchive[f] && !fileToStoreOnIsilon[f]));

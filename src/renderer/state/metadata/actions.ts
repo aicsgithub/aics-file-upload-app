@@ -24,6 +24,7 @@ import {
     ReceiveMetadataAction,
     RequestMetadataAction,
     ResetHistoryAction,
+    SearchConfig,
     SearchFileMetadataAction,
     UpdatePageHistoryMapAction,
 } from "./types";
@@ -98,12 +99,9 @@ export function resetHistory(): ResetHistoryAction {
     };
 }
 
-export function searchFileMetadata(annotationName: string, searchValue: string): SearchFileMetadataAction {
+export function searchFileMetadata(searchConfig: SearchConfig): SearchFileMetadataAction {
     return {
-        payload: {
-            annotationName,
-            searchValue,
-        },
+        payload: searchConfig,
         type: SEARCH_FILE_METADATA,
     };
 }

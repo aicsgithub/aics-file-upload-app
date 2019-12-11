@@ -1,4 +1,6 @@
+import { difference } from "lodash";
 import { createSelector } from "reselect";
+import { UNIMPORTANT_COLUMNS } from "../metadata/constants";
 
 import { State } from "../types";
 
@@ -8,6 +10,13 @@ export const getLimsPort = (state: State) => state.setting.limsPort;
 export const getLimsProtocol = (state: State) => state.setting.limsProtocol;
 export const getMountPoint = (state: State) => state.setting.mountPoint;
 export const getTemplateIds = (state: State) => state.setting.templateIds;
+export const getMetadataColumns = (state: State) => state.setting.metadataColumns;
+
+export const getAreAllMetadataColumnsSelected = createSelector(
+    [ getMetadataColumns ],
+    (metadataColumns: string[]) => (
+        !difference(UNIMPORTANT_COLUMNS, metadataColumns).length
+));
 
 export const getLimsUrl = createSelector([
     getLimsProtocol,

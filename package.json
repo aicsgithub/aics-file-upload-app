@@ -45,7 +45,7 @@
     "@aics/aicsfiles": "^2.2.1",
     "@aics/job-status-client": "^1.0.8",
     "@ant-design/icons": "~1.1.0",
-    "antd": "^3.25.2",
+    "antd": "3.26.0",
     "axios": "0.19.0",
     "core-js": "2.6.5",
     "electron-store": "3.2.0",

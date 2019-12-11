@@ -1,3 +1,4 @@
+import { FileManagementSystem } from "@aics/aicsfiles";
 import { ipcRenderer } from "electron";
 import fs from "fs";
 import { sortBy } from "lodash";
@@ -9,6 +10,7 @@ import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 
+import { FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -27,6 +29,8 @@ import {
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
 } from "./constants";
+import { getSearchResultsHeader } from "./selectors";
+import { SearchConfig } from "./types";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -58,6 +62,7 @@ const requestMetadata = createLogic({
                 imagingSessions,
                 lookups,
                 units,
+                users,
                 workflowOptions,
             ] = await Promise.all([
                 labkeyClient.getAnnotationLookups(),
@@ -67,6 +72,7 @@ const requestMetadata = createLogic({
                 labkeyClient.getImagingSessions(),
                 labkeyClient.getLookups(),
                 labkeyClient.getUnits(),
+                labkeyClient.getUsers(),
                 labkeyClient.getWorkflows(),
             ]);
             dispatch(receiveMetadata({
@@ -77,6 +83,7 @@ const requestMetadata = createLogic({
                 imagingSessions,
                 lookups,
                 units,
+                users,
                 workflowOptions,
             }));
         } catch (reason) {
@@ -212,15 +219,47 @@ const requestTemplates = createLogic({
 const searchFileMetadataLogic = createLogic({
     process: async ({ action, fms }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        const { annotation, searchValue, template, user }: SearchConfig = action.payload;
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
-            const { annotationName, searchValue } = action.payload;
-            const fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotationName, searchValue);
-            const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
-            dispatch(batchActions([
-                receiveMetadata({ fileMetadataSearchResults }),
-                removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
-            ]));
+            let fileMetadataSearchResultsAsMap: FileToFileMetadata | undefined;
+            if (annotation && searchValue) {
+                fileMetadataSearchResultsAsMap = await fms.getFilesByAnnotation(annotation, searchValue);
+            }
+            if (template) {
+                const fileMetadataForTemplate = await fms.getFilesByTemplate(template);
+                if (fileMetadataSearchResultsAsMap) {
+                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForTemplate,
+                        fileMetadataSearchResultsAsMap);
+                } else {
+                    fileMetadataSearchResultsAsMap = fileMetadataForTemplate;
+                }
+            }
+            if (user) {
+                const fileMetadataForUser = await fms.getFilesByUser(user);
+                if (fileMetadataSearchResultsAsMap) {
+                    fileMetadataSearchResultsAsMap = FileManagementSystem.innerJoinFileMetadata(fileMetadataForUser,
+                        fileMetadataSearchResultsAsMap);
+                } else {
+                    fileMetadataSearchResultsAsMap = fileMetadataForUser;
+                }
+            }
+            if (fileMetadataSearchResultsAsMap) {
+                const fileMetadataSearchResults =
+                    await fms.transformFileMetadataIntoTable(fileMetadataSearchResultsAsMap);
+                dispatch(batchActions([
+                    receiveMetadata({ fileMetadataSearchResults }),
+                    removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
+                ]));
+            } else {
+                dispatch(batchActions([
+                    removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
+                    setAlert({
+                        message: "Could not perform search, no query params provided",
+                        type: AlertType.ERROR,
+                    }),
+                ]));
+            }
         } catch (e) {
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
@@ -240,11 +279,14 @@ const exportFileMetadata = createLogic({
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
         try {
-            const { payload } = action;
-            const { metadata: { fileMetadataSearchResults } } = getState();
-            if (fileMetadataSearchResults) {
-                const exportData = await fms.transformTableIntoCSV(fileMetadataSearchResults);
-                await fs.writeFileSync(payload, exportData);
+            const filePath: string = action.payload;
+            const state = getState();
+            const tableHeader = getSearchResultsHeader(state);
+            const { metadata: { fileMetadataSearchResults } } = state;
+            if (fileMetadataSearchResults && tableHeader) {
+                const header = tableHeader.map(({ title }) => title);
+                const csv = fms.transformTableIntoCSV(header, fileMetadataSearchResults as ImageModelMetadata[]);
+                await fs.writeFileSync(filePath, csv);
                 dispatch(batchActions([
                     removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
                     setAlert({

@@ -4,7 +4,7 @@ import {
     mockAuditInfo,
     mockNotesAnnotation,
     mockSearchResults,
-    mockSearchResultsAsTable,
+    mockSearchResultsHeader,
     mockState,
     mockWellAnnotation,
     mockWorkflowAnnotation,
@@ -16,7 +16,7 @@ import {
     getLookupAnnotationTypeId,
     getNotesAnnotation,
     getNumberOfFiles,
-    getSearchResultsAsTable,
+    getSearchResultsHeader,
     getUniqueBarcodeSearchResults,
     getWellAnnotation,
     getWorkflowAnnotation,
@@ -148,19 +148,25 @@ describe("Metadata selectors", () => {
             expect(result).to.be.undefined;
         });
     });
-    describe("getSearchResultsAsTable", () => {
-        it("returns searchResultsAsTable if searchResults exist", () => {
-            const result = getSearchResultsAsTable({
+    describe("getSearchResultsHeader", () => {
+        it("returns getSearchResultsAsHeader if searchResults exist", () => {
+            const result = getSearchResultsHeader({
                 ...mockState,
                 metadata: {
                     ...mockState.metadata,
                     fileMetadataSearchResults: mockSearchResults,
                 },
             });
-            expect(result).to.deep.equal(mockSearchResultsAsTable);
+            expect(result).to.not.be.undefined;
+            if (result) {
+                // Can't use deep equals because the sort function doesn't get properly diffed
+                expect(result.length).to.eq(mockSearchResultsHeader.length);
+                expect(result[0].dataIndex).to.eq(mockSearchResultsHeader[0].dataIndex);
+                expect(result[0].title).to.eq(mockSearchResultsHeader[0].title);
+            }
         });
         it("returns undefined if searchResults don't exist", () => {
-            const result = getSearchResultsAsTable(mockState);
+            const result = getSearchResultsHeader(mockState);
             expect(result).to.be.undefined;
         });
     });
@@ -223,7 +229,7 @@ describe("Metadata selectors", () => {
                     fileMetadataSearchResults: mockSearchResults,
                 },
             });
-            expect(result).to.equal(1);
+            expect(result).to.equal(2);
         });
     });
 });
