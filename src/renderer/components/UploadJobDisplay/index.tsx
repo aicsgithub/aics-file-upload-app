@@ -19,7 +19,7 @@ interface UploadJobDisplayProps {
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
     fileMetadataForJobLoading: boolean;
-    onFileRowClick: (row?: SearchResultRow) => void;
+    onFileRowClick: (row: SearchResultRow) => void;
 }
 
 const determineError = (error: string): string => {

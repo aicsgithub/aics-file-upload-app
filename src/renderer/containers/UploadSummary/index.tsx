@@ -234,19 +234,23 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                        fileMetadataForJob={fileMetadataForJob}
                        fileMetadataForJobHeader={fileMetadataForJobHeader}
                        fileMetadataForJobLoading={fileMetadataForJobLoading}
-                       onFileRowClick={this.toggleFileDetailModal}
+                       onFileRowClick={this.openFileDetailModal}
                    />
                     <FileMetadataModal
                         fileMetadata={selectedRowInJob}
-                        closeFileDetailModal={this.toggleFileDetailModal}
+                        closeFileDetailModal={this.closeFileDetailModal}
                     />
                 </Modal>}
             </FormPage>
         );
     }
 
-    private toggleFileDetailModal = (selectedRowInJob?: SearchResultRow): void => {
+    private openFileDetailModal = (selectedRowInJob: SearchResultRow): void => {
         this.setState({ selectedRowInJob });
+    }
+
+    private closeFileDetailModal = (): void => {
+        this.setState({ selectedRowInJob: undefined });
     }
 
     private selectJobFilter = (e: RadioChangeEvent): void => {
