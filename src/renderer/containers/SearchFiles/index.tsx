@@ -3,9 +3,8 @@ import { CheckboxChangeEvent } from "antd/es/checkbox";
 import CheckboxGroup from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
-import { remote, shell } from "electron";
+import { remote } from "electron";
 import { map, startCase } from "lodash";
-import os from "os";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -15,7 +14,7 @@ import FileMetadataModal from "../../components/FileMetadataModal";
 import LabeledInput from "../../components/LabeledInput";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import {
     exportFileMetadataCSV,
     requestAnnotations,

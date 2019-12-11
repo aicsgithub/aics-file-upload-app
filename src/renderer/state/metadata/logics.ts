@@ -31,7 +31,6 @@ import {
     SEARCH_FILE_METADATA,
 } from "./constants";
 import { getSearchResultsHeader } from "./selectors";
-import { SearchConfig } from "./types";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
