@@ -50,7 +50,8 @@ export const getUniqueBarcodeSearchResults = createSelector([
 });
 
 const getHeaderForFileMetadata = (rows?: SearchResultRow[],
-                                  extraMetadataColumns?: string[]): SearchResultsHeader[] | undefined => {
+                                  extraMetadataColumns: string[] = [],
+                                  ellipsis: boolean = true): SearchResultsHeader[] | undefined => {
     if (!rows || !extraMetadataColumns) {
         return undefined;
     }
@@ -67,6 +68,7 @@ const getHeaderForFileMetadata = (rows?: SearchResultRow[],
     const columns = [...MAIN_FILE_COLUMNS, ...annotationColumns, ...extraMetadataColumns];
     return columns.map((column) => ({
         dataIndex: column,
+        ellipsis,
         key: column,
         sorter: (a: SearchResultRow, b: SearchResultRow) => `${a[column]}`.localeCompare(`${b[column]}`),
         title: column === "fileSize" ? "File Size (in bytes)" : titleCase(column),
@@ -77,13 +79,13 @@ export const getSearchResultsHeader = createSelector([
     getFileMetadataSearchResults,
     getMetadataColumns,
 ], (rows, extraMetadataColumns): SearchResultsHeader[] | undefined => {
-    return getHeaderForFileMetadata(rows, extraMetadataColumns);
+    return getHeaderForFileMetadata(rows, extraMetadataColumns, false);
 });
 
 export const getFileMetadataForJobHeader = createSelector([
     getFileMetadataForJob,
 ], (rows): SearchResultsHeader[] | undefined => {
-    return getHeaderForFileMetadata(rows, []);
+    return getHeaderForFileMetadata(rows);
 });
 
 export const getNumberOfFiles = createSelector([

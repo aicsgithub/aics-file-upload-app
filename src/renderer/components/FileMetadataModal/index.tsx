@@ -1,7 +1,11 @@
 import { Alert, Button, Divider, List, Modal, Row } from "antd";
+import { shell } from "electron";
 import { forOwn, isNil } from "lodash";
+import os from "os";
 import * as React from "react";
 
+import { setAlert } from "../../state/feedback/actions";
+import { AlertType } from "../../state/feedback/types";
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
 import { SearchResultRow } from "../../state/metadata/types";
 import { titleCase } from "../../util";
@@ -11,7 +15,6 @@ const styles = require("./styles.pcss");
 interface FileMetadataProps {
     closeFileDetailModal: () => void;
     fileMetadata?: SearchResultRow;
-    onBrowse: (filePath: string) => void;
 }
 
 interface ListItem {
@@ -19,10 +22,19 @@ interface ListItem {
     value: string | number;
 }
 
-const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
-                                                                           closeFileDetailModal,
+const WINDOWS = "Windows_NT";
+
+const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
+    // Had to use inline style to override List.Item's border rules
+    <List.Item style={{ border: "1px solid #e8e8e8" }}>
+        <h4 className={styles.key}>{titleCase(key)}</h4>
+        <span className={styles.value}>{value}</span>
+    </List.Item>
+));
+
+const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({   closeFileDetailModal,
                                                                            fileMetadata,
-                                                                           onBrowse }) => {
+                                                                        }) => {
     if (!fileMetadata) {
         return null;
     }
@@ -39,17 +51,26 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
             }
         }
     });
-    const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
-        // Had to use inline style to override List.Item's border rules
-        <List.Item style={{ border: "1px solid #e8e8e8" }}>
-            <h4 className={styles.key}>{titleCase(key)}</h4>
-            <span className={styles.value}>{value}</span>
-        </List.Item>
-    ));
     const isLocal = !!fileMetadata.localFilePath;
     const isPublic = !!fileMetadata.publicFilePath;
     const isArchive = !!fileMetadata.archiveFilePath;
-    const onBrowseClick = () => onBrowse(fileMetadata.localFilePath as string);
+    const onBrowseToFile = () => {
+        const filePath = fileMetadata.localFilePath as string;
+        let downloadPath;
+        const userOS = os.type();
+        if (userOS === WINDOWS) {
+            downloadPath = filePath.replace(/\//g, "\\");
+        } else { // "Darwin" (Mac) or Linux
+            downloadPath = filePath;
+        }
+        if (!shell.showItemInFolder(downloadPath)) {
+            setAlert({
+                message: "Failed to browse to file, contact software or browse to file path " +
+                    "using local files path shown in metadata",
+                type: AlertType.ERROR,
+            });
+        }
+    };
     return (
         <Modal
             footer={null}
@@ -85,16 +106,16 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
             {isPublic && (
                 <Alert type="error" message="Currently not supporting public files" />
             )}
-            <Row>
-                {isLocal && (
+            {isLocal && (
+                <Row>
                     <Button
                         type="primary"
                         className={styles.browseButton}
-                        onClick={onBrowseClick}
+                        onClick={onBrowseToFile}
                     >Browse To Local File
                     </Button>
-                )}
-            </Row>
+                </Row>
+            )}
         </Modal>
     );
 };

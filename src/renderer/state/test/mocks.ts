@@ -4,7 +4,7 @@ import { StateWithHistory } from "redux-undo";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
-import { JobStateBranch, PendingJob } from "../job/types";
+import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
 import { SelectionStateBranch, Well, Workflow } from "../selection/types";
@@ -288,6 +288,7 @@ export const mockState: State = {
     job: {
         addMetadataJobs: [],
         copyJobs: [],
+        jobFilter: JobFilter.Pending,
         pendingJobs: [],
         uploadJobs: [],
     },

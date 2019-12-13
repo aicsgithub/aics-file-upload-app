@@ -1,4 +1,5 @@
 import {
+    CLEAR_FILE_METADATA_FOR_JOB,
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
     GET_ANNOTATIONS,
@@ -6,6 +7,7 @@ import {
     GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
     RECEIVE_METADATA,
+    REQUEST_FILE_METADATA_FOR_JOB,
     REQUEST_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
@@ -14,6 +16,7 @@ import {
 import { initialState } from "./reducer";
 import {
     BarcodePrefix,
+    ClearFileMetadataForJobAction,
     CreateBarcodeAction,
     ExportFileMetadataAction,
     GetAnnotationsAction,
@@ -22,6 +25,7 @@ import {
     GetTemplatesAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
+    RequestFileMetadataForJobAction,
     RequestMetadataAction,
     ResetHistoryAction,
     SearchConfig,
@@ -103,6 +107,19 @@ export function searchFileMetadata(searchConfig: SearchConfig): SearchFileMetada
     return {
         payload: searchConfig,
         type: SEARCH_FILE_METADATA,
+    };
+}
+
+export function requestFileMetadataForJob(fileIds: string[]): RequestFileMetadataForJobAction {
+    return {
+        payload: fileIds,
+        type: REQUEST_FILE_METADATA_FOR_JOB,
+    };
+}
+
+export function clearFileMetadataForJob(): ClearFileMetadataForJobAction {
+    return {
+        type: CLEAR_FILE_METADATA_FOR_JOB,
     };
 }
 

@@ -12,6 +12,8 @@ export const RECEIVE_METADATA = makeConstant(BRANCH_NAME, "receive");
 export const REQUEST_METADATA = makeConstant(BRANCH_NAME, "request");
 export const RESET_HISTORY = makeConstant(BRANCH_NAME, "reset-history");
 export const SEARCH_FILE_METADATA = makeConstant(BRANCH_NAME, "search-file-metadata");
+export const REQUEST_FILE_METADATA_FOR_JOB = makeConstant(BRANCH_NAME, "request-file-metadata-for-job");
+export const CLEAR_FILE_METADATA_FOR_JOB = makeConstant(BRANCH_NAME, "clear-file-metadata-for-job");
 export const UPDATE_PAGE_HISTORY = makeConstant(BRANCH_NAME, "update-page-history");
 
 export const MAIN_FILE_COLUMNS = ["filename", "positionIndex", "channel", "template"];

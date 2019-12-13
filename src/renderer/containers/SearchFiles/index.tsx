@@ -3,9 +3,8 @@ import { CheckboxChangeEvent } from "antd/es/checkbox";
 import CheckboxGroup from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
-import { remote, shell } from "electron";
+import { remote } from "electron";
 import { map, startCase } from "lodash";
-import os from "os";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -15,7 +14,7 @@ import FileMetadataModal from "../../components/FileMetadataModal";
 import LabeledInput from "../../components/LabeledInput";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AlertType, AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import {
     exportFileMetadataCSV,
     requestAnnotations,
@@ -106,9 +105,6 @@ interface SearchFilesState {
     showExtraColumnOptions: boolean;
     template?: string;
 }
-
-const MAC = "Darwin";
-const WINDOWS = "Windows_NT";
 
 /*
     This container represents the Search Files tab, in this tab the user can query for files and their metadata
@@ -227,7 +223,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 )}
                 <FileMetadataModal
                     fileMetadata={selectedRow}
-                    onBrowse={this.onBrowseToFile}
                     closeFileDetailModal={this.toggleFileDetailModal}
                 />
             </FormPage>
@@ -298,25 +293,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 selectUser={this.props.selectUser}
                 selectTemplate={this.selectTemplate}
             />);
-    }
-
-    private onBrowseToFile = (filePath: string) => {
-        let downloadPath;
-        const userOS = os.type();
-        if (userOS === WINDOWS) {
-            downloadPath = filePath.replace(/\//g, "\\");
-        } else if (userOS === MAC) {
-            downloadPath = filePath;
-        } else { // Linux
-            downloadPath = filePath;
-        }
-        if (!shell.showItemInFolder(downloadPath)) {
-            setAlert({
-                message: "Failed to browse to file, contact software or browse to file path " +
-                    "using files path(s) shown in metadata",
-                type: AlertType.ERROR,
-            });
-        }
     }
 
     private onRow = (row: SearchResultRow) => ({

@@ -1,18 +1,38 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Alert, Button, Modal, Table } from "antd";
+import { Alert, Button, Empty, Modal, Progress, Radio, Row, Table } from "antd";
+import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
+import { isEmpty, map } from "lodash";
+import { basename } from "path";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import FileMetadataModal from "../../components/FileMetadataModal";
 import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { retrieveJobs } from "../../state/job/actions";
-import { getAreAllJobsComplete, getJobsForTable } from "../../state/job/selectors";
-import { RetrieveJobsAction } from "../../state/job/types";
+import { retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import {
+    getAreAllJobsComplete,
+    getJobFilter,
+    getJobsForTable
+} from "../../state/job/selectors";
+import {
+    JobFilter,
+    RetrieveJobsAction,
+    SelectJobFilterAction,
+} from "../../state/job/types";
+import { clearFileMetadataForJob, requestFileMetadataForJob } from "../../state/metadata/actions";
+import { getFileMetadataForJob, getFileMetadataForJobHeader } from "../../state/metadata/selectors";
+import {
+    ClearFileMetadataForJobAction,
+    RequestFileMetadataForJobAction,
+    SearchResultRow,
+    SearchResultsHeader
+} from "../../state/metadata/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import { Page, SelectViewAction } from "../../state/route/types";
@@ -20,10 +40,12 @@ import { getStagedFiles } from "../../state/selection/selectors";
 import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
-import { CancelUploadAction, RetryUploadAction } from "../../state/upload/types";
+import { CancelUploadAction, RetryUploadAction, UploadMetadata } from "../../state/upload/types";
 import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
+
+const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
@@ -35,21 +57,52 @@ interface Props {
     allJobsComplete: boolean;
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
+    clearFileMetadataForJob: ActionCreator<ClearFileMetadataForJobAction>;
+    fileMetadataForJob?: SearchResultRow[];
+    fileMetadataForJobHeader?: SearchResultsHeader[];
+    fileMetadataForJobLoading: boolean;
     files: UploadFile[];
     loading: boolean;
+    jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
     page: Page;
+    requestFileMetadataForJob: ActionCreator<RequestFileMetadataForJobAction>;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
     retryUpload: ActionCreator<RetryUploadAction>;
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
+    selectJobFilter: ActionCreator<SelectJobFilterAction>;
 }
 
 interface UploadSummaryState {
     selectedJobId?: string;
+    selectedRowInJob?: SearchResultRow;
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
+
+    private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
+        try {
+            return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
+                return basename(originalPath);
+            }).sort().join(", ");
+        } catch (e) {
+            return `Job Name: ${row.jobName}` || "CAN'T FIND FILE OR JOB NAME";
+        }
+    }
+
+    private static STAGE_TO_PROGRESS = (stage: string): number => {
+        if (stage.toLowerCase() === "copy file") {
+            return 25;
+        }
+        if (stage.toLowerCase() === "waiting for file copy") {
+            return 50;
+        }
+        if (stage.toLowerCase() === "create filerows in labkey") {
+            return 75;
+        }
+        return 0;
+    }
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
@@ -57,22 +110,36 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             key: "status",
             render: (status: JSSJobStatus) => <StatusCircle status={status}/>,
             title: "Status",
-        },
-        {
-            dataIndex: "jobName",
-            key: "jobName",
-            title: "Job Name",
+            width: "90px",
         },
         {
             dataIndex: "currentStage",
             key: "currentStage",
-            title: "Current Stage",
+            render: (stage: string, { status }) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(status) ? (
+                <Progress
+                    showInfo={false}
+                    status="active"
+                    percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
+                    successPercent={50}
+                />
+            ) : status,
+            title: "Progress",
+            width: "190px",
+        },
+        {
+            dataIndex: "fileId",
+            ellipsis: true,
+            key: "fileName",
+            render: (fileId, row: UploadSummaryTableRow) => UploadSummary.EXTRACT_FILE_OR_JOB_NAME(row),
+            title: "File Names",
+            width: "100%",
         },
         {
             dataIndex: "modified",
             key: "modified",
             render: (modified: Date) => modified.toLocaleString(),
             title: "Last Modified",
+            width: "250px",
         },
     ];
     private interval: Timeout | null = null;
@@ -93,16 +160,21 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     public render() {
         const {
             className,
+            fileMetadataForJob,
+            fileMetadataForJobHeader,
+            fileMetadataForJobLoading,
+            jobFilter,
             jobs,
             loading,
             page,
         } = this.props;
+        const { selectedRowInJob } = this.state;
         const selectedJob = this.getSelectedJob();
         return (
             <FormPage
                 className={className}
                 formTitle="YOUR UPLOADS"
-                formPrompt=""
+                formPrompt="Your upload jobs will appear below"
                 onSave={this.onFormSave}
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
                 page={Page.UploadSummary}
@@ -124,12 +196,28 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                         />
                     </div>
                 )}
-                <Table
-                    className={styles.jobTable}
-                    columns={this.columns}
-                    dataSource={jobs}
-                    onRow={this.onRow}
-                />
+                <Row>
+                    Show&nbsp;
+                    <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
+                        {jobStatusOptions.map((option) => (
+                            <Radio.Button key={option} value={option}>{option}</Radio.Button>
+                        ))}
+                    </Radio.Group>
+                    &nbsp;Uploads
+                </Row>
+                {jobs.length ? (
+                    <Table
+                        className={styles.jobTable}
+                        columns={this.columns}
+                        dataSource={jobs}
+                        onRow={this.onRow}
+                    />
+                ) : (
+                    <Empty
+                        className={styles.empty}
+                        description={`No ${jobFilter === JobFilter.All ? "" : `${jobFilter} `} Uploads`}
+                    />
+                )}
                 {selectedJob && <Modal
                     title="Upload Job"
                     width="90%"
@@ -142,10 +230,33 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                        job={selectedJob}
                        retryUpload={this.retryUpload}
                        loading={loading}
+                       fileMetadataForJob={fileMetadataForJob}
+                       fileMetadataForJobHeader={fileMetadataForJobHeader}
+                       fileMetadataForJobLoading={fileMetadataForJobLoading}
+                       onFileRowClick={this.openFileDetailModal}
                    />
+                    <FileMetadataModal
+                        fileMetadata={selectedRowInJob}
+                        closeFileDetailModal={this.closeFileDetailModal}
+                    />
                 </Modal>}
             </FormPage>
         );
+    }
+
+    private openFileDetailModal = (selectedRowInJob: SearchResultRow): void => {
+        this.setState({ selectedRowInJob });
+    }
+
+    private closeFileDetailModal = (): void => {
+        this.setState({ selectedRowInJob: undefined });
+    }
+
+    private selectJobFilter = (e: RadioChangeEvent): void => {
+        if (!this.interval) {
+            this.setJobInterval();
+        }
+        this.props.selectJobFilter(e.target.value);
     }
 
     // Auto-refresh jobs every 2 seconds for 3 minutes
@@ -196,23 +307,44 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         }
     }
 
+    private requestFileMetadataForJob = (jobId: string): void => {
+        const { jobs } = this.props;
+        const job = jobs.find((j) => j.jobId === jobId);
+        if (job
+            && job.serviceFields
+            && job.serviceFields.files
+            && Array.isArray(job.serviceFields.result)
+            && !isEmpty(job.serviceFields.result)) {
+            const fileIds = job.serviceFields.result.map((fileInfo: UploadMetadata) => {
+                return fileInfo.fileId;
+            });
+            this.props.requestFileMetadataForJob(fileIds);
+        }
+    }
+
     private onRow = (record: UploadSummaryTableRow) => {
         return {
             onClick: () => {
+                this.requestFileMetadataForJob(record.jobId);
                 this.setState({selectedJobId: record.jobId});
             },
         };
     }
 
     private closeModal = () => {
-        this.setState({selectedJobId: undefined});
+        this.props.clearFileMetadataForJob();
+        this.setState({ selectedJobId: undefined, selectedRowInJob: undefined });
     }
 }
 
 function mapStateToProps(state: State) {
     return {
         allJobsComplete: getAreAllJobsComplete(state),
+        fileMetadataForJob: getFileMetadataForJob(state),
+        fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
+        fileMetadataForJobLoading: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         files: getStagedFiles(state),
+        jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)
             || getRequestsInProgressContains(state, AsyncRequest.CANCEL_UPLOAD),
@@ -222,8 +354,11 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     cancelUpload,
+    clearFileMetadataForJob,
+    requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,
+    selectJobFilter,
     selectPage,
     selectView,
 };

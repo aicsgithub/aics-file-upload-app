@@ -3,15 +3,18 @@ import {
     ADD_PENDING_JOB,
     REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
+    SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
     AddPendingJobAction,
+    JobFilter,
     PendingJob,
     RemovePendingJobsAction,
     RetrieveJobsAction,
+    SelectJobFilterAction,
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
@@ -55,5 +58,12 @@ export function removePendingJobs(jobNames: string[]): RemovePendingJobsAction {
     return {
         payload: jobNames,
         type: REMOVE_PENDING_JOB,
+    };
+}
+
+export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
+    return {
+        payload: jobFilter,
+        type: SELECT_JOB_FILTER,
     };
 }
