@@ -1,11 +1,14 @@
 import { Alert, Empty, Table } from "antd";
 import { ColumnProps } from "antd/es/table";
 import { isEmpty, uniq } from "lodash";
+import { basename } from "path";
 import * as React from "react";
+
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../../state/constants";
 import { SearchResultRow } from "../../state/metadata/types";
 import { titleCase } from "../../util";
+
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const styles = require("./styles.pcss");
@@ -24,7 +27,8 @@ interface UploadJobDisplayProps {
 
 const determineError = (error: string): string => {
     if (error.toLowerCase().includes("chmod")) {
-        return `You and/or FMS did not have permission to read one of these files. The full error was: ${error}`;
+        return `Error while uploading, you and/or FMS did not have permission to read one of these files.
+                The full error was: ${error}`;
     }
     return error;
 };
@@ -40,6 +44,31 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
                                                                               fileMetadataForJobLoading,
                                                                               onFileRowClick,
                                                                           }: UploadJobDisplayProps) => {
+    const alerts: JSX.Element[] = [];
+    const allowCancel = IN_PROGRESS_STATUSES.includes(job.status);
+    if (allowCancel) {
+        alerts.push(
+            <Alert
+                className={styles.alert}
+                type="warning"
+                message="Warning"
+                key="cancellationAlert"
+                description="Cancelling will make this upload unrecoverable"
+                showIcon={true}
+            />);
+    }
+    if (job.serviceFields && job.serviceFields.error) {
+        alerts.push(
+            <Alert
+                className={styles.alert}
+                type="error"
+                message="Error"
+                key="errorAlert"
+                description={determineError(job.serviceFields.error)}
+                showIcon={true}
+            />
+        );
+    }
     let fileMetadata;
     if (fileMetadataForJob || fileMetadataForJobLoading) {
         const fileCount = fileMetadataForJob &&
@@ -64,10 +93,19 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
         && !isEmpty(job.serviceFields.files)
         && job.serviceFields.files[0].file
         && job.serviceFields.files[0].file.originalPath) {
+        alerts.push(
+            <Alert
+                className={styles.alert}
+                type="error"
+                message="Error"
+                key="failedFindingMetadataAlert"
+                description="Failed to find metadata for this job"
+                showIcon={true}
+            />);
         const rows = job.serviceFields.files.map((file: { file: { originalPath: string } }) => {
             const { originalPath } = file.file;
-            const filePathSections = originalPath.split("/");
-            return { filename: filePathSections[filePathSections.length - 1], originalPath, key: originalPath };
+            const filename = basename(originalPath);
+            return { filename, originalPath, key: originalPath };
         });
         const tableTitle = () => "Incomplete File Information Retrieved From Job";
         fileMetadata = (
@@ -82,23 +120,9 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     } else {
         fileMetadata = <Empty description={"Unable to determine files for this job"} />;
     }
-    const error = job.serviceFields && job.serviceFields.error && (
-        <Alert
-            className={styles.errorAlert}
-            type="error"
-            message="Error"
-            description={determineError(job.serviceFields.error)}
-            showIcon={true}
-        />
-    );
-    const allowCancel = IN_PROGRESS_STATUSES.includes(job.status);
-    const warning = allowCancel && (
-        <Alert closable={true} type="warning" message="Cancelling will make this upload unrecoverable" />
-    );
     return (
         <div className={className}>
-            {error}
-            {warning}
+            {alerts}
             <JobOverviewDisplay
                 allowCancel={allowCancel}
                 cancelUpload={cancelUpload}
