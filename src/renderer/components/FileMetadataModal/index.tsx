@@ -22,7 +22,6 @@ interface ListItem {
     value: string | number;
 }
 
-const MAC = "Darwin";
 const WINDOWS = "Windows_NT";
 
 const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
@@ -61,9 +60,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({   close
         const userOS = os.type();
         if (userOS === WINDOWS) {
             downloadPath = filePath.replace(/\//g, "\\");
-        } else if (userOS === MAC) {
-            downloadPath = filePath;
-        } else { // Linux
+        } else { // "Darwin" (Mac) or Linux
             downloadPath = filePath;
         }
         if (!shell.showItemInFolder(downloadPath)) {
