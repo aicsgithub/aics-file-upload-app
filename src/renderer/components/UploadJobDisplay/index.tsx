@@ -96,10 +96,10 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
         alerts.push(
             <Alert
                 className={styles.alert}
-                type="error"
-                message="Error"
+                type="warning"
+                message="Warning"
                 key="failedFindingMetadataAlert"
-                description="Failed to find metadata for this job"
+                description="This job has incomplete metadata, unable to display file metadata below"
                 showIcon={true}
             />);
         const rows = job.serviceFields.files.map((file: { file: { originalPath: string } }) => {
