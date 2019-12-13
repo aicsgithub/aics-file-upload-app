@@ -1,8 +1,9 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Alert, Button, Col, Empty, Modal, Progress, Radio, Row, Table } from "antd";
+import { Alert, Button, Empty, Modal, Progress, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { isEmpty, map } from "lodash";
+import { basename } from "path";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -83,22 +84,21 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
         try {
             return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
-                const filePathSections = originalPath.split("/");
-                return filePathSections[filePathSections.length - 1];
+                return basename(originalPath);
             }).sort().join(", ");
         } catch (e) {
-            return row.jobName || "CAN'T FIND FILE OR JOB NAME";
+            return `Job Name: ${row.jobName}` || "CAN'T FIND FILE OR JOB NAME";
         }
     }
 
     private static STAGE_TO_PROGRESS = (stage: string): number => {
-        if (stage === "Copy file") {
+        if (stage.toLowerCase() === "copy file") {
             return 25;
         }
-        if (stage === "Waiting for file copy") {
+        if (stage.toLowerCase() === "waiting for file copy") {
             return 50;
         }
-        if (stage === "Create FileRows in LabKey") {
+        if (stage.toLowerCase() === "create filerows in labkey") {
             return 75;
         }
         return 0;
@@ -180,31 +180,30 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 page={Page.UploadSummary}
             >
                 {!this.interval && (
-                    <Row className={styles.refreshContainer}>
-                        <Col xs={4}>
-                            <Button
-                                size="large"
-                                type="primary"
-                                onClick={this.setJobInterval}
-                            >Refresh Jobs
-                            </Button>
-                        </Col>
-                        <Col xs={20}>
-                            <Alert
-                                type="info"
-                                message="Uploads no longer auto-updating, click refresh to begin updating again"
-                            />
-                        </Col>
-                    </Row>
+                    <div className={styles.refreshContainer}>
+                        <Button
+                            size="large"
+                            type="primary"
+                            onClick={this.setJobInterval}
+                            className={styles.refreshButton}
+                        >Refresh Jobs
+                        </Button>
+                        <Alert
+                            className={styles.alert}
+                            type="info"
+                            message="Uploads no longer auto-updating, click refresh to begin updating again"
+                            showIcon={true}
+                        />
+                    </div>
                 )}
                 <Row>
-                    Show{" "}
+                    Show&nbsp;
                     <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
                         {jobStatusOptions.map((option) => (
                             <Radio.Button key={option} value={option}>{option}</Radio.Button>
                         ))}
                     </Radio.Group>
-                    {" "}Uploads
+                    &nbsp;Uploads
                 </Row>
                 {jobs.length ? (
                     <Table
