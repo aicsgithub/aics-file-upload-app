@@ -47,6 +47,15 @@ const styles = require("./styles.pcss");
 
 const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
 
+const timeDisplayConfig = Object.freeze({
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short",
+    weekday: "short",
+    year: "numeric",
+});
+
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
     // used by antd's Table component to uniquely identify rows
@@ -103,6 +112,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         }
         return 0;
     }
+
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
@@ -115,14 +125,14 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         {
             dataIndex: "currentStage",
             key: "currentStage",
-            render: (stage: string, { status, serviceFields }) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(status) ? (
+            render: (stage: string, row) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ? (
                 <Progress
                     showInfo={false}
                     status="active"
                     percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
                     successPercent={50}
                 />
-            ) : (serviceFields && serviceFields.replacementJobId ? 'REPLACED' : status),
+            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "REPLACED" : status),
             title: "Progress",
             width: "190px",
         },
@@ -137,7 +147,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         {
             dataIndex: "modified",
             key: "modified",
-            render: (modified: Date) => modified.toLocaleTimeString([], {weekday: "short", year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute:'2-digit'}),
+            render: (modified: Date) => modified.toLocaleTimeString([], timeDisplayConfig),
             title: "Last Modified",
             width: "300px",
         },

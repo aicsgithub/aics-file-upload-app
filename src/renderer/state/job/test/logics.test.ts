@@ -71,7 +71,7 @@ describe("Job logics", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    jobFilter: JobFilter.Failed
+                    jobFilter: JobFilter.Failed,
                 },
             });
 
@@ -110,7 +110,7 @@ describe("Job logics", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    jobFilter: JobFilter.Successful
+                    jobFilter: JobFilter.Successful,
                 },
             });
 
@@ -149,7 +149,7 @@ describe("Job logics", () => {
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    jobFilter: JobFilter.All
+                    jobFilter: JobFilter.All,
                 },
             });
 
