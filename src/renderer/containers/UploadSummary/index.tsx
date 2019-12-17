@@ -47,7 +47,7 @@ const styles = require("./styles.pcss");
 
 const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
 
-const timeDisplayConfig = Object.freeze({
+const TIME_DISPLAY_CONFIG = Object.freeze({
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
@@ -147,7 +147,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         {
             dataIndex: "modified",
             key: "modified",
-            render: (modified: Date) => modified.toLocaleTimeString([], timeDisplayConfig),
+            render: (modified: Date) => modified.toLocaleTimeString([], TIME_DISPLAY_CONFIG),
             title: "Last Modified",
             width: "300px",
         },
