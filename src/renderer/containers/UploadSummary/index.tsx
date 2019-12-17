@@ -115,14 +115,14 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         {
             dataIndex: "currentStage",
             key: "currentStage",
-            render: (stage: string, { status }) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(status) ? (
+            render: (stage: string, { status, serviceFields }) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(status) ? (
                 <Progress
                     showInfo={false}
                     status="active"
                     percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
                     successPercent={50}
                 />
-            ) : status,
+            ) : (serviceFields && serviceFields.replacementJobId ? 'REPLACED' : status),
             title: "Progress",
             width: "190px",
         },
@@ -137,9 +137,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         {
             dataIndex: "modified",
             key: "modified",
-            render: (modified: Date) => modified.toLocaleString(),
+            render: (modified: Date) => modified.toLocaleTimeString([], {weekday: "short", year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute:'2-digit'}),
             title: "Last Modified",
-            width: "250px",
+            width: "300px",
         },
     ];
     private interval: Timeout | null = null;
