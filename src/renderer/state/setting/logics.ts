@@ -19,9 +19,7 @@ import {
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
 import {
-    ADD_TEMPLATE_ID_TO_SETTINGS,
     GATHER_SETTINGS,
-    SET_METADATA_COLUMNS,
     SET_MOUNT_POINT,
     UPDATE_SETTINGS
 } from "./constants";
@@ -180,41 +178,9 @@ const switchEnvironmentLogic = createLogic({
     type: SWITCH_ENVIRONMENT,
 });
 
-const setTemplateIdLogic = createLogic({
-    transform: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        try {
-            const templateId = action.payload;
-            next(updateSettings({ templateId }));
-        } catch (e) {
-            next(setAlert({
-                message: "Failed to save template id to settings.",
-                type: AlertType.WARN,
-            }));
-        }
-    },
-    type: ADD_TEMPLATE_ID_TO_SETTINGS,
-});
-
-const setMetadataColumns = createLogic({
-    transform: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        try {
-            const metadataColumns = action.payload;
-            next(updateSettings({ metadataColumns }));
-        } catch (e) {
-            next(setAlert({
-                message: "Failed to save metadata columns to settings.",
-                type: AlertType.WARN,
-            }));
-        }
-    },
-    type: SET_METADATA_COLUMNS,
-});
-
 export default [
     gatherSettingsLogic,
-    setMetadataColumns,
     setMountPointLogic,
-    setTemplateIdLogic,
     switchEnvironmentLogic,
     updateSettingsLogic,
 ];

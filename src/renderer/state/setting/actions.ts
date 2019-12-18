@@ -1,30 +1,19 @@
 import { SWITCH_ENVIRONMENT } from "../../../shared/constants";
 
 import {
-    ADD_TEMPLATE_ID_TO_SETTINGS,
     ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
-    SET_METADATA_COLUMNS,
     SET_MOUNT_POINT,
     UPDATE_SETTINGS,
 } from "./constants";
 import {
-    AddTemplateIdToSettingsAction,
     AssociateByWorkflowAction,
     GatherSettingsAction,
-    SetMetadataColumnsAction,
     SetMountPointAction,
     SettingStateBranch,
     SwitchEnvironmentAction,
     UpdateSettingsAction,
 } from "./types";
-
-export function addTemplateIdToSettings(payload: number): AddTemplateIdToSettingsAction {
-    return {
-        payload,
-        type: ADD_TEMPLATE_ID_TO_SETTINGS,
-    };
-}
 
 export function updateSettings(payload: Partial<SettingStateBranch>): UpdateSettingsAction {
     return {
@@ -58,9 +47,20 @@ export function switchEnvironment(): SwitchEnvironmentAction {
     };
 }
 
-export function setMetadataColumns(extraMetadataColumns: string[]): SetMetadataColumnsAction {
+export function setTemplateIdSetting(templateId: number): UpdateSettingsAction {
     return {
-        payload: extraMetadataColumns,
-        type: SET_METADATA_COLUMNS,
+        payload: {
+            templateId,
+        },
+        type: UPDATE_SETTINGS,
+    };
+}
+
+export function setMetadataColumnsSetting(metadataColumns: string[]): UpdateSettingsAction {
+    return {
+        payload: {
+            metadataColumns,
+        },
+        type: UPDATE_SETTINGS,
     };
 }

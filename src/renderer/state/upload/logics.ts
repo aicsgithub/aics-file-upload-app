@@ -15,7 +15,7 @@ import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
-import { addTemplateIdToSettings } from "../setting/actions";
+import { setTemplateIdSetting } from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
@@ -67,7 +67,7 @@ const applyTemplateLogic = createLogic({
         if (ctx.templateId) {
             // these need to be dispatched separately to go through logics
             dispatch(getTemplate(ctx.templateId, true));
-            dispatch(addTemplateIdToSettings(ctx.templateId));
+            dispatch(setTemplateIdSetting(ctx.templateId));
         }
 
         done();

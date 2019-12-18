@@ -323,7 +323,6 @@ export const mockState: State = {
         limsPort: "8080",
         limsProtocol: "http",
         metadataColumns: [],
-        templateIds: [],
     },
     template: getMockStateWithHistory(mockTemplateStateBranch),
     upload: getMockStateWithHistory(mockWellUpload),

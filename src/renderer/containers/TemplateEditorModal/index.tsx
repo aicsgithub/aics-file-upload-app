@@ -22,8 +22,8 @@ import { GetAnnotationsAction } from "../../state/metadata/types";
 import { closeTemplateEditor, openTemplateEditor } from "../../state/selection/actions";
 import { getTemplateEditorVisible } from "../../state/selection/selectors";
 import { CloseTemplateEditorAction, OpenTemplateEditorAction } from "../../state/selection/types";
-import { addTemplateIdToSettings } from "../../state/setting/actions";
-import { AddTemplateIdToSettingsAction } from "../../state/setting/types";
+import { setTemplateIdSetting } from "../../state/setting/actions";
+import { UpdateSettingsAction } from "../../state/setting/types";
 import {
     addExistingAnnotation,
     removeAnnotations,
@@ -55,7 +55,7 @@ will be added as additional columns to fill out for each file. They can be share
 
 interface Props {
     addAnnotation: ActionCreator<AddExistingAnnotationAction>;
-    addTemplateIdToSettings: ActionCreator<AddTemplateIdToSettingsAction>;
+    addTemplateIdToSettings: ActionCreator<UpdateSettingsAction>;
     allAnnotations: AnnotationWithOptions[];
     annotationTypes: AnnotationType[];
     className?: string;
@@ -328,7 +328,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     addAnnotation: addExistingAnnotation,
-    addTemplateIdToSettings,
+    addTemplateIdToSettings: setTemplateIdSetting,
     closeModal: closeTemplateEditor,
     getAnnotations: requestAnnotations,
     openModal: openTemplateEditor,
