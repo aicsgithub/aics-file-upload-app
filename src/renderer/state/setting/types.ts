@@ -4,7 +4,7 @@ export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
     metadataColumns: string[];
     mountPoint?: string;
-    templateIds: number[];
+    templateId?: number;
 }
 
 export interface AddTemplateIdToSettingsAction {

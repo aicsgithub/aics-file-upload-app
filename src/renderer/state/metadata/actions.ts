@@ -66,8 +66,9 @@ export function requestBarcodeSearchResults(searchStr: string): GetBarcodeSearch
     };
 }
 
-export function requestTemplates(): GetTemplatesAction {
+export function requestTemplates(payload?: number): GetTemplatesAction {
     return {
+        payload,
         type: GET_TEMPLATES,
     };
 }

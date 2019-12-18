@@ -74,10 +74,8 @@ const applyTemplateLogic = createLogic({
     },
     transform: ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb) => {
-        const {template} = action.payload;
-        if (template) {
-            ctx.templateId = template.TemplateId;
-        }
+        const { templateId } = action.payload;
+        ctx.templateId = templateId;
         const state = getState();
         const uploads: UploadStateBranch = getUpload(state);
 
@@ -91,7 +89,7 @@ const applyTemplateLogic = createLogic({
                 notes,
                 shouldBeInArchive,
                 shouldBeInLocal,
-                templateId: template ? template.TemplateId : undefined,
+                templateId,
                 wellIds,
                 wellLabels,
                 workflows,

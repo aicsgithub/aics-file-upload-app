@@ -1,4 +1,4 @@
-import { map, uniq } from "lodash";
+import { map } from "lodash";
 import { basename } from "path";
 import { createLogic } from "redux-logic";
 
@@ -18,8 +18,14 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 import { updateSettings } from "./actions";
-import { ADD_TEMPLATE_ID_TO_SETTINGS, GATHER_SETTINGS, SET_MOUNT_POINT, UPDATE_SETTINGS } from "./constants";
-import { getLimsHost, getLimsPort, getMountPoint, getTemplateIds } from "./selectors";
+import {
+    ADD_TEMPLATE_ID_TO_SETTINGS,
+    GATHER_SETTINGS,
+    SET_METADATA_COLUMNS,
+    SET_MOUNT_POINT,
+    UPDATE_SETTINGS
+} from "./constants";
+import { getLimsHost, getLimsPort, getMountPoint } from "./selectors";
 
 const updateSettingsLogic = createLogic({
     process: async ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
@@ -107,15 +113,6 @@ const gatherSettingsLogic = createLogic({
     type: GATHER_SETTINGS,
 });
 
-const addTemplateIdToSettingsLogic = createLogic({
-    transform: ({action, getState, storage}: ReduxLogicTransformDependencies,
-                next: ReduxLogicNextCb) => {
-        const templateIds = getTemplateIds(getState());
-        next(updateSettings({templateIds: uniq([...templateIds, action.payload])}));
-    },
-    type: ADD_TEMPLATE_ID_TO_SETTINGS,
-});
-
 const setMountPointLogic = createLogic({
     process: ({getState, remote}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
               done: ReduxLogicDoneCb) => {
@@ -183,10 +180,41 @@ const switchEnvironmentLogic = createLogic({
     type: SWITCH_ENVIRONMENT,
 });
 
+const setTemplateIdLogic = createLogic({
+    transform: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const templateId = action.payload;
+            next(updateSettings({ templateId }));
+        } catch (e) {
+            next(setAlert({
+                message: "Failed to save template id to settings.",
+                type: AlertType.WARN,
+            }));
+        }
+    },
+    type: ADD_TEMPLATE_ID_TO_SETTINGS,
+});
+
+const setMetadataColumns = createLogic({
+    transform: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const metadataColumns = action.payload;
+            next(updateSettings({ metadataColumns }));
+        } catch (e) {
+            next(setAlert({
+                message: "Failed to save metadata columns to settings.",
+                type: AlertType.WARN,
+            }));
+        }
+    },
+    type: SET_METADATA_COLUMNS,
+});
+
 export default [
-    addTemplateIdToSettingsLogic,
     gatherSettingsLogic,
+    setMetadataColumns,
     setMountPointLogic,
+    setTemplateIdLogic,
     switchEnvironmentLogic,
     updateSettingsLogic,
 ];

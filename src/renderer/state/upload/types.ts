@@ -1,5 +1,4 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
@@ -34,7 +33,7 @@ export interface MMSAnnotationValueRequest {
 
 export interface ApplyTemplateAction {
     payload: {
-        template: LabkeyTemplate;
+        templateId?: number;
         uploads: UploadStateBranch;
     };
     type: string;
