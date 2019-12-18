@@ -8,6 +8,7 @@ import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 interface TemplateSearchProps {
     className?: string;
+    loading?: boolean;
     onSelect: (selectedTemplateId: number) => void;
     templates: LabkeyTemplate[];
     value?: number;
@@ -17,6 +18,7 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
     public render() {
         const {
             className,
+            loading,
             onSelect,
             templates,
             value,
@@ -26,6 +28,8 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
           <Select
             autoFocus={true}
             className={className}
+            disabled={loading}
+            loading={loading}
             onSelect={onSelect}
             placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
             showSearch={true}

@@ -191,7 +191,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderButtons = () => {
-        const { appliedTemplate, templates } = this.props;
+        const { appliedTemplate, loading, templates } = this.props;
 
         return (
             <div className={styles.buttonRow}>
@@ -199,6 +199,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <p className={styles.schemaSelectorLabel}>{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
+                        loading={loading}
                         value={appliedTemplate ? appliedTemplate.templateId : undefined}
                         onSelect={this.props.applyTemplate}
                         templates={templates}
