@@ -47,6 +47,17 @@
     js-logger "^1.6.0"
     lodash "^4.17.11"
 
+"@aics/job-status-client@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@aics/job-status-client/-/job-status-client-1.1.0.tgz#30a3f60cab346c756c3eb8dc3c1cafd97a620004"
+  integrity sha512-nbEvLjBzb8N0/5IdoVQojTxEhBqz1F+rRitKCTebu2GIJSkOTfipPAynx9UMVgCBWAqiEHOXqMNXi/ctjShbyQ==
+  dependencies:
+    "@babel/polyfill" "^7.4.4"
+    axios "^0.19.0"
+    humps "^2.0.1"
+    js-logger "^1.6.0"
+    lodash "^4.17.11"
+
 "@ant-design/colors@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@ant-design/colors/-/colors-3.1.0.tgz#b7e2cc61a4e86d3d109494034acfb1222dacaa3c"

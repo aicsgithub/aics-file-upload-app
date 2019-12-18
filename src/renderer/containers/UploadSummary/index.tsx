@@ -132,7 +132,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
                     successPercent={50}
                 />
-            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "REPLACED" : status),
+            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "REPLACED" : row.status),
             title: "Progress",
             width: "190px",
         },
