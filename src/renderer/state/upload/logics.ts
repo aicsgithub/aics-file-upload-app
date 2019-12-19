@@ -13,7 +13,7 @@ import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
-import { deselectFiles } from "../selection/actions";
+import { clearStagedFiles, deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
@@ -113,7 +113,7 @@ const initiateUploadLogic = createLogic({
 
             // Go forward needs to be handled by redux-logic so we're dispatching separately
             dispatch(goForward());
-
+            dispatch(clearStagedFiles());
             dispatch(addPendingJob({
                 created: now,
                 currentStage: "Pending",
