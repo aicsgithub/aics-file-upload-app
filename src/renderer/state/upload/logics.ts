@@ -13,7 +13,7 @@ import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
-import { deselectFiles } from "../selection/actions";
+import { clearStagedFiles, deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
 import { addTemplateIdToSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
@@ -113,17 +113,19 @@ const initiateUploadLogic = createLogic({
 
             // Go forward needs to be handled by redux-logic so we're dispatching separately
             dispatch(goForward());
-
-            dispatch(addPendingJob({
-                created: now,
-                currentStage: "Pending",
-                jobId: (now).toLocaleString(),
-                jobName: ctx.name,
-                modified: now,
-                status: "WAITING",
-                uploads: ctx.uploads,
-                user: userInfo().username,
-            }));
+            dispatch(batchActions([
+                clearStagedFiles(),
+                addPendingJob({
+                    created: now,
+                    currentStage: "Pending",
+                    jobId: (now).toLocaleString(),
+                    jobName: ctx.name,
+                    modified: now,
+                    status: "WAITING",
+                    uploads: ctx.uploads,
+                    user: userInfo().username,
+                }),
+            ]));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
