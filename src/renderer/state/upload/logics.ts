@@ -113,17 +113,19 @@ const initiateUploadLogic = createLogic({
 
             // Go forward needs to be handled by redux-logic so we're dispatching separately
             dispatch(goForward());
-            dispatch(clearStagedFiles());
-            dispatch(addPendingJob({
-                created: now,
-                currentStage: "Pending",
-                jobId: (now).toLocaleString(),
-                jobName: ctx.name,
-                modified: now,
-                status: "WAITING",
-                uploads: ctx.uploads,
-                user: userInfo().username,
-            }));
+            dispatch(batchActions([
+                clearStagedFiles(),
+                addPendingJob({
+                    created: now,
+                    currentStage: "Pending",
+                    jobId: (now).toLocaleString(),
+                    jobName: ctx.name,
+                    modified: now,
+                    status: "WAITING",
+                    uploads: ctx.uploads,
+                    user: userInfo().username,
+                }),
+            ]));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
