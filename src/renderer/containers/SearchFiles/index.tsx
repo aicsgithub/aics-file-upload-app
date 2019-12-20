@@ -1,6 +1,6 @@
 import { Button, Checkbox, Col, Empty, Icon, Radio, Row, Table } from "antd";
-import { CheckboxChangeEvent, CheckBoxValueType } from "antd/es/checkbox";
-import CheckboxGroup from "antd/es/checkbox/Group";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
+import CheckboxGroup, { CheckboxValueType } from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { remote } from "electron";
@@ -303,8 +303,8 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         this.setState({ showExtraColumnOptions: !this.state.showExtraColumnOptions });
     }
 
-    private setMetadataColumns = (metadataColumns: CheckBoxValueType[]) => {
-        this.props.updateSettings({ metadataColumns: metadataColumns as string[] })
+    private setMetadataColumns = (metadataColumns: CheckboxValueType[]) => {
+        this.props.updateSettings({ metadataColumns })
     }
 
     private toggleCheckAll = (e: CheckboxChangeEvent) => {
