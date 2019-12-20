@@ -53,6 +53,7 @@ import AnnotationForm from "./AnnotationForm";
 import TemplateForm from "./TemplateForm";
 import UserAndTemplateForm from "./UserAndTemplateForm";
 import UserForm from "./UserForm";
+import {updateSettings} from "../../state/setting/actions";
 
 const styles = require("./styles.pcss");
 
@@ -90,8 +91,8 @@ interface Props {
     selectAnnotation: ActionCreator<SelectAnnotationAction>;
     selectUser: ActionCreator<SelectUserAction>;
     setAlert: ActionCreator<SetAlertAction>;
-    setMetadataColumnsSetting: ActionCreator<UpdateSettingsAction>;
     templates: LabkeyTemplate[];
+    updateSettings: ActionCreator<UpdateSettingsAction>;
     user?: string;
     users: LabkeyUser[];
 }
@@ -403,6 +404,7 @@ const dispatchToPropsMap = {
     selectAnnotation,
     selectUser,
     setAlert,
+    updateSettings,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(SearchFiles);
