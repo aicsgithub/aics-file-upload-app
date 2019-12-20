@@ -5,7 +5,7 @@ import {
     Spin,
     Tag,
     Tooltip,
-    Tree
+    Tree,
 } from "antd";
 import * as classNames from "classnames";
 import { OpenDialogOptions, remote } from "electron";
@@ -26,6 +26,7 @@ import {
 import { FileTagType } from "../../state/upload/types";
 import DragAndDrop from "../DragAndDrop";
 import Resizable from "../Resizable";
+import ButtonGroup from "antd/es/button/button-group";
 
 const styles = require("./style.pcss");
 
@@ -46,6 +47,7 @@ interface FolderTreeProps {
 interface FolderTreeState {
     // Keeps track of folders that have been expanded. Used only for preventing duplicate requests to get children.
     expandedFolders: Set<string>;
+    showFolderTree: boolean;
 }
 
 // Added to the keys used for Tree.TreeNode in order to quickly identify folders from files.
@@ -97,6 +99,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         super(props);
         this.state = {
             expandedFolders: new Set<string>(),
+            showFolderTree: true,
         };
 
         this.onExpand = this.onExpand.bind(this);
@@ -110,22 +113,42 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             files,
             loadFilesFromDragAndDropAction,
         } = this.props;
+        const { showFolderTree } = this.state;
         if (!files) {
             return null;
         }
 
+        if (!showFolderTree) {
+            return (
+                <div style={{ borderRight: 'lightgrey solid 1px', paddingRight: '8px' }}>
+                    <Tooltip title="Expand folder tree">
+                        <Button
+                            icon="caret-left"
+                            className={styles.collapseButton}
+                            onClick={this.toggleFolderTree}
+                        />
+                    </Tooltip>
+                </div>
+            );
+        }
+
         return (
-            <Resizable className={classNames(className, styles.container)} minimumWidth={375} right={true} width={375}>
+            <Resizable className={classNames(className, styles.container)} minimumWidth={360} right={true} width={360}>
                 <div className={styles.logoContainer}>
                     <Icon type="cloud-upload" className={styles.logo}/>
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
                     <div className={styles.fileButtons}>
-                        <Button className={styles.clearButton} disabled={!files.length} onClick={clearStagedFiles}>
-                            Clear
-                        </Button>
-                        <Button onClick={this.onBrowse} type="primary">
-                            <Icon type="upload"/>
-                        </Button>
+                        <ButtonGroup className={styles.fileControls}>
+                            <Tooltip title="Clear files in folder tree">
+                                <Button disabled={!files.length} icon="stop" onClick={clearStagedFiles} />
+                            </Tooltip>
+                            <Tooltip title="Browse for files to add to folder tree">
+                                <Button icon="upload" onClick={this.onBrowse} />
+                            </Tooltip>
+                        </ButtonGroup>
+                        <Tooltip title="Collapse folder tree">
+                            <Button icon="caret-right" onClick={this.toggleFolderTree} />
+                        </Tooltip>
                     </div>
 
                 </div>
@@ -138,6 +161,10 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                 </DragAndDrop>
             </Resizable>
         );
+    }
+
+    private toggleFolderTree = () => {
+        this.setState({ showFolderTree: !this.state.showFolderTree });
     }
 
     // Opens native file explorer

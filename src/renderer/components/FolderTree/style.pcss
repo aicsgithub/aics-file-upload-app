@@ -5,25 +5,6 @@
   flex-direction: column;
   overflow-x: hidden;
 
-  & .logo-container {
-    flex: 0 0 auto;
-    color:  var(--brand-primary);
-    padding: 1rem;
-    background-color: white;
-    border-bottom: 1px solid var(--border-color);
-
-    & .brand-name {
-      font-size: 20px;
-      vertical-align: middle;
-    }
-
-    & .logo {
-      font-size: 36px;
-      padding-right: 0.25rem;
-      vertical-align: middle;
-    }
-  }
-
   & .file-tree {
     flex: 1;
     min-height: 0;
@@ -33,6 +14,25 @@
     & :global(.ant-tree) .tree-node :global(.ant-tree-node-content-wrapper) {
       display: inline;
     }
+  }
+}
+
+.logo-container {
+  flex: 0 0 auto;
+  color:  var(--brand-primary);
+  padding: 1rem;
+  background-color: white;
+  border-bottom: 1px solid var(--border-color);
+
+  & .brand-name {
+    font-size: 20px;
+    vertical-align: middle;
+  }
+
+  & .logo {
+    font-size: 36px;
+    padding-right: 0.25rem;
+    vertical-align: middle;
   }
 }
 
@@ -63,4 +63,13 @@
   justify-content: normal;
   align-items: normal;
   overflow: hidden;
+}
+
+.collapse-button {
+  margin-top: 18px;
+  margin-left: 8px;
+}
+
+.file-controls {
+  margin-right: 4px;
 }
