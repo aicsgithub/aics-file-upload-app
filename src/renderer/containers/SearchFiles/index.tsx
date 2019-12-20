@@ -1,6 +1,6 @@
 import { Button, Checkbox, Col, Empty, Icon, Radio, Row, Table } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
-import CheckboxGroup from "antd/es/checkbox/Group";
+import CheckboxGroup, { CheckboxValueType } from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { remote } from "electron";
@@ -44,9 +44,8 @@ import { Page } from "../../state/route/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import { getAnnotation, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
-import { setMetadataColumns } from "../../state/setting/actions";
 import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../state/setting/selectors";
-import { SetMetadataColumnsAction } from "../../state/setting/types";
+import { UpdateSettingsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
 import { State } from "../../state/types";
 import { LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
@@ -54,6 +53,7 @@ import AnnotationForm from "./AnnotationForm";
 import TemplateForm from "./TemplateForm";
 import UserAndTemplateForm from "./UserAndTemplateForm";
 import UserForm from "./UserForm";
+import {updateSettings} from "../../state/setting/actions";
 
 const styles = require("./styles.pcss");
 
@@ -91,8 +91,8 @@ interface Props {
     selectAnnotation: ActionCreator<SelectAnnotationAction>;
     selectUser: ActionCreator<SelectUserAction>;
     setAlert: ActionCreator<SetAlertAction>;
-    setMetadataColumns: ActionCreator<SetMetadataColumnsAction>;
     templates: LabkeyTemplate[];
+    updateSettings: ActionCreator<UpdateSettingsAction>;
     user?: string;
     users: LabkeyUser[];
 }
@@ -205,7 +205,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                                     <CheckboxGroup
                                         value={metadataColumns}
                                         options={EXTRA_COLUMN_OPTIONS}
-                                        onChange={this.props.setMetadataColumns}
+                                        onChange={this.setMetadataColumns}
                                     />
                                 </>
                             )}
@@ -303,8 +303,12 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         this.setState({ showExtraColumnOptions: !this.state.showExtraColumnOptions });
     }
 
+    private setMetadataColumns = (metadataColumns: CheckboxValueType[]) => {
+        this.props.updateSettings({ metadataColumns })
+    }
+
     private toggleCheckAll = (e: CheckboxChangeEvent) => {
-        this.props.setMetadataColumns(e.target.checked ? UNIMPORTANT_COLUMNS : []);
+        this.props.updateSettings({ metadataColumns: e.target.checked ? UNIMPORTANT_COLUMNS : [] });
     }
 
     private toggleFileDetailModal = (e?: any, selectedRow?: SearchResultRow): void => {
@@ -400,7 +404,7 @@ const dispatchToPropsMap = {
     selectAnnotation,
     selectUser,
     setAlert,
-    setMetadataColumns,
+    updateSettings,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(SearchFiles);

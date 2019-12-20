@@ -4,13 +4,9 @@ export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
     metadataColumns: string[];
     mountPoint?: string;
-    templateIds: number[];
+    templateId?: number;
 }
 
-export interface AddTemplateIdToSettingsAction {
-    payload: number;
-    type: string;
-}
 export interface AssociateByWorkflowAction {
     payload: boolean;
     type: string;
@@ -30,10 +26,5 @@ export interface SetMountPointAction {
 }
 
 export interface SwitchEnvironmentAction {
-    type: string;
-}
-
-export interface SetMetadataColumnsAction {
-    payload: string[];
     type: string;
 }

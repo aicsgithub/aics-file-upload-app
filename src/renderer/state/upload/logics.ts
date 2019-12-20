@@ -15,7 +15,7 @@ import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { clearStagedFiles, deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
-import { addTemplateIdToSettings } from "../setting/actions";
+import { updateSettings} from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
@@ -64,20 +64,19 @@ const associateFileAndWellLogic = createLogic({
 const applyTemplateLogic = createLogic({
     process: ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
               dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        if (ctx.templateId) {
+        const { templateId } = ctx;
+        if (templateId) {
             // these need to be dispatched separately to go through logics
-            dispatch(getTemplate(ctx.templateId, true));
-            dispatch(addTemplateIdToSettings(ctx.templateId));
+            dispatch(getTemplate(templateId, true));
+            dispatch(updateSettings({ templateId }));
         }
 
         done();
     },
     transform: ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb) => {
-        const {template} = action.payload;
-        if (template) {
-            ctx.templateId = template.TemplateId;
-        }
+        const { templateId } = action.payload;
+        ctx.templateId = templateId;
         const state = getState();
         const uploads: UploadStateBranch = getUpload(state);
 
@@ -91,7 +90,7 @@ const applyTemplateLogic = createLogic({
                 notes,
                 shouldBeInArchive,
                 shouldBeInLocal,
-                templateId: template ? template.TemplateId : undefined,
+                templateId,
                 wellIds,
                 wellLabels,
                 workflows,

@@ -20,8 +20,8 @@ import {
     mockUnit,
 } from "../../test/mocks";
 
-import { addTemplateIdToSettings, gatherSettings, updateSettings } from "../actions";
-import { getLimsHost, getTemplateIds } from "../selectors";
+import { gatherSettings, updateSettings } from "../actions";
+import { getLimsHost, getMetadataColumns, getTemplateId } from "../selectors";
 
 describe("Setting logics", () => {
     const localhost = "localhost";
@@ -134,6 +134,36 @@ describe("Setting logics", () => {
             expect(fmsMountPointSetterSpy.called).to.be.true;
         });
 
+        it("sets template id in settings", () => {
+            const { store } = createMockReduxStore({
+                ...mockState,
+                setting: {
+                    ...mockState.setting,
+                },
+            });
+
+            expect(getTemplateId(store.getState())).to.be.undefined;
+
+            store.dispatch(updateSettings({ templateId: 3 }));
+
+            expect(getTemplateId(store.getState())).to.equal(3);
+        });
+
+        it("sets metadata columns in settings", () => {
+            const { store } = createMockReduxStore({
+                ...mockState,
+                setting: {
+                    ...mockState.setting,
+                },
+            });
+
+            expect(getMetadataColumns(store.getState())).to.be.empty;
+
+            store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
+
+            expect(getMetadataColumns(store.getState())).to.deep.equal(["a", "b"]);
+        });
+
         it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
             const { store } = createMockReduxStore(mockState);
             store.dispatch(updateSettings({associateByWorkflow: true}));
@@ -204,25 +234,6 @@ describe("Setting logics", () => {
             // after
             expect(getLimsHost(store.getState())).to.equal(localhost);
             expect(getAlert(store.getState())).to.not.be.undefined;
-        });
-    });
-
-    describe("addTemplateIdToSettingsLogic", () => {
-        it("adds template id to settings", () => {
-            const { store } = createMockReduxStore({
-                ...mockState,
-                setting: {
-                    ...mockState.setting,
-                    templateIds: [1],
-                },
-            });
-
-            expect(getTemplateIds(store.getState()).length).to.equal(1);
-
-            store.dispatch(addTemplateIdToSettings(2));
-
-            expect(getTemplateIds(store.getState()).length).to.equal(2);
-            expect(getTemplateIds(store.getState())).contains(2);
         });
     });
 });

@@ -3,8 +3,6 @@ import { get, keys } from "lodash";
 import * as moment from "moment";
 import { createSandbox, stub } from "sinon";
 
-import { LabkeyTemplate } from "../../../util/labkey-client/types";
-
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import { getSelectedFiles } from "../../selection/selectors";
@@ -59,11 +57,6 @@ describe("Upload logics", () => {
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
-            const schema: LabkeyTemplate = {
-                Name: "My Template",
-                TemplateId: 1,
-                Version: 1,
-            };
 
             // before
             const state = store.getState();
@@ -71,7 +64,7 @@ describe("Upload logics", () => {
             store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
 
             // apply
-            store.dispatch(applyTemplate(schema));
+            store.dispatch(applyTemplate(1));
 
             // after
             await logicMiddleware.whenComplete();

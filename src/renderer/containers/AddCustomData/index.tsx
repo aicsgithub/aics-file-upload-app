@@ -34,7 +34,7 @@ import {
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
-import { getTemplateIds } from "../../state/setting/selectors";
+import { getTemplateId } from "../../state/setting/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
@@ -87,7 +87,7 @@ interface Props {
     openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     requestTemplates: ActionCreator<GetTemplatesAction>;
-    savedTemplateIds: number[];
+    savedTemplateId?: number;
     selectedBarcode?: string;
     selectedImagingSession?: ImagingSession;
     setAlert: ActionCreator<SetAlertAction>;
@@ -115,7 +115,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        this.props.requestTemplates();
+        this.props.requestTemplates(this.props.savedTemplateId);
     }
 
     public render() {
@@ -191,7 +191,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderButtons = () => {
-        const { appliedTemplate, templates } = this.props;
+        const { appliedTemplate, loading, templates } = this.props;
 
         return (
             <div className={styles.buttonRow}>
@@ -199,8 +199,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <p className={styles.schemaSelectorLabel}>{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
+                        loading={loading}
                         value={appliedTemplate ? appliedTemplate.templateId : undefined}
-                        onSelect={this.selectTemplate}
+                        onSelect={this.props.applyTemplate}
                         templates={templates}
                     />
                 </div>
@@ -225,13 +226,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     private openTemplateEditor = () => this.props.openSchemaCreator();
     private openTemplateEditorWithId = (id: number | undefined) => () => this.props.openSchemaCreator(id);
-
-    private selectTemplate = (templateId: number) => {
-        const template = this.props.templates.find((t) => t.TemplateId === templateId);
-        if (template) {
-            this.props.applyTemplate(template);
-        }
-    }
 
     private upload = (): void => {
         this.props.initiateUpload();
@@ -259,7 +253,7 @@ function mapStateToProps(state: State) {
         expandedRows: getExpandedUploadJobRows(state),
         fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
-        savedTemplateIds: getTemplateIds(state),
+        savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
         selectedImagingSession: getSelectedImagingSession(state),
         templates: getTemplates(state),

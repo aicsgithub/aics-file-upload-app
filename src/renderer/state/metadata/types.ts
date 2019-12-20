@@ -122,6 +122,7 @@ export interface GetBarcodeSearchResultsAction {
 }
 
 export interface GetTemplatesAction {
+    payload?: number;
     type: string;
 }
 

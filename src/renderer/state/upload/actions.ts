@@ -1,5 +1,4 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
@@ -126,10 +125,10 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-export function applyTemplate(template: LabkeyTemplate): ApplyTemplateAction {
+export function applyTemplate(templateId: number): ApplyTemplateAction {
     return {
         payload: {
-            template,
+            templateId,
             uploads: {},
         },
         type: APPLY_TEMPLATE,
