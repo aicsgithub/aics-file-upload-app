@@ -44,7 +44,6 @@ import { Page } from "../../state/route/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import { getAnnotation, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
-import { setMetadataColumnsSetting } from "../../state/setting/actions";
 import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
@@ -205,7 +204,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                                     <CheckboxGroup
                                         value={metadataColumns}
                                         options={EXTRA_COLUMN_OPTIONS}
-                                        onChange={this.props.setMetadataColumnsSetting}
+                                        onChange={this.setMetadataColumns}
                                     />
                                 </>
                             )}
@@ -303,8 +302,12 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         this.setState({ showExtraColumnOptions: !this.state.showExtraColumnOptions });
     }
 
+    private setMetadataColumns = (metadataColumns: string[]) => {
+        this.props.updateSettings({ metadataColumns });
+    }
+
     private toggleCheckAll = (e: CheckboxChangeEvent) => {
-        this.props.setMetadataColumnsSetting(e.target.checked ? UNIMPORTANT_COLUMNS : []);
+        this.props.updateSettings({ metadataColumns: e.target.checked ? UNIMPORTANT_COLUMNS : [] });
     }
 
     private toggleFileDetailModal = (e?: any, selectedRow?: SearchResultRow): void => {
@@ -400,7 +403,6 @@ const dispatchToPropsMap = {
     selectAnnotation,
     selectUser,
     setAlert,
-    setMetadataColumnsSetting,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(SearchFiles);

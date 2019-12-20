@@ -15,7 +15,7 @@ import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
-import { setTemplateIdSetting } from "../setting/actions";
+import { updateSettings} from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
@@ -64,10 +64,11 @@ const associateFileAndWellLogic = createLogic({
 const applyTemplateLogic = createLogic({
     process: ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
               dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        if (ctx.templateId) {
+        const { templateId } = ctx;
+        if (templateId) {
             // these need to be dispatched separately to go through logics
-            dispatch(getTemplate(ctx.templateId, true));
-            dispatch(setTemplateIdSetting(ctx.templateId));
+            dispatch(getTemplate(templateId, true));
+            dispatch(updateSettings({ templateId }));
         }
 
         done();

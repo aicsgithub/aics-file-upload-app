@@ -46,21 +46,3 @@ export function switchEnvironment(): SwitchEnvironmentAction {
         type: SWITCH_ENVIRONMENT,
     };
 }
-
-export function setTemplateIdSetting(templateId: number): UpdateSettingsAction {
-    return {
-        payload: {
-            templateId,
-        },
-        type: UPDATE_SETTINGS,
-    };
-}
-
-export function setMetadataColumnsSetting(metadataColumns: string[]): UpdateSettingsAction {
-    return {
-        payload: {
-            metadataColumns,
-        },
-        type: UPDATE_SETTINGS,
-    };
-}

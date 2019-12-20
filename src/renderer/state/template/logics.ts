@@ -16,7 +16,7 @@ import {
     getLookups,
 } from "../metadata/selectors";
 import { closeTemplateEditor } from "../selection/actions";
-import { setTemplateIdSetting } from "../setting/actions";
+import { updateSettings} from "../setting/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -236,7 +236,7 @@ const saveTemplateLogic = createLogic({
             dispatch(closeTemplateEditor());
             dispatch(requestTemplates(createdTemplateId));
             dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));
-            dispatch(setTemplateIdSetting(createdTemplateId));
+            dispatch(updateSettings({ templateId: createdTemplateId }));
             dispatch(setAlert({
                 message: "Template saved successfully!",
                 type: AlertType.SUCCESS,

@@ -20,7 +20,7 @@ import {
     mockUnit,
 } from "../../test/mocks";
 
-import { gatherSettings, setMetadataColumnsSetting, setTemplateIdSetting, updateSettings } from "../actions";
+import { gatherSettings, updateSettings } from "../actions";
 import { getLimsHost, getMetadataColumns, getTemplateId } from "../selectors";
 
 describe("Setting logics", () => {
@@ -144,7 +144,7 @@ describe("Setting logics", () => {
 
             expect(getTemplateId(store.getState())).to.be.undefined;
 
-            store.dispatch(setTemplateIdSetting(3));
+            store.dispatch(updateSettings({ templateId: 3 }));
 
             expect(getTemplateId(store.getState())).to.equal(3);
         });
@@ -159,7 +159,7 @@ describe("Setting logics", () => {
 
             expect(getMetadataColumns(store.getState())).to.be.empty;
 
-            store.dispatch(setMetadataColumnsSetting(["a", "b"]));
+            store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
 
             expect(getMetadataColumns(store.getState())).to.deep.equal(["a", "b"]);
         });
