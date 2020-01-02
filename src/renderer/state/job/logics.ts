@@ -7,6 +7,8 @@ import { createLogic } from "redux-logic";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { getRequestsInProgressContains } from "../feedback/selectors";
 import { AlertType, AsyncRequest } from "../feedback/types";
+import { updateSettings } from "../setting/actions";
+import { getIncompleteJobs } from "../setting/selectors";
 
 import {
     ReduxLogicDoneCb,
@@ -32,7 +34,8 @@ const retrieveJobsLogic = createLogic({
                     done: ReduxLogicDoneCb) => {
         try {
             const statusesToInclude = [...PENDING_STATUSES];
-            const { job: { jobFilter } } = getState();
+            const state = getState();
+            const { job: { jobFilter } } = state;
             if (jobFilter === JobFilter.Failed || jobFilter === JobFilter.All) {
                 statusesToInclude.push(...FAILED_STATUSES);
             }
@@ -65,17 +68,26 @@ const retrieveJobsLogic = createLogic({
                 user: userInfo().username,
             });
 
-            const [uploadJobs, copyJobs, addMetadataJobs] = await Promise.all([
+            const potentiallyIncompleteJobs = getIncompleteJobs(state);
+            const potentiallyIncompleteJSSJobsPromise = potentiallyIncompleteJobs.length ? await jssClient.getJobs({
+                serviceFields: {
+                    type: "upload",
+                },
+                jobName: { $in: potentiallyIncompleteJobs },
+                user: userInfo().username,
+            }) : Promise.resolve([]);
+
+            const [uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJSSJobs] = await Promise.all([
                 getUploadJobsPromise,
                 getCopyJobsPromise,
                 getAddMetadataPromise,
+                potentiallyIncompleteJSSJobsPromise
             ]);
 
             const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
-            const pendingJobNames = getPendingJobNames(getState());
+            const pendingJobNames = getPendingJobNames(state);
             const pendingJobsToRemove: string[] = intersection(uploadJobNames, pendingJobNames)
                 .filter((name) => !!name) as string[];
-            console.log('pending jobs to remove and report the status of', pendingJobsToRemove);
 
             const actions: AnyAction[] = [
                 setUploadJobs(uploadJobs.map(convertJobDates)),
@@ -87,34 +99,45 @@ const retrieveJobsLogic = createLogic({
             if (!isEmpty(pendingJobsToRemove)) {
                 actions.push(removePendingJobs(pendingJobsToRemove));
             }
-
-            // TODO: Cleanup
-            // TODO: Explain
-            const expectingJobs = ['example.txt'];
-            if (expectingJobs.length) {
-                const getExpectingJobs = await jssClient.getJobs({
-                    serviceFields: {
-                        type: "upload",
-                    },
-                    jobName: { $in: expectingJobs },
-                    user: userInfo().username,
+            // If there are potentially incomplete jobs, see if they are actually completed so we can report the status
+            if (potentiallyIncompleteJSSJobs.length) {
+                // We want to check the newest job in the event there are jobs with the same name
+                let newestPotentiallyIncompleteJobs: JSSJob[] = [];
+                potentiallyIncompleteJSSJobs.forEach((job) => {
+                    const matchingJob = newestPotentiallyIncompleteJobs.find(({ jobName }) => (
+                        jobName === job.jobName
+                    ));
+                    if (!matchingJob) {
+                        newestPotentiallyIncompleteJobs.push(job)
+                    } else if (job.created > matchingJob.created) {
+                        newestPotentiallyIncompleteJobs = [...newestPotentiallyIncompleteJobs.filter(({ jobName }) => (
+                            jobName !== job.jobName
+                        )), job];
+                    }
                 });
-                console.log(getExpectingJobs);
-                getExpectingJobs.forEach((job) => {
+                const incompleteJSSJobs = newestPotentiallyIncompleteJobs.filter((job) => {
                     if (job.status === SUCCESSFUL_STATUS) {
                         actions.push(setAlert({
                             message: `${job.jobName} Succeeded`,
                             type: AlertType.SUCCESS,
                         }));
-                    } else if (FAILED_STATUSES.includes(job.status)) {
+                        return false;
+                    }
+                    if (FAILED_STATUSES.includes(job.status)) {
                         actions.push(setAlert({
                             message: `${job.jobName} Failed`,
                             type: AlertType.ERROR,
                         }));
-                    } else {
-                        // actions.push(removeExpectingJob(job.jobName));
+                        return false;
                     }
+                    //
+                    return true;
                 });
+                const incompleteJobs = incompleteJSSJobs.map((job) => job.jobName || '');
+                if (potentiallyIncompleteJobs.length !== incompleteJobs.length) {
+                    // TODO: Move incompleteJobs to Jobs branch
+                    dispatch(updateSettings({ incompleteJobs }));
+                }
             }
 
             dispatch(batchActions(actions));

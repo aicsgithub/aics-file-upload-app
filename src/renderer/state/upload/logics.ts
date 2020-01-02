@@ -109,6 +109,7 @@ const initiateUploadLogic = createLogic({
             // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
             // page until we call it successfully.
             const payload = getUploadPayload(getState());
+            const { setting: { incompleteJobs } } = getState();
 
             // Go forward needs to be handled by redux-logic so we're dispatching separately
             dispatch(goForward());
@@ -126,6 +127,7 @@ const initiateUploadLogic = createLogic({
                     user: userInfo().username,
                 }),
             ]));
+            dispatch(updateSettings({ incompleteJobs: [...incompleteJobs, ctx.name] }));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
