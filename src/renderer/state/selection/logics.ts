@@ -110,7 +110,7 @@ const openFilesTransformLogic = ({ action, getState, remote }: ReduxLogicTransfo
     const actions = [action, startLoading()];
     const page: Page = getPage(getState());
     if (page === Page.DragAndDrop) {
-        const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.SelectUploadType;
+        const nextPage = getNextPage(page, 1) || Page.SelectUploadType;
         updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
         actions.push(selectPage(page, nextPage));
     }
