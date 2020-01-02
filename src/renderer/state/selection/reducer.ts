@@ -33,7 +33,8 @@ import {
     SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
-    TOGGLE_EXPANDED_UPLOAD_JOB_ROW, TOGGLE_FOLDER_TREE,
+    TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+    TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -57,7 +58,8 @@ import {
     SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
-    ToggleExpandedUploadJobRowAction, ToggleFolderTreeAction,
+    ToggleExpandedUploadJobRowAction,
+    ToggleFolderTreeAction,
     UpdateStagedFilesAction,
 } from "./types";
 

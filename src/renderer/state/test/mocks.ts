@@ -118,6 +118,7 @@ export const mockSelection: SelectionStateBranch = {
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
+    folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,

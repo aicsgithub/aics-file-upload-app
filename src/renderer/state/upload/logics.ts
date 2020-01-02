@@ -15,7 +15,7 @@ import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { clearStagedFiles, deselectFiles } from "../selection/actions";
 import { getSelectedBarcode } from "../selection/selectors";
-import { updateSettings} from "../setting/actions";
+import { updateSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";

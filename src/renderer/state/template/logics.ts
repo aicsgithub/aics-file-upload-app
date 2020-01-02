@@ -16,7 +16,7 @@ import {
     getLookups,
 } from "../metadata/selectors";
 import { closeTemplateEditor } from "../selection/actions";
-import { updateSettings} from "../setting/actions";
+import { updateSettings } from "../setting/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,

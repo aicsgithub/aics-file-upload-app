@@ -33,7 +33,8 @@ import { AppPageConfig, Page, SelectViewAction } from "../../state/route/types";
 import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
-    openFilesFromDialog, toggleFolderTree,
+    openFilesFromDialog,
+    toggleFolderTree,
 } from "../../state/selection/actions";
 import {
     getFolderTreeOpen,

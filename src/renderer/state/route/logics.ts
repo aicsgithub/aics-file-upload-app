@@ -77,11 +77,8 @@ const selectPageLogic = createLogic({
         const state = getState();
 
         const actions: AnyAction[] = [];
-        console.log(state.selection.present.folderTreeOpen);
-        console.log(nextPage);
-        // Folder tree is a necessary part of these pages, so open it if not already open
-        if (!state.selection.present.folderTreeOpen &&
-            (nextPage === Page.DragAndDrop || nextPage === Page.AssociateFiles)) {
+        // Folder tree is a necessary part of associating files, so open if not already
+        if (!state.selection.present.folderTreeOpen && nextPage === Page.AssociateFiles) {
             actions.push(toggleFolderTree());
         }
 
