@@ -33,9 +33,10 @@ import { AppPageConfig, Page, SelectViewAction } from "../../state/route/types";
 import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
-    openFilesFromDialog,
+    openFilesFromDialog, toggleFolderTree,
 } from "../../state/selection/actions";
 import {
+    getFolderTreeOpen,
     getSelectedFiles,
     getStagedFiles,
 } from "../../state/selection/selectors";
@@ -45,6 +46,7 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     SelectFileAction,
+    ToggleFolderTreeAction,
     UploadFile,
 } from "../../state/selection/types";
 import { gatherSettings, setMountPoint, switchEnvironment, updateSettings } from "../../state/setting/actions";
@@ -84,6 +86,7 @@ interface AppProps {
     copyInProgress: boolean;
     fileToTags: Map<string, FileTagType[]>;
     files: UploadFile[];
+    folderTreeOpen: boolean;
     gatherSettings: ActionCreator<GatherSettingsAction>;
     getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
     limsUrl: string;
@@ -100,6 +103,7 @@ interface AppProps {
     setMountPointNotificationVisible: boolean;
     switchEnvironment: ActionCreator<SwitchEnvironmentAction>;
     page: Page;
+    toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     view: Page;
 }
@@ -197,6 +201,7 @@ class App extends React.Component<AppProps, {}> {
         const {
             fileToTags,
             files,
+            folderTreeOpen,
             getFilesInFolder,
             limsUrl,
             loading,
@@ -220,6 +225,7 @@ class App extends React.Component<AppProps, {}> {
                        className={styles.folderTree}
                        clearStagedFiles={this.props.clearStagedFiles}
                        files={files}
+                       folderTreeOpen={folderTreeOpen}
                        getFilesInFolder={getFilesInFolder}
                        isLoading={loading}
                        loadFilesFromDragAndDropAction={this.props.loadFilesFromDragAndDrop}
@@ -228,6 +234,7 @@ class App extends React.Component<AppProps, {}> {
                        selectedKeys={selectedFiles}
                        setAlert={setAlert}
                        fileToTags={fileToTags}
+                       toggleFolderTree={this.props.toggleFolderTree}
                     />
                     <div className={styles.mainContent}>
                         <Tabs
@@ -265,6 +272,7 @@ function mapStateToProps(state: State) {
         copyInProgress: !getIsSafeToExit(state),
         fileToTags: getFileToTags(state),
         files: getStagedFiles(state),
+        folderTreeOpen: getFolderTreeOpen(state),
         limsUrl: getLimsUrl(state),
         loading: getIsLoading(state),
         page: getPage(state),
@@ -288,6 +296,7 @@ const dispatchToPropsMap = {
     setAlert,
     setMountPoint,
     switchEnvironment,
+    toggleFolderTree,
     updateSettings,
 };
 

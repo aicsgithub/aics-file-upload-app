@@ -22,3 +22,4 @@ export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");
 export const CLEAR_SELECTION_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const CLEAR_STAGED_FILES = makeConstant(BRANCH_NAME, "clear-staged-files");
 export const TOGGLE_EXPANDED_UPLOAD_JOB_ROW = makeConstant(BRANCH_NAME, "toggle-expanded-upload-job-row");
+export const TOGGLE_FOLDER_TREE = makeConstant(BRANCH_NAME, "toggle-folder-tree");

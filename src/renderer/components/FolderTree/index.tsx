@@ -21,6 +21,7 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     SelectFileAction,
+    ToggleFolderTreeAction,
     UploadFile
 } from "../../state/selection/types";
 import { FileTagType } from "../../state/upload/types";
@@ -33,6 +34,7 @@ interface FolderTreeProps {
     className?: string;
     clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
     files: UploadFile[];
+    folderTreeOpen: boolean;
     getFilesInFolder: (folderToExpand: UploadFile) => GetFilesInFolderAction;
     loadFilesFromDragAndDropAction: (files: DragAndDropFileList) => LoadFilesFromDragAndDropAction;
     loadFilesFromOpenDialogAction: (files: string[]) => LoadFilesFromOpenDialogAction;
@@ -41,12 +43,12 @@ interface FolderTreeProps {
     onCheck: (files: string[]) => SelectFileAction;
     selectedKeys: string[];
     fileToTags: Map<string, FileTagType[]>;
+    toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
 }
 
 interface FolderTreeState {
     // Keeps track of folders that have been expanded. Used only for preventing duplicate requests to get children.
     expandedFolders: Set<string>;
-    showFolderTree: boolean;
 }
 
 // Added to the keys used for Tree.TreeNode in order to quickly identify folders from files.
@@ -98,7 +100,6 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         super(props);
         this.state = {
             expandedFolders: new Set<string>(),
-            showFolderTree: true,
         };
 
         this.onExpand = this.onExpand.bind(this);
@@ -110,21 +111,21 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
             className,
             clearStagedFiles,
             files,
+            folderTreeOpen,
             loadFilesFromDragAndDropAction,
         } = this.props;
-        const { showFolderTree } = this.state;
         if (!files) {
             return null;
         }
 
-        if (!showFolderTree) {
+        if (!folderTreeOpen) {
             return (
                 <div className={styles.collapsedTree}>
                     <Tooltip title="Expand folder tree">
                         <Button
                             icon="caret-right"
                             className={styles.collapseButton}
-                            onClick={this.toggleFolderTree}
+                            onClick={this.props.toggleFolderTree}
                         />
                     </Tooltip>
                 </div>
@@ -146,7 +147,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                             </Tooltip>
                         </span>
                         <Tooltip title="Collapse folder tree">
-                            <Button icon="caret-left" onClick={this.toggleFolderTree} />
+                            <Button icon="caret-left" onClick={this.props.toggleFolderTree} />
                         </Tooltip>
                     </div>
 
@@ -160,10 +161,6 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                 </DragAndDrop>
             </Resizable>
         );
-    }
-
-    private toggleFolderTree = () => {
-        this.setState({ showFolderTree: !this.state.showFolderTree });
     }
 
     // Opens native file explorer

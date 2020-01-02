@@ -25,7 +25,7 @@ import {
     SELECT_WORKFLOWS,
     SET_PLATE,
     SET_WELLS,
-    TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+    TOGGLE_EXPANDED_UPLOAD_JOB_ROW, TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -54,7 +54,7 @@ import {
     SelectWorkflowsAction,
     SetPlateAction,
     SetWellsAction,
-    ToggleExpandedUploadJobRowAction,
+    ToggleExpandedUploadJobRowAction, ToggleFolderTreeAction,
     UpdateStagedFilesAction,
     UploadFile,
     WellResponse,
@@ -229,4 +229,10 @@ export function toggleExpandedUploadJobRow(rowKey: string): ToggleExpandedUpload
         payload: rowKey,
         type: TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
     };
+}
+
+export function toggleFolderTree(): ToggleFolderTreeAction {
+    return {
+        type: TOGGLE_FOLDER_TREE,
+    }
 }

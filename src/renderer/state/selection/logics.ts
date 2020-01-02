@@ -20,23 +20,20 @@ import {
     stopLoading
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { receiveMetadata, updatePageHistory } from "../metadata/actions";
+import { receiveMetadata } from "../metadata/actions";
 import { selectPage } from "../route/actions";
 import { getNextPage } from "../route/constants";
 import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import { clearTemplateDraft, getTemplate } from "../template/actions";
-import { getCurrentTemplateIndex } from "../template/selectors";
 import {
     HTTP_STATUS,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
-    State
 } from "../types";
-import { getCurrentUploadIndex } from "../upload/selectors";
 import { batchActions, getActionFromBatch } from "../util";
 
 import {
@@ -53,7 +50,7 @@ import {
     SELECT_WORKFLOW_PATH,
 } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
-import { getCurrentSelectionIndex, getStagedFiles } from "./selectors";
+import { getStagedFiles } from "./selectors";
 import {
     DragAndDropFileList,
     UploadFile
@@ -113,7 +110,9 @@ const openFilesTransformLogic = ({ action, getState, remote }: ReduxLogicTransfo
     const actions = [action, startLoading()];
     const page: Page = getPage(getState());
     if (page === Page.DragAndDrop) {
-        actions.push(...getGoForwardActions(page, getState(), remote.Menu.getApplicationMenu()));
+        const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.SelectUploadType;
+        updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
+        actions.push(selectPage(page, nextPage));
     }
     next(batchActions(actions));
 };
@@ -244,9 +243,11 @@ const selectBarcodeLogic = createLogic({
                         action,
                         associateByWorkflow(false),
                         receiveMetadata({barcodeSearchResults: []}),
-                        ...getGoForwardActions(Page.SelectUploadType, getState(), remote.Menu.getApplicationMenu()),
                     ];
+                    const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
+                    updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
                     dispatch(batchActions(actions));
+                    dispatch(selectPage(Page.SelectUploadType, nextPage));
                 } catch (e) {
                     if (e.response && e.response.status === HTTP_STATUS.BAD_GATEWAY) {
                         if (!sentRetryAlert) {
@@ -306,33 +307,17 @@ const selectWorkflowPathLogic = createLogic({
         if (action) {
             const actions = [
                 action,
-                ...getGoForwardActions(Page.SelectUploadType, deps.getState(), deps.remote.Menu.getApplicationMenu()),
                 associateByWorkflow(true),
             ];
+            const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
+            updateAppMenu(nextPage, deps.remote.Menu.getApplicationMenu());
             dispatch(batchActions(actions));
+            dispatch(selectPage(Page.SelectUploadType, nextPage));
         }
         done();
     },
     type: SELECT_WORKFLOW_PATH,
 });
-
-// For batching only. Returns new actions
-const getGoForwardActions = (lastPage: Page, state: State, menu: Menu | null): AnyAction[] => {
-    const actions = [];
-
-    const currentSelectionIndex = getCurrentSelectionIndex(state);
-    const currentUploadIndex = getCurrentUploadIndex(state);
-    const currentTemplateIndex = getCurrentTemplateIndex(state);
-    actions.push(updatePageHistory(lastPage, currentSelectionIndex, currentUploadIndex, currentTemplateIndex));
-
-    const nextPage = getNextPage(lastPage, 1);
-    if (nextPage) {
-        updateAppMenu(nextPage, menu);
-        actions.push(selectPage(lastPage, nextPage));
-    }
-
-    return actions;
-};
 
 const openTemplateEditorLogic = createLogic({
     process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
