@@ -245,7 +245,6 @@ const selectBarcodeLogic = createLogic({
                         receiveMetadata({barcodeSearchResults: []}),
                     ];
                     const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
-                    updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
                     dispatch(batchActions(actions));
                     dispatch(selectPage(Page.SelectUploadType, nextPage));
                 } catch (e) {
@@ -310,7 +309,6 @@ const selectWorkflowPathLogic = createLogic({
                 associateByWorkflow(true),
             ];
             const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
-            updateAppMenu(nextPage, deps.remote.Menu.getApplicationMenu());
             dispatch(batchActions(actions));
             dispatch(selectPage(Page.SelectUploadType, nextPage));
         }
