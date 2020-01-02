@@ -105,29 +105,38 @@ const addExistingAnnotationLogic = createLogic({
 });
 
 const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: TemplateAnnotation,
-                                    state: State, labkeyClient: LabkeyClient) => {
+                                    state: State, labkeyClient: LabkeyClient): Promise<string[] | undefined> => {
+    console.log('inside getAnnotationOptions');
     if (!isEmpty(annotationOptions)) {
         return annotationOptions;
     }
 
+    console.log('before first thing');
     const lookupAnnotationTypeId = getLookupAnnotationTypeId(state);
+    console.log('lookup type id', lookupAnnotationTypeId);
     if (annotationTypeId === lookupAnnotationTypeId) {
+        console.log('in if');
         const annotationLookup = getAnnotationLookups(state).find((al) => al.annotationId === annotationId);
 
         if (!annotationLookup) {
+            console.log('annotation LOOKUP ERROR');
             throw new Error("Could not retrieve lookup values");
         }
 
         const lookup = getLookups(state).find((l) => l.lookupId === annotationLookup.lookupId);
 
         if (!lookup) {
+            console.log('LOOKUP ERROR');
             throw new Error("Could not retrieve lookup values");
         }
 
         const { columnName, schemaName, tableName } = lookup;
-        return await labkeyClient.getColumnValues(schemaName, tableName, columnName);
+        // return Promise.resolve([]);
+        const asdfasdfasdf =  await labkeyClient.getColumnValues(schemaName, tableName, columnName);
+        console.log('at end', asdfasdfasdf);
+        return asdfasdfasdf;
     }
-
+    console.log('undefined');
     return undefined;
 };
 
@@ -135,6 +144,7 @@ const getTemplateLogic = createLogic({
     process: async ({action, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        console.log('getTemplateLogic');
         const state = getState();
         const { addAnnotationsToUpload, templateId } = action.payload;
         const uploads = getUpload(state);
@@ -150,6 +160,7 @@ const getTemplateLogic = createLogic({
         }
 
         try {
+            console.log('added GET_TEMPLATE to in progress');
             dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATE));
             const template: Template = await mmsClient.getTemplate(templateId);
             const { annotations, ...etc } = template;
@@ -157,26 +168,32 @@ const getTemplateLogic = createLogic({
 
             if (addAnnotationsToUpload) {
                 const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
-
+                console.log('pushing stuff onto actions now?');
                 actions.push(
                     setAppliedTemplate({
                         ...etc,
-                        annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation) => ({
+                        annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation, index: number) => {
+                            console.log('in map', a, annotations, index, annotations.length);
+                            return {
                             ...a,
                             annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient),
-                        }))),
+                        }})),
                     }),
-                    ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
+                    ...map(uploads, (metadata: UploadMetadata, key: string) => {
+                        console.log('in second map', key, metadata);
+                        return updateUpload(key,  {
                         ...metadata,
                         ...additionalAnnotations,
-                    }))
+                    })})
                 );
             } else {
                 actions.push(updateTemplateDraft({
                     ...etc,
                     annotations: annotations.map((a: TemplateAnnotation, index: number) => {
                         const type = annotationTypes.find((t) => t.annotationTypeId === a.annotationTypeId);
+                        console.log('in map?');
                         if (!type) {
+                            console.log('ERROR INSIDE OF map?');
                             throw new Error(`Could not find matching type for annotation named ${a.name},
                              annotationTypeId: ${a.annotationTypeId}`);
                         }
@@ -188,8 +205,10 @@ const getTemplateLogic = createLogic({
                     }),
                 }));
             }
+            console.log('BATCHED GET_TEMPLATE REQUEST', actions);
             dispatch(batchActions(actions));
         } catch (e) {
+            console.log('ERROR CAUGHT', e);
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
                 setAlert({

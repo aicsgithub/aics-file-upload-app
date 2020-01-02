@@ -8,7 +8,7 @@ import {
     REMOVE_PENDING_JOB,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
+    SET_COPY_JOBS, SET_IN_PROGRESS_JOBS,
     SET_UPLOAD_JOBS
 } from "./constants";
 import {
@@ -18,7 +18,7 @@ import {
     RemovePendingJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
-    SetCopyJobsAction,
+    SetCopyJobsAction, SetInProgressJobsAction,
     SetUploadJobsAction,
 } from "./types";
 
@@ -26,6 +26,7 @@ export const initialState = {
     addMetadataJobs: [],
     copyJobs: [],
     jobFilter: JobFilter.Pending,
+    inProgressJobs: [],
     pendingJobs: [],
     uploadJobs: [],
 };
@@ -57,6 +58,15 @@ const actionToConfigMap: TypeToDescriptionMap = {
             return {
                 ...state,
                 addMetadataJobs: action.payload,
+            };
+        },
+    },
+    [SET_IN_PROGRESS_JOBS]: {
+        accepts: (action: AnyAction): action is SetInProgressJobsAction => action.type === SET_IN_PROGRESS_JOBS,
+        perform: (state: JobStateBranch, action: SetInProgressJobsAction) => {
+            return {
+                ...state,
+                inProgressJobs: action.payload,
             };
         },
     },
