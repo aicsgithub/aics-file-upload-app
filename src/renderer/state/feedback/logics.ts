@@ -36,7 +36,7 @@ const setAlertLogic = createLogic({
 const clearAlertLogic = createLogic({
     transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const alert = getAlert(getState());
-        if (alert && alert.message ) {
+        if (alert && alert.message) {
             next(batchActions([
                 addEvent(alert.message, alert.type, new Date()),
                 action,
