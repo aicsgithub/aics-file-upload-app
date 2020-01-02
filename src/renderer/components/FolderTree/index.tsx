@@ -26,7 +26,6 @@ import {
 import { FileTagType } from "../../state/upload/types";
 import DragAndDrop from "../DragAndDrop";
 import Resizable from "../Resizable";
-import ButtonGroup from "antd/es/button/button-group";
 
 const styles = require("./style.pcss");
 
@@ -120,10 +119,10 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
 
         if (!showFolderTree) {
             return (
-                <div style={{ borderRight: 'lightgrey solid 1px', paddingRight: '8px' }}>
+                <div className={styles.collapsedTree}>
                     <Tooltip title="Expand folder tree">
                         <Button
-                            icon="caret-left"
+                            icon="caret-right"
                             className={styles.collapseButton}
                             onClick={this.toggleFolderTree}
                         />
@@ -138,16 +137,16 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     <Icon type="cloud-upload" className={styles.logo}/>
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
                     <div className={styles.fileButtons}>
-                        <ButtonGroup className={styles.fileControls}>
-                            <Tooltip title="Clear files in folder tree">
-                                <Button disabled={!files.length} icon="stop" onClick={clearStagedFiles} />
-                            </Tooltip>
+                        <span className={styles.fileControls}>
                             <Tooltip title="Browse for files to add to folder tree">
                                 <Button icon="upload" onClick={this.onBrowse} />
                             </Tooltip>
-                        </ButtonGroup>
+                            <Tooltip title="Clear files in folder tree">
+                                <Button disabled={!files.length} icon="stop" onClick={clearStagedFiles} />
+                            </Tooltip>
+                        </span>
                         <Tooltip title="Collapse folder tree">
-                            <Button icon="caret-right" onClick={this.toggleFolderTree} />
+                            <Button icon="caret-left" onClick={this.toggleFolderTree} />
                         </Tooltip>
                     </div>
 
