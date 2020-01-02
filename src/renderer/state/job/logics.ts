@@ -17,7 +17,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setInProgressJobs, setUploadJobs } from "./actions";
+import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs } from "./actions";
 import { FAILED_STATUSES, PENDING_STATUSES, RETRIEVE_JOBS, SUCCESSFUL_STATUS } from "./constants";
 import { getPendingJobNames } from "./selectors";
 import { JobFilter } from "./types";
@@ -31,15 +31,6 @@ const retrieveJobsLogic = createLogic({
     process: async ({ action, getState, jssClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         try {
-
-            // TODO: Nevermind just look at the previous job(s?) and alert if/when it fails
-            // meaning maybe we could save a list of "expectedJobs" and
-            // whenever we query see if one of those is in this and if so alert what the status and name of it is
-
-
-
-
-
             const statusesToInclude = [...PENDING_STATUSES];
             const { job: { jobFilter } } = getState();
             if (jobFilter === JobFilter.Failed || jobFilter === JobFilter.All) {
@@ -95,6 +86,35 @@ const retrieveJobsLogic = createLogic({
 
             if (!isEmpty(pendingJobsToRemove)) {
                 actions.push(removePendingJobs(pendingJobsToRemove));
+            }
+
+            // TODO: Cleanup
+            // TODO: Explain
+            const expectingJobs = ['example.txt'];
+            if (expectingJobs.length) {
+                const getExpectingJobs = await jssClient.getJobs({
+                    serviceFields: {
+                        type: "upload",
+                    },
+                    jobName: { $in: expectingJobs },
+                    user: userInfo().username,
+                });
+                console.log(getExpectingJobs);
+                getExpectingJobs.forEach((job) => {
+                    if (job.status === SUCCESSFUL_STATUS) {
+                        actions.push(setAlert({
+                            message: `${job.jobName} Succeeded`,
+                            type: AlertType.SUCCESS,
+                        }));
+                    } else if (FAILED_STATUSES.includes(job.status)) {
+                        actions.push(setAlert({
+                            message: `${job.jobName} Failed`,
+                            type: AlertType.ERROR,
+                        }));
+                    } else {
+                        // actions.push(removeExpectingJob(job.jobName));
+                    }
+                });
             }
 
             dispatch(batchActions(actions));
