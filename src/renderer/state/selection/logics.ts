@@ -1,9 +1,6 @@
-import { Menu, MenuItem } from "electron";
 import { stat as fsStat, Stats } from "fs";
-import * as Logger from "js-logger";
-import { isEmpty, uniq } from "lodash";
+import { uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
-import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
 import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
@@ -16,7 +13,6 @@ import {
     clearAlert,
     removeRequestFromInProgress,
     setAlert,
-    startLoading,
     stopLoading
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -58,10 +54,6 @@ import {
 
 const stat = promisify(fsStat);
 
-interface MenuItemWithSubMenu extends MenuItem {
-    submenu?: Menu;
-}
-
 const mergeChildPaths = (filePaths: string[]): string[] => {
     filePaths = uniq(filePaths);
 
@@ -83,7 +75,9 @@ const getUploadFilePromise = async (name: string, path: string): Promise<UploadF
     return file;
 };
 
-const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<UploadFile>>, dispatch: ReduxLogicNextCb,
+const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<UploadFile>>,
+                                        currentPage: Page,
+                                        dispatch: ReduxLogicNextCb,
                                         done: ReduxLogicDoneCb) => {
     try {
         const uploadFiles = await Promise.all(uploadFilePromises);
@@ -91,6 +85,9 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
             stopLoading(),
             stageFiles(uploadFiles),
         ]));
+        if (currentPage === Page.DragAndDrop) {
+            dispatch(selectPage(currentPage, getNextPage(currentPage, 1) || Page.SelectUploadType));
+        }
         done();
 
     } catch (e) {
@@ -105,56 +102,38 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
     }
 };
 
-const openFilesTransformLogic = ({ action, getState, remote }: ReduxLogicTransformDependencies,
-                                 next: ReduxLogicNextCb) => {
-    const actions = [action, startLoading()];
-    const page: Page = getPage(getState());
-    if (page === Page.DragAndDrop) {
-        const nextPage = getNextPage(page, 1) || Page.SelectUploadType;
-        updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
-        actions.push(selectPage(page, nextPage));
-    }
-    next(batchActions(actions));
-};
-
 const loadFilesLogic = createLogic({
-    process: async ({ action }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const originalAction = action.payload.filter((a: AnyAction) => a.type === LOAD_FILES);
-
-        if (!isEmpty(originalAction)) {
-            const filesToLoad: DragAndDropFileList = originalAction[0].payload;
-            const uploadFilePromises: Array<Promise<UploadFile>> = [];
-            // map and for-of does not exist on type FileList so we have to use a basic for loop
-            // tslint:disable-next-line
-            for (let i = 0; i < filesToLoad.length; i++) {
-                const fileToLoad = filesToLoad[i];
-                uploadFilePromises.push(
-                    getUploadFilePromise(fileToLoad.name, dirname(fileToLoad.path))
-                );
-            }
-
-            await stageFilesAndStopLoading(uploadFilePromises, dispatch, done);
+    process: async ({ action, getState }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const filesToLoad: DragAndDropFileList = action.payload;
+        const uploadFilePromises: Array<Promise<UploadFile>> = [];
+        // map and for-of does not exist on type FileList so we have to use a basic for loop
+        // tslint:disable-next-line
+        for (let i = 0; i < filesToLoad.length; i++) {
+            const fileToLoad = filesToLoad[i];
+            uploadFilePromises.push(
+                getUploadFilePromise(fileToLoad.name, dirname(fileToLoad.path))
+            );
         }
+
+        await stageFilesAndStopLoading(uploadFilePromises, getPage(getState()), dispatch, done);
     },
-    transform: openFilesTransformLogic,
     type: LOAD_FILES,
 });
 
 const openFilesLogic = createLogic({
-    process: async ({ action }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const originalAction = action.payload.filter((a: AnyAction) => a.type === OPEN_FILES);
+    process: async ({ action, getState }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const filesToLoad: string[] = mergeChildPaths(action.payload);
 
-        if (!isEmpty(originalAction)) {
-            const filesToLoad: string[] = mergeChildPaths(originalAction[0].payload);
+        const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map(
+            (filePath: string) => getUploadFilePromise(basename(filePath), dirname(filePath))
+        );
 
-            const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map(
-                (filePath: string) => getUploadFilePromise(basename(filePath), dirname(filePath))
-            );
-
-            await stageFilesAndStopLoading(uploadFilePromises, dispatch, done);
-        }
+        await stageFilesAndStopLoading(uploadFilePromises, getPage(getState()), dispatch, done);
     },
-    transform: openFilesTransformLogic,
     type: OPEN_FILES,
 });
 
@@ -185,32 +164,9 @@ const getFilesInFolderLogic = createLogic({
                type: AlertType.ERROR,
            }));
         }
-
     },
     type: GET_FILES_IN_FOLDER,
 });
-
-const pagesToAllowSwitchingEnvironments = [Page.AddCustomData, Page.DragAndDrop];
-const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
-    if (menu) {
-        // have to cast here because Electron's typings for MenuItem is incomplete
-        const fileMenu: MenuItemWithSubMenu = menu.items
-            .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu;
-        if (fileMenu.submenu) {
-            const switchEnvironmentMenuItem = fileMenu.submenu.items
-                .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
-            if (switchEnvironmentMenuItem) {
-                switchEnvironmentMenuItem.enabled = pagesToAllowSwitchingEnvironments.includes(nextPage);
-            } else {
-                Logger.error("Could not update application menu");
-            }
-        } else {
-            Logger.error("Could not update application menu");
-        }
-    } else {
-        Logger.error("Could not update application menu");
-    }
-};
 
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";

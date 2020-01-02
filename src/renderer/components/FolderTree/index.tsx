@@ -121,7 +121,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         if (!folderTreeOpen) {
             return (
                 <div className={styles.collapsedTree}>
-                    <Tooltip title="Expand folder tree">
+                    <Tooltip title="Expand folder tree" mouseLeaveDelay={0}>
                         <Button
                             icon="caret-right"
                             className={styles.collapseButton}
@@ -139,14 +139,14 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     <span className={styles.brandName}>AICS&nbsp;File&nbsp;Uploader</span>
                     <div className={styles.fileButtons}>
                         <span className={styles.fileControls}>
-                            <Tooltip title="Browse for files to add to folder tree">
+                            <Tooltip title="Browse for files to add to folder tree" mouseLeaveDelay={0}>
                                 <Button icon="upload" onClick={this.onBrowse} />
                             </Tooltip>
-                            <Tooltip title="Clear files in folder tree">
+                            <Tooltip title="Clear files in folder tree" mouseLeaveDelay={0}>
                                 <Button disabled={!files.length} icon="stop" onClick={clearStagedFiles} />
                             </Tooltip>
                         </span>
-                        <Tooltip title="Collapse folder tree">
+                        <Tooltip title="Collapse folder tree" mouseLeaveDelay={0}>
                             <Button icon="caret-left" onClick={this.props.toggleFolderTree} />
                         </Tooltip>
                     </div>
