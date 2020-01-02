@@ -5,7 +5,7 @@ import {
     RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
+    SET_COPY_JOBS, SET_IN_PROGRESS_JOBS,
     SET_UPLOAD_JOBS,
 } from "./constants";
 import {
@@ -16,7 +16,7 @@ import {
     RetrieveJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
-    SetCopyJobsAction,
+    SetCopyJobsAction, SetInProgressJobsAction,
     SetUploadJobsAction,
 } from "./types";
 
@@ -45,6 +45,13 @@ export function setAddMetadataJobs(jobs: JSSJob[]): SetAddMetadataJobsAction {
         payload: jobs,
         type: SET_ADD_METADATA_JOBS,
     };
+}
+
+export function setInProgressJobs(jobs: JSSJob[]): SetInProgressJobsAction {
+    return {
+        payload: jobs,
+        type: SET_IN_PROGRESS_JOBS,
+    }
 }
 
 export function addPendingJob(job: PendingJob): AddPendingJobAction {

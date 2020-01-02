@@ -41,7 +41,7 @@ import {
     UPDATE_SCENES,
     UPDATE_UPLOAD,
 } from "./constants";
-import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
+import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
 
 const associateFileAndWellLogic = createLogic({
@@ -115,6 +115,7 @@ const initiateUploadLogic = createLogic({
             dispatch(goForward());
             dispatch(batchActions([
                 clearStagedFiles(),
+                // addExpectedJob(ctx.name),
                 addPendingJob({
                     created: now,
                     currentStage: "Pending",
@@ -143,7 +144,7 @@ const initiateUploadLogic = createLogic({
                      rejectCb: ReduxLogicRejectCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = getUploadJobName(getState());
+            ctx.name = getUploadFileNames(getState());
             ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({
