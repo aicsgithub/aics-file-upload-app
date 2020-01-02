@@ -24,7 +24,7 @@ import {
     getFileToAnnotationHasValueMap,
     getFileToArchive,
     getUploadFiles,
-    getUploadJobName,
+    getUploadFileNames,
     getUploadPayload,
     getUploadSummaryRows,
     getValidationErrorsMap,
@@ -453,13 +453,13 @@ describe("Upload selectors", () => {
 
     describe("getUploadJobName", () => {
         it("returns empty string if no barcode selected", () => {
-            const jobName = getUploadJobName(mockState);
+            const jobName = getUploadFileNames(mockState);
             expect(jobName).to.equal("");
         });
 
         it("returns selected barcode if no other jobs with barcode found", () => {
             const barcode = "test1234";
-            const jobName = getUploadJobName({
+            const jobName = getUploadFileNames({
                 ...mockState,
                 job: nonEmptyJobStateBranch,
                 selection: getMockStateWithHistory({
@@ -472,7 +472,7 @@ describe("Upload selectors", () => {
 
         it("returns selected barcode and count in parenthesis if multiple jobs with barcode found", () => {
             const barcode = "mockWorkingUploadJob";
-            const jobName = getUploadJobName({
+            const jobName = getUploadFileNames({
                 ...mockState,
                 job: nonEmptyJobStateBranch,
                 selection: getMockStateWithHistory({
@@ -485,7 +485,7 @@ describe("Upload selectors", () => {
 
         it("Sees jobNames 'mockWorkingUploadJob' and 'mockWorkingUploadJob2' as separate barcodes", () => {
             const barcode = "mockWorkingUploadJob";
-            const jobName = getUploadJobName({
+            const jobName = getUploadFileNames({
                 ...mockState,
                 job: nonEmptyJobStateBranch,
                 selection: getMockStateWithHistory({

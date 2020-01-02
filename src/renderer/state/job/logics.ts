@@ -17,7 +17,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs } from "./actions";
+import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setInProgressJobs, setUploadJobs } from "./actions";
 import { FAILED_STATUSES, PENDING_STATUSES, RETRIEVE_JOBS, SUCCESSFUL_STATUS } from "./constants";
 import { getPendingJobNames } from "./selectors";
 import { JobFilter } from "./types";
@@ -31,7 +31,16 @@ const retrieveJobsLogic = createLogic({
     process: async ({ action, getState, jssClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         try {
-            const statusesToInclude = [];
+
+            // TODO: Nevermind just look at the previous job(s?) and alert if/when it fails
+            // meaning maybe we could save a list of "expectedJobs" and
+            // whenever we query see if one of those is in this and if so alert what the status and name of it is
+
+
+
+
+
+            const statusesToInclude = [...PENDING_STATUSES];
             const { job: { jobFilter } } = getState();
             if (jobFilter === JobFilter.Failed || jobFilter === JobFilter.All) {
                 statusesToInclude.push(...FAILED_STATUSES);
@@ -75,6 +84,7 @@ const retrieveJobsLogic = createLogic({
             const pendingJobNames = getPendingJobNames(getState());
             const pendingJobsToRemove: string[] = intersection(uploadJobNames, pendingJobNames)
                 .filter((name) => !!name) as string[];
+            console.log('pending jobs to remove and report the status of', pendingJobsToRemove);
 
             const actions: AnyAction[] = [
                 setUploadJobs(uploadJobs.map(convertJobDates)),

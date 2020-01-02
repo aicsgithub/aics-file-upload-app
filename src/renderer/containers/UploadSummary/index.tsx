@@ -90,16 +90,6 @@ interface UploadSummaryState {
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
-    private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
-        try {
-            return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
-                return basename(originalPath);
-            }).sort().join(", ");
-        } catch (e) {
-            return `Job Name: ${row.jobName}` || "CAN'T FIND FILE OR JOB NAME";
-        }
-    }
-
     private static STAGE_TO_PROGRESS = (stage: string): number => {
         if (stage.toLowerCase() === "copy file") {
             return 25;
@@ -137,10 +127,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             width: "190px",
         },
         {
-            dataIndex: "fileId",
+            dataIndex: "jobName",
             ellipsis: true,
             key: "fileName",
-            render: (fileId, row: UploadSummaryTableRow) => UploadSummary.EXTRACT_FILE_OR_JOB_NAME(row),
             title: "File Names",
             width: "100%",
         },

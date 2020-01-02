@@ -5,6 +5,7 @@ export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
     addMetadataJobs: JSSJob[];
+    inProgressJobs: JSSJob[];
     jobFilter: JobFilter;
     pendingJobs: PendingJob[];
 }
@@ -37,6 +38,11 @@ export interface SetCopyJobsAction {
 }
 
 export interface SetAddMetadataJobsAction {
+    payload: JSSJob[];
+    type: string;
+}
+
+export interface SetInProgressJobsAction {
     payload: JSSJob[];
     type: string;
 }
