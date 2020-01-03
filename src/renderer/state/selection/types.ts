@@ -22,6 +22,7 @@ export interface SelectionStateBranch {
     barcode?: string;
     expandedUploadJobRows: ExpandedRows;
     files: string[];
+    folderTreeOpen: boolean;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
     openTemplateModalVisible: boolean;
@@ -264,5 +265,9 @@ export interface ClearStagedFilesAction {
 
 export interface ToggleExpandedUploadJobRowAction {
     payload: string;
+    type: string;
+}
+
+export interface ToggleFolderTreeAction {
     type: string;
 }

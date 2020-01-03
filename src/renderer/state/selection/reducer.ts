@@ -34,6 +34,7 @@ import {
     SET_PLATE,
     SET_WELLS,
     TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+    TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -58,6 +59,7 @@ import {
     SetPlateAction,
     SetWellsAction,
     ToggleExpandedUploadJobRowAction,
+    ToggleFolderTreeAction,
     UpdateStagedFilesAction,
 } from "./types";
 
@@ -68,6 +70,7 @@ export const initialState: SelectionStateBranch = {
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
+    folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
@@ -238,6 +241,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 ...state.expandedUploadJobRows,
                 [action.payload]: !state.expandedUploadJobRows[action.payload],
             },
+        }),
+    },
+    [TOGGLE_FOLDER_TREE]: {
+        accepts: (action: AnyAction): action is ToggleFolderTreeAction => action.type === TOGGLE_FOLDER_TREE,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            folderTreeOpen: !state.folderTreeOpen,
         }),
     },
 };
