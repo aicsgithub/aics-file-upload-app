@@ -4,6 +4,7 @@ import { forEach, keys, orderBy } from "lodash";
 
 import {
     getMockStateWithHistory,
+    mockAnnotationTypes,
     mockChannel,
     mockFavoriteColorAnnotation,
     mockMMSTemplate,
@@ -11,8 +12,10 @@ import {
     mockSelection,
     mockState,
     mockTemplateStateBranch,
+    mockTemplateStateBranchWithAppliedTemplate,
     mockTemplateWithManyValues,
     mockWellAnnotation,
+    mockWorkflowAnnotation,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
@@ -454,6 +457,12 @@ describe("Upload selectors", () => {
         it("returns empty string if no current upload", () => {
             const jobName = getUploadFileNames({
                 ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationTypes: mockAnnotationTypes,
+                    annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
+                },
+                template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
                 upload: getMockStateWithHistory({}),
             });
             expect(jobName).to.equal("");
@@ -462,6 +471,12 @@ describe("Upload selectors", () => {
         it("returns file name when singular file in upload", () => {
             const jobName = getUploadFileNames({
                 ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationTypes: mockAnnotationTypes,
+                    annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
+                },
+                template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
                 upload: getMockStateWithHistory({
                     [getUploadRowKey("/path/to/file3")]:
                         mockState.upload.present[getUploadRowKey("/path/to/file3")],
@@ -471,7 +486,15 @@ describe("Upload selectors", () => {
         });
 
         it("returns file names in correct order", () => {
-            const jobName = getUploadFileNames(mockState);
+            const jobName = getUploadFileNames({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationTypes: mockAnnotationTypes,
+                    annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
+                },
+                template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
+            });
             expect(jobName).to.equal("file1, file2, file3");
         });
     });
