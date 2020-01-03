@@ -2,7 +2,6 @@ import { LimsUrl } from "../../../shared/types";
 
 export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
-    incompleteJobs: string[];
     metadataColumns: string[];
     mountPoint?: string;
     templateId?: number;

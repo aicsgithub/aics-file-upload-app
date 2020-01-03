@@ -1,23 +1,27 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
     ADD_PENDING_JOB,
+    GATHER_STORED_INCOMPLETE_JOBS,
     REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS, SET_IN_PROGRESS_JOBS,
+    SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
+    UPDATE_INCOMPLETE_JOBS,
 } from "./constants";
 import {
     AddPendingJobAction,
+    GatherIncompleteJobsAction,
     JobFilter,
     PendingJob,
     RemovePendingJobsAction,
     RetrieveJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
-    SetCopyJobsAction, SetInProgressJobsAction,
+    SetCopyJobsAction,
     SetUploadJobsAction,
+    UpdateIncompleteJobsAction,
 } from "./types";
 
 export function retrieveJobs(): RetrieveJobsAction {
@@ -47,11 +51,17 @@ export function setAddMetadataJobs(jobs: JSSJob[]): SetAddMetadataJobsAction {
     };
 }
 
-export function setInProgressJobs(jobs: JSSJob[]): SetInProgressJobsAction {
+export function gatherIncompleteJobs(): GatherIncompleteJobsAction {
+    return {
+        type: GATHER_STORED_INCOMPLETE_JOBS,
+    };
+}
+
+export function updateIncompleteJobs(jobs: string[]): UpdateIncompleteJobsAction {
     return {
         payload: jobs,
-        type: SET_IN_PROGRESS_JOBS,
-    }
+        type: UPDATE_INCOMPLETE_JOBS,
+    };
 }
 
 export function addPendingJob(job: PendingJob): AddPendingJobAction {

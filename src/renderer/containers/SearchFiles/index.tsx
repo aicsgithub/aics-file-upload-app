@@ -44,6 +44,7 @@ import { Page } from "../../state/route/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import { getAnnotation, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
+import { updateSettings } from "../../state/setting/actions";
 import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
@@ -53,7 +54,6 @@ import AnnotationForm from "./AnnotationForm";
 import TemplateForm from "./TemplateForm";
 import UserAndTemplateForm from "./UserAndTemplateForm";
 import UserForm from "./UserForm";
-import {updateSettings} from "../../state/setting/actions";
 
 const styles = require("./styles.pcss");
 
@@ -304,7 +304,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     }
 
     private setMetadataColumns = (metadataColumns: CheckboxValueType[]) => {
-        this.props.updateSettings({ metadataColumns })
+        this.props.updateSettings({ metadataColumns });
     }
 
     private toggleCheckAll = (e: CheckboxChangeEvent) => {

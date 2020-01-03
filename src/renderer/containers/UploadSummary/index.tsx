@@ -3,7 +3,6 @@ import { Alert, Button, Empty, Modal, Progress, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { isEmpty, map } from "lodash";
-import { basename } from "path";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -14,13 +13,14 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import { gatherIncompleteJobs, retrieveJobs, selectJobFilter } from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
     getJobFilter,
     getJobsForTable
 } from "../../state/job/selectors";
 import {
+    GatherIncompleteJobsAction,
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
@@ -71,6 +71,7 @@ interface Props {
     fileMetadataForJobHeader?: SearchResultsHeader[];
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
+    gatherIncompleteJobs: ActionCreator<GatherIncompleteJobsAction>;
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
@@ -150,6 +151,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.setJobInterval();
+        this.props.gatherIncompleteJobs();
     }
 
     public componentWillUnmount(): void {
@@ -354,6 +356,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
+    gatherIncompleteJobs,
     requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,

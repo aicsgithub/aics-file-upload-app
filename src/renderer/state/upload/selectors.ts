@@ -8,13 +8,13 @@ import {
     isEmpty,
     isNil,
     keys,
+    map,
     omit,
     pick,
     some,
     uniq,
     values,
     without,
-    map,
 } from "lodash";
 import * as moment from "moment";
 import { basename, extname } from "path";
@@ -434,7 +434,7 @@ export const getUploadPayload = createSelector([
 export const getUploadFileNames = createSelector([
     getUpload,
 ], (upload: UploadStateBranch): string => (
-    map(upload, (metadata, filePath) => basename(filePath)).join(', ')
+    map(upload, (metadata, filePath) => basename(filePath)).join(", ")
 ));
 
 export const getUploadFiles = createSelector([

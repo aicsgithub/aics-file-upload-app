@@ -15,7 +15,6 @@ import {
 
 export const initialState: SettingStateBranch = {
     associateByWorkflow: false,
-    incompleteJobs: [],
     limsHost: LIMS_HOST,
     limsPort: LIMS_PORT,
     limsProtocol: LIMS_PROTOCOL,

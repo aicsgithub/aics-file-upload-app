@@ -8,8 +8,9 @@ import {
     REMOVE_PENDING_JOB,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS, SET_IN_PROGRESS_JOBS,
-    SET_UPLOAD_JOBS
+    SET_COPY_JOBS,
+    SET_UPLOAD_JOBS,
+    UPDATE_INCOMPLETE_JOBS
 } from "./constants";
 import {
     AddPendingJobAction,
@@ -18,15 +19,16 @@ import {
     RemovePendingJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
-    SetCopyJobsAction, SetInProgressJobsAction,
+    SetCopyJobsAction,
     SetUploadJobsAction,
+    UpdateIncompleteJobsAction,
 } from "./types";
 
 export const initialState = {
     addMetadataJobs: [],
     copyJobs: [],
     jobFilter: JobFilter.Pending,
-    inProgressJobs: [],
+    incompleteJobs: [],
     pendingJobs: [],
     uploadJobs: [],
 };
@@ -61,12 +63,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [SET_IN_PROGRESS_JOBS]: {
-        accepts: (action: AnyAction): action is SetInProgressJobsAction => action.type === SET_IN_PROGRESS_JOBS,
-        perform: (state: JobStateBranch, action: SetInProgressJobsAction) => {
+    [UPDATE_INCOMPLETE_JOBS]: {
+        accepts: (action: AnyAction): action is UpdateIncompleteJobsAction => action.type === UPDATE_INCOMPLETE_JOBS,
+        perform: (state: JobStateBranch, action: UpdateIncompleteJobsAction) => {
             return {
                 ...state,
-                inProgressJobs: action.payload,
+                incompleteJobs: action.payload,
             };
         },
     },
