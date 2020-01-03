@@ -450,7 +450,7 @@ describe("Upload selectors", () => {
         });
     });
 
-    describe("getUploadJobName", () => {
+    describe("getUploadFileNames", () => {
         it("returns empty string if no current upload", () => {
             const jobName = getUploadFileNames({
                 ...mockState,
@@ -470,7 +470,7 @@ describe("Upload selectors", () => {
             expect(jobName).to.equal("file3");
         });
 
-        it("returns file names", () => {
+        it("returns file names in correct order", () => {
             const jobName = getUploadFileNames(mockState);
             expect(jobName).to.equal("file1, file2, file3");
         });
