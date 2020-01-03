@@ -1,5 +1,15 @@
 # Version Notes
 
+## 1.0.20:
+- Feature: Made folder tree collapsible
+- Feature: Allow users to choose which files should be archived and stored on the Isilon
+- Feature: Search page improvements
+- Feature: Improve Upload Summary Page readability
+- Bugfix: Updating a template now updates the grid on the Add Custom Data page
+- Bugfix: Clear files in folder tree after an upload
+- Bugfix: Fix upload retries
+
+
 ## 1.0.19:
 - Feature: Added Search tab for searching for files based on the annotation name and value (strict equality)
 
