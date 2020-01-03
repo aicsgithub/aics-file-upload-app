@@ -10,7 +10,7 @@ import { openSetMountPointNotification } from "../feedback/actions";
 
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
-import { clearSelectionHistory, jumpToPastSelection } from "../selection/actions";
+import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
@@ -76,6 +76,12 @@ const selectPageLogic = createLogic({
 
         const state = getState();
 
+        const actions: AnyAction[] = [];
+        // Folder tree is a necessary part of associating files, so open if not already
+        if (!state.selection.present.folderTreeOpen && nextPage === Page.AssociateFiles) {
+            actions.push(toggleFolderTree());
+        }
+
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
         const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
@@ -83,7 +89,7 @@ const selectPageLogic = createLogic({
 
         // going back - rewind selections, uploads & template to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
-            const actions: AnyAction[] = [action];
+            actions.push(action);
 
             const stateBranchHistory = [
                 {
@@ -117,16 +123,12 @@ const selectPageLogic = createLogic({
                 }
             });
 
-            if (!isEmpty(actions)) {
-                dispatch(batchActions(actions));
-            }
-
         // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
         } else if (nextPageOrder > currentPageOrder) {
             const selectionIndex = getCurrentSelectionIndex(state);
             const uploadIndex = getCurrentUploadIndex(state);
             const templateIndex = getCurrentTemplateIndex(state);
-            const actions: AnyAction[] = [updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex)];
+            actions.push(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
             if (nextPage === Page.SelectStorageLocation) {
                 const files = getUploadFiles(state);
                 const uploadPartial = {
@@ -135,6 +137,9 @@ const selectPageLogic = createLogic({
                 };
                 actions.push(...files.map((f: string) => updateUpload(getUploadRowKey(f), uploadPartial)));
             }
+        }
+
+        if (!isEmpty(actions)) {
             dispatch(batchActions(actions));
         }
 

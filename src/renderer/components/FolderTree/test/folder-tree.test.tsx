@@ -36,10 +36,13 @@ describe("<FolderTree/>", () => {
             const getFilesInFolder = sinon.fake();
             const loadFilesFromDragAndDropAction = sinon.fake();
             const loadFilesFromOpenDialogAction = sinon.fake();
+            const toggleFolderTree = sinon.fake();
             const wrapper = shallow(
                 <FolderTree
                     clearStagedFiles={clearStagedFiles}
                     files={files}
+                    folderTreeOpen={true}
+                    toggleFolderTree={toggleFolderTree}
                     getFilesInFolder={getFilesInFolder}
                     loadFilesFromDragAndDropAction={loadFilesFromDragAndDropAction}
                     loadFilesFromOpenDialogAction={loadFilesFromOpenDialogAction}
