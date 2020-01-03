@@ -13,7 +13,6 @@ import {
     mockTemplateStateBranch,
     mockTemplateWithManyValues,
     mockWellAnnotation,
-    nonEmptyJobStateBranch,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";

@@ -257,59 +257,5 @@ describe("Job logics", () => {
             expect(getAlert(state)).to.be.undefined;
             expect(getIncompleteJobs(state)).to.deep.equal(["file1", "file2"]);
         });
-    //     it("Sets alert given error setting incomplete jobs", async () => {
-    //         sandbox.replace(localStorage, "set", stub().rejects());
-    //         const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
-    //
-    //         // before
-    //         let state = store.getState();
-    //         expect(getAlert(state)).to.be.undefined;
-    //
-    //         // apply
-    //         store.dispatch(updateIncompleteJobs(['file1']));
-    //
-    //         // after
-    //         await logicMiddleware.whenComplete();
-    //         state = store.getState();
-    //         expect(getAlert(state)).to.not.be.undefined;
-    //     });
-    // });
-    //
-    // describe("gatherStoredIncompleteJobsLogic", () => {
-    //     it("Gets incomplete jobs", async () => {
-    //         sandbox.replace(localStorage, "get", stub().returns(['file1', 'file2']));
-    //         const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
-    //
-    //         // before
-    //         let state = store.getState();
-    //         expect(getAlert(state)).to.be.undefined;
-    //         expect(getIncompleteJobs(state)).to.be.empty;
-    //
-    //         // apply
-    //         store.dispatch(gatherIncompleteJobs());
-    //
-    //         // after
-    //         await logicMiddleware.whenComplete();
-    //         state = store.getState();
-    //         expect(getAlert(state)).to.be.undefined;
-    //         expect(getIncompleteJobs(state)).to.deep.equal(['file1', 'file2']);
-    //     });
-    //
-    //     it("Sets alert given failure collecting incomplete jobs", async () => {
-    //         sandbox.replace(localStorage, "get", stub().rejects());
-    //         const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
-    //
-    //         // before
-    //         let state = store.getState();
-    //         expect(getAlert(state)).to.be.undefined;
-    //
-    //         // apply
-    //         store.dispatch(gatherIncompleteJobs());
-    //
-    //         // after
-    //         await logicMiddleware.whenComplete();
-    //         state = store.getState();
-    //         expect(getAlert(state)).to.not.be.undefined;
-    //     });
     });
 });
