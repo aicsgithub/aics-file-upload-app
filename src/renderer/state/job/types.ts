@@ -5,7 +5,7 @@ export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
     addMetadataJobs: JSSJob[];
-    incompleteJobs: JSSJob[];
+    incompleteJobs: string[];
     jobFilter: JobFilter;
     pendingJobs: PendingJob[];
 }

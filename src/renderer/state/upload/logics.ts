@@ -115,7 +115,6 @@ const initiateUploadLogic = createLogic({
             dispatch(goForward());
             dispatch(batchActions([
                 clearStagedFiles(),
-                // addExpectedJob(ctx.name),
                 addPendingJob({
                     created: now,
                     currentStage: "Pending",
