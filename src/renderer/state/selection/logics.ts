@@ -13,6 +13,7 @@ import {
     clearAlert,
     removeRequestFromInProgress,
     setAlert,
+    startLoading,
     stopLoading
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -106,16 +107,12 @@ const loadFilesLogic = createLogic({
     process: async ({ action, getState }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        dispatch(startLoading());
         const filesToLoad: DragAndDropFileList = action.payload;
-        const uploadFilePromises: Array<Promise<UploadFile>> = [];
-        // map and for-of does not exist on type FileList so we have to use a basic for loop
-        // tslint:disable-next-line
-        for (let i = 0; i < filesToLoad.length; i++) {
-            const fileToLoad = filesToLoad[i];
-            uploadFilePromises.push(
-                getUploadFilePromise(fileToLoad.name, dirname(fileToLoad.path))
-            );
-        }
+
+        const uploadFilePromises: Array<Promise<UploadFile>> = Array.from(filesToLoad, (fileToLoad) => (
+            getUploadFilePromise(fileToLoad.name, dirname(fileToLoad.path))
+        ));
 
         await stageFilesAndStopLoading(uploadFilePromises, getPage(getState()), dispatch, done);
     },
@@ -126,11 +123,12 @@ const openFilesLogic = createLogic({
     process: async ({ action, getState }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        dispatch(startLoading());
         const filesToLoad: string[] = mergeChildPaths(action.payload);
 
-        const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map(
-            (filePath: string) => getUploadFilePromise(basename(filePath), dirname(filePath))
-        );
+        const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map((filePath: string) => (
+            getUploadFilePromise(basename(filePath), dirname(filePath))
+        ));
 
         await stageFilesAndStopLoading(uploadFilePromises, getPage(getState()), dispatch, done);
     },
