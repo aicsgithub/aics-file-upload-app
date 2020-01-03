@@ -8,7 +8,6 @@ import {
     isEmpty,
     isNil,
     keys,
-    map,
     omit,
     pick,
     some,
@@ -434,7 +433,7 @@ export const getUploadPayload = createSelector([
 export const getUploadFileNames = createSelector([
     getUpload,
 ], (upload: UploadStateBranch): string => (
-    map(upload, (metadata, filePath) => basename(filePath)).join(", ")
+    Object.keys(upload).map((filePath: string) => basename(filePath)).join(", ")
 ));
 
 export const getUploadFiles = createSelector([

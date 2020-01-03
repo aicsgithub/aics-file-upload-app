@@ -452,48 +452,28 @@ describe("Upload selectors", () => {
     });
 
     describe("getUploadJobName", () => {
-        it("returns empty string if no barcode selected", () => {
-            const jobName = getUploadFileNames(mockState);
+        it("returns empty string if no current upload", () => {
+            const jobName = getUploadFileNames({
+                ...mockState,
+                upload: getMockStateWithHistory({}),
+            });
             expect(jobName).to.equal("");
         });
 
-        it("returns selected barcode if no other jobs with barcode found", () => {
-            const barcode = "test1234";
+        it("returns file name when singular file in upload", () => {
             const jobName = getUploadFileNames({
                 ...mockState,
-                job: nonEmptyJobStateBranch,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    barcode,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey("/path/to/file3")]:
+                        mockState.upload.present[getUploadRowKey("/path/to/file3")],
                 }),
             });
-            expect(jobName).to.equal(barcode);
+            expect(jobName).to.equal("file3");
         });
 
-        it("returns selected barcode and count in parenthesis if multiple jobs with barcode found", () => {
-            const barcode = "mockWorkingUploadJob";
-            const jobName = getUploadFileNames({
-                ...mockState,
-                job: nonEmptyJobStateBranch,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    barcode,
-                }),
-            });
-            expect(jobName).to.equal(`${barcode} (1)`);
-        });
-
-        it("Sees jobNames 'mockWorkingUploadJob' and 'mockWorkingUploadJob2' as separate barcodes", () => {
-            const barcode = "mockWorkingUploadJob";
-            const jobName = getUploadFileNames({
-                ...mockState,
-                job: nonEmptyJobStateBranch,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    barcode: `${barcode}2`,
-                }),
-            });
-            expect(jobName).to.equal(`${barcode}2`);
+        it("returns file names", () => {
+            const jobName = getUploadFileNames(mockState);
+            expect(jobName).to.equal("file1, file2, file3");
         });
     });
 

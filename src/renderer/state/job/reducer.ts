@@ -27,8 +27,8 @@ import {
 export const initialState = {
     addMetadataJobs: [],
     copyJobs: [],
-    jobFilter: JobFilter.Pending,
     incompleteJobs: [],
+    jobFilter: JobFilter.Pending,
     pendingJobs: [],
     uploadJobs: [],
 };

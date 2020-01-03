@@ -105,7 +105,7 @@ const addExistingAnnotationLogic = createLogic({
 });
 
 const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: TemplateAnnotation,
-                                    state: State, labkeyClient: LabkeyClient): Promise<string[] | undefined> => {
+                                    state: State, labkeyClient: LabkeyClient) => {
     if (!isEmpty(annotationOptions)) {
         return annotationOptions;
     }
@@ -125,10 +125,9 @@ const getAnnotationOptions = async ({annotationId, annotationOptions, annotation
         }
 
         const { columnName, schemaName, tableName } = lookup;
-        // return Promise.resolve([]);
-        const asdfasdfasdf =  await labkeyClient.getColumnValues(schemaName, tableName, columnName);
-        return asdfasdfasdf;
+        return await labkeyClient.getColumnValues(schemaName, tableName, columnName);
     }
+
     return undefined;
 };
 
@@ -158,20 +157,19 @@ const getTemplateLogic = createLogic({
 
             if (addAnnotationsToUpload) {
                 const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
+
                 actions.push(
                     setAppliedTemplate({
                         ...etc,
-                        annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation, index: number) => {
-                            return {
+                        annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation) => ({
                             ...a,
                             annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient),
-                        }})),
+                        }))),
                     }),
-                    ...map(uploads, (metadata: UploadMetadata, key: string) => {
-                        return updateUpload(key,  {
+                    ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
                         ...metadata,
                         ...additionalAnnotations,
-                    })})
+                    }))
                 );
             } else {
                 actions.push(updateTemplateDraft({

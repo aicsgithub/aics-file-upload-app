@@ -75,11 +75,11 @@ const retrieveJobsLogic = createLogic({
             });
 
             const potentiallyIncompleteJobs = getIncompleteJobs(state);
-            const potentiallyIncompleteJSSJobsPromise = potentiallyIncompleteJobs.length ? await jssClient.getJobs({
+            const potentiallyIncompleteJSSJobsPromise = potentiallyIncompleteJobs.length ? jssClient.getJobs({
+                jobName: { $in: potentiallyIncompleteJobs },
                 serviceFields: {
                     type: "upload",
                 },
-                jobName: { $in: potentiallyIncompleteJobs },
                 user: userInfo().username,
             }) : Promise.resolve([]);
 
@@ -173,7 +173,7 @@ const retrieveJobsLogic = createLogic({
 });
 
 const updateIncompleteJobsLogic = createLogic({
-    validate: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             storage.set(`${JOB_STORAGE_KEY}.incompleteJobs`, action.payload || []);
             next(action);
