@@ -3,12 +3,11 @@ import { intersection, isEmpty } from "lodash";
 import { userInfo } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { JOB_STORAGE_KEY } from "../../../shared/constants";
 
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { getRequestsInProgressContains } from "../feedback/selectors";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { updateSettings } from "../setting/actions";
-import { getIncompleteJobs } from "../setting/selectors";
 
 import {
     ReduxLogicDoneCb,
@@ -19,9 +18,16 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs } from "./actions";
-import { FAILED_STATUSES, PENDING_STATUSES, RETRIEVE_JOBS, SUCCESSFUL_STATUS } from "./constants";
-import { getPendingJobNames } from "./selectors";
+import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs, updateIncompleteJobs } from "./actions";
+import {
+    FAILED_STATUSES,
+    GATHER_STORED_INCOMPLETE_JOBS,
+    PENDING_STATUSES,
+    RETRIEVE_JOBS,
+    SUCCESSFUL_STATUS,
+    UPDATE_INCOMPLETE_JOBS
+} from "./constants";
+import { getIncompleteJobs, getPendingJobNames } from "./selectors";
 import { JobFilter } from "./types";
 
 const convertJobDates = (j: JSSJob) => ({
@@ -81,7 +87,7 @@ const retrieveJobsLogic = createLogic({
                 getUploadJobsPromise,
                 getCopyJobsPromise,
                 getAddMetadataPromise,
-                potentiallyIncompleteJSSJobsPromise
+                potentiallyIncompleteJSSJobsPromise,
             ]);
 
             const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
@@ -108,7 +114,7 @@ const retrieveJobsLogic = createLogic({
                         jobName === job.jobName
                     ));
                     if (!matchingJob) {
-                        newestPotentiallyIncompleteJobs.push(job)
+                        newestPotentiallyIncompleteJobs.push(job);
                     } else if (job.created > matchingJob.created) {
                         newestPotentiallyIncompleteJobs = [...newestPotentiallyIncompleteJobs.filter(({ jobName }) => (
                             jobName !== job.jobName
@@ -116,6 +122,10 @@ const retrieveJobsLogic = createLogic({
                     }
                 });
                 const incompleteJSSJobs = newestPotentiallyIncompleteJobs.filter((job) => {
+                    // If job is still pending then it might not be the right job based on name alone, so hold off
+                    if (pendingJobNames.includes(job.jobName)) {
+                        return true;
+                    }
                     if (job.status === SUCCESSFUL_STATUS) {
                         actions.push(setAlert({
                             message: `${job.jobName} Succeeded`,
@@ -130,13 +140,11 @@ const retrieveJobsLogic = createLogic({
                         }));
                         return false;
                     }
-                    //
                     return true;
                 });
-                const incompleteJobs = incompleteJSSJobs.map((job) => job.jobName || '');
+                const incompleteJobs = incompleteJSSJobs.map((job) => job.jobName || "");
                 if (potentiallyIncompleteJobs.length !== incompleteJobs.length) {
-                    // TODO: Move incompleteJobs to Jobs branch
-                    dispatch(updateSettings({ incompleteJobs }));
+                    dispatch(updateIncompleteJobs(incompleteJobs));
                 }
             }
 
@@ -164,6 +172,41 @@ const retrieveJobsLogic = createLogic({
     },
 });
 
+const updateIncompleteJobsLogic = createLogic({
+    validate: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            storage.set(`${JOB_STORAGE_KEY}.incompleteJobs`, action.payload || []);
+            next(action);
+        } catch (e) {
+            next(batchActions([
+                action,
+                setAlert({
+                    message: "Failed to persist settings",
+                    type: AlertType.WARN,
+                }),
+            ]));
+        }
+    },
+    type: UPDATE_INCOMPLETE_JOBS,
+});
+
+const gatherStoredIncompleteJobsLogic = createLogic({
+    transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const incompleteJobs = storage.get(`${JOB_STORAGE_KEY}.incompleteJobs`);
+            next(updateIncompleteJobs(incompleteJobs));
+        } catch (e) {
+            next(setAlert({
+                message: "Failed to get saved incomplete jobs",
+                type: AlertType.WARN,
+            }));
+        }
+    },
+    type: GATHER_STORED_INCOMPLETE_JOBS,
+});
+
 export default [
     retrieveJobsLogic,
+    gatherStoredIncompleteJobsLogic,
+    updateIncompleteJobsLogic,
 ];

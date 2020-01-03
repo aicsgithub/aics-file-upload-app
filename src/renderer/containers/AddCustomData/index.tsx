@@ -130,7 +130,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             uploads,
             validationErrors,
         } = this.props;
-        console.log('props', this.props);
         return (
             <FormPage
                 className={className}
