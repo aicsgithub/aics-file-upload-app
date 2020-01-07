@@ -9,7 +9,7 @@ import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobs } from "../job/actions";
+import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
@@ -109,7 +109,7 @@ const initiateUploadLogic = createLogic({
             // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
             // page until we call it successfully.
             const payload = getUploadPayload(getState());
-            const { job: { incompleteJobs } } = getState();
+            const { job: { incompleteJobNames } } = getState();
 
             // Go forward needs to be handled by redux-logic so we're dispatching separately
             dispatch(goForward());
@@ -126,7 +126,7 @@ const initiateUploadLogic = createLogic({
                     user: userInfo().username,
                 }),
             ]));
-            dispatch(updateIncompleteJobs([...incompleteJobs, ctx.name]));
+            dispatch(updateIncompleteJobNames([...incompleteJobNames, ctx.name]));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);

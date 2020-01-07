@@ -13,14 +13,14 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { gatherIncompleteJobs, retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import { gatherIncompleteJobNames, retrieveJobs, selectJobFilter } from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
     getJobFilter,
     getJobsForTable
 } from "../../state/job/selectors";
 import {
-    GatherIncompleteJobsAction,
+    GatherIncompleteJobNamesAction,
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
@@ -71,7 +71,7 @@ interface Props {
     fileMetadataForJobHeader?: SearchResultsHeader[];
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
-    gatherIncompleteJobs: ActionCreator<GatherIncompleteJobsAction>;
+    gatherIncompleteJobNames: ActionCreator<GatherIncompleteJobNamesAction>;
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
@@ -151,7 +151,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.setJobInterval();
-        this.props.gatherIncompleteJobs();
+        this.props.gatherIncompleteJobNames();
     }
 
     public componentWillUnmount(): void {
@@ -356,7 +356,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
-    gatherIncompleteJobs,
+    gatherIncompleteJobNames,
     requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,

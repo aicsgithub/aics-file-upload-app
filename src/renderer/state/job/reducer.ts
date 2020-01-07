@@ -10,7 +10,7 @@ import {
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    UPDATE_INCOMPLETE_JOBS
+    UPDATE_INCOMPLETE_JOB_NAMES
 } from "./constants";
 import {
     AddPendingJobAction,
@@ -21,13 +21,13 @@ import {
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
-    UpdateIncompleteJobsAction,
+    UpdateIncompleteJobNamesAction,
 } from "./types";
 
 export const initialState = {
     addMetadataJobs: [],
     copyJobs: [],
-    incompleteJobs: [],
+    incompleteJobNames: [],
     jobFilter: JobFilter.Pending,
     pendingJobs: [],
     uploadJobs: [],
@@ -63,12 +63,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [UPDATE_INCOMPLETE_JOBS]: {
-        accepts: (action: AnyAction): action is UpdateIncompleteJobsAction => action.type === UPDATE_INCOMPLETE_JOBS,
-        perform: (state: JobStateBranch, action: UpdateIncompleteJobsAction) => {
+    [UPDATE_INCOMPLETE_JOB_NAMES]: {
+        accepts: (action: AnyAction):
+            action is UpdateIncompleteJobNamesAction => action.type === UPDATE_INCOMPLETE_JOB_NAMES,
+        perform: (state: JobStateBranch, action: UpdateIncompleteJobNamesAction) => {
             return {
                 ...state,
-                incompleteJobs: action.payload,
+                incompleteJobNames: action.payload,
             };
         },
     },

@@ -12,7 +12,7 @@ export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getPendingJobs = (state: State) => state.job.pendingJobs;
 export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
-export const getIncompleteJobs = (state: State) => state.job.incompleteJobs;
+export const getIncompleteJobNames = (state: State) => state.job.incompleteJobNames;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 
 export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {

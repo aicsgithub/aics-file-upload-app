@@ -1,18 +1,18 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
     ADD_PENDING_JOB,
-    GATHER_STORED_INCOMPLETE_JOBS,
+    GATHER_STORED_INCOMPLETE_JOB_NAMES,
     REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    UPDATE_INCOMPLETE_JOBS,
+    UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
 import {
     AddPendingJobAction,
-    GatherIncompleteJobsAction,
+    GatherIncompleteJobNamesAction,
     JobFilter,
     PendingJob,
     RemovePendingJobsAction,
@@ -21,7 +21,7 @@ import {
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
-    UpdateIncompleteJobsAction,
+    UpdateIncompleteJobNamesAction,
 } from "./types";
 
 export function retrieveJobs(): RetrieveJobsAction {
@@ -51,16 +51,16 @@ export function setAddMetadataJobs(jobs: JSSJob[]): SetAddMetadataJobsAction {
     };
 }
 
-export function gatherIncompleteJobs(): GatherIncompleteJobsAction {
+export function gatherIncompleteJobNames(): GatherIncompleteJobNamesAction {
     return {
-        type: GATHER_STORED_INCOMPLETE_JOBS,
+        type: GATHER_STORED_INCOMPLETE_JOB_NAMES,
     };
 }
 
-export function updateIncompleteJobs(jobs: string[]): UpdateIncompleteJobsAction {
+export function updateIncompleteJobNames(incompleteJobNames: string[]): UpdateIncompleteJobNamesAction {
     return {
-        payload: jobs,
-        type: UPDATE_INCOMPLETE_JOBS,
+        payload: incompleteJobNames,
+        type: UPDATE_INCOMPLETE_JOB_NAMES,
     };
 }
 

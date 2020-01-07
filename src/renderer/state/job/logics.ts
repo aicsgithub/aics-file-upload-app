@@ -18,16 +18,16 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs, updateIncompleteJobs } from "./actions";
+import { removePendingJobs, setAddMetadataJobs, setCopyJobs, setUploadJobs, updateIncompleteJobNames } from "./actions";
 import {
     FAILED_STATUSES,
-    GATHER_STORED_INCOMPLETE_JOBS,
+    GATHER_STORED_INCOMPLETE_JOB_NAMES,
     PENDING_STATUSES,
     RETRIEVE_JOBS,
     SUCCESSFUL_STATUS,
-    UPDATE_INCOMPLETE_JOBS
+    UPDATE_INCOMPLETE_JOB_NAMES
 } from "./constants";
-import { getIncompleteJobs, getPendingJobNames } from "./selectors";
+import { getIncompleteJobNames, getPendingJobNames } from "./selectors";
 import { JobFilter } from "./types";
 
 const convertJobDates = (j: JSSJob) => ({
@@ -74,20 +74,20 @@ const retrieveJobsLogic = createLogic({
                 user: userInfo().username,
             });
 
-            const potentiallyIncompleteJobs = getIncompleteJobs(state);
-            const potentiallyIncompleteJSSJobsPromise = potentiallyIncompleteJobs.length ? jssClient.getJobs({
-                jobName: { $in: potentiallyIncompleteJobs },
+            const potentiallyIncompleteJobNames = getIncompleteJobNames(state);
+            const potentiallyIncompleteJobsPromise = potentiallyIncompleteJobNames.length ? jssClient.getJobs({
+                jobName: { $in: potentiallyIncompleteJobNames },
                 serviceFields: {
                     type: "upload",
                 },
                 user: userInfo().username,
             }) : Promise.resolve([]);
 
-            const [uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJSSJobs] = await Promise.all([
+            const [uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs] = await Promise.all([
                 getUploadJobsPromise,
                 getCopyJobsPromise,
                 getAddMetadataPromise,
-                potentiallyIncompleteJSSJobsPromise,
+                potentiallyIncompleteJobsPromise,
             ]);
 
             const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
@@ -106,22 +106,25 @@ const retrieveJobsLogic = createLogic({
                 actions.push(removePendingJobs(pendingJobsToRemove));
             }
             // If there are potentially incomplete jobs, see if they are actually completed so we can report the status
-            if (potentiallyIncompleteJSSJobs.length) {
+            if (potentiallyIncompleteJobs.length) {
                 // We want to check the newest job in the event there are jobs with the same name
                 let newestPotentiallyIncompleteJobs: JSSJob[] = [];
-                potentiallyIncompleteJSSJobs.forEach((job) => {
+                potentiallyIncompleteJobs.forEach((job) => {
+                    // See if we have already have a job with this name
                     const matchingJob = newestPotentiallyIncompleteJobs.find(({ jobName }) => (
                         jobName === job.jobName
                     ));
                     if (!matchingJob) {
                         newestPotentiallyIncompleteJobs.push(job);
                     } else if (job.created > matchingJob.created) {
+                        // If we did have a job with this name already and the current job is newer replace the old one
                         newestPotentiallyIncompleteJobs = [...newestPotentiallyIncompleteJobs.filter(({ jobName }) => (
                             jobName !== job.jobName
                         )), job];
                     }
                 });
-                const incompleteJSSJobs = newestPotentiallyIncompleteJobs.filter((job) => {
+                // Gather the actually incompleteJobs from the list of jobs that previously were incomplete
+                const incompleteJobs = newestPotentiallyIncompleteJobs.filter((job) => {
                     // If job is still pending then it might not be the right job based on name alone, so hold off
                     if (pendingJobNames.includes(job.jobName)) {
                         return true;
@@ -142,9 +145,10 @@ const retrieveJobsLogic = createLogic({
                     }
                     return true;
                 });
-                const incompleteJobs = incompleteJSSJobs.map((job) => job.jobName || "");
-                if (potentiallyIncompleteJobs.length !== incompleteJobs.length) {
-                    dispatch(updateIncompleteJobs(incompleteJobs));
+                // Only update the state if the current incompleteJobs are different than the existing ones
+                if (potentiallyIncompleteJobNames.length !== incompleteJobs.length) {
+                    const incompleteJobNames = incompleteJobs.map((job) => job.jobName || "");
+                    dispatch(updateIncompleteJobNames(incompleteJobNames));
                 }
             }
 
@@ -172,10 +176,10 @@ const retrieveJobsLogic = createLogic({
     },
 });
 
-const updateIncompleteJobsLogic = createLogic({
+const updateIncompleteJobNamesLogic = createLogic({
     transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            storage.set(`${JOB_STORAGE_KEY}.incompleteJobs`, action.payload || []);
+            storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, action.payload || []);
             next(action);
         } catch (e) {
             next(batchActions([
@@ -187,14 +191,14 @@ const updateIncompleteJobsLogic = createLogic({
             ]));
         }
     },
-    type: UPDATE_INCOMPLETE_JOBS,
+    type: UPDATE_INCOMPLETE_JOB_NAMES,
 });
 
-const gatherStoredIncompleteJobsLogic = createLogic({
+const gatherStoredIncompleteJobNamesLogic = createLogic({
     transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const incompleteJobs = storage.get(`${JOB_STORAGE_KEY}.incompleteJobs`);
-            next(updateIncompleteJobs(incompleteJobs));
+            const incompleteJobNames = storage.get(`${JOB_STORAGE_KEY}.incompleteJobNames`);
+            next(updateIncompleteJobNames(incompleteJobNames));
         } catch (e) {
             next(setAlert({
                 message: "Failed to get saved incomplete jobs",
@@ -202,11 +206,11 @@ const gatherStoredIncompleteJobsLogic = createLogic({
             }));
         }
     },
-    type: GATHER_STORED_INCOMPLETE_JOBS,
+    type: GATHER_STORED_INCOMPLETE_JOB_NAMES,
 });
 
 export default [
     retrieveJobsLogic,
-    gatherStoredIncompleteJobsLogic,
-    updateIncompleteJobsLogic,
+    gatherStoredIncompleteJobNamesLogic,
+    updateIncompleteJobNamesLogic,
 ];

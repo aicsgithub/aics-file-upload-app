@@ -5,7 +5,7 @@ export interface JobStateBranch {
     uploadJobs: JSSJob[];
     copyJobs: JSSJob[];
     addMetadataJobs: JSSJob[];
-    incompleteJobs: string[];
+    incompleteJobNames: string[];
     jobFilter: JobFilter;
     pendingJobs: PendingJob[];
 }
@@ -42,11 +42,11 @@ export interface SetAddMetadataJobsAction {
     type: string;
 }
 
-export interface GatherIncompleteJobsAction {
+export interface GatherIncompleteJobNamesAction {
     type: string;
 }
 
-export interface UpdateIncompleteJobsAction {
+export interface UpdateIncompleteJobNamesAction {
     payload: string[];
     type: string;
 }
