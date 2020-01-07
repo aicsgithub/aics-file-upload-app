@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { createSandbox, stub } from "sinon";
+import { setAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
+import { AlertType } from "../../feedback/types";
 
 import { createMockReduxStore, jssClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
@@ -12,8 +14,8 @@ import {
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob
 } from "../../test/mocks";
-import { retrieveJobs, updateIncompleteJobs } from "../actions";
-import { getAddMetadataJobs, getCopyJobs, getIncompleteJobs, getUploadJobs } from "../selectors";
+import { retrieveJobs, updateIncompleteJobNames } from "../actions";
+import { getAddMetadataJobs, getCopyJobs, getIncompleteJobNames, getUploadJobs } from "../selectors";
 import { JobFilter } from "../types";
 
 describe("Job logics", () => {
@@ -151,11 +153,11 @@ describe("Job logics", () => {
             callback.onCall(2).returns([mockSuccessfulAddMetadataJob]);
             callback.returns([mockSuccessfulUploadJob]);
             sandbox.replace(jssClient, "getJobs", callback);
-            const { logicMiddleware, store } = createMockReduxStore({
+            const { actions, logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    incompleteJobs: ["mockJob1"],
+                    incompleteJobNames: ["mockJob1"],
                     jobFilter: JobFilter.All,
                 },
             });
@@ -166,7 +168,7 @@ describe("Job logics", () => {
             expect(getCopyJobs(state)).to.be.empty;
             expect(getAddMetadataJobs(state)).to.be.empty;
 
-            expect(getIncompleteJobs(state)).to.not.be.empty;
+            expect(getIncompleteJobNames(state)).to.not.be.empty;
 
             // apply
             store.dispatch(retrieveJobs());
@@ -178,7 +180,11 @@ describe("Job logics", () => {
             expect(getCopyJobs(state)).to.not.be.empty;
             expect(getAddMetadataJobs(state)).to.not.be.empty;
 
-            expect(getIncompleteJobs(state)).to.be.empty;
+            expect(getIncompleteJobNames(state)).to.be.empty;
+            expect(actions.includes(setAlert({
+                message: `mockJob1 Succeeded`,
+                type: AlertType.SUCCESS,
+            }))).to.be.true;
         });
 
         it("Sends alert for failed upload job given incomplete job", async () => {
@@ -188,11 +194,11 @@ describe("Job logics", () => {
             callback.onCall(2).returns([mockSuccessfulAddMetadataJob]);
             callback.returns([mockFailedUploadJob]);
             sandbox.replace(jssClient, "getJobs", callback);
-            const { logicMiddleware, store } = createMockReduxStore({
+            const { actions, logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    incompleteJobs: ["mockFailedUploadJob"],
+                    incompleteJobNames: ["mockFailedUploadJob"],
                     jobFilter: JobFilter.All,
                 },
             });
@@ -203,7 +209,7 @@ describe("Job logics", () => {
             expect(getCopyJobs(state)).to.be.empty;
             expect(getAddMetadataJobs(state)).to.be.empty;
 
-            expect(getIncompleteJobs(state)).to.not.be.empty;
+            expect(getIncompleteJobNames(state)).to.not.be.empty;
 
             // apply
             store.dispatch(retrieveJobs());
@@ -215,7 +221,11 @@ describe("Job logics", () => {
             expect(getCopyJobs(state)).to.not.be.empty;
             expect(getAddMetadataJobs(state)).to.not.be.empty;
 
-            expect(getIncompleteJobs(state)).to.be.empty;
+            expect(getIncompleteJobNames(state)).to.be.empty;
+            expect(actions.includes(setAlert({
+                message: `mockFailedUploadJob Failed`,
+                type: AlertType.ERROR,
+            }))).to.be.true;
         });
 
         it("Sets an alert given a non OK response from JSS", async () => {
@@ -246,16 +256,16 @@ describe("Job logics", () => {
             // before
             let state = store.getState();
             expect(getAlert(state)).to.be.undefined;
-            expect(getIncompleteJobs(state)).to.be.empty;
+            expect(getIncompleteJobNames(state)).to.be.empty;
 
             // apply
-            store.dispatch(updateIncompleteJobs(["file1", "file2"]));
+            store.dispatch(updateIncompleteJobNames(["file1", "file2"]));
 
             // after
             await logicMiddleware.whenComplete();
             state = store.getState();
             expect(getAlert(state)).to.be.undefined;
-            expect(getIncompleteJobs(state)).to.deep.equal(["file1", "file2"]);
+            expect(getIncompleteJobNames(state)).to.deep.equal(["file1", "file2"]);
         });
     });
 });
