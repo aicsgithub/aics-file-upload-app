@@ -289,6 +289,7 @@ export const mockState: State = {
     job: {
         addMetadataJobs: [],
         copyJobs: [],
+        incompleteJobNames: [],
         jobFilter: JobFilter.Pending,
         pendingJobs: [],
         uploadJobs: [],

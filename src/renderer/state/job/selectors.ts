@@ -12,6 +12,7 @@ export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getPendingJobs = (state: State) => state.job.pendingJobs;
 export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
+export const getIncompleteJobNames = (state: State) => state.job.incompleteJobNames;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 
 export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
@@ -40,7 +41,7 @@ export const getUploadJobsWithChildJobs = createSelector([
 });
 
 export const getJobsForTable = createSelector([
-    getUploadJobsWithChildJobs,
+    getUploadJobs,
     getPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
     return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"])
@@ -57,17 +58,6 @@ export const getIsSafeToExit = createSelector([
         || (addMetadataJob && !includes(IN_PROGRESS_STATUSES, addMetadataJob.status))
     ))
 ));
-
-export const getUploadJobNames = createSelector([
-    getUploadJobs,
-], (uploadJobs: JSSJob[]): string[] => {
-    return uploadJobs
-        .map((job) => job.jobName)
-        .filter((name) => !!name) as string[];
-    // typescript static analysis is unable to track the fact that undefined values should be filtered out
-    // so we need to cast here.
-    // https://codereview.stackexchange.com/questions/135363/filtering-undefined-elements-out-of-an-array
-});
 
 export const getAreAllJobsComplete = createSelector([
     getUploadJobs,

@@ -3,7 +3,6 @@ import { Alert, Button, Empty, Modal, Progress, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { isEmpty, map } from "lodash";
-import { basename } from "path";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -14,13 +13,14 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import { gatherIncompleteJobNames, retrieveJobs, selectJobFilter } from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
     getJobFilter,
     getJobsForTable
 } from "../../state/job/selectors";
 import {
+    GatherIncompleteJobNamesAction,
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
@@ -71,6 +71,7 @@ interface Props {
     fileMetadataForJobHeader?: SearchResultsHeader[];
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
+    gatherIncompleteJobNames: ActionCreator<GatherIncompleteJobNamesAction>;
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
@@ -89,16 +90,6 @@ interface UploadSummaryState {
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
-
-    private static EXTRACT_FILE_OR_JOB_NAME = (row: UploadSummaryTableRow): string => {
-        try {
-            return row.serviceFields.files.map(({ file: { originalPath} }: any) => {
-                return basename(originalPath);
-            }).sort().join(", ");
-        } catch (e) {
-            return `Job Name: ${row.jobName}` || "CAN'T FIND FILE OR JOB NAME";
-        }
-    }
 
     private static STAGE_TO_PROGRESS = (stage: string): number => {
         if (stage.toLowerCase() === "copy file") {
@@ -137,10 +128,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             width: "190px",
         },
         {
-            dataIndex: "fileId",
+            dataIndex: "jobName",
             ellipsis: true,
             key: "fileName",
-            render: (fileId, row: UploadSummaryTableRow) => UploadSummary.EXTRACT_FILE_OR_JOB_NAME(row),
             title: "File Names",
             width: "100%",
         },
@@ -161,6 +151,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.setJobInterval();
+        this.props.gatherIncompleteJobNames();
     }
 
     public componentWillUnmount(): void {
@@ -365,6 +356,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
+    gatherIncompleteJobNames,
     requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,

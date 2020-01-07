@@ -9,7 +9,7 @@ import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { addPendingJob, removePendingJobs, retrieveJobs } from "../job/actions";
+import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
@@ -41,7 +41,7 @@ import {
     UPDATE_SCENES,
     UPDATE_UPLOAD,
 } from "./constants";
-import { getUpload, getUploadJobName, getUploadPayload } from "./selectors";
+import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadStateBranch } from "./types";
 
 const associateFileAndWellLogic = createLogic({
@@ -109,6 +109,7 @@ const initiateUploadLogic = createLogic({
             // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
             // page until we call it successfully.
             const payload = getUploadPayload(getState());
+            const { job: { incompleteJobNames } } = getState();
 
             // Go forward needs to be handled by redux-logic so we're dispatching separately
             dispatch(goForward());
@@ -125,6 +126,7 @@ const initiateUploadLogic = createLogic({
                     user: userInfo().username,
                 }),
             ]));
+            dispatch(updateIncompleteJobNames([...incompleteJobNames, ctx.name]));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
             Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
@@ -142,7 +144,7 @@ const initiateUploadLogic = createLogic({
                      rejectCb: ReduxLogicRejectCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = getUploadJobName(getState());
+            ctx.name = getUploadFileNames(getState());
             ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({

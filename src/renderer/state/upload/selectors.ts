@@ -16,16 +16,15 @@ import {
     without,
 } from "lodash";
 import * as moment from "moment";
-import { extname } from "path";
+import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
 import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 
-import { getUploadJobNames } from "../job/selectors";
-import { getExpandedUploadJobRows, getSelectedBarcode, getSelectedWorkflows } from "../selection/selectors";
+import { getExpandedUploadJobRows } from "../selection/selectors";
 
-import { ExpandedRows, Workflow } from "../selection/types";
+import { ExpandedRows } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
@@ -431,34 +430,11 @@ export const getUploadPayload = createSelector([
     return result;
 });
 
-const numberOfJobsRegex = /^([^\s])+/;
-export const getUploadJobName = createSelector([
-    getUploadJobNames,
-    getSelectedBarcode,
-    getSelectedWorkflows,
-], (uploadJobNames: string[], barcode?: string, workflows?: Workflow[]) => {
-    if (!barcode) {
-        if (!workflows) {
-            return "";
-        }
-        const workflowNames = workflows.map((workflow) => workflow.name).join(LIST_DELIMITER_JOIN);
-        const jobNamesForWorkflow = uploadJobNames.filter((name) => {
-            // name could look like "barcode" or "barcode (1)". We want to get just "barcode"
-            const workflowParts = name.match(numberOfJobsRegex);
-            return workflowParts && workflowParts.length > 0 && workflowParts[0] === workflowNames;
-        });
-        const numberOfJobsWithWorkflow = jobNamesForWorkflow.length;
-        return numberOfJobsWithWorkflow === 0 ? workflowNames : `${workflowNames} (${numberOfJobsWithWorkflow})`;
-    }
-
-    const jobNamesForBarcode = uploadJobNames.filter((name) => {
-        // name could look like "barcode" or "barcode (1)". We want to get just "barcode"
-        const barcodeParts = name.match(numberOfJobsRegex);
-        return barcodeParts && barcodeParts.length > 0 && barcodeParts[0] === barcode;
-    });
-    const numberOfJobsWithBarcode = jobNamesForBarcode.length;
-    return numberOfJobsWithBarcode === 0 ? barcode : `${barcode} (${numberOfJobsWithBarcode})`;
-});
+export const getUploadFileNames = createSelector([
+    getUploadPayload,
+], (upload: Uploads): string => (
+    Object.keys(upload).map((filePath: string) => basename(filePath)).sort().join(", ")
+));
 
 export const getUploadFiles = createSelector([
     getUpload,
