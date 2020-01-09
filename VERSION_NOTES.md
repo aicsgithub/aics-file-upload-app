@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.21:
+- Bugfix: Fix permissions issues for files copied from isilon
+- Bugfix: Update status bar when an upload completes successfully
+
 ## 1.0.20:
 - Feature: Made folder tree collapsible
 - Feature: Allow users to choose which files should be archived and stored on the Isilon
