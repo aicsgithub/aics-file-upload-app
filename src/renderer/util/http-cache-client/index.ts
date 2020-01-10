@@ -14,6 +14,7 @@ export default class HttpCacheClient {
             this.get = this.getAndReturnCache;
             this.post = this.postAndReturnCache;
             this.put = this.putAndReturnCache;
+            this.patch = this.patchAndReturnCache;
         }
     }
 
@@ -29,6 +30,11 @@ export default class HttpCacheClient {
 
     public put = async <T = any>(url: string, request: any, config?: AxiosRequestConfig) => {
         const response = await this.httpClient.put(url, request, config);
+        return response.data;
+    }
+
+    public patch = async <T = any>(url: string, request: any, config?: AxiosRequestConfig) => {
+        const response = await this.httpClient.patch(url, request, config);
         return response.data;
     }
 
@@ -49,6 +55,13 @@ export default class HttpCacheClient {
                                                 config?: AxiosRequestConfig): Promise<T> => {
         const key = `PUT ${url}`;
         const action = () => this.httpClient.put(url, request, config);
+        return this.checkCache(key, action);
+    }
+
+    private patchAndReturnCache = async <T = any>(url: string, request: any,
+                                                  config?: AxiosRequestConfig): Promise<T> => {
+        const key = `PATCH ${url}`;
+        const action = () => this.httpClient.patch(url, request, config);
         return this.checkCache(key, action);
     }
 
