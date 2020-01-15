@@ -192,22 +192,17 @@ const requestOptionsForLookup = createLogic({
     type: GET_OPTIONS_FOR_LOOKUP,
 });
 
-const requestTemplates = createLogic({
+const requestTemplatesLogic = createLogic({
     process: async ({action, labkeyClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATES));
         try {
-            const preSelectedTemplateId = action.payload;
             const templates = sortBy(await labkeyClient.getTemplates(), ["name"]);
             dispatch(batchActions([
                 receiveMetadata({templates}),
                 removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
             ]));
-            // If the user has preselected a template to grab from the request templates go ahead and apply it
-            if (preSelectedTemplateId) {
-                dispatch(applyTemplate(preSelectedTemplateId));
-            }
         } catch (e) {
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
@@ -356,6 +351,6 @@ export default [
     retrieveFileMetadataForJob,
     requestMetadata,
     requestOptionsForLookup,
-    requestTemplates,
+    requestTemplatesLogic,
     searchFileMetadataLogic,
 ];
