@@ -17,7 +17,6 @@ import {
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { applyTemplate } from "../upload/actions";
 import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
 import {
