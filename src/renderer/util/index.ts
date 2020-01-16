@@ -165,11 +165,11 @@ export const SERVICE_MIGHT_BE_DOWN_MESSAGE = (service: string) => `${service} mi
 
 /**
  * Returns the result of a request and retries for 2 minutes while the response is a Gateway Error
- * @param request
- * @param requestType
- * @param dispatch
- * @param serviceName
- * @param genericError
+ * @param request callback that returns a promise that we may want to retry
+ * @param requestType the name of the request
+ * @param dispatch callback from redux logic process
+ * @param serviceName name of the service we're contacting
+ * @param genericError error to show in case this we do not get a bad gateway and the error message is not defined
  * @param batchActionsFn only necessary for testing
  */
 export function getWithRetry<T = any>(
