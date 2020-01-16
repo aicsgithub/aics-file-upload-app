@@ -13,7 +13,7 @@ import { addRequestToInProgress, clearAlert, removeRequestFromInProgress, setAle
 import { AlertType, AsyncRequest } from "../state/feedback/types";
 import { DragAndDropFileList } from "../state/selection/types";
 import { TemplateAnnotation } from "../state/template/types";
-import { HTTP_STATUS } from "../state/types";
+import { HTTP_STATUS, ReduxLogicNextCb } from "../state/types";
 import { batchActions } from "../state/util";
 
 export async function onDrop(files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> {
@@ -175,7 +175,7 @@ export const SERVICE_MIGHT_BE_DOWN_MESSAGE = (service: string) => `${service} mi
 export function getWithRetry<T = any>(
     request: () => Promise<T>,
     requestType: AsyncRequest,
-    dispatch: (action: AnyAction) => void,
+    dispatch: ReduxLogicNextCb,
     serviceName: string,
     genericError?: string,
     batchActionsFn: (actions: AnyAction[]) => AnyAction = batchActions
@@ -216,13 +216,9 @@ export function getWithRetry<T = any>(
 
         if (response) {
             if (sentRetryAlert) {
-                dispatch(batchActionsFn([
-                    clearAlert(),
-                    removeRequestFromInProgress(requestType),
-                ]));
-            } else {
-                dispatch(removeRequestFromInProgress(requestType));
+                dispatch(clearAlert());
             }
+            dispatch(removeRequestFromInProgress(requestType));
             resolve(response);
         } else {
             let message = genericError;

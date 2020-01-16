@@ -34,6 +34,12 @@ export interface ReduxLogicDependencies {
     };
     jssClient: JobStatusClient;
     labkeyClient: LabkeyClient;
+    logger: {
+        debug: SinonStub;
+        error: SinonStub;
+        info: SinonStub;
+        warn: SinonStub;
+    };
     mmsClient: MMSClient;
     remote: {
         Menu: {
@@ -97,6 +103,12 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     },
     jssClient,
     labkeyClient,
+    logger: {
+        debug: stub(),
+        error: stub(),
+        info: stub(),
+        warn: stub(),
+    },
     mmsClient,
     remote: {
         Menu: {

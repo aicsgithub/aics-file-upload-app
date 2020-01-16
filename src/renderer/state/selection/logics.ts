@@ -146,7 +146,7 @@ const getFilesInFolderLogic = createLogic({
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 
 const selectBarcodeLogic = createLogic({
-    process: async ({ action, getState, mmsClient, remote }: ReduxLogicProcessDependencies,
+    process: async ({ action, getState, logger, mmsClient, remote }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const { barcode, imagingSessionId } = action.payload;
         const request = () => mmsClient.getPlate(barcode, imagingSessionId);
@@ -171,7 +171,7 @@ const selectBarcodeLogic = createLogic({
             dispatch(batchActions(actions));
             dispatch(selectPage(Page.SelectUploadType, nextPage));
         } catch (e) {
-            // already set alert so nothing more to do.
+            logger.error(e.message);
         }
 
         done();
