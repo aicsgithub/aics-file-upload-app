@@ -191,7 +191,7 @@ describe("General utilities", () => {
                 request,
                 AsyncRequest.REQUEST_METADATA,
                 dispatchSpy,
-                "Service",
+                "Service"
             );
             expect(dispatchSpy.calledWith(removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA))).to.be.true;
         });
