@@ -105,7 +105,7 @@ describe("Metadata logics", () => {
             expect(getUsers(state)).to.not.be.empty;
         });
         it("sets alert given non-OK response", async () => {
-            const getImagingSessionsStub = stub().rejects();
+            const getImagingSessionsStub = stub().rejects("Failed to retrieve metadata");
             sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
             const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 

@@ -5,17 +5,9 @@ import { createLogic } from "redux-logic";
 import { promisify } from "util";
 import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
-import { canUserRead } from "../../util";
+import { canUserRead, getWithRetry } from "../../util";
 
-import { API_WAIT_TIME_SECONDS } from "../constants";
-import {
-    addRequestToInProgress,
-    clearAlert,
-    removeRequestFromInProgress,
-    setAlert,
-    startLoading,
-    stopLoading
-} from "../feedback/actions";
+import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata } from "../metadata/actions";
 import { selectPage } from "../route/actions";
@@ -25,7 +17,6 @@ import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import { clearTemplateDraft, getTemplate } from "../template/actions";
 import {
-    HTTP_STATUS,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
@@ -33,25 +24,11 @@ import {
 } from "../types";
 import { batchActions, getActionFromBatch } from "../util";
 
-import {
-    setPlate,
-    setWells,
-    stageFiles,
-    updateStagedFiles,
-} from "./actions";
-import {
-    GET_FILES_IN_FOLDER,
-    LOAD_FILES,
-    OPEN_FILES,
-    SELECT_BARCODE,
-    SELECT_WORKFLOW_PATH,
-} from "./constants";
+import { setPlate, setWells, stageFiles, updateStagedFiles } from "./actions";
+import { GET_FILES_IN_FOLDER, LOAD_FILES, OPEN_FILES, SELECT_BARCODE, SELECT_WORKFLOW_PATH } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
 import { getStagedFiles } from "./selectors";
-import {
-    DragAndDropFileList,
-    UploadFile
-} from "./types";
+import { DragAndDropFileList, UploadFile } from "./types";
 
 const stat = promisify(fsStat);
 
@@ -167,88 +144,37 @@ const getFilesInFolderLogic = createLogic({
 });
 
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
-export const MMS_IS_DOWN_MESSAGE = "Could not contact server. Make sure MMS is running.";
-export const MMS_MIGHT_BE_DOWN_MESSAGE = "Server might be down. Retrying GET wells request...";
 
 const selectBarcodeLogic = createLogic({
-    process: async ({ action: batchedAction, getState, mmsClient, remote }: ReduxLogicProcessDependencies,
+    process: async ({ action, getState, mmsClient, remote }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const action = getActionFromBatch(batchedAction, SELECT_BARCODE);
+        const { barcode, imagingSessionId } = action.payload;
+        const request = () => mmsClient.getPlate(barcode, imagingSessionId);
 
-        if (!action) {
-            done();
-        } else {
-            const { barcode, imagingSessionId } = action.payload;
-            const startTime = (new Date()).getTime() / 1000;
-            let currentTime = startTime;
-            let receivedSuccessfulResponse = false;
-            let receivedNonGatewayError = false;
-            let sentRetryAlert = false;
+        try {
+            const { plate, wells } = await getWithRetry(
+                request,
+                AsyncRequest.GET_PLATE,
+                dispatch,
+                "MMS",
+                GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode)
+            );
 
-            while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !receivedSuccessfulResponse
-            && !receivedNonGatewayError) {
-                try {
-                    const { plate, wells } = await mmsClient.getPlate(barcode, imagingSessionId);
-                    receivedSuccessfulResponse = true;
-                    const actions = [
-                        setPlate(plate),
-                        setWells(wells),
-                        removeRequestFromInProgress(AsyncRequest.GET_PLATE),
-                        action,
-                        associateByWorkflow(false),
-                        receiveMetadata({barcodeSearchResults: []}),
-                    ];
-                    const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
-                    dispatch(batchActions(actions));
-                    dispatch(selectPage(Page.SelectUploadType, nextPage));
-                } catch (e) {
-                    if (e.response && e.response.status === HTTP_STATUS.BAD_GATEWAY) {
-                        if (!sentRetryAlert) {
-                            dispatch(
-                                setAlert({
-                                    manualClear: true,
-                                    message: MMS_MIGHT_BE_DOWN_MESSAGE,
-                                    type: AlertType.WARN,
-                                })
-                            );
-                            sentRetryAlert = true;
-                        }
-                    } else {
-                        receivedNonGatewayError = true;
-                    }
-                } finally {
-                    currentTime = (new Date()).getTime() / 1000;
-                }
-            }
-
-            if (receivedSuccessfulResponse) {
-                if (sentRetryAlert) {
-                    dispatch(clearAlert());
-                }
-
-                done();
-            } else {
-                const message = sentRetryAlert ? MMS_IS_DOWN_MESSAGE :
-                    GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode);
-                dispatch(batchActions([
-                    action,
-                    removeRequestFromInProgress(AsyncRequest.GET_PLATE),
-                    setAlert({
-                        message,
-                        type: AlertType.ERROR,
-                    }),
-                ]));
-
-                done();
-            }
+            const actions = [
+                setPlate(plate),
+                setWells(wells),
+                removeRequestFromInProgress(AsyncRequest.GET_PLATE),
+                associateByWorkflow(false),
+                receiveMetadata({barcodeSearchResults: []}),
+            ];
+            const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
+            dispatch(batchActions(actions));
+            dispatch(selectPage(Page.SelectUploadType, nextPage));
+        } catch (e) {
+            // already set alert so nothing more to do.
         }
 
-    },
-    transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        next(batchActions([
-            addRequestToInProgress(AsyncRequest.GET_PLATE),
-            action,
-        ]));
+        done();
     },
     type: SELECT_BARCODE,
 });
