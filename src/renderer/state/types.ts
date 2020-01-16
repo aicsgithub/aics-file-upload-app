@@ -1,7 +1,6 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { Menu, MessageBoxOptions, OpenDialogOptions } from "electron";
-import { GlobalLogger } from "js-logger/src/types";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
