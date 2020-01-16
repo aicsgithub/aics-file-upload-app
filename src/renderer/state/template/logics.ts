@@ -24,7 +24,7 @@ import {
     ReduxLogicTransformDependencies,
     State,
 } from "../types";
-import { updateUpload } from "../upload/actions";
+import { applyTemplate, updateUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
 import { UploadMetadata } from "../upload/types";
 import { batchActions } from "../util";
@@ -234,7 +234,8 @@ const saveTemplateLogic = createLogic({
 
             // these need to be dispatched separately because they have logics associated with them
             dispatch(closeTemplateEditor());
-            dispatch(requestTemplates(createdTemplateId));
+            dispatch(requestTemplates());
+            dispatch(applyTemplate(createdTemplateId));
             dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));
             dispatch(updateSettings({ templateId: createdTemplateId }));
             dispatch(setAlert({

@@ -28,8 +28,8 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
           <Select
             autoFocus={true}
             className={className}
-            disabled={loading}
-            loading={loading}
+            disabled={loading && !templates}
+            loading={loading && !templates}
             onSelect={onSelect}
             placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
             showSearch={true}

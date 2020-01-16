@@ -115,7 +115,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        this.props.requestTemplates(this.props.savedTemplateId);
+        this.props.requestTemplates();
+        this.props.applyTemplate(this.props.savedTemplateId);
     }
 
     public render() {
@@ -142,7 +143,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 page={Page.AddCustomData}
             >
                 {this.renderButtons()}
-                {loading && (
+                {loading && !appliedTemplate && (
                     <div className={styles.spinContainer}>
                         <div className={styles.spinText}>
                             Getting template details...
