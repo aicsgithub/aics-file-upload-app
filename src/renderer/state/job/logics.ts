@@ -3,8 +3,8 @@ import { intersection, isEmpty } from "lodash";
 import { userInfo } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
-import { interval, of, Subject } from "rxjs";
-import { catchError, finalize, map, mergeMap } from "rxjs/operators";
+import { interval, of } from "rxjs";
+import { catchError, map, mergeMap } from "rxjs/operators";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 
@@ -16,7 +16,6 @@ import {
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
-    State,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -47,7 +46,13 @@ const convertJobDates = (j: JSSJob) => ({
     modified: new Date(j.modified),
 });
 
-const fetchJobsFn = (getStateFn: any, jssClient: any) => {
+interface Jobs {
+    addMetadataJobs: JSSJob[];
+    copyJobs: JSSJob[];
+    potentiallyIncompleteJobs: JSSJob[];
+    uploadJobs: JSSJob[];
+}
+const fetchJobsFn = (getStateFn: any, jssClient: any): Promise<Jobs> => {
     const statusesToInclude = [...PENDING_STATUSES];
     const state = getStateFn();
     const { job: { jobFilter } } = state;
@@ -105,6 +110,8 @@ const retrieveJobsLogic = createLogic({
     cancelType: STOP_JOB_POLL,
     debounce: 500,
     latest: true,
+    // Redux Logic's type definitions do not include dispatching observable actions so we are setting
+    // the type of dispatch to any
     process: async ({ action, getState, jssClient }: ReduxLogicProcessDependencies, dispatch: any,
                     done: ReduxLogicDoneCb) => {
         dispatch(interval(1000)
@@ -116,7 +123,7 @@ const retrieveJobsLogic = createLogic({
                          addMetadataJobs,
                          copyJobs,
                          potentiallyIncompleteJobs,
-                         uploadJobs}: any) => {
+                         uploadJobs}: Jobs) => {
                     const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
                     const pendingJobNames = getPendingJobNames(getState());
                     const pendingJobsToRemove: string[] = intersection(uploadJobNames, pendingJobNames)
