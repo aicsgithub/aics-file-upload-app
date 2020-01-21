@@ -1,21 +1,33 @@
 import { expect } from "chai";
-import { createSandbox, stub } from "sinon";
-import { setAlert } from "../../feedback/actions";
+import { difference } from "lodash";
+import { createSandbox } from "sinon";
+
+import { SET_ALERT } from "../../feedback/constants";
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 
-import { createMockReduxStore, jssClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
-    mockFailedAddMetadataJob,
-    mockFailedCopyJob,
     mockFailedUploadJob,
     mockState,
     mockSuccessfulAddMetadataJob,
     mockSuccessfulCopyJob,
-    mockSuccessfulUploadJob
+    mockSuccessfulUploadJob,
 } from "../../test/mocks";
-import { retrieveJobs, updateIncompleteJobNames } from "../actions";
-import { getAddMetadataJobs, getCopyJobs, getIncompleteJobNames, getUploadJobs } from "../selectors";
+import { State } from "../../types";
+import { getActionFromBatch } from "../../util";
+import { updateIncompleteJobNames } from "../actions";
+import {
+    FAILED_STATUSES,
+    PENDING_STATUSES,
+    REMOVE_PENDING_JOB,
+    SET_ADD_METADATA_JOBS,
+    SET_COPY_JOBS,
+    SET_UPLOAD_JOBS,
+    SUCCESSFUL_STATUS, UPDATE_INCOMPLETE_JOB_NAMES,
+} from "../constants";
+import { getJobStatusesToInclude, mapJobsToActions } from "../logics";
+import { getIncompleteJobNames } from "../selectors";
 import { JobFilter } from "../types";
 
 describe("Job logics", () => {
@@ -25,135 +37,93 @@ describe("Job logics", () => {
         sandbox.restore();
     });
 
-    describe("retrieveJobsLogic", () => {
-        it("Sets jobs given successful JSS query", async () => {
-            const callback = stub();
-            callback.onCall(0).returns([mockSuccessfulUploadJob]);
-            callback.onCall(1).returns([mockSuccessfulCopyJob]);
-            callback.onCall(2).returns([mockSuccessfulAddMetadataJob]);
-            sandbox.replace(jssClient, "getJobs", callback);
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-            });
+    describe("getJobStatusesToInclude", () => {
+        it("Filters by failed jobs when Failed Job Filter supplied", () => {
+            const statuses = getJobStatusesToInclude(JobFilter.Failed);
+            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
+            expect(pendingStatusesNotIncluded).to.be.empty;
 
-            // before
-            let state = store.getState();
-            expect(getUploadJobs(state)).to.be.empty;
-            expect(getCopyJobs(state)).to.be.empty;
-            expect(getAddMetadataJobs(state)).to.be.empty;
-
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadJobs(state)).to.not.be.empty;
-            expect(getCopyJobs(state)).to.not.be.empty;
-            expect(getAddMetadataJobs(state)).to.not.be.empty;
+            const failedStatusesNotIncluded = difference(FAILED_STATUSES, statuses);
+            expect(failedStatusesNotIncluded).to.be.empty;
+            expect(statuses.length).to.equal(PENDING_STATUSES.length + FAILED_STATUSES.length);
         });
 
-        it("Filters by failed jobs when Failed Job Filter supplied", async () => {
-            const callback = stub();
-            callback.onCall(0).returns([mockFailedUploadJob]);
-            callback.onCall(1).returns([mockFailedCopyJob]);
-            callback.onCall(2).returns([mockFailedAddMetadataJob]);
-            sandbox.replace(jssClient, "getJobs", callback);
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    jobFilter: JobFilter.Failed,
-                },
-            });
+        it("Filters by successful jobs when Successful Job Filter supplied", () => {
+            const statuses = getJobStatusesToInclude(JobFilter.Successful);
+            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
+            expect(pendingStatusesNotIncluded).to.be.empty;
 
-            // before
-            let state = store.getState();
-            expect(getUploadJobs(state)).to.be.empty;
-            expect(getCopyJobs(state)).to.be.empty;
-            expect(getAddMetadataJobs(state)).to.be.empty;
-
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadJobs(state)).to.not.be.empty;
-            expect(getCopyJobs(state)).to.not.be.empty;
-            expect(getAddMetadataJobs(state)).to.not.be.empty;
+            const successfulStatus = statuses.find((s) => s === SUCCESSFUL_STATUS);
+            expect(successfulStatus).to.not.be.undefined;
+            expect(statuses.length).to.equal(PENDING_STATUSES.length + 1);
         });
 
-        it("Filters by successful jobs when Successful Job Filter supplied", async () => {
-            const callback = stub();
-            callback.onCall(0).returns([mockSuccessfulUploadJob]);
-            callback.onCall(1).returns([mockSuccessfulCopyJob]);
-            callback.onCall(2).returns([mockSuccessfulAddMetadataJob]);
-            sandbox.replace(jssClient, "getJobs", callback);
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    jobFilter: JobFilter.Successful,
-                },
-            });
-
-            // before
-            let state = store.getState();
-            expect(getUploadJobs(state)).to.be.empty;
-            expect(getCopyJobs(state)).to.be.empty;
-            expect(getAddMetadataJobs(state)).to.be.empty;
-
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadJobs(state)).to.not.be.empty;
-            expect(getCopyJobs(state)).to.not.be.empty;
-            expect(getAddMetadataJobs(state)).to.not.be.empty;
+        it("Filters by pending jobs when Pending Job Filter supplied", () => {
+            const statuses = getJobStatusesToInclude(JobFilter.Pending);
+            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
+            expect(pendingStatusesNotIncluded).to.be.empty;
+            expect(statuses.length).to.equal(PENDING_STATUSES.length);
         });
 
-        it("Filters by all jobs when All Job Filter supplied", async () => {
-            const callback = stub();
-            callback.onCall(0).returns([mockSuccessfulUploadJob]);
-            callback.onCall(1).returns([mockSuccessfulCopyJob]);
-            callback.returns([mockSuccessfulAddMetadataJob]);
-            sandbox.replace(jssClient, "getJobs", callback);
-            const { logicMiddleware, store } = createMockReduxStore({
+        it("Includes all statuses when All Job Filter supplied", () => {
+            const statuses = getJobStatusesToInclude(JobFilter.All);
+            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
+            expect(pendingStatusesNotIncluded).to.be.empty;
+
+            const successfulStatus = statuses.find((s) => s === SUCCESSFUL_STATUS);
+            expect(successfulStatus).to.not.be.undefined;
+
+            const failedStatusesNotIncluded = difference(FAILED_STATUSES, statuses);
+            expect(failedStatusesNotIncluded).to.be.empty;
+
+            expect(statuses.length).to.equal(PENDING_STATUSES.length + FAILED_STATUSES.length + 1);
+        });
+    });
+
+    describe("mapJobsToActions", () => {
+        const addMetadataJobs = [mockSuccessfulAddMetadataJob];
+        const copyJobs = [mockSuccessfulCopyJob];
+        const uploadJobs =  [mockSuccessfulUploadJob];
+
+        it("Sets jobs passed in",  () => {
+            const getState = () => mockState;
+            const actions = mapJobsToActions(getState)({
+                addMetadataJobs,
+                copyJobs,
+                potentiallyIncompleteJobs: [],
+                uploadJobs,
+            });
+            const setAddMetadataJobsAction = getActionFromBatch(actions, SET_ADD_METADATA_JOBS);
+            const setCopyJobsAction = getActionFromBatch(actions, SET_COPY_JOBS);
+            const setUploadJobsAction = getActionFromBatch(actions, SET_UPLOAD_JOBS);
+            const removePendingJobsAction = getActionFromBatch(actions, REMOVE_PENDING_JOB);
+
+            expect(setAddMetadataJobsAction).to.not.be.undefined;
+            expect(setCopyJobsAction).to.not.be.undefined;
+            expect(setUploadJobsAction).to.not.be.undefined;
+            expect(removePendingJobsAction).to.be.undefined;
+        });
+
+        it("Removes pending job names that are found in the uploadJobs passed in", () => {
+            const getState = (): State => ({
                 ...mockState,
                 job: {
                     ...mockState.job,
-                    jobFilter: JobFilter.All,
+                    pendingJobs: [{...mockSuccessfulUploadJob, uploads: {}}],
                 },
             });
-
-            // before
-            let state = store.getState();
-            expect(getUploadJobs(state)).to.be.empty;
-            expect(getCopyJobs(state)).to.be.empty;
-            expect(getAddMetadataJobs(state)).to.be.empty;
-
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadJobs(state)).to.not.be.empty;
-            expect(getCopyJobs(state)).to.not.be.empty;
-            expect(getAddMetadataJobs(state)).to.not.be.empty;
+            const actions = mapJobsToActions(getState)({
+                addMetadataJobs,
+                copyJobs,
+                potentiallyIncompleteJobs: [],
+                uploadJobs,
+            });
+            const removePendingJobsAction = getActionFromBatch(actions, REMOVE_PENDING_JOB);
+            expect(removePendingJobsAction).to.not.be.undefined;
         });
 
-        it("Sends alert for successful upload job given incomplete job", async () => {
-            const callback = stub();
-            callback.onCall(0).returns([mockSuccessfulUploadJob]);
-            callback.onCall(1).returns([mockSuccessfulCopyJob]);
-            callback.onCall(2).returns([mockSuccessfulAddMetadataJob]);
-            callback.returns([mockSuccessfulUploadJob]);
-            sandbox.replace(jssClient, "getJobs", callback);
-            const { actions, logicMiddleware, store } = createMockReduxStore({
+        it("Sends alert for successful upload job given incomplete job",  () => {
+            const getState = () => ({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -162,39 +132,33 @@ describe("Job logics", () => {
                 },
             });
 
-            // before
-            let state = store.getState();
-            expect(getUploadJobs(state)).to.be.empty;
-            expect(getCopyJobs(state)).to.be.empty;
-            expect(getAddMetadataJobs(state)).to.be.empty;
+            const actions = mapJobsToActions(getState)({
+                addMetadataJobs,
+                copyJobs,
+                potentiallyIncompleteJobs: [
+                    {...mockSuccessfulUploadJob, created: new Date("2019-01-01"), jobId: "job1"},
+                    {...mockSuccessfulUploadJob, created: new Date("2020-01-01"), jobId: "job2"},
+                    {...mockSuccessfulUploadJob, created: new Date("2018-01-01"), jobId: "job3"},
+                ],
+                uploadJobs,
+            });
 
-            expect(getIncompleteJobNames(state)).to.not.be.empty;
+            const updateIncompleteJobNamesAction = getActionFromBatch(actions, UPDATE_INCOMPLETE_JOB_NAMES);
+            expect(updateIncompleteJobNamesAction).to.not.be.undefined;
+            if (updateIncompleteJobNamesAction) {
+                expect(updateIncompleteJobNamesAction.payload).to.be.empty;
+            }
 
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadJobs(state)).to.not.be.empty;
-            expect(getCopyJobs(state)).to.not.be.empty;
-            expect(getAddMetadataJobs(state)).to.not.be.empty;
-
-            expect(getIncompleteJobNames(state)).to.be.empty;
-            expect(actions.includes(setAlert({
-                message: `mockJob1 Succeeded`,
-                type: AlertType.SUCCESS,
-            }))).to.be.true;
+            const setAlertAction = getActionFromBatch(actions, SET_ALERT);
+            expect(setAlertAction).to.not.be.undefined;
+            if (setAlertAction) {
+                expect(setAlertAction.payload.type).to.equal(AlertType.SUCCESS);
+                expect(setAlertAction.payload.message).to.equal("mockJob1 Succeeded");
+            }
         });
 
-        it("Sends alert for failed upload job given incomplete job", async () => {
-            const callback = stub();
-            callback.onCall(0).returns([mockSuccessfulUploadJob]);
-            callback.onCall(1).returns([mockSuccessfulCopyJob]);
-            callback.onCall(2).returns([mockSuccessfulAddMetadataJob]);
-            callback.returns([mockFailedUploadJob]);
-            sandbox.replace(jssClient, "getJobs", callback);
-            const { actions, logicMiddleware, store } = createMockReduxStore({
+        it("Sends alert for failed upload job given incomplete job", () => {
+            const getState = () => ({
                 ...mockState,
                 job: {
                     ...mockState.job,
@@ -202,50 +166,25 @@ describe("Job logics", () => {
                     jobFilter: JobFilter.All,
                 },
             });
+            const actions = mapJobsToActions(getState)({
+                addMetadataJobs,
+                copyJobs,
+                potentiallyIncompleteJobs: [mockFailedUploadJob],
+                uploadJobs,
+            });
 
-            // before
-            let state = store.getState();
-            expect(getUploadJobs(state)).to.be.empty;
-            expect(getCopyJobs(state)).to.be.empty;
-            expect(getAddMetadataJobs(state)).to.be.empty;
+            const updateIncompleteJobNamesAction = getActionFromBatch(actions, UPDATE_INCOMPLETE_JOB_NAMES);
+            expect(updateIncompleteJobNamesAction).to.not.be.undefined;
+            if (updateIncompleteJobNamesAction) {
+                expect(updateIncompleteJobNamesAction.payload).to.be.empty;
+            }
 
-            expect(getIncompleteJobNames(state)).to.not.be.empty;
-
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadJobs(state)).to.not.be.empty;
-            expect(getCopyJobs(state)).to.not.be.empty;
-            expect(getAddMetadataJobs(state)).to.not.be.empty;
-
-            expect(getIncompleteJobNames(state)).to.be.empty;
-            expect(actions.includes(setAlert({
-                message: `mockFailedUploadJob Failed`,
-                type: AlertType.ERROR,
-            }))).to.be.true;
-        });
-
-        it("Sets an alert given a non OK response from JSS", async () => {
-            sandbox.replace(jssClient, "getJobs", stub().rejects());
-
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-            }, mockReduxLogicDeps);
-
-            // before
-            let alert = getAlert(store.getState());
-            expect(alert).to.be.undefined;
-
-            // apply
-            store.dispatch(retrieveJobs());
-
-            // after
-            await logicMiddleware.whenComplete();
-            alert = getAlert(store.getState());
-            expect(alert).to.not.be.undefined;
+            const setAlertAction = getActionFromBatch(actions, SET_ALERT);
+            expect(setAlertAction).to.not.be.undefined;
+            if (setAlertAction) {
+                expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
+                expect(setAlertAction.payload.message).to.equal("mockFailedUploadJob Failed");
+            }
         });
     });
 
