@@ -10,7 +10,9 @@ import {
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    UPDATE_INCOMPLETE_JOB_NAMES
+    START_JOB_POLL,
+    STOP_JOB_POLL,
+    UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
 import {
     AddPendingJobAction,
@@ -21,15 +23,18 @@ import {
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
+    StartJobPollAction,
+    StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
 
-export const initialState = {
+export const initialState: JobStateBranch = {
     addMetadataJobs: [],
     copyJobs: [],
     incompleteJobNames: [],
     jobFilter: JobFilter.Pending,
     pendingJobs: [],
+    polling: false,
     uploadJobs: [],
 };
 
@@ -99,6 +104,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 jobFilter: action.payload,
             };
         },
+    },
+    [START_JOB_POLL]: {
+        accepts: (action: AnyAction): action is StartJobPollAction => action.type === START_JOB_POLL,
+        perform: (state: JobStateBranch) => ({
+            ...state,
+            polling: true,
+        }),
+    },
+    [STOP_JOB_POLL]: {
+        accepts: (action: AnyAction): action is StopJobPollAction => action.type === STOP_JOB_POLL,
+        perform: (state: JobStateBranch) => ({
+            ...state,
+            polling: false,
+        }),
     },
 };
 

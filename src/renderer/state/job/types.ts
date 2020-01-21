@@ -8,6 +8,7 @@ export interface JobStateBranch {
     incompleteJobNames: string[];
     jobFilter: JobFilter;
     pendingJobs: PendingJob[];
+    polling: boolean;
 }
 
 // When a user submits an upload, a job doesn't get created right away so the job is stored
@@ -63,5 +64,14 @@ export interface RemovePendingJobsAction {
 
 export interface SelectJobFilterAction {
     payload: JobFilter;
+    type: string;
+}
+
+export interface StartJobPollAction {
+    payload: Date;
+    type: string;
+}
+
+export interface StopJobPollAction {
     type: string;
 }
