@@ -13,17 +13,26 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { gatherIncompleteJobNames, retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import {
+    gatherIncompleteJobNames,
+    retrieveJobs,
+    selectJobFilter,
+    startJobPoll,
+    stopJobPoll,
+} from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
+    getIsPolling,
     getJobFilter,
-    getJobsForTable
+    getJobsForTable,
 } from "../../state/job/selectors";
 import {
     GatherIncompleteJobNamesAction,
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
+    StartJobPollAction,
+    StopJobPollAction,
 } from "../../state/job/types";
 import { clearFileMetadataForJob, requestFileMetadataForJob } from "../../state/metadata/actions";
 import { getFileMetadataForJob, getFileMetadataForJobHeader } from "../../state/metadata/selectors";
@@ -41,7 +50,6 @@ import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction, UploadMetadata } from "../../state/upload/types";
-import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
 
@@ -72,6 +80,7 @@ interface Props {
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
     gatherIncompleteJobNames: ActionCreator<GatherIncompleteJobNamesAction>;
+    isPolling: boolean;
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
@@ -82,6 +91,8 @@ interface Props {
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
     selectJobFilter: ActionCreator<SelectJobFilterAction>;
+    startJobPoll: ActionCreator<StartJobPollAction>;
+    stopJobPoll: ActionCreator<StopJobPollAction>;
 }
 
 interface UploadSummaryState {
@@ -142,7 +153,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             width: "300px",
         },
     ];
-    private interval: Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -164,6 +174,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             fileMetadataForJob,
             fileMetadataForJobHeader,
             fileMetadataForJobLoading,
+            isPolling,
             jobFilter,
             jobs,
             loading,
@@ -180,7 +191,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
                 page={Page.UploadSummary}
             >
-                {!this.interval && (
+                {!isPolling && (
                     <div className={styles.refreshContainer}>
                         <Button
                             size="large"
@@ -254,23 +265,19 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private selectJobFilter = (e: RadioChangeEvent): void => {
-        if (!this.interval) {
-            this.setJobInterval();
-        }
         this.props.selectJobFilter(e.target.value);
+        this.props.retrieveJobs();
     }
 
     // Auto-refresh jobs every 2 seconds for 3 minutes
     private setJobInterval = (): void => {
-        this.interval = setInterval(this.props.retrieveJobs, 1000); // 1 seconds
-        setTimeout(() => this.clearJobInterval(true), 300000); // 5 minutes
+        this.props.startJobPoll();
     }
 
     // Stop auto-refreshing jobs
     private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
-        if (this.interval && (!checkIfJobsComplete || this.props.allJobsComplete)) {
-            clearInterval(this.interval);
-            this.interval = null;
+        if (!checkIfJobsComplete || this.props.allJobsComplete) {
+            this.props.stopJobPoll();
         }
     }
 
@@ -282,17 +289,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     private cancelUpload = (): void => {
         // Start refreshing again if we aren't
-        if (!this.interval) {
-            this.setJobInterval();
-        }
+        this.setJobInterval();
         this.props.cancelUpload(this.getSelectedJob());
     }
 
     private retryUpload = (): void => {
         // Start refreshing again if we aren't
-        if (!this.interval) {
-            this.setJobInterval();
-        }
+        this.setJobInterval();
         this.props.retryUpload(this.getSelectedJob());
     }
 
@@ -345,6 +348,7 @@ function mapStateToProps(state: State) {
         fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
         fileMetadataForJobLoading: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         files: getStagedFiles(state),
+        isPolling: getIsPolling(state),
         jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)
@@ -363,6 +367,8 @@ const dispatchToPropsMap = {
     selectJobFilter,
     selectPage,
     selectView,
+    startJobPoll,
+    stopJobPoll,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);
