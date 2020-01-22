@@ -45,6 +45,13 @@ export interface ElectronRemote {
     };
 }
 
+export interface Logger {
+    debug: (...x: any[]) => void,
+    error: (...x: any[]) => void,
+    info: (...x: any[]) => void,
+    warn: (...x: any[]) => void,
+}
+
 export interface ReduxLogicExtraDependencies {
     ctx?: any;
     fms: FileManagementSystem;
@@ -54,6 +61,7 @@ export interface ReduxLogicExtraDependencies {
     };
     jssClient: JobStatusClient;
     labkeyClient: LabkeyClient;
+    logger: Logger;
     mmsClient: MMSClient;
     remote: ElectronRemote;
     storage: {

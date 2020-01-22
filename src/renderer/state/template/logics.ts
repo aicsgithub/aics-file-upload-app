@@ -1,7 +1,8 @@
 import { includes, isEmpty, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
-import { pivotAnnotations } from "../../util";
+
+import { getWithRetry, pivotAnnotations } from "../../util";
 
 import LabkeyClient from "../../util/labkey-client";
 
@@ -105,7 +106,7 @@ const addExistingAnnotationLogic = createLogic({
 });
 
 const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: TemplateAnnotation,
-                                    state: State, labkeyClient: LabkeyClient) => {
+                                    state: State, labkeyClient: LabkeyClient, dispatch: ReduxLogicNextCb) => {
     if (!isEmpty(annotationOptions)) {
         return annotationOptions;
     }
@@ -125,14 +126,20 @@ const getAnnotationOptions = async ({annotationId, annotationOptions, annotation
         }
 
         const { columnName, schemaName, tableName } = lookup;
-        return await labkeyClient.getColumnValues(schemaName, tableName, columnName);
+        return await getWithRetry(
+            () => labkeyClient.getColumnValues(schemaName, tableName, columnName),
+            AsyncRequest.GET_TEMPLATE,
+            dispatch,
+            "LabKey",
+            `Could not retrieve column values for ${schemaName}.${tableName}.${columnName}`
+        );
     }
 
     return undefined;
 };
 
 const getTemplateLogic = createLogic({
-    process: async ({action, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
+    process: async ({action, getState, labkeyClient, logger, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const state = getState();
@@ -150,10 +157,15 @@ const getTemplateLogic = createLogic({
         }
 
         try {
-            dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATE));
-            const template: Template = await mmsClient.getTemplate(templateId);
+            const template: Template = await getWithRetry(
+                () => mmsClient.getTemplate(templateId),
+                AsyncRequest.GET_TEMPLATE,
+                dispatch,
+                "MMS",
+                "Could not retrieve template"
+            );
             const { annotations, ...etc } = template;
-            const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)];
+            const actions: AnyAction[] = [];
 
             if (addAnnotationsToUpload) {
                 const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
@@ -163,7 +175,7 @@ const getTemplateLogic = createLogic({
                         ...etc,
                         annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation) => ({
                             ...a,
-                            annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient),
+                            annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient, dispatch),
                         }))),
                     }),
                     ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
@@ -190,13 +202,7 @@ const getTemplateLogic = createLogic({
             }
             dispatch(batchActions(actions));
         } catch (e) {
-            dispatch(batchActions([
-                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-                setAlert({
-                    message: "Could not retrieve template: " + e.message,
-                    type: AlertType.ERROR,
-                }),
-            ]));
+            logger.error("Could not retrieve template", e);
         }
 
         done();

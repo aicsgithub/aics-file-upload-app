@@ -2,6 +2,7 @@ import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
+import * as Logger from "js-logger";
 import { userInfo } from "os";
 import {
     applyMiddleware,
@@ -66,6 +67,7 @@ export const reduxLogicDependencies = {
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
     }),
+    logger: Logger,
     mmsClient: new MMSClient({
         host: LIMS_HOST,
         localStorage: storage,

@@ -7,6 +7,7 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
+import { getWithRetry } from "../../util";
 
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -51,20 +52,10 @@ const createBarcode = createLogic({
 });
 
 const requestMetadata = createLogic({
-    process: async ({labkeyClient}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
+    process: async ({labkeyClient, logger}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
                     done: () => void) => {
         try {
-            const [
-                annotationLookups,
-                annotationTypes,
-                barcodePrefixes,
-                channels,
-                imagingSessions,
-                lookups,
-                units,
-                users,
-                workflowOptions,
-            ] = await Promise.all([
+            const request = () => Promise.all([
                 labkeyClient.getAnnotationLookups(),
                 labkeyClient.getAnnotationTypes(),
                 labkeyClient.getBarcodePrefixes(),
@@ -75,6 +66,23 @@ const requestMetadata = createLogic({
                 labkeyClient.getUsers(),
                 labkeyClient.getWorkflows(),
             ]);
+            const [
+                annotationLookups,
+                annotationTypes,
+                barcodePrefixes,
+                channels,
+                imagingSessions,
+                lookups,
+                units,
+                users,
+                workflowOptions,
+            ] = await getWithRetry(
+                request,
+                AsyncRequest.REQUEST_METADATA,
+                dispatch,
+                "LabKey",
+                "Failed to retrieve metadata."
+            );
             dispatch(receiveMetadata({
                 annotationLookups,
                 annotationTypes,
@@ -86,11 +94,8 @@ const requestMetadata = createLogic({
                 users,
                 workflowOptions,
             }));
-        } catch (reason) {
-            dispatch(setAlert({
-                message: "Failed to retrieve metadata. " + reason.message,
-                type: AlertType.ERROR,
-            }));
+        } catch (e) {
+            logger.error(e.message);
         }
         done();
     },
@@ -156,34 +161,30 @@ const requestAnnotations = createLogic({
 });
 
 const requestOptionsForLookup = createLogic({
-    process: async ({ action: { payload }, getState, labkeyClient }: ReduxLogicProcessDependencies,
+    process: async ({ action: { payload }, getState, labkeyClient, logger }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         if (payload) {
             try {
-                dispatch(addRequestToInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
                 const { metadata: { annotationLookups, annotations } } = getState();
                 const annotationOption = annotations.find(({ name }) => name === payload);
                 const lookup = annotationOption &&
                     annotationLookups.find(({ annotationId }) => annotationId === annotationOption.annotationId);
                 let optionsForLookup;
                 if (lookup) {
-                    optionsForLookup = await labkeyClient.getOptionsForLookup(lookup.lookupId);
+                    optionsForLookup = await getWithRetry(
+                        () => labkeyClient.getOptionsForLookup(lookup.lookupId),
+                        AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
+                        dispatch,
+                        "LabKey",
+                        "Could not retrieve options for lookup annotation"
+                    );
                     optionsForLookup.sort();
                 }
 
-                dispatch(batchActions([
-                    receiveMetadata({ optionsForLookup }),
-                    removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
-                ]));
+                dispatch(receiveMetadata({ optionsForLookup }));
             } catch (e) {
-                dispatch(batchActions([
-                    removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
-                    setAlert({
-                        message: "Could not retrieve options for lookup annotation: " + e.message,
-                        type: AlertType.ERROR,
-                    }),
-                ]));
+                logger.error("Could not retrieve options for lookup annotation", e.message);
             }
         }
         done();
@@ -192,24 +193,21 @@ const requestOptionsForLookup = createLogic({
 });
 
 const requestTemplatesLogic = createLogic({
-    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies,
+    process: async ({action, labkeyClient, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        dispatch(addRequestToInProgress(AsyncRequest.GET_TEMPLATES));
         try {
-            const templates = sortBy(await labkeyClient.getTemplates(), ["name"]);
-            dispatch(batchActions([
-                receiveMetadata({templates}),
-                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
-            ]));
+            let templates = await getWithRetry(
+                () => labkeyClient.getTemplates(),
+                AsyncRequest.GET_TEMPLATES,
+                dispatch,
+                "LabKey",
+                "Could not retrieve templates"
+            );
+            templates = sortBy(templates, ["name"]);
+            dispatch(receiveMetadata({templates}));
         } catch (e) {
-            dispatch(batchActions([
-                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATES),
-                setAlert({
-                    message: "Could not retrieve templates: " + e.message,
-                    type: AlertType.ERROR,
-                }),
-            ]));
+            logger.error("Could not retrieve templates", e);
         }
         done();
     },
