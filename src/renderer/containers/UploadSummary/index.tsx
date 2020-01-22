@@ -9,6 +9,7 @@ import { ActionCreator } from "redux";
 
 import FileMetadataModal from "../../components/FileMetadataModal";
 import FormPage from "../../components/FormPage";
+import { MILLISECONDS_PER_SECOND, SECONDS_IN_A_MINUTE } from "../../components/StatusBar";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
@@ -17,7 +18,6 @@ import {
     gatherIncompleteJobNames,
     retrieveJobs,
     selectJobFilter,
-    startJobPoll,
     stopJobPoll,
 } from "../../state/job/actions";
 import {
@@ -31,7 +31,6 @@ import {
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
-    StartJobPollAction,
     StopJobPollAction,
 } from "../../state/job/types";
 import { clearFileMetadataForJob, requestFileMetadataForJob } from "../../state/metadata/actions";
@@ -64,6 +63,8 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
     year: "numeric",
 });
 
+const POLLING_MINUTES = 2;
+
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
     // used by antd's Table component to uniquely identify rows
@@ -91,7 +92,6 @@ interface Props {
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
     selectJobFilter: ActionCreator<SelectJobFilterAction>;
-    startJobPoll: ActionCreator<StartJobPollAction>;
     stopJobPoll: ActionCreator<StopJobPollAction>;
 }
 
@@ -161,6 +161,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.setJobInterval();
+        setTimeout(this.clearJobInterval, POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
         this.props.gatherIncompleteJobNames();
     }
 
@@ -271,12 +272,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     // Auto-refresh jobs every 2 seconds for 3 minutes
     private setJobInterval = (): void => {
-        this.props.startJobPoll();
+        this.props.retrieveJobs();
     }
 
     // Stop auto-refreshing jobs
     private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
         if (!checkIfJobsComplete || this.props.allJobsComplete) {
+            console.log("clearing")
             this.props.stopJobPoll();
         }
     }
@@ -367,7 +369,6 @@ const dispatchToPropsMap = {
     selectJobFilter,
     selectPage,
     selectView,
-    startJobPoll,
     stopJobPoll,
 };
 

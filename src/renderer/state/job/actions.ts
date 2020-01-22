@@ -8,7 +8,6 @@ import {
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    START_JOB_POLL,
     STOP_JOB_POLL,
     UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
@@ -23,7 +22,6 @@ import {
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
-    StartJobPollAction,
     StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
@@ -86,13 +84,6 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
     return {
         payload: jobFilter,
         type: SELECT_JOB_FILTER,
-    };
-}
-
-export function startJobPoll(pollEndTime: Date): StartJobPollAction {
-    return {
-        payload: pollEndTime,
-        type: START_JOB_POLL,
     };
 }
 

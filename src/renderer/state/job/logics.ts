@@ -23,7 +23,6 @@ import { batchActions } from "../util";
 
 import {
     removePendingJobs,
-    retrieveJobs,
     setAddMetadataJobs,
     setCopyJobs,
     setUploadJobs,
@@ -34,7 +33,6 @@ import {
     GATHER_STORED_INCOMPLETE_JOB_NAMES,
     PENDING_STATUSES,
     RETRIEVE_JOBS,
-    START_JOB_POLL,
     STOP_JOB_POLL,
     SUCCESSFUL_STATUS,
     UPDATE_INCOMPLETE_JOB_NAMES,
@@ -242,19 +240,8 @@ const gatherStoredIncompleteJobNamesLogic = createLogic({
     type: GATHER_STORED_INCOMPLETE_JOB_NAMES,
 });
 
-const startJobPollLogic = createLogic({
-    latest: true,
-    process: ({ action, getState, jssClient }: ReduxLogicProcessDependencies,
-              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        dispatch(retrieveJobs());
-        done();
-    },
-    type: START_JOB_POLL,
-});
-
 export default [
     retrieveJobsLogic,
     gatherStoredIncompleteJobNamesLogic,
     updateIncompleteJobNamesLogic,
-    startJobPollLogic,
 ];

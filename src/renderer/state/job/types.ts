@@ -67,11 +67,6 @@ export interface SelectJobFilterAction {
     type: string;
 }
 
-export interface StartJobPollAction {
-    payload: Date;
-    type: string;
-}
-
 export interface StopJobPollAction {
     type: string;
 }

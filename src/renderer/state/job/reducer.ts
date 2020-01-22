@@ -6,11 +6,11 @@ import { makeReducer } from "../util";
 import {
     ADD_PENDING_JOB,
     REMOVE_PENDING_JOB,
+    RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    START_JOB_POLL,
     STOP_JOB_POLL,
     UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
@@ -19,11 +19,11 @@ import {
     JobFilter,
     JobStateBranch,
     RemovePendingJobsAction,
+    RetrieveJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
-    StartJobPollAction,
     StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
@@ -105,8 +105,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [START_JOB_POLL]: {
-        accepts: (action: AnyAction): action is StartJobPollAction => action.type === START_JOB_POLL,
+    [RETRIEVE_JOBS]: {
+        accepts: (action: AnyAction): action is RetrieveJobsAction => action.type === RETRIEVE_JOBS,
         perform: (state: JobStateBranch) => ({
             ...state,
             polling: true,
