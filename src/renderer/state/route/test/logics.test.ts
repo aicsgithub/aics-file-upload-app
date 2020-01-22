@@ -76,7 +76,7 @@ describe("Route logics", () => {
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(1);
 
             // apply
             store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
@@ -86,7 +86,7 @@ describe("Route logics", () => {
             state = store.getState();
             expect(getSelectionHistory(state)).to.deep.equal({
                 ...startingSelectionHistory,
-                [Page.SelectUploadType]: 2,
+                [Page.SelectUploadType]: 1,
             });
             expect(getTemplateHistory(state)).to.deep.equal({
                 ...startingTemplateHistory,
@@ -129,7 +129,7 @@ describe("Route logics", () => {
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(1);
 
             // apply
             store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));

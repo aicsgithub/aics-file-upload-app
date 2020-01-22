@@ -1,6 +1,5 @@
 import { Menu, MenuItem } from "electron";
 import { existsSync } from "fs";
-import * as Logger from "js-logger";
 import { isEmpty, isNil } from "lodash";
 import { platform } from "os";
 import { AnyAction } from "redux";
@@ -16,6 +15,7 @@ import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
+    Logger,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
@@ -37,7 +37,7 @@ interface MenuItemWithSubMenu extends MenuItem {
 }
 
 const pagesToAllowSwitchingEnvironments = [Page.AddCustomData, Page.DragAndDrop];
-const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
+const updateAppMenu = (nextPage: Page, menu: Menu | null, logger: Logger) => {
     if (menu) {
         // have to cast here because Electron's typings for MenuItem is incomplete
         const fileMenu: MenuItemWithSubMenu = menu.items
@@ -48,19 +48,19 @@ const updateAppMenu = (nextPage: Page, menu: Menu | null) => {
             if (switchEnvironmentMenuItem) {
                 switchEnvironmentMenuItem.enabled = pagesToAllowSwitchingEnvironments.includes(nextPage);
             } else {
-                Logger.error("Could not update application menu");
+                logger.error("Could not update application menu");
             }
         } else {
-            Logger.error("Could not update application menu");
+            logger.error("Could not update application menu");
         }
     } else {
-        Logger.error("Could not update application menu");
+        logger.error("Could not update application menu");
     }
 };
 
 const selectPageLogic = createLogic({
     process: (
-        {action, getState, remote}: ReduxLogicProcessDependencies,
+        {action, getState, logger, remote}: ReduxLogicProcessDependencies,
         dispatch: ReduxLogicNextCb,
         done: ReduxLogicDoneCb
     ) => {
@@ -85,7 +85,7 @@ const selectPageLogic = createLogic({
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
         const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
-        updateAppMenu(nextPage, remote.Menu.getApplicationMenu());
+        updateAppMenu(nextPage, remote.Menu.getApplicationMenu(), logger);
 
         // going back - rewind selections, uploads & template to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {

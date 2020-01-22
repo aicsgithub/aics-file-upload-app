@@ -9,6 +9,7 @@ import { createSandbox, stub } from "sinon";
 import selections from "../";
 
 import { feedback } from "../../";
+import { SERVICE_IS_DOWN_MESSAGE, SERVICE_MIGHT_BE_DOWN_MESSAGE } from "../../../util";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
 import { addRequestToInProgress } from "../../feedback/actions";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
@@ -31,7 +32,7 @@ import {
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
 import { closeTemplateEditor, openTemplateEditor, selectBarcode } from "../actions";
-import { GENERIC_GET_WELLS_ERROR_MESSAGE, MMS_IS_DOWN_MESSAGE, MMS_MIGHT_BE_DOWN_MESSAGE } from "../logics";
+import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
     getSelectedBarcode,
@@ -509,14 +510,14 @@ describe("Selection logics", () => {
 
                 if (firstAlert) {
                     expect(firstAlert.type).to.equal(AlertType.WARN);
-                    expect(firstAlert.message).to.equal(MMS_MIGHT_BE_DOWN_MESSAGE);
+                    expect(firstAlert.message).to.equal(SERVICE_MIGHT_BE_DOWN_MESSAGE("MMS"));
                 }
 
                 expect(currentAlert).to.not.be.undefined;
 
                 if (currentAlert) {
                     expect(currentAlert.type).to.equal(AlertType.ERROR);
-                    expect(currentAlert.message).to.equal(MMS_IS_DOWN_MESSAGE);
+                    expect(currentAlert.message).to.equal(SERVICE_IS_DOWN_MESSAGE("MMS"));
                 }
             }
         });

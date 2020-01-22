@@ -6,9 +6,15 @@ import {
     startCase,
     trim,
 } from "lodash";
+import { AnyAction } from "redux";
 import { LIST_DELIMITER_SPLIT } from "../constants";
+import { API_WAIT_TIME_SECONDS } from "../state/constants";
+import { addRequestToInProgress, clearAlert, removeRequestFromInProgress, setAlert } from "../state/feedback/actions";
+import { AlertType, AsyncRequest } from "../state/feedback/types";
 import { DragAndDropFileList } from "../state/selection/types";
 import { TemplateAnnotation } from "../state/template/types";
+import { HTTP_STATUS, ReduxLogicNextCb } from "../state/types";
+import { batchActions } from "../state/util";
 
 export async function onDrop(files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> {
     if (files.length > 1) {
@@ -151,4 +157,84 @@ export function makePosixPathCompatibleWithPlatform(
         }
     }
     return path;
+}
+
+export const SERVICE_IS_DOWN_MESSAGE = (service: string) =>
+    `Could not contact server. Make sure ${service} is running.`;
+export const SERVICE_MIGHT_BE_DOWN_MESSAGE = (service: string) => `${service} might be down. Retrying request...`;
+
+/**
+ * Returns the result of a request and retries for 2 minutes while the response is a Gateway Error
+ * @param request callback that returns a promise that we may want to retry
+ * @param requestType the name of the request
+ * @param dispatch callback from redux logic process
+ * @param serviceName name of the service we're contacting
+ * @param genericError error to show in case this we do not get a bad gateway and the error message is not defined
+ * @param batchActionsFn only necessary for testing
+ */
+export function getWithRetry<T = any>(
+    request: () => Promise<T>,
+    requestType: AsyncRequest,
+    dispatch: ReduxLogicNextCb,
+    serviceName: string,
+    genericError?: string,
+    batchActionsFn: (actions: AnyAction[]) => AnyAction = batchActions
+): Promise<T> {
+
+    return new Promise(async (resolve, reject) => {
+        dispatch(addRequestToInProgress(requestType));
+        const startTime = (new Date()).getTime() / 1000;
+        let currentTime = startTime;
+        let response: T | undefined;
+        let receivedNonGatewayError = false;
+        let sentRetryAlert = false;
+        let error;
+
+        while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !response
+        && !receivedNonGatewayError) {
+            try {
+                response = await request();
+
+            } catch (e) {
+                if (e.response && e.response.status === HTTP_STATUS.BAD_GATEWAY) {
+                    if (!sentRetryAlert) {
+                        dispatch(setAlert({
+                            manualClear: true,
+                            message: SERVICE_MIGHT_BE_DOWN_MESSAGE(serviceName),
+                            type: AlertType.WARN,
+                        }));
+                        sentRetryAlert = true;
+                    }
+                } else {
+                    receivedNonGatewayError = true;
+                    error = e.message;
+                }
+            } finally {
+                currentTime = (new Date()).getTime() / 1000;
+            }
+        }
+
+        if (response) {
+            if (sentRetryAlert) {
+                dispatch(clearAlert());
+            }
+            dispatch(removeRequestFromInProgress(requestType));
+            resolve(response);
+        } else {
+            let message = genericError;
+            if (sentRetryAlert) {
+                message = SERVICE_IS_DOWN_MESSAGE(serviceName);
+            } else if (error) {
+                message = error;
+            }
+            dispatch(batchActionsFn([
+                removeRequestFromInProgress(requestType),
+                setAlert({
+                    message,
+                    type: AlertType.ERROR,
+                }),
+            ]));
+            reject(new Error(message));
+        }
+    });
 }
