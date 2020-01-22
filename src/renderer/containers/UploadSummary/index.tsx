@@ -278,7 +278,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     // Stop auto-refreshing jobs
     private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
         if (!checkIfJobsComplete || this.props.allJobsComplete) {
-            console.log("clearing")
             this.props.stopJobPoll();
         }
     }
