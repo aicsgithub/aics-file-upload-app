@@ -4,6 +4,7 @@ import { createSelector } from "reselect";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 import {
     getAnnotationTypes,
+    getForbiddenAnnotationNames,
     getNotesAnnotation,
     getTemplates,
     getWellAnnotation,
@@ -31,8 +32,14 @@ export const getTemplateDraftErrors = createSelector([
     getTemplates,
     getTemplateDraft,
     getTemplateDraftAnnotations,
+    getForbiddenAnnotationNames,
     getTemplateDraftName,
-], (allTemplates: LabkeyTemplate[], draft: TemplateDraft, annotations: AnnotationDraft[], templateName?: string) => {
+], (
+    allTemplates: LabkeyTemplate[],
+    draft: TemplateDraft,
+    annotations: AnnotationDraft[],
+    forbiddenAnnotationNames: Set<string>,
+    templateName?: string) => {
     const errors = [];
     if (!trim(templateName)) {
         errors.push("Template is missing a name");

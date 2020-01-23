@@ -11,8 +11,10 @@ import {
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
+    getAnnotations,
     getAnnotationsWithAnnotationOptions,
     getBooleanAnnotationTypeId,
+    getForbiddenAnnotationNames,
     getLookupAnnotationTypeId,
     getNotesAnnotation,
     getNumberOfFiles,
@@ -87,6 +89,40 @@ describe("Metadata selectors", () => {
                 },
             });
             expect(result).to.equal(undefined);
+        });
+    });
+
+    describe("getAnnotations", () => {
+        it("returns only annotations that are meant to be exposed in this app", () => {
+            const result = getAnnotations(nonEmptyStateForInitiatingUpload);
+            expect(result).to.be.length(3);
+        });
+        it("returns empty array if no annotations found", () => {
+            const result = getAnnotations({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotations: [],
+                },
+            });
+            expect(result).to.be.empty;
+        });
+    });
+
+    describe("getForbiddenAnnotations", () => {
+        it("returns only annotations are not meant to be exposed in this app", () => {
+            const result = getForbiddenAnnotationNames(nonEmptyStateForInitiatingUpload);
+            expect(result).to.be.length(2);
+        });
+        it("returns undefined if no annotation type has name matching BOOLEAN", () => {
+            const result = getForbiddenAnnotationNames({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotations: [],
+                },
+            });
+            expect(result).to.be.empty;
         });
     });
 
@@ -176,6 +212,7 @@ describe("Metadata selectors", () => {
             annotationId: 2,
             annotationTypeId: 3,
             description: "",
+            exposeToFileUploadApp: true,
             name: "Dropdown",
         };
         const mockAnnotation2 = {
