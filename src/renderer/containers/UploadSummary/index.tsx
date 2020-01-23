@@ -161,7 +161,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     public componentDidMount(): void {
-        this.setJobInterval();
+        this.props.retrieveJobs();
         this.timeout = setTimeout(this.clearJobInterval,
             POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
         this.props.gatherIncompleteJobNames();
@@ -202,7 +202,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                         <Button
                             size="large"
                             type="primary"
-                            onClick={this.setJobInterval}
+                            onClick={this.props.retrieveJobs}
                             className={styles.refreshButton}
                         >Refresh Jobs
                         </Button>
@@ -275,11 +275,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.props.retrieveJobs();
     }
 
-    // Auto-refresh jobs every 2 seconds for 3 minutes
-    private setJobInterval = (): void => {
-        this.props.retrieveJobs();
-    }
-
     // Stop auto-refreshing jobs
     private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
         if (!checkIfJobsComplete || this.props.allJobsComplete) {
@@ -295,13 +290,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     private cancelUpload = (): void => {
         // Start refreshing again if we aren't
-        this.setJobInterval();
+        this.props.retrieveJobs();
         this.props.cancelUpload(this.getSelectedJob());
     }
 
     private retryUpload = (): void => {
         // Start refreshing again if we aren't
-        this.setJobInterval();
+        this.props.retrieveJobs();
         this.props.retryUpload(this.getSelectedJob());
     }
 
