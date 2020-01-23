@@ -115,6 +115,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         return 0;
     }
 
+    private timeout: number | undefined;
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
@@ -161,12 +162,16 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.setJobInterval();
-        setTimeout(this.clearJobInterval, POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
+        this.timeout = setTimeout(this.clearJobInterval,
+            POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
         this.props.gatherIncompleteJobNames();
     }
 
     public componentWillUnmount(): void {
         this.clearJobInterval();
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+        }
     }
 
     public render() {
