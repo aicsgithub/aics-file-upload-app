@@ -4,6 +4,7 @@ import * as classNames from "classnames";
 import { flatten, isNil } from "lodash";
 import * as React from "react";
 
+import ImagingSessionSelector from "../../../containers/ImagingSessionSelector";
 import { Well } from "../../../state/selection/types";
 import Plate from "../../Plate";
 
@@ -78,6 +79,7 @@ class WellsFormatter extends React.Component<Props, WellsFormatterState> {
                     onCancel={this.closeModal}
                     okButtonProps={{disabled: selectedWells.length === 0}}
                 >
+                    <ImagingSessionSelector/>
                     <Plate
                         wells={wells}
                         onWellClick={this.selectWells}
