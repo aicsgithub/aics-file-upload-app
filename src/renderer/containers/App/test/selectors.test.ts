@@ -22,7 +22,6 @@ describe("App selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: true,
                         wellIds: [1, 3],
-                        wellLabels: ["A1", "B1"],
                     },
                     [filePath2]: {
                         barcode: "test_barcode",
@@ -30,7 +29,6 @@ describe("App selectors", () => {
                         shouldBeInArchive: false,
                         shouldBeInLocal: false,
                         wellIds: [4],
-                        wellLabels: ["A4"],
                     },
                 }),
             });
@@ -44,7 +42,7 @@ describe("App selectors", () => {
 
             const file2Tags = map.get(filePath2) || [];
             expect(file2Tags.length).to.equal(1);
-            expect(get(file2Tags, [0, "title"])).to.equal("A4");
+            expect(get(file2Tags, [0, "title"])).to.equal("B2");
 
             expect(get(file1Tags, [0, "color"])).to.equal(get(file2Tags, [0, "color"]));
         });
@@ -63,7 +61,6 @@ describe("App selectors", () => {
                         barcode: "test_barcode",
                         file: filePath1,
                         wellIds: [],
-                        wellLabels: [],
                         workflows: [
                             "work3",
                             "work4",
@@ -73,7 +70,6 @@ describe("App selectors", () => {
                         barcode: "test_barcode",
                         file: filePath2,
                         wellIds: [],
-                        wellLabels: [],
                         workflows: [
                             "work2",
                         ]},

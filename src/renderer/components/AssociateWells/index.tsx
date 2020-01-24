@@ -12,7 +12,6 @@ import {
     AssociateFilesAndWellsAction,
     UndoFileWellAssociationAction,
 } from "../../state/upload/types";
-import { getWellLabel } from "../../util";
 
 import FormPage from "../FormPage";
 import LabeledInput from "../LabeledInput";
@@ -128,10 +127,10 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     }
 
     private undoAssociation = (file: string): void => {
-        const { selectedWells, selectedWellLabels, wells } = this.props;
+        const { selectedWells, wells } = this.props;
         if (wells) {
             const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
-            this.props.undoAssociation(file, wellIds, selectedWellLabels);
+            this.props.undoAssociation(file, wellIds);
         }
     }
 
@@ -146,9 +145,8 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
 
         if (this.canAssociate() && wells) {
             const { selectedFiles, selectedWells } = this.props;
-            const wellLabels = selectedWells.map((well) => getWellLabel(well));
             const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
-            this.props.associateFilesAndWells(selectedFiles, wellIds, wellLabels);
+            this.props.associateFilesAndWells(selectedFiles, wellIds);
         }
     }
 

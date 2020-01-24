@@ -183,8 +183,8 @@ const convertToUploadJobRow = (
 // there will be metadata for files, each scene in a file, each channel in a file, and every combo
 // of scenes + channels
 const getFileToMetadataMap = createSelector([
-    getUpload,
-], (uploads: UploadStateBranch): { [file: string]: UploadMetadataWithDisplayFields[] } => {
+    getUploadWithCalculatedData,
+], (uploads: DisplayUploadStateBranch): { [file: string]: UploadMetadataWithDisplayFields[] } => {
     return groupBy(values(uploads), ({file}: UploadMetadataWithDisplayFields) => file);
 });
 
@@ -332,7 +332,7 @@ export const getValidationErrorsMap = createSelector([
     }
 
     const result: any = {};
-    forEach(upload, (metadata: UploadMetadataWithDisplayFields, key: string) => {
+    forEach(upload, (metadata: UploadMetadata, key: string) => {
         const annotationToErrorMap: {[annotation: string]: string} = {};
         forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);

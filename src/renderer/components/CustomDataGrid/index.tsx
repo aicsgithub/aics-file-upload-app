@@ -23,7 +23,7 @@ import {
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
-import { getWellLabel, onDrop } from "../../util";
+import { onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
@@ -449,9 +449,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private saveWellsByRow = (tableRow: UploadJobTableRow) => {
         return (wells: Well[]) => {
-            const wellLabels: string[] = wells.map(({col, row}) => getWellLabel({col, row}));
             const wellIds = wells.map((w) => w.wellId);
-            this.saveByRow(wellLabels, "wellLabels", tableRow);
             this.saveByRow(wellIds, "wellIds", tableRow);
         };
     }

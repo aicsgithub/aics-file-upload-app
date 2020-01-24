@@ -42,7 +42,7 @@ describe("Upload logics", () => {
             const file2 = "/path2";
             const wellId = 1;
 
-            store.dispatch(associateFilesAndWells(["/path1", "/path2"], [wellId], ["A1"]));
+            store.dispatch(associateFilesAndWells(["/path1", "/path2"], [wellId]));
             expect(getSelectedFiles(store.getState())).to.be.empty;
 
             const upload = getUpload(store.getState());
@@ -61,7 +61,7 @@ describe("Upload logics", () => {
             // before
             const state = store.getState();
             expect(getAppliedTemplateId(state)).to.be.undefined;
-            store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
+            store.dispatch(associateFilesAndWells([file1, file2], [wellId]));
 
             // apply
             store.dispatch(applyTemplate(1));
@@ -216,7 +216,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: undefined,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
             }
@@ -248,7 +247,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
             }
@@ -283,7 +281,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
 
@@ -299,7 +296,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
             }
@@ -313,14 +309,12 @@ describe("Upload logics", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey(file, 1)]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                 }),
             }, mockReduxLogicDeps);

@@ -119,7 +119,6 @@ describe("Template Logics", () => {
                         barcode: "abc",
                         file: key,
                         wellIds: [1, 2],
-                        wellLabels: ["A1", "A2"],
                     },
                 }),
             });

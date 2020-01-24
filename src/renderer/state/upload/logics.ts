@@ -83,7 +83,7 @@ const applyTemplateLogic = createLogic({
         map(uploads,  (upload: UploadMetadata, filepath: string) => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
-            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, wellLabels, workflows } = upload;
+            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
             action.payload.uploads[getUploadRowKey(filepath)] = {
                 barcode,
                 file: upload.file,
@@ -92,7 +92,6 @@ const applyTemplateLogic = createLogic({
                 shouldBeInLocal,
                 templateId,
                 wellIds,
-                wellLabels,
                 workflows,
             };
         });
@@ -305,7 +304,6 @@ const updateScenesLogic = createLogic({
             update[fileRowKey] = {
                 ...uploads[fileRowKey],
                 wellIds: [],
-                wellLabels: [],
             };
         }
 
@@ -322,7 +320,6 @@ const updateScenesLogic = createLogic({
                     notes: undefined,
                     positionIndex: undefined,
                     wellIds: [],
-                    wellLabels: [],
                     workflows,
                     ...additionalAnnotations,
                 };
@@ -343,7 +340,6 @@ const updateScenesLogic = createLogic({
                     notes: undefined,
                     positionIndex,
                     wellIds: [],
-                    wellLabels: [],
                     workflows,
                     ...additionalAnnotations,
                 };
@@ -363,7 +359,6 @@ const updateScenesLogic = createLogic({
                         notes: undefined,
                         positionIndex,
                         wellIds: [],
-                        wellLabels: [],
                         workflows,
                         ...additionalAnnotations,
                     };

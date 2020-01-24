@@ -7,7 +7,13 @@ import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from ".
 import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
-import { ImagingSessionIdToWellsMap, SelectionStateBranch, Well, Workflow } from "../selection/types";
+import {
+    ImagingSessionIdToPlateMap,
+    ImagingSessionIdToWellsMap,
+    SelectionStateBranch,
+    Well,
+    Workflow,
+} from "../selection/types";
 import {
     Annotation,
     AnnotationDraft,
@@ -113,6 +119,37 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     };
 };
 
+export const mockWell: Well = {
+    cellPopulations: [],
+    col: 0,
+    plateId: 1,
+    row: 0,
+    solutions: [],
+    wellId: 1,
+};
+
+export const mockWells: ImagingSessionIdToWellsMap = {
+    0: [
+        mockWell,
+        {...mockWell, col: 1, row: 0, wellId: 2},
+        {...mockWell, col: 1, row: 1, wellId: 4},
+        {...mockWell, col: 0, row: 1, wellId: 3},
+    ],
+};
+
+export const mockPlate: ImagingSessionIdToPlateMap = {
+    0: {
+        ...mockAuditInfo,
+        barcode: "abc",
+        comments: "",
+        imagingSessionId: undefined,
+        plateGeometryId: 1,
+        plateId: 1,
+        plateStatusId: 1,
+        seededOn: undefined,
+    },
+};
+
 export const mockSelection: SelectionStateBranch = {
     annotation: "Dataset",
     barcode: undefined,
@@ -122,14 +159,14 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
-    plate: {},
+    plate: mockPlate,
     selectedWells: [],
     selectedWorkflows: [],
     settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     user: "fake_user",
-    wells: {},
+    wells: mockWells,
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -140,7 +177,6 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInArchive: true,
         shouldBeInLocal: true,
         wellIds: [1],
-        wellLabels: ["A1"],
     },
     [getUploadRowKey("/path/to/file2")]: {
         barcode: "1235",
@@ -149,7 +185,6 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInArchive: false,
         shouldBeInLocal: true,
         wellIds: [2],
-        wellLabels: ["A2"],
     },
     [getUploadRowKey("/path/to/file3")]: {
         barcode: "1236",
@@ -158,7 +193,6 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInArchive: true,
         shouldBeInLocal: false,
         wellIds: [1, 2, 3],
-        wellLabels: ["A1", "A2", "B1"],
     },
 };
 
@@ -417,21 +451,6 @@ export const mockUnits: Unit[] = [
         unitsId: 4,
     },
 ];
-
-export const mockWell: Well = {
-    cellPopulations: [],
-    col: 0,
-    plateId: 1,
-    row: 0,
-    solutions: [],
-    wellId: 1,
-};
-
-export const mockWells: ImagingSessionIdToWellsMap = {0: [
-    {...mockWell, col: 1, row: 0, wellId: 2},
-    {...mockWell, col: 1, row: 1, wellId: 4},
-    {...mockWell, col: 0, row: 1, wellId: 3},
-]};
 
 export const mockSelectedWells: GridCell[] = [
     new GridCell(0, 0),

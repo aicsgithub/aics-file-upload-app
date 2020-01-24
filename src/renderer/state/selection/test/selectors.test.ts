@@ -13,7 +13,6 @@ import {
     getSelectedImagingSession,
     getSelectedWellLabels,
     getSelectedWellsWithData,
-    getWellIdToWellLabelMap,
     getWellsWithModified,
     getWellsWithUnitsAndModified,
     NO_UNIT,
@@ -176,22 +175,6 @@ describe("Selections selectors", () => {
                 expect(well.solutions[0].volumeUnitDisplay).to.equal("unit1");
                 expect(well.solutions[0].solutionLot.concentrationUnitsDisplay).to.equal("unit2");
             }
-        });
-    });
-
-    describe("getWellIdToWellLabelMap", () => {
-        it("returns map of wellIds to their labels", () => {
-            const map = getWellIdToWellLabelMap({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    wells: mockWells,
-                }),
-            });
-            expect(map.get(1)).to.equal("A1");
-            expect(map.get(2)).to.equal("A2");
-            expect(map.get(3)).to.equal("B1");
-            expect(map.get(4)).to.equal("B2");
         });
     });
 

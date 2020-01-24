@@ -18,7 +18,6 @@ export interface UploadMetadata {
     shouldBeInLocal?: boolean;
     templateId?: number;
     wellIds: number[];
-    wellLabels: string[];
     workflows?: string[];
     [genericKey: string]: any;
 }
@@ -107,7 +106,6 @@ export interface AssociateFilesAndWellsAction {
         barcode: string,
         fullPaths: string[],
         wellIds: number[],
-        wellLabels: string[]
     };
     type: string;
 }
@@ -124,7 +122,6 @@ export interface UndoFileWellAssociationAction {
     payload: {
         fullPath: string,
         wellIds: number[],
-        wellLabels: string[]
     };
     type: string;
 }

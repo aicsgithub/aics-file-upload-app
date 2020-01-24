@@ -114,17 +114,6 @@ export const getWellsWithUnitsAndModified = createSelector([
     }));
 });
 
-export const getWellIdToWellLabelMap = createSelector([
-    getWellsForSelectedPlate,
-], (wells: WellResponse[]) => {
-    const result = new Map<number, string>();
-    wells.forEach(({ wellId, col, row }: WellResponse) => {
-        result.set(wellId, getWellLabel({row, col}));
-    });
-
-    return result;
-});
-
 export const getSelectedWellLabels = createSelector([
     getSelectedWells,
 ], (wells: AicsGridCell[]): string[] => {
