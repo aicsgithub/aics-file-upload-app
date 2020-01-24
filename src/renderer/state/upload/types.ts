@@ -23,6 +23,14 @@ export interface UploadMetadata {
     [genericKey: string]: any;
 }
 
+export interface DisplayUploadStateBranch {
+    [fullPath: string]: UploadMetadataWithDisplayFields;
+}
+
+export interface UploadMetadataWithDisplayFields extends UploadMetadata {
+    wellLabels: string[];
+}
+
 export interface MMSAnnotationValueRequest {
     annotationId: number;
     channelId?: number;

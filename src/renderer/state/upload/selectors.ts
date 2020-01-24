@@ -10,6 +10,7 @@ import {
     keys,
     omit,
     pick,
+    reduce,
     some,
     uniq,
     values,
@@ -20,16 +21,19 @@ import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
 import { LIST_DELIMITER_JOIN } from "../../constants";
-import { titleCase } from "../../util";
+import { getWellLabel, titleCase } from "../../util";
+import { getImagingSessions } from "../metadata/selectors";
+import { ImagingSession } from "../metadata/types";
 
-import { getExpandedUploadJobRows } from "../selection/selectors";
+import { getAllPlates, getAllWells, getExpandedUploadJobRows } from "../selection/selectors";
 
-import { ExpandedRows } from "../selection/types";
+import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
 import {
+    DisplayUploadStateBranch,
     FilepathToBoolean,
     FileType,
     MMSAnnotationValueRequest,
@@ -79,6 +83,55 @@ const standardizeUploadMetadata = (metadata: UploadMetadata) => {
 
     return result;
 };
+
+// todo description
+export const getWellLabelAndImagingSessionName = (
+    wellId: number,
+    imagingSessions: ImagingSession[],
+    selectedPlates: PlateResponse[],
+    wells: WellResponse[]
+) => {
+    const well = wells.find((w) => w.wellId === wellId);
+    let label = "ERROR";
+    if (well) {
+        label = getWellLabel({col: well.col, row: well.row});
+        const plate = selectedPlates.find((p) => p.plateId === well.plateId);
+
+        if (plate && plate.imagingSessionId) {
+            const imagingSession = imagingSessions
+                .find((is) => is.imagingSessionId === plate.imagingSessionId);
+            if (imagingSession) {
+                label += `@${imagingSession.name}`;
+            }
+        }
+    }
+    return label;
+};
+
+export const getUploadWithCalculatedData = createSelector([
+    getUpload,
+    getImagingSessions,
+    getAllPlates,
+    getAllWells,
+], (
+    uploads: UploadStateBranch,
+    imagingSessions: ImagingSession[],
+    selectedPlates: PlateResponse[],
+    wells: WellResponse[]
+): DisplayUploadStateBranch => {
+    return reduce(uploads, (accum: DisplayUploadStateBranch, metadata: UploadMetadata, key: string) => {
+        const { wellIds } = metadata;
+        const wellLabels = wellIds.map((wellId: number) =>
+            getWellLabelAndImagingSessionName(wellId, imagingSessions, selectedPlates, wells));
+        return {
+            ...accum,
+            [key]: {
+                ...metadata,
+                wellLabels,
+            },
+        };
+    }, {});
+});
 
 const convertToUploadJobRow = (
     metadata: UploadMetadata,
