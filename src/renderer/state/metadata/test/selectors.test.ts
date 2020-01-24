@@ -110,11 +110,11 @@ describe("Metadata selectors", () => {
     });
 
     describe("getForbiddenAnnotations", () => {
-        it("returns only annotations are not meant to be exposed in this app", () => {
+        it("returns only annotations that are not meant to be exposed in this app", () => {
             const result = getForbiddenAnnotationNames(nonEmptyStateForInitiatingUpload);
             expect(result).to.be.length(2);
         });
-        it("returns undefined if no annotation type has name matching BOOLEAN", () => {
+        it("returns empty array if no annotations found", () => {
             const result = getForbiddenAnnotationNames({
                 ...mockState,
                 metadata: {
