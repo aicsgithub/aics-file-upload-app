@@ -71,13 +71,13 @@ export const mockNotesAnnotation: Annotation = {
     name: "Notes",
 };
 
-const mockFileExplorerOnlyAnnotation: Annotation = {
+const mockUnusableStructureAnnotation: Annotation = {
     ...mockAuditInfo,
     annotationId: 3,
     annotationTypeId: 1,
     description: "Other information",
     exposeToFileUploadApp: false,
-    name: "Notes",
+    name: "Structure",
 };
 
 export const mockMMSTemplate: Template = {
@@ -105,7 +105,7 @@ export const mockAnnotations = [
     mockWellAnnotation,
     mockWorkflowAnnotation,
     mockNotesAnnotation,
-    mockFileExplorerOnlyAnnotation,
+    mockUnusableStructureAnnotation,
 ];
 
 export const mockLookupOptions = [
