@@ -1,5 +1,10 @@
 # Version Notes
 
+## 1.0.22 (1/24/20):
+- Bugfix: Fix app hang issues
+- Bugfix: Automatically retry failed GET requests that may be due to service deployments
+
+
 ## 1.0.21:
 - Bugfix: Fix permissions issues for files copied from isilon
 - Bugfix: Update status bar when an upload completes successfully
