@@ -1,12 +1,8 @@
-import { Card, Icon, Radio, Select } from "antd";
-import { RadioChangeEvent } from "antd/es/radio";
+import { Card, Icon, Select } from "antd";
 import { SelectValue } from "antd/es/select";
 import classNames from "classnames";
-import { get } from "lodash";
 import * as React from "react";
 import { BarcodeSelectorOption } from "../../../containers/SelectUploadType";
-
-import { ImagingSession } from "../../../state/metadata/types";
 
 import LabeledInput from "../../LabeledInput";
 import SelectedForm from "../SelectedForm";
@@ -17,14 +13,10 @@ interface Props {
     barcode?: string;
     barcodeSearchResults: BarcodeSelectorOption[];
     loadingBarcodes: boolean;
-    imagingSessionId?: number | null;
-    imagingSessionIds: Array<number | null>;
-    imagingSessions: ImagingSession[];
     isSelected: boolean;
     onBarcodeChange: (option: SelectValue) => void;
     onBarcodeInput: (input: string) => void;
     onCancel: () => void;
-    onImagingSessionChanged: (event: RadioChangeEvent) => void;
 }
 
 /*
@@ -35,45 +27,11 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
                                                               barcode,
                                                               barcodeSearchResults,
                                                               loadingBarcodes,
-                                                              imagingSessionId,
-                                                              imagingSessionIds,
-                                                              imagingSessions,
                                                               isSelected,
                                                               onBarcodeChange,
                                                               onBarcodeInput,
                                                               onCancel,
-                                                              onImagingSessionChanged,
                                                            }: Props) => {
-    const getImagingSessionName = (id?: number | null) => {
-        if (id == null) {
-            return "None";
-        }
-
-        const matchingImagingSession = imagingSessions.find((i) => i.imagingSessionId === id);
-        return get(matchingImagingSession, ["name"], `Imaging Session Id: ${id}`);
-    };
-
-    const renderImagingSessionInput = (): JSX.Element | null => {
-        if (imagingSessionIds.length < 2) {
-            return null;
-        }
-        if (isSelected) {
-            return <p>Imaging Session: {getImagingSessionName(imagingSessionId)}</p>;
-        }
-
-        return (
-            <LabeledInput label="Which Imaging Session?" className={styles.imagingSessions}>
-                <Radio.Group buttonStyle="solid" value={imagingSessionId} onChange={onImagingSessionChanged}>
-                    {imagingSessionIds.map((id) => (
-                        <Radio.Button className={styles.imagingSessionOption} value={id || "None"} key={id || "None"}>
-                            {getImagingSessionName(id)}
-                        </Radio.Button>
-                    ))}
-                </Radio.Group>
-            </LabeledInput>
-        );
-    };
-
     return (
         <Card
             hoverable={true}
@@ -87,7 +45,6 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
             {isSelected ? (
                 <>
                     <p>Plate Barcode: {barcode}</p>
-                    {renderImagingSessionInput()}
                     <SelectedForm onCancel={onCancel} />
                 </>
             ) : (
@@ -111,7 +68,6 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
                             <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
                         ))}
                     </Select>
-                    {renderImagingSessionInput()}
                 </LabeledInput>
             )}
         </Card>

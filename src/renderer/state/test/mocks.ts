@@ -7,7 +7,7 @@ import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from ".
 import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
-import { SelectionStateBranch, Well, Workflow } from "../selection/types";
+import { ImagingSessionIdToWellsMap, SelectionStateBranch, Well, Workflow } from "../selection/types";
 import {
     Annotation,
     AnnotationDraft,
@@ -122,13 +122,14 @@ export const mockSelection: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
+    plate: {},
     selectedWells: [],
     selectedWorkflows: [],
     settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     user: "fake_user",
-    wells: [],
+    wells: {},
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -425,12 +426,12 @@ export const mockWell: Well = {
     wellId: 1,
 };
 
-export const mockWells: Well[] = [
+export const mockWells: ImagingSessionIdToWellsMap = {0: [
     {...mockWell, col: 1, row: 0, wellId: 2},
     mockWell,
     {...mockWell, col: 1, row: 1, wellId: 4},
     {...mockWell, col: 0, row: 1, wellId: 3},
-];
+]};
 
 export const mockSelectedWells: GridCell[] = [
     new GridCell(0, 0),

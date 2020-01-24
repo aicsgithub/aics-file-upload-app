@@ -19,6 +19,7 @@ import {
     SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
+    SELECT_IMAGING_SESSION_ID,
     SELECT_USER,
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
@@ -39,16 +40,18 @@ import {
     DeselectFilesAction,
     DragAndDropFileList,
     GetFilesInFolderAction,
+    ImagingSessionIdToPlateMap,
+    ImagingSessionIdToWellsMap,
     JumpToPastSelectionAction,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     OpenOpenTemplateModalAction,
     OpenSettingsEditorAction,
     OpenTemplateEditorAction,
-    PlateResponse,
     SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
+    SelectImagingSessionIdAction,
     SelectUserAction,
     SelectWellsAction,
     SelectWorkflowPathAction,
@@ -59,7 +62,6 @@ import {
     ToggleFolderTreeAction,
     UpdateStagedFilesAction,
     UploadFile,
-    WellResponse,
     Workflow,
 } from "./types";
 
@@ -119,11 +121,10 @@ export function getFilesInFolder(folder: UploadFile): GetFilesInFolderAction {
 
 export function selectBarcode(
     barcode: string,
-    imagingSessionIds: number[] = [],
-    imagingSessionId?: number
+    imagingSessionIds: Array<number | null> = [null]
 ): SelectBarcodeAction {
     return {
-        payload: { barcode, imagingSessionId, imagingSessionIds },
+        payload: { barcode, imagingSessionIds },
         type: SELECT_BARCODE,
     };
 }
@@ -141,14 +142,14 @@ export function selectWorkflows(workflows: Workflow[]): SelectWorkflowsAction {
     };
 }
 
-export function setPlate(plate: PlateResponse): SetPlateAction {
+export function setPlate(plate: ImagingSessionIdToPlateMap): SetPlateAction {
     return {
         payload: plate,
         type: SET_PLATE,
     };
 }
 
-export function setWells(wells: WellResponse[]): SetWellsAction {
+export function setWells(wells: ImagingSessionIdToWellsMap): SetWellsAction {
     return {
         payload: wells,
         type: SET_WELLS,
@@ -236,5 +237,12 @@ export function toggleExpandedUploadJobRow(rowKey: string): ToggleExpandedUpload
 export function toggleFolderTree(): ToggleFolderTreeAction {
     return {
         type: TOGGLE_FOLDER_TREE,
+    };
+}
+
+export function selectImagingSessionId(imagingSessionId: number): SelectImagingSessionIdAction {
+    return {
+        payload: imagingSessionId,
+        type: SELECT_IMAGING_SESSION_ID,
     };
 }

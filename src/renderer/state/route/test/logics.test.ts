@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
-import { selectBarcode } from "../../selection/actions";
+import { selectWorkflowPath } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
 import { createMockReduxStore } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
@@ -72,11 +72,11 @@ describe("Route logics", () => {
             expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
             expect(getUploadHistory(state)).to.equal(startingUploadHistory);
 
-            store.dispatch(selectBarcode("12345"));
+            store.dispatch(selectWorkflowPath());
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(1);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
 
             // apply
             store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
@@ -86,7 +86,7 @@ describe("Route logics", () => {
             state = store.getState();
             expect(getSelectionHistory(state)).to.deep.equal({
                 ...startingSelectionHistory,
-                [Page.SelectUploadType]: 1,
+                [Page.SelectUploadType]: 2,
             });
             expect(getTemplateHistory(state)).to.deep.equal({
                 ...startingTemplateHistory,
@@ -125,11 +125,11 @@ describe("Route logics", () => {
                     view: Page.SelectUploadType,
                 },
             });
-            store.dispatch(selectBarcode("12345"));
+            store.dispatch(selectWorkflowPath());
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(1);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
 
             // apply
             store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));

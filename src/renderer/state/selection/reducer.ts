@@ -26,6 +26,7 @@ import {
     SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
+    SELECT_IMAGING_SESSION_ID,
     SELECT_METADATA,
     SELECT_USER,
     SELECT_WELLS,
@@ -50,6 +51,7 @@ import {
     SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
+    SelectImagingSessionIdAction,
     SelectionStateBranch,
     SelectMetadataAction,
     SelectUserAction,
@@ -74,13 +76,14 @@ export const initialState: SelectionStateBranch = {
     imagingSessionId: undefined,
     imagingSessionIds: [],
     openTemplateModalVisible: false,
+    plate: {},
     selectedWells: [],
     selectedWorkflows: [],
     settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     user: userInfo().username,
-    wells: [],
+    wells: {},
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -175,13 +178,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             stagedFiles: [],
         }),
     },
-    [SET_WELLS]: {
-        accepts: (action: AnyAction): action is SetWellsAction => action.type === SET_WELLS,
-        perform: (state: SelectionStateBranch, action: SetWellsAction) => ({
-            ...state,
-            wells: action.payload,
-        }),
-    },
     [SELECT_WELLS]: {
         accepts: (action: AnyAction): action is SelectWellsAction => action.type === SELECT_WELLS,
         perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
@@ -248,6 +244,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             folderTreeOpen: !state.folderTreeOpen,
+        }),
+    },
+    [SELECT_IMAGING_SESSION_ID]: {
+        accepts: (action: AnyAction): action is SelectImagingSessionIdAction =>
+            action.type === SELECT_IMAGING_SESSION_ID,
+        perform: (state: SelectionStateBranch, action: SelectImagingSessionIdAction) => ({
+            ...state,
+            imagingSessionId: action.payload,
         }),
     },
 };

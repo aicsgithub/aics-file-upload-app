@@ -70,7 +70,7 @@ describe("Selections selectors", () => {
                 ...mockState.selection,
                 present: {
                     ...mockState.selection.present,
-                    wells: [mockWell],
+                    wells: {0: [mockWell]},
                 },
             },
         };
@@ -87,10 +87,10 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [{
+                    wells: {0: [{
                         ...mockEmptyWell,
                         cellPopulations: [mockCellPopulation],
-                    }],
+                    }]},
                 }),
             });
 
@@ -104,10 +104,10 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [{
+                    wells: {0: [{
                         ...mockEmptyWell,
                         solutions: [mockSolution],
-                    }],
+                    }]},
                 }),
             });
 
@@ -122,7 +122,7 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [mockEmptyWell],
+                    wells: {0: [mockEmptyWell]},
                 }),
             });
 

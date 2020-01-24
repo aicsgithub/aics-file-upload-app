@@ -1,6 +1,5 @@
 import { Col, Row } from "antd";
 import { SelectValue } from "antd/es/select";
-import { RadioChangeEvent } from "antd/lib/radio";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
 import { debounce } from "lodash";
@@ -23,14 +22,12 @@ import {
 } from "../../state/metadata/actions";
 import {
     getBarcodePrefixes,
-    getImagingSessions,
     getUniqueBarcodeSearchResults,
 } from "../../state/metadata/selectors";
 import {
     BarcodePrefix,
     CreateBarcodeAction,
     GetBarcodeSearchResultsAction,
-    ImagingSession,
 } from "../../state/metadata/types";
 import { goBack, goForward } from "../../state/route/actions";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
@@ -40,7 +37,6 @@ import {
 } from "../../state/selection/actions";
 import {
     getSelectedBarcode,
-    getSelectedImagingSessionId,
     getSelectedImagingSessionIds
 } from "../../state/selection/selectors";
 import {
@@ -71,15 +67,10 @@ interface SelectUploadTypeProps {
     getBarcodeSearchResults: ActionCreator<GetBarcodeSearchResultsAction>;
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
-    imagingSessions: ImagingSession[];
     loadingBarcodes: boolean;
     saveInProgress: boolean;
     selectBarcode: ActionCreator<SelectBarcodeAction>;
     selectedBarcode?: string;
-    // undefined means that the user did not select an imaging session id. null means that the user chose
-    // a plate without an imaging session id (when other imaging sessions were available)
-    selectedImagingSessionId?: number | null;
-    // all imaging session ids that are associated with the selectedBarcode
     selectedImagingSessionIds: Array<number | null>;
     selectWorkflowPath: ActionCreator<SelectWorkflowPathAction>;
     setAlert: ActionCreator<SetAlertAction>;
@@ -88,7 +79,6 @@ interface SelectUploadTypeProps {
 interface SelectUploadTypeState {
     barcode?: string;
     barcodePrefixId?: number;
-    imagingSessionId?: number | null;
     imagingSessionIds: Array<number | null>;
     path?: Path;
 }
@@ -107,7 +97,6 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
         super(props);
         this.state = {
             barcode: props.selectedBarcode,
-            imagingSessionId: props.selectedImagingSessionId,
             imagingSessionIds: props.selectedImagingSessionIds,
             path: props.selectedBarcode ? Path.EnterBarcode : undefined,
         };
@@ -127,15 +116,12 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
             barcodePrefixes,
             barcodeSearchResults,
             className,
-            imagingSessions,
             loadingBarcodes,
             saveInProgress,
         } = this.props;
         const {
             barcode,
             barcodePrefixId,
-            imagingSessionId,
-            imagingSessionIds,
         } = this.state;
         return (
             <FormPage
@@ -153,13 +139,9 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
                         <EnterBarcodeCard
                             barcode={barcode}
                             barcodeSearchResults={barcodeSearchResults}
-                            imagingSessionId={imagingSessionId}
-                            imagingSessionIds={imagingSessionIds}
-                            imagingSessions={imagingSessions}
                             loadingBarcodes={loadingBarcodes}
                             onBarcodeChange={this.onBarcodeChange}
                             onBarcodeInput={this.onBarcodeInput}
-                            onImagingSessionChanged={this.onImagingSessionChanged}
                             isSelected={this.state.path === Path.EnterBarcode}
                             onCancel={this.resetAndReplaceState}
                         />
@@ -194,15 +176,10 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
             replacementState = {
                 barcode: value as string,
                 imagingSessionIds,
-                path: imagingSessionIds.length > 1 ? undefined : Path.EnterBarcode,
+                path: Path.EnterBarcode,
             };
         }
         this.resetAndReplaceState(replacementState);
-    }
-
-    private onImagingSessionChanged = (event: RadioChangeEvent) => {
-        const imagingSessionId = event.target.value;
-        this.setState({ imagingSessionId, path: Path.EnterBarcode });
     }
 
     private setBarcodePrefixOption = (barcodePrefixId?: number | null ) => {
@@ -222,7 +199,6 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
         this.setState({
             barcode: undefined,
             barcodePrefixId: undefined,
-            imagingSessionId: undefined,
             imagingSessionIds: [],
             path: undefined,
             ...replacementState,
@@ -231,10 +207,10 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
 
     // Depending on the path chosen we need to cause a different action to be triggered
     private saveAndContinue(): void {
-        const { barcode, barcodePrefixId, imagingSessionId, imagingSessionIds, path } = this.state;
+        const { barcode, barcodePrefixId, imagingSessionIds, path } = this.state;
         switch (path) {
             case Path.EnterBarcode:
-                this.props.selectBarcode(barcode, imagingSessionIds, imagingSessionId);
+                this.props.selectBarcode(barcode, imagingSessionIds);
                 break;
             case Path.CreateBarcode:
                 const barcodePrefix = this.props.barcodePrefixes.find((option) => option.prefixId === barcodePrefixId);
@@ -258,11 +234,9 @@ function mapStateToProps(state: State) {
     return {
         barcodePrefixes: getBarcodePrefixes(state),
         barcodeSearchResults: getUniqueBarcodeSearchResults(state),
-        imagingSessions: getImagingSessions(state),
         loadingBarcodes: getRequestsInProgressContains(state, AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.GET_PLATE),
         selectedBarcode: getSelectedBarcode(state),
-        selectedImagingSessionId: getSelectedImagingSessionId(state),
         selectedImagingSessionIds: getSelectedImagingSessionIds(state),
     };
 }

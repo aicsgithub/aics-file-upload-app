@@ -30,7 +30,10 @@ export default class MMSClient extends BaseServiceClient {
      * @param imagingSessionId id of imaging session
      */
     public async getPlate(barcode: string, imagingSessionId?: number): Promise<GetPlateResponse> {
-        const url = `/1.0/plate/query?barcode=${barcode}`;
+        let url = `/1.0/plate/query?barcode=${barcode}`;
+        if (imagingSessionId) {
+            url += `&imagingSessionId=${imagingSessionId}`;
+        }
         const response = await this.httpClient.get(url);
         return response.data[0];
     }

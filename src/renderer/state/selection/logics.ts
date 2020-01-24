@@ -24,11 +24,11 @@ import {
 } from "../types";
 import { batchActions, getActionFromBatch } from "../util";
 
-import { setPlate, setWells, stageFiles, updateStagedFiles } from "./actions";
+import { selectImagingSessionId, setPlate, setWells, stageFiles, updateStagedFiles } from "./actions";
 import { GET_FILES_IN_FOLDER, LOAD_FILES, OPEN_FILES, SELECT_BARCODE, SELECT_WORKFLOW_PATH } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
 import { getStagedFiles } from "./selectors";
-import { DragAndDropFileList, UploadFile } from "./types";
+import { DragAndDropFileList, GetPlateResponse, PlateResponse, UploadFile, WellResponse } from "./types";
 
 const stat = promisify(fsStat);
 
@@ -146,13 +146,15 @@ const getFilesInFolderLogic = createLogic({
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 
 const selectBarcodeLogic = createLogic({
-    process: async ({ action, getState, logger, mmsClient, remote }: ReduxLogicProcessDependencies,
+    process: async ({ action, getState, labkeyClient, logger, mmsClient, remote }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const { barcode, imagingSessionId } = action.payload;
-        const request = () => mmsClient.getPlate(barcode, imagingSessionId);
+        const { barcode, imagingSessionIds } = action.payload;
+        const request = (): Promise<GetPlateResponse[]> => Promise.all(
+            imagingSessionIds.map((imagingSessionId: number) => mmsClient.getPlate(barcode, imagingSessionId))
+        );
 
         try {
-            const { plate, wells } = await getWithRetry(
+            const platesAndWells: GetPlateResponse[] = await getWithRetry(
                 request,
                 AsyncRequest.GET_PLATE,
                 dispatch,
@@ -160,9 +162,19 @@ const selectBarcodeLogic = createLogic({
                 GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode)
             );
 
+            const imagingSessionIdToPlate: {[imagingSessionId: number]: PlateResponse} = {};
+            const imagingSessionIdToWells: {[imagingSessionId: number]: WellResponse[]} = {};
+            imagingSessionIds.forEach((imagingSessionId: number, i: number) => {
+                imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
+                const { plate, wells } = platesAndWells[i];
+                imagingSessionIdToPlate[imagingSessionId] = plate;
+                imagingSessionIdToWells[imagingSessionId] = wells;
+            });
+
             const actions = [
-                setPlate(plate),
-                setWells(wells),
+                selectImagingSessionId(imagingSessionIds[0]),
+                setPlate(imagingSessionIdToPlate),
+                setWells(imagingSessionIdToWells),
                 removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                 associateByWorkflow(false),
                 receiveMetadata({barcodeSearchResults: []}),

@@ -9,16 +9,18 @@ import { getImagingSessions, getUnits } from "../metadata/selectors";
 import { ImagingSession, Unit } from "../metadata/types";
 import { State } from "../types";
 import {
+    ImagingSessionIdToPlateMap,
+    ImagingSessionIdToWellsMap,
+    PlateResponse,
     Solution,
     SolutionLot,
     Well,
-    WellResponse
+    WellResponse,
 } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
-export const getSelectedPlateId = (state: State) =>
-    state.selection.present.plate && state.selection.present.plate.plateId;
+export const getSelectedPlates = (state: State) => state.selection.present.plate;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getStagedFiles = (state: State) => state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
@@ -38,8 +40,28 @@ export const getSettingsEditorVisible = (state: State) => state.selection.presen
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
 
-export const getWellsWithModified = createSelector([
+export const getSelectedPlate = createSelector([
+    getSelectedPlates,
+    getSelectedImagingSessionId,
+], (imagingSessionIdToPlate: ImagingSessionIdToPlateMap, selectedImagingSessionId?: number) => {
+    selectedImagingSessionId = !selectedImagingSessionId ? 0 : selectedImagingSessionId;
+    return imagingSessionIdToPlate[selectedImagingSessionId];
+});
+
+export const getSelectedPlateId = createSelector([
+    getSelectedPlate,
+], (selectedPlate?: PlateResponse) => selectedPlate ? selectedPlate.plateId : undefined);
+
+export const getWellsForSelectedPlate = createSelector([
     getWells,
+    getSelectedImagingSessionId,
+], (imagingSessionIdToWells: ImagingSessionIdToWellsMap, selectedImagingSessionId?: number) => {
+    selectedImagingSessionId = !selectedImagingSessionId ? 0 : selectedImagingSessionId;
+    return imagingSessionIdToWells[selectedImagingSessionId] || [];
+});
+
+export const getWellsWithModified = createSelector([
+    getWellsForSelectedPlate,
 ], (wells: WellResponse[]): Well[][] => {
     if (!wells || wells.length === 0) {
         return [];
@@ -91,7 +113,7 @@ export const getWellsWithUnitsAndModified = createSelector([
 });
 
 export const getWellIdToWellLabelMap = createSelector([
-    getWells,
+    getWellsForSelectedPlate,
 ], (wells: WellResponse[]) => {
     const result = new Map<number, string>();
     wells.forEach(({ wellId, col, row }: WellResponse) => {

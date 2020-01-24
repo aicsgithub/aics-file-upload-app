@@ -1,10 +1,13 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { Tabs } from "antd";
+import { Radio, Tabs } from "antd";
+import { RadioChangeEvent } from "antd/lib/radio";
+import { get } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
+import { ImagingSession } from "../../state/metadata/types";
 
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
-import { SelectWellsAction, Well } from "../../state/selection/types";
+import { SelectImagingSessionIdAction, SelectWellsAction, Well } from "../../state/selection/types";
 import {
     AssociateFilesAndWellsAction,
     UndoFileWellAssociationAction,
@@ -12,6 +15,7 @@ import {
 import { getWellLabel } from "../../util";
 
 import FormPage from "../FormPage";
+import LabeledInput from "../LabeledInput";
 import Plate from "../Plate";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import WellInfo from "../SelectedAssociationsCard/WellInfo";
@@ -25,11 +29,15 @@ interface AssociateWellsProps {
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
-    mutualFilesForWells: string[];
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
+    imagingSessionIds: Array<number | null>;
+    imagingSessions: ImagingSession[];
+    mutualFilesForWells: string[];
     redo: () => void;
+    selectImagingSessionId: ActionCreator<SelectImagingSessionIdAction>;
     selectedFiles: string[];
+    selectedImagingSessionId?: number;
     selectedWellLabels: string[];
     selectedWells: AicsGridCell[];
     selectedWellsData: Well[];
@@ -97,6 +105,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                         </Tabs.TabPane>
                     ))}
                 </SelectedAssociationsCard>
+                {this.renderImagingSessionInput()}
                 {wells ? (
                         <Plate
                             wells={wells}
@@ -146,6 +155,42 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     // If we at least one well associated with at least one file then we can continue the upload
     private canContinue = (): boolean => {
         return this.props.wellsWithAssociations.length > 0;
+    }
+
+    private getImagingSessionName = (id?: number | null) => {
+        if (id == null) {
+            return "None";
+        }
+
+        const matchingImagingSession = this.props.imagingSessions.find((i) => i.imagingSessionId === id);
+        return get(matchingImagingSession, ["name"], `Imaging Session Id: ${id}`);
+    }
+
+    private selectImagingSession = (e: RadioChangeEvent) => {
+        this.props.selectImagingSessionId(e.target.value);
+    }
+
+    private renderImagingSessionInput = (): JSX.Element | null => {
+        const { selectedImagingSessionId, imagingSessionIds } = this.props;
+        if (imagingSessionIds.length < 2) {
+            return null;
+        }
+
+        return (
+            <LabeledInput label="Imaging Session">
+                <Radio.Group
+                    buttonStyle="solid"
+                    value={selectedImagingSessionId || 0}
+                    onChange={this.selectImagingSession}
+                >
+                    {imagingSessionIds.map((id) => (
+                        <Radio.Button value={id || 0} key={id || 0}>
+                            {this.getImagingSessionName(id)}
+                        </Radio.Button>
+                    ))}
+                </Radio.Group>
+            </LabeledInput>
+        );
     }
 }
 

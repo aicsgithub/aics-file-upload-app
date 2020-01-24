@@ -3,6 +3,33 @@ import { MetadataStateBranch } from "../metadata/types";
 import { Page } from "../route/types";
 import { Audited } from "../types";
 
+export interface SelectionStateBranch {
+    annotation: string;
+    barcode?: string;
+    expandedUploadJobRows: ExpandedRows;
+    files: string[];
+    folderTreeOpen: boolean;
+    imagingSessionId?: number;
+    imagingSessionIds: Array<number | null>;
+    openTemplateModalVisible: boolean;
+    plate: ImagingSessionIdToPlateMap;
+    wells: ImagingSessionIdToWellsMap;
+    selectedWells: GridCell[];
+    selectedWorkflows: Workflow[];
+    settingsEditorVisible: boolean;
+    stagedFiles: UploadFile[];
+    templateEditorVisible: boolean;
+    user: string;
+}
+
+export interface ImagingSessionIdToPlateMap {
+    [imagingSessionId: number]: PlateResponse;
+}
+
+export interface ImagingSessionIdToWellsMap {
+    [imagingSessionId: number]: WellResponse[];
+}
+
 export interface UploadFile {
     name: string;
     path: string;
@@ -15,25 +42,6 @@ export interface UploadFile {
 
 export interface DeselectFilesAction {
     type: string;
-}
-
-export interface SelectionStateBranch {
-    annotation: string;
-    barcode?: string;
-    expandedUploadJobRows: ExpandedRows;
-    files: string[];
-    folderTreeOpen: boolean;
-    imagingSessionId?: number;
-    imagingSessionIds: Array<number | null>;
-    openTemplateModalVisible: boolean;
-    plate?: PlateResponse;
-    wells: WellResponse[];
-    selectedWells: GridCell[];
-    selectedWorkflows: Workflow[];
-    settingsEditorVisible: boolean;
-    stagedFiles: UploadFile[];
-    templateEditorVisible: boolean;
-    user: string;
 }
 
 export interface ExpandedRows {
@@ -175,8 +183,7 @@ export interface GetFilesInFolderAction {
 export interface SelectBarcodeAction {
     payload: {
         barcode: string;
-        imagingSessionId?: number;
-        imagingSessionIds: number[];
+        imagingSessionIds: Array<number | null>;
     };
     type: string;
 }
@@ -191,12 +198,12 @@ export interface SelectWorkflowsAction {
 }
 
 export interface SetPlateAction {
-    payload: PlateResponse;
+    payload: {[imagingSessionId: number]: PlateResponse};
     type: string;
 }
 
 export interface SetWellsAction {
-    payload: WellResponse[];
+    payload: {[imagingSessionId: number]: WellResponse[]};
     type: string;
 }
 
@@ -269,5 +276,10 @@ export interface ToggleExpandedUploadJobRowAction {
 }
 
 export interface ToggleFolderTreeAction {
+    type: string;
+}
+
+export interface SelectImagingSessionIdAction {
+    payload: number;
     type: string;
 }
