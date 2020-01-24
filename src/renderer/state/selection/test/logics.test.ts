@@ -357,6 +357,7 @@ describe("Selection logics", () => {
             const mockEmptyWell: Well = {
                 cellPopulations: [],
                 col: 0,
+                plateId: 1,
                 row: 0,
                 solutions: [],
                 wellId: 1,

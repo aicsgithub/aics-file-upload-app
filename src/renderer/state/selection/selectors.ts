@@ -62,8 +62,9 @@ export const getWellsForSelectedPlate = createSelector([
 
 export const getWellsWithModified = createSelector([
     getWellsForSelectedPlate,
-], (wells: WellResponse[]): Well[][] => {
-    if (!wells || wells.length === 0) {
+    getSelectedPlateId,
+], (wells: WellResponse[], plateId?: number): Well[][] => {
+    if (!wells || wells.length === 0 || !plateId) {
         return [];
     }
 
@@ -78,6 +79,7 @@ export const getWellsWithModified = createSelector([
             result[row][col] = {
                 ...well,
                 modified: !isEmpty(cellPopulations) || !isEmpty(solutions),
+                plateId,
             };
         }
     );

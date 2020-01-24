@@ -421,6 +421,7 @@ export const mockUnits: Unit[] = [
 export const mockWell: Well = {
     cellPopulations: [],
     col: 0,
+    plateId: 1,
     row: 0,
     solutions: [],
     wellId: 1,
@@ -428,7 +429,6 @@ export const mockWell: Well = {
 
 export const mockWells: ImagingSessionIdToWellsMap = {0: [
     {...mockWell, col: 1, row: 0, wellId: 2},
-    mockWell,
     {...mockWell, col: 1, row: 1, wellId: 4},
     {...mockWell, col: 0, row: 1, wellId: 3},
 ]};

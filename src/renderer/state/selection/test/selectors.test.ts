@@ -30,6 +30,7 @@ describe("Selections selectors", () => {
         mockEmptyWell = {
             cellPopulations: [],
             col: 0,
+            plateId: 1,
             row: 0,
             solutions: [],
             wellId: 1,

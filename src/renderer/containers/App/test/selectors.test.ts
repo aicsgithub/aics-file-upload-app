@@ -22,7 +22,7 @@ describe("App selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: true,
                         wellIds: [1, 3],
-                        wellLabels: ["A1", "A3"],
+                        wellLabels: ["A1", "B1"],
                     },
                     [filePath2]: {
                         barcode: "test_barcode",
@@ -38,7 +38,7 @@ describe("App selectors", () => {
             const file1Tags = map.get(filePath1) || [];
             expect(file1Tags.length).to.equal(4);
             expect(file1Tags.map((t) => t.title)).to.contain("A1");
-            expect(file1Tags.map((t) => t.title)).to.contain("A3");
+            expect(file1Tags.map((t) => t.title)).to.contain("B1");
             expect(file1Tags.map((t) => t.title)).to.contain("Isilon");
             expect(file1Tags.map((t) => t.title)).to.contain("Archive");
 

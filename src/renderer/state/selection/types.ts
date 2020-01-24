@@ -127,6 +127,7 @@ export interface PlateResponse extends Audited {
 export interface WellResponse {
     row: number;
     col: number;
+    plateId: number;
     wellId: number;
     cellPopulations: CellPopulation[];
     solutions: Solution[];
@@ -137,6 +138,7 @@ export interface Well {
     col: number;
     wellId: number;
     cellPopulations: CellPopulation[];
+    plateId: number;
     modified?: boolean;
     solutions: Solution[];
 }
