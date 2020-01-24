@@ -6,30 +6,35 @@ import { makeReducer } from "../util";
 import {
     ADD_PENDING_JOB,
     REMOVE_PENDING_JOB,
+    RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    UPDATE_INCOMPLETE_JOB_NAMES
+    STOP_JOB_POLL,
+    UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
 import {
     AddPendingJobAction,
     JobFilter,
     JobStateBranch,
     RemovePendingJobsAction,
+    RetrieveJobsAction,
     SelectJobFilterAction,
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
+    StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
 
-export const initialState = {
+export const initialState: JobStateBranch = {
     addMetadataJobs: [],
     copyJobs: [],
     incompleteJobNames: [],
     jobFilter: JobFilter.Pending,
     pendingJobs: [],
+    polling: false,
     uploadJobs: [],
 };
 
@@ -99,6 +104,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 jobFilter: action.payload,
             };
         },
+    },
+    [RETRIEVE_JOBS]: {
+        accepts: (action: AnyAction): action is RetrieveJobsAction => action.type === RETRIEVE_JOBS,
+        perform: (state: JobStateBranch) => ({
+            ...state,
+            polling: true,
+        }),
+    },
+    [STOP_JOB_POLL]: {
+        accepts: (action: AnyAction): action is StopJobPollAction => action.type === STOP_JOB_POLL,
+        perform: (state: JobStateBranch) => ({
+            ...state,
+            polling: false,
+        }),
     },
 };
 

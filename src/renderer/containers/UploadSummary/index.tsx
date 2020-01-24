@@ -9,21 +9,29 @@ import { ActionCreator } from "redux";
 
 import FileMetadataModal from "../../components/FileMetadataModal";
 import FormPage from "../../components/FormPage";
+import { MILLISECONDS_PER_SECOND, SECONDS_IN_A_MINUTE } from "../../components/StatusBar";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
-import { gatherIncompleteJobNames, retrieveJobs, selectJobFilter } from "../../state/job/actions";
+import {
+    gatherIncompleteJobNames,
+    retrieveJobs,
+    selectJobFilter,
+    stopJobPoll,
+} from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
+    getIsPolling,
     getJobFilter,
-    getJobsForTable
+    getJobsForTable,
 } from "../../state/job/selectors";
 import {
     GatherIncompleteJobNamesAction,
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
+    StopJobPollAction,
 } from "../../state/job/types";
 import { clearFileMetadataForJob, requestFileMetadataForJob } from "../../state/metadata/actions";
 import { getFileMetadataForJob, getFileMetadataForJobHeader } from "../../state/metadata/selectors";
@@ -41,7 +49,6 @@ import { SelectPageAction, UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction, UploadMetadata } from "../../state/upload/types";
-import Timeout = NodeJS.Timeout;
 
 const styles = require("./styles.pcss");
 
@@ -55,6 +62,8 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
     weekday: "short",
     year: "numeric",
 });
+
+const POLLING_MINUTES = 2;
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
@@ -72,6 +81,7 @@ interface Props {
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
     gatherIncompleteJobNames: ActionCreator<GatherIncompleteJobNamesAction>;
+    isPolling: boolean;
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
@@ -82,6 +92,7 @@ interface Props {
     selectPage: ActionCreator<SelectPageAction>;
     selectView: ActionCreator<SelectViewAction>;
     selectJobFilter: ActionCreator<SelectJobFilterAction>;
+    stopJobPoll: ActionCreator<StopJobPollAction>;
 }
 
 interface UploadSummaryState {
@@ -104,6 +115,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         return 0;
     }
 
+    private timeout: number | undefined;
     private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
         {
             align: "center",
@@ -142,7 +154,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             width: "300px",
         },
     ];
-    private interval: Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -150,12 +161,17 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     public componentDidMount(): void {
-        this.setJobInterval();
+        this.props.retrieveJobs();
+        this.timeout = setTimeout(this.clearJobInterval,
+            POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
         this.props.gatherIncompleteJobNames();
     }
 
     public componentWillUnmount(): void {
         this.clearJobInterval();
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+        }
     }
 
     public render() {
@@ -164,6 +180,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             fileMetadataForJob,
             fileMetadataForJobHeader,
             fileMetadataForJobLoading,
+            isPolling,
             jobFilter,
             jobs,
             loading,
@@ -180,12 +197,12 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
                 page={Page.UploadSummary}
             >
-                {!this.interval && (
+                {!isPolling && (
                     <div className={styles.refreshContainer}>
                         <Button
                             size="large"
                             type="primary"
-                            onClick={this.setJobInterval}
+                            onClick={this.props.retrieveJobs}
                             className={styles.refreshButton}
                         >Refresh Jobs
                         </Button>
@@ -254,23 +271,14 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private selectJobFilter = (e: RadioChangeEvent): void => {
-        if (!this.interval) {
-            this.setJobInterval();
-        }
         this.props.selectJobFilter(e.target.value);
-    }
-
-    // Auto-refresh jobs every 2 seconds for 3 minutes
-    private setJobInterval = (): void => {
-        this.interval = setInterval(this.props.retrieveJobs, 1000); // 1 seconds
-        setTimeout(() => this.clearJobInterval(true), 300000); // 5 minutes
+        this.props.retrieveJobs();
     }
 
     // Stop auto-refreshing jobs
     private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
-        if (this.interval && (!checkIfJobsComplete || this.props.allJobsComplete)) {
-            clearInterval(this.interval);
-            this.interval = null;
+        if (!checkIfJobsComplete || this.props.allJobsComplete) {
+            this.props.stopJobPoll();
         }
     }
 
@@ -282,17 +290,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     private cancelUpload = (): void => {
         // Start refreshing again if we aren't
-        if (!this.interval) {
-            this.setJobInterval();
-        }
+        this.props.retrieveJobs();
         this.props.cancelUpload(this.getSelectedJob());
     }
 
     private retryUpload = (): void => {
         // Start refreshing again if we aren't
-        if (!this.interval) {
-            this.setJobInterval();
-        }
+        this.props.retrieveJobs();
         this.props.retryUpload(this.getSelectedJob());
     }
 
@@ -345,6 +349,7 @@ function mapStateToProps(state: State) {
         fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
         fileMetadataForJobLoading: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         files: getStagedFiles(state),
+        isPolling: getIsPolling(state),
         jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)
@@ -363,6 +368,7 @@ const dispatchToPropsMap = {
     selectJobFilter,
     selectPage,
     selectView,
+    stopJobPoll,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);
