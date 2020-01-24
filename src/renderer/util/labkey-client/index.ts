@@ -59,7 +59,7 @@ export default class LabkeyClient extends BaseServiceClient {
         const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Annotation");
         const { rows } = await this.httpClient.get(query);
         return rows.map((r: LabkeyAnnotation) => camelizeKeys(pick(r,
-            ["AnnotationId", "AnnotationTypeId", "Description",
+            ["AnnotationId", "AnnotationTypeId", "Description", "ExposeToFileUploadApp",
                 "Name", "CreatedBy", "Created", "ModifiedBy", "Modified"]
         )));
     }

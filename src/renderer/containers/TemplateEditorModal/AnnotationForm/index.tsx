@@ -27,6 +27,7 @@ interface Props {
     annotationTypes: AnnotationType[];
     cancel?: () => void;
     className?: string;
+    forbiddenAnnotationNames: Set<string>;
     existingAnnotations: Annotation[];
     index: number;
     lookups: Lookup[];
@@ -52,13 +53,17 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         }
 
         name = titleCase(name);
-        const { annotation } = this.props;
+        const { annotation, forbiddenAnnotationNames } = this.props;
 
         // check that annotation name is not already an existing annotation if it's new
         const existingAnnotationNames = this.props.existingAnnotations.map((a) => titleCase(a.name));
         const annotationNameDuplicatesExisting = existingAnnotationNames.find((a) => a === name);
         if ((!annotation || !annotation.annotationId) && !!annotationNameDuplicatesExisting) {
             return `Annotation named ${name} duplicates an existing annotation`;
+        }
+
+        if (forbiddenAnnotationNames.has(name)) {
+            return `Annotation name ${name} is reserved, contact Software to use it`;
         }
 
         // check that the annotation name doesn't exist in template already

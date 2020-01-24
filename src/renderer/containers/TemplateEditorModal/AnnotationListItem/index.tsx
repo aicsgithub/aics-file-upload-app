@@ -15,6 +15,7 @@ interface AnnotationListItemProps {
     annotationTypes: AnnotationType[];
     cancelEditAnnotation: () => void;
     className?: string;
+    forbiddenAnnotationNames: Set<string>;
     handleVisibleChange: (visible: boolean) => void;
     isSelected: boolean;
     removeAnnotation: () => void;
@@ -37,6 +38,7 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
             annotationTypes,
             cancelEditAnnotation,
             className,
+            forbiddenAnnotationNames,
             handleVisibleChange,
             isSelected,
             removeAnnotation,
@@ -88,6 +90,7 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
                         annotationTypes={annotationTypes}
                         cancel={cancelEditAnnotation}
                         existingAnnotations={allAnnotations}
+                        forbiddenAnnotationNames={forbiddenAnnotationNames}
                         index={annotation.index}
                         lookups={tables}
                         templateAnnotations={template.annotations}

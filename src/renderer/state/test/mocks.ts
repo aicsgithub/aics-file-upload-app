@@ -49,6 +49,7 @@ export const mockWellAnnotation: Annotation = {
     annotationId: 2,
     annotationTypeId: 3,
     description: "Well associated with this file",
+    exposeToFileUploadApp: true,
     name: "Well",
 };
 
@@ -57,6 +58,7 @@ export const mockWorkflowAnnotation: Annotation = {
     annotationId: 4,
     annotationTypeId: 3,
     description: "Workflow associated with this file",
+    exposeToFileUploadApp: true,
     name: "Workflow",
 };
 
@@ -65,7 +67,17 @@ export const mockNotesAnnotation: Annotation = {
     annotationId: 3,
     annotationTypeId: 1,
     description: "Other information",
+    exposeToFileUploadApp: true,
     name: "Notes",
+};
+
+const mockUnusableStructureAnnotation: Annotation = {
+    ...mockAuditInfo,
+    annotationId: 3,
+    annotationTypeId: 1,
+    description: "Other information",
+    exposeToFileUploadApp: false,
+    name: "Structure",
 };
 
 export const mockMMSTemplate: Template = {
@@ -93,6 +105,7 @@ export const mockAnnotations = [
     mockWellAnnotation,
     mockWorkflowAnnotation,
     mockNotesAnnotation,
+    mockUnusableStructureAnnotation,
 ];
 
 export const mockLookupOptions = [
