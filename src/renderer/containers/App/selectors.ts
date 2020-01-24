@@ -50,7 +50,7 @@ export const getFileToTags = createSelector([
                     const imagingSession = imagingSessions
                         .find((is) => is.imagingSessionId === plate.imagingSessionId);
                     if (imagingSession) {
-                        label += `@${imagingSession.name}`;
+                        label += ` (${imagingSession.name})`;
                     }
                 }
             }
