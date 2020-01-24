@@ -1,5 +1,5 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { isEmpty, isNil, sortBy } from "lodash";
+import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
@@ -152,4 +152,16 @@ export const getSelectedImagingSession = createSelector([
 ], (imagingSessions: ImagingSession[], imagingSessionId?: number): ImagingSession | undefined => {
     return isNil(imagingSessionId) ? undefined :
         imagingSessions.find((is) => is.imagingSessionId === imagingSessionId);
+});
+
+export const getAllWells = createSelector([
+    getWells,
+], (wells: ImagingSessionIdToWellsMap) => {
+    return flatten(values(wells));
+});
+
+export const getAllPlates = createSelector([
+    getSelectedPlates,
+], (selectedPlates: ImagingSessionIdToPlateMap) => {
+    return flatten(values(selectedPlates));
 });

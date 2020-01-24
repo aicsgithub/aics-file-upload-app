@@ -1,14 +1,9 @@
-import { flatMap, flatten, forEach, groupBy, uniq, values } from "lodash";
+import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
 import { getImagingSessions } from "../../state/metadata/selectors";
 import { ImagingSession } from "../../state/metadata/types";
-import { getSelectedPlates, getWells } from "../../state/selection/selectors";
-import {
-    ImagingSessionIdToPlateMap,
-    ImagingSessionIdToWellsMap,
-    PlateResponse,
-    WellResponse,
-} from "../../state/selection/types";
+import { getAllPlates, getAllWells } from "../../state/selection/selectors";
+import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { isFileRow } from "../../state/upload/constants";
 
 import { getUpload } from "../../state/upload/selectors";
@@ -25,18 +20,6 @@ export class FileTag implements FileTagType {
         this.color = color;
     }
 }
-
-export const getAllWells = createSelector([
-    getWells,
-], (wells: ImagingSessionIdToWellsMap) => {
-    return flatten(values(wells));
-});
-
-export const getAllPlates = createSelector([
-    getSelectedPlates,
-], (selectedPlates: ImagingSessionIdToPlateMap) => {
-   return flatten(values(selectedPlates));
-});
 
 // Result used by the FolderTree to display tags by each file with associated metadata
 export const getFileToTags = createSelector([
