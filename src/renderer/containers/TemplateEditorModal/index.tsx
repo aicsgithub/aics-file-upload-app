@@ -16,6 +16,7 @@ import { requestAnnotations } from "../../state/metadata/actions";
 import {
     getAnnotationsWithAnnotationOptions,
     getAnnotationTypes,
+    getForbiddenAnnotationNames,
     getLookups,
 } from "../../state/metadata/selectors";
 import { GetAnnotationsAction } from "../../state/metadata/types";
@@ -58,6 +59,7 @@ interface Props {
     className?: string;
     closeModal: ActionCreator<CloseTemplateEditorAction>;
     errors: string[];
+    forbiddenAnnotationNames: Set<string>;
     getAnnotations: ActionCreator<GetAnnotationsAction>;
     loadingTemplate: boolean;
     openModal: ActionCreator<OpenTemplateEditorAction>;
@@ -148,6 +150,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             allAnnotations,
             annotationTypes,
             errors,
+            forbiddenAnnotationNames,
             loadingTemplate,
             tables,
             template,
@@ -211,6 +214,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                             annotationTypes={annotationTypes}
                             className={styles.form}
                             existingAnnotations={allAnnotations}
+                            forbiddenAnnotationNames={forbiddenAnnotationNames}
                             index={template.annotations.length}
                             lookups={tables}
                             templateAnnotations={template.annotations}
@@ -239,7 +243,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
     }
 
     private renderListItem = (annotation: AnnotationDraft): ReactNode => {
-        const { allAnnotations, annotationTypes, tables, template } = this.props;
+        const { allAnnotations, annotationTypes, forbiddenAnnotationNames, tables, template } = this.props;
         const { selectedAnnotation } = this.state;
 
         return (
@@ -249,6 +253,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 annotation={annotation}
                 annotationTypes={annotationTypes}
                 cancelEditAnnotation={this.hideEditAnnotation}
+                forbiddenAnnotationNames={forbiddenAnnotationNames}
                 handleVisibleChange={this.handleVisibleChange(annotation)}
                 isSelected={Boolean(selectedAnnotation && selectedAnnotation.name === annotation.name)}
                 removeAnnotation={this.removeAnnotation(annotation)}
@@ -315,6 +320,7 @@ function mapStateToProps(state: State) {
         allAnnotations: getAnnotationsWithAnnotationOptions(state),
         annotationTypes: getAnnotationTypes(state),
         errors: getTemplateDraftErrors(state),
+        forbiddenAnnotationNames: getForbiddenAnnotationNames(state),
         loadingTemplate: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         saveInProgress: getRequestsInProgressContains(state, AsyncRequest.SAVE_TEMPLATE),
         tables: getLookups(state),

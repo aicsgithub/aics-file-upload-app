@@ -32,7 +32,11 @@ export const getTemplateDraftErrors = createSelector([
     getTemplateDraft,
     getTemplateDraftAnnotations,
     getTemplateDraftName,
-], (allTemplates: LabkeyTemplate[], draft: TemplateDraft, annotations: AnnotationDraft[], templateName?: string) => {
+], (
+    allTemplates: LabkeyTemplate[],
+    draft: TemplateDraft,
+    annotations: AnnotationDraft[],
+    templateName?: string) => {
     const errors = [];
     if (!trim(templateName)) {
         errors.push("Template is missing a name");

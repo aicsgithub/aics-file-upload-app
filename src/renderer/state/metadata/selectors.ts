@@ -13,7 +13,7 @@ import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
 import { SearchResultRow, SearchResultsHeader } from "./types";
 
 // BASIC SELECTORS
-export const getAnnotations = (state: State) => state.metadata.annotations;
+export const getAllAnnotations = (state: State) => state.metadata.annotations;
 export const getAnnotationLookups = (state: State) => state.metadata.annotationLookups;
 export const getAnnotationOptions = (state: State) => state.metadata.annotationOptions;
 export const getAnnotationTypes = (state: State) => state.metadata.annotationTypes;
@@ -32,6 +32,20 @@ export const getFileMetadataSearchResults = (state: State) => state.metadata.fil
 export const getOptionsForLookup = (state: State) => state.metadata.optionsForLookup;
 export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) => state.metadata.fileMetadataForJob;
+
+// Some annotations are used purely for displaying data in the File Explorer, here we exclude those
+export const getAnnotations = createSelector([
+    getAllAnnotations,
+], (allAnnotations: Annotation[]): Annotation[] => (
+    allAnnotations.filter((annotation) => annotation.exposeToFileUploadApp)
+));
+
+// These annotations are used purely for displaying data to users in the File Explorer
+export const getForbiddenAnnotationNames = createSelector([
+    getAllAnnotations,
+], (allAnnotations: Annotation[]): Set<string> => (
+    new Set(allAnnotations.filter((annotation) => !annotation.exposeToFileUploadApp).map(({ name }) => name))
+));
 
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector([

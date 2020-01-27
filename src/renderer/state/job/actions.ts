@@ -8,6 +8,7 @@ import {
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
+    STOP_JOB_POLL,
     UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
 import {
@@ -21,6 +22,7 @@ import {
     SetAddMetadataJobsAction,
     SetCopyJobsAction,
     SetUploadJobsAction,
+    StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
 
@@ -82,5 +84,11 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
     return {
         payload: jobFilter,
         type: SELECT_JOB_FILTER,
+    };
+}
+
+export function stopJobPoll(): StopJobPollAction {
+    return {
+        type: STOP_JOB_POLL,
     };
 }

@@ -14,6 +14,7 @@ export const getPendingJobs = (state: State) => state.job.pendingJobs;
 export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
 export const getIncompleteJobNames = (state: State) => state.job.incompleteJobNames;
 export const getJobFilter = (state: State) => state.job.jobFilter;
+export const getIsPolling = (state: State) => state.job.polling;
 
 export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
    return pendingJobs.length;

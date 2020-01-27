@@ -14,6 +14,7 @@ export interface Annotation extends Audited {
     annotationId: number;
     annotationTypeId: number;
     description: string;
+    exposeToFileUploadApp?: boolean;
     name: string;
 }
 
