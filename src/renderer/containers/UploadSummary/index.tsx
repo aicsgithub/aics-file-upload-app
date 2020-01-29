@@ -9,7 +9,6 @@ import { ActionCreator } from "redux";
 
 import FileMetadataModal from "../../components/FileMetadataModal";
 import FormPage from "../../components/FormPage";
-import { MILLISECONDS_PER_SECOND, SECONDS_IN_A_MINUTE } from "../../components/StatusBar";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
@@ -62,8 +61,6 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
     weekday: "short",
     year: "numeric",
 });
-
-const POLLING_MINUTES = 2;
 
 // Matches a Job but the created date is represented as a string
 export interface UploadSummaryTableRow extends JSSJob {
@@ -162,8 +159,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.props.retrieveJobs();
-        // this.timeout = setTimeout(this.clearJobInterval,
-        //     POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
         this.props.gatherIncompleteJobNames();
     }
 

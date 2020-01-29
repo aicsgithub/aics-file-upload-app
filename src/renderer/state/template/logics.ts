@@ -107,7 +107,6 @@ const addExistingAnnotationLogic = createLogic({
 
 const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: TemplateAnnotation,
                                     state: State, labkeyClient: LabkeyClient, dispatch: ReduxLogicNextCb) => {
-    console.log("getting annotation options");
     if (!isEmpty(annotationOptions)) {
         return annotationOptions;
     }
@@ -143,7 +142,6 @@ const getTemplateLogic = createLogic({
     process: async ({action, getState, labkeyClient, logger, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        console.log("get template process")
         const state = getState();
         const { addAnnotationsToUpload, templateId } = action.payload;
         const uploads = getUpload(state);
@@ -159,7 +157,6 @@ const getTemplateLogic = createLogic({
         }
 
         try {
-            console.log("getting template");
             const template: Template = await getWithRetry(
                 () => mmsClient.getTemplate(templateId),
                 AsyncRequest.GET_TEMPLATE,
@@ -167,7 +164,6 @@ const getTemplateLogic = createLogic({
                 "MMS",
                 "Could not retrieve template"
             );
-            console.log("received template")
             const { annotations, ...etc } = template;
             const actions: AnyAction[] = [];
 
