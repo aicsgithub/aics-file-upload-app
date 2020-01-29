@@ -40,7 +40,6 @@ class WellsEditor extends editors.EditorBase<EditorProps, {}> {
         return (
             <div ref={this.input}>
                 <Popover
-                    className={styles.container}
                     placement="bottom"
                     visible={true}
                     content={this.renderPopover()}
