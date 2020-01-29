@@ -6,9 +6,8 @@ import { getAllPlates, getAllWells } from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { isFileRow } from "../../state/upload/constants";
 
-import { getUpload } from "../../state/upload/selectors";
+import { getUpload, getWellLabelAndImagingSessionName } from "../../state/upload/selectors";
 import { FileTagType, UploadMetadata, UploadStateBranch } from "../../state/upload/types";
-import { getWellLabel } from "../../util";
 
 // All tags representing wells should share the same color
 export class FileTag implements FileTagType {
@@ -39,22 +38,14 @@ export const getFileToTags = createSelector([
         const workflows = flatMap(metadata, (m) => m.workflows || []);
         const wellIds = flatMap(metadata, (m) => m.wellIds || []);
         const wellTags: string[] = [];
-        wellIds.forEach((wellId: number, i: number) => {
-            const well = wells.find((w) => w.wellId === wellId);
-            let label = "ERROR";
-            if (well) {
-                label = getWellLabel({col: well.col, row: well.row});
-                const plate = selectedPlates.find((p) => p.plateId === well.plateId);
-
-                if (plate && plate.imagingSessionId) {
-                    const imagingSession = imagingSessions
-                        .find((is) => is.imagingSessionId === plate.imagingSessionId);
-                    if (imagingSession) {
-                        label += ` (${imagingSession.name})`;
-                    }
-                }
-            }
-            wellTags.push(label);
+        wellIds.forEach((wellId: number) => {
+           const label = getWellLabelAndImagingSessionName(
+               wellId,
+               imagingSessions,
+               selectedPlates,
+               wells
+           );
+           wellTags.push(label);
         });
 
         const tags = [

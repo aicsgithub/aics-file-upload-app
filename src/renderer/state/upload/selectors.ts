@@ -85,7 +85,7 @@ const standardizeUploadMetadata = (metadata: UploadMetadata) => {
     return result;
 };
 
-// todo description
+// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
 export const getWellLabelAndImagingSessionName = (
     wellId: number,
     imagingSessions: ImagingSession[],
@@ -102,7 +102,7 @@ export const getWellLabelAndImagingSessionName = (
             const imagingSession = imagingSessions
                 .find((is) => is.imagingSessionId === plate.imagingSessionId);
             if (imagingSession) {
-                label += `@${imagingSession.name}`;
+                label += `(${imagingSession.name})`;
             }
         }
     }
