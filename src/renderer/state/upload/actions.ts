@@ -45,24 +45,25 @@ import {
     UploadMetadata,
 } from "./types";
 
-export function associateFilesAndWells(fullPaths: string[], wellIds: number[])
+export function associateFilesAndWells(fullPaths: string[], positionIndex?: number)
     : AssociateFilesAndWellsAction {
     return {
         payload: {
             barcode: "",
             fullPaths,
-            wellIds,
+            positionIndex,
+            wellIds: [], // this gets populated with the wells that are selected in logics
         },
         type: ASSOCIATE_FILES_AND_WELLS,
     };
 }
 
-export function undoFileWellAssociation(fullPath: string, wellIds: number[])
-    : UndoFileWellAssociationAction {
+export function undoFileWellAssociation(fullPath: string, positionIndex?: number): UndoFileWellAssociationAction {
     return {
         payload: {
             fullPath,
-            wellIds,
+            positionIndex,
+            wellIds: [], // this gets populated with the wells that are selected in logics
         },
         type: UNDO_FILE_WELL_ASSOCIATION,
     };

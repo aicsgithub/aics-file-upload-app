@@ -78,7 +78,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                     selectedFilesCount={selectedFiles.length}
                     associate={this.associate}
                     canAssociate={this.canAssociate()}
-                    undoAssociation={this.undoAssociation}
+                    undoAssociation={this.props.undoAssociation}
                     undoLastAssociation={undo}
                     redo={redo}
                     canRedo={canRedo}
@@ -116,14 +116,6 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
         }
     }
 
-    private undoAssociation = (file: string): void => {
-        const { selectedWells, wells } = this.props;
-        if (wells) {
-            const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
-            this.props.undoAssociation(file, wellIds);
-        }
-    }
-
     // If we have wells & files selected then allow the user to Associate them
     private canAssociate = (): boolean => {
         const { selectedFiles, selectedWells } = this.props;
@@ -131,12 +123,9 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     }
 
     private associate = (): void => {
-        const { wells } = this.props;
-
-        if (this.canAssociate() && wells) {
-            const { selectedFiles, selectedWells } = this.props;
-            const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
-            this.props.associateFilesAndWells(selectedFiles, wellIds);
+        if (this.canAssociate()) {
+            const { selectedFiles } = this.props;
+            this.props.associateFilesAndWells(selectedFiles);
         }
     }
 

@@ -162,8 +162,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     public componentDidMount(): void {
         this.props.retrieveJobs();
-        this.timeout = setTimeout(this.clearJobInterval,
-            POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
+        // this.timeout = setTimeout(this.clearJobInterval,
+        //     POLLING_MINUTES * SECONDS_IN_A_MINUTE * MILLISECONDS_PER_SECOND);
         this.props.gatherIncompleteJobNames();
     }
 

@@ -180,10 +180,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [SELECT_WELLS]: {
         accepts: (action: AnyAction): action is SelectWellsAction => action.type === SELECT_WELLS,
-        perform: (state: SelectionStateBranch, action: SelectWellsAction) => ({
-            ...state,
-            selectedWells: action.payload,
-        }),
+        perform: (state: SelectionStateBranch, action: SelectWellsAction) => {
+            return {
+                ...state,
+                selectedWells: action.payload,
+            };
+        },
     },
     [OPEN_TEMPLATE_EDITOR]: {
         accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,

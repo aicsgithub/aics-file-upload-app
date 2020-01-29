@@ -135,6 +135,13 @@ export const getSelectedWellsWithData = createSelector([
     return selectedWells.map((well) => wells[well.row][well.col]);
 });
 
+export const getSelectedWellIds = createSelector([
+    getSelectedWells,
+    getSelectedWellsWithData,
+], (selectedCells: GridCell[], wells: Well[]) => {
+    return wells.map((w) => w.wellId);
+});
+
 export const getSelectedImagingSession = createSelector([
     getImagingSessions,
     getSelectedImagingSessionId,

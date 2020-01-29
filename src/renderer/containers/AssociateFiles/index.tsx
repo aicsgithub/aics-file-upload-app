@@ -116,11 +116,7 @@ class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
                 mutualFilesForWells={this.props.mutualFilesForWells}
                 goBack={this.props.goBack}
                 goForward={this.props.goForward}
-                imagingSessionIds={this.props.imagingSessionIds}
-                imagingSessions={this.props.imagingSessions}
                 redo={this.redo}
-                selectImagingSessionId={this.props.selectImagingSessionId}
-                selectedImagingSessionId={this.props.selectedImagingSessionId}
                 selectedFiles={this.props.selectedFiles}
                 selectWells={this.props.selectWells}
                 selectedWells={this.props.selectedWells}

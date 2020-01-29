@@ -105,6 +105,7 @@ export interface AssociateFilesAndWellsAction {
     payload: {
         barcode: string,
         fullPaths: string[],
+        positionIndex?: number,
         wellIds: number[],
     };
     type: string;
@@ -121,6 +122,7 @@ export interface AssociateFilesAndWorkflowsAction {
 export interface UndoFileWellAssociationAction {
     payload: {
         fullPath: string,
+        positionIndex?: number,
         wellIds: number[],
     };
     type: string;

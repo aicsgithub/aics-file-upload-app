@@ -4,7 +4,6 @@ import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
 import { castArray, get, includes, isEmpty, without } from "lodash";
 import * as moment from "moment";
-import { basename } from "path";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
 import { ActionCreator } from "redux";
@@ -15,12 +14,15 @@ import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import {
     ExpandedRows,
+    SelectImagingSessionIdAction,
+    SelectWellsAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
 import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../state/template/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import {
+    AssociateFilesAndWellsAction,
     RemoveUploadsAction,
     UpdateScenesAction,
     UpdateUploadAction,
@@ -28,6 +30,7 @@ import {
     UploadMetadata,
 } from "../../state/upload/types";
 import { onDrop } from "../../util";
+import { GridCell } from "../AssociateWells/grid-cell";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
@@ -35,7 +38,7 @@ import AddValuesModal from "./AddValuesModal";
 import CellWithContextMenu from "./CellWithContextMenu";
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
-import WellsFormatter from "./WellsFormatter";
+import WellsEditor from "./WellsEditor";
 
 const styles = require("./style.pcss");
 
@@ -46,6 +49,7 @@ type SortDirections = "ASC" | "DESC" | "NONE";
 interface Props {
     allWellsForSelectedPlate: Well[][];
     annotationTypes: AnnotationType[];
+    associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
     canUndo: boolean;
     canRedo: boolean;
     channels: Channel[];
@@ -55,6 +59,9 @@ interface Props {
     redo: () => void;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     template?: Template;
+    selectImagingSessionId: ActionCreator<SelectImagingSessionIdAction>;
+    selectWells: ActionCreator<SelectWellsAction>;
+    selectedWells: GridCell[];
     setAlert: ActionCreator<SetAlertAction>;
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     undo: () => void;
@@ -73,6 +80,7 @@ interface CustomDataState {
 
 interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
     allowMultipleValues?: boolean;
+    associateFilesAndWells?: ActionCreator<AssociateFilesAndWellsAction>;
     dropdownValues?: string[];
     onChange?: (value: any, key: keyof UploadJobTableRow, row: UploadJobTableRow) => void;
     type?: ColumnType;
@@ -98,33 +106,32 @@ export interface FormatterProps<T> {
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {
-    private readonly WELL_UPLOAD_COLUMNS: UploadJobColumn[] = [
-        {
-            formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => (
-                row.channel || !isEmpty(row.positionIndexes) ?
-                    null :
-                    this.renderFormat(
-                        row,
-                        "wellLabels",
-                        value,
-                        (
-                            <WellsFormatter
-                                fileName={basename(row.file)}
-                                saveWells={this.saveWellsByRow(row)}
-                                selectedWellIds={row.wellIds || []}
-                                selectedWellLabels={row.wellLabels}
-                                wells={this.props.allWellsForSelectedPlate}
-                            />
-                        ),
-                        true
-                    )
-            ),
-            key: "wellLabels",
-            name: "Wells",
-            resizable: true,
-            sortable: true,
-        },
-    ];
+    private get wellUploadColumns(): UploadJobColumn[] {
+        return [
+            {
+                associateFilesAndWells: this.props.associateFilesAndWells,
+                // @ts-ignore
+                editor: WellsEditor,
+                formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
+                    return (
+                        row.channel || !isEmpty(row.positionIndexes) ?
+                            null :
+                            this.renderFormat(
+                                row,
+                                "wellLabels",
+                                value,
+                                <div className={styles.labels}>{row.wellLabels}</div>,
+                                    true
+                            )
+                    );
+                },
+                key: "wellLabels",
+                name: "Wells",
+                resizable: true,
+                sortable: true,
+            },
+        ];
+    }
 
     private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
         {
@@ -296,7 +303,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         }
         let basicColumns;
         if (this.props.uploads[0].barcode) {
-            basicColumns = this.uploadColumns(this.WELL_UPLOAD_COLUMNS);
+            basicColumns = this.uploadColumns(this.wellUploadColumns);
         } else {
             basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
         }
@@ -449,13 +456,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private saveNotesByRow = (row: UploadJobTableRow): (notes: string | undefined) => void => {
         return (notes: string | undefined) => this.saveByRow(notes, "notes", row);
-    }
-
-    private saveWellsByRow = (tableRow: UploadJobTableRow) => {
-        return (wells: Well[]) => {
-            const wellIds = wells.map((w) => w.wellId);
-            this.saveByRow(wellIds, "wellIds", tableRow);
-        };
     }
 
     private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {

@@ -48,16 +48,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: UploadStateBranch, action: AssociateFilesAndWellsAction) => {
             const nextState = {...state};
 
-            const { barcode, wellIds, fullPaths } = action.payload;
+            const { barcode, wellIds, fullPaths, positionIndex } = action.payload;
 
-            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => {
-                const key = getUploadRowKey(fullPath);
+            return fullPaths.reduce((accum: UploadStateBranch, file: string) => {
+                const key = getUploadRowKey(file, positionIndex);
                 return {
                     ...accum,
                     [key]: {
                         ...accum[key],
                         barcode,
-                        file: fullPath,
+                        file,
+                        positionIndex,
                         wellIds: accum[key] ?
                             uniq([...accum[key].wellIds, ...wellIds]) : wellIds,
                     },
@@ -92,8 +93,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
             action.type === UNDO_FILE_WELL_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => {
-            const key = getUploadRowKey(action.payload.fullPath);
-            const wellIds = without(state[key].wellIds, ...action.payload.wellIds);
+            const { fullPath, positionIndex, wellIds: wellIdsToRemove } = action.payload;
+            const key = getUploadRowKey(fullPath, positionIndex);
+            const wellIds = without(state[key].wellIds, ...wellIdsToRemove);
             if (!wellIds.length) {
                 const stateWithoutFile = { ...state };
                 delete stateWithoutFile[key];

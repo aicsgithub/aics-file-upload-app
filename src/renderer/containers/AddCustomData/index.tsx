@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
 import TemplateSearch from "../../components/TemplateSearch";
@@ -21,15 +22,22 @@ import {
 import { Channel, GetTemplatesAction } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction, Page } from "../../state/route/types";
-import { openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import {
+    openTemplateEditor,
+    selectImagingSessionId,
+    selectWells,
+    toggleExpandedUploadJobRow,
+} from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
-    getSelectedBarcode,
+    getSelectedBarcode, getSelectedWells,
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
     ExpandedRows,
     OpenTemplateEditorAction,
+    SelectImagingSessionIdAction,
+    SelectWellsAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
@@ -39,6 +47,7 @@ import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
 import {
     applyTemplate,
+    associateFilesAndWells,
     initiateUpload,
     jumpToUpload,
     removeUploads,
@@ -55,6 +64,7 @@ import {
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
+    AssociateFilesAndWellsAction,
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
@@ -71,6 +81,7 @@ interface Props {
     annotationTypes: AnnotationType[];
     appliedTemplate?: Template;
     applyTemplate: ActionCreator<ApplyTemplateAction>;
+    associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
     canSave: boolean;
@@ -87,6 +98,9 @@ interface Props {
     removeUploads: ActionCreator<RemoveUploadsAction>;
     requestTemplates: ActionCreator<GetTemplatesAction>;
     savedTemplateId?: number;
+    selectImagingSessionId: ActionCreator<SelectImagingSessionIdAction>;
+    selectWells: ActionCreator<SelectWellsAction>;
+    selectedWells: GridCell[];
     selectedBarcode?: string;
     setAlert: ActionCreator<SetAlertAction>;
     templates: LabkeyTemplate[];
@@ -126,6 +140,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canUndo,
             className,
             loading,
+            selectedWells,
             uploads,
             validationErrors,
         } = this.props;
@@ -154,6 +169,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <CustomDataGrid
                         allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                         annotationTypes={annotationTypes}
+                        associateFilesAndWells={this.props.associateFilesAndWells}
                         canRedo={canRedo}
                         canUndo={canUndo}
                         channels={this.props.channels}
@@ -162,6 +178,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         redo={this.redo}
                         removeUploads={this.props.removeUploads}
                         template={appliedTemplate}
+                        selectImagingSessionId={this.props.selectImagingSessionId}
+                        selectWells={this.props.selectWells}
+                        selectedWells={selectedWells}
                         setAlert={this.props.setAlert}
                         toggleRowExpanded={this.props.toggleRowExpanded}
                         undo={this.undo}
@@ -253,6 +272,7 @@ function mapStateToProps(state: State) {
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
+        selectedWells: getSelectedWells(state),
         templates: getTemplates(state),
         uploads: getUploadSummaryRows(state),
         validationErrors: getValidationErrorsMap(state),
@@ -261,12 +281,15 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     applyTemplate,
+    associateFilesAndWells,
     goBack,
     initiateUpload,
     jumpToUpload,
     openSchemaCreator: openTemplateEditor,
     removeUploads,
     requestTemplates,
+    selectImagingSessionId,
+    selectWells,
     setAlert,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateScenes,
