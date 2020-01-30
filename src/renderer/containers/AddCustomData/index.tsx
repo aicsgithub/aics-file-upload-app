@@ -47,7 +47,6 @@ import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
 import {
     applyTemplate,
-    associateFilesAndWells,
     initiateUpload,
     jumpToUpload,
     removeUploads,
@@ -64,7 +63,6 @@ import {
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
-    AssociateFilesAndWellsAction,
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
@@ -81,7 +79,6 @@ interface Props {
     annotationTypes: AnnotationType[];
     appliedTemplate?: Template;
     applyTemplate: ActionCreator<ApplyTemplateAction>;
-    associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
     canSave: boolean;
@@ -169,7 +166,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <CustomDataGrid
                         allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                         annotationTypes={annotationTypes}
-                        associateFilesAndWells={this.props.associateFilesAndWells}
                         canRedo={canRedo}
                         canUndo={canUndo}
                         channels={this.props.channels}
@@ -281,7 +277,6 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     applyTemplate,
-    associateFilesAndWells,
     goBack,
     initiateUpload,
     jumpToUpload,

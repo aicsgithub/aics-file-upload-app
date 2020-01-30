@@ -58,9 +58,14 @@ export function associateFilesAndWells(fullPaths: string[], positionIndex?: numb
     };
 }
 
-export function undoFileWellAssociation(fullPath: string, positionIndex?: number): UndoFileWellAssociationAction {
+export function undoFileWellAssociation(
+    fullPath: string,
+    positionIndex?: number,
+    deleteUpload: boolean = true
+): UndoFileWellAssociationAction {
     return {
         payload: {
+            deleteUpload,
             fullPath,
             positionIndex,
             wellIds: [], // this gets populated with the wells that are selected in logics

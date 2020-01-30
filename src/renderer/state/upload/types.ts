@@ -121,9 +121,10 @@ export interface AssociateFilesAndWorkflowsAction {
 
 export interface UndoFileWellAssociationAction {
     payload: {
-        fullPath: string,
-        positionIndex?: number,
-        wellIds: number[],
+        deleteUpload: boolean; // whether or not to delete this part of upload if no well associations left
+        fullPath: string;
+        positionIndex?: number;
+        wellIds: number[];
     };
     type: string;
 }

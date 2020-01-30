@@ -1,24 +1,13 @@
-import { Button, Popover } from "antd";
-import { ReactNode } from "react";
+import { Popover } from "antd";
 import * as React from "react";
 import { editors } from "react-data-grid";
-import { ActionCreator } from "redux";
 
-import ImagingSessionSelector from "../../../containers/ImagingSessionSelector";
-import PlateContainer from "../../../containers/PlateContainer";
-import { SelectWellsAction } from "../../../state/selection/types";
-import { AssociateFilesAndWellsAction, UploadStateBranch } from "../../../state/upload/types";
+import WellEditorPopover from "../../../containers/WellEditorPopover";
 
 const styles = require("./styles.pcss");
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
-    associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
-    associatedWellIds: number[];
-    fullPath: string;
-    positionIndex?: number;
-    selectWells: ActionCreator<SelectWellsAction>;
     selectedWellLabels?: string;
-    upload: UploadStateBranch;
 }
 
 interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
@@ -35,6 +24,10 @@ class WellsEditor extends editors.EditorBase<EditorProps, {}> {
             column: {
                 selectedWellLabels,
             },
+            rowData: {
+                file,
+                positionIndex,
+            },
         } = this.props;
 
         return (
@@ -42,8 +35,13 @@ class WellsEditor extends editors.EditorBase<EditorProps, {}> {
                 <Popover
                     placement="bottom"
                     visible={true}
-                    content={this.renderPopover()}
-                    title="Associate Wells"
+                    content={(
+                        <WellEditorPopover
+                            file={file}
+                            positionIndex={positionIndex}
+                        />
+                    )}
+                    title="Associate Wells with this row by selecting wells and clicking Associate"
                 >
                     <div className={styles.labels}>{selectedWellLabels}</div>
                 </Popover>
@@ -58,25 +56,6 @@ class WellsEditor extends editors.EditorBase<EditorProps, {}> {
 
     public getInputNode = (): Element | Text | null => {
         return this.input.current;
-    }
-
-    private renderPopover(): ReactNode {
-        const { rowData: { file, positionIndex } }  = this.props;
-        return (
-            <div>
-                <ImagingSessionSelector/>
-                <PlateContainer
-                    selectedFullPath={file}
-                    selectedPositionIndex={positionIndex}
-                />
-                <Button onClick={this.associateWithFileRow} type="primary">Associate</Button>
-            </div>
-        );
-    }
-
-    private associateWithFileRow = () => {
-        const { rowData: { file, positionIndex } }  = this.props;
-        this.props.column.associateFilesAndWells([file], positionIndex);
     }
 }
 

@@ -49,7 +49,6 @@ type SortDirections = "ASC" | "DESC" | "NONE";
 interface Props {
     allWellsForSelectedPlate: Well[][];
     annotationTypes: AnnotationType[];
-    associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
     canUndo: boolean;
     canRedo: boolean;
     channels: Channel[];
@@ -109,8 +108,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     private get wellUploadColumns(): UploadJobColumn[] {
         return [
             {
-                associateFilesAndWells: this.props.associateFilesAndWells,
-                // @ts-ignore
                 editor: WellsEditor,
                 formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
                     return (

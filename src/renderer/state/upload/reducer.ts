@@ -93,10 +93,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
             action.type === UNDO_FILE_WELL_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => {
-            const { fullPath, positionIndex, wellIds: wellIdsToRemove } = action.payload;
+            const { deleteUpload, fullPath, positionIndex, wellIds: wellIdsToRemove } = action.payload;
             const key = getUploadRowKey(fullPath, positionIndex);
             const wellIds = without(state[key].wellIds, ...wellIdsToRemove);
-            if (!wellIds.length) {
+            if (!wellIds.length && deleteUpload) {
                 const stateWithoutFile = { ...state };
                 delete stateWithoutFile[key];
                 return stateWithoutFile;
