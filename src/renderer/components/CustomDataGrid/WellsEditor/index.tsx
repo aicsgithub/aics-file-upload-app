@@ -6,28 +6,16 @@ import WellEditorPopover from "../../../containers/WellEditorPopover";
 
 const styles = require("./styles.pcss");
 
-interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
-    selectedWellLabels?: string;
-}
-
-interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
-    column: EditorColumn;
-    width?: string;
-}
-
 /**
  * This is used in the CustomDataGrid when a user wants to edit a well field by clicking or hitting Enter.
  * It displays the currently selected well labels and a popover with the plate UI for associating more wells.
  */
-class WellsEditor extends editors.EditorBase<EditorProps, {}> {
+class WellsEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProps, {}> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
 
     public render() {
         const {
-            column: {
-                selectedWellLabels,
-            },
             rowData: {
                 file,
                 positionIndex,
@@ -47,7 +35,7 @@ class WellsEditor extends editors.EditorBase<EditorProps, {}> {
                     )}
                     title="Associate Wells with this row by selecting wells and clicking Associate"
                 >
-                    <div className={styles.labels}>{selectedWellLabels}</div>
+                    <div className={styles.container}/>
                 </Popover>
             </div>
         );
