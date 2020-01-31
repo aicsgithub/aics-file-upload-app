@@ -228,6 +228,13 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInLocal: false,
         wellIds: [1, 2, 3],
     },
+    [getUploadRowKey("/path/to/file3", 1)]: {
+        barcode: "1236",
+        file: "/path/to/file3",
+        key: getUploadRowKey("/path/to/file3", 1),
+        positionIndex: 1,
+        wellIds: [1, 2],
+    },
 };
 
 export const mockTextAnnotation: TemplateAnnotation = {

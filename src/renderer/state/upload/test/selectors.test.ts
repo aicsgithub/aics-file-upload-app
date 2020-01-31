@@ -1,6 +1,6 @@
 import { UploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { forEach, keys, orderBy } from "lodash";
+import { forEach, orderBy } from "lodash";
 
 import {
     getMockStateWithHistory,
@@ -494,7 +494,7 @@ describe("Upload selectors", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,
             });
-            expect(rows.length).to.equal(keys(mockState.upload.present).length);
+            expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
             expect(rows).to.deep.include({
                 barcode: "1234",
                 channelIds: [],
@@ -531,10 +531,10 @@ describe("Upload selectors", () => {
                 barcode: "1236",
                 channelIds: [],
                 file: "/path/to/file3",
-                group: false,
+                group: true,
                 key: getUploadRowKey("/path/to/file3"),
                 numberSiblings: 3,
-                positionIndexes: [],
+                positionIndexes: [1],
                 shouldBeInArchive: true,
                 shouldBeInLocal: false,
                 siblingIndex: 2,

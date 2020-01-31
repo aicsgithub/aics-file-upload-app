@@ -35,7 +35,8 @@ import {
     CANCEL_UPLOAD,
     getUploadRowKey,
     INITIATE_UPLOAD,
-    RETRY_UPLOAD, UNDO_FILE_WELL_ASSOCIATION,
+    RETRY_UPLOAD,
+    UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SCENES,
@@ -89,11 +90,6 @@ const undoFileWellAssociationLogic = createLogic({
     type: UNDO_FILE_WELL_ASSOCIATION,
     validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        if (!action.payload.fullPath) {
-            reject(setErrorAlert("Cannot undo file and well associations: No file selected"));
-            return;
-        }
-
         const state = getState();
         const wellIds = getSelectedWellIds(state);
         if (isEmpty(wellIds)) {
