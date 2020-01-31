@@ -47,6 +47,36 @@ describe("App selectors", () => {
             expect(get(file1Tags, [0, "color"])).to.equal(get(file2Tags, [0, "color"]));
         });
 
+        it ("adds imaging session name if well was from another imaging session", () => {
+            const filePath1 = "filepath1";
+            const map = getFileToTags({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    imagingSessions: [{
+                        description: "2 hours after plated",
+                        imagingSessionId: 1,
+                        name: "2 hours",
+                    }],
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    wells: mockWells,
+                }),
+                upload: getMockStateWithHistory({
+                    [filePath1]: {
+                        barcode: "test_barcode",
+                        file: filePath1,
+                        wellIds: [10],
+                    },
+                }),
+            });
+
+            const file1ToTags = map.get(filePath1) || [];
+            expect(file1ToTags.length).to.equal(1);
+            expect(file1ToTags.map((t) => t.title)).to.contain("A1 (2 hours)");
+        });
+
         it("creates human readable info from workflows", () => {
             const filePath1 = "filepath1";
             const filePath2 = "filepath2";

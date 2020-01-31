@@ -148,6 +148,9 @@ export const mockWells: ImagingSessionIdToWellsMap = {
         {...mockWell, col: 1, row: 1, wellId: 4},
         {...mockWell, col: 0, row: 1, wellId: 3},
     ],
+    1: [
+        {...mockWell, plateId: 2, wellId: 10},
+    ],
 };
 
 export const mockPlate: ImagingSessionIdToPlateMap = {
@@ -161,6 +164,16 @@ export const mockPlate: ImagingSessionIdToPlateMap = {
         plateStatusId: 1,
         seededOn: undefined,
     },
+    1: {
+        ...mockAuditInfo,
+        barcode: "abc",
+        comments: "drugs added",
+        imagingSessionId: 1,
+        plateGeometryId: 1,
+        plateId: 2,
+        plateStatusId: 1,
+        seededOn: undefined,
+    },
 };
 
 export const mockSelection: SelectionStateBranch = {
@@ -170,7 +183,7 @@ export const mockSelection: SelectionStateBranch = {
     files: [],
     folderTreeOpen: true,
     imagingSessionId: undefined,
-    imagingSessionIds: [],
+    imagingSessionIds: [0, 1],
     openTemplateModalVisible: false,
     plate: mockPlate,
     selectedWells: [],
