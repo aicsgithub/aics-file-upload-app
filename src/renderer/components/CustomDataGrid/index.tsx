@@ -14,15 +14,12 @@ import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import {
     ExpandedRows,
-    SelectImagingSessionIdAction,
-    SelectWellsAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
 import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../state/template/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import {
-    AssociateFilesAndWellsAction,
     RemoveUploadsAction,
     UpdateScenesAction,
     UpdateUploadAction,
@@ -30,7 +27,6 @@ import {
     UploadMetadata,
 } from "../../state/upload/types";
 import { onDrop } from "../../util";
-import { GridCell } from "../AssociateWells/grid-cell";
 
 import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
@@ -58,9 +54,6 @@ interface Props {
     redo: () => void;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     template?: Template;
-    selectImagingSessionId: ActionCreator<SelectImagingSessionIdAction>;
-    selectWells: ActionCreator<SelectWellsAction>;
-    selectedWells: GridCell[];
     setAlert: ActionCreator<SetAlertAction>;
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     undo: () => void;
@@ -79,7 +72,6 @@ interface CustomDataState {
 
 interface UploadJobColumn extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
     allowMultipleValues?: boolean;
-    associateFilesAndWells?: ActionCreator<AssociateFilesAndWellsAction>;
     dropdownValues?: string[];
     onChange?: (value: any, key: keyof UploadJobTableRow, row: UploadJobTableRow) => void;
     type?: ColumnType;

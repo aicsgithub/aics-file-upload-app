@@ -5,17 +5,15 @@ import { ActionCreator } from "redux";
 
 import AssociateWells from "../../components/AssociateWells";
 import AssociateWorkflows from "../../components/AssociateWorkflows";
-import { getImagingSessions, getWorkflowOptions } from "../../state/metadata/selectors";
-import { ImagingSession } from "../../state/metadata/types";
+import { getWorkflowOptions } from "../../state/metadata/selectors";
 import { goBack, goForward } from "../../state/route/actions";
 import { GoBackAction, NextPageAction } from "../../state/route/types";
 import {
-    selectImagingSessionId,
     selectWells,
     selectWorkflows,
 } from "../../state/selection/actions";
 import {
-    getSelectedFiles, getSelectedImagingSessionId, getSelectedImagingSessionIds,
+    getSelectedFiles,
     getSelectedWellLabels,
     getSelectedWells,
     getSelectedWellsWithData,
@@ -23,7 +21,6 @@ import {
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
-    SelectImagingSessionIdAction,
     SelectWellsAction,
     SelectWorkflowsAction,
     Well,
@@ -60,15 +57,11 @@ interface AssociateFilesProps {
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
-    imagingSessionIds: Array<number | null>;
-    imagingSessions: ImagingSession[];
     mutualFilesForWells: string[];
     mutualFilesForWorkflows: string[];
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
-    selectImagingSessionId: ActionCreator<SelectImagingSessionIdAction>;
     selectedFiles: string[];
-    selectedImagingSessionId?: number;
     selectedWellLabels: string[];
     selectedWells: AicsGridCell[];
     selectedWellsData: Well[];
@@ -144,12 +137,9 @@ function mapStateToProps(state: State) {
         associateWorkflows: getAssociateByWorkflow(state),
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
-        imagingSessionIds: getSelectedImagingSessionIds(state),
-        imagingSessions: getImagingSessions(state),
         mutualFilesForWells: getMutualFilesForWells(state),
         mutualFilesForWorkflows: getMutualFilesForWorkflows(state),
         selectedFiles: getSelectedFiles(state),
-        selectedImagingSessionId: getSelectedImagingSessionId(state),
         selectedWellLabels: getSelectedWellLabels(state),
         selectedWells: getSelectedWells(state),
         selectedWellsData: getSelectedWellsWithData(state),
@@ -168,7 +158,6 @@ const dispatchToPropsMap = {
     goBack,
     goForward,
     jumpToUpload,
-    selectImagingSessionId,
     selectWells,
     selectWorkflows,
     undoFileWellAssociation,
