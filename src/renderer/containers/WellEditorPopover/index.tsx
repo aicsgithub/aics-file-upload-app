@@ -47,7 +47,6 @@ class WellEditorPopover extends React.Component<Props, {}> {
             className,
             file,
             positionIndex,
-            selectedWellIds,
         } = this.props;
 
         return (
@@ -59,13 +58,13 @@ class WellEditorPopover extends React.Component<Props, {}> {
                             onClick={this.associateWithRow}
                             type="primary"
                             className={styles.associateBtn}
-                            disabled={isEmpty(selectedWellIds)}
+                            disabled={this.associateBtnDisabled()}
                         >
                             Associate
                         </Button>
                         <Button
                             onClick={this.undoAssociation}
-                            disabled={this.removeAssociationsDisabled()}
+                            disabled={this.removeAssociationsBtnDisabled()}
                         >
                             Remove Association
                         </Button>
@@ -79,17 +78,19 @@ class WellEditorPopover extends React.Component<Props, {}> {
         );
     }
 
-    private associateWithRow = () => {
+    private associateWithRow = (): void => {
         const { file, positionIndex }  = this.props;
         this.props.associateFilesAndWells([{ file, positionIndex }]);
     }
 
-    private undoAssociation = () => {
+    private undoAssociation = (): void => {
         const { file, positionIndex }  = this.props;
         this.props.undoFileWellAssociation([file], positionIndex, false);
     }
 
-    private removeAssociationsDisabled = () => {
+    // disable if no wells selected or if none of the wells selected have been associated with
+    // the row yet
+    private removeAssociationsBtnDisabled = (): boolean => {
         const {
             file,
             positionIndex,
@@ -101,6 +102,22 @@ class WellEditorPopover extends React.Component<Props, {}> {
         }
         const uploadRow = upload[getUploadRowKey(file, positionIndex)];
         return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === 0;
+    }
+
+    // disable if no wells selected or if all of the wells have already been associated with
+    // the row
+    private associateBtnDisabled = (): boolean => {
+        const {
+            file,
+            positionIndex,
+            selectedWellIds,
+            upload,
+        } = this.props;
+        if (isEmpty(selectedWellIds)) {
+            return true;
+        }
+        const uploadRow = upload[getUploadRowKey(file, positionIndex)];
+        return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === selectedWellIds.length;
     }
 }
 
