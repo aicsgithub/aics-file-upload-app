@@ -998,6 +998,78 @@ describe("Upload selectors", () => {
                 },
             });
         });
+        it("sets error if a multi-value lookup annotation contains a value that is not an annotation option",
+            () => {
+            const uploadRowKey = getUploadRowKey("/path/to/file1");
+            const result = getValidationErrorsMap({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: mockTemplateWithManyValues,
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Another Garbage Text Annotation": ["a"],
+                        "Birth Date": [new Date()],
+                        "Cas9": ["BAD"],
+                        "Clone Number Garbage": [1, 2, 3],
+                        "Dropdown": undefined,
+                        "Qc": [false],
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    Cas9: "BAD is not a valid value for this annotation",
+                },
+            });
+        });
+        it("sets error if a single value annotation contains a value that is not an annotation option",
+            () => {
+                const uploadRowKey = getUploadRowKey("/path/to/file1");
+                const result = getValidationErrorsMap({
+                    ...nonEmptyStateForInitiatingUpload,
+                    template: getMockStateWithHistory({
+                        ...mockTemplateStateBranch,
+                        appliedTemplate: mockTemplateWithManyValues,
+                    }),
+                    upload: getMockStateWithHistory({
+                        [uploadRowKey]: {
+                            "Another Garbage Text Annotation": ["a"],
+                            "Birth Date": [new Date()],
+                            "Cas9": [],
+                            "Clone Number Garbage": [1, 2, 3],
+                            "Dropdown": "BAD",
+                            "Qc": [false],
+                            "barcode": "",
+                            "file": "/path/to/file3",
+                            "notes": undefined,
+                            "templateId": 8,
+                            "wellIds": [],
+                            "wellLabels": [],
+                            "workflows": [
+                                "R&DExp",
+                                "Pipeline 4.1",
+                            ],
+                        },
+                    }),
+                });
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        Dropdown: "BAD is not a valid value for this annotation",
+                    },
+                });
+            });
     });
 
     describe("getUploadFiles", () => {

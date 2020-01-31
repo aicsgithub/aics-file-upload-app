@@ -1,6 +1,7 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import {
     castArray,
+    difference,
     flatMap,
     forEach,
     groupBy,
@@ -280,8 +281,26 @@ export const getValidationErrorsMap = createSelector([
         forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
             if (templateAnnotation) {
-                if (templateAnnotation.canHaveManyValues && !isNil(value) && !Array.isArray(value)) {
-                    annotationToErrorMap[annotationName] = "Invalid format";
+                if (templateAnnotation.canHaveManyValues) {
+                    if (!isNil(value) && !Array.isArray(value)) {
+                        annotationToErrorMap[annotationName] = "Invalid format";
+                    } else if (value && templateAnnotation.annotationOptions) {
+                        const invalidValues = difference(value, templateAnnotation.annotationOptions);
+                        if (invalidValues.length) {
+                            let errorMessage = `${invalidValues.join(", ")} `;
+                            if (invalidValues.length > 1) {
+                                errorMessage += "are not valid values for this annotations";
+                            } else {
+                                errorMessage += "is not a valid value for this annotation";
+                            }
+                            annotationToErrorMap[annotationName] = errorMessage;
+                        }
+                    }
+                } else {
+                    if (value &&
+                        templateAnnotation.annotationOptions && !templateAnnotation.annotationOptions.includes(value)) {
+                        annotationToErrorMap[annotationName] = `${value} is not a valid value for this annotation`;
+                    }
                 }
             }
         });
