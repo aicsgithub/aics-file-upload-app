@@ -48,9 +48,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: UploadStateBranch, action: AssociateFilesAndWellsAction) => {
             const nextState = {...state};
 
-            const { barcode, wellIds, fullPaths, positionIndex } = action.payload;
+            const { barcode, wellIds, rowIds } = action.payload;
 
-            return fullPaths.reduce((accum: UploadStateBranch, file: string) => {
+            return rowIds.reduce((accum: UploadStateBranch, { file, positionIndex }) => {
                 const key = getUploadRowKey(file, positionIndex);
                 return {
                     ...accum,

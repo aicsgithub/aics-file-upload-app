@@ -125,7 +125,8 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     private associate = (): void => {
         if (this.canAssociate()) {
             const { selectedFiles } = this.props;
-            this.props.associateFilesAndWells(selectedFiles);
+            const ids = selectedFiles.map((file) => ({ file }));
+            this.props.associateFilesAndWells(ids);
         }
     }
 

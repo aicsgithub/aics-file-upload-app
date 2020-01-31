@@ -752,6 +752,11 @@ export const nonEmptyStateForInitiatingUpload: State = {
         annotationTypes: mockAnnotationTypes,
         annotations: mockAnnotations,
     },
+    selection: getMockStateWithHistory({
+        ...mockState.selection.present,
+        barcode: "1234",
+        selectedWells: [{col: 0, row: 0}],
+    }),
     template: getMockStateWithHistory({
         ...mockTemplateStateBranch,
         appliedTemplate: mockMMSTemplate,

@@ -81,7 +81,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
 
     private associateWithRow = () => {
         const { file, positionIndex }  = this.props;
-        this.props.associateFilesAndWells([file], positionIndex);
+        this.props.associateFilesAndWells([{ file, positionIndex }]);
     }
 
     private undoAssociation = () => {

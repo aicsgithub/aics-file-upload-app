@@ -13,7 +13,7 @@ import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobName
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
-import { clearStagedFiles, deselectFiles, selectWells } from "../selection/actions";
+import { clearStagedFiles, deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getSelectedWellIds } from "../selection/selectors";
 import { updateSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
@@ -42,15 +42,21 @@ import {
     UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
-import { UploadMetadata, UploadStateBranch } from "./types";
+import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
     type: ASSOCIATE_FILES_AND_WELLS,
     validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        if (isEmpty(action.payload.fullPaths)) {
+        const { rowIds } = action.payload;
+        if (isEmpty(action.payload.rowIds)) {
             reject(setErrorAlert("Cannot associate files and wells: No files selected"));
             return;
+        }
+
+        const rowWithChannel = rowIds.find((id: UploadRowId) => id.channelId);
+        if (rowWithChannel) {
+            reject(setErrorAlert("Cannot associate wells with a channel row"));
         }
 
         const state = getState();
@@ -75,7 +81,6 @@ const associateFilesAndWellsLogic = createLogic({
         next(batchActions([
             action,
             deselectFiles(),
-            selectWells([]),
         ]));
     },
 });

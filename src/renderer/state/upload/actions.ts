@@ -42,22 +42,23 @@ import {
     UpdateUploadAction,
     UpdateUploadsAction,
     UploadJobTableRow,
-    UploadMetadata,
+    UploadMetadata, UploadRowId,
 } from "./types";
 
-export function associateFilesAndWells(fullPaths: string[], positionIndex?: number)
+export function associateFilesAndWells(rowIds: UploadRowId[])
     : AssociateFilesAndWellsAction {
+
     return {
         payload: {
             barcode: "",
-            fullPaths,
-            positionIndex,
+            rowIds,
             wellIds: [], // this gets populated with the wells that are selected in logics
         },
         type: ASSOCIATE_FILES_AND_WELLS,
     };
 }
 
+// For undoing the well associations for a single upload row
 export function undoFileWellAssociation(
     fullPath: string,
     positionIndex?: number,

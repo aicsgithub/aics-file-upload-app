@@ -103,10 +103,9 @@ export interface UploadJobTableRow {
 
 export interface AssociateFilesAndWellsAction {
     payload: {
-        barcode: string,
-        fullPaths: string[],
-        positionIndex?: number,
-        wellIds: number[],
+        barcode: string;
+        rowIds: UploadRowId[];
+        wellIds: number[];
     };
     type: string;
 }
@@ -213,4 +212,10 @@ export enum FileType {
     OTHER = "other",
     TEXT = "text",
     ZEISS_CONFIG_FILE = "zeiss-config-file",
+}
+
+export interface UploadRowId {
+    file: string; // fullpath
+    positionIndex?: number;
+    channelId?: number;
 }

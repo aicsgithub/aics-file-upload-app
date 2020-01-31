@@ -5,7 +5,7 @@ import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { getSelectedFiles } from "../../selection/selectors";
+import { getSelectedBarcode, getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
@@ -35,20 +35,28 @@ import {
 } from "../selectors";
 
 describe("Upload logics", () => {
-    describe("associateFileAndWellLogic", () => {
-        it("clears files and associates well with file", () => {
-            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+    describe("associateFileAndWellLogic",  () => {
+        it("clears files and associates well with file", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
 
-            store.dispatch(associateFilesAndWells(["/path1", "/path2"], [wellId]));
-            expect(getSelectedFiles(store.getState())).to.be.empty;
+            store.dispatch(associateFilesAndWells([{file: file1}, {file: file2}]));
+            await logicMiddleware.whenComplete();
 
+            const state = store.getState();
+            expect(getSelectedFiles(state)).to.be.empty;
             const upload = getUpload(store.getState());
+            const selectedBarcode = getSelectedBarcode(state);
             expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file1, "barcode"])).to.equal(selectedBarcode);
             expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "barcode"])).to.equal(selectedBarcode);
         });
+
+        // todo add tests for validations
+        // todo add test for positionIndex
     });
 
     describe("applyTemplateLogic", () => {
@@ -61,7 +69,7 @@ describe("Upload logics", () => {
             // before
             const state = store.getState();
             expect(getAppliedTemplateId(state)).to.be.undefined;
-            store.dispatch(associateFilesAndWells([file1, file2], [wellId]));
+            store.dispatch(associateFilesAndWells([{file: file1}, {file: file2}]));
 
             // apply
             store.dispatch(applyTemplate(1));
