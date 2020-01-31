@@ -15,6 +15,7 @@ import {
     UndoFileWellAssociationAction,
     UploadStateBranch,
 } from "../../state/upload/types";
+
 import ImagingSessionSelector from "../ImagingSessionSelector";
 import PlateContainer from "../PlateContainer";
 
@@ -37,11 +38,6 @@ interface Props {
  * bypassing this lifecycle.
  */
 class WellEditorPopover extends React.Component<Props, {}> {
-
-    constructor(props: Props) {
-        super(props);
-    }
-
     public render() {
         const {
             className,
