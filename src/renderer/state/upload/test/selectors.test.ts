@@ -28,7 +28,7 @@ import {
     getUploadFileNames,
     getUploadFiles,
     getUploadPayload,
-    getUploadSummaryRows,
+    getUploadSummaryRows, getUploadWithCalculatedData,
     getValidationErrorsMap,
 } from "../selectors";
 import { FileType, MMSAnnotationValueRequest } from "../types";
@@ -53,6 +53,13 @@ const standardizeUploads = (uploads: Uploads): Uploads => {
 };
 
 describe("Upload selectors", () => {
+    describe("getUploadWithCalculatedData", () => {
+        it("adds wellLabels to the uploads", () => {
+            const result = getUploadWithCalculatedData(nonEmptyStateForInitiatingUpload);
+            expect(result[getUploadRowKey("/path/to/file1")].wellLabels).to.deep.equal(["A1"]);
+        });
+    });
+
     describe("getUploadPayload", () => {
         it("Converts upload state branch into correct payload for aicsfiles-js", () => {
             const state: State = {
