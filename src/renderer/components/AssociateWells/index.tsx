@@ -13,8 +13,6 @@ import Plate from "../Plate";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import WellInfo from "../SelectedAssociationsCard/WellInfo";
 
-import { GridCell } from "./grid-cell";
-
 const styles = require("./style.pcss");
 
 interface AssociateWellsProps {
@@ -98,22 +96,13 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                 {wells ? (
                         <Plate
                             wells={wells}
-                            onWellClick={this.selectWells}
+                            onWellClick={this.props.selectWells}
                             selectedWells={selectedWells}
                             wellsWithAssociations={wellsWithAssociations}
                         />
                     ) : <span>Plate does not have any well information!</span>}
             </FormPage>
         );
-    }
-
-    public selectWells = (cells: AicsGridCell[]): void => {
-        const { wells } = this.props;
-        if (wells) {
-            const filledCells = cells.filter((cell) => wells[cell.row][cell.col].modified);
-            const gridCells = filledCells.map((cell) => new GridCell(cell.row, cell.col));
-            this.props.selectWells(gridCells);
-        }
     }
 
     // If we have wells & files selected then allow the user to Associate them
