@@ -15,6 +15,10 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
     width?: string;
 }
 
+/**
+ * This is used in the CustomDataGrid when a user wants to edit a well field by clicking or hitting Enter.
+ * It displays the currently selected well labels and a popover with the plate UI for associating more wells.
+ */
 class WellsEditor extends editors.EditorBase<EditorProps, {}> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
