@@ -10,14 +10,17 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import {
+    getAllPlates,
     getSelectedImagingSession,
+    getSelectedPlate,
+    getSelectedPlateId,
     getSelectedWellLabels,
     getSelectedWellsWithData,
     getWellsWithModified,
     getWellsWithUnitsAndModified,
     NO_UNIT,
 } from "../selectors";
-import { CellPopulation, Solution, Well, WellResponse } from "../types";
+import { CellPopulation, PlateResponse, Solution, Well, WellResponse } from "../types";
 
 describe("Selections selectors", () => {
     let mockEmptyWell: Well;
@@ -80,6 +83,59 @@ describe("Selections selectors", () => {
         expect(wells.length).to.equal(1);
         expect(wells[0].length).to.equal(1);
     };
+
+    describe("getSelectedPlate", () => {
+        it("returns undefined if no barcode selected yet", () => {
+            const result: PlateResponse | undefined = getSelectedPlate({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    plate: {},
+                }),
+            });
+            expect(result).to.be.undefined;
+        });
+
+        it ("returns plate corresponding to 0 imaging session id if no imaging session selected", () => {
+            const result: PlateResponse | undefined = getSelectedPlate(mockState);
+            expect(result).to.equal(getAllPlates(mockState)[0]);
+        });
+
+        it("returns plate corresponding to the imaging session id selected", () => {
+            const result: PlateResponse | undefined = getSelectedPlate({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    imagingSessionId: 1,
+                }),
+            });
+            expect(result).to.equal(getAllPlates(mockState)[1]);
+        });
+    });
+
+    describe("getSelectedPlateId", () => {
+        it("returns undefined if no plate selected", () => {
+            const result: number | undefined = getSelectedPlateId({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    plate: {},
+                }),
+            });
+            expect(result).to.be.undefined;
+        });
+
+        it("returns the id of the plate that is selected", () => {
+            const result: number | undefined = getSelectedPlateId({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    imagingSessionId: 1,
+                }),
+            });
+            expect(result).to.equal(1);
+        });
+    });
 
     describe ("getWellsWithModified", () => {
         it("sets modified as true on wells with cellPopulations", () => {

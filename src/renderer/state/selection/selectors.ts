@@ -43,14 +43,17 @@ export const NO_UNIT = "(Unit Not Found)";
 export const getSelectedPlate = createSelector([
     getSelectedPlates,
     getSelectedImagingSessionId,
-], (imagingSessionIdToPlate: ImagingSessionIdToPlateMap, selectedImagingSessionId?: number) => {
+], (
+    imagingSessionIdToPlate: ImagingSessionIdToPlateMap,
+    selectedImagingSessionId?: number
+): PlateResponse | undefined => {
     selectedImagingSessionId = !selectedImagingSessionId ? 0 : selectedImagingSessionId;
     return imagingSessionIdToPlate[selectedImagingSessionId];
 });
 
 export const getSelectedPlateId = createSelector([
     getSelectedPlate,
-], (selectedPlate?: PlateResponse) => selectedPlate ? selectedPlate.plateId : undefined);
+], (selectedPlate?: PlateResponse): number | undefined => selectedPlate ? selectedPlate.plateId : undefined);
 
 export const getWellsForSelectedPlate = createSelector([
     getWells,

@@ -191,7 +191,7 @@ export const mockSelection: SelectionStateBranch = {
     files: [],
     folderTreeOpen: true,
     imagingSessionId: undefined,
-    imagingSessionIds: [0, 1],
+    imagingSessionIds: [null, 1],
     openTemplateModalVisible: false,
     plate: mockPlate,
     selectedWells: [],
