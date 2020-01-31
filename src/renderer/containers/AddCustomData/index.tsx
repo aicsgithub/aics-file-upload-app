@@ -5,7 +5,6 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
-import { GridCell } from "../../components/AssociateWells/grid-cell";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
 import TemplateSearch from "../../components/TemplateSearch";
@@ -24,20 +23,16 @@ import { goBack } from "../../state/route/actions";
 import { GoBackAction, Page } from "../../state/route/types";
 import {
     openTemplateEditor,
-    selectImagingSessionId,
-    selectWells,
     toggleExpandedUploadJobRow,
 } from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
-    getSelectedBarcode, getSelectedWells,
+    getSelectedBarcode,
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
     ExpandedRows,
     OpenTemplateEditorAction,
-    SelectImagingSessionIdAction,
-    SelectWellsAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
@@ -95,9 +90,6 @@ interface Props {
     removeUploads: ActionCreator<RemoveUploadsAction>;
     requestTemplates: ActionCreator<GetTemplatesAction>;
     savedTemplateId?: number;
-    selectImagingSessionId: ActionCreator<SelectImagingSessionIdAction>;
-    selectWells: ActionCreator<SelectWellsAction>;
-    selectedWells: GridCell[];
     selectedBarcode?: string;
     setAlert: ActionCreator<SetAlertAction>;
     templates: LabkeyTemplate[];
@@ -137,7 +129,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canUndo,
             className,
             loading,
-            selectedWells,
             uploads,
             validationErrors,
         } = this.props;
@@ -174,9 +165,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         redo={this.redo}
                         removeUploads={this.props.removeUploads}
                         template={appliedTemplate}
-                        selectImagingSessionId={this.props.selectImagingSessionId}
-                        selectWells={this.props.selectWells}
-                        selectedWells={selectedWells}
                         setAlert={this.props.setAlert}
                         toggleRowExpanded={this.props.toggleRowExpanded}
                         undo={this.undo}
@@ -268,7 +256,6 @@ function mapStateToProps(state: State) {
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
-        selectedWells: getSelectedWells(state),
         templates: getTemplates(state),
         uploads: getUploadSummaryRows(state),
         validationErrors: getValidationErrorsMap(state),
@@ -283,8 +270,6 @@ const dispatchToPropsMap = {
     openSchemaCreator: openTemplateEditor,
     removeUploads,
     requestTemplates,
-    selectImagingSessionId,
-    selectWells,
     setAlert,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateScenes,
