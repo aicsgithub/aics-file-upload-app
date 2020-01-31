@@ -5,8 +5,8 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
 import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
-import { GridCell } from "../../components/AssociateWells/grid-cell";
 
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { canUserRead, getWithRetry } from "../../util";
 
 import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
