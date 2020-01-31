@@ -1,5 +1,5 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Alert, Button, Empty, Modal, Progress, Radio, Row, Table } from "antd";
+import { Empty, Modal, Progress, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import { isEmpty, map } from "lodash";
@@ -21,7 +21,6 @@ import {
 } from "../../state/job/actions";
 import {
     getAreAllJobsComplete,
-    getIsPolling,
     getJobFilter,
     getJobsForTable,
 } from "../../state/job/selectors";
@@ -78,7 +77,6 @@ interface Props {
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
     gatherIncompleteJobNames: ActionCreator<GatherIncompleteJobNamesAction>;
-    isPolling: boolean;
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
@@ -175,7 +173,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             fileMetadataForJob,
             fileMetadataForJobHeader,
             fileMetadataForJobLoading,
-            isPolling,
             jobFilter,
             jobs,
             loading,
@@ -192,23 +189,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
                 page={Page.UploadSummary}
             >
-                {!isPolling && (
-                    <div className={styles.refreshContainer}>
-                        <Button
-                            size="large"
-                            type="primary"
-                            onClick={this.props.retrieveJobs}
-                            className={styles.refreshButton}
-                        >Refresh Jobs
-                        </Button>
-                        <Alert
-                            className={styles.alert}
-                            type="info"
-                            message="Uploads no longer auto-updating, click refresh to begin updating again"
-                            showIcon={true}
-                        />
-                    </div>
-                )}
                 <Row>
                     Show&nbsp;
                     <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
@@ -344,7 +324,6 @@ function mapStateToProps(state: State) {
         fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
         fileMetadataForJobLoading: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         files: getStagedFiles(state),
-        isPolling: getIsPolling(state),
         jobFilter: getJobFilter(state),
         jobs: getJobsForTable(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD)

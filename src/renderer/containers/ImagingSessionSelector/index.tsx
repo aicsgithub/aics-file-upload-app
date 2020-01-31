@@ -11,10 +11,7 @@ import { ImagingSession } from "../../state/metadata/types";
 import { selectImagingSessionId } from "../../state/selection/actions";
 import { getSelectedImagingSessionId, getSelectedImagingSessionIds } from "../../state/selection/selectors";
 import { SelectImagingSessionIdAction } from "../../state/selection/types";
-
-import {
-    State,
-} from "../../state/types";
+import { State } from "../../state/types";
 
 interface ImagingSessionSelectorProps {
     className?: string;
