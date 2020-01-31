@@ -11,9 +11,11 @@ import {
 import { State } from "../../types";
 import {
     getAllPlates,
+    getAllWells,
     getSelectedImagingSession,
     getSelectedPlate,
     getSelectedPlateId,
+    getSelectedWellIds,
     getSelectedWellLabels,
     getSelectedWellsWithData,
     getWellsWithModified,
@@ -133,7 +135,7 @@ describe("Selections selectors", () => {
                     imagingSessionId: 1,
                 }),
             });
-            expect(result).to.equal(1);
+            expect(result).to.equal(2);
         });
     });
 
@@ -329,6 +331,38 @@ describe("Selections selectors", () => {
                 }),
             });
             expect(result).to.not.be.undefined;
+        });
+    });
+
+    describe("getSelectedWellIds", () => {
+        it("returns empty list if no selected wells", () => {
+            const result = getSelectedWellIds(mockState);
+            expect(result).to.be.empty;
+        });
+        it("returns well ids of selected wells", () => {
+            const result = getSelectedWellIds({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: [{ col: 0, row: 0 }],
+                }),
+            });
+            expect(result.length).to.equal(1);
+            expect(result[0]).to.equal(1);
+        });
+    });
+
+    describe("getAllWells", () => {
+        it("returns all wells from all imaging sessions in a flat list", () => {
+            const result = getAllWells(mockState);
+            expect(result.length).to.equal(7);
+        });
+    });
+
+    describe("getAllPlates", () => {
+        it("returns all plates from all imaging sessions", () => {
+            const result = getAllPlates(mockState);
+            expect(result.length).to.equal(2);
         });
     });
 });
