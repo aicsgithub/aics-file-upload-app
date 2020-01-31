@@ -28,16 +28,17 @@ import {
     mockMMSTemplate,
     mockSelection,
     mockState,
-    mockTemplateStateBranch,
+    mockTemplateStateBranch, mockWells, nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { closeTemplateEditor, openTemplateEditor, selectBarcode } from "../actions";
+import { closeTemplateEditor, openTemplateEditor, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
     getSelectedBarcode,
     getSelectedPlateId,
     getSelectedPlates,
+    getSelectedWells,
     getStagedFiles,
     getTemplateEditorVisible,
     getWells,
@@ -645,6 +646,28 @@ describe("Selection logics", () => {
             // after
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
+        });
+    });
+
+    describe("selectWellsLogic", () => {
+        it ("filters out unmodified wells", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: [],
+                }),
+            });
+
+            // before
+            expect(getSelectedWells(store.getState())).to.be.empty;
+
+            // apply
+            const cells = mockWells[0].map((w) => ({col: w.col, row: w.row}));
+            store.dispatch(selectWells(cells));
+
+            // after
+            expect(getSelectedWells(store.getState()).length).to.equal(4);
         });
     });
 });

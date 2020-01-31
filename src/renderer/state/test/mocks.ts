@@ -8,6 +8,7 @@ import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
 import {
+    CellPopulation,
     ImagingSessionIdToPlateMap,
     ImagingSessionIdToWellsMap,
     SelectionStateBranch,
@@ -132,8 +133,13 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     };
 };
 
+const mockCellPopulation: CellPopulation = {
+    seedingDensity: "1000",
+    sourceVial: { barcode: "abc" },
+};
+
 export const mockWell: Well = {
-    cellPopulations: [],
+    cellPopulations: [mockCellPopulation],
     col: 0,
     plateId: 1,
     row: 0,
@@ -145,8 +151,10 @@ export const mockWells: ImagingSessionIdToWellsMap = {
     0: [
         mockWell,
         {...mockWell, col: 1, row: 0, wellId: 2},
+        {...mockWell, cellPopulations: [], col: 2, row: 0, wellId: 5},
         {...mockWell, col: 1, row: 1, wellId: 4},
         {...mockWell, col: 0, row: 1, wellId: 3},
+        {...mockWell, cellPopulations: [], col: 2, row: 1, wellId: 6},
     ],
     1: [
         {...mockWell, plateId: 2, wellId: 10},
