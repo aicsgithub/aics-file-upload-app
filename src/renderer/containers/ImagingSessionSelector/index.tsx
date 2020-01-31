@@ -24,12 +24,11 @@ interface ImagingSessionSelectorProps {
     selectedImagingSessionId?: number;
 }
 
+/**
+ * This selector displays all of the imaging sessions for a plate barcode and allows
+ * users to toggle the imaging session to view
+ */
 class ImagingSessionSelector extends React.Component<ImagingSessionSelectorProps, {}> {
-    constructor(props: ImagingSessionSelectorProps) {
-        super(props);
-        this.state = {};
-    }
-
     public render() {
         const { className, selectedImagingSessionId, imagingSessionIds } = this.props;
         if (imagingSessionIds.length < 2) {
