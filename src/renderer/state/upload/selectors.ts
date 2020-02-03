@@ -16,12 +16,19 @@ import {
     values,
     without,
 } from "lodash";
+import { isDate } from "moment";
 import * as moment from "moment";
 import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
 import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
+import {
+    getBooleanAnnotationTypeId,
+    getDateAnnotationTypeId, getDateTimeAnnotationTypeId, getDropdownAnnotationTypeId, getLookupAnnotationTypeId,
+    getNumberAnnotationTypeId,
+    getTextAnnotationTypeId,
+} from "../metadata/selectors";
 
 import { getExpandedUploadJobRows } from "../selection/selectors";
 
@@ -269,8 +276,24 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
 
 export const getValidationErrorsMap = createSelector([
     getUpload,
+    getDropdownAnnotationTypeId,
+    getLookupAnnotationTypeId,
+    getBooleanAnnotationTypeId,
+    getNumberAnnotationTypeId,
+    getTextAnnotationTypeId,
+    getDateAnnotationTypeId,
+    getDateTimeAnnotationTypeId,
     getCompleteAppliedTemplate,
-], (upload: UploadStateBranch, template?: TemplateWithTypeNames) => {
+], (
+    upload: UploadStateBranch,
+    dropdownAnnotationTypeId?: number,
+    lookupAnnotationTypeId?: number,
+    booleanAnnotationTypeId?: number,
+    numberAnnotationTypeId?: number,
+    textAnnotationTypeId?: number,
+    dateAnnotationTypeId?: number,
+    dateTimeAnnotationTypeId?: number,
+    template?: TemplateWithTypeNames): {[key: string]: {[annotation: string]: string}} => {
     if (!template) {
         return {};
     }
@@ -280,26 +303,57 @@ export const getValidationErrorsMap = createSelector([
         const annotationToErrorMap: {[annotation: string]: string} = {};
         forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
-            if (templateAnnotation) {
-                if (templateAnnotation.canHaveManyValues) {
-                    if (!isNil(value) && !Array.isArray(value)) {
-                        annotationToErrorMap[annotationName] = "Invalid format";
-                    } else if (value && templateAnnotation.annotationOptions) {
-                        const invalidValues = difference(value, templateAnnotation.annotationOptions);
-                        if (invalidValues.length) {
-                            let errorMessage = `${invalidValues.join(", ")} `;
-                            if (invalidValues.length > 1) {
-                                errorMessage += "are not valid values for this annotations";
-                            } else {
-                                errorMessage += "is not a valid value for this annotation";
-                            }
-                            annotationToErrorMap[annotationName] = errorMessage;
-                        }
-                    }
+            if (!isNil(value) && templateAnnotation) {
+                if (templateAnnotation.canHaveManyValues && !Array.isArray(value)) {
+                    annotationToErrorMap[annotationName] = "Invalid format, expected list";
                 } else {
-                    if (value &&
-                        templateAnnotation.annotationOptions && !templateAnnotation.annotationOptions.includes(value)) {
-                        annotationToErrorMap[annotationName] = `${value} is not a valid value for this annotation`;
+                    value = castArray(value);
+                    let invalidValues;
+                    switch (templateAnnotation.annotationTypeId) {
+                        case dropdownAnnotationTypeId:
+                        case lookupAnnotationTypeId:
+                            if (templateAnnotation.annotationOptions) {
+                                invalidValues = difference(value,
+                                    templateAnnotation.annotationOptions).join(", ");
+                                if (invalidValues) {
+                                    const expected = templateAnnotation.annotationOptions.join(", ");
+                                    annotationToErrorMap[annotationName] =
+                                        `${invalidValues} did not match any of the expected values: ${expected}`;
+                                }
+                            }
+                            break;
+                        case booleanAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof v !== "boolean").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Yes/No`;
+                            }
+                            break;
+                        case numberAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof  v !== "number").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Number`;
+                            }
+                            break;
+                        case textAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof  v !== "string").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Number`;
+                            }
+                            break;
+                        case dateTimeAnnotationTypeId:
+                        case dateAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => !isDate(v)).join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Date or DateTime`;
+                            }
+                            break;
+                        default:
+                            annotationToErrorMap[annotationName] = "Unexpected data type";
+                            break;
                     }
                 }
             }

@@ -118,10 +118,45 @@ export const getBooleanAnnotationTypeId = createSelector([
     return annotationType ? annotationType.annotationTypeId : undefined;
 });
 
+export const getDropdownAnnotationTypeId = createSelector([
+    getAnnotationTypes,
+], (annotationTypes: AnnotationType[]) => {
+    const annotationType = annotationTypes.find((at) => at.name === ColumnType.DROPDOWN);
+    return annotationType ? annotationType.annotationTypeId : undefined;
+});
+
 export const getLookupAnnotationTypeId = createSelector([
     getAnnotationTypes,
 ], (annotationTypes: AnnotationType[]) => {
     const annotationType = annotationTypes.find((at) => at.name === ColumnType.LOOKUP);
+    return annotationType ? annotationType.annotationTypeId : undefined;
+});
+
+export const getNumberAnnotationTypeId = createSelector([
+    getAnnotationTypes,
+], (annotationTypes: AnnotationType[]) => {
+    const annotationType = annotationTypes.find((at) => at.name === ColumnType.NUMBER);
+    return annotationType ? annotationType.annotationTypeId : undefined;
+});
+
+export const getTextAnnotationTypeId = createSelector([
+    getAnnotationTypes,
+], (annotationTypes: AnnotationType[]) => {
+    const annotationType = annotationTypes.find((at) => at.name === ColumnType.TEXT);
+    return annotationType ? annotationType.annotationTypeId : undefined;
+});
+
+export const getDateAnnotationTypeId = createSelector([
+    getAnnotationTypes,
+], (annotationTypes: AnnotationType[]) => {
+    const annotationType = annotationTypes.find((at) => at.name === ColumnType.DATE);
+    return annotationType ? annotationType.annotationTypeId : undefined;
+});
+
+export const getDateTimeAnnotationTypeId = createSelector([
+    getAnnotationTypes,
+], (annotationTypes: AnnotationType[]) => {
+    const annotationType = annotationTypes.find((at) => at.name === ColumnType.DATETIME);
     return annotationType ? annotationType.annotationTypeId : undefined;
 });
 

@@ -271,6 +271,10 @@ export const mockTemplateWithManyValues: Template = {
         {
             ...mockAuditInfo,
             annotationId: 18,
+            annotationOptions: [
+                "R&DExp",
+                "Pipeline 4.1",
+            ],
             annotationTypeId: 6,
             canHaveManyValues: true,
             description: "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH)",

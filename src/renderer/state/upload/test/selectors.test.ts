@@ -990,7 +990,7 @@ describe("Upload selectors", () => {
                     },
                 }),
             });
-            const error = "Invalid format";
+            const error = "Invalid format, expected list";
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     "Another Garbage Text Annotation": error,
@@ -1030,11 +1030,47 @@ describe("Upload selectors", () => {
             });
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
-                    Cas9: "BAD is not a valid value for this annotation",
+                    Cas9: "BAD did not match any of the expected values: spCas9, Not Recorded",
                 },
             });
         });
         it("sets error if a single value annotation contains a value that is not an annotation option",
+            () => {
+            const uploadRowKey = getUploadRowKey("/path/to/file1");
+            const result = getValidationErrorsMap({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: mockTemplateWithManyValues,
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Another Garbage Text Annotation": ["a"],
+                        "Birth Date": [new Date()],
+                        "Cas9": [],
+                        "Clone Number Garbage": [1, 2, 3],
+                        "Dropdown": "BAD",
+                        "Qc": [false],
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": undefined,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    Dropdown: "BAD did not match any of the expected values: A, B, C, D",
+                },
+            });
+        });
+        it("sets error if a multi-value boolean annotation contains a value that is not a boolean",
             () => {
                 const uploadRowKey = getUploadRowKey("/path/to/file1");
                 const result = getValidationErrorsMap({
@@ -1049,8 +1085,8 @@ describe("Upload selectors", () => {
                             "Birth Date": [new Date()],
                             "Cas9": [],
                             "Clone Number Garbage": [1, 2, 3],
-                            "Dropdown": "BAD",
-                            "Qc": [false],
+                            "Dropdown": "A",
+                            "Qc": ["BAD"],
                             "barcode": "",
                             "file": "/path/to/file3",
                             "notes": undefined,
@@ -1066,7 +1102,7 @@ describe("Upload selectors", () => {
                 });
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
-                        Dropdown: "BAD is not a valid value for this annotation",
+                        Qc: "BAD did not match expected type: Yes/No",
                     },
                 });
             });
