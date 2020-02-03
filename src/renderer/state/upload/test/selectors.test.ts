@@ -31,7 +31,7 @@ import {
     getUploadSummaryRows,
     getValidationErrorsMap,
 } from "../selectors";
-import { FileType, MMSAnnotationValueRequest } from "../types";
+import { FileType, MMSAnnotationValueRequest, UploadMetadata as UploadMetadataRow } from "../types";
 
 const orderAnnotationValueRequests = (annotations: MMSAnnotationValueRequest[]) => {
     return orderBy(annotations, ["annotationId", "positionId", "channelId", "timePointId"]);
@@ -930,6 +930,27 @@ describe("Upload selectors", () => {
     });
 
     describe("getValidationErrorsMap", () => {
+        let goodUploadRow: UploadMetadataRow;
+        beforeEach(() => {
+            goodUploadRow = {
+                "Another Garbage Text Annotation": ["valid", "valid"],
+                "Birth Date": [new Date()],
+                "Cas9": ["spCas9"],
+                "Clone Number Garbage": [1, 2, 3],
+                "Dropdown": undefined,
+                "Qc": [false],
+                "barcode": "",
+                "file": "/path/to/file3",
+                "notes": undefined,
+                "templateId": 8,
+                "wellIds": [],
+                "wellLabels": [],
+                "workflows": [
+                    "R&DExp",
+                    "Pipeline 4.1",
+                ],
+            };
+        });
         it("returns empty object if no validation errors", () => {
             const uploadRowKey = getUploadRowKey("/path/to/file1");
             const result = getValidationErrorsMap({
@@ -939,24 +960,7 @@ describe("Upload selectors", () => {
                     appliedTemplate: mockTemplateWithManyValues,
                 }),
                 upload: getMockStateWithHistory({
-                    [uploadRowKey]: {
-                        "Another Garbage Text Annotation": ["valid", "valid"],
-                        "Birth Date": [new Date()],
-                        "Cas9": [],
-                        "Clone Number Garbage": [1, 2, 3],
-                        "Dropdown": undefined,
-                        "Qc": [false],
-                        "barcode": "",
-                        "file": "/path/to/file3",
-                        "notes": undefined,
-                        "templateId": 8,
-                        "wellIds": [],
-                        "wellLabels": [],
-                        "workflows": [
-                            "R&DExp",
-                            "Pipeline 4.1",
-                        ],
-                    },
+                    [uploadRowKey]: goodUploadRow,
                 }),
             });
             expect(result).to.deep.equal({});
@@ -971,22 +975,9 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
+                        ...goodUploadRow,
                         "Another Garbage Text Annotation": "should, not, be, a, string",
-                        "Birth Date": [new Date()],
-                        "Cas9": [],
                         "Clone Number Garbage": "1, 2, 3,",
-                        "Dropdown": undefined,
-                        "Qc": [false],
-                        "barcode": "",
-                        "file": "/path/to/file3",
-                        "notes": undefined,
-                        "templateId": 8,
-                        "wellIds": [],
-                        "wellLabels": [],
-                        "workflows": [
-                            "R&DExp",
-                            "Pipeline 4.1",
-                        ],
                     },
                 }),
             });
@@ -1009,22 +1000,8 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "Another Garbage Text Annotation": ["a"],
-                        "Birth Date": [new Date()],
-                        "Cas9": ["BAD"],
-                        "Clone Number Garbage": [1, 2, 3],
-                        "Dropdown": undefined,
-                        "Qc": [false],
-                        "barcode": "",
-                        "file": "/path/to/file3",
-                        "notes": undefined,
-                        "templateId": 8,
-                        "wellIds": [],
-                        "wellLabels": [],
-                        "workflows": [
-                            "R&DExp",
-                            "Pipeline 4.1",
-                        ],
+                        ...goodUploadRow,
+                        Cas9: ["BAD"],
                     },
                 }),
             });
@@ -1045,22 +1022,8 @@ describe("Upload selectors", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "Another Garbage Text Annotation": ["a"],
-                        "Birth Date": [new Date()],
-                        "Cas9": [],
-                        "Clone Number Garbage": [1, 2, 3],
-                        "Dropdown": "BAD",
-                        "Qc": [false],
-                        "barcode": "",
-                        "file": "/path/to/file3",
-                        "notes": undefined,
-                        "templateId": 8,
-                        "wellIds": [],
-                        "wellLabels": [],
-                        "workflows": [
-                            "R&DExp",
-                            "Pipeline 4.1",
-                        ],
+                        ...goodUploadRow,
+                        Dropdown: "BAD",
                     },
                 }),
             });
@@ -1081,22 +1044,8 @@ describe("Upload selectors", () => {
                     }),
                     upload: getMockStateWithHistory({
                         [uploadRowKey]: {
-                            "Another Garbage Text Annotation": ["a"],
-                            "Birth Date": [new Date()],
-                            "Cas9": [],
-                            "Clone Number Garbage": [1, 2, 3],
-                            "Dropdown": "A",
-                            "Qc": ["BAD"],
-                            "barcode": "",
-                            "file": "/path/to/file3",
-                            "notes": undefined,
-                            "templateId": 8,
-                            "wellIds": [],
-                            "wellLabels": [],
-                            "workflows": [
-                                "R&DExp",
-                                "Pipeline 4.1",
-                            ],
+                            ...goodUploadRow,
+                            Qc: ["BAD"],
                         },
                     }),
                 });
