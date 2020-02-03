@@ -57,8 +57,13 @@ export const getTemplateDraftErrors = createSelector([
                 errors.push(`Annotation ${name} is missing a data type`);
             }
 
-            if (annotationTypeName === ColumnType.DROPDOWN && isEmpty(annotationOptions)) {
-                errors.push(`Annotation ${name} is a dropdown but is missing dropdown options`);
+            if (annotationTypeName === ColumnType.DROPDOWN) {
+                if (isEmpty(annotationOptions)) {
+                    errors.push(`Annotation ${name} is a dropdown but is missing dropdown options`);
+                }
+                if (annotationOptions && annotationOptions.length === 1) {
+                    errors.push(`Dropdowns require at least two options.`);
+                }
             }
 
             if (annotationTypeName === ColumnType.LOOKUP && !lookupTable) {

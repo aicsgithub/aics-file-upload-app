@@ -83,9 +83,12 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const { annotationOptions, annotationTypeName } = this.state;
         const isDropdown = annotationTypeName === ColumnType.DROPDOWN;
         const nonEmptyAnnotationOptions = (annotationOptions || []).filter((o) => !!trim(o));
-
-        return isDropdown && (isEmpty(nonEmptyAnnotationOptions)) ? "Dropdown values are required"
-            : undefined;
+        if (isDropdown && isEmpty(nonEmptyAnnotationOptions)) {
+            return "Dropdown values are required";
+        } else if (isDropdown && nonEmptyAnnotationOptions.length === 1) {
+            return "Dropdowns require at least two options.";
+        }
+        return undefined;
     }
 
     public get lookupError(): string | undefined {
