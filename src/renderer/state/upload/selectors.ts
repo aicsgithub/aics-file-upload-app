@@ -340,7 +340,7 @@ export const getValidationErrorsMap = createSelector([
                             invalidValues = value.filter((v: any) => typeof  v !== "string").join(", ");
                             if (invalidValues) {
                                 annotationToErrorMap[annotationName] =
-                                    `${invalidValues} did not match expected type: Number`;
+                                    `${invalidValues} did not match expected type: Text`;
                             }
                             break;
                         case dateTimeAnnotationTypeId:

@@ -1,19 +1,27 @@
 import { UploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { forEach, keys, orderBy } from "lodash";
+import { forEach, keys, orderBy, without } from "lodash";
+import { TemplateAnnotation } from "../../template/types";
 
 import {
     getMockStateWithHistory,
     mockAnnotationTypes,
+    mockBooleanAnnotation,
     mockChannel,
+    mockDateAnnotation,
+    mockDateTimeAnnotation,
+    mockDropdownAnnotation,
     mockFavoriteColorAnnotation,
+    mockLookupAnnotation,
     mockMMSTemplate,
     mockNotesAnnotation,
+    mockNumberAnnotation,
     mockSelection,
     mockState,
     mockTemplateStateBranch,
     mockTemplateStateBranchWithAppliedTemplate,
     mockTemplateWithManyValues,
+    mockTextAnnotation,
     mockWellAnnotation,
     mockWorkflowAnnotation,
     nonEmptyStateForInitiatingUpload,
@@ -930,7 +938,33 @@ describe("Upload selectors", () => {
     });
 
     describe("getValidationErrorsMap", () => {
+        const uploadRowKey = getUploadRowKey("/path/to/file1");
         let goodUploadRow: UploadMetadataRow;
+        const updateTemplateAnnotation = (annotation: TemplateAnnotation, canHaveManyValues: boolean) => {
+            const annotations = without(mockTemplateWithManyValues.annotations, annotation);
+            annotations.push({...annotation, canHaveManyValues });
+            return {...mockTemplateWithManyValues, annotations };
+        };
+        const getValidations = (annotationToTest: TemplateAnnotation, canHaveManyValues: boolean, value: any) => {
+            let template = mockTemplateWithManyValues;
+            if (annotationToTest.canHaveManyValues !== canHaveManyValues) {
+                template = updateTemplateAnnotation(annotationToTest, canHaveManyValues);
+            }
+            return getValidationErrorsMap({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: template,
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        ...goodUploadRow,
+                        [annotationToTest.name]: value,
+                    },
+                }),
+            });
+        };
+
         beforeEach(() => {
             goodUploadRow = {
                 "Another Garbage Text Annotation": ["valid", "valid"],
@@ -952,7 +986,6 @@ describe("Upload selectors", () => {
             };
         });
         it("returns empty object if no validation errors", () => {
-            const uploadRowKey = getUploadRowKey("/path/to/file1");
             const result = getValidationErrorsMap({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
@@ -966,92 +999,135 @@ describe("Upload selectors", () => {
             expect(result).to.deep.equal({});
         });
         it("sets error if a multi-value annotation is not an array", () => {
-            const uploadRowKey = getUploadRowKey("/path/to/file1");
-            const result = getValidationErrorsMap({
-                ...nonEmptyStateForInitiatingUpload,
-                template: getMockStateWithHistory({
-                    ...mockTemplateStateBranch,
-                    appliedTemplate: mockTemplateWithManyValues,
-                }),
-                upload: getMockStateWithHistory({
-                    [uploadRowKey]: {
-                        ...goodUploadRow,
-                        "Another Garbage Text Annotation": "should, not, be, a, string",
-                        "Clone Number Garbage": "1, 2, 3,",
-                    },
-                }),
-            });
-            const error = "Invalid format, expected list";
+            const result = getValidations(mockTextAnnotation, true, "BAD, BAD, BAD");
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
-                    "Another Garbage Text Annotation": error,
-                    "Clone Number Garbage": error,
+                    [mockTextAnnotation.name]: "Invalid format, expected list",
                 },
             });
         });
         it("sets error if a multi-value lookup annotation contains a value that is not an annotation option",
             () => {
-            const uploadRowKey = getUploadRowKey("/path/to/file1");
-            const result = getValidationErrorsMap({
-                ...nonEmptyStateForInitiatingUpload,
-                template: getMockStateWithHistory({
-                    ...mockTemplateStateBranch,
-                    appliedTemplate: mockTemplateWithManyValues,
-                }),
-                upload: getMockStateWithHistory({
-                    [uploadRowKey]: {
-                        ...goodUploadRow,
-                        Cas9: ["BAD"],
-                    },
-                }),
-            });
+            const result = getValidations(mockLookupAnnotation, true, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
-                    Cas9: "BAD did not match any of the expected values: spCas9, Not Recorded",
+                    [mockLookupAnnotation.name]: "BAD did not match any of the expected values: spCas9, Not Recorded",
                 },
             });
         });
-        it("sets error if a single value annotation contains a value that is not an annotation option",
+        it("sets error if single-value lookup annotation contains a value that is not an annotation option",
             () => {
-            const uploadRowKey = getUploadRowKey("/path/to/file1");
-            const result = getValidationErrorsMap({
-                ...nonEmptyStateForInitiatingUpload,
-                template: getMockStateWithHistory({
-                    ...mockTemplateStateBranch,
-                    appliedTemplate: mockTemplateWithManyValues,
-                }),
-                upload: getMockStateWithHistory({
-                    [uploadRowKey]: {
-                        ...goodUploadRow,
-                        Dropdown: "BAD",
-                    },
-                }),
-            });
+            const result = getValidations(mockLookupAnnotation, false, "BAD");
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
-                    Dropdown: "BAD did not match any of the expected values: A, B, C, D",
+                    [mockLookupAnnotation.name]: "BAD did not match any of the expected values: spCas9, Not Recorded",
                 },
             });
         });
-        it("sets error if a multi-value boolean annotation contains a value that is not a boolean",
+        it("sets error if a multi-value dropdown annotation contains a value that is not a dropdown option",
             () => {
-                const uploadRowKey = getUploadRowKey("/path/to/file1");
-                const result = getValidationErrorsMap({
-                    ...nonEmptyStateForInitiatingUpload,
-                    template: getMockStateWithHistory({
-                        ...mockTemplateStateBranch,
-                        appliedTemplate: mockTemplateWithManyValues,
-                    }),
-                    upload: getMockStateWithHistory({
-                        [uploadRowKey]: {
-                            ...goodUploadRow,
-                            Qc: ["BAD"],
-                        },
-                    }),
-                });
+            const result = getValidations(mockDropdownAnnotation, true, ["BAD"]);
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    [mockDropdownAnnotation.name]: "BAD did not match any of the expected values: A, B, C, D",
+                },
+            });
+        });
+        it("sets error if a single value dropdown annotation contains a value that is not an annotation option",
+            () => {
+            const result = getValidations(mockDropdownAnnotation, false, ["BAD"]);
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    [mockDropdownAnnotation.name]: "BAD did not match any of the expected values: A, B, C, D",
+                },
+            });
+        });
+        it("sets error if a multi-value boolean annotation contains a value that is not a boolean", () => {
+            const result = getValidations(mockBooleanAnnotation, true, ["BAD"]);
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    [mockBooleanAnnotation.name]: "BAD did not match expected type: Yes/No",
+                },
+            });
+        });
+        it("sets error if a single-value boolean annotation contains a value that is not a boolean",
+            () => {
+            const result = getValidations(mockBooleanAnnotation, false, 1);
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    [mockBooleanAnnotation.name]: "1 did not match expected type: Yes/No",
+                },
+            });
+        });
+        it("sets error if a multi-value text annotation contains a value that is not text",
+            () => {
+                const result = getValidations(mockTextAnnotation, true, [1]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
-                        Qc: "BAD did not match expected type: Yes/No",
+                        [mockTextAnnotation.name]: "1 did not match expected type: Text",
+                    },
+                });
+            });
+        it("sets error if a single-value text annotation contains a value that is not text",
+            () => {
+                const result = getValidations(mockTextAnnotation, false, 1);
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockTextAnnotation.name]: "1 did not match expected type: Text",
+                    },
+                });
+            });
+        it("sets error if a multi-value number annotation contains a value that is not number",
+            () => {
+                const result = getValidations(mockNumberAnnotation, true, ["BAD"]);
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockNumberAnnotation.name]: "BAD did not match expected type: Number",
+                    },
+                });
+            });
+        it("sets error if a single-value number annotation contains a value that is not number",
+            () => {
+                const result = getValidations(mockNumberAnnotation, false, "BAD");
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockNumberAnnotation.name]: "BAD did not match expected type: Number",
+                    },
+                });
+            });
+        it("sets error if a multi-value date annotation contains a value that is not date",
+            () => {
+                const result = getValidations(mockDateAnnotation, true, ["1-20"]);
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockDateAnnotation.name]: "1-20 did not match expected type: Date or DateTime",
+                    },
+                });
+            });
+        it("sets error if a single-value date annotation contains a value that is not date",
+            () => {
+                const result = getValidations(mockDateAnnotation, false, "BAD");
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockDateAnnotation.name]: "BAD did not match expected type: Date or DateTime",
+                    },
+                });
+            });
+        it("sets error if a multi-value datetime annotation contains a value that is not datetime",
+            () => {
+                const result = getValidations(mockDateTimeAnnotation, true, ["BAD"]);
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockDateTimeAnnotation.name]: "BAD did not match expected type: Date or DateTime",
+                    },
+                });
+            });
+        it("sets error if a single-value datetime annotation contains a value that is not datetime",
+            () => {
+                const result = getValidations(mockDateTimeAnnotation, false, "BAD");
+                expect(result).to.deep.equal({
+                    [uploadRowKey]: {
+                        [mockDateTimeAnnotation.name]: "BAD did not match expected type: Date or DateTime",
                     },
                 });
             });
