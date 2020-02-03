@@ -25,7 +25,10 @@ import { LIST_DELIMITER_JOIN } from "../../constants";
 import { titleCase } from "../../util";
 import {
     getBooleanAnnotationTypeId,
-    getDateAnnotationTypeId, getDateTimeAnnotationTypeId, getDropdownAnnotationTypeId, getLookupAnnotationTypeId,
+    getDateAnnotationTypeId,
+    getDateTimeAnnotationTypeId,
+    getDropdownAnnotationTypeId,
+    getLookupAnnotationTypeId,
     getNumberAnnotationTypeId,
     getTextAnnotationTypeId,
 } from "../metadata/selectors";
