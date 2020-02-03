@@ -254,7 +254,14 @@ describe("Template Logics", () => {
             expect(createTemplateStub.called).to.be.true;
         });
         it("sets alert if endpoint returns not OK response", async () => {
-            const editTemplateStub = stub().rejects();
+            const error = "Bad credentials";
+            const editTemplateStub = stub().rejects({
+                response: {
+                    data: {
+                        error,
+                    },
+                },
+            });
             sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
             const { logicMiddleware, store } = createMockReduxStore({
                 ...startState,
@@ -272,7 +279,11 @@ describe("Template Logics", () => {
             store.dispatch(saveTemplate());
 
             await logicMiddleware.whenComplete();
-            expect(getAlert(store.getState())).to.not.be.undefined;
+            const alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.message).to.equal(`Could not save template: ${error}`);
+            }
         });
     });
 });
