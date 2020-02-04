@@ -182,7 +182,7 @@ const requestOptionsForLookup = createLogic({
                     optionsForLookup.sort();
                 }
 
-                dispatch(receiveMetadata({ optionsForLookup }));
+                dispatch(receiveMetadata({ [payload]: optionsForLookup }));
             } catch (e) {
                 logger.error("Could not retrieve options for lookup annotation", e.message);
             }

@@ -26,11 +26,11 @@ import { UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
 import {
     getAnnotations,
     getFileMetadataSearchResults,
+    getMetadata,
     getNumberOfFiles,
-    getOptionsForLookup,
     getSearchResultsHeader,
     getTemplates,
-    getUsers
+    getUsers,
 } from "../../state/metadata/selectors";
 import {
     ExportFileMetadataAction,
@@ -384,7 +384,7 @@ function mapStateToProps(state: State) {
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
         metadataColumns: getMetadataColumns(state),
         numberOfFilesFound: getNumberOfFiles(state),
-        optionsForLookup: getOptionsForLookup(state),
+        optionsForLookup: getMetadata(state)[getAnnotation(state)],
         optionsForLookupLoading: getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),

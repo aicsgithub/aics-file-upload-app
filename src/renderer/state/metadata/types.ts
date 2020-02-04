@@ -16,7 +16,6 @@ export interface MetadataStateBranch {
     fileMetadataSearchResults?: SearchResultRow[];
     imagingSessions: ImagingSession[];
     lookups: Lookup[];
-    optionsForLookup?: string[];
     templates: LabkeyTemplate[];
     users: LabkeyUser[];
     units: Unit[];
@@ -28,6 +27,9 @@ export interface MetadataStateBranch {
         upload: PageToIndexMap;
     };
     workflowOptions: Workflow[];
+
+    // expected type is string[] but typescript index signatures won't allow explicit typing like this in this case
+    [lookupName: string]: any;
 }
 
 export interface BarcodePrefix {
