@@ -39,9 +39,9 @@ export function requestAnnotations(): GetAnnotationsAction {
     };
 }
 
-export function retrieveOptionsForLookup(payload: string): GetOptionsForLookupAction {
+export function retrieveOptionsForLookup(lookupAnnotationName: string): GetOptionsForLookupAction {
     return {
-        payload,
+        payload: lookupAnnotationName,
         type: GET_OPTIONS_FOR_LOOKUP,
     };
 }
