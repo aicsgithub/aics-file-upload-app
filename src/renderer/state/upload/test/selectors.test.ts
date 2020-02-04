@@ -1,6 +1,6 @@
 import { UploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { forEach, keys, orderBy } from "lodash";
+import { forEach, orderBy } from "lodash";
 
 import {
     getMockStateWithHistory,
@@ -28,7 +28,7 @@ import {
     getUploadFileNames,
     getUploadFiles,
     getUploadPayload,
-    getUploadSummaryRows,
+    getUploadSummaryRows, getUploadWithCalculatedData,
     getValidationErrorsMap,
 } from "../selectors";
 import { FileType, MMSAnnotationValueRequest } from "../types";
@@ -53,6 +53,13 @@ const standardizeUploads = (uploads: Uploads): Uploads => {
 };
 
 describe("Upload selectors", () => {
+    describe("getUploadWithCalculatedData", () => {
+        it("adds wellLabels to the uploads", () => {
+            const result = getUploadWithCalculatedData(nonEmptyStateForInitiatingUpload);
+            expect(result[getUploadRowKey("/path/to/file1")].wellLabels).to.deep.equal(["A1"]);
+        });
+    });
+
     describe("getUploadPayload", () => {
         it("Converts upload state branch into correct payload for aicsfiles-js", () => {
             const state: State = {
@@ -66,7 +73,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [],
-                        wellLabels: [],
                     },
                     "/path/to.dot/image.tiffscene:1channel:1": {
                         barcode: "452",
@@ -77,7 +83,6 @@ describe("Upload selectors", () => {
                         plateId: 4,
                         positionIndex: 1,
                         wellIds: [6],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/image.czi": {
                         barcode: "567",
@@ -87,7 +92,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/image.ome.tiff": {
                         barcode: "123",
@@ -97,7 +101,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [2],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/image.png": {
                         barcode: "345",
@@ -107,7 +110,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [3],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/image.tiff": {
                         barcode: "234",
@@ -117,7 +119,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [4],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/multi-well.txt": {
                         barcode: "456",
@@ -127,7 +128,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [5, 6, 7],
-                        wellLabels: ["A1", "A2", "A3"],
                     },
                     "/path/to/no-extension": {
                         barcode: "888",
@@ -137,7 +137,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [7],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/not-image.csv": {
                         barcode: "578",
@@ -147,7 +146,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [8],
-                        wellLabels: ["A1"],
                     },
                     "/path/to/not-image.txt": {
                         barcode: "456",
@@ -157,7 +155,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
                         wellIds: [5],
-                        wellLabels: ["A1"],
                     },
                 }),
             };
@@ -504,7 +501,7 @@ describe("Upload selectors", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,
             });
-            expect(rows.length).to.equal(keys(mockState.upload.present).length);
+            expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
             expect(rows).to.deep.include({
                 barcode: "1234",
                 channelIds: [],
@@ -541,10 +538,10 @@ describe("Upload selectors", () => {
                 barcode: "1236",
                 channelIds: [],
                 file: "/path/to/file3",
-                group: false,
+                group: true,
                 key: getUploadRowKey("/path/to/file3"),
                 numberSiblings: 3,
-                positionIndexes: [],
+                positionIndexes: [1],
                 shouldBeInArchive: true,
                 shouldBeInLocal: false,
                 siblingIndex: 2,
@@ -562,14 +559,12 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1)]: {
                         barcode: "1235",
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [2],
-                        wellLabels: ["A2"],
                     },
                 }),
             });
@@ -603,14 +598,12 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1)]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [2],
-                        wellLabels: ["A2"],
                     },
                 }),
             });
@@ -655,7 +648,6 @@ describe("Upload selectors", () => {
                         key: getUploadRowKey("/path/to/file1", 1),
                         positionIndex: 1,
                         wellIds: [2],
-                        wellLabels: ["A2"],
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
                         barcode: "1234",
@@ -664,7 +656,6 @@ describe("Upload selectors", () => {
                         key: getUploadRowKey("/path/to/file1", undefined, 1),
                         positionIndex: undefined,
                         wellIds: [2],
-                        wellLabels: ["A2"],
                     },
                 }),
             });
@@ -715,7 +706,6 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
                         barcode: "1234",
@@ -723,7 +713,6 @@ describe("Upload selectors", () => {
                         file: "/path/to/file1",
                         positionIndex: undefined,
                         wellIds: [],
-                        wellLabels: [],
                     },
                 }),
             });
@@ -774,14 +763,12 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1)]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey("/path/to/file1", 1, 1)]: {
                         barcode: "1234",
@@ -789,14 +776,12 @@ describe("Upload selectors", () => {
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                     [getUploadRowKey("/path/to/file1", undefined, 1)]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
                         wellIds: [],
-                        wellLabels: [],
                     },
                 }),
             });
@@ -877,7 +862,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: true,
                         wellIds: [],
-                        wellLabels: [],
                     },
                 }),
             });
@@ -901,21 +885,18 @@ describe("Upload selectors", () => {
                         barcode: "abcd",
                         file,
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey(file, 1)]: {
                         age: undefined,
                         barcode: "abcd",
                         file,
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                     [getUploadRowKey(file, 1, 1)]: {
                         age: 19,
                         barcode: "abcd",
                         file,
                         wellIds: [],
-                        wellLabels: [],
                     },
                 }),
             });
@@ -951,7 +932,6 @@ describe("Upload selectors", () => {
                         "notes": undefined,
                         "templateId": 8,
                         "wellIds": [],
-                        "wellLabels": [],
                         "workflows": [
                             "R&DExp",
                             "Pipeline 4.1",
@@ -982,7 +962,6 @@ describe("Upload selectors", () => {
                         "notes": undefined,
                         "templateId": 8,
                         "wellIds": [],
-                        "wellLabels": [],
                         "workflows": [
                             "R&DExp",
                             "Pipeline 4.1",
@@ -1053,7 +1032,6 @@ describe("Upload selectors", () => {
                         shouldBeInArchive: false,
                         shouldBeInLocal: false,
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                 }),
             });

@@ -42,29 +42,34 @@ import {
     UpdateUploadAction,
     UpdateUploadsAction,
     UploadJobTableRow,
-    UploadMetadata,
+    UploadMetadata, UploadRowId,
 } from "./types";
 
-export function associateFilesAndWells(fullPaths: string[], wellIds: number[], wellLabels: string[])
+export function associateFilesAndWells(rowIds: UploadRowId[])
     : AssociateFilesAndWellsAction {
+
     return {
         payload: {
             barcode: "",
-            fullPaths,
-            wellIds,
-            wellLabels,
+            rowIds,
+            wellIds: [], // this gets populated with the wells that are selected in logics
         },
         type: ASSOCIATE_FILES_AND_WELLS,
     };
 }
 
-export function undoFileWellAssociation(fullPath: string, wellIds: number[], wellLabels: string[])
-    : UndoFileWellAssociationAction {
+// For undoing the well associations for a single upload row
+export function undoFileWellAssociation(
+    fullPath: string,
+    positionIndex?: number,
+    deleteUpload: boolean = true
+): UndoFileWellAssociationAction {
     return {
         payload: {
+            deleteUpload,
             fullPath,
-            wellIds,
-            wellLabels,
+            positionIndex,
+            wellIds: [], // this gets populated with the wells that are selected in logics
         },
         type: UNDO_FILE_WELL_ASSOCIATION,
     };

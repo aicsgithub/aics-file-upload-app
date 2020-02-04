@@ -7,14 +7,14 @@ import { LIST_DELIMITER_SPLIT } from "../../constants";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { clearStagedFiles, deselectFiles } from "../selection/actions";
-import { getSelectedBarcode } from "../selection/selectors";
+import { getSelectedBarcode, getSelectedWellIds } from "../selection/selectors";
 import { updateSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -36,27 +36,74 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
+    UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SCENES,
     UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
-import { UploadMetadata, UploadStateBranch } from "./types";
+import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
 
-const associateFileAndWellLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+const associateFilesAndWellsLogic = createLogic({
+    type: ASSOCIATE_FILES_AND_WELLS,
+    validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const { rowIds } = action.payload;
+        if (isEmpty(action.payload.rowIds)) {
+            reject(setErrorAlert("Cannot associate files and wells: No files selected"));
+            return;
+        }
+
+        const rowWithChannel = rowIds.find((id: UploadRowId) => id.channelId);
+        if (rowWithChannel) {
+            reject(setErrorAlert("Cannot associate wells with a channel row"));
+        }
+
         const state = getState();
+        const barcode = getSelectedBarcode(state);
+        const wellIds = getSelectedWellIds(state);
+
+        if (!barcode) {
+            reject(setErrorAlert("Cannot associate files and wells: No plate selected"));
+            return;
+        }
+
+        if (isEmpty(wellIds)) {
+            reject(setErrorAlert("Cannot associate files and wells: No wells selected"));
+            return;
+        }
+
         action.payload = {
             ...action.payload,
             barcode: getSelectedBarcode(state),
+            wellIds: getSelectedWellIds(state),
         };
         next(batchActions([
             action,
             deselectFiles(),
         ]));
     },
-    type: ASSOCIATE_FILES_AND_WELLS,
+});
+
+const undoFileWellAssociationLogic = createLogic({
+    type: UNDO_FILE_WELL_ASSOCIATION,
+    validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const state = getState();
+        const wellIds = getSelectedWellIds(state);
+        if (isEmpty(wellIds)) {
+            reject(setErrorAlert("Cannot undo file and well associations: No wells selected"));
+            return;
+        }
+
+        action.payload = {
+            ...action.payload,
+            wellIds,
+        };
+        next(action);
+    },
+
 });
 
 // This logic will request the template from MMS and remove any old columns from existing uploads
@@ -83,7 +130,7 @@ const applyTemplateLogic = createLogic({
         map(uploads,  (upload: UploadMetadata, filepath: string) => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
-            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, wellLabels, workflows } = upload;
+            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
             action.payload.uploads[getUploadRowKey(filepath)] = {
                 barcode,
                 file: upload.file,
@@ -92,7 +139,6 @@ const applyTemplateLogic = createLogic({
                 shouldBeInLocal,
                 templateId,
                 wellIds,
-                wellLabels,
                 workflows,
             };
         });
@@ -305,7 +351,6 @@ const updateScenesLogic = createLogic({
             update[fileRowKey] = {
                 ...uploads[fileRowKey],
                 wellIds: [],
-                wellLabels: [],
             };
         }
 
@@ -322,7 +367,6 @@ const updateScenesLogic = createLogic({
                     notes: undefined,
                     positionIndex: undefined,
                     wellIds: [],
-                    wellLabels: [],
                     workflows,
                     ...additionalAnnotations,
                 };
@@ -343,7 +387,6 @@ const updateScenesLogic = createLogic({
                     notes: undefined,
                     positionIndex,
                     wellIds: [],
-                    wellLabels: [],
                     workflows,
                     ...additionalAnnotations,
                 };
@@ -363,7 +406,6 @@ const updateScenesLogic = createLogic({
                         notes: undefined,
                         positionIndex,
                         wellIds: [],
-                        wellLabels: [],
                         workflows,
                         ...additionalAnnotations,
                     };
@@ -506,10 +548,11 @@ const updateFilesToStoreInArchiveLogic = createLogic({
 
 export default [
     applyTemplateLogic,
-    associateFileAndWellLogic,
+    associateFilesAndWellsLogic,
     cancelUploadLogic,
     initiateUploadLogic,
     retryUploadLogic,
+    undoFileWellAssociationLogic,
     updateScenesLogic,
     updateUploadLogic,
     updateFilesToStoreOnIsilonLogic,

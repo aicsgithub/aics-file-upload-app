@@ -1,5 +1,5 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { isEmpty, isNil, sortBy } from "lodash";
+import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
@@ -9,16 +9,18 @@ import { getImagingSessions, getUnits } from "../metadata/selectors";
 import { ImagingSession, Unit } from "../metadata/types";
 import { State } from "../types";
 import {
+    ImagingSessionIdToPlateMap,
+    ImagingSessionIdToWellsMap,
+    PlateResponse,
     Solution,
     SolutionLot,
     Well,
-    WellResponse
+    WellResponse,
 } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) => state.selection.present.barcode;
-export const getSelectedPlateId = (state: State) =>
-    state.selection.present.plate && state.selection.present.plate.plateId;
+export const getSelectedPlates = (state: State) => state.selection.present.plate;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getStagedFiles = (state: State) => state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
@@ -38,10 +40,34 @@ export const getSettingsEditorVisible = (state: State) => state.selection.presen
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
 
-export const getWellsWithModified = createSelector([
+export const getSelectedPlate = createSelector([
+    getSelectedPlates,
+    getSelectedImagingSessionId,
+], (
+    imagingSessionIdToPlate: ImagingSessionIdToPlateMap,
+    selectedImagingSessionId?: number
+): PlateResponse | undefined => {
+    selectedImagingSessionId = !selectedImagingSessionId ? 0 : selectedImagingSessionId;
+    return imagingSessionIdToPlate[selectedImagingSessionId];
+});
+
+export const getSelectedPlateId = createSelector([
+    getSelectedPlate,
+], (selectedPlate?: PlateResponse): number | undefined => selectedPlate ? selectedPlate.plateId : undefined);
+
+export const getWellsForSelectedPlate = createSelector([
     getWells,
-], (wells: WellResponse[]): Well[][] => {
-    if (!wells || wells.length === 0) {
+    getSelectedImagingSessionId,
+], (imagingSessionIdToWells: ImagingSessionIdToWellsMap, selectedImagingSessionId?: number) => {
+    selectedImagingSessionId = !selectedImagingSessionId ? 0 : selectedImagingSessionId;
+    return imagingSessionIdToWells[selectedImagingSessionId] || [];
+});
+
+export const getWellsWithModified = createSelector([
+    getWellsForSelectedPlate,
+    getSelectedPlateId,
+], (wells: WellResponse[], plateId?: number): Well[][] => {
+    if (!wells || wells.length === 0 || !plateId) {
         return [];
     }
 
@@ -56,6 +82,7 @@ export const getWellsWithModified = createSelector([
             result[row][col] = {
                 ...well,
                 modified: !isEmpty(cellPopulations) || !isEmpty(solutions),
+                plateId,
             };
         }
     );
@@ -90,17 +117,6 @@ export const getWellsWithUnitsAndModified = createSelector([
     }));
 });
 
-export const getWellIdToWellLabelMap = createSelector([
-    getWells,
-], (wells: WellResponse[]) => {
-    const result = new Map<number, string>();
-    wells.forEach(({ wellId, col, row }: WellResponse) => {
-        result.set(wellId, getWellLabel({row, col}));
-    });
-
-    return result;
-});
-
 export const getSelectedWellLabels = createSelector([
     getSelectedWells,
 ], (wells: AicsGridCell[]): string[] => {
@@ -122,10 +138,29 @@ export const getSelectedWellsWithData = createSelector([
     return selectedWells.map((well) => wells[well.row][well.col]);
 });
 
+export const getSelectedWellIds = createSelector([
+    getSelectedWells,
+    getSelectedWellsWithData,
+], (selectedCells: GridCell[], wells: Well[]) => {
+    return wells.map((w) => w.wellId);
+});
+
 export const getSelectedImagingSession = createSelector([
     getImagingSessions,
     getSelectedImagingSessionId,
 ], (imagingSessions: ImagingSession[], imagingSessionId?: number): ImagingSession | undefined => {
     return isNil(imagingSessionId) ? undefined :
         imagingSessions.find((is) => is.imagingSessionId === imagingSessionId);
+});
+
+export const getAllWells = createSelector([
+    getWells,
+], (wells: ImagingSessionIdToWellsMap) => {
+    return flatten(values(wells));
+});
+
+export const getAllPlates = createSelector([
+    getSelectedPlates,
+], (selectedPlates: ImagingSessionIdToPlateMap) => {
+    return flatten(values(selectedPlates));
 });

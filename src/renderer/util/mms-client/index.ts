@@ -1,5 +1,5 @@
 import { AxiosRequestConfig } from "axios";
-import { GetPlateResponse } from "../../state/selection/types";
+import { GetPlateResponse, WellResponse } from "../../state/selection/types";
 import { SaveTemplateRequest, Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 
@@ -30,9 +30,16 @@ export default class MMSClient extends BaseServiceClient {
      * @param imagingSessionId id of imaging session
      */
     public async getPlate(barcode: string, imagingSessionId?: number): Promise<GetPlateResponse> {
-        const url = `/1.0/plate/query?barcode=${barcode}`;
+        let url = `/1.0/plate/query?barcode=${barcode}`;
+        if (imagingSessionId) {
+            url += `&imagingSessionId=${imagingSessionId}`;
+        }
         const response = await this.httpClient.get(url);
-        return response.data[0];
+        const { plate, wells } = response.data[0];
+        return {
+            plate,
+            wells: wells.map((w: Partial<WellResponse>) => ({...w, plateId: plate.plateId})),
+        };
     }
 
     public async getTemplate(templateId: number): Promise<Template> {
