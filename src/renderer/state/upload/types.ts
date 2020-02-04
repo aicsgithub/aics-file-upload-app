@@ -18,9 +18,16 @@ export interface UploadMetadata {
     shouldBeInLocal?: boolean;
     templateId?: number;
     wellIds: number[];
-    wellLabels: string[];
     workflows?: string[];
     [genericKey: string]: any;
+}
+
+export interface DisplayUploadStateBranch {
+    [fullPath: string]: UploadMetadataWithDisplayFields;
+}
+
+export interface UploadMetadataWithDisplayFields extends UploadMetadata {
+    wellLabels: string[];
 }
 
 export interface MMSAnnotationValueRequest {
@@ -96,10 +103,9 @@ export interface UploadJobTableRow {
 
 export interface AssociateFilesAndWellsAction {
     payload: {
-        barcode: string,
-        fullPaths: string[],
-        wellIds: number[],
-        wellLabels: string[]
+        barcode: string;
+        rowIds: UploadRowId[];
+        wellIds: number[];
     };
     type: string;
 }
@@ -114,9 +120,10 @@ export interface AssociateFilesAndWorkflowsAction {
 
 export interface UndoFileWellAssociationAction {
     payload: {
-        fullPath: string,
-        wellIds: number[],
-        wellLabels: string[]
+        deleteUpload: boolean; // whether or not to delete this part of upload if no well associations left
+        fullPath: string;
+        positionIndex?: number;
+        wellIds: number[];
     };
     type: string;
 }
@@ -205,4 +212,10 @@ export enum FileType {
     OTHER = "other",
     TEXT = "text",
     ZEISS_CONFIG_FILE = "zeiss-config-file",
+}
+
+export interface UploadRowId {
+    file: string; // fullpath
+    positionIndex?: number;
+    channelId?: number;
 }

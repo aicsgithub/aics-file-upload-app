@@ -8,8 +8,4 @@ export class GridCell implements AicsGridCell {
         this.row = row;
         this.col = col;
     }
-
-    public equals(other: GridCell): boolean {
-        return this.row === other.row && this.col === other.col;
-    }
 }

@@ -1,4 +1,4 @@
-import { includes, isEmpty, map } from "lodash";
+import { get, includes, isEmpty, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -250,9 +250,10 @@ const saveTemplateLogic = createLogic({
             }));
 
         } catch (e) {
+            const error = get(e, ["response", "data", "error"], e.message);
             dispatch(batchActions([
                 setAlert({
-                    message: "Could not save template: " + e.message,
+                    message: "Could not save template: " + error,
                     type: AlertType.ERROR,
                 }),
                 removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE),

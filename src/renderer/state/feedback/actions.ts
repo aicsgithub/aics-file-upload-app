@@ -38,6 +38,16 @@ export function clearAlert(): ClearAlertAction {
     };
 }
 
+export function setErrorAlert(message: string): SetAlertAction {
+    return {
+        payload: {
+            message,
+            type: AlertType.ERROR,
+        },
+        type: SET_ALERT,
+    };
+}
+
 export function startLoading(): StartLoadingAction {
     return {
         type: START_LOADING,

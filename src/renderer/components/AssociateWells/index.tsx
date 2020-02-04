@@ -3,20 +3,15 @@ import { Tabs } from "antd";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
+import ImagingSessionSelector from "../../containers/ImagingSessionSelector";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWellsAction, Well } from "../../state/selection/types";
-import {
-    AssociateFilesAndWellsAction,
-    UndoFileWellAssociationAction,
-} from "../../state/upload/types";
-import { getWellLabel } from "../../util";
+import { AssociateFilesAndWellsAction, UndoFileWellAssociationAction } from "../../state/upload/types";
 
 import FormPage from "../FormPage";
 import Plate from "../Plate";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import WellInfo from "../SelectedAssociationsCard/WellInfo";
-
-import { GridCell } from "./grid-cell";
 
 const styles = require("./style.pcss");
 
@@ -25,9 +20,9 @@ interface AssociateWellsProps {
     canRedo: boolean;
     canUndo: boolean;
     className?: string;
-    mutualFilesForWells: string[];
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
+    mutualFilesForWells: string[];
     redo: () => void;
     selectedFiles: string[];
     selectedWellLabels: string[];
@@ -81,7 +76,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                     selectedFilesCount={selectedFiles.length}
                     associate={this.associate}
                     canAssociate={this.canAssociate()}
-                    undoAssociation={this.undoAssociation}
+                    undoAssociation={this.props.undoAssociation}
                     undoLastAssociation={undo}
                     redo={redo}
                     canRedo={canRedo}
@@ -97,33 +92,17 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
                         </Tabs.TabPane>
                     ))}
                 </SelectedAssociationsCard>
+                <ImagingSessionSelector/>
                 {wells ? (
                         <Plate
                             wells={wells}
-                            onWellClick={this.selectWells}
+                            onWellClick={this.props.selectWells}
                             selectedWells={selectedWells}
                             wellsWithAssociations={wellsWithAssociations}
                         />
                     ) : <span>Plate does not have any well information!</span>}
             </FormPage>
         );
-    }
-
-    public selectWells = (cells: AicsGridCell[]): void => {
-        const { wells } = this.props;
-        if (wells) {
-            const filledCells = cells.filter((cell) => wells[cell.row][cell.col].modified);
-            const gridCells = filledCells.map((cell) => new GridCell(cell.row, cell.col));
-            this.props.selectWells(gridCells);
-        }
-    }
-
-    private undoAssociation = (file: string): void => {
-        const { selectedWells, selectedWellLabels, wells } = this.props;
-        if (wells) {
-            const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
-            this.props.undoAssociation(file, wellIds, selectedWellLabels);
-        }
     }
 
     // If we have wells & files selected then allow the user to Associate them
@@ -133,13 +112,10 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
     }
 
     private associate = (): void => {
-        const { wells } = this.props;
-
-        if (this.canAssociate() && wells) {
-            const { selectedFiles, selectedWells } = this.props;
-            const wellLabels = selectedWells.map((well) => getWellLabel(well));
-            const wellIds = selectedWells.map((well) => wells[well.row][well.col].wellId);
-            this.props.associateFilesAndWells(selectedFiles, wellIds, wellLabels);
+        if (this.canAssociate()) {
+            const { selectedFiles } = this.props;
+            const ids = selectedFiles.map((file) => ({ file }));
+            this.props.associateFilesAndWells(ids);
         }
     }
 

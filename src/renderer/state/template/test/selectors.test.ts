@@ -68,13 +68,31 @@ describe("Template selectors", () => {
                         ...mockTemplateDraft,
                         annotations: [{
                             ...mockAnnotationDraft,
-                            annotationTypeId: 4,
+                            annotationTypeId: 5,
                             annotationTypeName: ColumnType.DROPDOWN,
                         }],
                     },
                 }),
             });
             expect(result).to.contain("Annotation Color is a dropdown but is missing dropdown options");
+        });
+        it("adds error if annotation is a dropdown but has only one option", () => {
+            const result = getTemplateDraftErrors({
+                ...mockState,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    draft: {
+                        ...mockTemplateDraft,
+                        annotations: [{
+                            ...mockAnnotationDraft,
+                            annotationOptions: ["red"],
+                            annotationTypeId: 5,
+                            annotationTypeName: ColumnType.DROPDOWN,
+                        }],
+                    },
+                }),
+            });
+            expect(result).to.contain("Dropdowns require at least two options.");
         });
         it("adds error if annotation is a lookup but does not have a lookup table", () => {
             const result = getTemplateDraftErrors({
@@ -85,7 +103,7 @@ describe("Template selectors", () => {
                         ...mockTemplateDraft,
                         annotations: [{
                             ...mockAnnotationDraft,
-                            annotationTypeId: 3,
+                            annotationTypeId: 6,
                             annotationTypeName: ColumnType.LOOKUP,
                         }],
                     },

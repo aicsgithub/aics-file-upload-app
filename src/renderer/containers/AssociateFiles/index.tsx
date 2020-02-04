@@ -10,7 +10,7 @@ import { goBack, goForward } from "../../state/route/actions";
 import { GoBackAction, NextPageAction } from "../../state/route/types";
 import {
     selectWells,
-    selectWorkflows
+    selectWorkflows,
 } from "../../state/selection/actions";
 import {
     getSelectedFiles,
