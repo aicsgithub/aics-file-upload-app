@@ -185,6 +185,7 @@ const requestOptionsForLookup = createLogic({
 
         if (!lookup) {
             // todo: set error
+            done();
             return;
         }
 
