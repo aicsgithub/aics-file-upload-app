@@ -2,7 +2,7 @@ import { FileManagementSystem } from "@aics/aicsfiles";
 import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { reduce, sortBy } from "lodash";
+import { isEmpty, reduce, sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -11,11 +11,13 @@ import { getWithRetry } from "../../util";
 
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
+import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
@@ -31,7 +33,7 @@ import {
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
 } from "./constants";
-import { getSearchResultsHeader } from "./selectors";
+import { getAnnotationLookups, getAnnotations, getLookups, getSearchResultsHeader } from "./selectors";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -164,32 +166,56 @@ const requestOptionsForLookup = createLogic({
     process: async ({ action: { payload }, getState, labkeyClient, logger }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        if (payload) {
-            try {
-                const { metadata: { annotationLookups, annotations } } = getState();
-                const annotationOption = annotations.find(({ name }) => name === payload);
-                const lookup = annotationOption &&
-                    annotationLookups.find(({ annotationId }) => annotationId === annotationOption.annotationId);
-                let optionsForLookup;
-                if (lookup) {
-                    optionsForLookup = await getWithRetry(
-                        () => labkeyClient.getOptionsForLookup(lookup.lookupId),
-                        AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
-                        dispatch,
-                        "LabKey",
-                        "Could not retrieve options for lookup annotation"
-                    );
-                    optionsForLookup.sort();
-                }
+        const { lookupAnnotationName, searchStr } = payload;
+        const state = getState();
+        const annotations = getAnnotations(state);
+        const annotationLookups = getAnnotationLookups(state);
+        const lookups = getLookups(state);
+        let lookup: Lookup | undefined;
 
-                dispatch(receiveMetadata({ [payload]: optionsForLookup }));
-            } catch (e) {
-                logger.error("Could not retrieve options for lookup annotation", e.message);
+        const annotation: Annotation | undefined = annotations
+            .find(({ name }) => name === lookupAnnotationName);
+        if (annotation) {
+            const annotationLookup: AnnotationLookup | undefined = annotationLookups
+                .find((al) => al.annotationId === annotation.annotationId);
+            if (annotationLookup) {
+                lookup = lookups.find(({ lookupId }) => lookupId === annotationLookup.lookupId);
             }
+        }
+
+        if (!lookup) {
+            // todo: set error
+            return;
+        }
+
+        const { columnName, schemaName, tableName } = lookup;
+        try {
+            const optionsForLookup = await getWithRetry(
+                () => labkeyClient.getOptionsForLookup(schemaName, tableName, columnName, searchStr),
+                AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
+                dispatch,
+                "LabKey",
+                "Could not retrieve options for lookup annotation"
+            );
+            dispatch(receiveMetadata({ [lookupAnnotationName]: optionsForLookup }));
+        } catch (e) {
+            logger.error("Could not retrieve options for lookup annotation", e.message);
         }
         done();
     },
     type: GET_OPTIONS_FOR_LOOKUP,
+    validate: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const { lookupAnnotationName } = action.payload;
+
+        if (isEmpty(lookupAnnotationName)) {
+            // todo reject, set error alert
+            reject(action);
+            return;
+        }
+
+        next(action);
+    },
 });
 
 const requestTemplatesLogic = createLogic({

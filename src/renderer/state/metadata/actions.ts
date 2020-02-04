@@ -39,9 +39,15 @@ export function requestAnnotations(): GetAnnotationsAction {
     };
 }
 
-export function retrieveOptionsForLookup(lookupAnnotationName: string): GetOptionsForLookupAction {
+export function retrieveOptionsForLookup(
+    lookupAnnotationName: string,
+    searchStr?: string
+): GetOptionsForLookupAction {
     return {
-        payload: lookupAnnotationName,
+        payload: {
+            lookupAnnotationName,
+            searchStr,
+        },
         type: GET_OPTIONS_FOR_LOOKUP,
     };
 }

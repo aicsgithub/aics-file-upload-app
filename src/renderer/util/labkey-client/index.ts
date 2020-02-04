@@ -77,20 +77,31 @@ export default class LabkeyClient extends BaseServiceClient {
             camelizeKeys(pick(r, ["AnnotationOptionId", "AnnotationId", "Value"])));
     }
 
-    public async getOptionsForLookup(lookupId: number): Promise<string[]> {
-        const lookupQuery = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "Lookup",
-            [`query.lookupId~eq=${lookupId}`]);
-        const lookupResponse = await this.httpClient.get(lookupQuery);
-        if (!lookupResponse || !lookupResponse.rows || !lookupResponse.rows.length) {
-            throw Error(`Unable to find lookup information, response: ${lookupResponse}`);
+    /**
+     * Gets the values for a lookup based on the column provided
+     * @param schema of the lookup
+     * @param table of the lookup
+     * @param column of the lookup
+     * @param searchString optional string
+     */
+    public async getOptionsForLookup(
+        schema: string,
+        table: string,
+        column: string,
+        searchString?: string
+    ): Promise<string[]> {
+        const additionalQueries = [`query.columns=${column}`, `query.sort=${column}`];
+        if (!isEmpty(searchString)) {
+            additionalQueries.push(
+                `query.${column}~contains=${searchString}`,
+                `query.maxRows=20`
+            );
         }
-        const { SchemaName, TableName, ColumnName } = lookupResponse.rows[0];
-        const lookupOptionsQuery = LabkeyClient.getSelectRowsURL(SchemaName, TableName,
-            [`query.columns=${ColumnName}`]);
+        const lookupOptionsQuery = LabkeyClient.getSelectRowsURL(schema, table, additionalQueries);
         const { rows } = await this.httpClient.get(lookupOptionsQuery);
         // Column names for lookups are stored in lowercase in the DB while the actual key may have any casing,
         // so we need to find the matching key
-        const properlyCasedKey = Object.keys(rows[0]).find((key) => key.toLowerCase() === ColumnName.toLowerCase());
+        const properlyCasedKey = Object.keys(rows[0]).find((key) => key.toLowerCase() === column.toLowerCase());
         return rows.map((row: any) => row[properlyCasedKey!]);
     }
 

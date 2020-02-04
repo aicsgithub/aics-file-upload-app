@@ -72,7 +72,10 @@ export interface GetAnnotationsAction {
 }
 
 export interface GetOptionsForLookupAction {
-    payload: string;
+    payload: {
+        lookupAnnotationName: string;
+        searchStr?: string;
+    };
     type: string;
 }
 

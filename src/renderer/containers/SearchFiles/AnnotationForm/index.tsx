@@ -3,6 +3,7 @@ import * as React from "react";
 
 import LabeledInput from "../../../components/LabeledInput";
 import { Annotation } from "../../../state/template/types";
+import LookupSearch from "../../LookupSearch";
 
 import SearchButton from "../SearchButton";
 
@@ -58,20 +59,13 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
         <Col xs={12} xl={14} xxl={15}>
             <LabeledInput label="Search Value">
                 {(optionsForLookupLoading || optionsForLookup) ? (
-                    <Select
-                        allowClear={true}
-                        showSearch={true}
-                        value={searchValue}
-                        loading={optionsForLookupLoading}
-                        disabled={!optionsForLookup || optionsForLookupLoading}
-                        onChange={selectSearchValue}
-                        placeholder="Select Search Value"
+                    <LookupSearch
                         className={styles.fullWidth}
-                    >
-                        {optionsForLookup && optionsForLookup.map((option) => (
-                            <Select.Option key={option} value={option}>{option}</Select.Option>
-                        ))}
-                    </Select>
+                        lookupAnnotationName={annotation}
+                        placeholder="Select Search Value"
+                        searchValue={searchValue}
+                        selectSearchValue={selectSearchValue}
+                    />
                 ) : (
                     <Input
                         allowClear={true}
