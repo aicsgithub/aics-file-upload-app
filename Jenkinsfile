@@ -30,7 +30,7 @@ pipeline {
         stage ("lint") {
             when {
                 expression {
-                    return VERSION_TO_INCREMENT == null
+                    return env.VERSION_TO_INCREMENT == null
                 }
             }
             steps {
@@ -40,7 +40,7 @@ pipeline {
         stage ("test") {
             when {
                 expression {
-                   return VERSION_TO_INCREMENT == null
+                   return env.VERSION_TO_INCREMENT == null
                 }
             }
             steps {
@@ -50,7 +50,7 @@ pipeline {
         stage ("build") {
             when {
                 expression {
-                   return VERSION_TO_INCREMENT == null
+                   return env.VERSION_TO_INCREMENT == null
                 }
             }
             steps {
@@ -60,7 +60,7 @@ pipeline {
         stage ("version") {
             when {
                 expression {
-                    return VERSION_TO_INCREMENT != null
+                    return env.VERSION_TO_INCREMENT != null
                 }
             }
             steps {
