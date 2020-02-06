@@ -18,14 +18,16 @@ import {
     getChannels,
     getTemplates,
 } from "../../state/metadata/selectors";
-import { Channel, GetTemplatesAction, ImagingSession } from "../../state/metadata/types";
+import { Channel, GetTemplatesAction } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction, Page } from "../../state/route/types";
-import { openTemplateEditor, toggleExpandedUploadJobRow } from "../../state/selection/actions";
+import {
+    openTemplateEditor,
+    toggleExpandedUploadJobRow,
+} from "../../state/selection/actions";
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
-    getSelectedImagingSession,
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
@@ -89,7 +91,6 @@ interface Props {
     requestTemplates: ActionCreator<GetTemplatesAction>;
     savedTemplateId?: number;
     selectedBarcode?: string;
-    selectedImagingSession?: ImagingSession;
     setAlert: ActionCreator<SetAlertAction>;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
@@ -178,7 +179,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderPlateInfo = () => {
-        const { selectedBarcode, selectedImagingSession } = this.props;
+        const { selectedBarcode } = this.props;
         if (!selectedBarcode) {
             return null;
         }
@@ -186,7 +187,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         return (
             <div className={styles.plateInfo}>
                 <div>Plate Barcode: {selectedBarcode}</div>
-                {selectedImagingSession && <div>Imaging Session: {selectedImagingSession.name}</div>}
             </div>
         );
     }
@@ -256,7 +256,6 @@ function mapStateToProps(state: State) {
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
-        selectedImagingSession: getSelectedImagingSession(state),
         templates: getTemplates(state),
         uploads: getUploadSummaryRows(state),
         validationErrors: getValidationErrorsMap(state),

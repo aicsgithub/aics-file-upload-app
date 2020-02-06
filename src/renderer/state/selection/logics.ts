@@ -1,3 +1,4 @@
+import { AicsGridCell } from "@aics/aics-react-labkey";
 import { stat as fsStat, Stats } from "fs";
 import { uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
@@ -5,6 +6,7 @@ import { createLogic } from "redux-logic";
 import { promisify } from "util";
 import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
+import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { canUserRead, getWithRetry } from "../../util";
 
 import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
@@ -24,11 +26,18 @@ import {
 } from "../types";
 import { batchActions, getActionFromBatch } from "../util";
 
-import { setPlate, setWells, stageFiles, updateStagedFiles } from "./actions";
-import { GET_FILES_IN_FOLDER, LOAD_FILES, OPEN_FILES, SELECT_BARCODE, SELECT_WORKFLOW_PATH } from "./constants";
+import { selectImagingSessionId, selectWells, setPlate, setWells, stageFiles, updateStagedFiles } from "./actions";
+import {
+    GET_FILES_IN_FOLDER,
+    LOAD_FILES,
+    OPEN_FILES,
+    SELECT_BARCODE,
+    SELECT_WELLS,
+    SELECT_WORKFLOW_PATH,
+} from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
-import { getStagedFiles } from "./selectors";
-import { DragAndDropFileList, UploadFile } from "./types";
+import { getStagedFiles, getWellsWithModified } from "./selectors";
+import { DragAndDropFileList, GetPlateResponse, PlateResponse, UploadFile, WellResponse } from "./types";
 
 const stat = promisify(fsStat);
 
@@ -146,13 +155,15 @@ const getFilesInFolderLogic = createLogic({
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 
 const selectBarcodeLogic = createLogic({
-    process: async ({ action, getState, logger, mmsClient, remote }: ReduxLogicProcessDependencies,
+    process: async ({ action, getState, labkeyClient, logger, mmsClient, remote }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const { barcode, imagingSessionId } = action.payload;
-        const request = () => mmsClient.getPlate(barcode, imagingSessionId);
+        const { barcode, imagingSessionIds } = action.payload;
+        const request = (): Promise<GetPlateResponse[]> => Promise.all(
+            imagingSessionIds.map((imagingSessionId: number) => mmsClient.getPlate(barcode, imagingSessionId))
+        );
 
         try {
-            const { plate, wells } = await getWithRetry(
+            const platesAndWells: GetPlateResponse[] = await getWithRetry(
                 request,
                 AsyncRequest.GET_PLATE,
                 dispatch,
@@ -160,9 +171,19 @@ const selectBarcodeLogic = createLogic({
                 GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode)
             );
 
+            const imagingSessionIdToPlate: {[imagingSessionId: number]: PlateResponse} = {};
+            const imagingSessionIdToWells: {[imagingSessionId: number]: WellResponse[]} = {};
+            imagingSessionIds.forEach((imagingSessionId: number, i: number) => {
+                imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
+                const { plate, wells } = platesAndWells[i];
+                imagingSessionIdToPlate[imagingSessionId] = plate;
+                imagingSessionIdToWells[imagingSessionId] = wells;
+            });
+
             const actions = [
-                setPlate(plate),
-                setWells(wells),
+                selectImagingSessionId(imagingSessionIds[0]),
+                setPlate(imagingSessionIdToPlate),
+                setWells(imagingSessionIdToWells),
                 removeRequestFromInProgress(AsyncRequest.GET_PLATE),
                 associateByWorkflow(false),
                 receiveMetadata({barcodeSearchResults: []}),
@@ -218,6 +239,17 @@ const closeTemplateEditorLogic = createLogic({
     type: CLOSE_TEMPLATE_EDITOR,
 });
 
+const selectWellsLogic = createLogic({
+    transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        const wells = getWellsWithModified(getState());
+        const cells = action.payload;
+        const filledCells = cells.filter((cell: AicsGridCell) => wells[cell.row][cell.col].modified);
+        const gridCells = filledCells.map((cell: AicsGridCell) => new GridCell(cell.row, cell.col));
+        next(selectWells(gridCells));
+    },
+    type: SELECT_WELLS,
+});
+
 export default [
     closeTemplateEditorLogic,
     loadFilesLogic,
@@ -225,5 +257,6 @@ export default [
     openFilesLogic,
     getFilesInFolderLogic,
     selectBarcodeLogic,
+    selectWellsLogic,
     selectWorkflowPathLogic,
 ];

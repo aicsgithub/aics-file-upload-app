@@ -5,7 +5,7 @@ import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { getSelectedFiles } from "../../selection/selectors";
+import { getSelectedBarcode, getSelectedFiles } from "../../selection/selectors";
 import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
@@ -14,12 +14,14 @@ import {
     mockTemplateStateBranch,
     mockTemplateWithManyValues,
     mockTextAnnotation,
+    mockWellUpload,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
     applyTemplate,
     associateFilesAndWells,
     initiateUpload,
+    undoFileWellAssociation,
     updateFilesToArchive,
     updateFilesToStoreOnIsilon,
     updateScenes,
@@ -35,19 +37,192 @@ import {
 } from "../selectors";
 
 describe("Upload logics", () => {
-    describe("associateFileAndWellLogic", () => {
-        it("clears files and associates well with file", () => {
+    describe("associateFileAndWellLogic",  () => {
+        it("clears files and associates well with file",  () => {
             const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             const file1 = "/path1";
             const file2 = "/path2";
             const wellId = 1;
 
-            store.dispatch(associateFilesAndWells(["/path1", "/path2"], [wellId], ["A1"]));
-            expect(getSelectedFiles(store.getState())).to.be.empty;
+            store.dispatch(associateFilesAndWells([{file: file1}, {file: file2}]));
 
+            const state = store.getState();
+            expect(getSelectedFiles(state)).to.be.empty;
             const upload = getUpload(store.getState());
+            const selectedBarcode = getSelectedBarcode(state);
             expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file1, "barcode"])).to.equal(selectedBarcode);
             expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [file2, "barcode"])).to.equal(selectedBarcode);
+        });
+
+        it("sets error alert when rowIds is empty", () => {
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+
+            // before
+            let alert = getAlert(store.getState());
+            expect(alert).to.be.undefined;
+
+            // apply
+            store.dispatch(associateFilesAndWells([]));
+
+            // after
+            alert = getAlert(store.getState());
+            expect(alert).to.deep.equal({
+                message: "Cannot associate files and wells: No files selected",
+                type: AlertType.ERROR,
+            });
+        });
+
+        it("sets error alert if a row to associate with a well contains a channelId", () => {
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+
+            // before
+            let alert = getAlert(store.getState());
+            expect(alert).to.be.undefined;
+
+            // apply
+            store.dispatch(associateFilesAndWells([{ file: "foo", channelId: 1 }]));
+
+            // after
+            alert = getAlert(store.getState());
+            expect(alert).to.deep.equal({
+                message: "Cannot associate wells with a channel row",
+                type: AlertType.ERROR,
+            });
+        });
+
+        it("sets error alert when no barcode selected", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                selection: getMockStateWithHistory({
+                    ...nonEmptyStateForInitiatingUpload.selection.present,
+                    barcode: undefined,
+                }),
+            });
+
+            // before
+            let alert = getAlert(store.getState());
+            expect(alert).to.be.undefined;
+
+            // apply
+            store.dispatch(associateFilesAndWells([{file: "foo"}]));
+
+            // after
+            alert = getAlert(store.getState());
+            expect(alert).to.deep.equal({
+                message: "Cannot associate files and wells: No plate selected",
+                type: AlertType.ERROR,
+            });
+        });
+
+        it("sets error when no selected wells", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                selection: getMockStateWithHistory({
+                    ...nonEmptyStateForInitiatingUpload.selection.present,
+                    selectedWells: [],
+                }),
+            });
+
+            // before
+            let alert = getAlert(store.getState());
+            expect(alert).to.be.undefined;
+
+            // apply
+            store.dispatch(associateFilesAndWells([{ file: "foo" }]));
+
+            // after
+            alert = getAlert(store.getState());
+            expect(alert).to.deep.equal({
+                message: "Cannot associate files and wells: No wells selected",
+                type: AlertType.ERROR,
+            });
+        });
+
+        it("associates wells with files + positionIndex", () => {
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const file1 = "/path1";
+            const wellId = 1;
+
+            store.dispatch(associateFilesAndWells([{file: file1, positionIndex: 1}]));
+
+            const state = store.getState();
+            expect(getSelectedFiles(state)).to.be.empty;
+            const upload = getUpload(store.getState());
+            const selectedBarcode = getSelectedBarcode(state);
+            const uploadRowKey = getUploadRowKey(file1, 1);
+            expect(get(upload, [uploadRowKey, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [uploadRowKey, "barcode"])).to.equal(selectedBarcode);
+        });
+    });
+
+    describe("undoFileWellAssociationLogic", () => {
+        it("removes well associations and removes file by default from uploads if no well associations left",
+            () => {
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+
+            // before
+            let uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            expect(uploadRow.wellIds).to.not.be.empty;
+
+            // apply
+            store.dispatch(undoFileWellAssociation("/path/to/file1"));
+
+            // after
+            uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            expect(uploadRow).to.be.undefined;
+        });
+
+        it("removes well associations but not entire row if action.payload.deleteUpload = false", () => {
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+
+            // before
+            let uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            expect(uploadRow.wellIds).to.not.be.empty;
+
+            // apply
+            store.dispatch(undoFileWellAssociation("/path/to/file1", undefined, false));
+
+            // after
+            uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            expect(uploadRow).to.not.be.undefined;
+            expect(uploadRow.wellIds).to.be.empty;
+        });
+
+        it("removes well associations from row matching file and positionIndex", () => {
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+
+            // before
+            let uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file3", 1)];
+            expect(uploadRow.wellIds.length).to.equal(2);
+
+            // apply
+            store.dispatch(undoFileWellAssociation("/path/to/file3", 1, false));
+
+            // after
+            uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file3", 1)];
+            expect(uploadRow).to.not.be.undefined;
+            expect(uploadRow.wellIds.length).to.equal(1);
+        });
+
+        it("sets error alert if no wells selected", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                selection: getMockStateWithHistory({
+                    ...nonEmptyStateForInitiatingUpload.selection.present,
+                    selectedWells: [],
+                }),
+            });
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(undoFileWellAssociation("/path/to/file1"));
+
+            // after
+            expect(getAlert(store.getState())).to.not.be.undefined;
         });
     });
 
@@ -61,7 +236,7 @@ describe("Upload logics", () => {
             // before
             const state = store.getState();
             expect(getAppliedTemplateId(state)).to.be.undefined;
-            store.dispatch(associateFilesAndWells([file1, file2], [wellId], ["A1"]));
+            store.dispatch(associateFilesAndWells([{file: file1}, {file: file2}]));
 
             // apply
             store.dispatch(applyTemplate(1));
@@ -142,7 +317,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(keys(getUpload(state)).length).to.equal(3);
+            expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length);
             const fileRow = getUploadSummaryRows(state).find((r) => r.key === fileRowKey);
             expect(fileRow).to.not.be.undefined;
 
@@ -151,7 +326,7 @@ describe("Upload logics", () => {
             }
 
             state = store.getState();
-            expect(keys(getUpload(state)).length).to.equal(4);
+            expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
         });
 
         it("does not remove well associations from the file row if file does not have a scene", () => {
@@ -194,7 +369,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(keys(getUpload(state)).length).to.equal(3);
+            expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length);
             const fileRow = getUploadSummaryRows(state).find((r) => r.key === fileRowKey);
             expect(fileRow).to.not.be.undefined;
 
@@ -204,7 +379,7 @@ describe("Upload logics", () => {
 
                 // after
                 state = store.getState();
-                expect(keys(getUpload(state)).length).to.equal(4);
+                expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
                 const channelUpload = getUpload(state)[getUploadRowKey(file, undefined, 1)];
                 expect(channelUpload).to.not.be.undefined;
                 expect(channelUpload).to.deep.equal({
@@ -216,7 +391,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: undefined,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
             }
@@ -226,7 +400,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(keys(getUpload(state)).length).to.equal(3);
+            expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length);
             const fileRow = getUploadSummaryRows(state).find((r) => r.key === fileRowKey);
             expect(fileRow).to.not.be.undefined;
 
@@ -236,7 +410,7 @@ describe("Upload logics", () => {
 
                 // after
                 state = store.getState();
-                expect(keys(getUpload(state)).length).to.equal(4);
+                expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
                 const sceneUpload = getUpload(state)[getUploadRowKey(file, 1)];
                 expect(sceneUpload).to.not.be.undefined;
                 expect(sceneUpload).to.deep.equal({
@@ -248,7 +422,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
             }
@@ -258,7 +431,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(keys(getUpload(state)).length).to.equal(3);
+            expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length);
             const fileRow = getUploadSummaryRows(state).find((r) => r.key === fileRowKey);
             expect(fileRow).to.not.be.undefined;
 
@@ -271,7 +444,7 @@ describe("Upload logics", () => {
                 const uploads = getUpload(state);
                 // there should be a new upload representing:
                 // just the scene, just the channel, and the scene and channel together
-                expect(keys(uploads).length).to.equal(6);
+                expect(keys(uploads).length).to.equal(keys(mockWellUpload).length + 3);
                 const sceneUpload = uploads[getUploadRowKey(file, 1)];
                 expect(sceneUpload).to.not.be.undefined;
                 expect(sceneUpload).to.deep.equal({
@@ -283,7 +456,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
 
@@ -299,7 +471,6 @@ describe("Upload logics", () => {
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
-                    wellLabels: [],
                     workflows: [],
                 });
             }
@@ -313,14 +484,12 @@ describe("Upload logics", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
-                        wellLabels: [],
                     },
                     [getUploadRowKey(file, 1)]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [1],
-                        wellLabels: ["A1"],
                     },
                 }),
             }, mockReduxLogicDeps);

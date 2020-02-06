@@ -7,7 +7,14 @@ import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from ".
 import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
-import { SelectionStateBranch, Well, Workflow } from "../selection/types";
+import {
+    CellPopulation,
+    ImagingSessionIdToPlateMap,
+    ImagingSessionIdToWellsMap,
+    SelectionStateBranch,
+    Well,
+    Workflow,
+} from "../selection/types";
 import {
     Annotation,
     AnnotationDraft,
@@ -126,6 +133,57 @@ export const getMockStateWithHistory = <T>(state: T): StateWithHistory<T> => {
     };
 };
 
+const mockCellPopulation: CellPopulation = {
+    seedingDensity: "1000",
+    sourceVial: { barcode: "abc" },
+};
+
+export const mockWell: Well = {
+    cellPopulations: [mockCellPopulation],
+    col: 0,
+    plateId: 1,
+    row: 0,
+    solutions: [],
+    wellId: 1,
+};
+
+export const mockWells: ImagingSessionIdToWellsMap = {
+    0: [
+        mockWell,
+        {...mockWell, col: 1, row: 0, wellId: 2},
+        {...mockWell, cellPopulations: [], col: 2, row: 0, wellId: 5},
+        {...mockWell, col: 1, row: 1, wellId: 4},
+        {...mockWell, col: 0, row: 1, wellId: 3},
+        {...mockWell, cellPopulations: [], col: 2, row: 1, wellId: 6},
+    ],
+    1: [
+        {...mockWell, plateId: 2, wellId: 10},
+    ],
+};
+
+export const mockPlate: ImagingSessionIdToPlateMap = {
+    0: {
+        ...mockAuditInfo,
+        barcode: "abc",
+        comments: "",
+        imagingSessionId: undefined,
+        plateGeometryId: 1,
+        plateId: 1,
+        plateStatusId: 1,
+        seededOn: undefined,
+    },
+    1: {
+        ...mockAuditInfo,
+        barcode: "abc",
+        comments: "drugs added",
+        imagingSessionId: 1,
+        plateGeometryId: 1,
+        plateId: 2,
+        plateStatusId: 1,
+        seededOn: undefined,
+    },
+};
+
 export const mockSelection: SelectionStateBranch = {
     annotation: "Dataset",
     barcode: undefined,
@@ -133,15 +191,16 @@ export const mockSelection: SelectionStateBranch = {
     files: [],
     folderTreeOpen: true,
     imagingSessionId: undefined,
-    imagingSessionIds: [],
+    imagingSessionIds: [null, 1],
     openTemplateModalVisible: false,
+    plate: mockPlate,
     selectedWells: [],
     selectedWorkflows: [],
     settingsEditorVisible: false,
     stagedFiles: [],
     templateEditorVisible: false,
     user: "fake_user",
-    wells: [],
+    wells: mockWells,
 };
 
 export const mockWellUpload: UploadStateBranch = {
@@ -152,7 +211,6 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInArchive: true,
         shouldBeInLocal: true,
         wellIds: [1],
-        wellLabels: ["A1"],
     },
     [getUploadRowKey("/path/to/file2")]: {
         barcode: "1235",
@@ -161,7 +219,6 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInArchive: false,
         shouldBeInLocal: true,
         wellIds: [2],
-        wellLabels: ["A2"],
     },
     [getUploadRowKey("/path/to/file3")]: {
         barcode: "1236",
@@ -170,7 +227,13 @@ export const mockWellUpload: UploadStateBranch = {
         shouldBeInArchive: true,
         shouldBeInLocal: false,
         wellIds: [1, 2, 3],
-        wellLabels: ["A1", "A2", "B1"],
+    },
+    [getUploadRowKey("/path/to/file3", 1)]: {
+        barcode: "1236",
+        file: "/path/to/file3",
+        key: getUploadRowKey("/path/to/file3", 1),
+        positionIndex: 1,
+        wellIds: [1, 2],
     },
 };
 
@@ -189,12 +252,24 @@ export const mockTextAnnotation: TemplateAnnotation = {
 export const mockDateAnnotation: TemplateAnnotation = {
     ...mockAuditInfo,
     annotationId: 68,
-    annotationTypeId: 4,
+    annotationTypeId: 7,
     canHaveManyValues: true,
     description: "dob - for testing",
     lookupSchema: undefined,
     lookupTable: undefined,
     name: "Birth Date",
+    required: false,
+};
+
+export const mockDateTimeAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 70,
+    annotationTypeId: 4,
+    canHaveManyValues: true,
+    description: "",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Seeded On",
     required: false,
 };
 
@@ -210,55 +285,62 @@ export const mockNumberAnnotation: TemplateAnnotation = {
     required: false,
 };
 
+export const mockLookupAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 2,
+    annotationOptions: [
+        "spCas9",
+        "Not Recorded",
+    ],
+    annotationTypeId: 6,
+    canHaveManyValues: true,
+    description: "CRISPR associated protein 9",
+    lookupSchema: "celllines",
+    lookupTable: "cas9",
+    name: "Cas9",
+    required: false,
+};
+
+export const mockDropdownAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 69,
+    annotationOptions: [
+        "A",
+        "B",
+        "C",
+        "D",
+    ],
+    annotationTypeId: 5,
+    canHaveManyValues: false,
+    description: "test",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Dropdown",
+    required: false,
+};
+
+export const mockBooleanAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 61,
+    annotationTypeId: 3,
+    canHaveManyValues: true,
+    description: "Is this image related to QC of a gene-edited line?",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Qc",
+    required: false,
+};
+
 export const mockTemplateWithManyValues: Template = {
     ...mockAuditInfo,
     annotations: [
         mockTextAnnotation,
         mockDateAnnotation,
-        {
-            ...mockAuditInfo,
-            annotationId: 2,
-            annotationOptions: [
-                "spCas9",
-                "Not Recorded",
-            ],
-            annotationTypeId: 6,
-            canHaveManyValues: true,
-            description: "CRISPR associated protein 9",
-            lookupSchema: "celllines",
-            lookupTable: "cas9",
-            name: "Cas9",
-            required: false,
-        },
+        mockDateTimeAnnotation,
+        mockLookupAnnotation,
         mockNumberAnnotation,
-        {
-            ...mockAuditInfo,
-            annotationId: 61,
-            annotationTypeId: 3,
-            canHaveManyValues: true,
-            description: "Is this image related to QC of a gene-edited line?",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Qc",
-            required: false,
-        },
-        {
-            ...mockAuditInfo,
-            annotationId: 69,
-            annotationOptions: [
-                "A",
-                "B",
-                "C",
-                "D",
-            ],
-            annotationTypeId: 5,
-            canHaveManyValues: false,
-            description: "test",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Dropdown",
-            required: false,
-        },
+        mockBooleanAnnotation,
+        mockDropdownAnnotation,
         {
             ...mockAuditInfo,
             annotationId: 21,
@@ -271,6 +353,10 @@ export const mockTemplateWithManyValues: Template = {
         {
             ...mockAuditInfo,
             annotationId: 18,
+            annotationOptions: [
+                "R&DExp",
+                "Pipeline 4.1",
+            ],
             annotationTypeId: 6,
             canHaveManyValues: true,
             description: "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH)",
@@ -429,21 +515,6 @@ export const mockUnits: Unit[] = [
         type: "mass",
         unitsId: 4,
     },
-];
-
-export const mockWell: Well = {
-    cellPopulations: [],
-    col: 0,
-    row: 0,
-    solutions: [],
-    wellId: 1,
-};
-
-export const mockWells: Well[] = [
-    {...mockWell, col: 1, row: 0, wellId: 2},
-    mockWell,
-    {...mockWell, col: 1, row: 1, wellId: 4},
-    {...mockWell, col: 0, row: 1, wellId: 3},
 ];
 
 export const mockSelectedWells: GridCell[] = [
@@ -732,6 +803,11 @@ export const nonEmptyStateForInitiatingUpload: State = {
         annotationTypes: mockAnnotationTypes,
         annotations: mockAnnotations,
     },
+    selection: getMockStateWithHistory({
+        ...mockState.selection.present,
+        barcode: "1234",
+        selectedWells: [{col: 0, row: 0}],
+    }),
     template: getMockStateWithHistory({
         ...mockTemplateStateBranch,
         appliedTemplate: mockMMSTemplate,

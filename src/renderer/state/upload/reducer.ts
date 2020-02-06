@@ -48,20 +48,19 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: UploadStateBranch, action: AssociateFilesAndWellsAction) => {
             const nextState = {...state};
 
-            const { barcode, wellIds, wellLabels, fullPaths } = action.payload;
+            const { barcode, wellIds, rowIds } = action.payload;
 
-            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => {
-                const key = getUploadRowKey(fullPath);
+            return rowIds.reduce((accum: UploadStateBranch, { file, positionIndex }) => {
+                const key = getUploadRowKey(file, positionIndex);
                 return {
                     ...accum,
                     [key]: {
                         ...accum[key],
                         barcode,
-                        file: fullPath,
+                        file,
+                        positionIndex,
                         wellIds: accum[key] ?
                             uniq([...accum[key].wellIds, ...wellIds]) : wellIds,
-                        wellLabels: accum[key] ?
-                            uniq([...accum[key].wellLabels, ...wellLabels]) : wellLabels,
                     },
                 };
             }, nextState);
@@ -94,9 +93,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
             action.type === UNDO_FILE_WELL_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => {
-            const key = getUploadRowKey(action.payload.fullPath);
-            const wellIds = without(state[key].wellIds, ...action.payload.wellIds);
-            if (!wellIds.length) {
+            const { deleteUpload, fullPath, positionIndex, wellIds: wellIdsToRemove } = action.payload;
+            const key = getUploadRowKey(fullPath, positionIndex);
+            const wellIds = without(state[key].wellIds, ...wellIdsToRemove);
+            if (!wellIds.length && deleteUpload) {
                 const stateWithoutFile = { ...state };
                 delete stateWithoutFile[key];
                 return stateWithoutFile;
@@ -106,7 +106,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 [key]: {
                     ...state[key],
                     wellIds,
-                    wellLabels: without(state[key].wellLabels, ...action.payload.wellLabels),
                 },
             };
         },

@@ -28,15 +28,17 @@ import {
     mockMMSTemplate,
     mockSelection,
     mockState,
-    mockTemplateStateBranch,
+    mockTemplateStateBranch, mockWells, nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { closeTemplateEditor, openTemplateEditor, selectBarcode } from "../actions";
+import { closeTemplateEditor, openTemplateEditor, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
     getSelectedBarcode,
     getSelectedPlateId,
+    getSelectedPlates,
+    getSelectedWells,
     getStagedFiles,
     getTemplateEditorVisible,
     getWells,
@@ -352,25 +354,26 @@ describe("Selection logics", () => {
         const plateId = 1;
         let mockOkGetPlateResponse: GetPlateResponse;
         let mockBadGatewayResponse: AxiosError;
+        const mockEmptyWell: Well = {
+            cellPopulations: [],
+            col: 0,
+            plateId: 1,
+            row: 0,
+            solutions: [],
+            wellId: 1,
+        };
+        const mockPlate: PlateResponse = {
+            ...mockAuditInfo,
+            barcode: "123456",
+            comments: "",
+            imagingSessionId: undefined,
+            plateGeometryId: 1,
+            plateId: 1,
+            plateStatusId: 1,
+            seededOn: "2018-02-14 23:03:52",
+        };
 
         beforeEach(() => {
-            const mockEmptyWell: Well = {
-                cellPopulations: [],
-                col: 0,
-                row: 0,
-                solutions: [],
-                wellId: 1,
-            };
-            const mockPlate: PlateResponse = {
-                ...mockAuditInfo,
-                barcode: "123456",
-                comments: "",
-                imagingSessionId: 1,
-                plateGeometryId: 1,
-                plateId: 1,
-                plateStatusId: 1,
-                seededOn: "2018-02-14 23:03:52",
-            };
             mockOkGetPlateResponse = {
                 plate: mockPlate,
                 wells: [mockEmptyWell],
@@ -543,6 +546,43 @@ describe("Selection logics", () => {
             expect(getSelectedBarcode(state)).to.equal(barcode);
             expect(getSelectedPlateId(state)).to.equal(plateId);
         });
+
+        it("Builds map of imaging session ids to plate responses on OK response", async () => {
+            const getStub = sinon.stub().onFirstCall().resolves(mockOkGetPlateResponse);
+            const mockPlateResponse2 = {
+                plate: {
+                    ...mockPlate,
+                    imagingSessionId: 1,
+                    plateId: 2,
+                },
+                wells: [{
+                    ...mockEmptyWell,
+                    plateId: 2,
+                }],
+
+            };
+            getStub.onSecondCall().resolves(mockPlateResponse2);
+            sandbox.replace(mmsClient, "getPlate", getStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            // apply
+            store.dispatch(selectBarcode(barcode, [null, 1]));
+
+            // after
+            await logicMiddleware.whenComplete();
+            const state = store.getState();
+            expect(getWells(state)).to.deep.equal({
+                0: mockOkGetPlateResponse.wells,
+                1: mockPlateResponse2.wells,
+            });
+            expect(getSelectedPlates(state)).to.deep.equal({
+                0: mockOkGetPlateResponse.plate,
+                1: mockPlateResponse2.plate,
+            });
+            expect(getPage(state)).to.equal(Page.AssociateFiles);
+            expect(getSelectedBarcode(state)).to.equal(barcode);
+            expect(getSelectedPlateId(state)).to.equal(plateId);
+        });
     });
 
     describe("openTemplateEditorLogic", () => {
@@ -606,6 +646,28 @@ describe("Selection logics", () => {
             // after
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
+        });
+    });
+
+    describe("selectWellsLogic", () => {
+        it ("filters out unmodified wells", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: [],
+                }),
+            });
+
+            // before
+            expect(getSelectedWells(store.getState())).to.be.empty;
+
+            // apply
+            const cells = mockWells[0].map((w) => ({col: w.col, row: w.row}));
+            store.dispatch(selectWells(cells));
+
+            // after
+            expect(getSelectedWells(store.getState()).length).to.equal(4);
         });
     });
 });

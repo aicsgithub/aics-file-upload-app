@@ -10,15 +10,19 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import {
+    getAllPlates,
+    getAllWells,
     getSelectedImagingSession,
+    getSelectedPlate,
+    getSelectedPlateId,
+    getSelectedWellIds,
     getSelectedWellLabels,
     getSelectedWellsWithData,
-    getWellIdToWellLabelMap,
     getWellsWithModified,
     getWellsWithUnitsAndModified,
     NO_UNIT,
 } from "../selectors";
-import { CellPopulation, Solution, Well, WellResponse } from "../types";
+import { CellPopulation, PlateResponse, Solution, Well, WellResponse } from "../types";
 
 describe("Selections selectors", () => {
     let mockEmptyWell: Well;
@@ -30,6 +34,7 @@ describe("Selections selectors", () => {
         mockEmptyWell = {
             cellPopulations: [],
             col: 0,
+            plateId: 1,
             row: 0,
             solutions: [],
             wellId: 1,
@@ -70,7 +75,7 @@ describe("Selections selectors", () => {
                 ...mockState.selection,
                 present: {
                     ...mockState.selection.present,
-                    wells: [mockWell],
+                    wells: {0: [mockWell]},
                 },
             },
         };
@@ -81,16 +86,69 @@ describe("Selections selectors", () => {
         expect(wells[0].length).to.equal(1);
     };
 
+    describe("getSelectedPlate", () => {
+        it("returns undefined if no barcode selected yet", () => {
+            const result: PlateResponse | undefined = getSelectedPlate({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    plate: {},
+                }),
+            });
+            expect(result).to.be.undefined;
+        });
+
+        it ("returns plate corresponding to 0 imaging session id if no imaging session selected", () => {
+            const result: PlateResponse | undefined = getSelectedPlate(mockState);
+            expect(result).to.equal(getAllPlates(mockState)[0]);
+        });
+
+        it("returns plate corresponding to the imaging session id selected", () => {
+            const result: PlateResponse | undefined = getSelectedPlate({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    imagingSessionId: 1,
+                }),
+            });
+            expect(result).to.equal(getAllPlates(mockState)[1]);
+        });
+    });
+
+    describe("getSelectedPlateId", () => {
+        it("returns undefined if no plate selected", () => {
+            const result: number | undefined = getSelectedPlateId({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    plate: {},
+                }),
+            });
+            expect(result).to.be.undefined;
+        });
+
+        it("returns the id of the plate that is selected", () => {
+            const result: number | undefined = getSelectedPlateId({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    imagingSessionId: 1,
+                }),
+            });
+            expect(result).to.equal(2);
+        });
+    });
+
     describe ("getWellsWithModified", () => {
         it("sets modified as true on wells with cellPopulations", () => {
             const result: Well[][] = getWellsWithModified({
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [{
+                    wells: {0: [{
                         ...mockEmptyWell,
                         cellPopulations: [mockCellPopulation],
-                    }],
+                    }]},
                 }),
             });
 
@@ -104,10 +162,10 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [{
+                    wells: {0: [{
                         ...mockEmptyWell,
                         solutions: [mockSolution],
-                    }],
+                    }]},
                 }),
             });
 
@@ -122,7 +180,7 @@ describe("Selections selectors", () => {
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    wells: [mockEmptyWell],
+                    wells: {0: [mockEmptyWell]},
                 }),
             });
 
@@ -175,22 +233,6 @@ describe("Selections selectors", () => {
                 expect(well.solutions[0].volumeUnitDisplay).to.equal("unit1");
                 expect(well.solutions[0].solutionLot.concentrationUnitsDisplay).to.equal("unit2");
             }
-        });
-    });
-
-    describe("getWellIdToWellLabelMap", () => {
-        it("returns map of wellIds to their labels", () => {
-            const map = getWellIdToWellLabelMap({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    wells: mockWells,
-                }),
-            });
-            expect(map.get(1)).to.equal("A1");
-            expect(map.get(2)).to.equal("A2");
-            expect(map.get(3)).to.equal("B1");
-            expect(map.get(4)).to.equal("B2");
         });
     });
 
@@ -289,6 +331,38 @@ describe("Selections selectors", () => {
                 }),
             });
             expect(result).to.not.be.undefined;
+        });
+    });
+
+    describe("getSelectedWellIds", () => {
+        it("returns empty list if no selected wells", () => {
+            const result = getSelectedWellIds(mockState);
+            expect(result).to.be.empty;
+        });
+        it("returns well ids of selected wells", () => {
+            const result = getSelectedWellIds({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    selectedWells: [{ col: 0, row: 0 }],
+                }),
+            });
+            expect(result.length).to.equal(1);
+            expect(result[0]).to.equal(1);
+        });
+    });
+
+    describe("getAllWells", () => {
+        it("returns all wells from all imaging sessions in a flat list", () => {
+            const result = getAllWells(mockState);
+            expect(result.length).to.equal(7);
+        });
+    });
+
+    describe("getAllPlates", () => {
+        it("returns all plates from all imaging sessions", () => {
+            const result = getAllPlates(mockState);
+            expect(result.length).to.equal(2);
         });
     });
 });

@@ -22,7 +22,6 @@ describe("App selectors", () => {
                         shouldBeInArchive: true,
                         shouldBeInLocal: true,
                         wellIds: [1, 3],
-                        wellLabels: ["A1", "A3"],
                     },
                     [filePath2]: {
                         barcode: "test_barcode",
@@ -30,7 +29,6 @@ describe("App selectors", () => {
                         shouldBeInArchive: false,
                         shouldBeInLocal: false,
                         wellIds: [4],
-                        wellLabels: ["A4"],
                     },
                 }),
             });
@@ -38,15 +36,45 @@ describe("App selectors", () => {
             const file1Tags = map.get(filePath1) || [];
             expect(file1Tags.length).to.equal(4);
             expect(file1Tags.map((t) => t.title)).to.contain("A1");
-            expect(file1Tags.map((t) => t.title)).to.contain("A3");
+            expect(file1Tags.map((t) => t.title)).to.contain("B1");
             expect(file1Tags.map((t) => t.title)).to.contain("Isilon");
             expect(file1Tags.map((t) => t.title)).to.contain("Archive");
 
             const file2Tags = map.get(filePath2) || [];
             expect(file2Tags.length).to.equal(1);
-            expect(get(file2Tags, [0, "title"])).to.equal("A4");
+            expect(get(file2Tags, [0, "title"])).to.equal("B2");
 
             expect(get(file1Tags, [0, "color"])).to.equal(get(file2Tags, [0, "color"]));
+        });
+
+        it ("adds imaging session name if well was from another imaging session", () => {
+            const filePath1 = "filepath1";
+            const map = getFileToTags({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    imagingSessions: [{
+                        description: "2 hours after plated",
+                        imagingSessionId: 1,
+                        name: "2 hours",
+                    }],
+                },
+                selection: getMockStateWithHistory({
+                    ...mockSelection,
+                    wells: mockWells,
+                }),
+                upload: getMockStateWithHistory({
+                    [filePath1]: {
+                        barcode: "test_barcode",
+                        file: filePath1,
+                        wellIds: [10],
+                    },
+                }),
+            });
+
+            const file1ToTags = map.get(filePath1) || [];
+            expect(file1ToTags.length).to.equal(1);
+            expect(file1ToTags.map((t) => t.title)).to.contain("A1 (2 hours)");
         });
 
         it("creates human readable info from workflows", () => {
@@ -63,7 +91,6 @@ describe("App selectors", () => {
                         barcode: "test_barcode",
                         file: filePath1,
                         wellIds: [],
-                        wellLabels: [],
                         workflows: [
                             "work3",
                             "work4",
@@ -73,7 +100,6 @@ describe("App selectors", () => {
                         barcode: "test_barcode",
                         file: filePath2,
                         wellIds: [],
-                        wellLabels: [],
                         workflows: [
                             "work2",
                         ]},

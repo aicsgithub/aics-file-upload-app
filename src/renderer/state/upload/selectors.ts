@@ -1,6 +1,7 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import {
     castArray,
+    difference,
     flatMap,
     forEach,
     groupBy,
@@ -10,31 +11,45 @@ import {
     keys,
     omit,
     pick,
+    reduce,
     some,
     uniq,
     values,
     without,
 } from "lodash";
+import { isDate } from "moment";
 import * as moment from "moment";
 import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
 import { LIST_DELIMITER_JOIN } from "../../constants";
-import { titleCase } from "../../util";
+import { getWellLabel, titleCase } from "../../util";
+import {
+    getBooleanAnnotationTypeId,
+    getDateAnnotationTypeId,
+    getDateTimeAnnotationTypeId,
+    getDropdownAnnotationTypeId,
+    getImagingSessions,
+    getLookupAnnotationTypeId,
+    getNumberAnnotationTypeId,
+    getTextAnnotationTypeId,
+} from "../metadata/selectors";
+import { ImagingSession } from "../metadata/types";
+import { getAllPlates, getAllWells, getExpandedUploadJobRows } from "../selection/selectors";
 
-import { getExpandedUploadJobRows } from "../selection/selectors";
-
-import { ExpandedRows } from "../selection/types";
+import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import { ColumnType, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSceneOnlyRow, isSceneRow } from "./constants";
 import {
+    DisplayUploadStateBranch,
     FilepathToBoolean,
     FileType,
     MMSAnnotationValueRequest,
     UploadJobTableRow,
     UploadMetadata,
+    UploadMetadataWithDisplayFields,
     UploadStateBranch,
 } from "./types";
 
@@ -80,8 +95,57 @@ const standardizeUploadMetadata = (metadata: UploadMetadata) => {
     return result;
 };
 
+// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
+export const getWellLabelAndImagingSessionName = (
+    wellId: number,
+    imagingSessions: ImagingSession[],
+    selectedPlates: PlateResponse[],
+    wells: WellResponse[]
+) => {
+    const well = wells.find((w) => w.wellId === wellId);
+    let label = "ERROR";
+    if (well) {
+        label = getWellLabel({col: well.col, row: well.row});
+        const plate = selectedPlates.find((p) => p.plateId === well.plateId);
+
+        if (plate && plate.imagingSessionId) {
+            const imagingSession = imagingSessions
+                .find((is) => is.imagingSessionId === plate.imagingSessionId);
+            if (imagingSession) {
+                label += ` (${imagingSession.name})`;
+            }
+        }
+    }
+    return label;
+};
+
+export const getUploadWithCalculatedData = createSelector([
+    getUpload,
+    getImagingSessions,
+    getAllPlates,
+    getAllWells,
+], (
+    uploads: UploadStateBranch,
+    imagingSessions: ImagingSession[],
+    selectedPlates: PlateResponse[],
+    wells: WellResponse[]
+): DisplayUploadStateBranch => {
+    return reduce(uploads, (accum: DisplayUploadStateBranch, metadata: UploadMetadata, key: string) => {
+        const { wellIds } = metadata;
+        const wellLabels = (wellIds || []).map((wellId: number) =>
+            getWellLabelAndImagingSessionName(wellId, imagingSessions, selectedPlates, wells));
+        return {
+            ...accum,
+            [key]: {
+                ...metadata,
+                wellLabels,
+            },
+        };
+    }, {});
+});
+
 const convertToUploadJobRow = (
-    metadata: UploadMetadata,
+    metadata: UploadMetadataWithDisplayFields,
     numberSiblings: number,
     siblingIndex: number,
     treeDepth: number,
@@ -91,7 +155,7 @@ const convertToUploadJobRow = (
     positionIndexes: number[] = []
 ): UploadJobTableRow => {
     // convert arrays to strings
-    const formattedMetadata: UploadMetadata = {...metadata};
+    const formattedMetadata: UploadMetadataWithDisplayFields = {...metadata};
     if (template) {
         forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === key);
@@ -129,16 +193,16 @@ const convertToUploadJobRow = (
 // there will be metadata for files, each scene in a file, each channel in a file, and every combo
 // of scenes + channels
 const getFileToMetadataMap = createSelector([
-    getUpload,
-], (uploads: UploadStateBranch): { [file: string]: UploadMetadata[] } => {
-    return groupBy(values(uploads), ({file}: UploadMetadata) => file);
+    getUploadWithCalculatedData,
+], (uploads: DisplayUploadStateBranch): { [file: string]: UploadMetadataWithDisplayFields[] } => {
+    return groupBy(values(uploads), ({file}: UploadMetadataWithDisplayFields) => file);
 });
 
-const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: TemplateWithTypeNames,
+const getChannelOnlyRows = (allMetadataForFile: UploadMetadataWithDisplayFields[], template?: TemplateWithTypeNames,
                             treeDepth: number = 1) => {
     const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
     const sceneOnlyRows = allMetadataForFile.filter(isSceneOnlyRow);
-    return channelMetadata.map((c: UploadMetadata, siblingIndex: number) =>
+    return channelMetadata.map((c: UploadMetadataWithDisplayFields, siblingIndex: number) =>
         convertToUploadJobRow(
             c,
             channelMetadata.length + sceneOnlyRows.length,
@@ -148,19 +212,19 @@ const getChannelOnlyRows = (allMetadataForFile: UploadMetadata[], template?: Tem
         ));
 };
 
-const getSceneChannelRows = (allMetadataForPositionIndex: UploadMetadata[],
+const getSceneChannelRows = (allMetadataForPositionIndex: UploadMetadataWithDisplayFields[],
                              treeDepth: number,
-                             sceneParentMetadata?: UploadMetadata,
+                             sceneParentMetadata?: UploadMetadataWithDisplayFields,
                              template?: TemplateWithTypeNames) => {
     const sceneChannelMetadata = sceneParentMetadata ? without(allMetadataForPositionIndex, sceneParentMetadata)
         : allMetadataForPositionIndex;
     return sceneChannelMetadata
-        .map((u: UploadMetadata, sceneChannelSiblingIndex: number) =>
+        .map((u: UploadMetadataWithDisplayFields, sceneChannelSiblingIndex: number) =>
             convertToUploadJobRow(u, sceneChannelMetadata.length,
                 sceneChannelSiblingIndex, treeDepth, template));
 };
 
-const getSceneRows = (allMetadataForFile: UploadMetadata[],
+const getSceneRows = (allMetadataForFile: UploadMetadataWithDisplayFields[],
                       numberChannelOnlyRows: number,
                       expandedRows: ExpandedRows, file: string,
                       sceneRowTreeDepth: number,
@@ -168,11 +232,14 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[],
                       ) => {
     const sceneRows: UploadJobTableRow[] = [];
     const sceneMetadata = allMetadataForFile.filter(isSceneRow);
-    const metadataGroupedByScene = groupBy(sceneMetadata, ({positionIndex}: UploadMetadata) => positionIndex);
+    const metadataGroupedByScene = groupBy(
+        sceneMetadata,
+        ({positionIndex}: UploadMetadataWithDisplayFields) => positionIndex
+    );
     const numberSiblingsUnderFile = numberChannelOnlyRows + keys(metadataGroupedByScene).length;
 
     forEach(values(metadataGroupedByScene),
-        (allMetadataForPositionIndex: UploadMetadata[], sceneIndex: number) => {
+        (allMetadataForPositionIndex: UploadMetadataWithDisplayFields[], sceneIndex: number) => {
             const sceneParentMetadata = allMetadataForPositionIndex.find((m) => isNil(m.channel));
             if (sceneParentMetadata) {
                 const sceneRow = convertToUploadJobRow(
@@ -200,19 +267,19 @@ const getSceneRows = (allMetadataForFile: UploadMetadata[],
 
 // maps uploadMetadata to shape of data needed by react-data-grid including information about how to display subrows
 export const getUploadSummaryRows = createSelector([
-    getUpload,
+    getUploadWithCalculatedData,
     getExpandedUploadJobRows,
     getFileToMetadataMap,
     getCompleteAppliedTemplate,
-], (uploads: UploadStateBranch, expandedRows: ExpandedRows,
-    metadataGroupedByFile: { [file: string]: UploadMetadata[] },
+], (uploads: DisplayUploadStateBranch, expandedRows: ExpandedRows,
+    metadataGroupedByFile: { [file: string]: UploadMetadataWithDisplayFields[] },
     template?: TemplateWithTypeNames): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
 
     // populate visibleRows
     let fileSiblingIndex = -1;
-    forEach(metadataGroupedByFile, (allMetadataForFile: UploadMetadata[], file: string) => {
+    forEach(metadataGroupedByFile, (allMetadataForFile: UploadMetadataWithDisplayFields[], file: string) => {
         fileSiblingIndex++;
         const fileMetadata = allMetadataForFile.find(isFileRow);
         const treeDepth = fileMetadata ? 1 : 0;
@@ -223,11 +290,11 @@ export const getUploadSummaryRows = createSelector([
             // file rows are always visible
             const hasSubRows = channelRows.length + sceneRows.length > 0;
             const allChannelIds = uniq(allMetadataForFile
-                .filter((m: UploadMetadata) => !!m.channel)
-                .map((m: UploadMetadata) => m.channel!.channelId));
+                .filter((m: UploadMetadataWithDisplayFields) => !!m.channel)
+                .map((m: UploadMetadataWithDisplayFields) => m.channel!.channelId));
             const allPositionIndexes: number[] = uniq(allMetadataForFile
-                .filter((m: UploadMetadata) => !isNil(m.positionIndex))
-                .map((m: UploadMetadata) => m.positionIndex)) as number[];
+                .filter((m: UploadMetadataWithDisplayFields) => !isNil(m.positionIndex))
+                .map((m: UploadMetadataWithDisplayFields) => m.positionIndex)) as number[];
             const fileRow = convertToUploadJobRow(fileMetadata, keys(metadataGroupedByFile).length, fileSiblingIndex,
                 0, template, hasSubRows, allChannelIds, allPositionIndexes);
             visibleRows.push(fileRow);
@@ -268,8 +335,24 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
 
 export const getValidationErrorsMap = createSelector([
     getUpload,
+    getDropdownAnnotationTypeId,
+    getLookupAnnotationTypeId,
+    getBooleanAnnotationTypeId,
+    getNumberAnnotationTypeId,
+    getTextAnnotationTypeId,
+    getDateAnnotationTypeId,
+    getDateTimeAnnotationTypeId,
     getCompleteAppliedTemplate,
-], (upload: UploadStateBranch, template?: TemplateWithTypeNames) => {
+], (
+    upload: UploadStateBranch,
+    dropdownAnnotationTypeId?: number,
+    lookupAnnotationTypeId?: number,
+    booleanAnnotationTypeId?: number,
+    numberAnnotationTypeId?: number,
+    textAnnotationTypeId?: number,
+    dateAnnotationTypeId?: number,
+    dateTimeAnnotationTypeId?: number,
+    template?: TemplateWithTypeNames): {[key: string]: {[annotation: string]: string}} => {
     if (!template) {
         return {};
     }
@@ -279,9 +362,58 @@ export const getValidationErrorsMap = createSelector([
         const annotationToErrorMap: {[annotation: string]: string} = {};
         forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
-            if (templateAnnotation) {
-                if (templateAnnotation.canHaveManyValues && !isNil(value) && !Array.isArray(value)) {
-                    annotationToErrorMap[annotationName] = "Invalid format";
+            if (!isNil(value) && templateAnnotation) {
+                if (templateAnnotation.canHaveManyValues && !Array.isArray(value)) {
+                    annotationToErrorMap[annotationName] = "Invalid format, expected list";
+                } else {
+                    value = castArray(value);
+                    let invalidValues;
+                    switch (templateAnnotation.annotationTypeId) {
+                        case dropdownAnnotationTypeId:
+                        case lookupAnnotationTypeId:
+                            if (templateAnnotation.annotationOptions) {
+                                invalidValues = difference(value,
+                                    templateAnnotation.annotationOptions).join(", ");
+                                if (invalidValues) {
+                                    const expected = templateAnnotation.annotationOptions.join(", ");
+                                    annotationToErrorMap[annotationName] =
+                                        `${invalidValues} did not match any of the expected values: ${expected}`;
+                                }
+                            }
+                            break;
+                        case booleanAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof v !== "boolean").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Yes/No`;
+                            }
+                            break;
+                        case numberAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof  v !== "number").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Number`;
+                            }
+                            break;
+                        case textAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof  v !== "string").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Text`;
+                            }
+                            break;
+                        case dateTimeAnnotationTypeId:
+                        case dateAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => !isDate(v)).join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Date or DateTime`;
+                            }
+                            break;
+                        default:
+                            annotationToErrorMap[annotationName] = "Unexpected data type";
+                            break;
+                    }
                 }
             }
         });
