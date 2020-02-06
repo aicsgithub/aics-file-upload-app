@@ -14,9 +14,10 @@ pipeline {
         JAVA_HOME = "/usr/lib/jvm/jdk-10.0.2"
         VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
         PYTHON = "${VENV_BIN}/python3"
+        INCREMENT_VERSION = env.VERSION_TO_INCREMENT != null && branch 'master'
     }
     parameters {
-        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major"], description: "Which part of the npm version to increment. This is only used when PUBLISH is set to true.")
+        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major"], description: "Which part of the npm version to increment.")
     }
     stages {
         stage ("initialize build") {
@@ -30,7 +31,7 @@ pipeline {
         stage ("lint") {
             when {
                 expression {
-                    return env.VERSION_TO_INCREMENT == null
+                    return !INCREMENT_VERSION
                 }
             }
             steps {
@@ -40,7 +41,7 @@ pipeline {
         stage ("test") {
             when {
                 expression {
-                   return env.VERSION_TO_INCREMENT == null
+                   return !INCREMENT_VERSION
                 }
             }
             steps {
@@ -50,7 +51,7 @@ pipeline {
         stage ("build") {
             when {
                 expression {
-                   return env.VERSION_TO_INCREMENT == null
+                   return !INCREMENT_VERSION
                 }
             }
             steps {
@@ -60,7 +61,7 @@ pipeline {
         stage ("version") {
             when {
                 expression {
-                    return env.VERSION_TO_INCREMENT != null
+                    return INCREMENT_VERSION
                 }
             }
             steps {
