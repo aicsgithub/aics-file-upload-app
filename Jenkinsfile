@@ -38,24 +38,30 @@ pipeline {
             }
         }
         stage ("test") {
-            expression {
-                return VERSION_TO_INCREMENT == null
+            when {
+                expression {
+                   return VERSION_TO_INCREMENT == null
+                }
             }
             steps {
                 sh "./gradlew -i test"
             }
         }
         stage ("build") {
-            expression {
-                return VERSION_TO_INCREMENT == null
+            when {
+                expression {
+                   return VERSION_TO_INCREMENT == null
+                }
             }
             steps {
                 sh "./gradlew -i compile"
             }
         }
         stage ("version") {
-            expression {
-                return VERSION_TO_INCREMENT != null
+            when {
+                expression {
+                    return VERSION_TO_INCREMENT != null
+                }
             }
             steps {
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
