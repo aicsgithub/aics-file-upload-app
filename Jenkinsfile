@@ -16,7 +16,7 @@ pipeline {
         PYTHON = "${VENV_BIN}/python3"
     }
     parameters {
-        booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Publish to npm-local repository in Artifactory")
+        booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build")
         choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major"], description: "Which part of the npm version to increment.")
     }
     stages {
