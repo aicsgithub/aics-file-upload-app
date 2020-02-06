@@ -132,7 +132,7 @@ export const getUploadWithCalculatedData = createSelector([
 ): DisplayUploadStateBranch => {
     return reduce(uploads, (accum: DisplayUploadStateBranch, metadata: UploadMetadata, key: string) => {
         const { wellIds } = metadata;
-        const wellLabels = wellIds.map((wellId: number) =>
+        const wellLabels = (wellIds || []).map((wellId: number) =>
             getWellLabelAndImagingSessionName(wellId, imagingSessions, selectedPlates, wells));
         return {
             ...accum,
