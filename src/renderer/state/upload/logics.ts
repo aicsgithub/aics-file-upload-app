@@ -1,6 +1,6 @@
 import Logger from "js-logger";
 import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
-import { Moment } from "moment";
+import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
 import { LIST_DELIMITER_SPLIT } from "../../constants";
@@ -456,6 +456,19 @@ const parseNumber = (n: string) => {
     return parsed;
 };
 
+// antd's DatePicker passes a moment object rather than Date so we convert back here
+// sometimes the input is invalid and does not get converted to a moment object so
+// we're typing it as any
+const convertDatePickerValueToDate = (d: any) => {
+    if (isDate(d)) {
+        return d;
+    } else if (isMoment(d)) {
+        return d.toDate();
+    } else {
+        return undefined;
+    }
+};
+
 // Here we take care of custom inputs that handle arrays for strings and numbers.
 // If we can create a valid array from the text of the input, we'll transform it into an array
 // if not, we pass the value untouched to the reducer.
@@ -480,29 +493,32 @@ const updateUploadLogic = createLogic({
                         .find((at) => at.annotationTypeId === annotation.annotationTypeId);
 
                     if (annotationType) {
-                        const { canHaveManyValues } = annotation;
-                        const type = annotationType.name;
-                        const endsWithComma = trim(value).endsWith(",");
+                        try {
+                            const { canHaveManyValues } = annotation;
+                            const type = annotationType.name;
+                            const endsWithComma = trim(value).endsWith(",");
 
-                        // numbers are formatted in text Inputs so they'll be strings at this point
-                        if (type === ColumnType.NUMBER && value && canHaveManyValues) {
-                            // Remove anything that isn't a number, comma, or whitespace
-                            value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
-                        }
-
-                        // antd's DatePicker passes a moment object rather than Date so we convert back here
-                        if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
-                            if (canHaveManyValues) {
-                                value = (value || [])
-                                    .filter((d: Moment) => !!d)
-                                    .map((d: Moment) => d instanceof Date ? d : d.toDate());
-                            } else {
-                                value = value instanceof Date || !value ? value : value.toDate();
+                            // numbers are formatted in text Inputs so they'll be strings at this point
+                            if (type === ColumnType.NUMBER && value && canHaveManyValues) {
+                                // Remove anything that isn't a number, comma, or whitespace
+                                value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
                             }
-                        } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
-                            value = parseNumberArray(value);
-                        } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
-                            value = parseStringArray(value);
+
+                            if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
+                                if (canHaveManyValues) {
+                                    value = (value || [])
+                                        .map(convertDatePickerValueToDate)
+                                        .filter((d: any) => !isNil(d));
+                                } else {
+                                    value = convertDatePickerValueToDate(value);
+                                }
+                            } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
+                                value = parseNumberArray(value);
+                            } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
+                                value = parseStringArray(value);
+                            }
+                        } catch (e) {
+                            Logger.error("Something went wrong while updating metadata: ", e.message);
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import {
     castArray,
+    difference,
     flatMap,
     forEach,
     groupBy,
@@ -16,15 +17,24 @@ import {
     values,
     without,
 } from "lodash";
+import { isDate } from "moment";
 import * as moment from "moment";
 import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
 import { LIST_DELIMITER_JOIN } from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
-import { getImagingSessions } from "../metadata/selectors";
+import {
+    getBooleanAnnotationTypeId,
+    getDateAnnotationTypeId,
+    getDateTimeAnnotationTypeId,
+    getDropdownAnnotationTypeId,
+    getImagingSessions,
+    getLookupAnnotationTypeId,
+    getNumberAnnotationTypeId,
+    getTextAnnotationTypeId,
+} from "../metadata/selectors";
 import { ImagingSession } from "../metadata/types";
-
 import { getAllPlates, getAllWells, getExpandedUploadJobRows } from "../selection/selectors";
 
 import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
@@ -122,7 +132,7 @@ export const getUploadWithCalculatedData = createSelector([
 ): DisplayUploadStateBranch => {
     return reduce(uploads, (accum: DisplayUploadStateBranch, metadata: UploadMetadata, key: string) => {
         const { wellIds } = metadata;
-        const wellLabels = wellIds.map((wellId: number) =>
+        const wellLabels = (wellIds || []).map((wellId: number) =>
             getWellLabelAndImagingSessionName(wellId, imagingSessions, selectedPlates, wells));
         return {
             ...accum,
@@ -325,8 +335,24 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
 
 export const getValidationErrorsMap = createSelector([
     getUpload,
+    getDropdownAnnotationTypeId,
+    getLookupAnnotationTypeId,
+    getBooleanAnnotationTypeId,
+    getNumberAnnotationTypeId,
+    getTextAnnotationTypeId,
+    getDateAnnotationTypeId,
+    getDateTimeAnnotationTypeId,
     getCompleteAppliedTemplate,
-], (upload: UploadStateBranch, template?: TemplateWithTypeNames) => {
+], (
+    upload: UploadStateBranch,
+    dropdownAnnotationTypeId?: number,
+    lookupAnnotationTypeId?: number,
+    booleanAnnotationTypeId?: number,
+    numberAnnotationTypeId?: number,
+    textAnnotationTypeId?: number,
+    dateAnnotationTypeId?: number,
+    dateTimeAnnotationTypeId?: number,
+    template?: TemplateWithTypeNames): {[key: string]: {[annotation: string]: string}} => {
     if (!template) {
         return {};
     }
@@ -336,9 +362,58 @@ export const getValidationErrorsMap = createSelector([
         const annotationToErrorMap: {[annotation: string]: string} = {};
         forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
-            if (templateAnnotation) {
-                if (templateAnnotation.canHaveManyValues && !isNil(value) && !Array.isArray(value)) {
-                    annotationToErrorMap[annotationName] = "Invalid format";
+            if (!isNil(value) && templateAnnotation) {
+                if (templateAnnotation.canHaveManyValues && !Array.isArray(value)) {
+                    annotationToErrorMap[annotationName] = "Invalid format, expected list";
+                } else {
+                    value = castArray(value);
+                    let invalidValues;
+                    switch (templateAnnotation.annotationTypeId) {
+                        case dropdownAnnotationTypeId:
+                        case lookupAnnotationTypeId:
+                            if (templateAnnotation.annotationOptions) {
+                                invalidValues = difference(value,
+                                    templateAnnotation.annotationOptions).join(", ");
+                                if (invalidValues) {
+                                    const expected = templateAnnotation.annotationOptions.join(", ");
+                                    annotationToErrorMap[annotationName] =
+                                        `${invalidValues} did not match any of the expected values: ${expected}`;
+                                }
+                            }
+                            break;
+                        case booleanAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof v !== "boolean").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Yes/No`;
+                            }
+                            break;
+                        case numberAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof  v !== "number").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Number`;
+                            }
+                            break;
+                        case textAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => typeof  v !== "string").join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Text`;
+                            }
+                            break;
+                        case dateTimeAnnotationTypeId:
+                        case dateAnnotationTypeId:
+                            invalidValues = value.filter((v: any) => !isDate(v)).join(", ");
+                            if (invalidValues) {
+                                annotationToErrorMap[annotationName] =
+                                    `${invalidValues} did not match expected type: Date or DateTime`;
+                            }
+                            break;
+                        default:
+                            annotationToErrorMap[annotationName] = "Unexpected data type";
+                            break;
+                    }
                 }
             }
         });

@@ -252,12 +252,24 @@ export const mockTextAnnotation: TemplateAnnotation = {
 export const mockDateAnnotation: TemplateAnnotation = {
     ...mockAuditInfo,
     annotationId: 68,
-    annotationTypeId: 4,
+    annotationTypeId: 7,
     canHaveManyValues: true,
     description: "dob - for testing",
     lookupSchema: undefined,
     lookupTable: undefined,
     name: "Birth Date",
+    required: false,
+};
+
+export const mockDateTimeAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 70,
+    annotationTypeId: 4,
+    canHaveManyValues: true,
+    description: "",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Seeded On",
     required: false,
 };
 
@@ -273,55 +285,62 @@ export const mockNumberAnnotation: TemplateAnnotation = {
     required: false,
 };
 
+export const mockLookupAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 2,
+    annotationOptions: [
+        "spCas9",
+        "Not Recorded",
+    ],
+    annotationTypeId: 6,
+    canHaveManyValues: true,
+    description: "CRISPR associated protein 9",
+    lookupSchema: "celllines",
+    lookupTable: "cas9",
+    name: "Cas9",
+    required: false,
+};
+
+export const mockDropdownAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 69,
+    annotationOptions: [
+        "A",
+        "B",
+        "C",
+        "D",
+    ],
+    annotationTypeId: 5,
+    canHaveManyValues: false,
+    description: "test",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Dropdown",
+    required: false,
+};
+
+export const mockBooleanAnnotation: TemplateAnnotation = {
+    ...mockAuditInfo,
+    annotationId: 61,
+    annotationTypeId: 3,
+    canHaveManyValues: true,
+    description: "Is this image related to QC of a gene-edited line?",
+    lookupSchema: undefined,
+    lookupTable: undefined,
+    name: "Qc",
+    required: false,
+};
+
 export const mockTemplateWithManyValues: Template = {
     ...mockAuditInfo,
     annotations: [
         mockTextAnnotation,
         mockDateAnnotation,
-        {
-            ...mockAuditInfo,
-            annotationId: 2,
-            annotationOptions: [
-                "spCas9",
-                "Not Recorded",
-            ],
-            annotationTypeId: 6,
-            canHaveManyValues: true,
-            description: "CRISPR associated protein 9",
-            lookupSchema: "celllines",
-            lookupTable: "cas9",
-            name: "Cas9",
-            required: false,
-        },
+        mockDateTimeAnnotation,
+        mockLookupAnnotation,
         mockNumberAnnotation,
-        {
-            ...mockAuditInfo,
-            annotationId: 61,
-            annotationTypeId: 3,
-            canHaveManyValues: true,
-            description: "Is this image related to QC of a gene-edited line?",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Qc",
-            required: false,
-        },
-        {
-            ...mockAuditInfo,
-            annotationId: 69,
-            annotationOptions: [
-                "A",
-                "B",
-                "C",
-                "D",
-            ],
-            annotationTypeId: 5,
-            canHaveManyValues: false,
-            description: "test",
-            lookupSchema: undefined,
-            lookupTable: undefined,
-            name: "Dropdown",
-            required: false,
-        },
+        mockBooleanAnnotation,
+        mockDropdownAnnotation,
         {
             ...mockAuditInfo,
             annotationId: 21,
@@ -334,6 +353,10 @@ export const mockTemplateWithManyValues: Template = {
         {
             ...mockAuditInfo,
             annotationId: 18,
+            annotationOptions: [
+                "R&DExp",
+                "Pipeline 4.1",
+            ],
             annotationTypeId: 6,
             canHaveManyValues: true,
             description: "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH)",
