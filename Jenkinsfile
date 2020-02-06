@@ -15,6 +15,9 @@ pipeline {
         VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
         PYTHON = "${VENV_BIN}/python3"
     }
+    parameters {
+        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major"], description: "Which part of the npm version to increment. This is only used when PUBLISH is set to true.")
+    }
     stages {
         stage ("initialize build") {
             steps {
@@ -25,18 +28,37 @@ pipeline {
             }
         }
         stage ("lint") {
+            when {
+                expression {
+                    return VERSION_TO_INCREMENT == null
+                }
+            }
             steps {
                 sh "./gradlew -i yarn lint"
             }
         }
         stage ("test") {
+            expression {
+                return VERSION_TO_INCREMENT == null
+            }
             steps {
                 sh "./gradlew -i test"
             }
         }
         stage ("build") {
+            expression {
+                return VERSION_TO_INCREMENT == null
+            }
             steps {
-                sh './gradlew -i compile'
+                sh "./gradlew -i compile"
+            }
+        }
+        stage ("version") {
+            expression {
+                return VERSION_TO_INCREMENT != null
+            }
+            steps {
+                sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
             }
         }
     }
