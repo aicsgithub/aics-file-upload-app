@@ -1,5 +1,6 @@
 import { Icon, Select, Spin } from "antd";
 import * as classNames from "classnames";
+import { ReactNode } from "react";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -37,9 +38,17 @@ interface DispatchProps {
 type Props = StateProps & OwnProps & DispatchProps;
 
 /**
- * TODO
+ * This component is a dropdown for labkey tables that are considered to be "Lookups".
+ * The dropdown values are automatically loaded if it does not come from a large lookup table (see LARGE_LOOKUPS below).
+ * Otherwise, the user will need to provide a search value to get dropdown options.
  */
-class LookupSearch extends React.Component<Props, {}> {
+class LookupSearch extends React.Component<Props, { searchValue?: string }> {
+    public constructor(props: Props) {
+        super(props);
+        this.state = {
+            searchValue: undefined,
+        };
+    }
 
     public componentDidMount(): void {
         const { isLargeLookup, lookupAnnotationName } = this.props;
@@ -58,6 +67,8 @@ class LookupSearch extends React.Component<Props, {}> {
     public render() {
         const {
             className,
+            isLargeLookup,
+            lookupAnnotationName,
             mode,
             onBlur,
             optionsForLookupLoading,
@@ -67,6 +78,12 @@ class LookupSearch extends React.Component<Props, {}> {
         } = this.props;
 
         const optionsForLookup = this.props.optionsForLookup || [];
+        let notFoundContent: ReactNode = "No Results Found";
+        if (optionsForLookupLoading) {
+            notFoundContent = <Spin size="large"/>;
+        } else if (isLargeLookup && !this.state.searchValue) {
+            notFoundContent = `Start typing to search for a ${lookupAnnotationName}`;
+        }
 
         return (
             <Select
@@ -78,7 +95,7 @@ class LookupSearch extends React.Component<Props, {}> {
                 defaultActiveFirstOption={false}
                 loading={optionsForLookupLoading}
                 mode={mode}
-                notFoundContent={optionsForLookupLoading ? <Spin size="large" /> : "No Results Found"}
+                notFoundContent={notFoundContent}
                 onBlur={onBlur}
                 onChange={selectSearchValue}
                 onSearch={this.onSearch}
@@ -94,9 +111,10 @@ class LookupSearch extends React.Component<Props, {}> {
         );
     }
 
-    private onSearch = (search?: string): void => {
-        if (search) {
-            this.props.retrieveOptionsForLookup(this.props.lookupAnnotationName, search, false);
+    private onSearch = (searchValue?: string): void => {
+        this.setState({ searchValue });
+        if (searchValue) {
+            this.props.retrieveOptionsForLookup(this.props.lookupAnnotationName, searchValue, false);
         } else {
             this.props.clearOptionsForLookup();
         }
