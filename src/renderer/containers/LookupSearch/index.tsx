@@ -99,7 +99,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 onBlur={onBlur}
                 onChange={selectSearchValue}
                 onSearch={this.onSearch}
-                placeholder={placeholder || "Select Search Value"}
+                placeholder={placeholder}
                 showSearch={true}
                 suffixIcon={isLargeLookup ? <Icon type="search"/> : undefined}
                 value={value}
