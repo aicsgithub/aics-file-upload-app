@@ -1,5 +1,11 @@
 # Version Notes
 
+## 1.0.23 (2/6/20):
+- Feature: Added support for uploading files from different imaging sessions of one plate together during an upload
+- Bugfix: Added missing error validations for dropdown annotations on template editor
+- Bugfix: Make error messages clearer when server comes back with validation errors for template editor
+- Bugfix: Add more validations to the add custom data grid
+
 ## 1.0.22 (1/24/20):
 - Bugfix: Fix app hang issues
 - Bugfix: Automatically retry failed GET requests that may be due to service deployments

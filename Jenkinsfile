@@ -1,7 +1,7 @@
 pipeline {
     options {
         disableConcurrentBuilds()
-        timeout(time: 1, unit: 'HOURS')
+        timeout(time: 1, unit: "HOURS")
     }
     agent {
         node {
@@ -14,6 +14,10 @@ pipeline {
         JAVA_HOME = "/usr/lib/jvm/jdk-10.0.2"
         VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
         PYTHON = "${VENV_BIN}/python3"
+    }
+    parameters {
+        booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build. Note that this can only be done on master.")
+        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major"], description: "Which part of the npm version to increment.")
     }
     stages {
         stage ("initialize build") {
@@ -36,7 +40,17 @@ pipeline {
         }
         stage ("build") {
             steps {
-                sh './gradlew -i compile'
+                sh "./gradlew -i compile"
+            }
+        }
+        stage ("version") {
+            when {
+                expression {
+                    return env.INCREMENT_VERSION && env.BRANCH_NAME == "master"
+                }
+            }
+            steps {
+                sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
             }
         }
     }
@@ -45,7 +59,7 @@ pipeline {
             this.notifyBB(currentBuild.result)
         }
         cleanup {
-            sh './gradlew -i  artifactClean'
+            sh "./gradlew -i  artifactClean"
         }
     }
 }
@@ -59,12 +73,12 @@ def notifyBB(String state) {
     }
 
     notifyBitbucket commitSha1: "${GIT_COMMIT}",
-            credentialsId: 'aea50792-dda8-40e4-a683-79e8c83e72a6',
+            credentialsId: "aea50792-dda8-40e4-a683-79e8c83e72a6",
             disableInprogressNotification: false,
             considerUnstableAsSuccess: true,
             ignoreUnverifiedSSLPeer: false,
             includeBuildNumberInKey: false,
             prependParentProjectKey: false,
-            projectKey: 'SW',
-            stashServerBaseUrl: 'https://aicsbitbucket.corp.alleninstitute.org'
+            projectKey: "SW",
+            stashServerBaseUrl: "https://aicsbitbucket.corp.alleninstitute.org"
 }
