@@ -113,7 +113,6 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                         mode={allowMultipleValues ? "multiple" : "default"}
                         lookupAnnotationName={this.props.column.key}
                         onBlur={this.props.onCommit}
-                        placeholder="Start typing to search for "
                         selectSearchValue={this.handleOnChange}
                         value={value}
                     />
