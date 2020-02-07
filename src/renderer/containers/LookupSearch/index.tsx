@@ -93,6 +93,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 autoFocus={true}
                 className={classNames(styles.container, {[styles.search]: isLargeLookup}, className)}
                 defaultActiveFirstOption={false}
+                defaultOpen={true}
                 loading={optionsForLookupLoading}
                 mode={mode}
                 notFoundContent={notFoundContent}
