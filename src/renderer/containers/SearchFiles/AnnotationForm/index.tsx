@@ -45,7 +45,7 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
                     loading={!annotations.length}
                     disabled={!annotations.length}
                     onChange={selectAnnotation}
-                    placeholder="Select Annotation"
+                    placeholder="Select annotation"
                     className={styles.fullWidth}
                 >
                     {annotations.map(({ annotationId, name }) => (
@@ -61,7 +61,7 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
                 {(annotationIsLookup) ? (
                     <LookupSearch
                         lookupAnnotationName={annotation}
-                        placeholder="Select Search Value"
+                        placeholder="Select search value"
                         selectSearchValue={selectSearchValue}
                         value={searchValue}
                     />
@@ -72,7 +72,7 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
                         value={searchValue}
                         onChange={selectSearchValueFromChangeEvent(selectSearchValue)}
                         onPressEnter={onSearch}
-                        placeholder="Enter Search Value"
+                        placeholder="Enter search value"
                     />
                 )}
             </LabeledInput>
