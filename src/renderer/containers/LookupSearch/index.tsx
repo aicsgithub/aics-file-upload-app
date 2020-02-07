@@ -112,11 +112,12 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     }
 
     private onSearch = (searchValue?: string): void => {
+        const { lookupAnnotationName } = this.props;
         this.setState({ searchValue });
         if (searchValue) {
-            this.props.retrieveOptionsForLookup(this.props.lookupAnnotationName, searchValue, false);
+            this.props.retrieveOptionsForLookup(lookupAnnotationName, searchValue, false);
         } else {
-            this.props.clearOptionsForLookup();
+            this.props.clearOptionsForLookup(lookupAnnotationName);
         }
     }
 }
