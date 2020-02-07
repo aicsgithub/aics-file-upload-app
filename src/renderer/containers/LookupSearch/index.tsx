@@ -16,12 +16,14 @@ const styles = require("./styles.pcss");
 
 interface StateProps {
     isLargeLookup: boolean;
-    optionsForLookup?: string[];
+    optionsForLookup?: any[];
     optionsForLookupLoading: boolean;
 }
 
 interface OwnProps {
     className?: string;
+    // this provides a way for options to be objects and to specify how to display each option
+    getDisplayFromOption?: (option: any) => string;
     lookupAnnotationName: string;
     mode?: "multiple" | "default";
     onBlur?: () => void;
@@ -102,9 +104,10 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 suffixIcon={isLargeLookup ? <Icon type="search"/> : undefined}
                 value={value}
             >
-                {optionsForLookup.map((option) => (
-                    <Select.Option key={option} value={option}>{option}</Select.Option>
-                ))}
+                {optionsForLookup.map((option) => {
+                    const display = this.getDisplayFromOption(option);
+                    return <Select.Option key={display} value={display}>{display}</Select.Option>;
+                })}
             </Select>
         );
     }
@@ -117,6 +120,14 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
         } else {
             this.props.clearOptionsForLookup(lookupAnnotationName);
         }
+    }
+
+    private getDisplayFromOption = (option: any): string => {
+        const { getDisplayFromOption } = this.props;
+        if (getDisplayFromOption) {
+            return getDisplayFromOption(option);
+        }
+        return option;
     }
 }
 
