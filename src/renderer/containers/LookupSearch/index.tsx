@@ -22,6 +22,8 @@ interface StateProps {
 interface OwnProps {
     className?: string;
     lookupAnnotationName: string;
+    mode: "multiple" | "default";
+    onBlur?: () => void;
     placeholder?: string;
     selectSearchValue: (searchValue?: string) => void;
     value?: string;
@@ -34,7 +36,17 @@ interface DispatchProps {
 
 type Props = StateProps & OwnProps & DispatchProps;
 
+/**
+ * TODO
+ */
 class LookupSearch extends React.Component<Props, {}> {
+
+    public componentDidMount(): void {
+        const { isLargeLookup, lookupAnnotationName } = this.props;
+        if (!isLargeLookup) {
+            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined, false);
+        }
+    }
 
     public componentDidUpdate(prevProps: Props): void {
         const { isLargeLookup, lookupAnnotationName } = this.props;
@@ -46,7 +58,8 @@ class LookupSearch extends React.Component<Props, {}> {
     public render() {
         const {
             className,
-            isLargeLookup,
+            mode,
+            onBlur,
             optionsForLookupLoading,
             placeholder,
             selectSearchValue,
@@ -63,15 +76,16 @@ class LookupSearch extends React.Component<Props, {}> {
                 className={classNames(styles.container, className)}
                 defaultOpen={true}
                 defaultActiveFirstOption={false}
-                value={value}
                 loading={optionsForLookupLoading}
+                mode={mode}
                 notFoundContent={optionsForLookupLoading ? <Spin size="large" /> : "No Results Found"}
+                onBlur={onBlur}
                 onChange={selectSearchValue}
                 onSearch={this.onSearch}
                 placeholder={placeholder || "Select Search Value"}
-                showArrow={!isLargeLookup}
-                showSearch={isLargeLookup}
+                showSearch={true}
                 suffixIcon={<Icon type="search"/>}
+                value={value}
             >
                 {optionsForLookup.map((option) => (
                     <Select.Option key={option} value={option}>{option}</Select.Option>

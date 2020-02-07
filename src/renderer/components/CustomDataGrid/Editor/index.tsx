@@ -108,40 +108,16 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                 );
                 break;
             case ColumnType.LOOKUP:
-                const useSearch = dropdownValues && dropdownValues.length > 20;
-
-                if (useSearch) {
-                    // todo allow multiple values
-                    console.log(this.props.column.key);
-                    input = (
-                        <LookupSearch
-                            lookupAnnotationName={this.props.column.key}
-                            placeholder="Start typing to search for "
-                            selectSearchValue={this.handleOnChange}
-                            value={value}
-                        />
-                    );
-                } else {
-                    input = (
-                        <Select
-                            allowClear={true}
-                            autoFocus={true}
-                            defaultOpen={true}
-                            loading={!dropdownValues || !dropdownValues.length}
-                            mode={allowMultipleValues ? "multiple" : "default"}
-                            onChange={this.handleOnChange}
-                            onBlur={this.props.onCommit}
-                            placeholder="Column Values"
-                            showSearch={true}
-                            style={{ width: "100%" }}
-                            value={value}
-                        >
-                            {dropdownValues && dropdownValues.map((dropdownValue: string) => (
-                                <Option key={dropdownValue} value={dropdownValue}>{dropdownValue}</Option>
-                            ))}
-                        </Select>
-                    );
-                }
+                input = (
+                    <LookupSearch
+                        mode={allowMultipleValues ? "multiple" : "default"}
+                        lookupAnnotationName={this.props.column.key}
+                        onBlur={this.props.onCommit}
+                        placeholder="Start typing to search for "
+                        selectSearchValue={this.handleOnChange}
+                        value={value}
+                    />
+                );
                 break;
             default:
                 Logger.error("Invalid column type supplied");
@@ -169,7 +145,6 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
     }
 
     private handleOnChange = (value: any) => {
-        console.log("on change", value);
         const { column: { key, onChange }, rowData } = this.props;
 
         if (onChange) {
