@@ -55,14 +55,14 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     public componentDidMount(): void {
         const { isLargeLookup, lookupAnnotationName } = this.props;
         if (!isLargeLookup) {
-            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined, false);
+            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined);
         }
     }
 
     public componentDidUpdate(prevProps: Props): void {
         const { isLargeLookup, lookupAnnotationName } = this.props;
         if (!isLargeLookup && prevProps.lookupAnnotationName !== this.props.lookupAnnotationName) {
-            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined, false);
+            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined);
         }
     }
 
@@ -116,7 +116,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
         const { lookupAnnotationName } = this.props;
         this.setState({ searchValue });
         if (searchValue) {
-            this.props.retrieveOptionsForLookup(lookupAnnotationName, searchValue, false);
+            this.props.retrieveOptionsForLookup(lookupAnnotationName, searchValue);
         } else {
             this.props.clearOptionsForLookup(lookupAnnotationName);
         }
