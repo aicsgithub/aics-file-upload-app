@@ -82,7 +82,8 @@ export default class LabkeyClient extends BaseServiceClient {
      * @param schema of the lookup
      * @param table of the lookup
      * @param column of the lookup
-     * @param searchString optional string
+     * @param searchString optional string. if provided, the number of rows returned will be limited to 30 since it is
+     * assumed that there could potentially be many more than that.
      */
     public async getOptionsForLookup(
         schema: string,
@@ -94,13 +95,16 @@ export default class LabkeyClient extends BaseServiceClient {
         if (!isEmpty(searchString)) {
             additionalQueries.push(
                 `query.${column}~contains=${searchString}`,
-                `query.maxRows=20`
+                `query.maxRows=30`
             );
         }
         const lookupOptionsQuery = LabkeyClient.getSelectRowsURL(schema, table, additionalQueries);
         const { rows } = await this.httpClient.get(lookupOptionsQuery);
         // Column names for lookups are stored in lowercase in the DB while the actual key may have any casing,
         // so we need to find the matching key
+        if (isEmpty(rows)) {
+            return rows;
+        }
         const properlyCasedKey = Object.keys(rows[0]).find((key) => key.toLowerCase() === column.toLowerCase());
         return rows.map((row: any) => row[properlyCasedKey!]);
     }
