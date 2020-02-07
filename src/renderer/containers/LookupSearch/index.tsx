@@ -23,7 +23,7 @@ interface StateProps {
 interface OwnProps {
     className?: string;
     lookupAnnotationName: string;
-    mode: "multiple" | "default";
+    mode?: "multiple" | "default";
     onBlur?: () => void;
     placeholder?: string;
     selectSearchValue: (searchValue?: string) => void;
@@ -90,7 +90,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 allowClear={true}
                 autoClearSearchValue={true}
                 autoFocus={true}
-                className={classNames(styles.container, className)}
+                className={classNames(styles.container, {[styles.search]: isLargeLookup}, className)}
                 defaultOpen={true}
                 defaultActiveFirstOption={false}
                 loading={optionsForLookupLoading}
@@ -101,7 +101,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 onSearch={this.onSearch}
                 placeholder={placeholder || "Select Search Value"}
                 showSearch={true}
-                suffixIcon={<Icon type="search"/>}
+                suffixIcon={isLargeLookup ? <Icon type="search"/> : undefined}
                 value={value}
             >
                 {optionsForLookup.map((option) => (
