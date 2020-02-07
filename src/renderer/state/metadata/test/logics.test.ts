@@ -234,6 +234,44 @@ describe("Metadata logics", () => {
             state = store.getState();
             expect(getAlert(state)).to.not.be.undefined;
         });
+        it("sets error alert if annotation name is not defined", async () => {
+            const getOptionsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithAnnotations, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(retrieveOptionsForLookup(""));
+            await logicMiddleware.whenComplete();
+
+            state = store.getState();
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+            }
+        });
+        it("sets error alert if annotation's lookup not found", async () => {
+            const getOptionsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockStateWithAnnotations,
+                metadata: {
+                    ...mockStateWithAnnotations.metadata,
+                    lookups: [],
+                },
+            }, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(retrieveOptionsForLookup("Well"));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getAlert(state)).to.not.be.undefined;
+        });
     });
     describe("searchFileMetadataLogic", () => {
         it("sets searchResults given annotation and searchValue to search for", async () => {

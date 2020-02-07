@@ -87,7 +87,7 @@ describe("Selections selectors", () => {
         expect(wells.length).to.equal(1);
         expect(wells[0].length).to.equal(1);
     };
-    
+
     describe("getAnnotationIsLookup", () => {
         let stateWhereAnnotationIsLookup = mockState;
         beforeEach(() => {
