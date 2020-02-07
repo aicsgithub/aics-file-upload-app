@@ -44,8 +44,8 @@ export const getAnnotationIsLookup = createSelector([
     getAnnotation,
     getAnnotations,
     getLookupAnnotationTypeId,
-], (ann?: string, annotations?: Annotation[], lookupAnnotationTypeId?: number) => {
-    if (!ann || !annotations || !lookupAnnotationTypeId) {
+], (ann: string, annotations?: Annotation[], lookupAnnotationTypeId?: number) => {
+    if (!annotations || !lookupAnnotationTypeId) {
         return false;
     } else {
         const match = annotations.find((a) => a.name === ann);

@@ -2,6 +2,8 @@ import { expect } from "chai";
 
 import {
     getMockStateWithHistory,
+    mockAnnotationTypes, mockBooleanAnnotation,
+    mockLookupAnnotation,
     mockSelectedWells,
     mockSelection,
     mockState,
@@ -11,7 +13,7 @@ import {
 import { State } from "../../types";
 import {
     getAllPlates,
-    getAllWells,
+    getAllWells, getAnnotationIsLookup,
     getSelectedImagingSession,
     getSelectedPlate,
     getSelectedPlateId,
@@ -85,6 +87,62 @@ describe("Selections selectors", () => {
         expect(wells.length).to.equal(1);
         expect(wells[0].length).to.equal(1);
     };
+    
+    describe("getAnnotationIsLookup", () => {
+        let stateWhereAnnotationIsLookup = mockState;
+        beforeEach(() => {
+            stateWhereAnnotationIsLookup = {
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationTypes: mockAnnotationTypes,
+                    annotations: [mockLookupAnnotation, mockBooleanAnnotation],
+                },
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    annotation: mockLookupAnnotation.name,
+                }),
+            };
+        });
+
+        it ("returns false if no annotations", () => {
+            const result = getAnnotationIsLookup({
+                ...stateWhereAnnotationIsLookup,
+                metadata: {
+                    ...stateWhereAnnotationIsLookup.metadata,
+                    annotations: [],
+                },
+            });
+            expect(result).to.be.false;
+        });
+
+        it("returns false if lookup annotation type not found", () => {
+            const result = getAnnotationIsLookup({
+                ...stateWhereAnnotationIsLookup,
+                metadata: {
+                    ...stateWhereAnnotationIsLookup.metadata,
+                    annotationTypes: [],
+                },
+            });
+            expect(result).to.be.false;
+        });
+
+        it("returns true if lookup annotation type id matches selected annotation's annotation type", () => {
+            const result = getAnnotationIsLookup(stateWhereAnnotationIsLookup);
+            expect(result).to.be.false;
+        });
+
+        it("returns false if annotation is not a lookup type", () => {
+            const result = getAnnotationIsLookup({
+                ...stateWhereAnnotationIsLookup,
+                selection: getMockStateWithHistory({
+                    ...stateWhereAnnotationIsLookup.selection.present,
+                    annotation: mockBooleanAnnotation.name,
+                }),
+            });
+            expect(result).to.be.false;
+        });
+    });
 
     describe("getSelectedPlate", () => {
         it("returns undefined if no barcode selected yet", () => {
