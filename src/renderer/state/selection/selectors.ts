@@ -5,8 +5,9 @@ import { createSelector } from "reselect";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { getWellLabel } from "../../util";
 
-import { getImagingSessions, getUnits } from "../metadata/selectors";
+import { getAnnotations, getImagingSessions, getLookupAnnotationTypeId, getUnits } from "../metadata/selectors";
 import { ImagingSession, Unit } from "../metadata/types";
+import { Annotation } from "../template/types";
 import { State } from "../types";
 import {
     ImagingSessionIdToPlateMap,
@@ -39,7 +40,18 @@ export const getSettingsEditorVisible = (state: State) => state.selection.presen
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
-
+export const getAnnotationIsLookup = createSelector([
+    getAnnotation,
+    getAnnotations,
+    getLookupAnnotationTypeId,
+], (ann?: string, annotations?: Annotation[], lookupAnnotationTypeId?: number) => {
+    if (!ann || !annotations || !lookupAnnotationTypeId) {
+        return false;
+    } else {
+        const match = annotations.find((a) => a.name === ann);
+        return !!match && match.annotationTypeId === lookupAnnotationTypeId;
+    }
+});
 export const getSelectedPlate = createSelector([
     getSelectedPlates,
     getSelectedImagingSessionId,

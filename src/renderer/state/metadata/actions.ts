@@ -1,5 +1,6 @@
 import {
     CLEAR_FILE_METADATA_FOR_JOB,
+    CLEAR_OPTIONS_FOR_LOOKUP,
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
     GET_ANNOTATIONS,
@@ -17,6 +18,7 @@ import { initialState } from "./reducer";
 import {
     BarcodePrefix,
     ClearFileMetadataForJobAction,
+    ClearOptionsForLookupAction,
     CreateBarcodeAction,
     ExportFileMetadataAction,
     GetAnnotationsAction,
@@ -36,6 +38,13 @@ import {
 export function requestAnnotations(): GetAnnotationsAction {
     return {
         type: GET_ANNOTATIONS,
+    };
+}
+
+export function clearOptionsForLookup(lookupAnnotationName: string): ClearOptionsForLookupAction {
+    return {
+        payload: lookupAnnotationName,
+        type: CLEAR_OPTIONS_FOR_LOOKUP,
     };
 }
 

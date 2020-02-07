@@ -88,6 +88,11 @@ export interface RequestFileMetadataForJobAction {
     type: string;
 }
 
+export interface ClearOptionsForLookupAction {
+    payload: string; // lookupAnnotationName
+    type: string;
+}
+
 export interface ClearFileMetadataForJobAction {
     type: string;
 }

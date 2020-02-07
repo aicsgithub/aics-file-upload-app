@@ -9,7 +9,7 @@ import { createLogic } from "redux-logic";
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 
@@ -163,6 +163,8 @@ const requestAnnotations = createLogic({
 });
 
 const requestOptionsForLookup = createLogic({
+    debounce: 500,
+    latest: true,
     process: async ({ action: { payload }, getState, labkeyClient, logger }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
@@ -184,7 +186,7 @@ const requestOptionsForLookup = createLogic({
         }
 
         if (!lookup) {
-            // todo: set error
+            dispatch(setErrorAlert("Could not retrieve options for lookup: could not find lookup. Contact Software."));
             done();
             return;
         }
@@ -200,18 +202,18 @@ const requestOptionsForLookup = createLogic({
             );
             dispatch(receiveMetadata({ [lookupAnnotationName]: optionsForLookup }));
         } catch (e) {
+            dispatch(removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
             logger.error("Could not retrieve options for lookup annotation", e.message);
         }
         done();
     },
     type: GET_OPTIONS_FOR_LOOKUP,
-    validate: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+    validate: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
         const { lookupAnnotationName } = action.payload;
 
         if (isEmpty(lookupAnnotationName)) {
-            // todo reject, set error alert
-            reject(action);
+            reject(setErrorAlert("Cannot retrieve options for lookup when lookupAnnotationName is not defined. Contact Software."));
             return;
         }
 

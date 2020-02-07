@@ -19,14 +19,12 @@ import {
     exportFileMetadataCSV,
     requestAnnotations,
     requestTemplates,
-    retrieveOptionsForLookup,
-    searchFileMetadata
+    searchFileMetadata,
 } from "../../state/metadata/actions";
 import { UNIMPORTANT_COLUMNS } from "../../state/metadata/constants";
 import {
     getAnnotations,
     getFileMetadataSearchResults,
-    getMetadata,
     getNumberOfFiles,
     getSearchResultsHeader,
     getTemplates,
@@ -35,14 +33,13 @@ import {
 import {
     ExportFileMetadataAction,
     GetAnnotationsAction,
-    GetOptionsForLookupAction,
     GetTemplatesAction,
     SearchFileMetadataAction,
     SearchResultRow,
 } from "../../state/metadata/types";
 import { Page } from "../../state/route/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
-import { getAnnotation, getUser } from "../../state/selection/selectors";
+import { getAnnotation, getAnnotationIsLookup, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
 import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../state/setting/selectors";
@@ -73,17 +70,15 @@ const EXTRA_COLUMN_OPTIONS = UNIMPORTANT_COLUMNS.map((value) => ({
 interface Props {
     allMetadataColumnsSelected: boolean;
     annotation: string;
+    annotationIsLookup: boolean;
     annotations: Annotation[];
     className?: string;
     numberOfFilesFound: number;
     exportFileMetadataCSV: ActionCreator<ExportFileMetadataAction>;
     exportingCSV: boolean;
     metadataColumns: string[];
-    optionsForLookup?: string[];
-    optionsForLookupLoading: boolean;
     requestAnnotations: ActionCreator<GetAnnotationsAction>;
     requestTemplates: ActionCreator<GetTemplatesAction>;
-    retrieveOptionsForLookup: ActionCreator<GetOptionsForLookupAction>;
     searchFileMetadata: ActionCreator<SearchFileMetadataAction>;
     searchLoading: boolean;
     searchResults?: SearchResultRow[];
@@ -123,7 +118,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     public componentDidMount(): void {
         this.props.requestAnnotations();
         this.props.requestTemplates();
-        this.props.retrieveOptionsForLookup(this.props.annotation);
     }
 
     public render() {
@@ -232,10 +226,9 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     private renderSearchForm = (): JSX.Element => {
         const {
             annotation,
+            annotationIsLookup,
             annotations,
             exportingCSV,
-            optionsForLookup,
-            optionsForLookupLoading,
             searchLoading,
             templates,
             user,
@@ -246,16 +239,15 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
             return (
                 <AnnotationForm
                     annotation={annotation}
+                    annotationIsLookup={annotationIsLookup}
                     annotations={annotations}
                     exportingCSV={exportingCSV}
-                    optionsForLookup={optionsForLookup}
-                    optionsForLookupLoading={optionsForLookupLoading}
                     onSearch={this.searchForFiles}
                     searchLoading={searchLoading}
                     searchValue={searchValue}
                     selectAnnotation={this.selectAnnotation}
                     selectSearchValue={this.selectSearchValue}
-                    setSearchValue={this.setSearchValue}
+                    setSearchValue={this.selectSearchValue}
                 />);
         }
         if (searchMode === SearchMode.TEMPLATE) {
@@ -325,16 +317,11 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
     private selectAnnotation = (annotation: string) => {
         this.props.selectAnnotation(annotation);
-        this.props.retrieveOptionsForLookup(annotation);
         this.setState({ searchValue: undefined });
     }
 
     private selectSearchValue = (searchValue?: string) => {
         this.setState({ searchValue });
-    }
-
-    private setSearchValue = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.selectSearchValue(e.target.value);
     }
 
     private searchForFiles = () => {
@@ -380,12 +367,11 @@ function mapStateToProps(state: State) {
     return {
         allMetadataColumnsSelected: getAreAllMetadataColumnsSelected(state),
         annotation: getAnnotation(state),
+        annotationIsLookup: getAnnotationIsLookup(state),
         annotations: getAnnotations(state),
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
         metadataColumns: getMetadataColumns(state),
         numberOfFilesFound: getNumberOfFiles(state),
-        optionsForLookup: getMetadata(state)[getAnnotation(state)],
-        optionsForLookupLoading: getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),
         searchResultsHeader: getSearchResultsHeader(state),
@@ -399,7 +385,6 @@ const dispatchToPropsMap = {
     exportFileMetadataCSV,
     requestAnnotations,
     requestTemplates,
-    retrieveOptionsForLookup,
     searchFileMetadata,
     selectAnnotation,
     selectUser,
