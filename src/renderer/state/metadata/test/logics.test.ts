@@ -10,6 +10,7 @@ import {
     mockAnnotationOptions,
     mockAnnotations,
     mockAnnotationTypes,
+    mockAuditInfo,
     mockBarcodePrefixes,
     mockChannels,
     mockImagingSessions,
@@ -20,6 +21,7 @@ import {
     mockState,
     mockUnit,
     mockUsers,
+    mockWellAnnotation,
 } from "../../test/mocks";
 import {
     requestAnnotations,
@@ -41,7 +43,7 @@ import {
     getFileMetadataSearchResults,
     getImagingSessions,
     getLookups,
-    getOptionsForLookup,
+    getMetadata,
     getTemplates,
     getUnits,
     getUsers,
@@ -192,8 +194,16 @@ describe("Metadata logics", () => {
             ...mockState,
             metadata: {
                 ...mockState.metadata,
-                annotationLookups: mockAnnotationLookups,
-                annotations: mockAnnotations,
+                annotationLookups: [{ annotationId: mockWellAnnotation.annotationId, lookupId: 1 }],
+                annotations: [mockWellAnnotation],
+                lookups: [{
+                    ...mockAuditInfo,
+                    columnName: "wellId",
+                    descriptionColumn: "description",
+                    lookupId: 1,
+                    schemaName: "microscopy",
+                    tableName: "well",
+                }],
             },
         };
         it("sets lookupOptions given OK response", async () => {
@@ -202,18 +212,56 @@ describe("Metadata logics", () => {
             const { logicMiddleware, store } = createMockReduxStore(mockStateWithAnnotations, mockReduxLogicDeps);
 
             let state = store.getState();
-            expect(getOptionsForLookup(state)).to.be.undefined;
+            expect(getMetadata(state).Well).to.be.undefined;
 
             store.dispatch(retrieveOptionsForLookup("Well"));
 
             await logicMiddleware.whenComplete();
             state = store.getState();
-            expect(getOptionsForLookup(state)).to.not.be.empty;
+            expect(getMetadata(state).Well).to.not.be.empty;
         });
         it("sets lookupOptions given not OK response", async () => {
             const getOptionsStub = stub().rejects();
             sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
             const { logicMiddleware, store } = createMockReduxStore(mockStateWithAnnotations, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(retrieveOptionsForLookup("Well"));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getAlert(state)).to.not.be.undefined;
+        });
+        it("sets error alert if annotation name is not defined", async () => {
+            const getOptionsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithAnnotations, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+
+            store.dispatch(retrieveOptionsForLookup(""));
+            await logicMiddleware.whenComplete();
+
+            state = store.getState();
+            const alert = getAlert(state);
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+            }
+        });
+        it("sets error alert if annotation's lookup not found", async () => {
+            const getOptionsStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockStateWithAnnotations,
+                metadata: {
+                    ...mockStateWithAnnotations.metadata,
+                    lookups: [],
+                },
+            }, mockReduxLogicDeps);
 
             let state = store.getState();
             expect(getAlert(state)).to.be.undefined;

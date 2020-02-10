@@ -3,6 +3,7 @@ import * as React from "react";
 
 import LabeledInput from "../../../components/LabeledInput";
 import { Annotation } from "../../../state/template/types";
+import LookupSearch from "../../LookupSearch";
 
 import SearchButton from "../SearchButton";
 
@@ -10,30 +11,30 @@ const styles = require("./styles.pcss");
 
 interface AnnotationFormProps {
     annotation: string;
+    annotationIsLookup: boolean;
     annotations: Annotation[];
     exportingCSV: boolean;
-    optionsForLookup?: string[];
-    optionsForLookupLoading: boolean;
     searchLoading: boolean;
     searchValue?: string;
     onSearch: () => void;
     selectAnnotation: (annotation: string) => void;
     selectSearchValue: (searchValue?: string) => void;
-    setSearchValue: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    setSearchValue: (searchValue?: string) => void;
 }
+
+const selectSearchValueFromChangeEvent = (selectSearchValue: (searchValue?: string) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => selectSearchValue(e.target.value);
 
 const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
                                                                         annotation,
+                                                                        annotationIsLookup,
                                                                         annotations,
                                                                         exportingCSV,
-                                                                        optionsForLookup,
-                                                                        optionsForLookupLoading,
                                                                         onSearch,
                                                                         searchLoading,
                                                                         searchValue,
                                                                         selectAnnotation,
                                                                         selectSearchValue,
-                                                                        setSearchValue,
                                                                     }) => (
     <>
         <Col xs={6}>
@@ -44,7 +45,7 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
                     loading={!annotations.length}
                     disabled={!annotations.length}
                     onChange={selectAnnotation}
-                    placeholder="Select Annotation"
+                    placeholder="Select annotation"
                     className={styles.fullWidth}
                 >
                     {annotations.map(({ annotationId, name }) => (
@@ -57,29 +58,21 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
         </Col>
         <Col xs={12} xl={14} xxl={15}>
             <LabeledInput label="Search Value">
-                {(optionsForLookupLoading || optionsForLookup) ? (
-                    <Select
-                        allowClear={true}
-                        showSearch={true}
+                {(annotationIsLookup) ? (
+                    <LookupSearch
+                        lookupAnnotationName={annotation}
+                        placeholder="Select search value"
+                        selectSearchValue={selectSearchValue}
                         value={searchValue}
-                        loading={optionsForLookupLoading}
-                        disabled={!optionsForLookup || optionsForLookupLoading}
-                        onChange={selectSearchValue}
-                        placeholder="Select Search Value"
-                        className={styles.fullWidth}
-                    >
-                        {optionsForLookup && optionsForLookup.map((option) => (
-                            <Select.Option key={option} value={option}>{option}</Select.Option>
-                        ))}
-                    </Select>
+                    />
                 ) : (
                     <Input
                         allowClear={true}
                         disabled={!annotation}
                         value={searchValue}
-                        onChange={setSearchValue}
+                        onChange={selectSearchValueFromChangeEvent(selectSearchValue)}
                         onPressEnter={onSearch}
-                        placeholder="Enter Search Value"
+                        placeholder="Enter search value"
                     />
                 )}
             </LabeledInput>

@@ -4,6 +4,7 @@ import * as moment from "moment";
 import * as React from "react";
 import { editors } from "react-data-grid";
 import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
+import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
@@ -108,23 +109,13 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                 break;
             case ColumnType.LOOKUP:
                 input = (
-                    <Select
-                        allowClear={true}
-                        autoFocus={true}
-                        defaultOpen={true}
-                        loading={!dropdownValues || !dropdownValues.length}
+                    <LookupSearch
                         mode={allowMultipleValues ? "multiple" : "default"}
-                        onChange={this.handleOnChange}
+                        lookupAnnotationName={this.props.column.key}
                         onBlur={this.props.onCommit}
-                        placeholder="Column Values"
-                        showSearch={true}
-                        style={{ width: "100%" }}
+                        selectSearchValue={this.handleOnChange}
                         value={value}
-                    >
-                        {dropdownValues && dropdownValues.map((dropdownValue: string) => (
-                            <Option key={dropdownValue} value={dropdownValue}>{dropdownValue}</Option>
-                        ))}
-                    </Select>
+                    />
                 );
                 break;
             default:

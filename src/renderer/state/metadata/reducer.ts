@@ -5,13 +5,15 @@ import { makeReducer } from "../util";
 
 import {
     CLEAR_FILE_METADATA_FOR_JOB,
+    CLEAR_OPTIONS_FOR_LOOKUP,
     RECEIVE_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
-    UPDATE_PAGE_HISTORY
+    UPDATE_PAGE_HISTORY,
 } from "./constants";
 import {
     ClearFileMetadataForJobAction,
+    ClearOptionsForLookupAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     ResetHistoryAction,
@@ -41,6 +43,11 @@ export const initialState: MetadataStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
+    [CLEAR_OPTIONS_FOR_LOOKUP]: {
+        accepts: (action: AnyAction): action is ClearOptionsForLookupAction => action.type === CLEAR_OPTIONS_FOR_LOOKUP,
+        perform: (state: MetadataStateBranch, action: ClearOptionsForLookupAction) =>
+            ({...state, [action.payload]: []}),
+    },
     [RECEIVE_METADATA]: {
         accepts: (action: AnyAction): action is ReceiveMetadataAction => action.type === RECEIVE_METADATA,
         perform: (state: MetadataStateBranch, action: ReceiveMetadataAction) => ({ ...state, ...action.payload }),

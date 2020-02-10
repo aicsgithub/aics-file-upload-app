@@ -2,20 +2,22 @@ import { FileManagementSystem } from "@aics/aicsfiles";
 import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { reduce, sortBy } from "lodash";
+import { isEmpty, reduce, sortBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
+import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
@@ -31,7 +33,7 @@ import {
     REQUEST_METADATA,
     SEARCH_FILE_METADATA,
 } from "./constants";
-import { getSearchResultsHeader } from "./selectors";
+import { getAnnotationLookups, getAnnotations, getLookups, getSearchResultsHeader } from "./selectors";
 
 const createBarcode = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -103,34 +105,26 @@ const requestMetadata = createLogic({
 });
 
 const requestBarcodes = createLogic({
-    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    debounce: 500,
+    latest: true,
+    process: async ({ action, labkeyClient, logger }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const { payload: searchStr } = action;
-        if (!searchStr) {
-            dispatch(receiveMetadata({
-                barcodeSearchResults: [],
-            }));
-            done();
-        } else {
-            dispatch(addRequestToInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
-            try {
-                const searchResults = await labkeyClient.getPlatesByBarcode(searchStr);
-                dispatch(batchActions([
-                    receiveMetadata({barcodeSearchResults: searchResults}),
-                    removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
-                ]));
+        const request = () => labkeyClient.getPlatesByBarcode(searchStr);
 
-            } catch (e) {
-                dispatch(batchActions([
-                    removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
-                    setAlert({
-                        message: e.message || "Could not retrieve barcode search results",
-                        type: AlertType.ERROR,
-                    }),
-                ]));
-            }
-            done();
+        try {
+            const barcodeSearchResults = await getWithRetry(
+                request,
+                AsyncRequest.GET_BARCODE_SEARCH_RESULTS,
+                dispatch,
+                "LabKey",
+                "Could not retrieve barcode search results"
+            );
+            dispatch(receiveMetadata({ barcodeSearchResults }));
+        } catch (e) {
+            logger.error(e.message);
         }
+        done();
     },
     type: GET_BARCODE_SEARCH_RESULTS,
 });
@@ -161,35 +155,61 @@ const requestAnnotations = createLogic({
 });
 
 const requestOptionsForLookup = createLogic({
+    debounce: 500,
+    latest: true,
     process: async ({ action: { payload }, getState, labkeyClient, logger }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        if (payload) {
-            try {
-                const { metadata: { annotationLookups, annotations } } = getState();
-                const annotationOption = annotations.find(({ name }) => name === payload);
-                const lookup = annotationOption &&
-                    annotationLookups.find(({ annotationId }) => annotationId === annotationOption.annotationId);
-                let optionsForLookup;
-                if (lookup) {
-                    optionsForLookup = await getWithRetry(
-                        () => labkeyClient.getOptionsForLookup(lookup.lookupId),
-                        AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
-                        dispatch,
-                        "LabKey",
-                        "Could not retrieve options for lookup annotation"
-                    );
-                    optionsForLookup.sort();
-                }
+        const { lookupAnnotationName, searchStr } = payload;
+        const state = getState();
+        const annotations = getAnnotations(state);
+        const annotationLookups = getAnnotationLookups(state);
+        const lookups = getLookups(state);
+        let lookup: Lookup | undefined;
 
-                dispatch(receiveMetadata({ optionsForLookup }));
-            } catch (e) {
-                logger.error("Could not retrieve options for lookup annotation", e.message);
+        const annotation: Annotation | undefined = annotations
+            .find(({ name }) => name === lookupAnnotationName);
+        if (annotation) {
+            const annotationLookup: AnnotationLookup | undefined = annotationLookups
+                .find((al) => al.annotationId === annotation.annotationId);
+            if (annotationLookup) {
+                lookup = lookups.find(({ lookupId }) => lookupId === annotationLookup.lookupId);
             }
+        }
+
+        if (!lookup) {
+            dispatch(setErrorAlert("Could not retrieve options for lookup: could not find lookup. Contact Software."));
+            done();
+            return;
+        }
+
+        const { columnName, schemaName, tableName } = lookup;
+        try {
+            const optionsForLookup = await getWithRetry(
+                () => labkeyClient.getOptionsForLookup(schemaName, tableName, columnName, searchStr),
+                AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
+                dispatch,
+                "LabKey",
+                "Could not retrieve options for lookup annotation"
+            );
+            dispatch(receiveMetadata({ [lookupAnnotationName]: optionsForLookup }));
+        } catch (e) {
+            logger.error("Could not retrieve options for lookup annotation", e.message);
         }
         done();
     },
     type: GET_OPTIONS_FOR_LOOKUP,
+    validate: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const { lookupAnnotationName } = action.payload;
+
+        if (isEmpty(lookupAnnotationName)) {
+            reject(setErrorAlert("Cannot retrieve options for lookup when lookupAnnotationName is not defined. Contact Software."));
+            return;
+        }
+
+        next(action);
+    },
 });
 
 const requestTemplatesLogic = createLogic({

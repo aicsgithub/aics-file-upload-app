@@ -13,6 +13,7 @@ import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
 import { SearchResultRow, SearchResultsHeader } from "./types";
 
 // BASIC SELECTORS
+export const getMetadata = (state: State) => state.metadata;
 export const getAllAnnotations = (state: State) => state.metadata.annotations;
 export const getAnnotationLookups = (state: State) => state.metadata.annotationLookups;
 export const getAnnotationOptions = (state: State) => state.metadata.annotationOptions;
@@ -29,7 +30,6 @@ export const getBarcodeSearchResults = (state: State) => state.metadata.barcodeS
 export const getTemplates = (state: State) => state.metadata.templates;
 export const getChannels = (state: State) => state.metadata.channels;
 export const getFileMetadataSearchResults = (state: State) => state.metadata.fileMetadataSearchResults;
-export const getOptionsForLookup = (state: State) => state.metadata.optionsForLookup;
 export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) => state.metadata.fileMetadataForJob;
 

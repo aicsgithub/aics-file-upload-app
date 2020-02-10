@@ -1,5 +1,4 @@
 import { Col, Row } from "antd";
-import { SelectValue } from "antd/es/select";
 import { AxiosError } from "axios";
 import { ipcRenderer } from "electron";
 import { debounce } from "lodash";
@@ -89,10 +88,6 @@ interface SelectUploadTypeState {
     associate custom data regardless, it is important for us to at least require some minimum data to be able to query.
  */
 class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUploadTypeState> {
-    private onBarcodeInput = debounce((input: string): void => {
-        this.props.getBarcodeSearchResults(input);
-    }, 500);
-
     constructor(props: SelectUploadTypeProps) {
         super(props);
         this.state = {
@@ -141,7 +136,7 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
                             barcodeSearchResults={barcodeSearchResults}
                             loadingBarcodes={loadingBarcodes}
                             onBarcodeChange={this.onBarcodeChange}
-                            onBarcodeInput={this.onBarcodeInput}
+                            onBarcodeInput={this.props.getBarcodeSearchResults}
                             isSelected={this.state.path === Path.EnterBarcode}
                             onCancel={this.resetAndReplaceState}
                         />
@@ -167,7 +162,7 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
         );
     }
 
-    private onBarcodeChange(value: SelectValue): void {
+    private onBarcodeChange(value?: string): void {
         let replacementState;
         if (value) {
             const matchingResult = this.props.barcodeSearchResults

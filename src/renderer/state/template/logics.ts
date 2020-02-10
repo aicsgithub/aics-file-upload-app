@@ -1,10 +1,8 @@
-import { get, includes, isEmpty, map } from "lodash";
+import { get, includes, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { getWithRetry, pivotAnnotations } from "../../util";
-
-import LabkeyClient from "../../util/labkey-client";
 
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -23,7 +21,6 @@ import {
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
-    State,
 } from "../types";
 import { applyTemplate, updateUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
@@ -105,39 +102,6 @@ const addExistingAnnotationLogic = createLogic({
     type: ADD_ANNOTATION,
 });
 
-const getAnnotationOptions = async ({annotationId, annotationOptions, annotationTypeId}: TemplateAnnotation,
-                                    state: State, labkeyClient: LabkeyClient, dispatch: ReduxLogicNextCb) => {
-    if (!isEmpty(annotationOptions)) {
-        return annotationOptions;
-    }
-
-    const lookupAnnotationTypeId = getLookupAnnotationTypeId(state);
-    if (annotationTypeId === lookupAnnotationTypeId) {
-        const annotationLookup = getAnnotationLookups(state).find((al) => al.annotationId === annotationId);
-
-        if (!annotationLookup) {
-            throw new Error("Could not retrieve lookup values");
-        }
-
-        const lookup = getLookups(state).find((l) => l.lookupId === annotationLookup.lookupId);
-
-        if (!lookup) {
-            throw new Error("Could not retrieve lookup values");
-        }
-
-        const { columnName, schemaName, tableName } = lookup;
-        return await getWithRetry(
-            () => labkeyClient.getColumnValues(schemaName, tableName, columnName),
-            AsyncRequest.GET_TEMPLATE,
-            dispatch,
-            "LabKey",
-            `Could not retrieve column values for ${schemaName}.${tableName}.${columnName}`
-        );
-    }
-
-    return undefined;
-};
-
 const getTemplateLogic = createLogic({
     process: async ({action, getState, labkeyClient, logger, mmsClient}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
@@ -173,10 +137,7 @@ const getTemplateLogic = createLogic({
                 actions.push(
                     setAppliedTemplate({
                         ...etc,
-                        annotations: await Promise.all(annotations.map(async (a: TemplateAnnotation) => ({
-                            ...a,
-                            annotationOptions: await getAnnotationOptions(a, getState(), labkeyClient, dispatch),
-                        }))),
+                        annotations,
                     }),
                     ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
                         ...metadata,
