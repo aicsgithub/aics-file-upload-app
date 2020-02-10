@@ -194,7 +194,6 @@ const requestOptionsForLookup = createLogic({
             );
             dispatch(receiveMetadata({ [lookupAnnotationName]: optionsForLookup }));
         } catch (e) {
-            dispatch(removeRequestFromInProgress(AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
             logger.error("Could not retrieve options for lookup annotation", e.message);
         }
         done();
