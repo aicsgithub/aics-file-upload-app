@@ -89,7 +89,7 @@ export interface RequestFileMetadataForJobAction {
 }
 
 export interface ClearOptionsForLookupAction {
-    payload: string; // lookupAnnotationName
+    payload: keyof MetadataStateBranch; // lookupAnnotationName
     type: string;
 }
 

@@ -41,7 +41,7 @@ export function requestAnnotations(): GetAnnotationsAction {
     };
 }
 
-export function clearOptionsForLookup(lookupAnnotationName: string): ClearOptionsForLookupAction {
+export function clearOptionsForLookup(lookupAnnotationName: keyof MetadataStateBranch): ClearOptionsForLookupAction {
     return {
         payload: lookupAnnotationName,
         type: CLEAR_OPTIONS_FOR_LOOKUP,

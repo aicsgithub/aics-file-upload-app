@@ -1,7 +1,7 @@
-import { Card, Icon, Select } from "antd";
-import { SelectValue } from "antd/es/select";
+import { Card } from "antd";
 import classNames from "classnames";
 import * as React from "react";
+import LookupSearch from "../../../containers/LookupSearch";
 import { BarcodeSelectorOption } from "../../../containers/SelectUploadType";
 
 import LabeledInput from "../../LabeledInput";
@@ -12,12 +12,14 @@ const styles = require("./styles.pcss");
 interface Props {
     barcode?: string;
     barcodeSearchResults: BarcodeSelectorOption[];
-    loadingBarcodes: boolean;
     isSelected: boolean;
-    onBarcodeChange: (option: SelectValue) => void;
-    onBarcodeInput: (input: string) => void;
+    loadingBarcodes: boolean;
+    onBarcodeChange: (option?: string) => void;
+    onBarcodeInput: (input?: string) => void;
     onCancel: () => void;
 }
+
+const getDisplayFromPlateResult = (result: BarcodeSelectorOption) => result.barcode;
 
 /*
     This card is for showing and gathering relevant information for the "Enter Barcode" path to uploading.
@@ -26,8 +28,8 @@ interface Props {
 const EnterBarcodeCard: React.FunctionComponent<Props> = ({
                                                               barcode,
                                                               barcodeSearchResults,
-                                                              loadingBarcodes,
                                                               isSelected,
+                                                              loadingBarcodes,
                                                               onBarcodeChange,
                                                               onBarcodeInput,
                                                               onCancel,
@@ -49,25 +51,18 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
                 </>
             ) : (
                 <LabeledInput label="Plate Barcode">
-                    <Select
-                        suffixIcon={<Icon type="search"/>}
-                        allowClear={true}
+                    <LookupSearch
                         className={styles.selector}
-                        showSearch={true}
-                        showArrow={false}
-                        notFoundContent={<div>Start typing to search</div>}
-                        value={barcode}
+                        getDisplayFromOption={getDisplayFromPlateResult}
+                        lookupAnnotationName={"barcodeSearchResults"}
+                        mode="default"
+                        optionsLoadingOverride={loadingBarcodes}
+                        optionsOverride={barcodeSearchResults}
                         placeholder="Type to search"
-                        autoClearSearchValue={true}
-                        onChange={onBarcodeChange}
-                        onSearch={onBarcodeInput}
-                        loading={loadingBarcodes}
-                        defaultActiveFirstOption={false}
-                    >
-                        {barcodeSearchResults.map((option) => (
-                            <Select.Option key={option.barcode}>{option.barcode}</Select.Option>
-                        ))}
-                    </Select>
+                        retrieveOptionsOverride={onBarcodeInput}
+                        selectSearchValue={onBarcodeChange}
+                        value={barcode}
+                    />
                 </LabeledInput>
             )}
         </Card>

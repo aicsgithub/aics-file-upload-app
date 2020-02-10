@@ -3,28 +3,31 @@ import * as classNames from "classnames";
 import { ReactNode } from "react";
 import * as React from "react";
 import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { ActionCreator, AnyAction } from "redux";
 
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { clearOptionsForLookup, retrieveOptionsForLookup } from "../../state/metadata/actions";
 import { getMetadata } from "../../state/metadata/selectors";
-import { ClearOptionsForLookupAction, GetOptionsForLookupAction } from "../../state/metadata/types";
+import {
+    ClearOptionsForLookupAction,
+    GetOptionsForLookupAction,
+    MetadataStateBranch,
+} from "../../state/metadata/types";
 import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
 interface StateProps {
     isLargeLookup: boolean;
-    optionsForLookup?: any[];
-    optionsForLookupLoading: boolean;
+    options?: any[];
+    optionsLoading: boolean;
 }
 
 interface OwnProps {
     className?: string;
-    // this provides a way for options to be objects and to specify how to display each option
     getDisplayFromOption?: (option: any) => string;
-    lookupAnnotationName: string;
+    lookupAnnotationName: keyof MetadataStateBranch;
     mode?: "multiple" | "default";
     onBlur?: () => void;
     placeholder?: string;
@@ -32,12 +35,20 @@ interface OwnProps {
     value?: string;
 }
 
-interface DispatchProps {
-    clearOptionsForLookup: ActionCreator<ClearOptionsForLookupAction>;
-    retrieveOptionsForLookup: ActionCreator<GetOptionsForLookupAction>;
+// props passed from parent that override State or Dispatch props
+interface OwnPropsOverrides {
+    clearOptionsOverride?: (() => void) | ActionCreator<AnyAction>;
+    optionsOverride?: any[];
+    optionsLoadingOverride?: boolean;
+    retrieveOptionsOverride?: ((input?: string) => void) | ActionCreator<AnyAction>;
 }
 
-type Props = StateProps & OwnProps & DispatchProps;
+interface DispatchProps {
+    clearOptions: ActionCreator<ClearOptionsForLookupAction>;
+    retrieveOptions: ActionCreator<GetOptionsForLookupAction>;
+}
+
+type Props = StateProps & OwnProps & OwnPropsOverrides & DispatchProps;
 
 /**
  * This component is a dropdown for labkey tables that are considered to be "Lookups".
@@ -53,16 +64,16 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     }
 
     public componentDidMount(): void {
-        const { isLargeLookup, lookupAnnotationName } = this.props;
+        const { isLargeLookup } = this.props;
         if (!isLargeLookup) {
-            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined);
+            this.retrieveOptions();
         }
     }
 
     public componentDidUpdate(prevProps: Props): void {
         const { isLargeLookup, lookupAnnotationName } = this.props;
-        if (!isLargeLookup && prevProps.lookupAnnotationName !== this.props.lookupAnnotationName) {
-            this.props.retrieveOptionsForLookup(lookupAnnotationName, undefined);
+        if (!isLargeLookup && prevProps.lookupAnnotationName !== lookupAnnotationName) {
+            this.retrieveOptions();
         }
     }
 
@@ -73,15 +84,15 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
             lookupAnnotationName,
             mode,
             onBlur,
-            optionsForLookupLoading,
+            options,
+            optionsLoading,
             placeholder,
             selectSearchValue,
             value,
         } = this.props;
 
-        const optionsForLookup = this.props.optionsForLookup || [];
         let notFoundContent: ReactNode = "No Results Found";
-        if (optionsForLookupLoading) {
+        if (optionsLoading) {
             notFoundContent = <Spin size="large"/>;
         } else if (isLargeLookup && !this.state.searchValue) {
             notFoundContent = `Start typing to search for a ${lookupAnnotationName}`;
@@ -94,7 +105,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 className={classNames(styles.container, {[styles.search]: isLargeLookup}, className)}
                 defaultActiveFirstOption={false}
                 defaultOpen={true}
-                loading={optionsForLookupLoading}
+                loading={optionsLoading}
                 mode={mode}
                 notFoundContent={notFoundContent}
                 onBlur={onBlur}
@@ -105,7 +116,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 suffixIcon={isLargeLookup ? <Icon type="search"/> : undefined}
                 value={value}
             >
-                {optionsForLookup.map((option) => {
+                {(options || []).map((option) => {
                     const display = this.getDisplayFromOption(option);
                     return <Select.Option key={display} value={display}>{display}</Select.Option>;
                 })}
@@ -114,12 +125,11 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     }
 
     private onSearch = (searchValue?: string): void => {
-        const { lookupAnnotationName } = this.props;
         this.setState({ searchValue });
         if (searchValue) {
-            this.props.retrieveOptionsForLookup(lookupAnnotationName, searchValue);
+            this.retrieveOptions(searchValue);
         } else {
-            this.props.clearOptionsForLookup(lookupAnnotationName);
+            this.clearOptions();
         }
     }
 
@@ -130,29 +140,53 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
         }
         return option;
     }
+
+    private retrieveOptions = (searchValue?: string): void => {
+        if (this.props.retrieveOptionsOverride) {
+            this.props.retrieveOptionsOverride(searchValue);
+        } else {
+            this.props.retrieveOptions(this.props.lookupAnnotationName, searchValue);
+        }
+    }
+
+    private clearOptions = () => {
+        if (this.props.clearOptionsOverride) {
+            this.props.clearOptionsOverride();
+        } else {
+            const { lookupAnnotationName } = this.props;
+            this.props.clearOptions(lookupAnnotationName);
+        }
+    }
 }
 
 const LARGE_LOOKUPS: readonly string[] = Object.freeze(["vial"]);
 function mapStateToProps(state: State, {
     className,
+    clearOptionsOverride,
     lookupAnnotationName,
+    optionsOverride,
+    optionsLoadingOverride,
     placeholder,
+    retrieveOptionsOverride,
     selectSearchValue,
-}: OwnProps) {
+}: OwnProps & OwnPropsOverrides) {
     return {
         className,
-        isLargeLookup: LARGE_LOOKUPS.includes(lookupAnnotationName.toLowerCase()),
+        clearOptionsOverride,
+        isLargeLookup: LARGE_LOOKUPS.includes(`${lookupAnnotationName}`.toLowerCase()),
         lookupAnnotationName,
-        optionsForLookup: getMetadata(state)[lookupAnnotationName],
-        optionsForLookupLoading: getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
+        options: optionsOverride || getMetadata(state)[lookupAnnotationName],
+        optionsLoading: optionsLoadingOverride ||
+            getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
         placeholder,
+        retrieveOptionsOverride,
         selectSearchValue,
     };
 }
 
 const dispatchToPropsMap = {
-    clearOptionsForLookup,
-    retrieveOptionsForLookup,
+    clearOptions: clearOptionsForLookup,
+    retrieveOptions: retrieveOptionsForLookup,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(LookupSearch);

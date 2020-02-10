@@ -105,34 +105,26 @@ const requestMetadata = createLogic({
 });
 
 const requestBarcodes = createLogic({
-    process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    debounce: 500,
+    latest: true,
+    process: async ({ action, labkeyClient, logger }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const { payload: searchStr } = action;
-        if (!searchStr) {
-            dispatch(receiveMetadata({
-                barcodeSearchResults: [],
-            }));
-            done();
-        } else {
-            dispatch(addRequestToInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
-            try {
-                const searchResults = await labkeyClient.getPlatesByBarcode(searchStr);
-                dispatch(batchActions([
-                    receiveMetadata({barcodeSearchResults: searchResults}),
-                    removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
-                ]));
+        const request = () => labkeyClient.getPlatesByBarcode(searchStr);
 
-            } catch (e) {
-                dispatch(batchActions([
-                    removeRequestFromInProgress(AsyncRequest.GET_BARCODE_SEARCH_RESULTS),
-                    setAlert({
-                        message: e.message || "Could not retrieve barcode search results",
-                        type: AlertType.ERROR,
-                    }),
-                ]));
-            }
-            done();
+        try {
+            const barcodeSearchResults = await getWithRetry(
+                request,
+                AsyncRequest.GET_BARCODE_SEARCH_RESULTS,
+                dispatch,
+                "LabKey",
+                "Could not retrieve barcode search results"
+            );
+            dispatch(receiveMetadata({ barcodeSearchResults }));
+        } catch (e) {
+            logger.error(e.message);
         }
+        done();
     },
     type: GET_BARCODE_SEARCH_RESULTS,
 });

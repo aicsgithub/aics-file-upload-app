@@ -117,6 +117,7 @@ export default class LabkeyClient extends BaseServiceClient {
         Promise<LabkeyPlateResponse[]> {
         const query = LabkeyClient.getSelectRowsURL("microscopy", "Plate", [
             `query.barcode~contains=${searchString}`,
+            `query.maxRows=30`,
         ]);
 
         const response: LabkeyResponse<LabkeyPlate> = await this.httpClient.get(query);
