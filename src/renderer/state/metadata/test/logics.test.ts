@@ -322,6 +322,24 @@ describe("Metadata logics", () => {
             state = store.getState();
             expect(getAlert(state)).to.not.be.undefined;
         });
+        it("sets search results given template id", async () => {
+            const getSearchResultsAsMapStub = stub().resolves({});
+            sandbox.replace(fms, "getFilesByTemplate", getSearchResultsAsMapStub);
+            const getSearchResultsStub = stub().resolves(mockSearchResults);
+            sandbox.replace(fms, "transformFileMetadataIntoTable", getSearchResultsStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            let state = store.getState();
+            expect(getFileMetadataSearchResults(state)).to.be.undefined;
+            expect(getSearchResultsAsMapStub.called).to.be.false;
+
+            store.dispatch(searchFileMetadata({ templateId: 1 }));
+
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
+            expect(getSearchResultsAsMapStub.called).to.be.true;
+        });
     });
     describe("retrieveFileMetadataForJob", () => {
         it("sets fileMetadataForJob given OK response", async () => {
