@@ -2,7 +2,7 @@ import { FileManagementSystem } from "@aics/aicsfiles";
 import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { isEmpty, reduce, sortBy } from "lodash";
+import { isEmpty, reduce, sortBy, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -127,6 +127,19 @@ const requestBarcodes = createLogic({
         done();
     },
     type: GET_BARCODE_SEARCH_RESULTS,
+    validate: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const { payload } = action;
+        const searchStr = trim(payload);
+        if (!searchStr) {
+            reject(action);
+        } else {
+            next({
+                ...action,
+                payload: searchStr,
+            });
+        }
+    },
 });
 
 const requestAnnotations = createLogic({
