@@ -11,14 +11,13 @@ import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
-import { requestTemplates } from "../../state/metadata/actions";
 import {
     getAnnotationTypes,
     getBooleanAnnotationTypeId,
     getChannels,
     getTemplates,
 } from "../../state/metadata/selectors";
-import { Channel, GetTemplatesAction } from "../../state/metadata/types";
+import { Channel } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction, Page } from "../../state/route/types";
 import {
@@ -88,7 +87,6 @@ interface Props {
     loading: boolean;
     openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
-    requestTemplates: ActionCreator<GetTemplatesAction>;
     savedTemplateId?: number;
     selectedBarcode?: string;
     setAlert: ActionCreator<SetAlertAction>;
@@ -116,7 +114,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        this.props.requestTemplates();
         this.props.applyTemplate(this.props.savedTemplateId);
     }
 
@@ -192,7 +189,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderButtons = () => {
-        const { appliedTemplate, loading, templates } = this.props;
+        const { appliedTemplate } = this.props;
 
         return (
             <div className={styles.buttonRow}>
@@ -200,10 +197,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <p className={styles.schemaSelectorLabel}>{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
-                        loading={loading}
                         value={appliedTemplate ? appliedTemplate.templateId : undefined}
                         onSelect={this.props.applyTemplate}
-                        templates={templates}
                     />
                 </div>
                 <Button
@@ -269,7 +264,6 @@ const dispatchToPropsMap = {
     jumpToUpload,
     openSchemaCreator: openTemplateEditor,
     removeUploads,
-    requestTemplates,
     setAlert,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateScenes,

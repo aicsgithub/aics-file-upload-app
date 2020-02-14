@@ -24,10 +24,10 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.3.1.tgz#b7aba36cc84f7c5da70d04964ce9249e0b2c02a8"
-  integrity sha512-awQsSzYPElFWdSzNgvj7i4TNcpHceezC9MZ8xBfrnCqHnuE07JU9+N540mBPnAeBHh3M5xXCj7A/axhgAKE31w==
+"@aics/aicsfiles@^2.3.2":
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.3.2.tgz#f6c9f689c66121ac299f73a1c6ca74283ecd8bec"
+  integrity sha512-ZCKnC5wDdhwk9BreO8csQt+4zeJ+5+Ahdwap9n1WrlMImtJjLQHfkkvoMOzwlejS9G8uJIx+igzIesWdog5Jag==
   dependencies:
     "@aics/job-status-client" "^1.1.0"
     "@babel/polyfill" "^7.4.4"

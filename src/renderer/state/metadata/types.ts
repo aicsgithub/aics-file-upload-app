@@ -63,7 +63,7 @@ export interface SearchConfig {
     annotation?: string;
     fileIds?: string[];
     searchValue?: string;
-    template?: string;
+    templateId?: number;
     user?: string;
 }
 

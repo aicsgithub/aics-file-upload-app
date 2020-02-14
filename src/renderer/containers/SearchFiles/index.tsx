@@ -27,7 +27,6 @@ import {
     getFileMetadataSearchResults,
     getNumberOfFiles,
     getSearchResultsHeader,
-    getTemplates,
     getUsers,
 } from "../../state/metadata/selectors";
 import {
@@ -46,7 +45,7 @@ import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../stat
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
 import { State } from "../../state/types";
-import { LabkeyTemplate, LabkeyUser } from "../../util/labkey-client/types";
+import { LabkeyUser } from "../../util/labkey-client/types";
 import AnnotationForm from "./AnnotationForm";
 import TemplateForm from "./TemplateForm";
 import UserAndTemplateForm from "./UserAndTemplateForm";
@@ -86,7 +85,6 @@ interface Props {
     selectAnnotation: ActionCreator<SelectAnnotationAction>;
     selectUser: ActionCreator<SelectUserAction>;
     setAlert: ActionCreator<SetAlertAction>;
-    templates: LabkeyTemplate[];
     updateSettings: ActionCreator<UpdateSettingsAction>;
     user?: string;
     users: LabkeyUser[];
@@ -98,7 +96,7 @@ interface SearchFilesState {
     searchValue?: string;
     selectedJobId?: string;
     showExtraColumnOptions: boolean;
-    template?: string;
+    templateId?: number;
 }
 
 /*
@@ -117,7 +115,6 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
     public componentDidMount(): void {
         this.props.requestAnnotations();
-        this.props.requestTemplates();
     }
 
     public render() {
@@ -230,11 +227,10 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
             annotations,
             exportingCSV,
             searchLoading,
-            templates,
             user,
             users,
         } = this.props;
-        const { searchMode, searchValue, template } = this.state;
+        const { searchMode, searchValue, templateId } = this.state;
         if (searchMode === SearchMode.ANNOTATION) {
             return (
                 <AnnotationForm
@@ -256,8 +252,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     exportingCSV={exportingCSV}
                     searchLoading={searchLoading}
                     onSearch={this.searchForFiles}
-                    template={template}
-                    templates={templates}
+                    templateId={templateId}
                     selectTemplate={this.selectTemplate}
                 />);
         }
@@ -278,8 +273,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                 exportingCSV={exportingCSV}
                 searchLoading={searchLoading}
                 onSearch={this.searchForFiles}
-                template={template}
-                templates={templates}
+                templateId={templateId}
                 user={user}
                 users={users}
                 selectUser={this.props.selectUser}
@@ -307,8 +301,8 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         this.setState({ selectedRow });
     }
 
-    private selectTemplate = (template?: string): void => {
-        this.setState({ template });
+    private selectTemplate = (templateId?: number): void => {
+        this.setState({ templateId });
     }
 
     private selectSearchMode = (event: RadioChangeEvent): void => {
@@ -326,19 +320,19 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 
     private searchForFiles = () => {
         const { annotation, user } = this.props;
-        const { searchMode, searchValue, template } = this.state;
+        const { searchMode, searchValue, templateId } = this.state;
         switch (searchMode) {
             case SearchMode.ANNOTATION:
                 this.props.searchFileMetadata({ annotation, searchValue });
                 return;
             case SearchMode.TEMPLATE:
-                this.props.searchFileMetadata({ template });
+                this.props.searchFileMetadata({ templateId });
                 return;
             case SearchMode.USER:
                 this.props.searchFileMetadata({ user });
                 return;
             default: // case SearchMode.USER_AND_TEMPLATE:
-                this.props.searchFileMetadata({ template, user });
+                this.props.searchFileMetadata({ templateId, user });
                 return;
         }
     }
@@ -375,7 +369,6 @@ function mapStateToProps(state: State) {
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),
         searchResultsHeader: getSearchResultsHeader(state),
-        templates: getTemplates(state),
         user: getUser(state),
         users: getUsers(state),
     };

@@ -248,13 +248,13 @@ const searchFileMetadataLogic = createLogic({
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
         try {
-            const { annotation, searchValue, template, user } = action.payload;
+            const { annotation, searchValue, templateId, user } = action.payload;
             let searchResultsAsMap: FileToFileMetadata | undefined;
             if (annotation && searchValue) {
                 searchResultsAsMap = await fms.getFilesByAnnotation(annotation, searchValue);
             }
-            if (template) {
-                const fileMetadataForTemplate = await fms.getFilesByTemplate(template);
+            if (templateId) {
+                const fileMetadataForTemplate = await fms.getFilesByTemplate(templateId);
                 searchResultsAsMap = innerJoinOrDefault(fms, fileMetadataForTemplate, searchResultsAsMap);
             }
             if (user) {
