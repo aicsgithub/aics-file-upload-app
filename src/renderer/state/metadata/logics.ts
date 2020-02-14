@@ -35,7 +35,7 @@ import {
 } from "./constants";
 import { getAnnotationLookups, getAnnotations, getLookups, getSearchResultsHeader } from "./selectors";
 
-const createBarcode = createLogic({
+const createBarcodeLogic = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             const { setting: { limsHost, limsPort } } = getState();
@@ -53,7 +53,7 @@ const createBarcode = createLogic({
     type: CREATE_BARCODE,
 });
 
-const requestMetadata = createLogic({
+const requestMetadataLogic = createLogic({
     process: async ({labkeyClient, logger}: ReduxLogicProcessDependencies, dispatch: (action: AnyAction) => void,
                     done: () => void) => {
         try {
@@ -104,7 +104,7 @@ const requestMetadata = createLogic({
     type: REQUEST_METADATA,
 });
 
-const requestBarcodes = createLogic({
+const getBarcodeSearchResultsLogic = createLogic({
     debounce: 500,
     latest: true,
     process: async ({ action, labkeyClient, logger }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
@@ -142,7 +142,7 @@ const requestBarcodes = createLogic({
     },
 });
 
-const requestAnnotations = createLogic({
+const requestAnnotationsLogic = createLogic({
     process: async ({action, labkeyClient}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.GET_ANNOTATIONS));
@@ -167,7 +167,7 @@ const requestAnnotations = createLogic({
     type: GET_ANNOTATIONS,
 });
 
-const requestOptionsForLookup = createLogic({
+const requestOptionsForLookupLogic = createLogic({
     debounce: 500,
     latest: true,
     process: async ({ action: { payload }, getState, labkeyClient, logger }: ReduxLogicProcessDependencies,
@@ -225,7 +225,7 @@ const requestOptionsForLookup = createLogic({
     },
 });
 
-const requestTemplatesLogic = createLogic({
+const requestTemplatesLogicLogic = createLogic({
     process: async ({action, labkeyClient, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
@@ -304,7 +304,7 @@ const searchFileMetadataLogic = createLogic({
     type: SEARCH_FILE_METADATA,
 });
 
-const retrieveFileMetadataForJob = createLogic({
+const retrieveFileMetadataForJobLogic = createLogic({
     process: async ({ action, fms, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
@@ -338,7 +338,7 @@ const retrieveFileMetadataForJob = createLogic({
     type: REQUEST_FILE_METADATA_FOR_JOB,
 });
 
-const exportFileMetadata = createLogic({
+const exportFileMetadataLogic = createLogic({
     process: async ({ action, fms, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
@@ -374,13 +374,13 @@ const exportFileMetadata = createLogic({
 });
 
 export default [
-    createBarcode,
-    exportFileMetadata,
-    requestAnnotations,
-    requestBarcodes,
-    retrieveFileMetadataForJob,
-    requestMetadata,
-    requestOptionsForLookup,
-    requestTemplatesLogic,
+    createBarcodeLogic,
+    exportFileMetadataLogic,
+    requestAnnotationsLogic,
+    getBarcodeSearchResultsLogic,
+    retrieveFileMetadataForJobLogic,
+    requestMetadataLogic,
+    requestOptionsForLookupLogic,
+    requestTemplatesLogicLogic,
     searchFileMetadataLogic,
 ];
