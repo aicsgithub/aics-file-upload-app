@@ -32,7 +32,7 @@ pipeline {
         stage ("version") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION
+                    return env.INCREMENT_VERSION == true
                 }
             }
             steps {
