@@ -25,7 +25,7 @@ pipeline {
                 this.notifyBB("INPROGRESS")
                 echo "BUILDTYPE: " + ( params.PROMOTE_ARTIFACT ? "Promote Image" : "Build, Publish and Tag")
                 echo "${BRANCH_NAME}"
-                echo "increment? ${env.INCREMENT_VERSION}"
+                echo "increment version: ${env.INCREMENT_VERSION}"
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
         }
