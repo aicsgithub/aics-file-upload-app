@@ -7,6 +7,7 @@ import { Page } from "../../state/route/types";
 const { Step } = Steps;
 
 interface ProgressBarProps {
+    className?: string;
     page: Page;
 }
 
@@ -46,7 +47,7 @@ const stepOrder: StepInfo = {
  * @constructor
  */
 const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
-    const { page } = props;
+    const { className, page } = props;
 
     const currentIndex = Object.keys(stepOrder).findIndex((step) => step === page);
 
@@ -71,6 +72,7 @@ const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
 
     return (
         <Steps
+            className={className}
             size="small"
             current={currentIndex}
         >

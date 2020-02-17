@@ -96,7 +96,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {FormPage.renderSpinner(saveInProgress)}
                     </Button> : <div/>}
                 </div>
-                {page !== Page.UploadSummary && <ProgressBar page={page} />}
+                <ProgressBar className={styles.progressBar} page={page} />
             </div>
         );
     }
