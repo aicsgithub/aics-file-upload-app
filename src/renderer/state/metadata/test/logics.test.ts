@@ -25,6 +25,7 @@ import {
 } from "../../test/mocks";
 import {
     requestAnnotations,
+    requestBarcodeSearchResults,
     requestFileMetadataForJob,
     requestMetadata,
     requestTemplates,
@@ -38,6 +39,7 @@ import {
     getAnnotations,
     getAnnotationTypes,
     getBarcodePrefixes,
+    getBarcodeSearchResults,
     getChannels,
     getFileMetadataForJob,
     getFileMetadataSearchResults,
@@ -373,6 +375,54 @@ describe("Metadata logics", () => {
             await logicMiddleware.whenComplete();
             state = store.getState();
             expect(getAlert(state)).to.not.be.undefined;
+        });
+    });
+    describe("getBarcodeSearchResults", () => {
+        it("sets barcodeSearchResults given good request", async () => {
+            const getPlatesByBarcodeStub = stub().resolves([{}]);
+            sandbox.replace(labkeyClient, "getPlatesByBarcode", getPlatesByBarcodeStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            // before
+            expect(getBarcodeSearchResults(store.getState())).to.be.empty;
+
+            // apply
+            store.dispatch(requestBarcodeSearchResults("35"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(getBarcodeSearchResults(store.getState())).to.not.be.empty;
+        });
+        it("sets error alert given bad request", async () => {
+            const getPlatesByBarcodeStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getPlatesByBarcode", getPlatesByBarcodeStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(requestBarcodeSearchResults("35"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(getAlert(store.getState())).to.not.be.undefined;
+        });
+        it("doesn't request data if payload is empty", () => {
+            const getPlatesByBarcodeStub = stub().rejects();
+            sandbox.replace(labkeyClient, "getPlatesByBarcode", getPlatesByBarcodeStub);
+            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            // before
+            expect(getBarcodeSearchResults(store.getState())).to.be.empty;
+            expect(getPlatesByBarcodeStub.called).to.be.false;
+
+            // apply
+            store.dispatch(requestBarcodeSearchResults("  "));
+
+            // after
+            expect(getBarcodeSearchResults(store.getState())).to.be.empty;
+            expect(getPlatesByBarcodeStub.called).to.be.false;
         });
     });
 });
