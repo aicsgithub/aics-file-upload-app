@@ -47,7 +47,7 @@ pipeline {
         stage ("version") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "true"
+                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"
                 }
             }
             steps {
