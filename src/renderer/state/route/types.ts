@@ -7,6 +7,10 @@ export interface AppPageConfig {
     container: JSX.Element;
 }
 
+export interface CloseUploadTabAction {
+    type: string;
+}
+
 export interface GoBackAction {
     type: string;
 }

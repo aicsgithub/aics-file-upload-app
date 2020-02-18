@@ -27,9 +27,9 @@ import {
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
-import { selectView } from "../../state/route/actions";
+import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
-import { AppPageConfig, Page, SelectViewAction } from "../../state/route/types";
+import { AppPageConfig, CloseUploadTabAction, Page, SelectViewAction } from "../../state/route/types";
 import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
@@ -84,6 +84,7 @@ interface AppProps {
     alert?: AppAlert;
     clearAlert: ActionCreator<ClearAlertAction>;
     clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
+    closeUploadTab: ActionCreator<CloseUploadTabAction>;
     copyInProgress: boolean;
     fileToTags: Map<string, FileTagType[]>;
     files: UploadFile[];
@@ -241,17 +242,29 @@ class App extends React.Component<AppProps, {}> {
                         <Tabs
                             activeKey={view}
                             className={styles.tabContainer}
+                            hideAdd={true}
                             onChange={this.props.selectView}
-                            type="card"
+                            onEdit={this.onTabChange}
+                            type="editable-card"
                         >
-                            <TabPane className={styles.tabContent} tab="Summary" key={Page.UploadSummary}>
+                            <TabPane
+                                className={styles.tabContent}
+                                tab="Summary"
+                                key={Page.UploadSummary}
+                                closable={false}
+                            >
                                 {uploadSummaryConfig.container}
                             </TabPane>
-                            <TabPane className={styles.tabContent} tab="Search Files" key={Page.SearchFiles}>
+                            <TabPane
+                                className={styles.tabContent}
+                                tab="Search Files"
+                                key={Page.SearchFiles}
+                                closable={false}
+                            >
                                 <SearchFiles key="searchFiles"/>
                             </TabPane>
                             {page !== Page.UploadSummary && (
-                                <TabPane className={styles.tabContent} tab="Current Upload" key={page}>
+                                <TabPane className={styles.tabContent} tab="Current Upload" key={page} closable={true}>
                                     {pageConfig.container}
                                 </TabPane>
                             )}
@@ -264,6 +277,14 @@ class App extends React.Component<AppProps, {}> {
                 <SettingsEditorModal/>
             </div>
         );
+    }
+
+    private onTabChange = (targetKey: string | React.MouseEvent<HTMLElement>, action: "add" | "remove"): void => {
+        // currently only one tab is closable so we are not checking targetKey. If this changes, we'll need to
+        // add a check here
+        if (action === "remove") {
+            this.props.closeUploadTab();
+        }
     }
 }
 
@@ -287,6 +308,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     clearAlert,
     clearStagedFiles,
+    closeUploadTab,
     gatherSettings,
     getFilesInFolder: selection.actions.getFilesInFolder,
     loadFilesFromDragAndDrop,

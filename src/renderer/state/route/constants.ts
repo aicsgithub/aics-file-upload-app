@@ -3,6 +3,7 @@ import { Page } from "./types";
 
 const BRANCH_NAME = "route";
 
+export const CLOSE_UPLOAD_TAB = makeConstant(BRANCH_NAME, "close-upload-tab");
 export const GO_BACK = makeConstant(BRANCH_NAME, "go-back");
 export const GO_FORWARD = makeConstant(BRANCH_NAME, "go-forward");
 export const SELECT_PAGE = makeConstant(BRANCH_NAME, "select-page");

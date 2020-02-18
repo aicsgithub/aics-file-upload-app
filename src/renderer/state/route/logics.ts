@@ -28,7 +28,7 @@ import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { selectPage } from "./actions";
-import { getNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
+import { CLOSE_UPLOAD_TAB, getNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
 import { getPage } from "./selectors";
 import { Page } from "./types";
 
@@ -57,6 +57,24 @@ const updateAppMenu = (nextPage: Page, menu: Menu | null, logger: Logger) => {
         logger.error("Could not update application menu");
     }
 };
+
+const stateBranchHistory = [
+    {
+        clearHistory: clearSelectionHistory,
+        getHistory: getSelectionHistory,
+        jumpToPast: jumpToPastSelection,
+    },
+    {
+        clearHistory: clearTemplateHistory,
+        getHistory: getTemplateHistory,
+        jumpToPast: jumpToPastTemplate,
+    },
+    {
+        clearHistory: clearUploadHistory,
+        getHistory: getUploadHistory,
+        jumpToPast: jumpToPastUpload,
+    },
+];
 
 const selectPageLogic = createLogic({
     process: (
@@ -91,24 +109,6 @@ const selectPageLogic = createLogic({
         if (nextPageOrder < currentPageOrder) {
             actions.push(action);
 
-            const stateBranchHistory = [
-                {
-                    clearHistory: clearSelectionHistory,
-                    getHistory: getSelectionHistory,
-                    jumpToPast: jumpToPastSelection,
-                },
-                {
-                    clearHistory: clearTemplateHistory,
-                    getHistory: getTemplateHistory,
-                    jumpToPast: jumpToPastTemplate,
-                },
-                {
-                    clearHistory: clearUploadHistory,
-                    getHistory: getUploadHistory,
-                    jumpToPast: jumpToPastUpload,
-                },
-            ];
-
             stateBranchHistory.forEach((history) => {
                 const historyForThisStateBranch = history.getHistory(state);
 
@@ -122,6 +122,11 @@ const selectPageLogic = createLogic({
                     actions.push(history.jumpToPast(index));
                 }
             });
+
+        } else if (nextPage === Page.UploadSummary) {
+            stateBranchHistory.forEach(
+                (history) => actions.push(history.jumpToPast(0), history.clearHistory())
+            );
 
         // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
         } else if (nextPageOrder > currentPageOrder) {
@@ -192,7 +197,30 @@ const goForwardLogic = createLogic({
     },
 });
 
+const closeUploadTabLogic = createLogic({
+    type: CLOSE_UPLOAD_TAB,
+    validate: ({action, remote, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        remote.dialog.showMessageBox({
+            buttons: ["Cancel", "Yes"],
+            cancelId: 0,
+            defaultId: 1,
+            message: "Changes will be lost if you close this tab. Are you sure?",
+            title: "Warning",
+            type: "warning",
+        }, (response: number) => {
+            if (response === 1) {
+                const currentPage = getPage(getState());
+                next(selectPage(currentPage, Page.UploadSummary));
+            } else {
+                reject(action);
+            }
+        });
+    },
+});
+
 export default [
+    closeUploadTabLogic,
     goBackLogic,
     goForwardLogic,
     selectPageLogic,

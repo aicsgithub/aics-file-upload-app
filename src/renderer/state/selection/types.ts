@@ -164,14 +164,6 @@ export interface AddStageFilesAction {
     type: string;
 }
 
-export interface SelectPageAction {
-    payload: {
-        currentPage: Page;
-        nextPage: Page;
-    };
-    type: string;
-}
-
 export interface UpdateStagedFilesAction {
     payload: UploadFile[];
     type: string;
