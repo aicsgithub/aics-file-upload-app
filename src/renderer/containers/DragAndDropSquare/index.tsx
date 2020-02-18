@@ -13,8 +13,6 @@ import {
     LoadFilesFromOpenDialogAction,
 } from "../../state/selection/types";
 
-const styles = require("./style.pcss");
-
 interface DragAndDropSquareProps {
     goBack: ActionCreator<GoBackAction>;
     goForward: ActionCreator<NextPageAction>;
@@ -46,7 +44,6 @@ const DragAndDropSquare: React.FunctionComponent<DragAndDropSquareProps> = ({
             <DragAndDrop
                 onDrop={onDrop}
                 onOpen={onOpen}
-                className={styles.dragAndDropSquare}
                 openDialogOptions={openDialogOptions}
             />
         </FormPage>
