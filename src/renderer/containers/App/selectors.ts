@@ -7,18 +7,7 @@ import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { isFileRow } from "../../state/upload/constants";
 
 import { getUpload, getWellLabelAndImagingSessionName } from "../../state/upload/selectors";
-import { FileTagType, UploadMetadata, UploadStateBranch } from "../../state/upload/types";
-
-// All tags representing wells should share the same color
-export class FileTag implements FileTagType {
-    public title: string;
-    public color: string;
-
-    constructor(title: string, color: string) {
-        this.title = title;
-        this.color = color;
-    }
-}
+import { FileTag, FileTagType, UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
 // Result used by the FolderTree to display tags by each file with associated metadata
 export const getFileToTags = createSelector([
@@ -31,13 +20,13 @@ export const getFileToTags = createSelector([
     imagingSessions: ImagingSession[],
     selectedPlates: PlateResponse[],
     wells: WellResponse[]
-    ): Map<string, FileTagType[]> => {
+    ): Map<string, FileTag[]> => {
     const uploadsGroupedByFile = groupBy(upload, "file");
-    const result = new Map<string, FileTagType[]>();
+    const result = new Map<string, FileTag[]>();
     forEach(uploadsGroupedByFile, (metadata: UploadMetadata[], file: string) => {
         const workflows = flatMap(metadata, (m) => m.workflows || []);
         const wellIds = flatMap(metadata, (m) => m.wellIds || []);
-        const wellTags: string[] = [];
+        const wellTags: Array<{ label: string, wellId: number }> = [];
         wellIds.forEach((wellId: number) => {
            const label = getWellLabelAndImagingSessionName(
                wellId,
@@ -45,12 +34,16 @@ export const getFileToTags = createSelector([
                selectedPlates,
                wells
            );
-           wellTags.push(label);
+           wellTags.push({ label, wellId });
         });
 
         const tags = [
-            ...uniq(workflows).map((w: string) => new FileTag(w, "blue")),
-            ...uniq(wellTags).map((w: string) => new FileTag(w, "magenta")),
+            ...uniq(workflows).map((workflow: string) =>
+                ({ title: workflow, color: "blue", type: FileTagType.WORKFLOW, workflow })
+            ),
+            ...uniq(wellTags).map(({label, wellId}) =>
+                ({ title: label, color: "magenta", type: FileTagType.WELL, wellId })
+            ),
         ];
         const fileRows = metadata.filter(isFileRow);
         let shouldBeInArchive = false;
@@ -61,10 +54,10 @@ export const getFileToTags = createSelector([
             shouldBeInLocal = Boolean(fileRow.shouldBeInLocal);
         }
         if (shouldBeInArchive) {
-            tags.push(new FileTag("Archive", "green"));
+            tags.push({ title: "Archive", color: "green", type: FileTagType.STORAGE });
         }
         if (shouldBeInLocal) {
-            tags.push(new FileTag("Isilon", "green"));
+            tags.push({ title: "Isilon", color: "green", type: FileTagType.STORAGE });
         }
         result.set(file, tags);
     });

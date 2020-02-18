@@ -59,7 +59,17 @@ import {
     UpdateSettingsAction,
 } from "../../state/setting/types";
 import { State } from "../../state/types";
-import { FileTagType } from "../../state/upload/types";
+import {
+    removeFileFromArchive, removeFileFromIsilon,
+    undoFileWellAssociation,
+    undoFileWorkflowAssociation,
+} from "../../state/upload/actions";
+import {
+    FileTag,
+    RemoveFileFromArchiveAction, RemoveFileFromIsilonAction,
+    UndoFileWellAssociationAction,
+    UndoFileWorkflowAssociationAction,
+} from "../../state/upload/types";
 
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
@@ -85,7 +95,7 @@ interface AppProps {
     clearAlert: ActionCreator<ClearAlertAction>;
     clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
     copyInProgress: boolean;
-    fileToTags: Map<string, FileTagType[]>;
+    fileToTags: Map<string, FileTag[]>;
     files: UploadFile[];
     folderTreeOpen: boolean;
     gatherSettings: ActionCreator<GatherSettingsAction>;
@@ -95,6 +105,8 @@ interface AppProps {
     openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
     loading: boolean;
     recentEvent?: AppEvent;
+    removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
+    removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
     requestMetadata: ActionCreator<RequestMetadataAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
@@ -105,6 +117,8 @@ interface AppProps {
     switchEnvironment: ActionCreator<SwitchEnvironmentAction>;
     page: Page;
     toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
+    undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
+    undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     view: Page;
 }
@@ -232,10 +246,14 @@ class App extends React.Component<AppProps, {}> {
                        loadFilesFromDragAndDropAction={this.props.loadFilesFromDragAndDrop}
                        loadFilesFromOpenDialogAction={this.props.openFilesFromDialog}
                        onCheck={selectFile}
+                       removeFileFromArchive={this.props.removeFileFromArchive}
+                       removeFileFromIsilon={this.props.removeFileFromIsilon}
                        selectedKeys={selectedFiles}
                        setAlert={setAlert}
                        fileToTags={fileToTags}
                        toggleFolderTree={this.props.toggleFolderTree}
+                       undoFileWellAssociation={this.props.undoFileWellAssociation}
+                       undoFileWorkflowAssociation={this.props.undoFileWorkflowAssociation}
                     />
                     <div className={styles.mainContent}>
                         <Tabs
@@ -291,6 +309,8 @@ const dispatchToPropsMap = {
     getFilesInFolder: selection.actions.getFilesInFolder,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
+    removeFileFromArchive,
+    removeFileFromIsilon,
     requestMetadata,
     selectFile: selection.actions.selectFile,
     selectView,
@@ -298,6 +318,8 @@ const dispatchToPropsMap = {
     setMountPoint,
     switchEnvironment,
     toggleFolderTree,
+    undoFileWellAssociation,
+    undoFileWorkflowAssociation,
     updateSettings,
 };
 

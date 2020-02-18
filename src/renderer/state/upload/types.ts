@@ -197,13 +197,32 @@ export interface UpdateFilesToStoreOnIsilon {
     type: string;
 }
 
+export interface RemoveFileFromArchiveAction {
+    payload: string;
+    type: string;
+}
+
+export interface RemoveFileFromIsilonAction {
+    payload: string;
+    type: string;
+}
+
+export enum FileTagType {
+    WELL = "well",
+    WORKFLOW = "workflow",
+    STORAGE = "storage",
+}
+
 // Represents information needed to display an Antd Tag next to a file on the FolderTree.
 // There will be a tag for each piece of metadata associated with a file.
-export interface FileTagType {
+export interface FileTag {
+    wellId?: number;
+    workflow?: string;
     // Tag text
     title: string;
     // Tag background color
     color: string;
+    type: FileTagType;
 }
 
 export enum FileType {
