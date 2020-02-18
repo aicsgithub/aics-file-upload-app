@@ -37,7 +37,7 @@ export const getFileToTags = createSelector([
            wellTags.push({ label, wellId });
         });
 
-        const tags = [
+        const tags: FileTag[] = [
             ...uniq(workflows).map((workflow: string) =>
                 ({ title: workflow, color: "blue", type: FileTagType.WORKFLOW, workflow })
             ),
