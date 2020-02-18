@@ -27,6 +27,10 @@ export const getNextPage = (currentPage: Page, direction: number): Page | null =
     if (currentPageIndex > -1) {
         const nextPageIndex = currentPageIndex + direction;
 
+        if (nextPageIndex < 0) {
+            return pageOrder[pageOrder.length - 1];
+        }
+
         if (nextPageIndex > -1 && nextPageIndex < pageOrder.length) {
             return pageOrder[nextPageIndex];
         }

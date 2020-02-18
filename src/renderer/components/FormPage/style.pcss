@@ -1,44 +1,59 @@
 .container {
-  /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom - statusBarHeight - buttonsHeight - progressBarHeight */
-  max-height: calc(100vh - 64px - 56px - 30px - 40px - 40px);
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 
   & .title {
+    flex: 0 0 auto;
+    padding-top: 2em;
     text-transform: uppercase;
   }
 
   & .form-prompt {
-    font-size: 22px;
+    flex: 0 0 auto;
+    font-size: var(--large);
   }
 
   & .form {
-    padding: 1em 0;
+    flex: 1;
+    padding: 1em 0 4.5em 0;
   }
 
   & .loading {
-    font-size: 24px;
+    font-size: var(--large);
     padding: 0 12px;
   }
 }
 
-.content {
-  flex: 1;
-    /* bodyHeight - headerHeight - tabBarHeightAndMarginBottom - statusBarHeight - buttonsHeight */
-  height: calc(100vh - 64px - 56px - 30px - 40px);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+.progress-bar {
+  padding-bottom: var(--tab-pane-padding);
 }
 
-.button-container {
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 40px;
-  margin: 6px 0 6px 0;
+  height: 100%;
+  overflow: auto;
+}
 
-  & .back-button {
-    float: left;
-  }
+.header {
+  flex: 0 0 auto;
+}
 
-  & .save-button {
-    float: right;
-  }
+.buttons {
+  flex: 0 0 auto;
+  padding: var(--tab-pane-padding) var(--tab-pane-padding) 0 var(--tab-pane-padding);
+  display: flex;
+  justify-content: center;
+}
+
+.back-button {
+  flex: 0 0 auto;
+}
+
+.save-button {
+  flex: 0 0 auto;
 }

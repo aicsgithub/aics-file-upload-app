@@ -18,9 +18,9 @@ interface FormPageProps {
     saveButtonName?: string;
     saveButtonDisabled?: boolean;
     saveInProgress?: boolean;
-    onSave?: () => any;
+    onSave: () => any;
     backButtonName?: string;
-    onBack?: () => any;
+    onBack: () => any;
     page: Page;
 }
 
@@ -56,8 +56,6 @@ class FormPage extends React.Component<FormPageProps, {}> {
             className,
             formPrompt,
             formTitle,
-            onSave,
-            onBack,
             page,
             saveInProgress,
             saveButtonDisabled,
@@ -66,7 +64,8 @@ class FormPage extends React.Component<FormPageProps, {}> {
         const {} = this.state;
 
         return (
-            <div className={classNames(className, styles.container)}>
+            <div className={classNames(styles.container, className)}>
+                <ProgressBar className={styles.progressBar} page={page} />
                 <div className={styles.content}>
                     <div className={styles.title}>{formTitle}</div>
                     <div className={styles.formPrompt}>
@@ -76,16 +75,17 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {children}
                     </div>
                 </div>
-                <div className={styles.buttonContainer}>
-                    {onBack ? <Button
+                <div className={styles.buttons}>
+                    <Button
                         className={styles.backButton}
                         size="large"
+                        type="link"
                         onClick={this.onBack}
                         disabled={backButtonDisabled}
                     >
                         {backButtonName}
-                    </Button> : <div/>}
-                    {onSave ? <Button
+                    </Button>
+                    <Button
                         className={styles.saveButton}
                         type="primary"
                         size="large"
@@ -94,9 +94,8 @@ class FormPage extends React.Component<FormPageProps, {}> {
                     >
                         {saveInProgress ? "Loading" : saveButtonName}
                         {FormPage.renderSpinner(saveInProgress)}
-                    </Button> : <div/>}
+                    </Button>
                 </div>
-                {page !== Page.UploadSummary && <ProgressBar page={page} />}
             </div>
         );
     }

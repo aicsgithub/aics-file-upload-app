@@ -1,4 +1,4 @@
-import { Button, Checkbox, Col, Empty, Icon, Radio, Row, Table } from "antd";
+import { Button, Checkbox, Empty, Icon, Radio, Row, Table } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import CheckboxGroup, { CheckboxValueType } from "antd/es/checkbox/Group";
 import { RadioChangeEvent } from "antd/es/radio";
@@ -8,7 +8,6 @@ import { map, startCase } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
-import FormPage from "../../components/FormPage";
 
 import FileMetadataModal from "../../components/FileMetadataModal";
 import LabeledInput from "../../components/LabeledInput";
@@ -36,7 +35,6 @@ import {
     SearchFileMetadataAction,
     SearchResultRow,
 } from "../../state/metadata/types";
-import { Page } from "../../state/route/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import { getAnnotation, getAnnotationIsLookup, getUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
@@ -131,26 +129,24 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
         const { selectedRow, searchMode, showExtraColumnOptions } = this.state;
         const tableTitle = () => `Search found ${numberOfFilesFound} files matching query`;
         return (
-            <FormPage
-                className={className}
-                formTitle="SEARCH FOR FILES"
-                formPrompt="Query for files and their metadata using one of the below search modes"
-                saveButtonName={"Export CSV"}
-                onSave={this.exportCSV}
-                saveButtonDisabled={!numberOfFilesFound || exportingCSV}
-                page={Page.SearchFiles}
-            >
-                <Row>
-                    <Col xs={16}>
-                        <LabeledInput label="Search Mode">
-                            <Radio.Group buttonStyle="solid" onChange={this.selectSearchMode} value={searchMode}>
-                                {searchModeOptions.map((option) => (
-                                    <Radio.Button key={option} value={option}>{option}</Radio.Button>
-                                ))}
-                            </Radio.Group>
-                        </LabeledInput>
-                    </Col>
-                    <Col xs={8}>
+            <div className={className}>
+                <h2>Search Files</h2>
+                <div className={styles.searchControls}>
+                    <LabeledInput label="Search Mode" className={styles.searchMode}>
+                        <Radio.Group onChange={this.selectSearchMode} value={searchMode}>
+                            {searchModeOptions.map((option) => (
+                                <Radio.Button key={option} value={option}>{option}</Radio.Button>
+                            ))}
+                        </Radio.Group>
+                    </LabeledInput>
+                    <div className={styles.buttons}>
+                        <Button
+                            className={styles.exportBtn}
+                            disabled={!numberOfFilesFound || exportingCSV}
+                            onClick={this.exportCSV}
+                        >
+                            Export CSV
+                        </Button>
                         {searchMode === SearchMode.ANNOTATION && (
                             <Button
                                 disabled={searchLoading}
@@ -167,8 +163,8 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                             ><Icon type="sync" />Refresh Templates
                             </Button>
                         )}
-                    </Col>
-                </Row>
+                    </div>
+                </div>
                 <Row gutter={8} className={styles.fullWidth}>
                     {this.renderSearchForm()}
                 </Row>
@@ -216,7 +212,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
                     fileMetadata={selectedRow}
                     closeFileDetailModal={this.toggleFileDetailModal}
                 />
-            </FormPage>
+            </div>
         );
     }
 

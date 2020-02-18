@@ -1,20 +1,21 @@
+import { OpenDialogOptions } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
-
-import { OpenDialogOptions } from "electron";
+import { ActionCreator } from "redux";
 import DragAndDrop from "../../components/DragAndDrop";
-import ProgressBar from "../../components/ProgressBar";
+import FormPage from "../../components/FormPage";
 import { selection } from "../../state";
-import { Page } from "../../state/route/types";
+import { goBack, goForward } from "../../state/route/actions";
+import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import {
     DragAndDropFileList,
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
 } from "../../state/selection/types";
 
-const styles = require("./style.pcss");
-
 interface DragAndDropSquareProps {
+    goBack: ActionCreator<GoBackAction>;
+    goForward: ActionCreator<NextPageAction>;
     onDrop: (files: DragAndDropFileList) => LoadFilesFromDragAndDropAction;
     onOpen: (files: string[]) => LoadFilesFromOpenDialogAction;
 }
@@ -27,27 +28,33 @@ const openDialogOptions: OpenDialogOptions = {
 };
 
 const DragAndDropSquare: React.FunctionComponent<DragAndDropSquareProps> = ({
+                                                                                goBack: goBackProp,
+                                                                                goForward: goForwardProp,
                                                                                 onDrop,
                                                                                 onOpen,
                                                                             }: DragAndDropSquareProps) => {
     return (
-        <div>
+        <FormPage
+            formTitle="Drag and Drop"
+            formPrompt="Drag and drop files or click Browse"
+            onBack={goBackProp}
+            onSave={goForwardProp}
+            page={Page.DragAndDrop}
+        >
             <DragAndDrop
                 onDrop={onDrop}
                 onOpen={onOpen}
-                className={styles.dragAndDropSquare}
                 openDialogOptions={openDialogOptions}
             />
-            <ProgressBar
-                page={Page.DragAndDrop}
-            />
-        </div>
+        </FormPage>
     );
 };
 
 const mapStateToProps = () => ({});
 
 const dispatchToPropsMap = {
+    goBack,
+    goForward,
     onDrop: selection.actions.loadFilesFromDragAndDrop,
     onOpen: selection.actions.openFilesFromDialog,
 };

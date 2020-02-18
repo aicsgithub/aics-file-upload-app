@@ -1,14 +1,14 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Empty, Modal, Progress, Radio, Row, Table } from "antd";
+import { Button, Col, Empty, Icon, Modal, Progress, Radio, Row, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
-import { isEmpty, map } from "lodash";
+import * as classNames from "classnames";
+import { capitalize, isEmpty, map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import FileMetadataModal from "../../components/FileMetadataModal";
-import FormPage from "../../components/FormPage";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
@@ -130,7 +130,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
                     successPercent={50}
                 />
-            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "REPLACED" : row.status),
+            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "Replaced" : capitalize(row.status)),
             title: "Progress",
             width: "190px",
         },
@@ -180,60 +180,68 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         } = this.props;
         const { selectedRowInJob } = this.state;
         const selectedJob = this.getSelectedJob();
+        const buttonLabel = page !== Page.UploadSummary ? <>Resume Upload</> :
+            <><Icon type="plus"/>&nbsp;New Upload</>;
         return (
-            <FormPage
-                className={className}
-                formTitle="YOUR UPLOADS"
-                formPrompt="Your upload jobs will appear below"
-                onSave={this.onFormSave}
-                saveButtonName={page !== Page.UploadSummary ? "Resume Upload Job" : "Create New Upload Job"}
-                page={Page.UploadSummary}
-            >
-                <Row>
-                    Show&nbsp;
-                    <Radio.Group buttonStyle="solid" onChange={this.selectJobFilter} value={jobFilter}>
-                        {jobStatusOptions.map((option) => (
-                            <Radio.Button key={option} value={option}>{option}</Radio.Button>
-                        ))}
-                    </Radio.Group>
-                    &nbsp;Uploads
-                </Row>
-                {jobs.length ? (
-                    <Table
-                        className={styles.jobTable}
-                        columns={this.columns}
-                        dataSource={jobs}
-                        onRow={this.onRow}
-                    />
-                ) : (
-                    <Empty
-                        className={styles.empty}
-                        description={`No ${jobFilter === JobFilter.All ? "" : `${jobFilter} `} Uploads`}
-                    />
-                )}
-                {selectedJob && <Modal
-                    title="Upload Job"
-                    width="90%"
-                    visible={!!selectedJob}
-                    footer={null}
-                    onCancel={this.closeModal}
-                >
-                   <UploadJobDisplay
-                       cancelUpload={this.cancelUpload}
-                       job={selectedJob}
-                       retryUpload={this.retryUpload}
-                       loading={loading}
-                       fileMetadataForJob={fileMetadataForJob}
-                       fileMetadataForJobHeader={fileMetadataForJobHeader}
-                       fileMetadataForJobLoading={fileMetadataForJobLoading}
-                       onFileRowClick={this.openFileDetailModal}
-                   />
-                    <FileMetadataModal
-                        fileMetadata={selectedRowInJob}
-                        closeFileDetailModal={this.closeFileDetailModal}
-                    />
-                </Modal>}
-            </FormPage>
+            <div className={classNames(styles.container, className)}>
+                <div className={styles.section}>
+                    <div className={styles.header}>
+                        <Row type="flex" justify="space-between" align="middle" className={styles.title}>
+                            <Col><h2>Your Uploads</h2></Col>
+                            <Col>
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    onClick={this.startNewUpload}
+                                >
+                                    {buttonLabel}
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Radio.Group onChange={this.selectJobFilter} value={jobFilter} className={styles.filters}>
+                            {jobStatusOptions.map((option) => (
+                                <Radio.Button key={option} value={option}>{option}</Radio.Button>
+                            ))}
+                        </Radio.Group>
+                    </div>
+                    {jobs.length ? (
+                        <Table
+                            className={classNames(styles.content, styles.jobTable)}
+                            columns={this.columns}
+                            dataSource={jobs}
+                            onRow={this.onRow}
+                        />
+                    ) : (
+                        <div className={classNames(styles.content, styles.empty)}>
+                            <Empty
+                                description={`No ${jobFilter === JobFilter.All ? "" : `${jobFilter} `} Uploads`}
+                            />
+                        </div>
+                    )}
+                    {selectedJob && <Modal
+                        title="Upload Job"
+                        width="90%"
+                        visible={!!selectedJob}
+                        footer={null}
+                        onCancel={this.closeModal}
+                    >
+                        <UploadJobDisplay
+                            cancelUpload={this.cancelUpload}
+                            job={selectedJob}
+                            retryUpload={this.retryUpload}
+                            loading={loading}
+                            fileMetadataForJob={fileMetadataForJob}
+                            fileMetadataForJobHeader={fileMetadataForJobHeader}
+                            fileMetadataForJobLoading={fileMetadataForJobLoading}
+                            onFileRowClick={this.openFileDetailModal}
+                        />
+                        <FileMetadataModal
+                            fileMetadata={selectedRowInJob}
+                            closeFileDetailModal={this.closeFileDetailModal}
+                        />
+                    </Modal>}
+                </div>
+            </div>
         );
     }
 
@@ -275,7 +283,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.props.retryUpload(this.getSelectedJob());
     }
 
-    private onFormSave = (): void => {
+    private startNewUpload = (): void => {
         // If the current page is UploadSummary we must just be a view
         if (this.props.page !== Page.UploadSummary) {
             this.props.selectView(this.props.page);

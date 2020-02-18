@@ -1,16 +1,22 @@
 import { expect } from "chai";
+import { createSandbox, stub } from "sinon";
 
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { selectWorkflowPath } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
-import { createMockReduxStore } from "../../test/configure-mock-store";
+import { createMockReduxStore, dialog } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
 
-import { selectPage } from "../actions";
-import { getPage } from "../selectors";
+import { goBack, selectPage } from "../actions";
+import { getPage, getView } from "../selectors";
 import { Page } from "../types";
 
 describe("Route logics", () => {
+    const sandbox = createSandbox();
+    afterEach(() => {
+        sandbox.restore();
+    });
+
     describe("selectPageLogic", () => {
         // This is going forward
         it("Going from DragAndDrop to SelectUploadType should record the index selection/template/upload state " +
@@ -139,6 +145,55 @@ describe("Route logics", () => {
             const state = store.getState();
             expect(getCurrentSelectionIndex(state)).to.equal(0);
             expect(getPage(state)).to.equal(Page.DragAndDrop);
+        });
+    });
+    describe("goBackLogic", () => {
+        /**
+         * helper function for go back logic tests
+         * @param startPage the page we start on
+         * @param expectedEndPage the page we expect to end at
+         * @param respondOKToDialog whether or not the user says OK to the dialog asking them if it's okay to lose their
+         * changes and go back
+         */
+        const runGoBackTest = async (startPage: Page, expectedEndPage: Page, respondOKToDialog: boolean = true) => {
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+                route: {
+                    page: startPage,
+                    view: startPage,
+                },
+            });
+
+            const dialogResult = respondOKToDialog ? 1 : 0;
+            const showMessageBoxStub = stub().callsArgWith(1, dialogResult);
+            sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+
+            expect(getPage(store.getState())).to.equal(startPage);
+            expect(getView(store.getState())).to.equal(startPage);
+
+            store.dispatch(goBack());
+
+            await logicMiddleware.whenComplete();
+            expect(getPage(store.getState())).to.equal(expectedEndPage);
+            expect(getView(store.getState())).to.equal(expectedEndPage);
+        };
+        it("goes to SelectStorageIntent page if going back from AddCustomData page", async () => {
+            await runGoBackTest(Page.AddCustomData, Page.SelectStorageLocation);
+        });
+        it("goes to AssociateFiles page if going back from SelectStorageLocation page", async () => {
+            await runGoBackTest(Page.SelectStorageLocation, Page.AssociateFiles);
+        });
+        it("goes to SelectUploadType page if going back from AssociateFiles page", async () => {
+            await runGoBackTest(Page.AssociateFiles, Page.SelectUploadType);
+        });
+        it("goes to DragAndDrop page if going back from SelectUploadType page", async () => {
+            await runGoBackTest(Page.SelectUploadType, Page.DragAndDrop);
+        });
+        it("goes to UploadSummary page if going back from DragAndDrop page", async () => {
+            await runGoBackTest(Page.DragAndDrop, Page.UploadSummary);
+        });
+        it("does not change pages if user cancels the action through the dialog", async () => {
+            await runGoBackTest(Page.SelectUploadType, Page.SelectUploadType, false);
         });
     });
 });

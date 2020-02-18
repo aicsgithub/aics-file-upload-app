@@ -95,6 +95,18 @@ export const getApplicationMenu = stub().returns(
     }
 );
 
+export const dialog = {
+    showMessageBox: stub(),
+    showOpenDialog: stub(),
+};
+
+const remote = {
+    Menu: {
+        getApplicationMenu,
+    },
+    dialog,
+};
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     fms,
     ipcRenderer: {
@@ -110,15 +122,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         warn: stub(),
     },
     mmsClient,
-    remote: {
-        Menu: {
-            getApplicationMenu,
-        },
-        dialog: {
-            showMessageBox: stub(),
-            showOpenDialog: stub(),
-        },
-    },
+    remote,
     storage: {
         get: stub(),
         has: stub(),
