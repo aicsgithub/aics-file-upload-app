@@ -1,4 +1,4 @@
-import { Icon, Steps, Tooltip } from "antd";
+import { Steps, Tooltip } from "antd";
 import { startCase } from "lodash";
 import * as React from "react";
 
@@ -14,34 +14,28 @@ interface ProgressBarProps {
 interface StepInfo {
     description: string;
     display: string;
-    icon: React.ReactNode;
 }
 
 const stepOrder: { [stepName: string]: StepInfo } = {
     [Page.DragAndDrop]: {
         description: "Drag and drop folders/files to upload",
         display: "Drag and Drop",
-        icon: <Icon type="upload" />,
     },
     [Page.SelectUploadType]: {
         description: "Choose how you want to associate data with your files",
         display: "Upload Type",
-        icon: <Icon type="select" />,
     },
     [Page.AssociateFiles]: {
         description: "Associate Wells or Workflows with Files to upload",
         display: "Associate Files",
-        icon: <Icon type="file" />,
     },
     [Page.SelectStorageLocation]: {
         description: "Select where to store files",
         display: "Storage",
-        icon: <Icon type="compass" />,
     },
     [Page.AddCustomData]: {
         description: "Add additional custom metadata to the files",
         display: "Add Metadata",
-        icon: <Icon type="form"/>,
     },
 };
 
