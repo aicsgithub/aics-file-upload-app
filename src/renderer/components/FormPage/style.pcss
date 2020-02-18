@@ -12,7 +12,7 @@
 
   & .form-prompt {
     flex: 0 0 auto;
-    font-size: 22px;
+    font-size: var(--large);
   }
 
   & .form {
@@ -21,9 +21,13 @@
   }
 
   & .loading {
-    font-size: 24px;
+    font-size: var(--large);
     padding: 0 12px;
   }
+}
+
+.progress-bar {
+  padding-bottom: var(--tab-pane-padding);
 }
 
 .content {
@@ -41,7 +45,7 @@
 
 .buttons {
   flex: 0 0 auto;
-  padding: 0.5em;
+  padding: var(--tab-pane-padding) var(--tab-pane-padding) 0 var(--tab-pane-padding);
   display: flex;
   justify-content: center;
 }
