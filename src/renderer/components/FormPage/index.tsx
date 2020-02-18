@@ -64,7 +64,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
         const {} = this.state;
 
         return (
-            <div className={classNames(className, styles.container)}>
+            <div className={classNames(styles.container, className)}>
                 <ProgressBar className={styles.progressBar} page={page} />
                 <div className={styles.content}>
                     <div className={styles.title}>{formTitle}</div>
@@ -75,24 +75,27 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {children}
                     </div>
                 </div>
-                <Button
-                    className={styles.backButton}
-                    size="large"
-                    onClick={this.onBack}
-                    disabled={backButtonDisabled}
-                >
-                    {backButtonName}
-                </Button>
-                <Button
-                    className={styles.saveButton}
-                    type="primary"
-                    size="large"
-                    onClick={this.onSave}
-                    disabled={saveButtonDisabled}
-                >
-                    {saveInProgress ? "Loading" : saveButtonName}
-                    {FormPage.renderSpinner(saveInProgress)}
-                </Button>
+                <div className={styles.buttons}>
+                    <Button
+                        className={styles.backButton}
+                        size="large"
+                        type="link"
+                        onClick={this.onBack}
+                        disabled={backButtonDisabled}
+                    >
+                        {backButtonName}
+                    </Button>
+                    <Button
+                        className={styles.saveButton}
+                        type="primary"
+                        size="large"
+                        onClick={this.onSave}
+                        disabled={saveButtonDisabled}
+                    >
+                        {saveInProgress ? "Loading" : saveButtonName}
+                        {FormPage.renderSpinner(saveInProgress)}
+                    </Button>
+                </div>
             </div>
         );
     }
