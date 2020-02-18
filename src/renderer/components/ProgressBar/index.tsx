@@ -12,31 +12,35 @@ interface ProgressBarProps {
 }
 
 interface StepInfo {
-    [step: string]: {
-        description: string;
-        icon: React.ReactNode;
-    };
+    description: string;
+    display: string;
+    icon: React.ReactNode;
 }
 
-const stepOrder: StepInfo = {
+const stepOrder: { [stepName: string]: StepInfo } = {
     [Page.DragAndDrop]: {
         description: "Drag and drop folders/files to upload",
+        display: "Drag and Drop",
         icon: <Icon type="upload" />,
     },
     [Page.SelectUploadType]: {
         description: "Choose how you want to associate data with your files",
+        display: "Upload Type",
         icon: <Icon type="select" />,
     },
     [Page.AssociateFiles]: {
         description: "Associate Wells or Workflows with Files to upload",
+        display: "Associate Files",
         icon: <Icon type="file" />,
     },
     [Page.SelectStorageLocation]: {
         description: "Select where to store files",
+        display: "Storage",
         icon: <Icon type="compass" />,
     },
     [Page.AddCustomData]: {
         description: "Add additional custom metadata to the files",
+        display: "Add Metadata",
         icon: <Icon type="form"/>,
     },
 };
@@ -64,9 +68,9 @@ const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
         return "In Progress";
     };
 
-    const createTitle = (step: string, index: number): React.ReactNode => (
-        <Tooltip title={`${getStatus(index)}: ${stepOrder[step].description}`} mouseLeaveDelay={0}>
-            {startCase(step)}
+    const createTitle = (step: StepInfo, index: number): React.ReactNode => (
+        <Tooltip title={`${getStatus(index)}: ${step.description}`} mouseLeaveDelay={0}>
+            {startCase(step.display)}
         </Tooltip>
     );
 
@@ -75,11 +79,11 @@ const ProgressBar: React.FunctionComponent<ProgressBarProps> = (props) => {
             className={className}
             size="small"
             current={currentIndex}
+            labelPlacement="vertical"
         >
-            {Object.keys(stepOrder).map((step: string, index: number) => (
+            {Object.values(stepOrder).map((step: StepInfo, index: number) => (
                 <Step
-                    icon={index < currentIndex ? <Icon type="check-circle" /> : stepOrder[step].icon}
-                    key={step}
+                    key={step.display}
                     title={createTitle(step, index)}
                 />
             ))}
