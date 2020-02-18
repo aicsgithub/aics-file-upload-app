@@ -33,10 +33,12 @@ import {
     getCanGoForwardFromSelectStorageLocationPage,
     getFileToAnnotationHasValueMap,
     getFileToArchive,
+    getFileToStoreOnIsilon,
     getUploadFileNames,
     getUploadFiles,
     getUploadPayload,
-    getUploadSummaryRows, getUploadWithCalculatedData,
+    getUploadSummaryRows,
+    getUploadWithCalculatedData,
     getValidationErrorsMap,
 } from "../selectors";
 import { FileType, MMSAnnotationValueRequest, UploadMetadata as UploadMetadataRow } from "../types";
@@ -1136,14 +1138,14 @@ describe("Upload selectors", () => {
     });
 
     describe("getFileToStoreOnIsilon", () => {
-        it("returns a map of files to booleans representing whether to archive the file", () => {
-            const result = getFileToArchive({
+        it("returns a map of files to booleans representing whether to store the file locally", () => {
+            const result = getFileToStoreOnIsilon({
                 ...nonEmptyStateForInitiatingUpload,
             });
             expect(result).to.deep.equal({
                 "/path/to/file1": true,
-                "/path/to/file2": false,
-                "/path/to/file3": true,
+                "/path/to/file2": true,
+                "/path/to/file3": false,
             });
         });
     });

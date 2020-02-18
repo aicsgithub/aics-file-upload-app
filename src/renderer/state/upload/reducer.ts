@@ -180,7 +180,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             ...state,
             [action.payload]: {
                 ...state[action.payload],
-                shouldBeInIsilon: false,
+                shouldBeInLocal: false,
             },
         }),
     },

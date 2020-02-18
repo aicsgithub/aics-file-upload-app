@@ -272,7 +272,7 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
                     (tag) => (
                         <Tag
                             className={styles.tagSpacing}
-                            closable={true}
+                            closable={tag.closable}
                             color={tag.color}
                             key={tag.title}
                             onClose={this.removeTag(tag, file.fullPath)}
