@@ -2,7 +2,8 @@ import { Col, Select } from "antd";
 import * as React from "react";
 
 import LabeledInput from "../../../components/LabeledInput";
-import { LabkeyTemplate, LabkeyUser } from "../../../util/labkey-client/types";
+import TemplateSearch from "../../../components/TemplateSearch";
+import { LabkeyUser } from "../../../util/labkey-client/types";
 
 import SearchButton from "../SearchButton";
 
@@ -12,12 +13,11 @@ interface UserAndTemplateFormProps {
     exportingCSV: boolean;
     searchLoading: boolean;
     onSearch: () => void;
-    template?: string;
-    templates: LabkeyTemplate[];
+    templateId?: number;
     user?: string;
     users: LabkeyUser[];
     selectUser: (user?: string) => void;
-    selectTemplate: (template?: string) => void;
+    selectTemplate: (templateId?: number) => void;
 }
 
 const UserAndTemplateForm: React.FunctionComponent<UserAndTemplateFormProps> = ({
@@ -26,8 +26,7 @@ const UserAndTemplateForm: React.FunctionComponent<UserAndTemplateFormProps> = (
                                                                                   searchLoading,
                                                                                   selectTemplate,
                                                                                   selectUser,
-                                                                                  template,
-                                                                                  templates,
+                                                                                  templateId,
                                                                                   user,
                                                                                   users,
                                                                               }) => (
@@ -51,25 +50,15 @@ const UserAndTemplateForm: React.FunctionComponent<UserAndTemplateFormProps> = (
         </Col>
         <Col xs={12} xl={14} xxl={15}>
             <LabeledInput label="Template">
-                <Select
-                    allowClear={true}
-                    showSearch={true}
-                    value={template}
-                    loading={!templates.length}
-                    disabled={!templates.length}
-                    onChange={selectTemplate}
-                    placeholder="Select Template"
-                    className={styles.fullWidth}
-                >
-                    {templates.map(({ Name }) => (
-                        <Select.Option key={Name} value={Name}>{Name}</Select.Option>
-                    ))}
-                </Select>
+                <TemplateSearch
+                    onSelect={selectTemplate}
+                    value={templateId}
+                />
             </LabeledInput>
         </Col>
         <Col xs={6} xl={4} xxl={3}>
             <SearchButton
-                disabled={!template || !user || searchLoading || exportingCSV}
+                disabled={!templateId || !user || searchLoading || exportingCSV}
                 loading={searchLoading}
                 onSearch={onSearch}
             />

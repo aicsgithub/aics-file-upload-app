@@ -25,6 +25,7 @@ pipeline {
                 this.notifyBB("INPROGRESS")
                 echo "BUILDTYPE: " + ( params.PROMOTE_ARTIFACT ? "Promote Image" : "Build, Publish and Tag")
                 echo "${BRANCH_NAME}"
+                echo "increment version: ${env.INCREMENT_VERSION}"
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
         }
@@ -46,11 +47,12 @@ pipeline {
         stage ("version") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION && env.BRANCH_NAME == "master"
+                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"
                 }
             }
             steps {
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
+                sh "git push && git push --tags"
             }
         }
     }
