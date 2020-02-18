@@ -18,9 +18,9 @@ interface FormPageProps {
     saveButtonName?: string;
     saveButtonDisabled?: boolean;
     saveInProgress?: boolean;
-    onSave?: () => any;
+    onSave: () => any;
     backButtonName?: string;
-    onBack?: () => any;
+    onBack: () => any;
     page: Page;
 }
 
@@ -56,8 +56,6 @@ class FormPage extends React.Component<FormPageProps, {}> {
             className,
             formPrompt,
             formTitle,
-            onSave,
-            onBack,
             page,
             saveInProgress,
             saveButtonDisabled,
@@ -67,6 +65,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
 
         return (
             <div className={classNames(className, styles.container)}>
+                <ProgressBar className={styles.progressBar} page={page} />
                 <div className={styles.content}>
                     <div className={styles.title}>{formTitle}</div>
                     <div className={styles.formPrompt}>
@@ -76,27 +75,24 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         {children}
                     </div>
                 </div>
-                <div className={styles.buttonContainer}>
-                    {onBack ? <Button
-                        className={styles.backButton}
-                        size="large"
-                        onClick={this.onBack}
-                        disabled={backButtonDisabled}
-                    >
-                        {backButtonName}
-                    </Button> : <div/>}
-                    {onSave ? <Button
-                        className={styles.saveButton}
-                        type="primary"
-                        size="large"
-                        onClick={this.onSave}
-                        disabled={saveButtonDisabled}
-                    >
-                        {saveInProgress ? "Loading" : saveButtonName}
-                        {FormPage.renderSpinner(saveInProgress)}
-                    </Button> : <div/>}
-                </div>
-                <ProgressBar className={styles.progressBar} page={page} />
+                <Button
+                    className={styles.backButton}
+                    size="large"
+                    onClick={this.onBack}
+                    disabled={backButtonDisabled}
+                >
+                    {backButtonName}
+                </Button>
+                <Button
+                    className={styles.saveButton}
+                    type="primary"
+                    size="large"
+                    onClick={this.onSave}
+                    disabled={saveButtonDisabled}
+                >
+                    {saveInProgress ? "Loading" : saveButtonName}
+                    {FormPage.renderSpinner(saveInProgress)}
+                </Button>
             </div>
         );
     }

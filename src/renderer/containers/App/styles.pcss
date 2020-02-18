@@ -39,16 +39,7 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--main-content-padding);
-    position: relative;
   }
-}
-
-:global(.ant-tabs-content) {
-  position: absolute;
-  top: 60px;
-  bottom: 0;
-  left: 0;
-  right: 0;
 }
 
 .tab-container {
@@ -58,6 +49,14 @@
   padding-top: 0.5em;
   width: 100%;
   user-select: none;
+
+  & >:global(.ant-tabs-content) {
+    position: absolute;
+    top: 60px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 
   & .tab-content {
     height: 100%;

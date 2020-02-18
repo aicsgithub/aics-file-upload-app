@@ -1,25 +1,20 @@
 .container {
-  position: relative;
   height: 100%;
   width: 100%;
 
-  & .section {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
   & .title {
+    flex: 0 0 auto;
+    padding-top: 2em;
     text-transform: uppercase;
   }
 
   & .form-prompt {
+    flex: 0 0 auto;
     font-size: 22px;
   }
 
   & .form {
+    flex: 1;
     padding: 1em 0;
   }
 
@@ -32,26 +27,23 @@
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   width: 100%;
   height: 100%;
   overflow: auto;
 }
 
-.button-container {
-  width: 100%;
-  flex: 0 0 40px;
-  margin: 6px 0 6px 0;
-
-  & .back-button {
-    float: left;
-  }
-
-  & .save-button {
-    float: right;
-  }
+.header {
+  flex: 0 0 auto;
 }
 
-.progress-bar {
-  flex: 0 0 auto;
+.back-button {
+  position: absolute;
+  bottom: 1.5em;
+  left: 1.5em;
+}
+
+.save-button {
+  position: absolute;
+  bottom: 1.5em;
+  right: 1.5em;
 }
