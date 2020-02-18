@@ -3,7 +3,7 @@ import { Button, Col, Empty, Icon, Modal, Progress, Radio, Row, Table } from "an
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
-import { isEmpty, map } from "lodash";
+import { capitalize, isEmpty, map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -130,7 +130,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                     percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
                     successPercent={50}
                 />
-            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "REPLACED" : row.status),
+            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "Replaced" : capitalize(row.status)),
             title: "Progress",
             width: "190px",
         },
