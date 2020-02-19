@@ -160,6 +160,7 @@ describe("App selectors", () => {
                 route: {
                     ...mockState.route,
                     page: Page.SelectStorageLocation,
+                    view: Page.SelectStorageLocation,
                 },
             });
 
