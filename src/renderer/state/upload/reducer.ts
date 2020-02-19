@@ -19,6 +19,8 @@ import {
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
+    REMOVE_FILE_FROM_ARCHIVE,
+    REMOVE_FILE_FROM_ISILON,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
@@ -29,6 +31,8 @@ import {
     ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
+    RemoveFileFromArchiveAction,
+    RemoveFileFromIsilonAction,
     RemoveUploadsAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
@@ -162,6 +166,26 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: UploadStateBranch, action: UpdateUploadsAction) => ({
             ...state,
             ...action.payload,
+        }),
+    },
+    [REMOVE_FILE_FROM_ARCHIVE]: {
+        accepts: (action: AnyAction): action is RemoveFileFromArchiveAction => action.type === REMOVE_FILE_FROM_ARCHIVE,
+        perform: (state: UploadStateBranch, action: RemoveFileFromArchiveAction) => ({
+            ...state,
+            [action.payload]: {
+                ...state[action.payload],
+                shouldBeInArchive: false,
+            },
+        }),
+    },
+    [REMOVE_FILE_FROM_ISILON]: {
+        accepts: (action: AnyAction): action is RemoveFileFromIsilonAction => action.type === REMOVE_FILE_FROM_ISILON,
+        perform: (state: UploadStateBranch, action: RemoveFileFromIsilonAction) => ({
+            ...state,
+            [action.payload]: {
+                ...state[action.payload],
+                shouldBeInLocal: false,
+            },
         }),
     },
 };

@@ -1,12 +1,4 @@
-import {
-    Button,
-    Empty,
-    Icon,
-    Spin,
-    Tag,
-    Tooltip,
-    Tree,
-} from "antd";
+import { Button, Empty, Icon, Spin, Tag, Tooltip, Tree } from "antd";
 import * as classNames from "classnames";
 import { OpenDialogOptions, remote } from "electron";
 import { isEmpty } from "lodash";
@@ -22,9 +14,16 @@ import {
     LoadFilesFromOpenDialogAction,
     SelectFileAction,
     ToggleFolderTreeAction,
-    UploadFile
+    UploadFile,
 } from "../../state/selection/types";
-import { FileTagType } from "../../state/upload/types";
+import {
+    FileTag,
+    FileTagType,
+    RemoveFileFromArchiveAction,
+    RemoveFileFromIsilonAction,
+    UndoFileWellAssociationAction,
+    UndoFileWorkflowAssociationAction,
+} from "../../state/upload/types";
 import DragAndDrop from "../DragAndDrop";
 import Resizable from "../Resizable";
 
@@ -34,16 +33,20 @@ interface FolderTreeProps {
     className?: string;
     clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
     files: UploadFile[];
+    fileToTags: Map<string, FileTag[]>;
     folderTreeOpen: boolean;
     getFilesInFolder: (folderToExpand: UploadFile) => GetFilesInFolderAction;
+    isLoading?: boolean;
     loadFilesFromDragAndDropAction: (files: DragAndDropFileList) => LoadFilesFromDragAndDropAction;
     loadFilesFromOpenDialogAction: (files: string[]) => LoadFilesFromOpenDialogAction;
-    setAlert: ActionCreator<SetAlertAction>;
-    isLoading?: boolean;
     onCheck: (files: string[]) => SelectFileAction;
+    removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
+    removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
     selectedKeys: string[];
-    fileToTags: Map<string, FileTagType[]>;
+    setAlert: ActionCreator<SetAlertAction>;
     toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
+    undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
+    undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
 }
 
 interface FolderTreeState {
@@ -233,6 +236,24 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         });
     }
 
+    private removeTag = (tag: FileTag, fullpath: string) => (): void => {
+        switch (tag.type) {
+            case FileTagType.WELL:
+                this.props.undoFileWellAssociation(fullpath, undefined, true, [tag.wellId]);
+                break;
+            case FileTagType.WORKFLOW:
+                this.props.undoFileWorkflowAssociation(fullpath, [tag.workflow]);
+                break;
+            case FileTagType.STORAGE:
+                if (tag.title.toLowerCase() === "archive") {
+                    this.props.removeFileFromArchive(fullpath);
+                } else {
+                    this.props.removeFileFromIsilon(fullpath);
+                }
+                break;
+        }
+    }
+
     private renderChildDirectories(file: UploadFile): React.ReactNode {
         const wrapNoPermissionTooltip = (children: React.ReactNode | React.ReactNodeArray) => (
             <Tooltip key={FolderTree.getKey(file)} title="You do not have permissions for this file/directory">
@@ -244,12 +265,20 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
         if (!file.isDirectory) {
             const {fileToTags} = this.props;
             const fileName: JSX.Element = <span className={styles.fileName}>{file.name}</span>;
-            const tags: FileTagType[] | undefined = fileToTags.get(file.fullPath);
+            const tags: FileTag[] | undefined = fileToTags.get(file.fullPath);
             let tagEls;
             if (tags) {
                 tagEls = tags.map(
-                    (tag: { title: string, color: string }) => (
-                        <Tag className={styles.tagSpacing} color={tag.color} key={tag.title}>{tag.title}</Tag>
+                    (tag) => (
+                        <Tag
+                            className={styles.tagSpacing}
+                            closable={tag.closable}
+                            color={tag.color}
+                            key={tag.title}
+                            onClose={this.removeTag(tag, file.fullPath)}
+                        >
+                            {tag.title}
+                        </Tag>
                     ));
             }
 

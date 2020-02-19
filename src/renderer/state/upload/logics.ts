@@ -91,7 +91,7 @@ const undoFileWellAssociationLogic = createLogic({
     validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
         const state = getState();
-        const wellIds = getSelectedWellIds(state);
+        const wellIds = isEmpty(action.payload.wellIds) ? getSelectedWellIds(state) : action.payload.wellIds;
         if (isEmpty(wellIds)) {
             reject(setErrorAlert("Cannot undo file and well associations: No wells selected"));
             return;

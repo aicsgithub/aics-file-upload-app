@@ -37,6 +37,10 @@ describe("<FolderTree/>", () => {
             const loadFilesFromDragAndDropAction = sinon.fake();
             const loadFilesFromOpenDialogAction = sinon.fake();
             const toggleFolderTree = sinon.fake();
+            const undoFileWellAssociation = sinon.fake();
+            const undoFileWorkflowAssociation = sinon.fake();
+            const removeFileFromArchive = sinon.fake();
+            const removeFileFromIsilon = sinon.fake();
             const wrapper = shallow(
                 <FolderTree
                     clearStagedFiles={clearStagedFiles}
@@ -50,6 +54,10 @@ describe("<FolderTree/>", () => {
                     selectedKeys={[]}
                     fileToTags={new Map()}
                     setAlert={setAlert}
+                    undoFileWellAssociation={undoFileWellAssociation}
+                    undoFileWorkflowAssociation={undoFileWorkflowAssociation}
+                    removeFileFromArchive={removeFileFromArchive}
+                    removeFileFromIsilon={removeFileFromIsilon}
                 />
             );
 

@@ -13,6 +13,8 @@ import {
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
+    REMOVE_FILE_FROM_ARCHIVE,
+    REMOVE_FILE_FROM_ISILON,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
@@ -32,6 +34,8 @@ import {
     InitiateUploadAction,
     JumpToPastUploadAction,
     JumpToUploadAction,
+    RemoveFileFromArchiveAction,
+    RemoveFileFromIsilonAction,
     RemoveUploadsAction,
     RetryUploadAction,
     UndoFileWellAssociationAction,
@@ -62,14 +66,15 @@ export function associateFilesAndWells(rowIds: UploadRowId[])
 export function undoFileWellAssociation(
     fullPath: string,
     positionIndex?: number,
-    deleteUpload: boolean = true
+    deleteUpload: boolean = true,
+    wellIds: number[] = [],
 ): UndoFileWellAssociationAction {
     return {
         payload: {
             deleteUpload,
             fullPath,
             positionIndex,
-            wellIds: [], // this gets populated with the wells that are selected in logics
+            wellIds, // if empty, this gets populated with the wells that are selected in logics
         },
         type: UNDO_FILE_WELL_ASSOCIATION,
     };
@@ -195,5 +200,19 @@ export function updateFilesToStoreOnIsilon(filesToStoreOnIsilon: FilepathToBoole
     return {
         payload: filesToStoreOnIsilon,
         type: UPDATE_FILES_TO_STORE_ON_ISILON,
+    };
+}
+
+export function removeFileFromArchive(fileToNotArchive: string): RemoveFileFromArchiveAction {
+    return {
+        payload: fileToNotArchive,
+        type: REMOVE_FILE_FROM_ARCHIVE,
+    };
+}
+
+export function removeFileFromIsilon(fileToNotStoreOnIsilon: string): RemoveFileFromIsilonAction {
+    return {
+        payload: fileToNotStoreOnIsilon,
+        type: REMOVE_FILE_FROM_ISILON,
     };
 }
