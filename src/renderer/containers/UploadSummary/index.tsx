@@ -41,9 +41,9 @@ import {
 } from "../../state/metadata/types";
 import { selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
-import { Page, SelectViewAction } from "../../state/route/types";
+import { Page, SelectPageAction, SelectViewAction } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
-import { SelectPageAction, UploadFile } from "../../state/selection/types";
+import { UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import { CancelUploadAction, RetryUploadAction, UploadMetadata } from "../../state/upload/types";

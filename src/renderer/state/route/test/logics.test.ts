@@ -1,13 +1,16 @@
 import { expect } from "chai";
+import { ActionCreator } from "redux";
 import { createSandbox, stub } from "sinon";
 
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
-import { selectWorkflowPath } from "../../selection/actions";
+import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
 import { createMockReduxStore, dialog } from "../../test/configure-mock-store";
-import { mockState } from "../../test/mocks";
+import { mockSelectedWorkflows, mockState } from "../../test/mocks";
+import { associateFilesAndWorkflows } from "../../upload/actions";
+import { getCurrentUploadIndex } from "../../upload/selectors";
 
-import { goBack, selectPage } from "../actions";
+import { closeUploadTab, goBack, selectPage } from "../actions";
 import { getPage, getView } from "../selectors";
 import { Page } from "../types";
 
@@ -146,54 +149,109 @@ describe("Route logics", () => {
             expect(getCurrentSelectionIndex(state)).to.equal(0);
             expect(getPage(state)).to.equal(Page.DragAndDrop);
         });
-    });
-    describe("goBackLogic", () => {
-        /**
-         * helper function for go back logic tests
-         * @param startPage the page we start on
-         * @param expectedEndPage the page we expect to end at
-         * @param respondOKToDialog whether or not the user says OK to the dialog asking them if it's okay to lose their
-         * changes and go back
-         */
-        const runGoBackTest = async (startPage: Page, expectedEndPage: Page, respondOKToDialog: boolean = true) => {
+        it("Going to UploadSummary page should clear all upload information", async () => {
+            const startingSelectionHistory = {
+                [Page.DragAndDrop]: 0,
+            };
+            const startingTemplateHistory = {
+                [Page.DragAndDrop]: 0,
+
+            };
+            const startingUploadHistory = {
+                [Page.DragAndDrop]: 0,
+            };
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    history: {
+                        selection: startingSelectionHistory,
+                        template: startingTemplateHistory,
+                        upload: startingUploadHistory,
+                    },
+                },
                 route: {
-                    page: startPage,
-                    view: startPage,
+                    page: Page.AssociateFiles,
+                    view: Page.AssociateFiles,
                 },
             });
-
-            const dialogResult = respondOKToDialog ? 1 : 0;
-            const showMessageBoxStub = stub().callsArgWith(1, dialogResult);
-            sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-
-            expect(getPage(store.getState())).to.equal(startPage);
-            expect(getView(store.getState())).to.equal(startPage);
-
-            store.dispatch(goBack());
-
+            store.dispatch(selectWorkflows(mockSelectedWorkflows));
+            store.dispatch(selectFile("/path/to/file"));
+            store.dispatch(associateFilesAndWorkflows(["/path/to/file"] , mockSelectedWorkflows));
             await logicMiddleware.whenComplete();
-            expect(getPage(store.getState())).to.equal(expectedEndPage);
-            expect(getView(store.getState())).to.equal(expectedEndPage);
-        };
+
+            // before
+            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(0);
+            expect(getCurrentUploadIndex(store.getState())).to.be.greaterThan(0);
+
+            store.dispatch(selectPage(Page.SelectUploadType, Page.UploadSummary));
+            await logicMiddleware.whenComplete();
+
+            const state = store.getState();
+            expect(getCurrentSelectionIndex(state)).to.not.be.greaterThan(0);
+            expect(getCurrentUploadIndex(store.getState())).to.not.be.greaterThan(0);
+        });
+    });
+
+    /**
+     * helper function for go back and closeUploadTab logic tests
+     * @param startPage the page we start on
+     * @param expectedEndPage the page we expect to end at,
+     * @param action action creator to dispatch
+     * @param respondOKToDialog whether or not the user says OK to the dialog asking them if it's okay to lose their
+     * changes and go back
+     */
+    const runShowMessageBoxTest = async (startPage: Page, expectedEndPage: Page, action: ActionCreator<any>,
+                                         respondOKToDialog: boolean = true) => {
+        const { logicMiddleware, store } = createMockReduxStore({
+            ...mockState,
+            route: {
+                page: startPage,
+                view: startPage,
+            },
+        });
+
+        const dialogResult = respondOKToDialog ? 1 : 0;
+        const showMessageBoxStub = stub().callsArgWith(1, dialogResult);
+        sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+
+        expect(getPage(store.getState())).to.equal(startPage);
+        expect(getView(store.getState())).to.equal(startPage);
+
+        store.dispatch(action());
+
+        await logicMiddleware.whenComplete();
+        expect(getPage(store.getState())).to.equal(expectedEndPage);
+        expect(getView(store.getState())).to.equal(expectedEndPage);
+    };
+
+    describe("goBackLogic", () => {
         it("goes to SelectStorageIntent page if going back from AddCustomData page", async () => {
-            await runGoBackTest(Page.AddCustomData, Page.SelectStorageLocation);
+            await runShowMessageBoxTest(Page.AddCustomData, Page.SelectStorageLocation, goBack);
         });
         it("goes to AssociateFiles page if going back from SelectStorageLocation page", async () => {
-            await runGoBackTest(Page.SelectStorageLocation, Page.AssociateFiles);
+            await runShowMessageBoxTest(Page.SelectStorageLocation, Page.AssociateFiles, goBack);
         });
         it("goes to SelectUploadType page if going back from AssociateFiles page", async () => {
-            await runGoBackTest(Page.AssociateFiles, Page.SelectUploadType);
+            await runShowMessageBoxTest(Page.AssociateFiles, Page.SelectUploadType, goBack);
         });
         it("goes to DragAndDrop page if going back from SelectUploadType page", async () => {
-            await runGoBackTest(Page.SelectUploadType, Page.DragAndDrop);
+            await runShowMessageBoxTest(Page.SelectUploadType, Page.DragAndDrop, goBack);
         });
         it("goes to UploadSummary page if going back from DragAndDrop page", async () => {
-            await runGoBackTest(Page.DragAndDrop, Page.UploadSummary);
+            await runShowMessageBoxTest(Page.DragAndDrop, Page.UploadSummary, goBack);
         });
         it("does not change pages if user cancels the action through the dialog", async () => {
-            await runGoBackTest(Page.SelectUploadType, Page.SelectUploadType, false);
+            await runShowMessageBoxTest(Page.SelectUploadType, Page.SelectUploadType, goBack, false);
+        });
+    });
+
+    describe("closeUploadTabLogic",  () => {
+        it("goes to UploadSummary page given Yes from dialog", async () => {
+            await runShowMessageBoxTest(Page.AssociateFiles, Page.UploadSummary, closeUploadTab);
+        });
+        it("stays on current page given Cancel from dialog", async () => {
+            await runShowMessageBoxTest(Page.AssociateFiles, Page.AssociateFiles, closeUploadTab, false);
         });
     });
 });

@@ -1,6 +1,5 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
-import { Page } from "../route/types";
 import { Audited } from "../types";
 
 export interface SelectionStateBranch {
@@ -161,14 +160,6 @@ export interface LoadFilesFromOpenDialogAction {
 
 export interface AddStageFilesAction {
     payload: UploadFile[];
-    type: string;
-}
-
-export interface SelectPageAction {
-    payload: {
-        currentPage: Page;
-        nextPage: Page;
-    };
     type: string;
 }
 

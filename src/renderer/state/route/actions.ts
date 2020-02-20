@@ -1,5 +1,11 @@
-import { GO_BACK, GO_FORWARD, SELECT_PAGE, SELECT_VIEW } from "./constants";
-import { GoBackAction, NextPageAction, Page, SelectPageAction, SelectViewAction } from "./types";
+import { CLOSE_UPLOAD_TAB, GO_BACK, GO_FORWARD, SELECT_PAGE, SELECT_VIEW } from "./constants";
+import { CloseUploadTabAction, GoBackAction, NextPageAction, Page, SelectPageAction, SelectViewAction } from "./types";
+
+export function closeUploadTab(): CloseUploadTabAction {
+    return {
+        type: CLOSE_UPLOAD_TAB,
+    };
+}
 
 export function goBack(): GoBackAction {
     return {
