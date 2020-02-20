@@ -169,8 +169,8 @@ const goBackLogic = createLogic({
                 message: "Changes will be lost if you go back. Are you sure?",
                 title: "Warning",
                 type: "warning",
-            }, (response: number) => {
-                if (response === 1) {
+            }, (buttonIndex: number) => { // index of button clicked
+                if (buttonIndex === 1) {
                     next(selectPage(currentPage, nextPage));
                 } else {
                     reject(action);
@@ -208,8 +208,8 @@ const closeUploadTabLogic = createLogic({
             message: "Changes will be lost if you close this tab. Are you sure?",
             title: "Warning",
             type: "warning",
-        }, (response: number) => {
-            if (response === 1) {
+        }, (buttonIndex: number) => {
+            if (buttonIndex === 1) {
                 const currentPage = getPage(getState());
                 next(selectPage(currentPage, Page.UploadSummary));
             } else {
