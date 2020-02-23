@@ -130,7 +130,7 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
                 page={Page.SelectUploadType}
             >
                 <Row className={styles.cardRow} gutter={16}>
-                    <Col span={8}>
+                    <Col xl={8} lg={12}>
                         <EnterBarcodeCard
                             barcode={barcode}
                             barcodeSearchResults={barcodeSearchResults}
@@ -141,7 +141,7 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
                             onCancel={this.resetAndReplaceState}
                         />
                     </Col>
-                    <Col span={8}>
+                    <Col xl={8} lg={12}>
                         <CreateBarcodeCard
                             barcodePrefixes={barcodePrefixes}
                             barcodePrefixId={barcodePrefixId}
@@ -150,7 +150,7 @@ class SelectUploadType extends React.Component<SelectUploadTypeProps, SelectUplo
                             onCancel={this.resetAndReplaceState}
                         />
                     </Col>
-                    <Col span={8}>
+                    <Col xl={8} lg={12}>
                         <SelectWorkflowCard
                             selectWorkflowPath={this.selectWorkflowPath}
                             isSelected={this.state.path === Path.Workflow}
