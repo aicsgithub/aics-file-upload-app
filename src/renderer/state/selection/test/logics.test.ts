@@ -717,7 +717,7 @@ describe("Selection logics", () => {
                 }),
             });
 
-            const showMessageBoxStub = stub().callsArgWith(1, 0);
+            const showMessageBoxStub = stub().callsArgWith(1, 1);
             sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
 
             expect(getSelectedFiles(store.getState())).to.not.be.empty;
