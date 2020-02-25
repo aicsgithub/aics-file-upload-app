@@ -13,6 +13,7 @@ import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
+    CLEAR_UPLOAD,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOADS,
     getUploadRowKey,
@@ -31,6 +32,7 @@ import {
     ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
+    ClearUploadAction,
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
     RemoveUploadsAction,
@@ -92,6 +94,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 });
             }, nextState);
         },
+    },
+    [CLEAR_UPLOAD]: {
+        accepts: (action: AnyAction): action is ClearUploadAction => action.type === CLEAR_UPLOAD,
+        perform: () => ({}),
     },
     [UNDO_FILE_WELL_ASSOCIATION]: {
         accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>

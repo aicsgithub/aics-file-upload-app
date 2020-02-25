@@ -19,7 +19,7 @@ import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
-import { createMockReduxStore, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, dialog, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
     mockAnnotations,
@@ -31,11 +31,14 @@ import {
     mockTemplateStateBranch, mockWells, nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { closeTemplateEditor, openTemplateEditor, selectBarcode, selectWells } from "../actions";
+import { getUploadRowKey } from "../../upload/constants";
+import { getUpload } from "../../upload/selectors";
+import { clearStagedFiles, closeTemplateEditor, openTemplateEditor, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
     getSelectedBarcode,
+    getSelectedFiles,
     getSelectedPlateId,
     getSelectedPlates,
     getSelectedWells,
@@ -668,6 +671,65 @@ describe("Selection logics", () => {
 
             // after
             expect(getSelectedWells(store.getState()).length).to.equal(4);
+        });
+    });
+
+    describe("clearStagedFilesLogic", () => {
+        it("does not do anything if cancel clicked", async () => {
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    files: ["/path/test.txt"],
+                    stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
+                }),
+                upload: getMockStateWithHistory({
+                    ...mockState.upload.present,
+                    [getUploadRowKey("/path/test.txt")]: {
+                        barcode: "abc",
+                        file: "/path/test.txt",
+                        wellIds: [],
+                    },
+                }),
+            });
+            const showMessageBoxStub = stub().callsArgWith(1, 0);
+            sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+
+            expect(getSelectedFiles(store.getState())).to.not.be.empty;
+            expect(getStagedFiles(store.getState())).to.not.be.empty;
+            expect(getUpload(store.getState())).to.not.be.empty;
+
+            store.dispatch(clearStagedFiles());
+
+            await logicMiddleware.whenComplete();
+            expect(getSelectedFiles(store.getState())).to.not.be.empty;
+            expect(getStagedFiles(store.getState())).to.not.be.empty;
+            expect(getUpload(store.getState())).to.not.be.empty;
+        });
+
+        it("clears staged files, selected files, and upload", async () => {
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    files: ["/path/test.txt"],
+                    stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
+                }),
+            });
+
+            const showMessageBoxStub = stub().callsArgWith(1, 1);
+            sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+
+            expect(getSelectedFiles(store.getState())).to.not.be.empty;
+            expect(getStagedFiles(store.getState())).to.not.be.empty;
+            expect(getUpload(store.getState())).to.not.be.empty;
+
+            store.dispatch(clearStagedFiles());
+
+            await logicMiddleware.whenComplete();
+            expect(getSelectedFiles(store.getState())).to.be.empty;
+            expect(getStagedFiles(store.getState())).to.be.empty;
+            expect(getUpload(store.getState())).to.be.empty;
         });
     });
 });

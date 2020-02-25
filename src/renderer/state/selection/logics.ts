@@ -22,12 +22,24 @@ import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
+    ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
+import { clearUpload } from "../upload/actions";
+import { getUpload } from "../upload/selectors";
 import { batchActions, getActionFromBatch } from "../util";
 
-import { selectImagingSessionId, selectWells, setPlate, setWells, stageFiles, updateStagedFiles } from "./actions";
 import {
+    deselectFiles,
+    selectImagingSessionId,
+    selectWells,
+    setPlate,
+    setWells,
+    stageFiles,
+    updateStagedFiles,
+} from "./actions";
+import {
+    CLEAR_STAGED_FILES,
     GET_FILES_IN_FOLDER,
     LOAD_FILES,
     OPEN_FILES,
@@ -36,7 +48,11 @@ import {
     SELECT_WORKFLOW_PATH,
 } from "./constants";
 import { UploadFileImpl } from "./models/upload-file";
-import { getStagedFiles, getWellsWithModified } from "./selectors";
+import {
+    getSelectedBarcode,
+    getStagedFiles,
+    getWellsWithModified,
+} from "./selectors";
 import { DragAndDropFileList, GetPlateResponse, PlateResponse, UploadFile, WellResponse } from "./types";
 
 const stat = promisify(fsStat);
@@ -250,7 +266,41 @@ const selectWellsLogic = createLogic({
     type: SELECT_WELLS,
 });
 
+const clearStagedFilesLogic = createLogic({
+    type: CLEAR_STAGED_FILES,
+    validate: ({ action, getState, remote }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const uploads = getUpload(getState());
+
+        if (Object.keys(uploads).length) {
+            const barcode = getSelectedBarcode(getState());
+            const associationType = barcode ? "well" : "workflow";
+            remote.dialog.showMessageBox({
+                buttons: ["Cancel", "Clear All Files And Associations"],
+                cancelId: 0,
+                defaultId: 1,
+                message: `You have files with ${associationType} associations. How would you like to proceed?`,
+                title: "Warning",
+                type: "warning",
+            }, (buttonIndex: number) => {
+                if (buttonIndex === 0) { // cancel
+                    // The types for redux-logic expect an action to be passed to the reject callback.
+                    // Since we don't want to do anything, we're sending a dummy action
+                    reject({type: "ignore"});
+                } else { // clear everything
+                    next(batchActions([
+                        action,
+                        clearUpload(),
+                        deselectFiles(),
+                    ]));
+                }
+            });
+        }
+    },
+});
+
 export default [
+    clearStagedFilesLogic,
     closeTemplateEditorLogic,
     loadFilesLogic,
     openTemplateEditorLogic,
