@@ -207,6 +207,10 @@ export interface RemoveFileFromIsilonAction {
     type: string;
 }
 
+export interface ClearUploadAction {
+    type: string;
+}
+
 export enum FileTagType {
     WELL = "well",
     WORKFLOW = "workflow",

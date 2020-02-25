@@ -8,6 +8,7 @@ import {
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CANCEL_UPLOAD,
+    CLEAR_UPLOAD,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOADS,
     INITIATE_UPLOAD,
@@ -29,6 +30,7 @@ import {
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     CancelUploadAction,
+    ClearUploadAction,
     ClearUploadHistoryAction,
     FilepathToBoolean,
     InitiateUploadAction,
@@ -214,5 +216,11 @@ export function removeFileFromIsilon(fileToNotStoreOnIsilon: string): RemoveFile
     return {
         payload: fileToNotStoreOnIsilon,
         type: REMOVE_FILE_FROM_ISILON,
+    };
+}
+
+export function clearUpload(): ClearUploadAction {
+    return {
+        type: CLEAR_UPLOAD,
     };
 }
