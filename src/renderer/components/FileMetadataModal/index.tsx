@@ -24,11 +24,23 @@ interface ListItem {
 
 const WINDOWS = "Windows_NT";
 
+const getLocalFilePath = (filePath: string) => {
+    const userOS = os.type();
+    if (userOS === WINDOWS) {
+        return `\\${filePath.replace(/\//g, "\\")}`;
+    } else { // "Darwin" (Mac) or Linux
+        return filePath;
+    }
+};
+
+const renderValue = (key: string, value: string | number) =>  titleCase(key) === "Local File Path" ?
+    getLocalFilePath(`${value}`) : value;
+
 const listItemRenderer = (({ key, value }: ListItem): JSX.Element => (
     // Had to use inline style to override List.Item's border rules
     <List.Item style={{ border: "1px solid #e8e8e8" }}>
         <h4 className={styles.key}>{titleCase(key)}</h4>
-        <span className={styles.value}>{value}</span>
+        <span className={styles.value}>{renderValue(key, value)}</span>
     </List.Item>
 ));
 
@@ -56,13 +68,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({   close
     const isArchive = !!fileMetadata.archiveFilePath;
     const onBrowseToFile = () => {
         const filePath = fileMetadata.localFilePath as string;
-        let downloadPath;
-        const userOS = os.type();
-        if (userOS === WINDOWS) {
-            downloadPath = filePath.replace(/\//g, "\\");
-        } else { // "Darwin" (Mac) or Linux
-            downloadPath = filePath;
-        }
+        const downloadPath = getLocalFilePath(filePath);
         if (!shell.showItemInFolder(downloadPath)) {
             setAlert({
                 message: "Failed to browse to file, contact software or browse to file path " +
