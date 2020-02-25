@@ -1,12 +1,15 @@
 {
   "name": "file-upload-app",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
       "dist/main/*",
       "dist/renderer/*"
     ],
+    "linux": {
+      "target": "AppImage"
+    },
     "publish": {
       "provider": "s3",
       "bucket": "file-upload-app.allencell.org",
