@@ -1,5 +1,14 @@
 # Version Notes
 
+## 1.0.26 (2/21/20) (1.0.25 skipped accidentally):
+- Feature: Make upload tab closeable
+- Feature: cleanup styling, remove icons from progress bar
+- Feature: Make file tags closeable on the pages that they get added on
+
+## 1.0.24 (2/18/20):
+- Bugfix: fix template selector on Search Files page
+- Bugfix: make vial and barcode selectors return results faster
+
 ## 1.0.23 (2/6/20):
 - Feature: Added support for uploading files from different imaging sessions of one plate together during an upload
 - Bugfix: Added missing error validations for dropdown annotations on template editor
