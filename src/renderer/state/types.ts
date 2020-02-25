@@ -52,6 +52,13 @@ export interface Logger {
     warn: (...x: any[]) => void;
 }
 
+export interface LocalStorage {
+    clear: () => void;
+    get: (key: string) => any;
+    has: (key: string) => boolean;
+    set: (key: string, value: any) => void;
+}
+
 export interface ReduxLogicExtraDependencies {
     ctx?: any;
     fms: FileManagementSystem;
@@ -64,11 +71,7 @@ export interface ReduxLogicExtraDependencies {
     logger: Logger;
     mmsClient: MMSClient;
     remote: ElectronRemote;
-    storage: {
-        get: (key: string) => any,
-        has: (key: string) => boolean;
-        set: (key: string, value: any) => void;
-    };
+    storage: LocalStorage;
 }
 
 export type ReduxLogicProcessDependencies = Process.DepObj<State, AnyAction, ReduxLogicExtraDependencies, undefined>;
@@ -98,12 +101,6 @@ export interface Audited {
     createdBy: number;
     modified: Date;
     modifiedBy: number;
-}
-
-export interface LocalStorage {
-    clear: () => void;
-    get: (key: string) => void;
-    set: (key: string, value: any) => void;
 }
 
 export enum HTTP_STATUS {
