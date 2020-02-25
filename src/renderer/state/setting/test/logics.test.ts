@@ -196,7 +196,7 @@ describe("Setting logics", () => {
     });
 
     describe("gatherSettingsLogic",  () => {
-        it("updates settings to what is saved in storage", () => {
+        it("updates settings to what is saved in storage and doesn't set alert", () => {
             const deps = {
                 ...mockReduxLogicDeps,
                 storage: {
@@ -216,6 +216,7 @@ describe("Setting logics", () => {
 
             // after
             expect(getLimsHost(store.getState())).to.equal(stagingHost);
+            expect(getAlert(store.getState())).to.be.undefined;
         });
 
         it("sets alert if error in getting storage settings", () => {
