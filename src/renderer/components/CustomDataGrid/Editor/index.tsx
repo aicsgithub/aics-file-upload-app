@@ -110,6 +110,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
             case ColumnType.LOOKUP:
                 input = (
                     <LookupSearch
+                        defaultOpen={true}
                         mode={allowMultipleValues ? "multiple" : "default"}
                         lookupAnnotationName={this.props.column.key}
                         onBlur={this.props.onCommit}
