@@ -29,6 +29,7 @@ const UserForm: React.FunctionComponent<UserFormProps> = ({
         <Col xs={18} xl={20} xxl={21}>
             <LabeledInput label="User">
                 <Select
+                    defaultOpen={true}
                     showSearch={true}
                     value={user}
                     loading={!users.length}
