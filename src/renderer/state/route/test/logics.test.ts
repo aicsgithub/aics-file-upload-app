@@ -1,23 +1,84 @@
 import { expect } from "chai";
 import { ActionCreator } from "redux";
-import { createSandbox, stub } from "sinon";
+import { createSandbox, SinonStub, stub } from "sinon";
 
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
 import { createMockReduxStore, dialog } from "../../test/configure-mock-store";
 import { mockSelectedWorkflows, mockState } from "../../test/mocks";
+import { Logger } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getCurrentUploadIndex } from "../../upload/selectors";
 
 import { closeUploadTab, goBack, selectPage } from "../actions";
+import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
 import { Page } from "../types";
+import Menu = Electron.Menu;
 
 describe("Route logics", () => {
     const sandbox = createSandbox();
     afterEach(() => {
         sandbox.restore();
+    });
+
+    describe("setSwitchEnvEnabled", () => {
+        let switchEnv: { enabled: boolean, label: string };
+        let fileMenu: { label: string, submenu: { items: Array<{ enabled: boolean, label: string }>}};
+        let menu: Menu;
+        let logger: Logger;
+        const logError: SinonStub = stub();
+
+        beforeEach(() => {
+            logger = {
+                error: logError,
+            } as any as Logger;
+            switchEnv = {
+                enabled: true,
+                label: "Switch Environment",
+            };
+            fileMenu = {
+                label: "file",
+                submenu: {
+                    items: [switchEnv],
+                },
+            };
+            menu = {
+                items: [fileMenu],
+            } as any as Menu;
+        });
+
+        it("logs error if file menu not found", () => {
+            stub(fileMenu, "label").value("Edit");
+            setSwitchEnvEnabled(menu, false, logger);
+            expect(switchEnv.enabled).to.be.true;
+            expect(logError.called).to.be.true;
+        });
+        it("logs error if file submenu not found", () => {
+            stub(fileMenu, "submenu").value(undefined);
+            setSwitchEnvEnabled(menu, false, logger);
+            expect(switchEnv.enabled).to.be.true;
+            expect(logError.called).to.be.true;
+        });
+        it("logs error if Switch Environment menu option not found", () => {
+            stub(fileMenu, "submenu").value({ items: [] });
+            setSwitchEnvEnabled(menu, false, logger);
+            expect(switchEnv.enabled).to.be.true;
+            expect(logError.called).to.be.true;
+        });
+        it("sets Switch Environment menu option to enabled if enabled=true", () => {
+            stub(switchEnv, "enabled").value(false);
+            expect(switchEnv.enabled).to.be.false;
+            setSwitchEnvEnabled(menu, true, logger);
+            expect(switchEnv.enabled).to.be.true;
+        });
+        it("sets Switch Environment menu option to disabled if enabled=false", () => {
+            stub(switchEnv, "enabled").value(true);
+            expect(switchEnv.enabled).to.be.true;
+            setSwitchEnvEnabled(menu, false, logger);
+            expect(switchEnv.enabled).to.be.false;
+        });
     });
 
     describe("selectPageLogic", () => {
