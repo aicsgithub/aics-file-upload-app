@@ -24,7 +24,7 @@ const TemplateForm: React.FunctionComponent<TemplateFormProps> = ({
     <>
         <Col xs={18} xl={20} xxl={21}>
             <LabeledInput label="Template">
-                <TemplateSearch onSelect={selectTemplate} value={templateId}/>
+                <TemplateSearch defaultOpen={true} onSelect={selectTemplate} value={templateId}/>
             </LabeledInput>
         </Col>
         <Col xs={6} xl={4} xxl={3}>
