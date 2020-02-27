@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.30 (2/25/20) (1.0.27-1.0.29 testing auto update)
+- Feature: Style improvements
+- Bugfix: Fix issue with annotations on scenes and channels not being unique per file
+
 ## 1.0.26 (2/21/20) (1.0.25 skipped accidentally):
 - Feature: Make upload tab closeable
 - Feature: cleanup styling, remove icons from progress bar
