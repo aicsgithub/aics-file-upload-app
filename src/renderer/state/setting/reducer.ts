@@ -5,12 +5,14 @@ import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
     ASSOCIATE_BY_WORKFLOW,
+    GATHER_SETTINGS,
     UPDATE_SETTINGS,
 } from "./constants";
 import {
     AssociateByWorkflowAction,
+    GatherSettingsAction,
     SettingStateBranch,
-    UpdateSettingsAction
+    UpdateSettingsAction,
 } from "./types";
 
 export const initialState: SettingStateBranch = {
@@ -22,6 +24,10 @@ export const initialState: SettingStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
+    [GATHER_SETTINGS]: {
+        accepts: (action: AnyAction): action is GatherSettingsAction => action.type === GATHER_SETTINGS,
+        perform: (state: SettingStateBranch, action: GatherSettingsAction) => ({ ...state, ...action.payload }),
+    },
     [UPDATE_SETTINGS]: {
         accepts: (action: AnyAction): action is UpdateSettingsAction => action.type === UPDATE_SETTINGS,
         perform: (state: SettingStateBranch, action: UpdateSettingsAction) => ({ ...state, ...action.payload }),

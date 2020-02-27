@@ -95,10 +95,13 @@ const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-    transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             const settings = storage.get(USER_SETTINGS_KEY);
-            next(updateSettings(settings));
+            next({
+                ...action,
+                payload: settings,
+            });
 
         } catch (e) {
             next(setAlert({

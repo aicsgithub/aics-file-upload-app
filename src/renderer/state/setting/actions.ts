@@ -24,6 +24,7 @@ export function updateSettings(payload: Partial<SettingStateBranch>): UpdateSett
 
 export function gatherSettings(): GatherSettingsAction {
     return {
+        payload: {}, // this gets populated in logics
         type: GATHER_SETTINGS,
     };
 }
