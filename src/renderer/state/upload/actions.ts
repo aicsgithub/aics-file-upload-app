@@ -69,7 +69,7 @@ export function undoFileWellAssociation(
     fullPath: string,
     positionIndex?: number,
     deleteUpload: boolean = true,
-    wellIds: number[] = [],
+    wellIds: number[] = []
 ): UndoFileWellAssociationAction {
     return {
         payload: {

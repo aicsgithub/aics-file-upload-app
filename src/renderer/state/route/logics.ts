@@ -54,7 +54,7 @@ export const setSwitchEnvEnabled = (menu: Menu | null, enabled: boolean, logger:
     } else {
         logger.error("Could not update application menu");
     }
-}
+};
 
 const pagesToAllowSwitchingEnvironments = [Page.UploadSummary, Page.DragAndDrop];
 const updateAppMenu = (nextPage: Page, menu: Menu | null, logger: Logger) => {
