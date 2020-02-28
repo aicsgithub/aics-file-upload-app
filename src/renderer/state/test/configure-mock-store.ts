@@ -51,7 +51,8 @@ export interface ReduxLogicDependencies {
         };
     };
     storage: {
-        get: SinonStub,
+        clear: SinonStub;
+        get: SinonStub;
         has: SinonStub;
         set: SinonStub;
     };
@@ -64,6 +65,7 @@ const username = "foo";
 const localStorage: LocalStorage = {
     clear: stub(),
     get: stub(),
+    has: stub(),
     set: stub(),
 };
 
@@ -124,6 +126,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     mmsClient,
     remote,
     storage: {
+        clear: stub(),
         get: stub(),
         has: stub(),
         set: stub(),

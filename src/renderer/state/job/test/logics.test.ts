@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { difference } from "lodash";
-import { createSandbox } from "sinon";
+import { createSandbox, stub } from "sinon";
+import { JOB_STORAGE_KEY } from "../../../../shared/constants";
 
 import { SET_ALERT } from "../../feedback/constants";
 import { getAlert } from "../../feedback/selectors";
@@ -84,10 +85,16 @@ describe("Job logics", () => {
         const addMetadataJobs = [mockSuccessfulAddMetadataJob];
         const copyJobs = [mockSuccessfulCopyJob];
         const uploadJobs =  [mockSuccessfulUploadJob];
+        const storage = {
+            clear: stub(),
+            get: stub(),
+            has: stub(),
+            set: stub(),
+        };
 
         it("Sets jobs passed in",  () => {
             const getState = () => mockState;
-            const actions = mapJobsToActions(getState)({
+            const actions = mapJobsToActions(getState, storage)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [],
@@ -112,7 +119,7 @@ describe("Job logics", () => {
                     pendingJobs: [{...mockSuccessfulUploadJob, uploads: {}}],
                 },
             });
-            const actions = mapJobsToActions(getState)({
+            const actions = mapJobsToActions(getState, storage)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [],
@@ -123,6 +130,9 @@ describe("Job logics", () => {
         });
 
         it("Sends alert for successful upload job given incomplete job",  () => {
+            const setStub = stub();
+            sandbox.replace(storage, "set", setStub);
+
             const getState = () => ({
                 ...mockState,
                 job: {
@@ -132,7 +142,7 @@ describe("Job logics", () => {
                 },
             });
 
-            const actions = mapJobsToActions(getState)({
+            const actions = mapJobsToActions(getState, storage)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [
@@ -151,6 +161,7 @@ describe("Job logics", () => {
 
             const setAlertAction = getActionFromBatch(actions, SET_ALERT);
             expect(setAlertAction).to.not.be.undefined;
+            expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobNames`, [])).to.be.true;
             if (setAlertAction) {
                 expect(setAlertAction.payload.type).to.equal(AlertType.SUCCESS);
                 expect(setAlertAction.payload.message).to.equal("mockJob1 Succeeded");
@@ -158,6 +169,9 @@ describe("Job logics", () => {
         });
 
         it("Sends alert for failed upload job given incomplete job", () => {
+            const setStub = stub();
+            sandbox.replace(storage, "set", setStub);
+
             const getState = () => ({
                 ...mockState,
                 job: {
@@ -166,7 +180,7 @@ describe("Job logics", () => {
                     jobFilter: JobFilter.All,
                 },
             });
-            const actions = mapJobsToActions(getState)({
+            const actions = mapJobsToActions(getState, storage)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [mockFailedUploadJob],
@@ -181,6 +195,7 @@ describe("Job logics", () => {
 
             const setAlertAction = getActionFromBatch(actions, SET_ALERT);
             expect(setAlertAction).to.not.be.undefined;
+            expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobNames`, [])).to.be.true;
             if (setAlertAction) {
                 expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
                 expect(setAlertAction.payload.message).to.equal("mockFailedUploadJob Failed");
