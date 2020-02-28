@@ -85,7 +85,7 @@ const stateBranchHistory = [
 
 const selectPageLogic = createLogic({
     process: (
-        {action, getState, logger, remote}: ReduxLogicProcessDependencies,
+        { action, getApplicationMenu, getState, logger }: ReduxLogicProcessDependencies,
         dispatch: ReduxLogicNextCb,
         done: ReduxLogicDoneCb
     ) => {
@@ -110,7 +110,7 @@ const selectPageLogic = createLogic({
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
         const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
-        updateAppMenu(nextPage, remote.Menu.getApplicationMenu(), logger);
+        updateAppMenu(nextPage, getApplicationMenu(), logger);
 
         // going back - rewind selections, uploads & template to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
@@ -162,14 +162,14 @@ const selectPageLogic = createLogic({
 
 const goBackLogic = createLogic({
     type: GO_BACK,
-    validate: ({getState, action, remote}: ReduxLogicTransformDependencies,
+    validate: ({ dialog, getState, action }: ReduxLogicTransformDependencies,
                next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const state = getState();
         const currentPage = getPage(state);
         const nextPage = getNextPage(currentPage, -1);
 
         if (nextPage) {
-            remote.dialog.showMessageBox({
+            dialog.showMessageBox({
                 buttons: ["Cancel", "Yes"],
                 cancelId: 0,
                 defaultId: 1,
@@ -206,9 +206,9 @@ const goForwardLogic = createLogic({
 
 const closeUploadTabLogic = createLogic({
     type: CLOSE_UPLOAD_TAB,
-    validate: ({action, remote, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+    validate: ({ action, dialog, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        remote.dialog.showMessageBox({
+        dialog.showMessageBox({
             buttons: ["Cancel", "Yes"],
             cancelId: 0,
             defaultId: 1,

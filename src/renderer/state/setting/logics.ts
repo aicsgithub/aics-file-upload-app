@@ -112,13 +112,13 @@ const gatherSettingsLogic = createLogic({
 });
 
 const setMountPointLogic = createLogic({
-    process: ({getState, remote}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+    process: ({ dialog, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
               done: ReduxLogicDoneCb) => {
         if (getSetMountPointNotificationVisible(getState())) {
             dispatch(closeSetMountPointNotification());
         }
 
-        remote.dialog.showOpenDialog({
+        dialog.showOpenDialog({
             properties: ["openDirectory"],
             title: "Browse to the folder that is mounted to /allen/aics",
         }, async (folders?: string[]) => {
@@ -144,8 +144,8 @@ const setMountPointLogic = createLogic({
 });
 
 const switchEnvironmentLogic = createLogic({
-    process: ({remote}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        remote.dialog.showMessageBox({
+    process: ({ dialog }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dialog.showMessageBox({
             buttons: ["Cancel", "Local", "Staging", "Production"],
             cancelId: 0,
             message: "Switch environment?",

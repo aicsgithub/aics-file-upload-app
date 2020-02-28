@@ -5,7 +5,7 @@ import { createSandbox, SinonStub, stub } from "sinon";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
-import { createMockReduxStore, dialog } from "../../test/configure-mock-store";
+import { createMockReduxStore, dialog, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { mockSelectedWorkflows, mockState } from "../../test/mocks";
 import { Logger } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
@@ -82,6 +82,28 @@ describe("Route logics", () => {
     });
 
     describe("selectPageLogic", () => {
+        let switchEnv: { enabled: boolean, label: string };
+        let fileMenu: { label: string, submenu: { items: Array<{ enabled: boolean, label: string }>}};
+        let menu: Menu;
+
+        beforeEach(() => {
+            switchEnv = {
+                enabled: true,
+                label: "Switch Environment",
+            };
+            fileMenu = {
+                label: "file",
+                submenu: {
+                    items: [switchEnv],
+                },
+            };
+            menu = {
+                items: [fileMenu],
+            } as any as Menu;
+            const getApplicationMenuStub = stub().returns(menu);
+            sandbox.replace(mockReduxLogicDeps, "getApplicationMenu", getApplicationMenuStub);
+        });
+
         // This is going forward
         it("Going from DragAndDrop to SelectUploadType should record the index selection/template/upload state " +
             "branches were at after leaving that page", async () => {
@@ -99,6 +121,7 @@ describe("Route logics", () => {
             expect(getTemplateHistory(state)).to.be.empty;
             expect(getUploadHistory(state)).to.be.empty;
             expect(getPage(state)).to.equal(Page.DragAndDrop);
+            expect(switchEnv.enabled).to.be.true;
 
             // apply
             store.dispatch(selectPage(Page.DragAndDrop, Page.SelectUploadType));
@@ -110,6 +133,7 @@ describe("Route logics", () => {
             expect(getTemplateHistory(state)[Page.DragAndDrop]).to.equal(0);
             expect(getUploadHistory(state)[Page.DragAndDrop]).to.equal(0);
             expect(getPage(state)).to.equal(Page.SelectUploadType);
+            expect(switchEnv.enabled).to.be.false;
         });
         it("Going from SelectUploadType to AssociateFiles should record which index selection/template/upload state " +
             "branches are at for the page we went to", async () => {
@@ -147,6 +171,7 @@ describe("Route logics", () => {
 
             // before
             expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
+            expect(switchEnv.enabled).to.be.false;
 
             // apply
             store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
@@ -167,6 +192,7 @@ describe("Route logics", () => {
                 [Page.SelectUploadType]: 0,
             });
             expect(getPage(state)).to.equal(Page.AssociateFiles);
+            expect(switchEnv.enabled).to.be.false;
         });
         it("Going from SelectUploadType to DragAndDrop should change indexes for selection/template/upload to 0" +
             "back to where they were when the user left the DragAndDrop page", async () => {
@@ -200,6 +226,7 @@ describe("Route logics", () => {
 
             // before
             expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
+            expect(switchEnv.enabled).to.be.false;
 
             // apply
             store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));
@@ -209,6 +236,7 @@ describe("Route logics", () => {
             const state = store.getState();
             expect(getCurrentSelectionIndex(state)).to.equal(0);
             expect(getPage(state)).to.equal(Page.DragAndDrop);
+            expect(switchEnv.enabled).to.be.true;
         });
         it("Going to UploadSummary page should clear all upload information", async () => {
             const startingSelectionHistory = {
@@ -244,6 +272,7 @@ describe("Route logics", () => {
             // before
             expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(0);
             expect(getCurrentUploadIndex(store.getState())).to.be.greaterThan(0);
+            expect(switchEnv.enabled).to.be.true;
 
             store.dispatch(selectPage(Page.SelectUploadType, Page.UploadSummary));
             await logicMiddleware.whenComplete();
@@ -251,6 +280,7 @@ describe("Route logics", () => {
             const state = store.getState();
             expect(getCurrentSelectionIndex(state)).to.not.be.greaterThan(0);
             expect(getCurrentUploadIndex(store.getState())).to.not.be.greaterThan(0);
+            expect(switchEnv.enabled).to.be.true;
         });
     });
 

@@ -171,7 +171,7 @@ const getFilesInFolderLogic = createLogic({
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 
 const selectBarcodeLogic = createLogic({
-    process: async ({ action, getState, labkeyClient, logger, mmsClient, remote }: ReduxLogicProcessDependencies,
+    process: async ({ action, getState, labkeyClient, logger, mmsClient }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const { barcode, imagingSessionIds } = action.payload;
         const request = (): Promise<GetPlateResponse[]> => Promise.all(
@@ -268,14 +268,14 @@ const selectWellsLogic = createLogic({
 
 const clearStagedFilesLogic = createLogic({
     type: CLEAR_STAGED_FILES,
-    validate: ({ action, getState, remote }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+    validate: ({ action, dialog, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
         const uploads = getUpload(getState());
 
         if (Object.keys(uploads).length) {
             const barcode = getSelectedBarcode(getState());
             const associationType = barcode ? "well" : "workflow";
-            remote.dialog.showMessageBox({
+            dialog.showMessageBox({
                 buttons: ["Cancel", "Clear All Files And Associations"],
                 cancelId: 0,
                 defaultId: 1,

@@ -27,7 +27,12 @@ import { Actions, default as ActionTracker } from "./action-tracker";
 import { getMockStateWithHistory } from "./mocks";
 
 export interface ReduxLogicDependencies {
+    dialog: {
+        showMessageBox: SinonStub;
+        showOpenDialog: SinonStub;
+    };
     fms: FileManagementSystem;
+    getApplicationMenu: SinonStub;
     ipcRenderer: {
         on: SinonStub;
         send: SinonStub;
@@ -41,15 +46,6 @@ export interface ReduxLogicDependencies {
         warn: SinonStub;
     };
     mmsClient: MMSClient;
-    remote: {
-        Menu: {
-            getApplicationMenu: SinonStub;
-        };
-        dialog: {
-            showMessageBox: SinonStub;
-            showOpenDialog: SinonStub;
-        };
-    };
     storage: {
         get: SinonStub,
         has: SinonStub;
@@ -100,15 +96,10 @@ export const dialog = {
     showOpenDialog: stub(),
 };
 
-const remote = {
-    Menu: {
-        getApplicationMenu,
-    },
-    dialog,
-};
-
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
+    dialog,
     fms,
+    getApplicationMenu,
     ipcRenderer: {
         on: stub(),
         send: stub(),
@@ -122,7 +113,6 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
         warn: stub(),
     },
     mmsClient,
-    remote,
     storage: {
         get: stub(),
         has: stub(),

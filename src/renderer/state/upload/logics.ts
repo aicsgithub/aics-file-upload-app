@@ -244,7 +244,7 @@ const cancelUploadLogic = createLogic({
         done();
     },
     type: CANCEL_UPLOAD,
-    validate: ({ action, ctx, fms, getState, remote }: ReduxLogicTransformDependencies,
+    validate: ({ action, ctx, dialog, fms, getState }: ReduxLogicTransformDependencies,
                next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
         if (!uploadJob) {
@@ -253,7 +253,7 @@ const cancelUploadLogic = createLogic({
                 type: AlertType.ERROR,
             }));
         } else {
-            remote.dialog.showMessageBox({
+            dialog.showMessageBox({
                 buttons: ["No", "Yes"],
                 cancelId: 0,
                 defaultId: 1,

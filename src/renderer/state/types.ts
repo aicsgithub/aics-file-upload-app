@@ -29,10 +29,15 @@ export interface BatchedAction {
     payload: AnyAction[];
 }
 
-export interface ElectronRemote {
-    Menu: {
-        getApplicationMenu: () => Menu | null;
-    };
+export interface Logger {
+    debug: (...x: any[]) => void;
+    error: (...x: any[]) => void;
+    info: (...x: any[]) => void;
+    warn: (...x: any[]) => void;
+}
+
+export interface ReduxLogicExtraDependencies {
+    ctx?: any;
     dialog: {
         showOpenDialog(
             options: OpenDialogOptions,
@@ -43,18 +48,8 @@ export interface ElectronRemote {
             callback?: (response: number, checkboxChecked: boolean) => void
         ): number;
     };
-}
-
-export interface Logger {
-    debug: (...x: any[]) => void;
-    error: (...x: any[]) => void;
-    info: (...x: any[]) => void;
-    warn: (...x: any[]) => void;
-}
-
-export interface ReduxLogicExtraDependencies {
-    ctx?: any;
     fms: FileManagementSystem;
+    getApplicationMenu: () => Menu | null;
     ipcRenderer: {
         on: (channel: string, listener: (...args: any[]) => void) => void;
         send: (channel: string, ...args: any[]) => void;
@@ -63,7 +58,6 @@ export interface ReduxLogicExtraDependencies {
     labkeyClient: LabkeyClient;
     logger: Logger;
     mmsClient: MMSClient;
-    remote: ElectronRemote;
     storage: {
         get: (key: string) => any,
         has: (key: string) => boolean;
