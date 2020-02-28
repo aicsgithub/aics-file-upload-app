@@ -51,6 +51,7 @@ const UserAndTemplateForm: React.FunctionComponent<UserAndTemplateFormProps> = (
         <Col xs={12} xl={14} xxl={15}>
             <LabeledInput label="Template">
                 <TemplateSearch
+                    defaultOpen={true}
                     onSelect={selectTemplate}
                     value={templateId}
                 />
