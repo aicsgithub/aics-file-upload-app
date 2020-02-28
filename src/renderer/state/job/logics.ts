@@ -13,6 +13,7 @@ import { removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 
 import {
+    LocalStorage,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
@@ -106,7 +107,7 @@ export const fetchJobs = (getStateFn: () => State, jssClient: JobStatusClient): 
         ({uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs}));
 };
 
-export const mapJobsToActions = (getState: () => State) => ({
+export const mapJobsToActions = (getState: () => State, storage: LocalStorage) => ({
                          addMetadataJobs,
                          copyJobs,
                          potentiallyIncompleteJobs,
@@ -174,6 +175,16 @@ export const mapJobsToActions = (getState: () => State) => ({
         const potentiallyIncompleteJobNames = getIncompleteJobNames(getState());
         if (potentiallyIncompleteJobNames.length !== incompleteJobs.length) {
             const incompleteJobNames = incompleteJobs.map((job) => job.jobName || "");
+            try {
+                storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, incompleteJobNames);
+            } catch (e) {
+                actions.push(
+                    setAlert({
+                        message: "Failed to update incomplete job names",
+                        type: AlertType.WARN,
+                    })
+                );
+            }
             actions.push(updateIncompleteJobNames(incompleteJobNames));
         }
     }
@@ -187,14 +198,14 @@ const retrieveJobsLogic = createLogic({
     latest: true,
     // Redux Logic's type definitions do not include dispatching observable actions so we are setting
     // the type of dispatch to any
-    process: async ({ action, getState, jssClient }: ReduxLogicProcessDependencies, dispatch: any,
+    process: async ({ action, getState, jssClient, storage }: ReduxLogicProcessDependencies, dispatch: any,
                     done: ReduxLogicDoneCb) => {
         dispatch(interval(1000)
             .pipe(
                 mergeMap(() => {
                     return fetchJobs(getState, jssClient);
                 }),
-                map(mapJobsToActions(getState)),
+                map(mapJobsToActions(getState, storage)),
                 catchError((err: any) =>
                     of(setAlert({
                         message: "error!" + err.message,
