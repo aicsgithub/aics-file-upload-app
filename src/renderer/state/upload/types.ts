@@ -87,11 +87,17 @@ export interface UploadJobTableRow {
     // Keeps track of all positionIndexes - used only on the top-level row
     positionIndexes: number[];
 
+    // if this row relates to a scene, it is specified here
+    scene?: number;
+
     // Keeps track of all scenes - used only on top-level row
     scenes: number[];
 
     // react-data-grid property needed for nested rows
     siblingIndex?: number;
+
+    // if this row relates to sub image referred to by name, it is specified here
+    subImageName?: string;
 
     // Keeps track of all sub image names - used only on top-level row
     subImageNames: string[];

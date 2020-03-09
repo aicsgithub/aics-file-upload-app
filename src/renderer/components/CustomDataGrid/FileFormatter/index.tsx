@@ -80,11 +80,23 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             showModal,
         } = this.state;
 
-        // todo handle scenes and sub image names
+        let subImageValue;
+        let subImageType;
+        if (row.positionIndex) {
+            subImageValue = row.positionIndex;
+            subImageType = "Position";
+        } else if (row.scene) {
+            subImageValue = row.scene;
+            subImageType = "Scene";
+        } else if (row.subImageName) {
+            subImageValue = row.subImageName;
+            subImageType = "(Sub Image)";
+        }
+
         if (row.channel) {
             const channelName = row.channel.name;
-            const content = isNil(row.positionIndex) ? `${channelName} (all positions)` :
-                `Position ${row.positionIndex}, ${channelName}`;
+            const content = isNil(subImageValue) ? `${channelName} (all positions)` :
+                `${subImageType} ${subImageValue}, ${channelName}`;
             return <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>{content}</Tooltip>;
         }
 
