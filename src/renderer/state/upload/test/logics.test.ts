@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { get, keys } from "lodash";
+import { get, includes, keys } from "lodash";
 import * as moment from "moment";
 import { createSandbox, stub } from "sinon";
 
@@ -364,23 +364,46 @@ describe("Upload logics", () => {
             state = store.getState();
             expect(getUpload(state)[fileRowKey].wellIds).to.be.empty;
         });
-        it("adds channel-only uploads", () => {
-            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, mockReduxLogicDeps);
+        it("adds channel-only uploads", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(
+                nonEmptyStateForInitiatingUpload, mockReduxLogicDeps
+            );
+            const file1RowKey = getUploadRowKey({file: "/path/to/file1"});
+            const file2RowKey = getUploadRowKey({file: "/path/to/file2"});
+            const file3RowKey = getUploadRowKey({file: "/path/to/file3"});
+            const fileKeys = [file1RowKey, file2RowKey, file3RowKey];
+            const positionIndexRowKey = getUploadRowKey({file: "/path/to/file3", positionIndex: 1});
+            const channelOnlyRowKey = getUploadRowKey({file, channelId: 1});
 
             // before
             let state = store.getState();
-            expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length);
+            let uploadRowKeys = keys(getUpload(state));
+            // rows we expect to be present before and after
+            let matchingFileOnlyRows = (uploadRowKeys.filter((k) => includes(fileKeys, k)));
+            expect(matchingFileOnlyRows.length).to.equal(fileKeys.length);
+            expect(uploadRowKeys.find((k) => k === positionIndexRowKey)).to.not.be.undefined;
+            // row we expect to get added
+            expect(uploadRowKeys.find((k) => k === channelOnlyRowKey)).to.be.undefined;
+
             const fileRow = getUploadSummaryRows(state).find((r) => r.key === fileRowKey);
             expect(fileRow).to.not.be.undefined;
-
             if (fileRow) {
                 // apply
                 store.dispatch(updateScenes(fileRow, [], [mockChannel]));
 
                 // after
+                await logicMiddleware.whenComplete();
                 state = store.getState();
-                expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
-                const channelUpload = getUpload(state)[getUploadRowKey({file, channelId: 1})];
+                uploadRowKeys = keys(getUpload(state));
+                // rows we expect to be present before and after
+                expect(uploadRowKeys.length).to.equal(keys(mockWellUpload).length + 1);
+                matchingFileOnlyRows = (uploadRowKeys.filter((k) => includes(fileKeys, k)));
+                expect(matchingFileOnlyRows.length).to.equal(fileKeys.length);
+                expect(uploadRowKeys.find((k) => k === positionIndexRowKey)).to.not.be.undefined;
+
+                // row we expect to get added
+                expect(uploadRowKeys.find((k) => k === channelOnlyRowKey)).to.not.be.undefined;
+                const channelUpload = getUpload(state)[channelOnlyRowKey];
                 expect(channelUpload).to.not.be.undefined;
                 expect(channelUpload).to.deep.equal({
                     barcode: fileRow.barcode,
@@ -390,6 +413,8 @@ describe("Upload logics", () => {
                     key: getUploadRowKey({file, channelId: 1}),
                     notes: undefined,
                     positionIndex: undefined,
+                    scene: undefined,
+                    subImageName: undefined,
                     wellIds: [],
                     workflows: [],
                 });

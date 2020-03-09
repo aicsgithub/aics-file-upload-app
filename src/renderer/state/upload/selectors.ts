@@ -73,14 +73,18 @@ export const getCanUndoUpload = createSelector([getUploadPast], (past: UploadSta
 const EXCLUDED_UPLOAD_FIELDS = [
     "barcode",
     "channel",
+    "channels",
     "file",
     "key",
     "plateId",
     "positionIndex",
+    "positionIndexes",
     "scene",
+    "scenes",
     "shouldBeInArchive",
     "shouldBeInLocal",
     "subImageName",
+    "subImageNames",
     "templateId",
     "wellLabels",
 ];

@@ -68,4 +68,6 @@ export const isSubImageRow = ({positionIndex, scene, subImageName}: UploadMetada
     !isNil(positionIndex) || !isNil(scene) || !isNil(subImageName);
 export const isSubImageOnlyRow = (metadata: UploadMetadata) => isSubImageRow(metadata) && isNil(metadata.channel);
 export const isChannelOnlyRow = (metadata: UploadMetadata) => !isNil(metadata.channel) && !isSubImageRow(metadata);
+export const isChannelRow = (metadata: UploadMetadata) => !isNil(metadata.channel);
+export const isSubImageChannelRow = (metadata: UploadMetadata) => isSubImageRow(metadata) && isChannelRow(metadata);
 export const isFileRow = (metadata: UploadMetadata) => !isChannelOnlyRow(metadata) && !isSubImageRow(metadata);

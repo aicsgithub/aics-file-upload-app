@@ -224,6 +224,7 @@ export const mockWellUpload: UploadStateBranch = {
         barcode: "1236",
         file: "/path/to/file3",
         key: getUploadRowKey({file: "/path/to/file3"}),
+        positionIndexes: [1],
         shouldBeInArchive: true,
         shouldBeInLocal: false,
         wellIds: [1, 2, 3],
