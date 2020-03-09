@@ -15,7 +15,13 @@ import { FormatterProps } from "../index";
 const styles = require("./styles.pcss");
 
 interface Props extends FormatterProps<UploadJobTableRow> {
-    addScenes: (files: string[], positionIndexes: number[], channels: Channel[]) => void;
+    addScenes: (
+        files: string[],
+        positionIndexes: number[],
+        channels: Channel[],
+        scenes: number[],
+        subImageNames: string[]
+    ) => void;
     channelOptions: Channel[];
     fileOptions: string[];
 }
@@ -82,13 +88,13 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
         let subImageValue;
         let subImageType;
-        if (row.positionIndex) {
+        if (!isNil(row.positionIndex)) {
             subImageValue = row.positionIndex;
             subImageType = "Position";
-        } else if (row.scene) {
+        } else if (!isNil(row.scene)) {
             subImageValue = row.scene;
             subImageType = "Scene";
-        } else if (row.subImageName) {
+        } else if (!isNil(row.subImageName)) {
             subImageValue = row.subImageName;
             subImageType = "(Sub Image)";
         }
@@ -100,10 +106,10 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             return <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>{content}</Tooltip>;
         }
 
-        if (!isNil(row.positionIndex)) {
+        if (subImageValue) {
             return (
                 <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>
-                    Position {row.positionIndex}
+                    {subImageType} {subImageValue}
                 </Tooltip>
             );
         }
@@ -270,9 +276,14 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     }
 
     private addFilesScenesAndChannels = () => {
-        const { channels, files, positionIndexes } = this.state;
-        const scenes = PrinterFormatInput.extractValues(positionIndexes);
-        this.props.addScenes(files, scenes || [], channels);
+        const { channels, files, positionIndexes, scenes, subImageNames } = this.state;
+        console.log(scenes, PrinterFormatInput.extractValues(scenes));
+        this.props.addScenes(
+            files,
+            PrinterFormatInput.extractValues(positionIndexes) || [],
+            channels,
+            PrinterFormatInput.extractValues(scenes) || [],
+            subImageNames);
         this.setState({ showModal: false });
     }
 

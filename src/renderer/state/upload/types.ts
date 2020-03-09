@@ -195,6 +195,8 @@ export interface UpdateScenesAction {
         channels: Channel[];
         positionIndexes: number[];
         row: UploadJobTableRow;
+        scenes: number[];
+        subImageNames: string[];
     };
     type: string;
 }

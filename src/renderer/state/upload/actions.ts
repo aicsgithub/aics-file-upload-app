@@ -178,13 +178,21 @@ export function updateUploads(upload: Partial<UploadMetadata>): UpdateUploadsAct
     };
 }
 
-export function updateScenes(row: UploadJobTableRow, positionIndexes: number[], channels: Channel[]):
+export function updateScenes(
+    row: UploadJobTableRow,
+    positionIndexes: number[] = [],
+    channels: Channel[] = [],
+    scenes: number[] = [],
+    subImageNames: string[] = []
+):
     UpdateScenesAction {
     return {
         payload: {
             channels,
             positionIndexes,
             row,
+            scenes,
+            subImageNames,
         },
         type: UPDATE_SCENES,
     };
