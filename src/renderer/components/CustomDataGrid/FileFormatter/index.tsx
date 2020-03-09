@@ -1,6 +1,8 @@
-import { Alert, Icon, Modal, Select, Tooltip } from "antd";
+import { Alert, Icon, Modal, Radio, Select, Tooltip } from "antd";
+import { RadioChangeEvent } from "antd/es/radio";
 import { isEmpty, isNil, uniq } from "lodash";
 import { basename } from "path";
+import { ReactNode } from "react";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
@@ -18,12 +20,15 @@ interface Props extends FormatterProps<UploadJobTableRow> {
     fileOptions: string[];
 }
 
+type subImage = "name" | "position" | "scene";
+
 interface FileFormatterState {
     errorMessage?: string;
     files: string[];
     scenes: string;
     showModal: boolean;
     subImageNames: string[];
+    subImageType: subImage;
     positionIndexes: string;
     channels: Channel[];
 }
@@ -72,12 +77,10 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             channels,
             files,
             errorMessage,
-            positionIndexes,
-            scenes,
             showModal,
-            subImageNames,
         } = this.state;
 
+        // todo handle scenes and sub image names
         if (row.channel) {
             const channelName = row.channel.name;
             const content = isNil(row.positionIndex) ? `${channelName} (all positions)` :
@@ -154,20 +157,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             ))}
                         </Select>
                     </LabeledInput>
-                    <LabeledInput label="Scenes (ex. 1, 4, 5-10)">
-                        <PrinterFormatInput
-                            value={scenes}
-                            onEnter={this.enterScenes}
-                            placeholder="Enter Scenes"
-                        />
-                    </LabeledInput>
-                    <LabeledInput label="Positions (ex. 1, 4, 5-10)">
-                        <PrinterFormatInput
-                            value={positionIndexes}
-                            onEnter={this.enterPositionIndexes}
-                            placeholder="Enter Positions"
-                        />
-                    </LabeledInput>
+                    {this.renderSubImageInputs()}
                     <LabeledInput label="Channels">
                         <Select
                             className={styles.input}
@@ -184,15 +174,6 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             ))}
                         </Select>
                     </LabeledInput>
-                    <LabeledInput label="Sub Image Names">
-                        <Select
-                            className={styles.input}
-                            mode="tags"
-                            onChange={this.setSubImageNames}
-                            placeholder="Sub Image Names"
-                            value={subImageNames}
-                        />
-                    </LabeledInput>
                     {errorMessage && (<Alert
                         className={styles.alert}
                         type="error"
@@ -200,6 +181,60 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                         message={errorMessage}
                     />)}
                 </Modal>
+            </div>
+        );
+    }
+
+    private renderSubImageInputs = () => {
+        const {positionIndexes, scenes, subImageNames, subImageType} = this.state;
+        let input: ReactNode;
+        let label: string;
+        switch (subImageType) {
+            case "name":
+                input = (
+                    <Select
+                        className={styles.input}
+                        mode="tags"
+                        onChange={this.setSubImageNames}
+                        placeholder="Sub Image Names"
+                        value={subImageNames}
+                    />
+                );
+                label = "Sub Image Names";
+                break;
+            case "position":
+                input = (
+                    <PrinterFormatInput
+                        value={positionIndexes}
+                        onEnter={this.enterPositionIndexes}
+                        placeholder="Enter Positions"
+                    />
+                );
+                label = "Positions (ex. 1, 4, 5-10)";
+                break;
+            default:
+                input = (
+                    <PrinterFormatInput
+                        value={scenes}
+                        onEnter={this.enterScenes}
+                        placeholder="Enter Scenes"
+                    />
+                );
+                label = "Scenes (ex. 1, 4, 5-10)";
+                break;
+        }
+        return (
+            <div className={styles.subImageGroup}>
+                <LabeledInput label="Sub Image Type" className={styles.subImageType}>
+                    <Radio.Group onChange={this.selectSubImageType} value={subImageType}>
+                        <Radio.Button value="position">Position</Radio.Button>
+                        <Radio.Button value="scene">Scene</Radio.Button>
+                        <Radio.Button value="name">Name</Radio.Button>
+                    </Radio.Group>
+                </LabeledInput>
+                <LabeledInput label={label} className={styles.subImageInput}>
+                    {input}
+                </LabeledInput>
             </div>
         );
     }
@@ -218,6 +253,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             positionIndexes: FileFormatter.convertListToString(positionIndexes),
             scenes: FileFormatter.convertListToString(scenes),
             subImageNames,
+            subImageType: "position" as subImage,
         };
     }
 
@@ -239,16 +275,18 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         this.setState({ channels });
     }
 
+    private selectSubImageType = (e: RadioChangeEvent) => this.setState({subImageType: e.target.value});
+
     private enterScenes = (scenes: string, errorMessage?: string) => {
-        this.setState({ scenes, errorMessage });
+        this.setState({ positionIndexes: "", scenes, subImageNames: [], errorMessage });
     }
 
     private enterPositionIndexes = (positionIndexes: string, errorMessage?: string) => {
-        this.setState({ positionIndexes, errorMessage });
+        this.setState({ positionIndexes, scenes: "", subImageNames: [], errorMessage });
     }
 
     private setSubImageNames = (subImageNames: string[]) => {
-        this.setState({ subImageNames });
+        this.setState({ positionIndexes: "", scenes: "", subImageNames });
     }
 
     private getOkButtonDisabled = (): boolean => {
