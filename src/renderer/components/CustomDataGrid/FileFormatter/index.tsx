@@ -127,7 +127,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                         type="warning"
                         showIcon={true}
                         closable={true}
-                        message="Adding scenes or positions will clear out direct file-well associations made on the previous page"
+                        message="Adding scenes, positions, or sub image names will clear out direct file-well associations made on the previous page"
                     />
                     {this.state.files.length > 1 && (
                         <Alert

@@ -318,7 +318,7 @@ const retryUploadLogic = createLogic({
 const updateScenesLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const uploads = getUpload(getState());
-        const {channels, positionIndexes, row} = action.payload;
+        const {channels, positionIndexes, row, scenes, subImageNames} = action.payload;
         const update: Partial<UploadStateBranch> = {};
         const workflows = splitTrimAndFilter(row.workflows);
 
@@ -347,7 +347,7 @@ const updateScenesLogic = createLogic({
 
         // if there are positions for a file, remove the well association from the file row
         const fileRowKey = getUploadRowKey(row.file);
-        if (!isEmpty(positionIndexes)) {
+        if (!isEmpty(positionIndexes) || !isEmpty(scenes) || !isEmpty(subImageNames)) {
             update[fileRowKey] = {
                 ...uploads[fileRowKey],
                 wellIds: [],
@@ -374,16 +374,16 @@ const updateScenesLogic = createLogic({
 
         // add uploads that are new
         positionIndexes.forEach((positionIndex: number) => {
-            const matchingSceneRow = existingUploadsForFile
+            const matchingPositionRow = existingUploadsForFile
                 .find((u: UploadMetadata) => u.positionIndex === positionIndex && isNil(u.channelId));
 
-            if (!matchingSceneRow) {
-                const sceneOnlyRowKey = getUploadRowKey(row.file, positionIndex);
-                update[sceneOnlyRowKey] = {
+            if (!matchingPositionRow) {
+                const positionOnlyRowKey = getUploadRowKey(row.file, positionIndex);
+                update[positionOnlyRowKey] = {
                     barcode: row.barcode,
                     channel: undefined,
                     file: row.file,
-                    key: sceneOnlyRowKey,
+                    key: positionOnlyRowKey,
                     notes: undefined,
                     positionIndex,
                     wellIds: [],
