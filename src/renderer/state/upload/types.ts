@@ -190,14 +190,16 @@ export interface UpdateUploadsAction {
     type: string;
 }
 
-export interface UpdateScenesAction {
-    payload: {
-        channels: Channel[];
-        positionIndexes: number[];
-        row: UploadJobTableRow;
-        scenes: number[];
-        subImageNames: string[];
-    };
+export interface UpdateSubImagesPayload {
+    channels: Channel[];
+    positionIndexes: number[];
+    row: UploadJobTableRow;
+    scenes: number[];
+    subImageNames: string[];
+}
+
+export interface UpdateSubImagesAction {
+    payload: UpdateSubImagesPayload;
     type: string;
 }
 

@@ -21,7 +21,7 @@ import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../
 import { getUploadRowKey } from "../../state/upload/constants";
 import {
     RemoveUploadsAction,
-    UpdateScenesAction,
+    UpdateSubImagesAction,
     UpdateUploadAction,
     UploadJobTableRow,
     UploadMetadata,
@@ -57,7 +57,7 @@ interface Props {
     setAlert: ActionCreator<SetAlertAction>;
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     undo: () => void;
-    updateScenes: ActionCreator<UpdateScenesAction>;
+    updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
@@ -490,7 +490,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     ) => {
         files.forEach((file: string) => {
             const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey({file}));
-            this.props.updateScenes(row, positionIndexes, channels, scenes, subImageNames);
+            this.props.updateSubImages(row, {positionIndexes, channels, scenes, subImageNames});
         });
     }
 }

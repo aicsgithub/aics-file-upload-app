@@ -42,7 +42,7 @@ import {
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
-    UPDATE_SCENES,
+    UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
@@ -453,7 +453,7 @@ const updateScenesLogic = createLogic({
             removeUploads(rowKeysToDelete),
         ]));
     },
-    type: UPDATE_SCENES,
+    type: UPDATE_SUB_IMAGES,
 });
 
 const parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;

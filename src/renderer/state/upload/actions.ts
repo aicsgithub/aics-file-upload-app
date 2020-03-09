@@ -1,6 +1,5 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
-import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
 
 import {
@@ -21,7 +20,7 @@ import {
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
-    UPDATE_SCENES,
+    UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
     UPDATE_UPLOADS,
 } from "./constants";
@@ -44,7 +43,8 @@ import {
     UndoFileWorkflowAssociationAction,
     UpdateFilesToArchive,
     UpdateFilesToStoreOnIsilon,
-    UpdateScenesAction,
+    UpdateSubImagesAction,
+    UpdateSubImagesPayload,
     UpdateUploadAction,
     UpdateUploadsAction,
     UploadJobTableRow,
@@ -178,23 +178,19 @@ export function updateUploads(upload: Partial<UploadMetadata>): UpdateUploadsAct
     };
 }
 
-export function updateScenes(
+export function updateSubImages(
     row: UploadJobTableRow,
-    positionIndexes: number[] = [],
-    channels: Channel[] = [],
-    scenes: number[] = [],
-    subImageNames: string[] = []
-):
-    UpdateScenesAction {
+    payload: Partial<UpdateSubImagesPayload>
+): UpdateSubImagesAction {
     return {
         payload: {
-            channels,
-            positionIndexes,
+            channels: payload.channels || [],
+            positionIndexes: payload.positionIndexes || [],
             row,
-            scenes,
-            subImageNames,
+            scenes: payload.scenes || [],
+            subImageNames: payload.subImageNames || [],
         },
-        type: UPDATE_SCENES,
+        type: UPDATE_SUB_IMAGES,
     };
 }
 

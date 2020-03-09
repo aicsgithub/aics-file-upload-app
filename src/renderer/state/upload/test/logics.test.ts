@@ -24,7 +24,7 @@ import {
     undoFileWellAssociation,
     updateFilesToArchive,
     updateFilesToStoreOnIsilon,
-    updateScenes,
+    updateSubImages,
     updateUpload,
 } from "../actions";
 import { getUploadRowKey } from "../constants";
@@ -307,7 +307,7 @@ describe("Upload logics", () => {
             }
         });
     });
-    describe("updateScenesLogic", () => {
+    describe("updateSubImagesLogic", () => {
         const file = "/path/to/file1";
         const fileRowKey = getUploadRowKey({file});
         const mockChannel = { channelId: 1, description: "", name: ""};
@@ -322,14 +322,14 @@ describe("Upload logics", () => {
             expect(fileRow).to.not.be.undefined;
 
             if (fileRow) {
-                store.dispatch(updateScenes(fileRow, [0], []));
+                store.dispatch(updateSubImages(fileRow, {positionIndexes: [0]}));
             }
 
             state = store.getState();
             expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
         });
 
-        it("does not remove well associations from the file row if file does not have a scene", () => {
+        it("does not remove well associations from the file row if file does not have a subimage", () => {
             const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
@@ -340,13 +340,13 @@ describe("Upload logics", () => {
 
             if (fileRow) {
                 // apply
-                store.dispatch(updateScenes(fileRow, [], [mockChannel]));
+                store.dispatch(updateSubImages(fileRow, {channels: [mockChannel]}));
             }
 
             state = store.getState();
             expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
         });
-        it("removes well associations from the file row if file has at least one scene", () => {
+        it("removes well associations from the file row if file has at least one position index", () => {
             const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
@@ -357,7 +357,7 @@ describe("Upload logics", () => {
 
             if (fileRow) {
                 // apply
-                store.dispatch(updateScenes(fileRow, [1], []));
+                store.dispatch(updateSubImages(fileRow, {positionIndexes: [1]}));
             }
 
             // after
@@ -389,7 +389,7 @@ describe("Upload logics", () => {
             expect(fileRow).to.not.be.undefined;
             if (fileRow) {
                 // apply
-                store.dispatch(updateScenes(fileRow, [], [mockChannel]));
+                store.dispatch(updateSubImages(fileRow, {channels: [mockChannel]}));
 
                 // after
                 await logicMiddleware.whenComplete();
@@ -431,7 +431,7 @@ describe("Upload logics", () => {
 
             if (fileRow) {
                 // apply
-                store.dispatch(updateScenes(fileRow, [1], []));
+                store.dispatch(updateSubImages(fileRow, {positionIndexes: [1]}));
 
                 // after
                 state = store.getState();
@@ -462,7 +462,7 @@ describe("Upload logics", () => {
 
             if (fileRow) {
                 // apply
-                store.dispatch(updateScenes(fileRow, [1], [mockChannel]));
+                store.dispatch(updateSubImages(fileRow, {positionIndexes: [1], channels: [mockChannel]}));
 
                 // after
                 state = store.getState();
@@ -527,7 +527,7 @@ describe("Upload logics", () => {
 
             if (fileRow) {
                 // apply
-                store.dispatch(updateScenes(fileRow, [2], [mockChannel]));
+                store.dispatch(updateSubImages(fileRow, {positionIndexes: [2], channels: [mockChannel]}));
                 const uploads = getUpload(store.getState());
                 expect(uploads[sceneKey]).to.be.undefined;
             }
