@@ -131,7 +131,7 @@ const applyTemplateLogic = createLogic({
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
             const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
-            action.payload.uploads[getUploadRowKey(filepath)] = {
+            action.payload.uploads[getUploadRowKey({file: filepath})] = {
                 barcode,
                 file: upload.file,
                 notes,
@@ -319,6 +319,16 @@ const updateScenesLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const uploads = getUpload(getState());
         const {channels, positionIndexes, row, scenes, subImageNames} = action.payload;
+        let subImages = positionIndexes;
+        let subImageProp: keyof UploadMetadata = "positionIndex";
+        if (isEmpty(subImages)) {
+            subImages = scenes;
+            subImageProp = "scene";
+        }
+        if (isEmpty(subImages)) {
+            subImages = subImageNames;
+            subImageProp = "subImageName";
+        }
         const update: Partial<UploadStateBranch> = {};
         const workflows = splitTrimAndFilter(row.workflows);
 
@@ -347,7 +357,7 @@ const updateScenesLogic = createLogic({
 
         // if there are positions for a file, remove the well association from the file row
         const fileRowKey = getUploadRowKey(row.file);
-        if (!isEmpty(positionIndexes) || !isEmpty(scenes) || !isEmpty(subImageNames)) {
+        if (!isEmpty(subImages)) {
             update[fileRowKey] = {
                 ...uploads[fileRowKey],
                 wellIds: [],
@@ -358,7 +368,7 @@ const updateScenesLogic = createLogic({
         const oldChannelIds = row.channelIds || [];
         channels.filter((c: Channel) => !includes(oldChannelIds, c.channelId))
             .forEach((channel: Channel) => {
-                const key = getUploadRowKey(row.file, undefined, channel.channelId);
+                const key = getUploadRowKey({file: row.file, positionIndex: undefined, channelId: channel.channelId});
                 update[key] = {
                     barcode: row.barcode,
                     channel,
@@ -366,6 +376,8 @@ const updateScenesLogic = createLogic({
                     key,
                     notes: undefined,
                     positionIndex: undefined,
+                    scene: undefined,
+                    subImageName: undefined,
                     wellIds: [],
                     workflows,
                     ...additionalAnnotations,
@@ -373,19 +385,19 @@ const updateScenesLogic = createLogic({
             });
 
         // add uploads that are new
-        positionIndexes.forEach((positionIndex: number) => {
+        subImages.forEach((subImageValue: string | number) => {
             const matchingPositionRow = existingUploadsForFile
-                .find((u: UploadMetadata) => u.positionIndex === positionIndex && isNil(u.channelId));
+                .find((u: UploadMetadata) => u[subImageProp] === subImageValue && isNil(u.channelId));
 
             if (!matchingPositionRow) {
-                const positionOnlyRowKey = getUploadRowKey(row.file, positionIndex);
-                update[positionOnlyRowKey] = {
+                const subImageOnlyRowKey = getUploadRowKey({file: row.file, [subImageProp]: subImageValue});
+                update[subImageOnlyRowKey] = {
                     barcode: row.barcode,
                     channel: undefined,
                     file: row.file,
-                    key: positionOnlyRowKey,
+                    key: subImageOnlyRowKey,
                     notes: undefined,
-                    positionIndex,
+                    positionIndex: subImageValue,
                     wellIds: [],
                     workflows,
                     ...additionalAnnotations,
@@ -397,14 +409,18 @@ const updateScenesLogic = createLogic({
                     .find((u: UploadMetadata) => !isNil(u.positionIndex) && !isNil(u.channelId));
 
                 if (!matchingChannelRow) {
-                    const key = getUploadRowKey(row.file, positionIndex, channel.channelId);
+                    const key = getUploadRowKey({
+                        channelId: channel.channelId,
+                        file: row.file,
+                        [subImageProp]: subImageValue,
+                    });
                     update[key] = {
                         barcode: row.barcode,
                         channel,
                         file: row.file,
                         key,
                         notes: undefined,
-                        positionIndex,
+                        positionIndex: subImageValue,
                         wellIds: [],
                         workflows,
                         ...additionalAnnotations,
@@ -419,7 +435,11 @@ const updateScenesLogic = createLogic({
             .filter((u) => (!isNil(u.positionIndex) && !includes(positionIndexes, u.positionIndex)) ||
                 (!isNil(u.channel) && !includes(channelIds, u.channel.channelId)));
         const rowKeysToDelete = rowsToDelete.map(({file, positionIndex, channel}: UploadMetadata) =>
-            getUploadRowKey(file, positionIndex, channel ? channel.channelId : undefined));
+            getUploadRowKey({
+                channelId: channel ? channel.channelId : undefined,
+                file,
+                positionIndex,
+            }));
 
         next(batchActions([
             updateUploads(update),
@@ -542,8 +562,8 @@ const updateFilesToStoreOnIsilonLogic = createLogic({
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const updates = map(
             action.payload,
-            (shouldBeInLocal: boolean, filepath: string) =>
-                updateUpload(getUploadRowKey(filepath), {shouldBeInLocal})
+            (shouldBeInLocal: boolean, file: string) =>
+                updateUpload(getUploadRowKey({file}), {shouldBeInLocal})
         );
         next(batchActions(updates));
     },
@@ -554,8 +574,8 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const updates = map(
             action.payload,
-            (shouldBeInArchive: boolean, filepath: string) =>
-                updateUpload(getUploadRowKey(filepath), {shouldBeInArchive})
+            (shouldBeInArchive: boolean, file: string) =>
+                updateUpload(getUploadRowKey({file}), {shouldBeInArchive})
         );
         next(batchActions(updates));
     },

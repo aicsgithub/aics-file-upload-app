@@ -57,7 +57,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             const { barcode, wellIds, rowIds } = action.payload;
 
             return rowIds.reduce((accum: UploadStateBranch, { file, positionIndex }) => {
-                const key = getUploadRowKey(file, positionIndex);
+                const key = getUploadRowKey({file, positionIndex});
                 return {
                     ...accum,
                     [key]: {
@@ -81,13 +81,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
             const { fullPaths, workflows } = action.payload;
             const workflowNames = uniq(workflows.map((w) => w.name));
 
-            return fullPaths.reduce((accum: UploadStateBranch, fullPath: string) => {
-                const key = getUploadRowKey(fullPath);
+            return fullPaths.reduce((accum: UploadStateBranch, file: string) => {
+                const key = getUploadRowKey({file});
                 return ({
                     ...accum,
                     [key]: {
                         ...accum[key],
-                        file: fullPath,
+                        file,
                         workflows: accum[key] && accum[key].workflows ?
                             uniq([...accum[key].workflows!, ...workflowNames]) : workflowNames,
                     },
@@ -104,7 +104,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === UNDO_FILE_WELL_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWellAssociationAction) => {
             const { deleteUpload, fullPath, positionIndex, wellIds: wellIdsToRemove } = action.payload;
-            const key = getUploadRowKey(fullPath, positionIndex);
+            const key = getUploadRowKey({file: fullPath, positionIndex});
             const wellIds = without(state[key].wellIds, ...wellIdsToRemove);
             if (!wellIds.length && deleteUpload) {
                 const stateWithoutFile = { ...state };
@@ -124,7 +124,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is UndoFileWorkflowAssociationAction =>
             action.type === UNDO_FILE_WORKFLOW_ASSOCIATION,
         perform: (state: UploadStateBranch, action: UndoFileWorkflowAssociationAction) => {
-            const key = getUploadRowKey(action.payload.fullPath);
+            const key = getUploadRowKey({file: action.payload.fullPath});
             const currentWorkflows = state[key].workflows;
             if (!currentWorkflows) {
                 return state;

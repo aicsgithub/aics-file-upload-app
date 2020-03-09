@@ -685,7 +685,7 @@ describe("Selection logics", () => {
                 }),
                 upload: getMockStateWithHistory({
                     ...mockState.upload.present,
-                    [getUploadRowKey("/path/test.txt")]: {
+                    [getUploadRowKey({file: "/path/test.txt"})]: {
                         barcode: "abc",
                         file: "/path/test.txt",
                         wellIds: [],

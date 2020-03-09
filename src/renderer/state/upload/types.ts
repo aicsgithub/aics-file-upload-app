@@ -36,6 +36,8 @@ export interface MMSAnnotationValueRequest {
     annotationId: number;
     channelId?: number;
     positionIndex?: number;
+    scene?: number;
+    subImageName?: string;
     timePointId?: number;
     values: string[];
 }

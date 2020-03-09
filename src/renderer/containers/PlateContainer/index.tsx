@@ -14,7 +14,7 @@ interface Props {
 
 function mapStateToProps(state: State, { selectedFullPath, selectedPositionIndex }: Props) {
     const upload = getUpload(state);
-    const metadata = upload[getUploadRowKey(selectedFullPath, selectedPositionIndex)];
+    const metadata = upload[getUploadRowKey({file: selectedFullPath, positionIndex: selectedPositionIndex})];
     return {
         selectedWells: getSelectedWells(state),
         wells: getWellsWithUnitsAndModified(state),

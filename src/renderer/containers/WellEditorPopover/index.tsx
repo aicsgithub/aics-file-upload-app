@@ -96,7 +96,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
         if (isEmpty(selectedWellIds)) {
             return true;
         }
-        const uploadRow = upload[getUploadRowKey(file, positionIndex)];
+        const uploadRow = upload[getUploadRowKey({file, positionIndex})];
         return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === 0;
     }
 
@@ -112,7 +112,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
         if (isEmpty(selectedWellIds)) {
             return true;
         }
-        const uploadRow = upload[getUploadRowKey(file, positionIndex)];
+        const uploadRow = upload[getUploadRowKey({file, positionIndex})];
         return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === selectedWellIds.length;
     }
 }

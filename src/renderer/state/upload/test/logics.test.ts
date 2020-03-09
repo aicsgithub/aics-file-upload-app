@@ -151,7 +151,7 @@ describe("Upload logics", () => {
             expect(getSelectedFiles(state)).to.be.empty;
             const upload = getUpload(store.getState());
             const selectedBarcode = getSelectedBarcode(state);
-            const uploadRowKey = getUploadRowKey(file1, 1);
+            const uploadRowKey = getUploadRowKey({file: file1, positionIndex: 1});
             expect(get(upload, [uploadRowKey, "wellIds", 0])).to.equal(wellId);
             expect(get(upload, [uploadRowKey, "barcode"])).to.equal(selectedBarcode);
         });
@@ -163,14 +163,14 @@ describe("Upload logics", () => {
             const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
-            let uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            let uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file1"})];
             expect(uploadRow.wellIds).to.not.be.empty;
 
             // apply
             store.dispatch(undoFileWellAssociation("/path/to/file1"));
 
             // after
-            uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file1"})];
             expect(uploadRow).to.be.undefined;
         });
 
@@ -178,14 +178,14 @@ describe("Upload logics", () => {
             const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
-            let uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            let uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file1"})];
             expect(uploadRow.wellIds).to.not.be.empty;
 
             // apply
             store.dispatch(undoFileWellAssociation("/path/to/file1", undefined, false));
 
             // after
-            uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file1")];
+            uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file1"})];
             expect(uploadRow).to.not.be.undefined;
             expect(uploadRow.wellIds).to.be.empty;
         });
@@ -194,14 +194,14 @@ describe("Upload logics", () => {
             const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
-            let uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file3", 1)];
+            let uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file3", positionIndex: 1})];
             expect(uploadRow.wellIds.length).to.equal(2);
 
             // apply
             store.dispatch(undoFileWellAssociation("/path/to/file3", 1, false));
 
             // after
-            uploadRow = getUpload(store.getState())[getUploadRowKey("/path/to/file3", 1)];
+            uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file3", positionIndex: 1})];
             expect(uploadRow).to.not.be.undefined;
             expect(uploadRow.wellIds.length).to.equal(1);
         });
@@ -309,7 +309,7 @@ describe("Upload logics", () => {
     });
     describe("updateScenesLogic", () => {
         const file = "/path/to/file1";
-        const fileRowKey = getUploadRowKey(file);
+        const fileRowKey = getUploadRowKey({file});
         const mockChannel = { channelId: 1, description: "", name: ""};
 
         it("allows positionIndex = 0 to be added", () => {
@@ -380,14 +380,14 @@ describe("Upload logics", () => {
                 // after
                 state = store.getState();
                 expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
-                const channelUpload = getUpload(state)[getUploadRowKey(file, undefined, 1)];
+                const channelUpload = getUpload(state)[getUploadRowKey({file, channelId: 1})];
                 expect(channelUpload).to.not.be.undefined;
                 expect(channelUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: mockChannel,
                     ["Favorite Color"]: undefined,
                     file: fileRow.file,
-                    key: getUploadRowKey(file, undefined, 1),
+                    key: getUploadRowKey({file, channelId: 1}),
                     notes: undefined,
                     positionIndex: undefined,
                     wellIds: [],
@@ -411,14 +411,14 @@ describe("Upload logics", () => {
                 // after
                 state = store.getState();
                 expect(keys(getUpload(state)).length).to.equal(keys(mockWellUpload).length + 1);
-                const sceneUpload = getUpload(state)[getUploadRowKey(file, 1)];
+                const sceneUpload = getUpload(state)[getUploadRowKey({file, positionIndex: 1})];
                 expect(sceneUpload).to.not.be.undefined;
                 expect(sceneUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: undefined,
                     ["Favorite Color"]: undefined,
                     file: fileRow.file,
-                    key: getUploadRowKey(file, 1),
+                    key: getUploadRowKey({file, positionIndex: 1}),
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
@@ -445,21 +445,21 @@ describe("Upload logics", () => {
                 // there should be a new upload representing:
                 // just the scene, just the channel, and the scene and channel together
                 expect(keys(uploads).length).to.equal(keys(mockWellUpload).length + 3);
-                const sceneUpload = uploads[getUploadRowKey(file, 1)];
+                const sceneUpload = uploads[getUploadRowKey({file, positionIndex: 1})];
                 expect(sceneUpload).to.not.be.undefined;
                 expect(sceneUpload).to.deep.equal({
                     barcode: fileRow.barcode,
                     channel: undefined,
                     ["Favorite Color"]: undefined,
                     file: fileRow.file,
-                    key: getUploadRowKey(file, 1),
+                    key: getUploadRowKey({file, positionIndex: 1}),
                     notes: undefined,
                     positionIndex: 1,
                     wellIds: [],
                     workflows: [],
                 });
 
-                const sceneAndChannelKey = getUploadRowKey(file, 1, 1);
+                const sceneAndChannelKey = getUploadRowKey({file, positionIndex: 1, channelId: 1});
                 const sceneAndChannelUpload = uploads[sceneAndChannelKey];
                 expect(sceneAndChannelUpload).to.not.be.undefined;
                 expect(sceneAndChannelUpload).to.deep.equal({
@@ -476,16 +476,16 @@ describe("Upload logics", () => {
             }
         });
         it("removes uploads that don't exist anymore", () => {
-            const sceneKey = getUploadRowKey(file, 1);
+            const sceneKey = getUploadRowKey({file, positionIndex: 1});
             const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey(file)]: {
+                    [getUploadRowKey({file})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                     },
-                    [getUploadRowKey(file, 1)]: {
+                    [getUploadRowKey({file, positionIndex: 1})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
@@ -510,7 +510,7 @@ describe("Upload logics", () => {
     });
 
     describe("updateUploadLogic", () => {
-        const uploadRowKey = getUploadRowKey("/path/to/file1");
+        const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
 
         it("converts array of Moment objects to array of dates", () => {
             const { store } = createMockReduxStore({

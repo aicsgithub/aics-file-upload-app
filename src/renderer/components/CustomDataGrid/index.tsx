@@ -425,7 +425,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         if (updated) {
             for  (let i = fromRow; i <=  toRow; i++) {
                 const { channel, file, positionIndex } = this.props.uploads[i];
-                this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), updated);
+                this.props.updateUpload(getUploadRowKey({
+                    channelId: get(channel, "channelId"),
+                    file,
+                    positionIndex,
+                }), updated);
             }
         }
     }
@@ -439,7 +443,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         async (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
             const notes = await onDrop(e.dataTransfer.files, this.handleError);
-            this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), {notes});
+            this.props.updateUpload(getUploadRowKey({
+                channelId: get(channel, "channelId"),
+                file,
+                positionIndex,
+            }), {notes});
         }
     )
 
@@ -448,7 +456,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
 
     private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {
-        this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), { [key]: value });
+        this.props.updateUpload(getUploadRowKey({
+            channelId: get(channel, "channelId"),
+            file,
+            positionIndex,
+        }), { [key]: value });
     }
 
     private handleError = (error: string) => {
@@ -471,7 +483,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     private addScenes = (files: string[], positionIndexes: number[], channels: Channel[]) => {
         files.forEach((file: string) => {
-            const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey(file));
+            const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey({file}));
             this.props.updateScenes(row, positionIndexes, channels);
         });
     }
