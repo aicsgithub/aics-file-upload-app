@@ -14,8 +14,10 @@ export interface UploadMetadata {
     file: string;
     notes?: string;
     positionIndex?: number;
+    scene?: number;
     shouldBeInArchive?: boolean;
     shouldBeInLocal?: boolean;
+    subImageName?: string;
     templateId?: number;
     wellIds: number[];
     workflows?: string[];
@@ -85,8 +87,14 @@ export interface UploadJobTableRow {
     // Keeps track of all positionIndexes - used only on the top-level row
     positionIndexes: number[];
 
+    // Keeps track of all scenes - used only on top-level row
+    scenes: number[];
+
     // react-data-grid property needed for nested rows
     siblingIndex?: number;
+
+    // Keeps track of all sub image names - used only on top-level row
+    subImageNames: string[];
 
     // react-data-grid property needed for nested rows
     treeDepth?: number;

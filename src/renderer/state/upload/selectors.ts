@@ -152,7 +152,9 @@ const convertToUploadJobRow = (
     template?: TemplateWithTypeNames,
     hasSubRows: boolean = false,
     channelIds: number[] = [],
-    positionIndexes: number[] = []
+    positionIndexes: number[] = [],
+    scenes: number[] = [],
+    subImageNames: string[] = []
 ): UploadJobTableRow => {
     // convert arrays to strings
     const formattedMetadata: UploadMetadataWithDisplayFields = {...metadata};
@@ -183,7 +185,9 @@ const convertToUploadJobRow = (
             metadata.channel ? metadata.channel.channelId : undefined),
         numberSiblings,
         positionIndexes,
+        scenes,
         siblingIndex,
+        subImageNames,
         treeDepth,
         wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(LIST_DELIMITER_JOIN) : "",
         workflows: metadata.workflows ? metadata.workflows.join(LIST_DELIMITER_JOIN) : "",
@@ -295,8 +299,16 @@ export const getUploadSummaryRows = createSelector([
             const allPositionIndexes: number[] = uniq(allMetadataForFile
                 .filter((m: UploadMetadataWithDisplayFields) => !isNil(m.positionIndex))
                 .map((m: UploadMetadataWithDisplayFields) => m.positionIndex)) as number[];
+            const allScenes: number[] = uniq(allMetadataForFile
+                .filter((m: UploadMetadataWithDisplayFields) => !isNil(m.scene))
+                .map((m: UploadMetadataWithDisplayFields) => m.scene)
+            ) as number[];
+            const allSubImageNames: string[] = uniq(allMetadataForFile
+                .filter((m: UploadMetadataWithDisplayFields) => !isNil(m.subImageName))
+                .map((m: UploadMetadataWithDisplayFields) => m.subImageName)
+            ) as string[];
             const fileRow = convertToUploadJobRow(fileMetadata, keys(metadataGroupedByFile).length, fileSiblingIndex,
-                0, template, hasSubRows, allChannelIds, allPositionIndexes);
+                0, template, hasSubRows, allChannelIds, allPositionIndexes, allScenes, allSubImageNames);
             visibleRows.push(fileRow);
 
             if (expandedRows[getUploadRowKey(file)]) {

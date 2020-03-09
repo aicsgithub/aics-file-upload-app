@@ -21,7 +21,9 @@ interface Props extends FormatterProps<UploadJobTableRow> {
 interface FileFormatterState {
     errorMessage?: string;
     files: string[];
+    scenes: string;
     showModal: boolean;
+    subImageNames: string[];
     positionIndexes: string;
     channels: Channel[];
 }
@@ -37,7 +39,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             .filter(Boolean) as Channel[];
     }
 
-    private static convertPositionIndexes(positionIndexes: number[] = []): string {
+    private static convertListToString(positionIndexes: Array<number | string> = []): string {
         return positionIndexes ? positionIndexes.join(", ") : "";
     }
 
@@ -71,7 +73,9 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             files,
             errorMessage,
             positionIndexes,
+            scenes,
             showModal,
+            subImageNames,
         } = this.state;
 
         if (row.channel) {
@@ -92,7 +96,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         const fileName = basename(value);
         const isEditing = FileFormatter.isEditing(row);
         const action = isEditing ? "Update" : "Add";
-        const title = `${action} Scenes and channels for "${fileName}"`;
+        const title = `${action} SubImage or Channel to "${fileName}"`;
 
         return (
             <div>
@@ -114,15 +118,16 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                     okButtonProps={{disabled: this.getOkButtonDisabled()}}
                 >
                     <p className={styles.modalHelpText}>
-                        If this is a microscopy image (3i, czi, ome.tiff) you can add scene positions or channels.
-                        This will allow you to add annotations for specific scenes and channels within a file.
+                        If this is a microscopy image (3i, czi, ome.tiff, lif) you can add scenes, positions,
+                        sub images or channels. This will allow you to add annotations for specific scenes and
+                        channels within a file.
                     </p>
                     <Alert
                         className={styles.alert}
                         type="warning"
                         showIcon={true}
                         closable={true}
-                        message="Adding scenes will clear out direct file-well associations made on the previous page"
+                        message="Adding scenes or positions will clear out direct file-well associations made on the previous page"
                     />
                     {this.state.files.length > 1 && (
                         <Alert
@@ -149,11 +154,18 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             ))}
                         </Select>
                     </LabeledInput>
-                    <LabeledInput label="Scene Positions (ex. 1, 4, 5-10)">
+                    <LabeledInput label="Scenes (ex. 1, 4, 5-10)">
+                        <PrinterFormatInput
+                            value={scenes}
+                            onEnter={this.enterScenes}
+                            placeholder="Enter Scenes"
+                        />
+                    </LabeledInput>
+                    <LabeledInput label="Positions (ex. 1, 4, 5-10)">
                         <PrinterFormatInput
                             value={positionIndexes}
-                            onEnter={this.enterScenes}
-                            placeholder="Enter Scene Positions"
+                            onEnter={this.enterPositionIndexes}
+                            placeholder="Enter Positions"
                         />
                     </LabeledInput>
                     <LabeledInput label="Channels">
@@ -171,6 +183,15 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                                 </Select.Option>
                             ))}
                         </Select>
+                    </LabeledInput>
+                    <LabeledInput label="Sub Image Names">
+                        <Select
+                            className={styles.input}
+                            mode="tags"
+                            onChange={this.setSubImageNames}
+                            placeholder="Sub Image Names"
+                            value={subImageNames}
+                        />
                     </LabeledInput>
                     {errorMessage && (<Alert
                         className={styles.alert}
@@ -190,11 +211,13 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     })
 
     private getInitialState = () => {
-        const {channelOptions, row: {channelIds, file, positionIndexes}} = this.props;
+        const {channelOptions, row: {channelIds, file, positionIndexes, scenes, subImageNames}} = this.props;
         return {
             channels: FileFormatter.convertChannels(channelIds, channelOptions),
             files: [file],
-            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
+            positionIndexes: FileFormatter.convertListToString(positionIndexes),
+            scenes: FileFormatter.convertListToString(scenes),
+            subImageNames,
         };
     }
 
@@ -216,17 +239,26 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         this.setState({ channels });
     }
 
-    private enterScenes = (positionIndexes: string, errorMessage: string | undefined) => {
+    private enterScenes = (scenes: string, errorMessage?: string) => {
+        this.setState({ scenes, errorMessage });
+    }
+
+    private enterPositionIndexes = (positionIndexes: string, errorMessage?: string) => {
         this.setState({ positionIndexes, errorMessage });
     }
 
+    private setSubImageNames = (subImageNames: string[]) => {
+        this.setState({ subImageNames });
+    }
+
     private getOkButtonDisabled = (): boolean => {
-        const { channels, positionIndexes } = this.state;
+        const { channels, positionIndexes, scenes, subImageNames } = this.state;
         const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
         if (FileFormatter.isEditing(this.props.row)) {
             return validationError;
         }
-        return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
+        return (isEmpty(channels) && isEmpty(positionIndexes) && isEmpty(scenes) && isEmpty(subImageNames)) ||
+            validationError;
     }
 }
 
