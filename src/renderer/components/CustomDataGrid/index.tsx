@@ -424,11 +424,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         // Updated is a {key:  value }
         if (updated) {
             for  (let i = fromRow; i <=  toRow; i++) {
-                const { channel, file, positionIndex } = this.props.uploads[i];
+                const { channel, file, positionIndex, scene, subImageName } = this.props.uploads[i];
                 this.props.updateUpload(getUploadRowKey({
                     channelId: get(channel, "channelId"),
                     file,
                     positionIndex,
+                    scene,
+                    subImageName,
                 }), updated);
             }
         }
