@@ -265,19 +265,24 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     private getInitialState = () => {
         const {channelOptions, row: {channelIds, file, positionIndexes, scenes, subImageNames}} = this.props;
+        let subImageType: subImage = "position";
+        if (!isEmpty(scenes)) {
+            subImageType = "scene";
+        } else if (!isEmpty(subImageNames)) {
+            subImageType = "name";
+        }
         return {
             channels: FileFormatter.convertChannels(channelIds, channelOptions),
             files: [file],
             positionIndexes: FileFormatter.convertListToString(positionIndexes),
             scenes: FileFormatter.convertListToString(scenes),
             subImageNames,
-            subImageType: "position" as subImage,
+            subImageType,
         };
     }
 
     private addFilesScenesAndChannels = () => {
         const { channels, files, positionIndexes, scenes, subImageNames } = this.state;
-        console.log(scenes, PrinterFormatInput.extractValues(scenes));
         this.props.addScenes(
             files,
             PrinterFormatInput.extractValues(positionIndexes) || [],
