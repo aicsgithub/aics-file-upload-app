@@ -54,8 +54,8 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         return positionIndexes ? positionIndexes.join(", ") : "";
     }
 
-    private static isEditing({ channelIds, positionIndexes }: UploadJobTableRow): boolean {
-        return !isEmpty(channelIds) || !isEmpty(positionIndexes);
+    private static isEditing({ channelIds, positionIndexes, scenes, subImageNames }: UploadJobTableRow): boolean {
+        return !isEmpty(channelIds) || !isEmpty(positionIndexes) || !isEmpty(scenes) || !isEmpty(subImageNames);
     }
 
     constructor(props: Props) {
@@ -96,7 +96,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             subImageType = "Scene";
         } else if (!isNil(row.subImageName)) {
             subImageValue = row.subImageName;
-            subImageType = "(Sub Image)";
+            subImageType = "";
         }
 
         if (row.channel) {
