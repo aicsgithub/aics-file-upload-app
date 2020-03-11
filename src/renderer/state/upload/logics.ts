@@ -35,11 +35,12 @@ import {
     CANCEL_UPLOAD,
     getUploadRowKey,
     INITIATE_UPLOAD,
+    isSubImageOnlyRow,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
-    UPDATE_SCENES,
+    UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
 } from "./constants";
 import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
@@ -131,7 +132,7 @@ const applyTemplateLogic = createLogic({
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
             const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
-            action.payload.uploads[getUploadRowKey(filepath)] = {
+            action.payload.uploads[getUploadRowKey({file: filepath})] = {
                 barcode,
                 file: upload.file,
                 notes,
@@ -315,57 +316,102 @@ const retryUploadLogic = createLogic({
     type: RETRY_UPLOAD,
 });
 
-const updateScenesLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const uploads = getUpload(getState());
-        const {channels, positionIndexes, row} = action.payload;
-        const update: Partial<UploadStateBranch> = {};
-        const workflows = splitTrimAndFilter(row.workflows);
+const getSubImagesAndKey = (positionIndexes: number[], scenes: number[], subImageNames: string[]) => {
+    let subImages: Array<string | number> = positionIndexes;
+    let subImageKey: keyof UploadMetadata = "positionIndex";
+    if (isEmpty(subImages)) {
+        subImages = scenes;
+        subImageKey = "scene";
+    }
+    if (isEmpty(subImages)) {
+        subImages = subImageNames;
+        subImageKey = "subImageName";
+    }
+    subImages = subImages || [];
+    return {
+        subImageKey,
+        subImages,
+    };
+};
 
-        const existingUploadsForFile = values(uploads).filter((u) => u.file === row.file);
-        const fileUpload: UploadMetadata | undefined = existingUploadsForFile
-            .find((u) => isNil(u.channelId) && isNil(u.positionIndex));
-
-        if (!fileUpload) {
-            throw new Error("Could not find the main upload for the file. Contact Software.");
+// This handles the event where a user adds subimages in the form of positions/scenes/names (only one type allowed)
+// and/or channels.
+// When this happens we want to:
+// (1) delete rows representing subimages and channels that we no longer care about
+// (2) create new rows for subimages and channels that are new
+// (3) remove wells from file row if a sub image was added.
+// For rows containing subimage or channel information that was previously there, we do nothing, as to save
+// anything that user has entered for that row.
+const updateSubImagesLogic = createLogic({
+    type: UPDATE_SUB_IMAGES,
+    validate: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const {channels, positionIndexes, row: fileRow, scenes, subImageNames} = action.payload;
+        let notEmptySubImageParams = 0;
+        if (!isEmpty(positionIndexes)) {
+            notEmptySubImageParams++;
         }
+
+        if (!isEmpty(scenes)) {
+            notEmptySubImageParams++;
+        }
+
+        if (!isEmpty(subImageNames)) {
+            notEmptySubImageParams++;
+        }
+
+        if (notEmptySubImageParams > 1) {
+            reject(setErrorAlert("Could not update sub images. Found more than one type of subImage in request"));
+            return;
+        }
+
+        const channelIds = channels.map((c: Channel) => c.channelId);
+        const {subImageKey, subImages} = getSubImagesAndKey(positionIndexes, scenes, subImageNames);
+        const update: Partial<UploadStateBranch> = {};
+        const workflows = splitTrimAndFilter(fileRow.workflows);
+
+        const uploads = getUpload(getState());
+        const existingUploadsForFile: UploadMetadata[] = values(uploads).filter((u) => u.file === fileRow.file);
 
         const template = getAppliedTemplate(getState());
         const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
 
         if (!template) {
-            throw new Error("Could not get applied template while attempting to update scenes. Contact Software.");
+            next(setErrorAlert("Could not get applied template while attempting to update file sub images. Contact Software."));
+            return;
         }
 
         if (!booleanAnnotationTypeId) {
-            throw new Error(
-                "Could not get boolean annotation type id while attempting to update scenes. Contact Software."
-            );
+            next(setErrorAlert(
+                "Could not get boolean annotation type id while attempting to update file sub images. Contact Software."
+            ));
+            return;
         }
 
         const additionalAnnotations = pivotAnnotations(template.annotations, booleanAnnotationTypeId);
 
-        // if there are positions for a file, remove the well association from the file row
-        const fileRowKey = getUploadRowKey(row.file);
-        if (!isEmpty(positionIndexes)) {
-            update[fileRowKey] = {
-                ...uploads[fileRowKey],
+        // If there are subimages for a file, remove the well associations from the file row
+        if (!isEmpty(subImages)) {
+            update[fileRow.key] = {
+                ...uploads[fileRow.key],
                 wellIds: [],
             };
         }
 
         // add channel rows that are new
-        const oldChannelIds = row.channelIds || [];
+        const oldChannelIds = fileRow.channelIds || [];
         channels.filter((c: Channel) => !includes(oldChannelIds, c.channelId))
             .forEach((channel: Channel) => {
-                const key = getUploadRowKey(row.file, undefined, channel.channelId);
+                const key = getUploadRowKey({file: fileRow.file, channelId: channel.channelId});
                 update[key] = {
-                    barcode: row.barcode,
+                    barcode: fileRow.barcode,
                     channel,
-                    file: row.file,
+                    file: fileRow.file,
                     key,
                     notes: undefined,
                     positionIndex: undefined,
+                    scene: undefined,
+                    subImageName: undefined,
                     wellIds: [],
                     workflows,
                     ...additionalAnnotations,
@@ -373,40 +419,47 @@ const updateScenesLogic = createLogic({
             });
 
         // add uploads that are new
-        positionIndexes.forEach((positionIndex: number) => {
-            const matchingSceneRow = existingUploadsForFile
-                .find((u: UploadMetadata) => u.positionIndex === positionIndex && isNil(u.channelId));
+        subImages.forEach((subImageValue: string | number) => {
+            const matchingSubImageRow = existingUploadsForFile
+                .filter(isSubImageOnlyRow)
+                .find((u: UploadMetadata) => u[subImageKey] === subImageValue);
 
-            if (!matchingSceneRow) {
-                const sceneOnlyRowKey = getUploadRowKey(row.file, positionIndex);
-                update[sceneOnlyRowKey] = {
-                    barcode: row.barcode,
+            if (!matchingSubImageRow) {
+                const subImageOnlyRowKey = getUploadRowKey({file: fileRow.file, [subImageKey]: subImageValue});
+                update[subImageOnlyRowKey] = {
+                    barcode: fileRow.barcode,
                     channel: undefined,
-                    file: row.file,
-                    key: sceneOnlyRowKey,
+                    file: fileRow.file,
+                    key: subImageOnlyRowKey,
                     notes: undefined,
-                    positionIndex,
                     wellIds: [],
                     workflows,
+                    [subImageKey]: subImageValue,
                     ...additionalAnnotations,
                 };
             }
 
             channels.forEach((channel: Channel) => {
                 const matchingChannelRow = existingUploadsForFile
-                    .find((u: UploadMetadata) => !isNil(u.positionIndex) && !isNil(u.channelId));
+                    .find((u) => (u.channel && u.channel.channelId === channel.channelId) &&
+                        u[subImageKey] === subImageValue
+                    );
 
                 if (!matchingChannelRow) {
-                    const key = getUploadRowKey(row.file, positionIndex, channel.channelId);
+                    const key = getUploadRowKey({
+                        channelId: channel.channelId,
+                        file: fileRow.file,
+                        [subImageKey]: subImageValue,
+                    });
                     update[key] = {
-                        barcode: row.barcode,
+                        barcode: fileRow.barcode,
                         channel,
-                        file: row.file,
+                        file: fileRow.file,
                         key,
                         notes: undefined,
-                        positionIndex,
                         wellIds: [],
                         workflows,
+                        [subImageKey]: subImageValue,
                         ...additionalAnnotations,
                     };
                 }
@@ -414,19 +467,26 @@ const updateScenesLogic = createLogic({
         });
 
         // delete the uploads that don't exist anymore
-        const channelIds = channels.map((c: Channel) => c.channelId);
-        const rowsToDelete = existingUploadsForFile
+        const rowKeysToDelete = existingUploadsForFile
             .filter((u) => (!isNil(u.positionIndex) && !includes(positionIndexes, u.positionIndex)) ||
-                (!isNil(u.channel) && !includes(channelIds, u.channel.channelId)));
-        const rowKeysToDelete = rowsToDelete.map(({file, positionIndex, channel}: UploadMetadata) =>
-            getUploadRowKey(file, positionIndex, channel ? channel.channelId : undefined));
+                (!isNil(u.scene) && !includes(scenes, u.scene)) ||
+                (!isNil(u.subImageName) && !includes(subImageNames, u.subImageName)) ||
+                (!isNil(u.channel) && !includes(channelIds, u.channel.channelId)))
+            .map(({file, positionIndex, channel, scene, subImageName}: UploadMetadata) =>
+                getUploadRowKey({
+                    channelId: channel ? channel.channelId : undefined,
+                    file,
+                    positionIndex,
+                    scene,
+                    subImageName,
+                })
+            );
 
         next(batchActions([
             updateUploads(update),
             removeUploads(rowKeysToDelete),
         ]));
     },
-    type: UPDATE_SCENES,
 });
 
 const parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
@@ -542,8 +602,8 @@ const updateFilesToStoreOnIsilonLogic = createLogic({
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const updates = map(
             action.payload,
-            (shouldBeInLocal: boolean, filepath: string) =>
-                updateUpload(getUploadRowKey(filepath), {shouldBeInLocal})
+            (shouldBeInLocal: boolean, file: string) =>
+                updateUpload(getUploadRowKey({file}), {shouldBeInLocal})
         );
         next(batchActions(updates));
     },
@@ -554,8 +614,8 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     transform: ({action}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const updates = map(
             action.payload,
-            (shouldBeInArchive: boolean, filepath: string) =>
-                updateUpload(getUploadRowKey(filepath), {shouldBeInArchive})
+            (shouldBeInArchive: boolean, file: string) =>
+                updateUpload(getUploadRowKey({file}), {shouldBeInArchive})
         );
         next(batchActions(updates));
     },
@@ -569,7 +629,7 @@ export default [
     initiateUploadLogic,
     retryUploadLogic,
     undoFileWellAssociationLogic,
-    updateScenesLogic,
+    updateSubImagesLogic,
     updateUploadLogic,
     updateFilesToStoreOnIsilonLogic,
     updateFilesToStoreInArchiveLogic,

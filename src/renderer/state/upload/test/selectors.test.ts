@@ -66,7 +66,7 @@ describe("Upload selectors", () => {
     describe("getUploadWithCalculatedData", () => {
         it("adds wellLabels to the uploads", () => {
             const result = getUploadWithCalculatedData(nonEmptyStateForInitiatingUpload);
-            expect(result[getUploadRowKey("/path/to/file1")].wellLabels).to.deep.equal(["A1"]);
+            expect(result[getUploadRowKey({ file: "/path/to/file1" })].wellLabels).to.deep.equal(["A1"]);
         });
     });
 
@@ -176,6 +176,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["blue"],
                             },
@@ -183,6 +185,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: mockChannel.channelId,
                                 positionIndex: 1,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["yellow"],
                             },
@@ -190,6 +194,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: mockChannel.channelId,
                                 positionIndex: 1,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["6"],
                             },
@@ -197,6 +203,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockNotesAnnotation.annotationId,
                                 channelId: mockChannel.channelId,
                                 positionIndex: 1,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["Seeing some interesting things here!"],
                             },
@@ -220,6 +228,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["red"],
                             },
@@ -227,6 +237,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["1"],
                             },
@@ -250,6 +262,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["green"],
                             },
@@ -257,6 +271,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["2"],
                             },
@@ -280,6 +296,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["purple"],
                             },
@@ -287,6 +305,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["3"],
                             },
@@ -310,6 +330,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["orange"],
                             },
@@ -317,6 +339,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["4"],
                             },
@@ -340,6 +364,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["pink"],
                             },
@@ -347,6 +373,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["5", "6", "7"],
                             },
@@ -370,6 +398,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["gold"],
                             },
@@ -377,6 +407,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["7"],
                             },
@@ -400,6 +432,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["grey"],
                             },
@@ -407,6 +441,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["8"],
                             },
@@ -430,6 +466,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockFavoriteColorAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["black"],
                             },
@@ -437,6 +475,8 @@ describe("Upload selectors", () => {
                                 annotationId: mockWellAnnotation.annotationId,
                                 channelId: undefined,
                                 positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
                                 timePointId: undefined,
                                 values: ["5"],
                             },
@@ -485,8 +525,8 @@ describe("Upload selectors", () => {
                 },
                 template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file3")]:
-                        mockState.upload.present[getUploadRowKey("/path/to/file3")],
+                    [getUploadRowKey({file: "/path/to/file3"})]:
+                        mockState.upload.present[getUploadRowKey({file: "/path/to/file3"})],
                 }),
             });
             expect(jobName).to.equal("file3");
@@ -517,12 +557,14 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1"),
+                key: getUploadRowKey({file: "/path/to/file1"}),
                 numberSiblings: 3,
                 positionIndexes: [],
+                scenes: [],
                 shouldBeInArchive: true,
                 shouldBeInLocal: true,
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1],
                 wellLabels: "A1",
@@ -533,12 +575,14 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file2",
                 group: false,
-                key: getUploadRowKey("/path/to/file2"),
+                key: getUploadRowKey({file: "/path/to/file2"}),
                 numberSiblings: 3,
                 positionIndexes: [],
+                scenes: [],
                 shouldBeInArchive: false,
                 shouldBeInLocal: true,
                 siblingIndex: 1,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
                 wellLabels: "A2",
@@ -549,12 +593,14 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file3",
                 group: true,
-                key: getUploadRowKey("/path/to/file3"),
+                key: getUploadRowKey({file: "/path/to/file3"}),
                 numberSiblings: 3,
                 positionIndexes: [1],
+                scenes: [],
                 shouldBeInArchive: true,
                 shouldBeInLocal: false,
                 siblingIndex: 2,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1, 2, 3],
                 wellLabels: "A1, A2, B1",
@@ -565,12 +611,12 @@ describe("Upload selectors", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file1")]: {
+                    [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                     },
-                    [getUploadRowKey("/path/to/file1", 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1235",
                         file: "/path/to/file1",
                         positionIndex: 1,
@@ -584,10 +630,12 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: true,
-                key: getUploadRowKey("/path/to/file1"),
+                key: getUploadRowKey({file: "/path/to/file1"}),
                 numberSiblings: 1,
                 positionIndexes: [1],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
                 wellLabels: "",
@@ -600,16 +648,16 @@ describe("Upload selectors", () => {
                 selection: getMockStateWithHistory({
                     ...mockSelection,
                     expandedUploadJobRows: {
-                        [getUploadRowKey("/path/to/file1")]: true,
+                        [getUploadRowKey({file: "/path/to/file1"})]: true,
                     },
                 }),
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file1")]: {
+                    [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                     },
-                    [getUploadRowKey("/path/to/file1", 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
@@ -623,10 +671,12 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: true,
-                key: getUploadRowKey("/path/to/file1"),
+                key: getUploadRowKey({file: "/path/to/file1"}),
                 numberSiblings: 1,
                 positionIndexes: [1],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
                 wellLabels: "",
@@ -637,11 +687,13 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1", 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
                 numberSiblings: 1,
                 positionIndex: 1,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 1,
                 wellIds: [2],
                 wellLabels: "A2",
@@ -652,18 +704,18 @@ describe("Upload selectors", () => {
             const rows = getUploadSummaryRows({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file1", 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
-                        key: getUploadRowKey("/path/to/file1", 1),
+                        key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
                         positionIndex: 1,
                         wellIds: [2],
                     },
-                    [getUploadRowKey("/path/to/file1", undefined, 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1})]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
-                        key: getUploadRowKey("/path/to/file1", undefined, 1),
+                        key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
                         positionIndex: undefined,
                         wellIds: [2],
                     },
@@ -676,11 +728,13 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1", undefined, 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
                 numberSiblings: 2,
                 positionIndex: undefined,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
                 wellLabels: "A2",
@@ -691,11 +745,13 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1", 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
                 numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 1,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
                 wellLabels: "A2",
@@ -708,16 +764,16 @@ describe("Upload selectors", () => {
                 selection: getMockStateWithHistory({
                     ...mockSelection,
                     expandedUploadJobRows: {
-                        [getUploadRowKey("/path/to/file1")]: true,
+                        [getUploadRowKey({file: "/path/to/file1"})]: true,
                     },
                 }),
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file1")]: {
+                    [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [1],
                     },
-                    [getUploadRowKey("/path/to/file1", undefined, 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1})]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
@@ -732,10 +788,12 @@ describe("Upload selectors", () => {
                 channelIds: [1],
                 file: "/path/to/file1",
                 group: true,
-                key: getUploadRowKey("/path/to/file1"),
+                key: getUploadRowKey({file: "/path/to/file1"}),
                 numberSiblings: 1,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1],
                 wellLabels: "A1",
@@ -747,11 +805,13 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1", undefined, 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
                 numberSiblings: 1,
                 positionIndex: undefined,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
                 wellLabels: "",
@@ -764,30 +824,30 @@ describe("Upload selectors", () => {
                 selection: getMockStateWithHistory({
                     ...mockSelection,
                     expandedUploadJobRows: {
-                        [getUploadRowKey("/path/to/file1")]: true,
-                        [getUploadRowKey("/path/to/file1", 1)]: true,
+                        [getUploadRowKey({file: "/path/to/file1"})]: true,
+                        [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: true,
                     },
                 }),
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file1")]: {
+                    [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         wellIds: [],
                     },
-                    [getUploadRowKey("/path/to/file1", 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [],
                     },
-                    [getUploadRowKey("/path/to/file1", 1, 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: 1, channelId: 1})]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
                         positionIndex: 1,
                         wellIds: [1],
                     },
-                    [getUploadRowKey("/path/to/file1", undefined, 1)]: {
+                    [getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1})]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
@@ -801,10 +861,12 @@ describe("Upload selectors", () => {
                 channelIds: [1],
                 file: "/path/to/file1",
                 group: true,
-                key: getUploadRowKey("/path/to/file1"),
+                key: getUploadRowKey({file: "/path/to/file1"}),
                 numberSiblings: 1,
                 positionIndexes: [1],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
                 wellLabels: "",
@@ -815,11 +877,13 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: true,
-                key: getUploadRowKey("/path/to/file1", 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
                 numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 1,
+                subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
                 wellLabels: "",
@@ -831,11 +895,13 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1", 1, 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1, channelId: 1}),
                 numberSiblings: 1,
                 positionIndex: 1,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 2,
                 wellIds: [1],
                 wellLabels: "A1",
@@ -847,10 +913,12 @@ describe("Upload selectors", () => {
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
-                key: getUploadRowKey("/path/to/file1", undefined, 1),
+                key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
                 numberSiblings: 2,
                 positionIndexes: [],
+                scenes: [],
                 siblingIndex: 0,
+                subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
                 wellLabels: "",
@@ -865,7 +933,7 @@ describe("Upload selectors", () => {
             const result = getFileToAnnotationHasValueMap({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey(file)]: {
+                    [getUploadRowKey({file})]: {
                         age: undefined,
                         barcode: "abcd",
                         file,
@@ -890,19 +958,19 @@ describe("Upload selectors", () => {
             const result = getFileToAnnotationHasValueMap({
                 ...mockState,
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey(file)]: {
+                    [getUploadRowKey({file})]: {
                         age: undefined,
                         barcode: "abcd",
                         file,
                         wellIds: [],
                     },
-                    [getUploadRowKey(file, 1)]: {
+                    [getUploadRowKey({file, positionIndex: 1})]: {
                         age: undefined,
                         barcode: "abcd",
                         file,
                         wellIds: [1],
                     },
-                    [getUploadRowKey(file, 1, 1)]: {
+                    [getUploadRowKey({file, positionIndex: 1, channelId: 1})]: {
                         age: 19,
                         barcode: "abcd",
                         file,
@@ -921,7 +989,7 @@ describe("Upload selectors", () => {
     });
 
     describe("getValidationErrorsMap", () => {
-        const uploadRowKey = getUploadRowKey("/path/to/file1");
+        const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
         let goodUploadRow: UploadMetadataRow;
         const updateTemplateAnnotation = (annotation: TemplateAnnotation, canHaveManyValues: boolean) => {
             const annotations = without(mockTemplateWithManyValues.annotations, annotation);
@@ -1161,10 +1229,10 @@ describe("Upload selectors", () => {
             const result = getCanGoForwardFromSelectStorageLocationPage({
                 ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
-                    [getUploadRowKey("/path/to/file1")]: {
+                    [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
-                        key: getUploadRowKey("/path/to/file"),
+                        key: getUploadRowKey({file: "/path/to/file"}),
                         shouldBeInArchive: false,
                         shouldBeInLocal: false,
                         wellIds: [1],

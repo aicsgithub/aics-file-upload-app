@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, get, includes, isEmpty, without } from "lodash";
+import { castArray, includes, isEmpty, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -18,10 +18,10 @@ import {
     Well,
 } from "../../state/selection/types";
 import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../state/template/types";
-import { getUploadRowKey } from "../../state/upload/constants";
+import { getUploadRowKey, getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
 import {
     RemoveUploadsAction,
-    UpdateScenesAction,
+    UpdateSubImagesAction,
     UpdateUploadAction,
     UploadJobTableRow,
     UploadMetadata,
@@ -57,7 +57,7 @@ interface Props {
     setAlert: ActionCreator<SetAlertAction>;
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     undo: () => void;
-    updateScenes: ActionCreator<UpdateScenesAction>;
+    updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
@@ -102,8 +102,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             {
                 editor: WellsEditor,
                 formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
+                    if (row.channel ||
+                        (!isEmpty(row.positionIndexes) || !isEmpty(row.scenes) || !isEmpty(row.subImageNames))) {
+                        return <div className={styles.disabledCell}/>;
+                    }
                     return (
-                        row.channel || !isEmpty(row.positionIndexes) ?
+                        !isEmpty(row.positionIndexes) ?
                             null :
                             this.renderFormat(
                                 row,
@@ -424,8 +428,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         // Updated is a {key:  value }
         if (updated) {
             for  (let i = fromRow; i <=  toRow; i++) {
-                const { channel, file, positionIndex } = this.props.uploads[i];
-                this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), updated);
+                this.props.updateUpload(
+                    getUploadRowKeyFromUploadTableRow(this.props.uploads[i]), updated
+                );
             }
         }
     }
@@ -435,11 +440,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         this.setState({selectedRows:  [] });
     }
 
-    private onDrop = ({channel, file, positionIndex}: UploadJobTableRow) => (
+    private onDrop = (row: UploadJobTableRow) => (
         async (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
             const notes = await onDrop(e.dataTransfer.files, this.handleError);
-            this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), {notes});
+            this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), {notes});
         }
     )
 
@@ -447,8 +452,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         return (notes: string | undefined) => this.saveByRow(notes, "notes", row);
     }
 
-    private saveByRow = (value: any, key: keyof UploadMetadata, {channel, file, positionIndex}: UploadJobTableRow) => {
-        this.props.updateUpload(getUploadRowKey(file, positionIndex, get(channel, "channelId")), { [key]: value });
+    private saveByRow = (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => {
+        this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { [key]: value });
     }
 
     private handleError = (error: string) => {
@@ -469,10 +474,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         };
     }
 
-    private addScenes = (files: string[], positionIndexes: number[], channels: Channel[]) => {
+    private addScenes = (
+        files: string[],
+        positionIndexes: number[],
+        channels: Channel[],
+        scenes: number[],
+        subImageNames: string[]
+    ) => {
         files.forEach((file: string) => {
-            const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey(file));
-            this.props.updateScenes(row, positionIndexes, channels);
+            const row = this.props.uploads.find((upload) => upload.key === getUploadRowKey({file}));
+            this.props.updateSubImages(row, {positionIndexes, channels, scenes, subImageNames});
         });
     }
 }

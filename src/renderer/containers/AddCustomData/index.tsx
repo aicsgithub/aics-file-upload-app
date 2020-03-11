@@ -44,7 +44,7 @@ import {
     initiateUpload,
     jumpToUpload,
     removeUploads,
-    updateScenes,
+    updateSubImages,
     updateUpload,
 } from "../../state/upload/actions";
 import {
@@ -60,7 +60,7 @@ import {
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
-    UpdateScenesAction,
+    UpdateSubImagesAction,
     UpdateUploadAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
@@ -92,7 +92,7 @@ interface Props {
     setAlert: ActionCreator<SetAlertAction>;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
-    updateScenes: ActionCreator<UpdateScenesAction>;
+    updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
@@ -165,7 +165,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         setAlert={this.props.setAlert}
                         toggleRowExpanded={this.props.toggleRowExpanded}
                         undo={this.undo}
-                        updateScenes={this.props.updateScenes}
+                        updateSubImages={this.props.updateSubImages}
                         updateUpload={this.props.updateUpload}
                         uploads={uploads}
                         validationErrors={validationErrors}
@@ -266,7 +266,7 @@ const dispatchToPropsMap = {
     removeUploads,
     setAlert,
     toggleRowExpanded: toggleExpandedUploadJobRow,
-    updateScenes,
+    updateSubImages,
     updateUpload,
 };
 

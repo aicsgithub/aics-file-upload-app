@@ -1,4 +1,5 @@
 import { Popover } from "antd";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
@@ -16,11 +17,12 @@ class WellsEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProp
 
     public render() {
         const {
-            rowData: {
-                file,
-                positionIndex,
-            },
+            rowData,
         } = this.props;
+        if (rowData.channel ||
+            (!isEmpty(rowData.positionIndexes) || !isEmpty(rowData.scenes) || !isEmpty(rowData.subImageNames))) {
+            return <div ref={this.input} className={styles.disabled}/>;
+        }
 
         return (
             <div ref={this.input}>
@@ -28,10 +30,7 @@ class WellsEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProp
                     placement="bottom"
                     visible={true}
                     content={(
-                        <WellEditorPopover
-                            file={file}
-                            positionIndex={positionIndex}
-                        />
+                        <WellEditorPopover rowData={rowData}/>
                     )}
                     title="Associate Wells with this row by selecting wells and clicking Associate"
                 >

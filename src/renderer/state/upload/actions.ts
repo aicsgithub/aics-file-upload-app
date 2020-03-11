@@ -1,6 +1,5 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
-import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
 
 import {
@@ -21,7 +20,7 @@ import {
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
-    UPDATE_SCENES,
+    UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
     UPDATE_UPLOADS,
 } from "./constants";
@@ -44,15 +43,16 @@ import {
     UndoFileWorkflowAssociationAction,
     UpdateFilesToArchive,
     UpdateFilesToStoreOnIsilon,
-    UpdateScenesAction,
+    UpdateSubImagesAction,
+    UpdateSubImagesPayload,
     UpdateUploadAction,
     UpdateUploadsAction,
     UploadJobTableRow,
-    UploadMetadata, UploadRowId,
+    UploadMetadata,
+    UploadRowId,
 } from "./types";
 
-export function associateFilesAndWells(rowIds: UploadRowId[])
-    : AssociateFilesAndWellsAction {
+export function associateFilesAndWells(rowIds: UploadRowId[]): AssociateFilesAndWellsAction {
 
     return {
         payload: {
@@ -66,16 +66,14 @@ export function associateFilesAndWells(rowIds: UploadRowId[])
 
 // For undoing the well associations for a single upload row
 export function undoFileWellAssociation(
-    fullPath: string,
-    positionIndex?: number,
+    rowId: UploadRowId,
     deleteUpload: boolean = true,
     wellIds: number[] = []
 ): UndoFileWellAssociationAction {
     return {
         payload: {
             deleteUpload,
-            fullPath,
-            positionIndex,
+            rowId,
             wellIds, // if empty, this gets populated with the wells that are selected in logics
         },
         type: UNDO_FILE_WELL_ASSOCIATION,
@@ -178,15 +176,19 @@ export function updateUploads(upload: Partial<UploadMetadata>): UpdateUploadsAct
     };
 }
 
-export function updateScenes(row: UploadJobTableRow, positionIndexes: number[], channels: Channel[]):
-    UpdateScenesAction {
+export function updateSubImages(
+    row: UploadJobTableRow,
+    payload: Partial<UpdateSubImagesPayload>
+): UpdateSubImagesAction {
     return {
         payload: {
-            channels,
-            positionIndexes,
+            channels: payload.channels || [],
+            positionIndexes: payload.positionIndexes || [],
             row,
+            scenes: payload.scenes || [],
+            subImageNames: payload.subImageNames || [],
         },
-        type: UPDATE_SCENES,
+        type: UPDATE_SUB_IMAGES,
     };
 }
 

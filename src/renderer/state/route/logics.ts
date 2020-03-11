@@ -147,7 +147,9 @@ const selectPageLogic = createLogic({
                     shouldBeInArchive: true,
                     shouldBeInLocal: true,
                 };
-                actions.push(...files.map((f: string) => updateUpload(getUploadRowKey(f), uploadPartial)));
+                actions.push(
+                    ...files.map((file: string) => updateUpload(getUploadRowKey({file}), uploadPartial))
+                );
             }
         }
 

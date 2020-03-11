@@ -1,6 +1,8 @@
-import { Alert, Icon, Modal, Select, Tooltip } from "antd";
+import { Alert, Icon, Modal, Radio, Select, Tooltip } from "antd";
+import { RadioChangeEvent } from "antd/es/radio";
 import { isEmpty, isNil, uniq } from "lodash";
 import { basename } from "path";
+import { ReactNode } from "react";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
@@ -13,15 +15,26 @@ import { FormatterProps } from "../index";
 const styles = require("./styles.pcss");
 
 interface Props extends FormatterProps<UploadJobTableRow> {
-    addScenes: (files: string[], positionIndexes: number[], channels: Channel[]) => void;
+    addScenes: (
+        files: string[],
+        positionIndexes: number[],
+        channels: Channel[],
+        scenes: number[],
+        subImageNames: string[]
+    ) => void;
     channelOptions: Channel[];
     fileOptions: string[];
 }
 
+type subImage = "name" | "position" | "scene";
+
 interface FileFormatterState {
     errorMessage?: string;
     files: string[];
+    scenes: string;
     showModal: boolean;
+    subImageNames: string[];
+    subImageType: subImage;
     positionIndexes: string;
     channels: Channel[];
 }
@@ -37,12 +50,12 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             .filter(Boolean) as Channel[];
     }
 
-    private static convertPositionIndexes(positionIndexes: number[] = []): string {
+    private static convertListToString(positionIndexes: Array<number | string> = []): string {
         return positionIndexes ? positionIndexes.join(", ") : "";
     }
 
-    private static isEditing({ channelIds, positionIndexes }: UploadJobTableRow): boolean {
-        return !isEmpty(channelIds) || !isEmpty(positionIndexes);
+    private static isEditing({ channelIds, positionIndexes, scenes, subImageNames }: UploadJobTableRow): boolean {
+        return !isEmpty(channelIds) || !isEmpty(positionIndexes) || !isEmpty(scenes) || !isEmpty(subImageNames);
     }
 
     constructor(props: Props) {
@@ -70,21 +83,33 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             channels,
             files,
             errorMessage,
-            positionIndexes,
             showModal,
         } = this.state;
 
+        let subImageValue;
+        let subImageType;
+        if (!isNil(row.positionIndex)) {
+            subImageValue = row.positionIndex;
+            subImageType = "Position";
+        } else if (!isNil(row.scene)) {
+            subImageValue = row.scene;
+            subImageType = "Scene";
+        } else if (!isNil(row.subImageName)) {
+            subImageValue = row.subImageName;
+            subImageType = "";
+        }
+
         if (row.channel) {
             const channelName = row.channel.name;
-            const content = isNil(row.positionIndex) ? `${channelName} (all positions)` :
-                `Position ${row.positionIndex}, ${channelName}`;
+            const content = isNil(subImageValue) ? `${channelName} (all positions)` :
+                `${subImageType} ${subImageValue}, ${channelName}`;
             return <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>{content}</Tooltip>;
         }
 
-        if (!isNil(row.positionIndex)) {
+        if (subImageValue) {
             return (
                 <Tooltip mouseLeaveDelay={0} title={value} className={styles.container}>
-                    Position {row.positionIndex}
+                    {subImageType} {subImageValue}
                 </Tooltip>
             );
         }
@@ -92,7 +117,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         const fileName = basename(value);
         const isEditing = FileFormatter.isEditing(row);
         const action = isEditing ? "Update" : "Add";
-        const title = `${action} Scenes and channels for "${fileName}"`;
+        const title = `${action} SubImage or Channel to "${fileName}"`;
 
         return (
             <div>
@@ -114,15 +139,16 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                     okButtonProps={{disabled: this.getOkButtonDisabled()}}
                 >
                     <p className={styles.modalHelpText}>
-                        If this is a microscopy image (3i, czi, ome.tiff) you can add scene positions or channels.
-                        This will allow you to add annotations for specific scenes and channels within a file.
+                        If this is a microscopy image (3i, czi, ome.tiff, lif) you can add scenes, positions,
+                        sub images or channels. This will allow you to add annotations for specific scenes and
+                        channels within a file.
                     </p>
                     <Alert
                         className={styles.alert}
                         type="warning"
                         showIcon={true}
                         closable={true}
-                        message="Adding scenes will clear out direct file-well associations made on the previous page"
+                        message="Adding scenes, positions, or sub image names will clear out direct file-well associations made on the previous page"
                     />
                     {this.state.files.length > 1 && (
                         <Alert
@@ -149,13 +175,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
                             ))}
                         </Select>
                     </LabeledInput>
-                    <LabeledInput label="Scene Positions (ex. 1, 4, 5-10)">
-                        <PrinterFormatInput
-                            value={positionIndexes}
-                            onEnter={this.enterScenes}
-                            placeholder="Enter Scene Positions"
-                        />
-                    </LabeledInput>
+                    {this.renderSubImageInputs()}
                     <LabeledInput label="Channels">
                         <Select
                             className={styles.input}
@@ -183,6 +203,60 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         );
     }
 
+    private renderSubImageInputs = () => {
+        const {positionIndexes, scenes, subImageNames, subImageType} = this.state;
+        let input: ReactNode;
+        let label: string;
+        switch (subImageType) {
+            case "name":
+                input = (
+                    <Select
+                        className={styles.input}
+                        mode="tags"
+                        onChange={this.setSubImageNames}
+                        placeholder="Sub Image Names"
+                        value={subImageNames}
+                    />
+                );
+                label = "Sub Image Names";
+                break;
+            case "position":
+                input = (
+                    <PrinterFormatInput
+                        value={positionIndexes}
+                        onEnter={this.enterPositionIndexes}
+                        placeholder="Enter Positions"
+                    />
+                );
+                label = "Positions (ex. 1, 4, 5-10)";
+                break;
+            default:
+                input = (
+                    <PrinterFormatInput
+                        value={scenes}
+                        onEnter={this.enterScenes}
+                        placeholder="Enter Scenes"
+                    />
+                );
+                label = "Scenes (ex. 1, 4, 5-10)";
+                break;
+        }
+        return (
+            <div className={styles.subImageGroup}>
+                <LabeledInput label="Sub Image Type" className={styles.subImageType}>
+                    <Radio.Group onChange={this.selectSubImageType} value={subImageType}>
+                        <Radio.Button value="position">Position</Radio.Button>
+                        <Radio.Button value="scene">Scene</Radio.Button>
+                        <Radio.Button value="name">Name</Radio.Button>
+                    </Radio.Group>
+                </LabeledInput>
+                <LabeledInput label={label} className={styles.subImageInput}>
+                    {input}
+                </LabeledInput>
+            </div>
+        );
+    }
+
     private openModal = () => this.setState({showModal: true});
 
     private closeModal = () => this.setState({
@@ -190,18 +264,31 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     })
 
     private getInitialState = () => {
-        const {channelOptions, row: {channelIds, file, positionIndexes}} = this.props;
+        const {channelOptions, row: {channelIds, file, positionIndexes, scenes, subImageNames}} = this.props;
+        let subImageType: subImage = "position";
+        if (!isEmpty(scenes)) {
+            subImageType = "scene";
+        } else if (!isEmpty(subImageNames)) {
+            subImageType = "name";
+        }
         return {
             channels: FileFormatter.convertChannels(channelIds, channelOptions),
             files: [file],
-            positionIndexes: FileFormatter.convertPositionIndexes(positionIndexes),
+            positionIndexes: FileFormatter.convertListToString(positionIndexes),
+            scenes: FileFormatter.convertListToString(scenes),
+            subImageNames,
+            subImageType,
         };
     }
 
     private addFilesScenesAndChannels = () => {
-        const { channels, files, positionIndexes } = this.state;
-        const scenes = PrinterFormatInput.extractValues(positionIndexes);
-        this.props.addScenes(files, scenes || [], channels);
+        const { channels, files, positionIndexes, scenes, subImageNames } = this.state;
+        this.props.addScenes(
+            files,
+            PrinterFormatInput.extractValues(positionIndexes) || [],
+            channels,
+            PrinterFormatInput.extractValues(scenes) || [],
+            subImageNames);
         this.setState({ showModal: false });
     }
 
@@ -216,17 +303,28 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
         this.setState({ channels });
     }
 
-    private enterScenes = (positionIndexes: string, errorMessage: string | undefined) => {
-        this.setState({ positionIndexes, errorMessage });
+    private selectSubImageType = (e: RadioChangeEvent) => this.setState({subImageType: e.target.value});
+
+    private enterScenes = (scenes: string, errorMessage?: string) => {
+        this.setState({ positionIndexes: "", scenes, subImageNames: [], errorMessage });
+    }
+
+    private enterPositionIndexes = (positionIndexes: string, errorMessage?: string) => {
+        this.setState({ positionIndexes, scenes: "", subImageNames: [], errorMessage });
+    }
+
+    private setSubImageNames = (subImageNames: string[]) => {
+        this.setState({ positionIndexes: "", scenes: "", subImageNames });
     }
 
     private getOkButtonDisabled = (): boolean => {
-        const { channels, positionIndexes } = this.state;
+        const { channels, positionIndexes, scenes, subImageNames } = this.state;
         const validationError: boolean = Boolean(PrinterFormatInput.validateInput(positionIndexes));
         if (FileFormatter.isEditing(this.props.row)) {
             return validationError;
         }
-        return (isEmpty(channels) && isEmpty(positionIndexes)) || validationError;
+        return (isEmpty(channels) && isEmpty(positionIndexes) && isEmpty(scenes) && isEmpty(subImageNames)) ||
+            validationError;
     }
 }
 

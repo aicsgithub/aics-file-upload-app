@@ -8,11 +8,12 @@ import { ActionCreator } from "redux";
 import { getSelectedWellIds } from "../../state/selection/selectors";
 import { State } from "../../state/types";
 import { associateFilesAndWells, undoFileWellAssociation } from "../../state/upload/actions";
-import { getUploadRowKey } from "../../state/upload/constants";
+import { getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
 import { getUpload } from "../../state/upload/selectors";
 import {
     AssociateFilesAndWellsAction,
     UndoFileWellAssociationAction,
+    UploadJobTableRow,
     UploadStateBranch,
 } from "../../state/upload/types";
 
@@ -24,8 +25,7 @@ const styles = require("./styles.pcss");
 interface Props {
     associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
     className?: string;
-    file: string;
-    positionIndex?: number;
+    rowData: UploadJobTableRow;
     selectedWellIds: number[];
     undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
     upload: UploadStateBranch;
@@ -39,11 +39,7 @@ interface Props {
  */
 class WellEditorPopover extends React.Component<Props, {}> {
     public render() {
-        const {
-            className,
-            file,
-            positionIndex,
-        } = this.props;
+        const {className, rowData} = this.props;
 
         return (
             <div>
@@ -66,37 +62,33 @@ class WellEditorPopover extends React.Component<Props, {}> {
                         </Button>
                     </div>
                 </div>
-                <PlateContainer
-                    selectedFullPath={file}
-                    selectedPositionIndex={positionIndex}
-                />
+                <PlateContainer rowData={rowData}/>
             </div>
         );
     }
 
     private associateWithRow = (): void => {
-        const { file, positionIndex }  = this.props;
-        this.props.associateFilesAndWells([{ file, positionIndex }]);
+        const { rowData } = this.props;
+        this.props.associateFilesAndWells([rowData]);
     }
 
     private undoAssociation = (): void => {
-        const { file, positionIndex }  = this.props;
-        this.props.undoFileWellAssociation([file], positionIndex, false);
+        const { rowData }  = this.props;
+        this.props.undoFileWellAssociation(rowData, false);
     }
 
     // disable if no wells selected or if none of the wells selected have been associated with
     // the row yet
     private removeAssociationsBtnDisabled = (): boolean => {
         const {
-            file,
-            positionIndex,
+            rowData,
             selectedWellIds,
             upload,
         } = this.props;
         if (isEmpty(selectedWellIds)) {
             return true;
         }
-        const uploadRow = upload[getUploadRowKey(file, positionIndex)];
+        const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
         return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === 0;
     }
 
@@ -104,15 +96,14 @@ class WellEditorPopover extends React.Component<Props, {}> {
     // the row
     private associateBtnDisabled = (): boolean => {
         const {
-            file,
-            positionIndex,
+            rowData,
             selectedWellIds,
             upload,
         } = this.props;
         if (isEmpty(selectedWellIds)) {
             return true;
         }
-        const uploadRow = upload[getUploadRowKey(file, positionIndex)];
+        const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
         return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === selectedWellIds.length;
     }
 }

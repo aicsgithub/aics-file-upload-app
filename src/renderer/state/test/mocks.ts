@@ -204,34 +204,34 @@ export const mockSelection: SelectionStateBranch = {
 };
 
 export const mockWellUpload: UploadStateBranch = {
-    [getUploadRowKey("/path/to/file1")]: {
+    [getUploadRowKey({file: "/path/to/file1"})]: {
         barcode: "1234",
         file: "/path/to/file1",
-        key: getUploadRowKey("/path/to/file"),
+        key: getUploadRowKey({file: "/path/to/file"}),
         shouldBeInArchive: true,
         shouldBeInLocal: true,
         wellIds: [1],
     },
-    [getUploadRowKey("/path/to/file2")]: {
+    [getUploadRowKey({file: "/path/to/file2"})]: {
         barcode: "1235",
         file: "/path/to/file2",
-        key: getUploadRowKey("/path/to/file2"),
+        key: getUploadRowKey({file: "/path/to/file2"}),
         shouldBeInArchive: false,
         shouldBeInLocal: true,
         wellIds: [2],
     },
-    [getUploadRowKey("/path/to/file3")]: {
+    [getUploadRowKey({file: "/path/to/file3"})]: {
         barcode: "1236",
         file: "/path/to/file3",
-        key: getUploadRowKey("/path/to/file3"),
+        key: getUploadRowKey({file: "/path/to/file3"}),
         shouldBeInArchive: true,
         shouldBeInLocal: false,
         wellIds: [1, 2, 3],
     },
-    [getUploadRowKey("/path/to/file3", 1)]: {
+    [getUploadRowKey({file: "/path/to/file3", positionIndex: 1})]: {
         barcode: "1236",
         file: "/path/to/file3",
-        key: getUploadRowKey("/path/to/file3", 1),
+        key: getUploadRowKey({file: "/path/to/file3", positionIndex: 1}),
         positionIndex: 1,
         wellIds: [1, 2],
     },
