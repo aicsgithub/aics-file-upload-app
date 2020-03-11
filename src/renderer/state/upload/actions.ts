@@ -48,11 +48,11 @@ import {
     UpdateUploadAction,
     UpdateUploadsAction,
     UploadJobTableRow,
-    UploadMetadata, UploadRowId,
+    UploadMetadata,
+    UploadRowId,
 } from "./types";
 
-export function associateFilesAndWells(rowIds: UploadRowId[])
-    : AssociateFilesAndWellsAction {
+export function associateFilesAndWells(rowIds: UploadRowId[]): AssociateFilesAndWellsAction {
 
     return {
         payload: {
@@ -66,16 +66,14 @@ export function associateFilesAndWells(rowIds: UploadRowId[])
 
 // For undoing the well associations for a single upload row
 export function undoFileWellAssociation(
-    fullPath: string,
-    positionIndex?: number,
+    rowId: UploadRowId,
     deleteUpload: boolean = true,
     wellIds: number[] = []
 ): UndoFileWellAssociationAction {
     return {
         payload: {
             deleteUpload,
-            fullPath,
-            positionIndex,
+            rowId,
             wellIds, // if empty, this gets populated with the wells that are selected in logics
         },
         type: UNDO_FILE_WELL_ASSOCIATION,

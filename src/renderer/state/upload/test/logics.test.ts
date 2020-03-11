@@ -168,7 +168,7 @@ describe("Upload logics", () => {
             expect(uploadRow.wellIds).to.not.be.empty;
 
             // apply
-            store.dispatch(undoFileWellAssociation("/path/to/file1"));
+            store.dispatch(undoFileWellAssociation({file: "/path/to/file1"}));
 
             // after
             uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file1"})];
@@ -183,7 +183,7 @@ describe("Upload logics", () => {
             expect(uploadRow.wellIds).to.not.be.empty;
 
             // apply
-            store.dispatch(undoFileWellAssociation("/path/to/file1", undefined, false));
+            store.dispatch(undoFileWellAssociation({file: "/path/to/file1"}, false));
 
             // after
             uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file1"})];
@@ -199,7 +199,7 @@ describe("Upload logics", () => {
             expect(uploadRow.wellIds.length).to.equal(2);
 
             // apply
-            store.dispatch(undoFileWellAssociation("/path/to/file3", 1, false));
+            store.dispatch(undoFileWellAssociation({file: "/path/to/file3", positionIndex: 1}, false));
 
             // after
             uploadRow = getUpload(store.getState())[getUploadRowKey({file: "/path/to/file3", positionIndex: 1})];
@@ -220,7 +220,7 @@ describe("Upload logics", () => {
             expect(getAlert(store.getState())).to.be.undefined;
 
             // apply
-            store.dispatch(undoFileWellAssociation("/path/to/file1"));
+            store.dispatch(undoFileWellAssociation({file: "/path/to/file1"}));
 
             // after
             expect(getAlert(store.getState())).to.not.be.undefined;

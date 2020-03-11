@@ -16,10 +16,7 @@ class WellsEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProp
 
     public render() {
         const {
-            rowData: {
-                file,
-                positionIndex,
-            },
+            rowData,
         } = this.props;
 
         return (
@@ -28,10 +25,7 @@ class WellsEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProp
                     placement="bottom"
                     visible={true}
                     content={(
-                        <WellEditorPopover
-                            file={file}
-                            positionIndex={positionIndex}
-                        />
+                        <WellEditorPopover rowData={rowData}/>
                     )}
                     title="Associate Wells with this row by selecting wells and clicking Associate"
                 >

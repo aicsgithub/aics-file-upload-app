@@ -4,17 +4,17 @@ import Plate from "../../components/Plate";
 import { selectWells } from "../../state/selection/actions";
 import { getSelectedWells, getWellsWithUnitsAndModified } from "../../state/selection/selectors";
 import { State } from "../../state/types";
-import { getUploadRowKey } from "../../state/upload/constants";
+import { getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
 import { getUpload } from "../../state/upload/selectors";
+import { UploadJobTableRow } from "../../state/upload/types";
 
 interface Props {
-    selectedFullPath: string;
-    selectedPositionIndex?: number;
+    rowData: UploadJobTableRow;
 }
 
-function mapStateToProps(state: State, { selectedFullPath, selectedPositionIndex }: Props) {
+function mapStateToProps(state: State, { rowData }: Props) {
     const upload = getUpload(state);
-    const metadata = upload[getUploadRowKey({file: selectedFullPath, positionIndex: selectedPositionIndex})];
+    const metadata = upload[getUploadRowKeyFromUploadTableRow(rowData)];
     return {
         selectedWells: getSelectedWells(state),
         wells: getWellsWithUnitsAndModified(state),

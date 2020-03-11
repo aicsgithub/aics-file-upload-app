@@ -7,17 +7,21 @@ export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
 }
 
-// Metadata associated with a file
-export interface UploadMetadata {
-    barcode: string;
-    channel?: Channel;
-    file: string;
-    notes?: string;
+// Think of this group as a composite key. No two rows should have the same combination of these values.
+export interface UploadRowId {
+    channelId?: number;
+    file: string; // fullpath
     positionIndex?: number;
     scene?: number;
+    subImageName?: string;
+}
+
+// Metadata associated with a file
+export interface UploadMetadata extends UploadRowId {
+    barcode: string;
+    notes?: string;
     shouldBeInArchive?: boolean;
     shouldBeInLocal?: boolean;
-    subImageName?: string;
     templateId?: number;
     wellIds: number[];
     workflows?: string[];
@@ -58,7 +62,7 @@ export interface UpdateUploadAction {
     type: string;
 }
 
-export interface UploadJobTableRow {
+export interface UploadJobTableRow extends UploadRowId {
     // plate barcode associated with well and file
     barcode: string;
 
@@ -67,9 +71,6 @@ export interface UploadJobTableRow {
 
     // Keeps track of all channelIds - used only on the top-level row
     channelIds: number[];
-
-    // fullpath of file
-    file: string;
 
     // react-data-grid property needed for nested rows. if true, row will show carat for expanding/collapsing row
     group: boolean;
@@ -83,23 +84,14 @@ export interface UploadJobTableRow {
     // react-data-grid property needed for nested rows. identifies how many rows exist at this level of the tree.
     numberSiblings: number;
 
-    // if this row relates to a positionIndex, it is specified here
-    positionIndex?: number;
-
     // Keeps track of all positionIndexes - used only on the top-level row
     positionIndexes: number[];
-
-    // if this row relates to a scene, it is specified here
-    scene?: number;
 
     // Keeps track of all scenes - used only on top-level row
     scenes: number[];
 
     // react-data-grid property needed for nested rows
     siblingIndex?: number;
-
-    // if this row relates to sub image referred to by name, it is specified here
-    subImageName?: string;
 
     // Keeps track of all sub image names - used only on top-level row
     subImageNames: string[];
@@ -137,8 +129,7 @@ export interface AssociateFilesAndWorkflowsAction {
 export interface UndoFileWellAssociationAction {
     payload: {
         deleteUpload: boolean; // whether or not to delete this part of upload if no well associations left
-        fullPath: string;
-        positionIndex?: number;
+        rowId: UploadRowId;
         wellIds: number[];
     };
     type: string;
@@ -265,10 +256,4 @@ export enum FileType {
     OTHER = "other",
     TEXT = "text",
     ZEISS_CONFIG_FILE = "zeiss-config-file",
-}
-
-export interface UploadRowId {
-    file: string; // fullpath
-    positionIndex?: number;
-    channelId?: number;
 }

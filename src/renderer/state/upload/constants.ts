@@ -1,8 +1,8 @@
-import { isNil } from "lodash";
+import { get, isNil } from "lodash";
 
 import { makeConstant } from "../util";
 
-import { UploadMetadata } from "./types";
+import { UploadJobTableRow, UploadMetadata, UploadRowId } from "./types";
 
 const BRANCH_NAME = "upload";
 
@@ -27,13 +27,6 @@ export const UPDATE_UPLOADS = makeConstant(BRANCH_NAME, "update-uploads");
 export const UPDATE_FILES_TO_ARCHIVE = makeConstant(BRANCH_NAME, "update-files-to-archive");
 export const UPDATE_FILES_TO_STORE_ON_ISILON = makeConstant(BRANCH_NAME, "update-files-to-store-on-isilon");
 
-interface UploadRowIdentifier {
-    file: string;
-    positionIndex?: number;
-    channelId?: number;
-    scene?: number;
-    subImageName?: string;
-}
 // todo could do hash eventually but we're being safe for now
 export const getUploadRowKey = (
     {
@@ -42,7 +35,7 @@ export const getUploadRowKey = (
         channelId,
         scene,
         subImageName,
-    }: UploadRowIdentifier
+    }: UploadRowId
 ) => {
     let key = file;
     if (!isNil(positionIndex)) {
@@ -64,10 +57,25 @@ export const getUploadRowKey = (
     return key;
 };
 
+export const getUploadRowKeyFromUploadTableRow = (upload: UploadJobTableRow): string => {
+    const {
+        channel,
+        file,
+        positionIndex,
+        scene,
+        subImageName,
+    } = upload;
+    return getUploadRowKey({
+        channelId: get(channel, ["channelId"]),
+        file,
+        positionIndex,
+        scene,
+        subImageName,
+    });
+};
+
 export const isSubImageRow = ({positionIndex, scene, subImageName}: UploadMetadata) =>
     !isNil(positionIndex) || !isNil(scene) || !isNil(subImageName);
 export const isSubImageOnlyRow = (metadata: UploadMetadata) => isSubImageRow(metadata) && isNil(metadata.channel);
 export const isChannelOnlyRow = (metadata: UploadMetadata) => !isNil(metadata.channel) && !isSubImageRow(metadata);
-export const isChannelRow = (metadata: UploadMetadata) => !isNil(metadata.channel);
-export const isSubImageChannelRow = (metadata: UploadMetadata) => isSubImageRow(metadata) && isChannelRow(metadata);
 export const isFileRow = (metadata: UploadMetadata) => !isChannelOnlyRow(metadata) && !isSubImageRow(metadata);
