@@ -102,8 +102,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             {
                 editor: WellsEditor,
                 formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
+                    if (row.channel ||
+                        (!isEmpty(row.positionIndexes) || !isEmpty(row.scenes) || !isEmpty(row.subImageNames))) {
+                        return <div className={styles.disabledCell}/>;
+                    }
                     return (
-                        row.channel || !isEmpty(row.positionIndexes) ?
+                        !isEmpty(row.positionIndexes) ?
                             null :
                             this.renderFormat(
                                 row,

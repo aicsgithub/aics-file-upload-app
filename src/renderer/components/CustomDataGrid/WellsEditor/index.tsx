@@ -1,4 +1,5 @@
 import { Popover } from "antd";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
@@ -18,6 +19,10 @@ class WellsEditor extends editors.EditorBase<AdazzleReactDataGrid.EditorBaseProp
         const {
             rowData,
         } = this.props;
+        if (rowData.channel ||
+            (!isEmpty(rowData.positionIndexes) || !isEmpty(rowData.scenes) || !isEmpty(rowData.subImageNames))) {
+            return <div ref={this.input} className={styles.disabled}/>;
+        }
 
         return (
             <div ref={this.input}>
