@@ -50,6 +50,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [SET_ALERT]: {
         accepts: (action: AnyAction): action is SetAlertAction => action.type === SET_ALERT,
         perform: (state: FeedbackStateBranch, action: SetAlertAction) => {
+            console.log("test");
             return {
                 ...state,
                 alert: action.payload,

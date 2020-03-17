@@ -1,4 +1,4 @@
-import { Audited } from "../types";
+import { Audited, AutoSaveAction } from "../types";
 
 export interface TemplateStateBranch {
     appliedTemplate?: Template;
@@ -120,7 +120,7 @@ export interface SaveTemplateRequest {
     annotations: AnnotationRequest[];
 }
 
-export interface SetAppliedTemplateAction {
+export interface SetAppliedTemplateAction extends AutoSaveAction {
     payload: Template;
     type: string;
 }

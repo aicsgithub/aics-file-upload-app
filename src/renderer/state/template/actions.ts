@@ -75,6 +75,7 @@ export function saveTemplate(): SaveTemplateAction {
 
 export function setAppliedTemplate(template: Template): SetAppliedTemplateAction {
     return {
+        autoSave: true,
         payload: template,
         type: SET_APPLIED_TEMPLATE,
     };

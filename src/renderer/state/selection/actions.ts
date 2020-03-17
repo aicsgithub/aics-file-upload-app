@@ -80,6 +80,7 @@ export function deselectFiles(): DeselectFilesAction {
 
 export function loadFilesFromDragAndDrop(files: DragAndDropFileList): LoadFilesFromDragAndDropAction {
     return {
+        autoSave: true,
         payload: files,
         type: LOAD_FILES,
     };
@@ -87,6 +88,7 @@ export function loadFilesFromDragAndDrop(files: DragAndDropFileList): LoadFilesF
 
 export function openFilesFromDialog(files: string[]): LoadFilesFromOpenDialogAction {
     return {
+        autoSave: true,
         payload: files,
         type: OPEN_FILES,
     };
@@ -94,6 +96,7 @@ export function openFilesFromDialog(files: string[]): LoadFilesFromOpenDialogAct
 
 export function stageFiles(files: UploadFile[]): AddStageFilesAction {
     return {
+        autoSave: true,
         payload: files,
         type: ADD_STAGE_FILES,
     };
@@ -101,12 +104,14 @@ export function stageFiles(files: UploadFile[]): AddStageFilesAction {
 
 export function clearStagedFiles(): ClearStagedFilesAction {
     return {
+        autoSave: true,
         type: CLEAR_STAGED_FILES,
     };
 }
 
 export function updateStagedFiles(files: UploadFile[]): UpdateStagedFilesAction {
     return {
+        autoSave: true,
         payload: files,
         type: UPDATE_STAGED_FILES,
     };
@@ -114,6 +119,7 @@ export function updateStagedFiles(files: UploadFile[]): UpdateStagedFilesAction 
 
 export function getFilesInFolder(folder: UploadFile): GetFilesInFolderAction {
     return {
+        autoSave: true,
         payload: folder,
         type: GET_FILES_IN_FOLDER,
     };
@@ -124,6 +130,7 @@ export function selectBarcode(
     imagingSessionIds: Array<number | null> = [null]
 ): SelectBarcodeAction {
     return {
+        autoSave: true,
         payload: { barcode, imagingSessionIds },
         type: SELECT_BARCODE,
     };
@@ -131,6 +138,7 @@ export function selectBarcode(
 
 export function selectWorkflowPath(): SelectWorkflowPathAction {
     return {
+        autoSave: true,
         type: SELECT_WORKFLOW_PATH,
     };
 }
@@ -144,6 +152,7 @@ export function selectWorkflows(workflows: Workflow[]): SelectWorkflowsAction {
 
 export function setPlate(plate: ImagingSessionIdToPlateMap): SetPlateAction {
     return {
+        autoSave: true,
         payload: plate,
         type: SET_PLATE,
     };
@@ -151,6 +160,7 @@ export function setPlate(plate: ImagingSessionIdToPlateMap): SetPlateAction {
 
 export function setWells(wells: ImagingSessionIdToWellsMap): SetWellsAction {
     return {
+        autoSave: true,
         payload: wells,
         type: SET_WELLS,
     };
@@ -216,6 +226,7 @@ export function selectUser(user: string): SelectUserAction {
 
 export function jumpToPastSelection(index: number): JumpToPastSelectionAction {
     return {
+        autoSave: true,
         index,
         type: JUMP_TO_PAST_SELECTION,
     };
@@ -223,6 +234,7 @@ export function jumpToPastSelection(index: number): JumpToPastSelectionAction {
 
 export function clearSelectionHistory(): ClearSelectionHistoryAction {
     return {
+        autoSave: true,
         type: CLEAR_SELECTION_HISTORY,
     };
 }
@@ -242,6 +254,7 @@ export function toggleFolderTree(): ToggleFolderTreeAction {
 
 export function selectImagingSessionId(imagingSessionId: number): SelectImagingSessionIdAction {
     return {
+        autoSave: true,
         payload: imagingSessionId,
         type: SELECT_IMAGING_SESSION_ID,
     };

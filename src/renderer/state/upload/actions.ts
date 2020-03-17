@@ -55,6 +55,7 @@ import {
 export function associateFilesAndWells(rowIds: UploadRowId[]): AssociateFilesAndWellsAction {
 
     return {
+        autoSave: true,
         payload: {
             barcode: "",
             rowIds,
@@ -71,6 +72,7 @@ export function undoFileWellAssociation(
     wellIds: number[] = []
 ): UndoFileWellAssociationAction {
     return {
+        autoSave: true,
         payload: {
             deleteUpload,
             rowId,
@@ -83,6 +85,7 @@ export function undoFileWellAssociation(
 export function associateFilesAndWorkflows(fullPaths: string[], workflows: Workflow[])
     : AssociateFilesAndWorkflowsAction {
     return {
+        autoSave: true,
         payload: {
             fullPaths,
             workflows,
@@ -94,6 +97,7 @@ export function associateFilesAndWorkflows(fullPaths: string[], workflows: Workf
 export function undoFileWorkflowAssociation(fullPath: string, workflows: Workflow[])
     : UndoFileWorkflowAssociationAction {
     return {
+        autoSave: true,
         payload: {
             fullPath,
             workflows,
@@ -104,6 +108,7 @@ export function undoFileWorkflowAssociation(fullPath: string, workflows: Workflo
 
 export function jumpToPastUpload(index: number): JumpToPastUploadAction {
     return {
+        autoSave: true,
         index,
         type: JUMP_TO_PAST_UPLOAD,
     };
@@ -111,6 +116,7 @@ export function jumpToPastUpload(index: number): JumpToPastUploadAction {
 
 export function jumpToUpload(index: number): JumpToUploadAction {
     return {
+        autoSave: true,
         index,
         type: JUMP_TO_UPLOAD,
     };
@@ -118,12 +124,14 @@ export function jumpToUpload(index: number): JumpToUploadAction {
 
 export function clearUploadHistory(): ClearUploadHistoryAction {
     return {
+        autoSave: true,
         type: CLEAR_UPLOAD_HISTORY,
     };
 }
 
 export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
     return {
+        autoSave: true,
         payload: fullPaths,
         type: DELETE_UPLOADS,
     };
@@ -131,6 +139,7 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
 
 export function initiateUpload(): InitiateUploadAction {
     return {
+        autoSave: true,
         type: INITIATE_UPLOAD,
     };
 }
@@ -171,6 +180,7 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
 
 export function updateUploads(upload: Partial<UploadMetadata>): UpdateUploadsAction {
     return {
+        autoSave: true,
         payload: upload,
         type: UPDATE_UPLOADS,
     };
@@ -181,6 +191,7 @@ export function updateSubImages(
     payload: Partial<UpdateSubImagesPayload>
 ): UpdateSubImagesAction {
     return {
+        autoSave: true,
         payload: {
             channels: payload.channels || [],
             positionIndexes: payload.positionIndexes || [],
@@ -194,6 +205,7 @@ export function updateSubImages(
 
 export function updateFilesToArchive(filesToArchive: FilepathToBoolean): UpdateFilesToArchive {
     return {
+        autoSave: true,
         payload: filesToArchive,
         type: UPDATE_FILES_TO_ARCHIVE,
     };
@@ -202,6 +214,7 @@ export function updateFilesToArchive(filesToArchive: FilepathToBoolean): UpdateF
 export function updateFilesToStoreOnIsilon(filesToStoreOnIsilon: FilepathToBoolean):
     UpdateFilesToStoreOnIsilon {
     return {
+        autoSave: true,
         payload: filesToStoreOnIsilon,
         type: UPDATE_FILES_TO_STORE_ON_ISILON,
     };
@@ -209,6 +222,7 @@ export function updateFilesToStoreOnIsilon(filesToStoreOnIsilon: FilepathToBoole
 
 export function removeFileFromArchive(fileToNotArchive: string): RemoveFileFromArchiveAction {
     return {
+        autoSave: true,
         payload: fileToNotArchive,
         type: REMOVE_FILE_FROM_ARCHIVE,
     };
@@ -216,6 +230,7 @@ export function removeFileFromArchive(fileToNotArchive: string): RemoveFileFromA
 
 export function removeFileFromIsilon(fileToNotStoreOnIsilon: string): RemoveFileFromIsilonAction {
     return {
+        autoSave: true,
         payload: fileToNotStoreOnIsilon,
         type: REMOVE_FILE_FROM_ISILON,
     };
@@ -223,6 +238,7 @@ export function removeFileFromIsilon(fileToNotStoreOnIsilon: string): RemoveFile
 
 export function clearUpload(): ClearUploadAction {
     return {
+        autoSave: true,
         type: CLEAR_UPLOAD,
     };
 }
