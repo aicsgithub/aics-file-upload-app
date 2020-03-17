@@ -1,6 +1,7 @@
 import electron, { dialog, Menu, shell } from "electron";
 import {
-    OPEN_OPEN_TEMPLATE_MODAL, OPEN_OPEN_UPLOAD_MODAL,
+    OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_OPEN_UPLOAD_MODAL,
     OPEN_SETTINGS_EDITOR,
     OPEN_TEMPLATE_EDITOR,
     SCHEMA_SYNONYM,
