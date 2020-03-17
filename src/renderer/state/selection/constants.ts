@@ -24,3 +24,5 @@ export const CLEAR_STAGED_FILES = makeConstant(BRANCH_NAME, "clear-staged-files"
 export const TOGGLE_EXPANDED_UPLOAD_JOB_ROW = makeConstant(BRANCH_NAME, "toggle-expanded-upload-job-row");
 export const TOGGLE_FOLDER_TREE = makeConstant(BRANCH_NAME, "toggle-folder-tree");
 export const SELECT_IMAGING_SESSION_ID = makeConstant(BRANCH_NAME, "select-imaging-session-id");
+export const OPEN_MODAL = makeConstant(BRANCH_NAME, "open-modal");
+export const CLOSE_MODAL = makeConstant(BRANCH_NAME, "close-modal");

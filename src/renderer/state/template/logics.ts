@@ -14,7 +14,7 @@ import {
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
-import { closeTemplateEditor } from "../selection/actions";
+import { closeModal } from "../selection/actions";
 import { updateSettings } from "../setting/actions";
 import {
     ReduxLogicDoneCb,
@@ -200,7 +200,7 @@ const saveTemplateLogic = createLogic({
             }
 
             // these need to be dispatched separately because they have logics associated with them
-            dispatch(closeTemplateEditor());
+            dispatch(closeModal("templateEditor"));
             dispatch(requestTemplates());
             dispatch(applyTemplate(createdTemplateId));
             dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));

@@ -4,7 +4,7 @@ import { uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
-import { CLOSE_TEMPLATE_EDITOR, OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { canUserRead, getWithRetry } from "../../util";
@@ -39,7 +39,7 @@ import {
     updateStagedFiles,
 } from "./actions";
 import {
-    CLEAR_STAGED_FILES,
+    CLEAR_STAGED_FILES, CLOSE_MODAL,
     GET_FILES_IN_FOLDER,
     LOAD_FILES,
     OPEN_FILES,
@@ -245,14 +245,18 @@ const openTemplateEditorLogic = createLogic({
     type: OPEN_TEMPLATE_EDITOR,
 });
 
-const closeTemplateEditorLogic = createLogic({
+const closeModalLogic = createLogic({
    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       next(batchActions([
-           clearTemplateDraft(),
-           action,
-       ]));
+       if (action.payload === "templateEditor") {
+           next(batchActions([
+               clearTemplateDraft(),
+               action,
+           ]));
+       } else {
+           next(action);
+       }
    },
-    type: CLOSE_TEMPLATE_EDITOR,
+    type: CLOSE_MODAL,
 });
 
 const selectWellsLogic = createLogic({
@@ -301,7 +305,7 @@ const clearStagedFilesLogic = createLogic({
 
 export default [
     clearStagedFilesLogic,
-    closeTemplateEditorLogic,
+    closeModalLogic,
     loadFilesLogic,
     openTemplateEditorLogic,
     openFilesLogic,

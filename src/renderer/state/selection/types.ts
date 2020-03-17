@@ -10,16 +10,16 @@ export interface SelectionStateBranch {
     folderTreeOpen: boolean;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
-    openTemplateModalVisible: boolean;
     plate: ImagingSessionIdToPlateMap;
     wells: ImagingSessionIdToWellsMap;
+    visibleModals: ModalName[];
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
-    settingsEditorVisible: boolean;
     stagedFiles: UploadFile[];
-    templateEditorVisible: boolean;
     user: string;
 }
+
+export type ModalName = "openTemplate" | "settings" | "templateEditor";
 
 export interface ImagingSessionIdToPlateMap {
     [imagingSessionId: number]: PlateResponse;
@@ -274,5 +274,15 @@ export interface ToggleFolderTreeAction {
 
 export interface SelectImagingSessionIdAction extends AutoSaveAction  {
     payload: number;
+    type: string;
+}
+
+export interface OpenModalAction {
+    payload: ModalName;
+    type: string;
+}
+
+export interface CloseModalAction {
+    payload: ModalName;
     type: string;
 }

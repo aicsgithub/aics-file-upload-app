@@ -20,9 +20,9 @@ import {
     getLookups,
 } from "../../state/metadata/selectors";
 import { GetAnnotationsAction } from "../../state/metadata/types";
-import { closeTemplateEditor, openTemplateEditor } from "../../state/selection/actions";
+import { closeModal, openTemplateEditor } from "../../state/selection/actions";
 import { getTemplateEditorVisible } from "../../state/selection/selectors";
-import { CloseTemplateEditorAction, OpenTemplateEditorAction } from "../../state/selection/types";
+import { CloseModalAction, OpenTemplateEditorAction } from "../../state/selection/types";
 import {
     addExistingAnnotation,
     removeAnnotations,
@@ -57,7 +57,7 @@ interface Props {
     allAnnotations: AnnotationWithOptions[];
     annotationTypes: AnnotationType[];
     className?: string;
-    closeModal: ActionCreator<CloseTemplateEditorAction>;
+    closeModal: ActionCreator<CloseModalAction>;
     errors: string[];
     forbiddenAnnotationNames: Set<string>;
     getAnnotations: ActionCreator<GetAnnotationsAction>;
@@ -106,12 +106,9 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         ipcRenderer.removeListener(OPEN_TEMPLATE_EDITOR, this.openModal);
     }
 
-    public openModal = (event: Event, templateId?: number) => this.props.openModal(templateId);
-
     public render() {
         const {
             className,
-            closeModal,
             errors,
             saveInProgress,
             template,
@@ -127,7 +124,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
                 title={title}
                 visible={visible}
                 onOk={this.saveAndClose}
-                onCancel={closeModal}
+                onCancel={this.closeModal}
                 okText="Save"
                 okButtonProps={{disabled: errors.length > 0, loading: saveInProgress}}
                 maskClosable={false}
@@ -136,6 +133,9 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
             </Modal>
         );
     }
+
+    private openModal = (event: Event, templateId?: number) => this.props.openModal(templateId);
+    private closeModal = () => this.props.closeModal("templateEditor");
 
     private closeAlert = () => this.setState({showInfoAlert: false});
 
@@ -331,7 +331,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     addAnnotation: addExistingAnnotation,
-    closeModal: closeTemplateEditor,
+    closeModal,
     getAnnotations: requestAnnotations,
     openModal: openTemplateEditor,
     removeAnnotations,

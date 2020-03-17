@@ -1,28 +1,21 @@
-import { castArray } from "lodash";
+import { castArray, uniq, without } from "lodash";
 import { userInfo } from "os";
 import { AnyAction } from "redux";
 import undoable, {
     UndoableOptions,
 } from "redux-undo";
+import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
-    CLOSE_OPEN_TEMPLATE_MODAL,
-    CLOSE_SETTINGS_EDITOR,
-    CLOSE_TEMPLATE_EDITOR,
-    OPEN_OPEN_TEMPLATE_MODAL,
-    OPEN_SETTINGS_EDITOR,
-    OPEN_TEMPLATE_EDITOR,
-} from "../../../shared/constants";
-import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
-    CLEAR_STAGED_FILES,
+    CLEAR_STAGED_FILES, CLOSE_MODAL,
     DESELECT_FILES,
-    JUMP_TO_PAST_SELECTION,
+    JUMP_TO_PAST_SELECTION, OPEN_MODAL,
     SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
@@ -41,13 +34,9 @@ import {
 import {
     AddStageFilesAction,
     ClearStagedFilesAction,
-    CloseOpenTemplateModalAction,
-    CloseSettingsEditorAction,
-    CloseTemplateEditorAction,
+    CloseModalAction,
     DeselectFilesAction,
-    OpenOpenTemplateModalAction,
-    OpenSettingsEditorAction,
-    OpenTemplateEditorAction,
+    OpenModalAction, OpenTemplateEditorAction,
     SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
@@ -75,14 +64,12 @@ export const initialState: SelectionStateBranch = {
     folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [],
-    openTemplateModalVisible: false,
     plate: {},
     selectedWells: [],
     selectedWorkflows: [],
-    settingsEditorVisible: false,
     stagedFiles: [],
-    templateEditorVisible: false,
     user: userInfo().username,
+    visibleModals: [],
     wells: {},
 };
 
@@ -191,43 +178,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
         perform: (state: SelectionStateBranch) => ({
             ...state,
-            templateEditorVisible: true,
+            visibleModals: uniq([...state.visibleModals, "templateEditor"]),
         }),
     },
-    [CLOSE_TEMPLATE_EDITOR]: {
-        accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_TEMPLATE_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
+    [OPEN_MODAL]: {
+        accepts: (action: AnyAction): action is OpenModalAction => action.type === OPEN_MODAL,
+        perform: (state: SelectionStateBranch, action: OpenModalAction) => ({
             ...state,
-            templateEditorVisible: false,
+            visibleModals: uniq([...state.visibleModals, action.payload]),
         }),
     },
-    [OPEN_OPEN_TEMPLATE_MODAL]: {
-        accepts: (action: AnyAction): action is OpenOpenTemplateModalAction => action.type === OPEN_OPEN_TEMPLATE_MODAL,
-        perform: (state: SelectionStateBranch) => ({
+    [CLOSE_MODAL]: {
+        accepts: (action: AnyAction): action is CloseModalAction => action.type === CLOSE_MODAL,
+        perform: (state: SelectionStateBranch, action: CloseModalAction) => ({
             ...state,
-            openTemplateModalVisible: true,
-        }),
-    },
-    [CLOSE_OPEN_TEMPLATE_MODAL]: {
-        accepts: (action: AnyAction): action is CloseOpenTemplateModalAction =>
-            action.type === CLOSE_OPEN_TEMPLATE_MODAL,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            openTemplateModalVisible: false,
-        }),
-    },
-    [OPEN_SETTINGS_EDITOR]: {
-        accepts: (action: AnyAction): action is OpenSettingsEditorAction => action.type === OPEN_SETTINGS_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            settingsEditorVisible: true,
-        }),
-    },
-    [CLOSE_SETTINGS_EDITOR]: {
-        accepts: (action: AnyAction): action is CloseSettingsEditorAction => action.type === CLOSE_SETTINGS_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            settingsEditorVisible: false,
+            visibleModals: without(state.visibleModals, action.payload),
         }),
     },
     [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {
