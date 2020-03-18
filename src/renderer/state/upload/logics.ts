@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, uniq, values } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
@@ -644,7 +644,7 @@ const saveUploadDraftLogic = createLogic({
         storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
         next(action);
     },
-})
+});
 
 export default [
     applyTemplateLogic,
@@ -652,6 +652,7 @@ export default [
     cancelUploadLogic,
     initiateUploadLogic,
     retryUploadLogic,
+    saveUploadDraftLogic,
     undoFileWellAssociationLogic,
     updateSubImagesLogic,
     updateUploadLogic,

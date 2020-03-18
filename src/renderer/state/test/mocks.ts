@@ -192,14 +192,12 @@ export const mockSelection: SelectionStateBranch = {
     folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [null, 1],
-    openTemplateModalVisible: false,
     plate: mockPlate,
     selectedWells: [],
     selectedWorkflows: [],
-    settingsEditorVisible: false,
     stagedFiles: [],
-    templateEditorVisible: false,
     user: "fake_user",
+    visibleModals: [],
     wells: mockWells,
 };
 
@@ -411,6 +409,7 @@ export const mockState: State = {
         lookups: [],
         templates: [],
         units: [],
+        uploadDraftNames: [],
         users: [],
         workflowOptions: [],
     },

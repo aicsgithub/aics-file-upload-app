@@ -33,7 +33,7 @@ import {
 import { HTTP_STATUS } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { clearStagedFiles, openTemplateEditor, selectBarcode, selectWells } from "../actions";
+import { clearStagedFiles, closeModal, openTemplateEditor, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
@@ -624,12 +624,13 @@ describe("Selection logics", () => {
     });
 
     describe("closeModalLogic", () => {
-        it("sets templateEditorVisible to false and resets template draft", () => {
+        it("sets templateEditor visibility to false and resets template draft when modal name is templateEditor",
+            () => {
             const { store } = createMockReduxStore({
                 ...mockState,
                 selection: getMockStateWithHistory({
                     ...mockSelection,
-                    templateEditorVisible: true,
+                    visibleModals: ["templateEditor"],
                 }),
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
@@ -644,7 +645,7 @@ describe("Selection logics", () => {
             expect(getTemplateDraft(store.getState())).to.not.equal(DEFAULT_TEMPLATE_DRAFT);
 
             // apply
-            store.dispatch(closeTemplateEditor());
+            store.dispatch(closeModal("templateEditor"));
 
             // after
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
