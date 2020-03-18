@@ -48,6 +48,16 @@ export function setErrorAlert(message: string): SetAlertAction {
     };
 }
 
+export function setWarningAlert(message: string): SetAlertAction {
+    return {
+        payload: {
+            message,
+            type: AlertType.WARN,
+        },
+        type: SET_ALERT,
+    };
+}
+
 export function startLoading(): StartLoadingAction {
     return {
         type: START_LOADING,
