@@ -628,7 +628,7 @@ const saveUploadDraftLogic = createLogic({
                reject: ReduxLogicRejectCb) => {
         const upload = getUpload(getState());
         if (isEmpty(upload)) {
-            reject(setErrorAlert("No draft found"));
+            reject(setErrorAlert("Nothing to save"));
             return;
         }
 
