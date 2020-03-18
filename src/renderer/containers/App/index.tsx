@@ -29,7 +29,7 @@ import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
-import { setSwitchEnvEnabled } from "../../state/route/logics";
+import { setSaveUploadDraftEnabled, setSwitchEnvEnabled } from "../../state/route/logics";
 import { getPage, getView } from "../../state/route/selectors";
 import { AppPageConfig, CloseUploadTabAction, Page, SelectViewAction } from "../../state/route/types";
 import {
@@ -156,7 +156,11 @@ class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
-        setSwitchEnvEnabled(remote.Menu.getApplicationMenu(), true, Logger);
+        const menu = remote.Menu.getApplicationMenu();
+        if (menu) {
+            setSwitchEnvEnabled(menu, true, Logger);
+            setSaveUploadDraftEnabled(menu, false, Logger);
+        }
         ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
             const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +

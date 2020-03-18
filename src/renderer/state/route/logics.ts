@@ -36,21 +36,37 @@ interface MenuItemWithSubMenu extends MenuItem {
     submenu?: Menu;
 }
 
-export const setSwitchEnvEnabled = (menu: Menu | null, enabled: boolean, logger: Logger): void => {
-    if (!menu) {
+// have to cast here because Electron's typings for MenuItem is incomplete
+const getFileMenu = (menu: Menu): MenuItemWithSubMenu | undefined => menu.items
+    .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu | undefined;
+
+export const setSwitchEnvEnabled = (menu: Menu, enabled: boolean, logger: Logger): void => {
+    const fileMenu = getFileMenu(menu);
+    if (!fileMenu || !fileMenu.submenu) {
+        logger.error("Could not update application menu");
         return;
     }
-    // have to cast here because Electron's typings for MenuItem is incomplete
-    const fileMenu = menu.items
-        .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "file") as MenuItemWithSubMenu | undefined;
-    if (fileMenu && fileMenu.submenu) {
-        const switchEnvironmentMenuItem = fileMenu.submenu.items
-            .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
-        if (switchEnvironmentMenuItem) {
-            switchEnvironmentMenuItem.enabled = enabled;
-        } else {
-            logger.error("Could not update application menu");
-        }
+
+    const switchEnvironmentMenuItem = fileMenu.submenu.items
+        .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "switch environment");
+    if (switchEnvironmentMenuItem) {
+        switchEnvironmentMenuItem.enabled = enabled;
+    } else {
+        logger.error("Could not update application menu");
+    }
+};
+
+export const setSaveUploadDraftEnabled = (menu: Menu, enabled: boolean, logger: Logger): void => {
+    const fileMenu = getFileMenu(menu);
+    if (!fileMenu || !fileMenu.submenu) {
+        logger.error("Could not update application menu");
+        return;
+    }
+
+    const saveUploadDraftMenuItem = fileMenu.submenu.items
+        .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "save upload draft");
+    if (saveUploadDraftMenuItem) {
+        saveUploadDraftMenuItem.enabled = enabled;
     } else {
         logger.error("Could not update application menu");
     }
@@ -60,6 +76,7 @@ const pagesToAllowSwitchingEnvironments = [Page.UploadSummary, Page.DragAndDrop]
 const updateAppMenu = (nextPage: Page, menu: Menu | null, logger: Logger) => {
     if (menu) {
         setSwitchEnvEnabled(menu, pagesToAllowSwitchingEnvironments.includes(nextPage), logger);
+        setSaveUploadDraftEnabled(menu, nextPage !== Page.UploadSummary, logger);
     } else {
         logger.error("Could not update application menu");
     }
