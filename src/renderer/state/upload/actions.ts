@@ -16,6 +16,7 @@ import {
     REMOVE_FILE_FROM_ARCHIVE,
     REMOVE_FILE_FROM_ISILON,
     RETRY_UPLOAD,
+    SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
@@ -38,7 +39,7 @@ import {
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
     RemoveUploadsAction,
-    RetryUploadAction,
+    RetryUploadAction, SaveUploadDraftAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateFilesToArchive,
@@ -240,5 +241,12 @@ export function clearUpload(): ClearUploadAction {
     return {
         autoSave: true,
         type: CLEAR_UPLOAD,
+    };
+}
+
+export function saveUploadDraft(draftName: string): SaveUploadDraftAction {
+    return {
+        payload: draftName,
+        type: SAVE_UPLOAD_DRAFT,
     };
 }

@@ -9,7 +9,13 @@ import { createLogic } from "redux-logic";
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
+import {
+    addRequestToInProgress,
+    removeRequestFromInProgress,
+    setAlert,
+    setErrorAlert,
+    setWarningAlert
+} from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 
@@ -24,14 +30,14 @@ import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
-    EXPORT_FILE_METADATA,
+    EXPORT_FILE_METADATA, GATHER_UPLOAD_DRAFT_NAMES,
     GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
     REQUEST_FILE_METADATA_FOR_JOB,
     REQUEST_METADATA,
-    SEARCH_FILE_METADATA,
+    SEARCH_FILE_METADATA, UPLOAD_DRAFT_NAMES,
 } from "./constants";
 import { getAnnotationLookups, getAnnotations, getLookups, getSearchResultsHeader } from "./selectors";
 
@@ -373,6 +379,21 @@ const exportFileMetadataLogic = createLogic({
     type: EXPORT_FILE_METADATA,
 });
 
+const gatherUploadDraftNamesLogic = createLogic({
+    transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+        try {
+            const names = storage.get(UPLOAD_DRAFT_NAMES);
+            next({
+                ...action,
+                payload: names,
+            });
+        } catch (e) {
+            next(setWarningAlert("Failed to get existing upload draft names"));
+        }
+    },
+    type: GATHER_UPLOAD_DRAFT_NAMES,
+});
+
 export default [
     createBarcodeLogic,
     exportFileMetadataLogic,
@@ -383,4 +404,5 @@ export default [
     requestOptionsForLookupLogic,
     requestTemplatesLogicLogic,
     searchFileMetadataLogic,
+    gatherUploadDraftNamesLogic,
 ];

@@ -33,7 +33,7 @@ import {
 import { HTTP_STATUS } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { clearStagedFiles, closeTemplateEditor, openTemplateEditor, selectBarcode, selectWells } from "../actions";
+import { clearStagedFiles, openTemplateEditor, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
@@ -623,7 +623,7 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("closeTemplateEditorLogic", () => {
+    describe("closeModalLogic", () => {
         it("sets templateEditorVisible to false and resets template draft", () => {
             const { store } = createMockReduxStore({
                 ...mockState,

@@ -19,6 +19,7 @@ export interface MetadataStateBranch {
     templates: LabkeyTemplate[];
     users: LabkeyUser[];
     units: Unit[];
+    uploadDraftNames: string[];
     // Gets updated every time app changes pages.
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
     history: {
@@ -160,5 +161,10 @@ export interface SearchFileMetadataAction {
 
 export interface ExportFileMetadataAction {
     payload: string;
+    type: string;
+}
+
+export interface GatherUploadDraftNamesAction {
+    payload: string[];
     type: string;
 }

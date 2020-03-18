@@ -1,3 +1,4 @@
+import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
@@ -5,7 +6,7 @@ import { makeReducer } from "../util";
 
 import {
     CLEAR_FILE_METADATA_FOR_JOB,
-    CLEAR_OPTIONS_FOR_LOOKUP,
+    CLEAR_OPTIONS_FOR_LOOKUP, GATHER_UPLOAD_DRAFT_NAMES,
     RECEIVE_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
@@ -13,7 +14,7 @@ import {
 } from "./constants";
 import {
     ClearFileMetadataForJobAction,
-    ClearOptionsForLookupAction,
+    ClearOptionsForLookupAction, GatherUploadDraftNamesAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     ResetHistoryAction,
@@ -38,6 +39,7 @@ export const initialState: MetadataStateBranch = {
     lookups: [],
     templates: [],
     units: [],
+    uploadDraftNames: [],
     users: [],
     workflowOptions: [],
 };
@@ -98,6 +100,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch) => ({
             ...state,
             fileMetadataForJob: undefined,
+        }),
+    },
+    [GATHER_UPLOAD_DRAFT_NAMES]: {
+        accepts: (action: AnyAction): action is GatherUploadDraftNamesAction =>
+            action.type === GATHER_UPLOAD_DRAFT_NAMES,
+        perform: (state: MetadataStateBranch, action: GatherUploadDraftNamesAction) => ({
+            ...state,
+            uploadDraftNames: uniq(action.payload),
         }),
     },
 };

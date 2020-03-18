@@ -32,6 +32,7 @@ export const getChannels = (state: State) => state.metadata.channels;
 export const getFileMetadataSearchResults = (state: State) => state.metadata.fileMetadataSearchResults;
 export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) => state.metadata.fileMetadataForJob;
+export const getUploadDraftNames = (state: State) => state.metadata.uploadDraftNames;
 
 // Some annotations are used purely for displaying data in the File Explorer, here we exclude those
 export const getAnnotations = createSelector([

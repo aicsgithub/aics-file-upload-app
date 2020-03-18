@@ -17,19 +17,18 @@ export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 
 // emitted by main process when user selects File > New > Template
 export const OPEN_TEMPLATE_EDITOR = "OPEN_TEMPLATE_EDITOR";
-export const CLOSE_TEMPLATE_EDITOR = "CLOSE_TEMPLATE_EDITOR";
 
 // emitted by main process when user selects File > Open > Upload In Progress
 export const OPEN_OPEN_UPLOAD_MODAL = "OPEN_OPEN_UPLOAD_MODAL";
-export const CLOSE_OPEN_UPLOAD_MODAL = "CLOSE_OPEN_UPLOAD_MODAL";
+
+// emitted by main process when user selects File > Save Upload Draft
+export const OPEN_SAVE_UPLOAD_DRAFT = "OPEN_SAVE_UPLOAD_DRAFT";
 
 // emitted by main process when user selects File > Open > Template
 export const OPEN_OPEN_TEMPLATE_MODAL = "OPEN_OPEN_TEMPLATE_MODAL";
-export const CLOSE_OPEN_TEMPLATE_MODAL = "CLOSE_OPEN_TEMPLATE_MODAL";
 
 // emitted by main process when user selects File > Settings
 export const OPEN_SETTINGS_EDITOR = "OPEN_SETTINGS_MODAL";
-export const CLOSE_SETTINGS_EDITOR = "CLOSE_SETTINGS_MODAL";
 
 // User settings
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";

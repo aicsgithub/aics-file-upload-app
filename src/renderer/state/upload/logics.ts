@@ -10,7 +10,7 @@ import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getAnnotationTypes, getBooleanAnnotationTypeId, getUploadDraftNames } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { clearStagedFiles, deselectFiles } from "../selection/actions";
@@ -36,7 +36,7 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
-    RETRY_UPLOAD,
+    RETRY_UPLOAD, SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
@@ -621,6 +621,30 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     },
     type: UPDATE_FILES_TO_ARCHIVE,
 });
+
+const saveUploadDraftLogic = createLogic({
+    type: SAVE_UPLOAD_DRAFT,
+    validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const upload = getUpload(getState());
+        if (isEmpty(upload)) {
+            reject(setErrorAlert("No draft found"));
+            return;
+        }
+
+        const draftName = trim(action.payload);
+        if (isEmpty(draftName)) {
+            reject(setErrorAlert("Draft name cannot be empty"));
+            return;
+        }
+
+        storage.set(draftName, upload);
+
+        const uploadDraftNames = getUploadDraftNames(getState());
+        storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
+        next(action);
+    },
+})
 
 export default [
     applyTemplateLogic,

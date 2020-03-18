@@ -40,6 +40,8 @@ export const getExpandedUploadJobRows = (state: State) => state.selection.presen
 export const getFolderTreeOpen = (state: State) => state.selection.present.folderTreeOpen;
 export const getSettingsEditorVisible = (state: State) => !!state.selection.present.visibleModals
     .find((m) => m === "settings");
+export const getSaveUploadDraftModalVisible = (state: State) => !!state.selection.present.visibleModals
+    .find((m) => m === "saveUploadDraft");
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

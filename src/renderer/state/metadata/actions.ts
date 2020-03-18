@@ -3,6 +3,7 @@ import {
     CLEAR_OPTIONS_FOR_LOOKUP,
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
+    GATHER_UPLOAD_DRAFT_NAMES,
     GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
@@ -21,6 +22,7 @@ import {
     ClearOptionsForLookupAction,
     CreateBarcodeAction,
     ExportFileMetadataAction,
+    GatherUploadDraftNamesAction,
     GetAnnotationsAction,
     GetBarcodeSearchResultsAction,
     GetOptionsForLookupAction,
@@ -142,5 +144,12 @@ export function exportFileMetadataCSV(fileName: string): ExportFileMetadataActio
     return {
         payload: fileName,
         type: EXPORT_FILE_METADATA,
+    };
+}
+
+export function gatherUploadDraftNames(): GatherUploadDraftNamesAction {
+    return {
+        payload: [],
+        type: GATHER_UPLOAD_DRAFT_NAMES,
     };
 }

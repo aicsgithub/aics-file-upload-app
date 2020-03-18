@@ -77,6 +77,7 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
+import SaveUploadDraftModal from "../SaveUploadDraftModal";
 import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
@@ -296,6 +297,7 @@ class App extends React.Component<AppProps, {}> {
                 <TemplateEditorModal/>
                 <OpenTemplateModal/>
                 <SettingsEditorModal/>
+                <SaveUploadDraftModal/>
             </div>
         );
     }

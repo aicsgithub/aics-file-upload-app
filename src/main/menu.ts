@@ -2,6 +2,7 @@ import electron, { dialog, Menu, shell } from "electron";
 import {
     OPEN_OPEN_TEMPLATE_MODAL,
     OPEN_OPEN_UPLOAD_MODAL,
+    OPEN_SAVE_UPLOAD_DRAFT,
     OPEN_SETTINGS_EDITOR,
     OPEN_TEMPLATE_EDITOR,
     SCHEMA_SYNONYM,
@@ -60,6 +61,11 @@ export const setMenu = (webContents: WebContents) => {
                             label: SCHEMA_SYNONYM,
                         },
                     ],
+                },
+                { type: "separator" },
+                {
+                    click: () => webContents.send(OPEN_SAVE_UPLOAD_DRAFT),
+                    label: "Save Upload Draft",
                 },
                 { type: "separator" },
                 {

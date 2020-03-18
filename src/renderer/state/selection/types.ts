@@ -19,7 +19,7 @@ export interface SelectionStateBranch {
     user: string;
 }
 
-export type ModalName = "openTemplate" | "settings" | "templateEditor";
+export type ModalName = "openTemplate" | "saveUploadDraft" | "settings" | "templateEditor";
 
 export interface ImagingSessionIdToPlateMap {
     [imagingSessionId: number]: PlateResponse;

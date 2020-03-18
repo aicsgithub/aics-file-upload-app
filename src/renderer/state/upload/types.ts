@@ -223,6 +223,11 @@ export interface ClearUploadAction extends AutoSaveAction {
     type: string;
 }
 
+export interface SaveUploadDraftAction {
+    payload: string;
+    type: string;
+}
+
 export enum FileTagType {
     WELL = "well",
     WORKFLOW = "workflow",
