@@ -623,3 +623,9 @@ export const getCanGoForwardFromSelectStorageLocationPage = createSelector([
     getFileToStoreOnIsilon,
 ], (files: string[], fileToArchive: FilepathToBoolean, fileToStoreOnIsilon: FilepathToBoolean) =>
     !some(files, (f: string) => !fileToArchive[f] && !fileToStoreOnIsilon[f]));
+
+export const getCanSaveUploadDraft = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) => {
+    return !isEmpty(upload);
+});

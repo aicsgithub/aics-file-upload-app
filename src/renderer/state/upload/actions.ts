@@ -13,6 +13,7 @@ import {
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
+    OPEN_UPLOAD_DRAFT,
     REMOVE_FILE_FROM_ARCHIVE,
     REMOVE_FILE_FROM_ISILON,
     RETRY_UPLOAD,
@@ -36,6 +37,7 @@ import {
     InitiateUploadAction,
     JumpToPastUploadAction,
     JumpToUploadAction,
+    OpenUploadDraftAction,
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
     RemoveUploadsAction,
@@ -248,5 +250,12 @@ export function saveUploadDraft(draftName: string): SaveUploadDraftAction {
     return {
         payload: draftName,
         type: SAVE_UPLOAD_DRAFT,
+    };
+}
+
+export function openUploadDraft(draftName: string): OpenUploadDraftAction {
+    return {
+        payload: draftName,
+        type: OPEN_UPLOAD_DRAFT,
     };
 }

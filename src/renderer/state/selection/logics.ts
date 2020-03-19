@@ -13,8 +13,8 @@ import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata } from "../metadata/actions";
 import { selectPage } from "../route/actions";
-import { getNextPage } from "../route/constants";
-import { getPage } from "../route/selectors";
+import { findNextPage } from "../route/constants";
+import { getNextPage, getPage } from "../route/selectors";
 import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import { clearTemplateDraft, getTemplate } from "../template/actions";
@@ -39,7 +39,8 @@ import {
     updateStagedFiles,
 } from "./actions";
 import {
-    CLEAR_STAGED_FILES, CLOSE_MODAL,
+    CLEAR_STAGED_FILES,
+    CLOSE_MODAL,
     GET_FILES_IN_FOLDER,
     LOAD_FILES,
     OPEN_FILES,
@@ -89,7 +90,7 @@ const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<Upload
             stageFiles(uploadFiles),
         ]));
         if (currentPage === Page.DragAndDrop) {
-            dispatch(selectPage(currentPage, getNextPage(currentPage, 1) || Page.SelectUploadType));
+            dispatch(selectPage(currentPage, findNextPage(currentPage, 1) || Page.SelectUploadType));
         }
         done();
 
@@ -204,7 +205,7 @@ const selectBarcodeLogic = createLogic({
                 associateByWorkflow(false),
                 receiveMetadata({barcodeSearchResults: []}),
             ];
-            const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
+            const nextPage = findNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
             dispatch(batchActions(actions));
             dispatch(selectPage(Page.SelectUploadType, nextPage));
         } catch (e) {
@@ -225,7 +226,7 @@ const selectWorkflowPathLogic = createLogic({
                 action,
                 associateByWorkflow(true),
             ];
-            const nextPage = getNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
+            const nextPage = findNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
             dispatch(batchActions(actions));
             dispatch(selectPage(Page.SelectUploadType, nextPage));
         }
@@ -247,11 +248,14 @@ const openTemplateEditorLogic = createLogic({
 
 const closeModalLogic = createLogic({
    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+       const nextPage = getNextPage(getState());
        if (action.payload === "templateEditor") {
            next(batchActions([
                clearTemplateDraft(),
                action,
            ]));
+       } else if (nextPage) {
+           next(selectPage(getPage(getState()), nextPage));
        } else {
            next(action);
        }

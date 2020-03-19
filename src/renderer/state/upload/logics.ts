@@ -7,7 +7,13 @@ import { LIST_DELIMITER_SPLIT } from "../../constants";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
+import {
+    addRequestToInProgress,
+    removeRequestFromInProgress,
+    setAlert,
+    setErrorAlert,
+    setSuccessAlert,
+} from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId, getUploadDraftNames } from "../metadata/selectors";
@@ -642,7 +648,7 @@ const saveUploadDraftLogic = createLogic({
 
         const uploadDraftNames = getUploadDraftNames(getState());
         storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
-        next(action);
+        next(setSuccessAlert(`${draftName} was saved successfully!`));
     },
 });
 

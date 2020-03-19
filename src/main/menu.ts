@@ -54,7 +54,7 @@ export const setMenu = (webContents: WebContents) => {
                     submenu: [
                         {
                             click: () => webContents.send(OPEN_OPEN_UPLOAD_MODAL),
-                            label: "Upload In Progress",
+                            label: "Upload Draft",
                         },
                         {
                             click: () => webContents.send(OPEN_OPEN_TEMPLATE_MODAL),
@@ -65,7 +65,7 @@ export const setMenu = (webContents: WebContents) => {
                 { type: "separator" },
                 {
                     click: () => webContents.send(OPEN_SAVE_UPLOAD_DRAFT),
-                    label: "Save Upload Draft",
+                    label: "Save",
                 },
                 { type: "separator" },
                 {

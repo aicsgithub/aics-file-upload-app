@@ -9,7 +9,7 @@ import { openSetMountPointNotification } from "../feedback/actions";
 
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
-import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
+import { clearSelectionHistory, jumpToPastSelection, openModal, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
@@ -24,11 +24,11 @@ import {
 } from "../types";
 import { clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
-import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
+import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { selectPage } from "./actions";
-import { CLOSE_UPLOAD_TAB, getNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
+import { CLOSE_UPLOAD_TAB, findNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
 import { getPage } from "./selectors";
 import { Page } from "./types";
 
@@ -56,32 +56,6 @@ export const setSwitchEnvEnabled = (menu: Menu, enabled: boolean, logger: Logger
     }
 };
 
-export const setSaveUploadDraftEnabled = (menu: Menu, enabled: boolean, logger: Logger): void => {
-    const fileMenu = getFileMenu(menu);
-    if (!fileMenu || !fileMenu.submenu) {
-        logger.error("Could not update application menu");
-        return;
-    }
-
-    const saveUploadDraftMenuItem = fileMenu.submenu.items
-        .find((menuItem: MenuItem) => menuItem.label.toLowerCase() === "save upload draft");
-    if (saveUploadDraftMenuItem) {
-        saveUploadDraftMenuItem.enabled = enabled;
-    } else {
-        logger.error("Could not update application menu");
-    }
-};
-
-const pagesToAllowSwitchingEnvironments = [Page.UploadSummary, Page.DragAndDrop];
-const updateAppMenu = (nextPage: Page, menu: Menu | null, logger: Logger) => {
-    if (menu) {
-        setSwitchEnvEnabled(menu, pagesToAllowSwitchingEnvironments.includes(nextPage), logger);
-        setSaveUploadDraftEnabled(menu, nextPage !== Page.UploadSummary, logger);
-    } else {
-        logger.error("Could not update application menu");
-    }
-};
-
 const stateBranchHistory = [
     {
         clearHistory: clearSelectionHistory,
@@ -99,7 +73,7 @@ const stateBranchHistory = [
         jumpToPast: jumpToPastUpload,
     },
 ];
-
+const pagesToAllowSwitchingEnvironments = [Page.UploadSummary, Page.DragAndDrop];
 const selectPageLogic = createLogic({
     process: (
         { action, getApplicationMenu, getState, logger }: ReduxLogicProcessDependencies,
@@ -127,7 +101,10 @@ const selectPageLogic = createLogic({
         const nextPageOrder: number = pageOrder.indexOf(nextPage);
         const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
-        updateAppMenu(nextPage, getApplicationMenu(), logger);
+        const menu = getApplicationMenu();
+        if (menu) {
+            setSwitchEnvEnabled(menu, pagesToAllowSwitchingEnvironments.includes(nextPage), logger);
+        }
 
         // going back - rewind selections, uploads & template to the state they were at when user was on previous page
         if (nextPageOrder < currentPageOrder) {
@@ -185,7 +162,7 @@ const goBackLogic = createLogic({
                next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const state = getState();
         const currentPage = getPage(state);
-        const nextPage = getNextPage(currentPage, -1);
+        const nextPage = findNextPage(currentPage, -1);
 
         if (nextPage) {
             dialog.showMessageBox({
@@ -213,7 +190,7 @@ const goForwardLogic = createLogic({
     validate: ({action, getState}: ReduxLogicTransformDependencies,
                next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
         const currentPage = getPage(getState());
-        const nextPage = getNextPage(currentPage, 1);
+        const nextPage = findNextPage(currentPage, 1);
 
         if (nextPage) {
             next(selectPage(currentPage, nextPage));
@@ -227,21 +204,28 @@ const closeUploadTabLogic = createLogic({
     type: CLOSE_UPLOAD_TAB,
     validate: ({ action, dialog, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        dialog.showMessageBox({
-            buttons: ["Cancel", "Yes"],
-            cancelId: 0,
-            defaultId: 1,
-            message: "Changes will be lost if you close this tab. Are you sure?",
-            title: "Warning",
-            type: "warning",
-        }, (buttonIndex: number) => {
-            if (buttonIndex === 1) {
-                const currentPage = getPage(getState());
-                next(selectPage(currentPage, Page.UploadSummary));
-            } else {
-                reject(action);
-            }
-        });
+        const currentPage = getPage(getState());
+        const nextAction = selectPage(currentPage, Page.UploadSummary);
+        if (getCanSaveUploadDraft(getState())) {
+            dialog.showMessageBox({
+                buttons: ["Cancel", "Discard", "Save Upload Draft"],
+                cancelId: 0,
+                defaultId: 2,
+                message: "Your draft will be discarded unless you save it.",
+                title: "Warning",
+                type: "question",
+            }, (buttonIndex: number) => {
+                if (buttonIndex === 1) { // Discard Draft
+                    next(nextAction);
+                } else if (buttonIndex === 2) { // Save Upload Draft
+                    next(openModal("saveUploadDraft"));
+                } else { // Cancel
+                    reject(action);
+                }
+            });
+        } else {
+            next(nextAction);
+        }
     },
 });
 

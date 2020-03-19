@@ -42,6 +42,8 @@ export const getSettingsEditorVisible = (state: State) => !!state.selection.pres
     .find((m) => m === "settings");
 export const getSaveUploadDraftModalVisible = (state: State) => !!state.selection.present.visibleModals
     .find((m) => m === "saveUploadDraft");
+export const getOpenUploadModalVisible = (state: State) => !!state.selection.present.visibleModals
+    .find((m) => m === "openUpload");
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

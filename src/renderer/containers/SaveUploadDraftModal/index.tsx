@@ -1,5 +1,4 @@
 import { Alert, Input, Modal } from "antd";
-import * as classNames from "classnames";
 import { ipcRenderer } from "electron";
 import { includes, isEmpty, trim } from "lodash";
 import { ChangeEvent, ReactNode } from "react";
@@ -16,9 +15,13 @@ import { getSaveUploadDraftModalVisible } from "../../state/selection/selectors"
 import { CloseModalAction, OpenModalAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { saveUploadDraft } from "../../state/upload/actions";
+import { getCanSaveUploadDraft } from "../../state/upload/selectors";
 import { SaveUploadDraftAction } from "../../state/upload/types";
 
+const styles = require("./style.pcss");
+
 interface SaveUploadDraftModalProps {
+    canSaveUploadDraft: boolean;
     className?: string;
     closeModal: ActionCreator<CloseModalAction>;
     gatherUploadDraftNames: ActionCreator<GatherUploadDraftNamesAction>;
@@ -45,21 +48,28 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
         ipcRenderer.on(OPEN_SAVE_UPLOAD_DRAFT, this.openModal);
     }
 
+    public componentWillUpdate(prevProps: SaveUploadDraftModalProps): void {
+        if (prevProps.visible !== this.props.visible) {
+            this.setState({name: undefined});
+        }
+    }
+
     public componentWillUnmount(): void {
         ipcRenderer.removeListener(OPEN_SAVE_UPLOAD_DRAFT, this.openModal);
     }
 
     public render(): ReactNode {
         const {
+            canSaveUploadDraft,
             className,
             usedNames,
             visible,
         } = this.props;
         return (
             <Modal
-                className={classNames(className)}
+                className={className}
                 okButtonProps={{
-                    disabled: isEmpty(trim(this.state.name)),
+                    disabled: isEmpty(trim(this.state.name)) || !canSaveUploadDraft,
                 }}
                 onCancel={this.closeModal}
                 onOk={this.save}
@@ -68,11 +78,21 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
             >
                 {this.state.name && includes(usedNames, this.state.name) && (
                     <Alert
+                        className={styles.alert}
                         type="warning"
                         message={`Warning: Found an existing draft named ${this.state.name}. Saving will overwrite.`}
-                    />)
-                }
-                <Input value={this.state.name} onChange={this.updateName}/>
+                        showIcon={true}
+                    />
+                )}
+                {!canSaveUploadDraft && (
+                    <Alert
+                        className={styles.alert}
+                        type="error"
+                        message="Nothing to save!"
+                        showIcon={true}
+                    />
+                )}
+                {canSaveUploadDraft && <Input value={this.state.name} onChange={this.updateName} autoFocus={true}/>}
             </Modal>
         );
     }
@@ -89,6 +109,7 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
 
 function mapStateToProps(state: State) {
     return {
+        canSaveUploadDraft: getCanSaveUploadDraft(state),
         usedNames: getUploadDraftNames(state),
         visible: getSaveUploadDraftModalVisible(state),
     };

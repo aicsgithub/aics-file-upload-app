@@ -14,6 +14,7 @@ export const CLEAR_UPLOAD = makeConstant(BRANCH_NAME, "clear-upload");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOADS = makeConstant(BRANCH_NAME, "delete-uploads");
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");
+export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
 export const REMOVE_FILE_FROM_ARCHIVE = makeConstant(BRANCH_NAME, "remove-file-from-archive");
 export const REMOVE_FILE_FROM_ISILON = makeConstant(BRANCH_NAME, "remove-file-from-isilon");
 export const UNDO_FILE_WELL_ASSOCIATION = makeConstant(BRANCH_NAME, "undo-file-well-association");

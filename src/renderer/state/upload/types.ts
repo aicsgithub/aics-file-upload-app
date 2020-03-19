@@ -228,6 +228,11 @@ export interface SaveUploadDraftAction {
     type: string;
 }
 
+export interface OpenUploadDraftAction {
+    payload: string;
+    type: string;
+}
+
 export enum FileTagType {
     WELL = "well",
     WORKFLOW = "workflow",

@@ -29,7 +29,7 @@ import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
-import { setSaveUploadDraftEnabled, setSwitchEnvEnabled } from "../../state/route/logics";
+import { setSwitchEnvEnabled } from "../../state/route/logics";
 import { getPage, getView } from "../../state/route/selectors";
 import { AppPageConfig, CloseUploadTabAction, Page, SelectViewAction } from "../../state/route/types";
 import {
@@ -77,6 +77,7 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
+import OpenUploadModal from "../OpenUploadModal";
 import SaveUploadDraftModal from "../SaveUploadDraftModal";
 import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
@@ -159,7 +160,6 @@ class App extends React.Component<AppProps, {}> {
         const menu = remote.Menu.getApplicationMenu();
         if (menu) {
             setSwitchEnvEnabled(menu, true, Logger);
-            setSaveUploadDraftEnabled(menu, false, Logger);
         }
         ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
@@ -302,6 +302,7 @@ class App extends React.Component<AppProps, {}> {
                 <OpenTemplateModal/>
                 <SettingsEditorModal/>
                 <SaveUploadDraftModal/>
+                <OpenUploadModal/>
             </div>
         );
     }
