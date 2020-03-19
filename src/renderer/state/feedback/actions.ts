@@ -1,13 +1,14 @@
+import { AnyAction } from "redux";
 import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
-    CLEAR_ALERT,
+    CLEAR_ALERT, CLEAR_DEFERRED_ACTION,
     CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
-    SET_ALERT,
+    SET_ALERT, SET_DEFERRED_ACTION,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -18,14 +19,14 @@ import {
     AlertType,
     AppAlert,
     AsyncRequest,
-    ClearAlertAction,
+    ClearAlertAction, ClearDeferredAction,
     CloseModalAction,
     CloseSetMountPointNotificationAction,
     ModalName,
     OpenModalAction,
     OpenSetMountPointNotificationAction,
     RemoveRequestInProgressAction,
-    SetAlertAction,
+    SetAlertAction, SetDeferredActionAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
@@ -132,5 +133,18 @@ export function closeModal(modalName: ModalName): CloseModalAction {
     return {
         payload: modalName,
         type: CLOSE_MODAL,
+    };
+}
+
+export function setDeferredAction(action: AnyAction): SetDeferredActionAction {
+    return {
+        payload: action,
+        type: SET_DEFERRED_ACTION,
+    };
+}
+
+export function clearDeferredAction(action: AnyAction): ClearDeferredAction {
+    return {
+        type: CLEAR_DEFERRED_ACTION,
     };
 }

@@ -4,13 +4,11 @@ import { uniq } from "lodash";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
 import { promisify } from "util";
-import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { canUserRead, getWithRetry } from "../../util";
 
 import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
-import { CLOSE_MODAL } from "../feedback/constants";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata } from "../metadata/actions";
 import { selectPage } from "../route/actions";
@@ -18,7 +16,6 @@ import { findNextPage } from "../route/constants";
 import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
-import { clearTemplateDraft, getTemplate } from "../template/actions";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -235,35 +232,6 @@ const selectWorkflowPathLogic = createLogic({
     type: SELECT_WORKFLOW_PATH,
 });
 
-const openTemplateEditorLogic = createLogic({
-    process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        if (action.payload) {
-            dispatch(getTemplate(action.payload));
-        }
-
-        done();
-    },
-    type: OPEN_TEMPLATE_EDITOR,
-});
-
-const closeModalLogic = createLogic({
-   transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       // const nextPage = getNextPage(getState());
-       if (action.payload === "templateEditor") {
-           next(batchActions([
-               clearTemplateDraft(),
-               action,
-           ]));
-           // todo
-       // } else if (nextPage) {
-       //     next(selectPage(getPage(getState()), nextPage));
-       } else {
-           next(action);
-       }
-   },
-    type: CLOSE_MODAL,
-});
-
 const selectWellsLogic = createLogic({
     transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const wells = getWellsWithModified(getState());
@@ -310,9 +278,7 @@ const clearStagedFilesLogic = createLogic({
 
 export default [
     clearStagedFilesLogic,
-    closeModalLogic,
     loadFilesLogic,
-    openTemplateEditorLogic,
     openFilesLogic,
     getFilesInFolderLogic,
     selectBarcodeLogic,

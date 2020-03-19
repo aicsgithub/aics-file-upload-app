@@ -5,7 +5,7 @@ import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
-import { openModal, openSetMountPointNotification } from "../feedback/actions";
+import { openModal, openSetMountPointNotification, setDeferredAction } from "../feedback/actions";
 
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
@@ -218,7 +218,11 @@ const closeUploadTabLogic = createLogic({
                 if (buttonIndex === 1) { // Discard Draft
                     next(nextAction);
                 } else if (buttonIndex === 2) { // Save Upload Draft
-                    next(openModal("saveUploadDraft"));
+                    next(batchActions([
+                        openModal("saveUploadDraft"),
+                        // close tab after Saving
+                        setDeferredAction(selectPage(getPage(getState()), Page.UploadSummary)),
+                    ]));
                 } else { // Cancel
                     reject(action);
                 }

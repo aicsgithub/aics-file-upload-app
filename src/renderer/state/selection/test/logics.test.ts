@@ -11,14 +11,12 @@ import selections from "../";
 import { feedback } from "../../";
 import { SERVICE_IS_DOWN_MESSAGE, SERVICE_MIGHT_BE_DOWN_MESSAGE } from "../../../util";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
-import { addRequestToInProgress, closeModal } from "../../feedback/actions";
+import { addRequestToInProgress } from "../../feedback/actions";
 import { getAlert, getRequestsInProgressContains, getTemplateEditorVisible } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
-import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
-import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore, dialog, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
@@ -28,7 +26,8 @@ import {
     mockMMSTemplate,
     mockSelection,
     mockState,
-    mockTemplateStateBranch, mockWells, nonEmptyStateForInitiatingUpload,
+    mockWells,
+    nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
@@ -619,36 +618,6 @@ describe("Selection logics", () => {
             expect(getTemplateEditorVisible(store.getState())).to.be.false;
             store.dispatch(openTemplateEditor());
             expect(getTemplateEditorVisible(store.getState())).to.be.true;
-        });
-    });
-
-    describe("closeModalLogic", () => {
-        it("sets templateEditor visibility to false and resets template draft when modal name is templateEditor",
-            () => {
-            const { store } = createMockReduxStore({
-                ...mockState,
-                feedback: {
-                    ...mockState.feedback,
-                    visibleModals: ["templateEditor"],
-                },
-                template: getMockStateWithHistory({
-                    ...mockTemplateStateBranch,
-                    draft: {
-                        annotations: [],
-                        name: "My Template",
-                    },
-                }),
-            });
-            // before
-            expect(getTemplateEditorVisible(store.getState())).to.be.true;
-            expect(getTemplateDraft(store.getState())).to.not.equal(DEFAULT_TEMPLATE_DRAFT);
-
-            // apply
-            store.dispatch(closeModal("templateEditor"));
-
-            // after
-            expect(getTemplateEditorVisible(store.getState())).to.be.false;
-            expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
         });
     });
 

@@ -1,11 +1,13 @@
 import { expect } from "chai";
+import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
+import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore } from "../../test/configure-mock-store";
 
-import { mockState } from "../../test/mocks";
+import { getMockStateWithHistory, mockState, mockTemplateStateBranch } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
-import { setAlert } from "../actions";
+import { closeModal, setAlert } from "../actions";
 import { httpStatusToMessage } from "../logics";
-import { getAlert } from "../selectors";
+import { getAlert, getTemplateEditorVisible } from "../selectors";
 import { AlertType } from "../types";
 
 describe("Feedback logics", () => {
@@ -61,5 +63,35 @@ describe("Feedback logics", () => {
                 expect(alert.message).to.equal(message);
             }
         });
+    });
+
+    describe("closeModalLogic", () => {
+        it("sets templateEditor visibility to false and resets template draft when modal name is templateEditor",
+            () => {
+                const { store } = createMockReduxStore({
+                    ...mockState,
+                    feedback: {
+                        ...mockState.feedback,
+                        visibleModals: ["templateEditor"],
+                    },
+                    template: getMockStateWithHistory({
+                        ...mockTemplateStateBranch,
+                        draft: {
+                            annotations: [],
+                            name: "My Template",
+                        },
+                    }),
+                });
+                // before
+                expect(getTemplateEditorVisible(store.getState())).to.be.true;
+                expect(getTemplateDraft(store.getState())).to.not.equal(DEFAULT_TEMPLATE_DRAFT);
+
+                // apply
+                store.dispatch(closeModal("templateEditor"));
+
+                // after
+                expect(getTemplateEditorVisible(store.getState())).to.be.false;
+                expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
+            });
     });
 });
