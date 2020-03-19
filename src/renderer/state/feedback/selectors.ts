@@ -14,6 +14,7 @@ export const getRequestsInProgressContains = (state: State, request: AsyncReques
     return includes(requestsInProgress, request);
 };
 export const getEvents = (state: State) => state.feedback.events;
+export const getDeferredAction = (state: State) => state.feedback.deferredAction;
 export const getSetMountPointNotificationVisible = (state: State) => state.feedback.setMountPointNotificationVisible;
 export const getSettingsEditorVisible = (state: State) => !!state.feedback.visibleModals
     .find((m: ModalName) => m === "settings");

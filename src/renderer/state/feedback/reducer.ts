@@ -11,12 +11,14 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
+    CLEAR_DEFERRED_ACTION,
     CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
+    SET_DEFERRED_ACTION,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -24,6 +26,7 @@ import {
     AddEventAction,
     AddRequestInProgressAction,
     ClearAlertAction,
+    ClearDeferredAction,
     CloseModalAction,
     CloseSetMountPointNotificationAction,
     FeedbackStateBranch,
@@ -32,6 +35,7 @@ import {
     OpenTemplateEditorAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
+    SetDeferredActionAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
@@ -144,6 +148,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             visibleModals: uniq([...state.visibleModals, "templateEditor"]),
+        }),
+    },
+    [SET_DEFERRED_ACTION]: {
+        accepts: (action: AnyAction): action is SetDeferredActionAction => action.type === SET_DEFERRED_ACTION,
+        perform: (state: FeedbackStateBranch, action: SetDeferredActionAction) => ({
+            ...state,
+            deferredAction: action.payload,
+        }),
+    },
+    [CLEAR_DEFERRED_ACTION]: {
+        accepts: (action: AnyAction): action is ClearDeferredAction => action.type === CLEAR_DEFERRED_ACTION,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            deferredAction: undefined,
         }),
     },
 };

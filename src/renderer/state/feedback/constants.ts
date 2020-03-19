@@ -13,3 +13,5 @@ export const CLOSE_SET_MOUNT_POINT_NOTIFICATION = makeConstant(BRANCH_NAME, "clo
 export const OPEN_SET_MOUNT_POINT_NOTIFICATION = makeConstant(BRANCH_NAME, "open-set-mount-point-notification");
 export const OPEN_MODAL = makeConstant(BRANCH_NAME, "open-modal");
 export const CLOSE_MODAL = makeConstant(BRANCH_NAME, "close-modal");
+export const SET_DEFERRED_ACTION = makeConstant(BRANCH_NAME, "set-deferred-action");
+export const CLEAR_DEFERRED_ACTION = makeConstant(BRANCH_NAME, "clear-deferred-action");

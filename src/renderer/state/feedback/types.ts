@@ -107,3 +107,12 @@ export interface OpenTemplateEditorAction {
     payload?: number;
     type: string;
 }
+
+export interface SetDeferredActionAction {
+    payload: AnyAction;
+    type: string;
+}
+
+export interface ClearDeferredAction {
+    type: string;
+}
