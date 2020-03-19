@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { clearTemplateDraft } from "../../template/actions";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore } from "../../test/configure-mock-store";
@@ -72,6 +73,7 @@ describe("Feedback logics", () => {
                     ...mockState,
                     feedback: {
                         ...mockState.feedback,
+                        deferredActions: [clearTemplateDraft()],
                         visibleModals: ["templateEditor"],
                     },
                     template: getMockStateWithHistory({

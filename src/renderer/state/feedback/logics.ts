@@ -8,10 +8,10 @@ import {
     ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
-import { addEvent } from "./actions";
+import { addEvent, clearDeferredAction, setDeferredActions } from "./actions";
 
 import { CLEAR_ALERT, CLOSE_MODAL, SET_ALERT } from "./constants";
-import { getAlert, getDeferredAction } from "./selectors";
+import { getAlert, getDeferredActions } from "./selectors";
 
 export const httpStatusToMessage: Map<number, string> = new Map([
     [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server"],
@@ -50,6 +50,7 @@ const clearAlertLogic = createLogic({
 
 const openTemplateEditorLogic = createLogic({
     process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dispatch(setDeferredActions([clearTemplateDraft()]));
         if (action.payload) {
             dispatch(getTemplate(action.payload));
         }
@@ -60,15 +61,14 @@ const openTemplateEditorLogic = createLogic({
 });
 
 const closeModalLogic = createLogic({
+    process: (dep: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dispatch(clearDeferredAction());
+        done();
+    },
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const deferredAction = getDeferredAction(getState());
-        if (action.payload === "templateEditor") {
-            next(batchActions([
-                clearTemplateDraft(),
-                action,
-            ]));
-        } else if (deferredAction) {
-            next(batchActions([deferredAction, action]));
+        const deferredActions = getDeferredActions(getState());
+        if (deferredActions) {
+            next(batchActions([...deferredActions, action]));
         } else {
             next(action);
         }

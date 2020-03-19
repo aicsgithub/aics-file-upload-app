@@ -2,7 +2,7 @@ import { AnyAction } from "redux";
 
 export interface FeedbackStateBranch {
     alert?: AppAlert;
-    deferredAction?: AnyAction; // action to dispatch when modal closes
+    deferredActions: AnyAction[]; // actions to dispatch when modal closes
     events: AppEvent[];
     isLoading: boolean;
     requestsInProgress: AsyncRequest[];
@@ -108,8 +108,8 @@ export interface OpenTemplateEditorAction {
     type: string;
 }
 
-export interface SetDeferredActionAction {
-    payload: AnyAction;
+export interface SetDeferredActionsAction {
+    payload: AnyAction[];
     type: string;
 }
 

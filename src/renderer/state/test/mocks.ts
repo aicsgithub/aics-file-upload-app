@@ -377,6 +377,7 @@ export const mockTemplateWithManyValues: Template = {
 
 export const mockState: State = {
     feedback: {
+        deferredActions: [],
         events: [],
         isLoading: false,
         requestsInProgress: [],
