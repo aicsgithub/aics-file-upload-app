@@ -11,3 +11,5 @@ export const REMOVE_REQUEST_IN_PROGRESS = makeConstant(BRANCH_NAME, "remove-requ
 export const ADD_EVENT = makeConstant(BRANCH_NAME, "add-event");
 export const CLOSE_SET_MOUNT_POINT_NOTIFICATION = makeConstant(BRANCH_NAME, "close-set-mount-point-notification");
 export const OPEN_SET_MOUNT_POINT_NOTIFICATION = makeConstant(BRANCH_NAME, "open-set-mount-point-notification");
+export const OPEN_MODAL = makeConstant(BRANCH_NAME, "open-modal");
+export const CLOSE_MODAL = makeConstant(BRANCH_NAME, "close-modal");

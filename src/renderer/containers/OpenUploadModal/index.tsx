@@ -7,12 +7,12 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 import { OPEN_OPEN_UPLOAD_MODAL } from "../../../shared/constants";
+import { closeModal, openModal } from "../../state/feedback/actions";
+import { getOpenUploadModalVisible } from "../../state/feedback/selectors";
+import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { gatherUploadDraftNames } from "../../state/metadata/actions";
 import { getUploadDraftNames } from "../../state/metadata/selectors";
 import { GatherUploadDraftNamesAction } from "../../state/metadata/types";
-import { closeModal, openModal } from "../../state/selection/actions";
-import { getOpenUploadModalVisible } from "../../state/selection/selectors";
-import { CloseModalAction, OpenModalAction } from "../../state/selection/types";
 
 import {
     State,
@@ -81,6 +81,8 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
         );
     }
 
+    // todo delete / rename
+    // date created or modified
     private renderDraftNameRow = (name: string): ReactNode => (
         <div
             className={classNames(styles.row, {[styles.selected]: this.state.selectedDraft === name})}

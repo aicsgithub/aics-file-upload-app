@@ -8,17 +8,12 @@ import { ActionCreator } from "redux";
 import { OPEN_OPEN_TEMPLATE_MODAL } from "../../../shared/constants";
 
 import TemplateSearch from "../../components/TemplateSearch";
+import { closeModal, openModal } from "../../state/feedback/actions";
+import { getOpenTemplateModalVisible } from "../../state/feedback/selectors";
+import { CloseModalAction, OpenModalAction, OpenTemplateEditorAction } from "../../state/feedback/types";
 import {
-    closeModal,
-    openModal,
     openTemplateEditor
 } from "../../state/selection/actions";
-import { getOpenTemplateModalVisible } from "../../state/selection/selectors";
-import {
-    CloseModalAction,
-    OpenModalAction,
-    OpenTemplateEditorAction,
-} from "../../state/selection/types";
 
 import {
     State,

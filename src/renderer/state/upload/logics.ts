@@ -42,6 +42,7 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
+    OPEN_UPLOAD_DRAFT,
     RETRY_UPLOAD, SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
@@ -49,7 +50,7 @@ import {
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
 } from "./constants";
-import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
+import { getCanSaveUploadDraft, getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
@@ -644,11 +645,42 @@ const saveUploadDraftLogic = createLogic({
             return;
         }
 
-        storage.set(draftName, upload);
+        const now = new Date();
+        const metadata = {
+            created: now,
+            lastModified: now,
+        };
+        storage.set(draftName, { metadata, upload });
 
         const uploadDraftNames = getUploadDraftNames(getState());
         storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
         next(setSuccessAlert(`${draftName} was saved successfully!`));
+    },
+});
+
+const openUploadLogic = createLogic({
+    type: OPEN_UPLOAD_DRAFT,
+    validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const draft = storage.get(action.payload);
+        if (!draft) {
+            reject(setErrorAlert(`Could not find draft named ${action.payload}`));
+            return;
+        }
+
+        if (getCanSaveUploadDraft(getState())) {
+            // todo: make sure you cant open a upload that is already open
+            // open save upload draft modal
+            // on save or cancel, load the new upload draft
+
+            // how to handle deferred actions?
+            // examples: close tab -> open save dialog -> save and close tab on save dialog close
+            //           File > Open > Upload Draft -> click draft to open -> open save dialog -> save & open new upload
+            // next(openSaveUploadDraftModalAndThenReplaceUpload(draft.upload));
+        }
+        // next(replaceUpload(draft))
+
+        next(action);
     },
 });
 
@@ -657,6 +689,7 @@ export default [
     associateFilesAndWellsLogic,
     cancelUploadLogic,
     initiateUploadLogic,
+    openUploadLogic,
     retryUploadLogic,
     saveUploadDraftLogic,
     undoFileWellAssociationLogic,

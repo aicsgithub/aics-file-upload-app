@@ -1,10 +1,9 @@
-import { castArray, uniq, without } from "lodash";
+import { castArray } from "lodash";
 import { userInfo } from "os";
 import { AnyAction } from "redux";
 import undoable, {
     UndoableOptions,
 } from "redux-undo";
-import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
@@ -13,9 +12,9 @@ import { getReduxUndoFilterFn, makeReducer } from "../util";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
-    CLEAR_STAGED_FILES, CLOSE_MODAL,
+    CLEAR_STAGED_FILES,
     DESELECT_FILES,
-    JUMP_TO_PAST_SELECTION, OPEN_MODAL,
+    JUMP_TO_PAST_SELECTION,
     SELECT_ANNOTATION,
     SELECT_BARCODE,
     SELECT_FILE,
@@ -34,9 +33,7 @@ import {
 import {
     AddStageFilesAction,
     ClearStagedFilesAction,
-    CloseModalAction,
     DeselectFilesAction,
-    OpenModalAction, OpenTemplateEditorAction,
     SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
@@ -69,7 +66,6 @@ export const initialState: SelectionStateBranch = {
     selectedWorkflows: [],
     stagedFiles: [],
     user: userInfo().username,
-    visibleModals: [],
     wells: {},
 };
 
@@ -173,27 +169,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 selectedWells: action.payload,
             };
         },
-    },
-    [OPEN_TEMPLATE_EDITOR]: {
-        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            visibleModals: uniq([...state.visibleModals, "templateEditor"]),
-        }),
-    },
-    [OPEN_MODAL]: {
-        accepts: (action: AnyAction): action is OpenModalAction => action.type === OPEN_MODAL,
-        perform: (state: SelectionStateBranch, action: OpenModalAction) => ({
-            ...state,
-            visibleModals: uniq([...state.visibleModals, action.payload]),
-        }),
-    },
-    [CLOSE_MODAL]: {
-        accepts: (action: AnyAction): action is CloseModalAction => action.type === CLOSE_MODAL,
-        perform: (state: SelectionStateBranch, action: CloseModalAction) => ({
-            ...state,
-            visibleModals: without(state.visibleModals, action.payload),
-        }),
     },
     [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {
         accepts: (action: AnyAction): action is ToggleExpandedUploadJobRowAction =>

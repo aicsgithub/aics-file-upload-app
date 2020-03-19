@@ -10,8 +10,9 @@ import { ActionCreator } from "redux";
 import { OPEN_TEMPLATE_EDITOR, SCHEMA_SYNONYM } from "../../../shared/constants";
 
 import FormControl from "../../components/FormControl";
-import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
+import { closeModal } from "../../state/feedback/actions";
+import { getRequestsInProgressContains, getTemplateEditorVisible } from "../../state/feedback/selectors";
+import { AsyncRequest, CloseModalAction, OpenTemplateEditorAction } from "../../state/feedback/types";
 import { requestAnnotations } from "../../state/metadata/actions";
 import {
     getAnnotationsWithAnnotationOptions,
@@ -20,9 +21,7 @@ import {
     getLookups,
 } from "../../state/metadata/selectors";
 import { GetAnnotationsAction } from "../../state/metadata/types";
-import { closeModal, openTemplateEditor } from "../../state/selection/actions";
-import { getTemplateEditorVisible } from "../../state/selection/selectors";
-import { CloseModalAction, OpenTemplateEditorAction } from "../../state/selection/types";
+import { openTemplateEditor } from "../../state/selection/actions";
 import {
     addExistingAnnotation,
     removeAnnotations,

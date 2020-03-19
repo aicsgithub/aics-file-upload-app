@@ -197,7 +197,6 @@ export const mockSelection: SelectionStateBranch = {
     selectedWorkflows: [],
     stagedFiles: [],
     user: "fake_user",
-    visibleModals: [],
     wells: mockWells,
 };
 
@@ -382,6 +381,7 @@ export const mockState: State = {
         isLoading: false,
         requestsInProgress: [],
         setMountPointNotificationVisible: false,
+        visibleModals: [],
     },
     job: {
         addMetadataJobs: [],

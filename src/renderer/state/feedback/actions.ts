@@ -2,7 +2,9 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
+    CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+    OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
@@ -17,7 +19,10 @@ import {
     AppAlert,
     AsyncRequest,
     ClearAlertAction,
+    CloseModalAction,
     CloseSetMountPointNotificationAction,
+    ModalName,
+    OpenModalAction,
     OpenSetMountPointNotificationAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
@@ -113,5 +118,19 @@ export function openSetMountPointNotification(): OpenSetMountPointNotificationAc
 export function closeSetMountPointNotification(): CloseSetMountPointNotificationAction {
     return {
         type: CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+    };
+}
+
+export function openModal(modalName: ModalName): OpenModalAction {
+    return {
+        payload: modalName,
+        type: OPEN_MODAL,
+    };
+}
+
+export function closeModal(modalName: ModalName): CloseModalAction {
+    return {
+        payload: modalName,
+        type: CLOSE_MODAL,
     };
 }

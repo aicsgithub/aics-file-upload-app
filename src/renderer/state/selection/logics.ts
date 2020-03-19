@@ -10,11 +10,12 @@ import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { canUserRead, getWithRetry } from "../../util";
 
 import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
+import { CLOSE_MODAL } from "../feedback/constants";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { receiveMetadata } from "../metadata/actions";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
-import { getNextPage, getPage } from "../route/selectors";
+import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import { clearTemplateDraft, getTemplate } from "../template/actions";
@@ -40,7 +41,6 @@ import {
 } from "./actions";
 import {
     CLEAR_STAGED_FILES,
-    CLOSE_MODAL,
     GET_FILES_IN_FOLDER,
     LOAD_FILES,
     OPEN_FILES,
@@ -248,14 +248,15 @@ const openTemplateEditorLogic = createLogic({
 
 const closeModalLogic = createLogic({
    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-       const nextPage = getNextPage(getState());
+       // const nextPage = getNextPage(getState());
        if (action.payload === "templateEditor") {
            next(batchActions([
                clearTemplateDraft(),
                action,
            ]));
-       } else if (nextPage) {
-           next(selectPage(getPage(getState()), nextPage));
+           // todo
+       // } else if (nextPage) {
+       //     next(selectPage(getPage(getState()), nextPage));
        } else {
            next(action);
        }

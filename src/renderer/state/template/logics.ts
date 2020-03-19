@@ -4,7 +4,7 @@ import { createLogic } from "redux-logic";
 
 import { getWithRetry, pivotAnnotations } from "../../util";
 
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, closeModal, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { requestTemplates } from "../metadata/actions";
 import {
@@ -14,7 +14,6 @@ import {
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
-import { closeModal } from "../selection/actions";
 import { updateSettings } from "../setting/actions";
 import {
     ReduxLogicDoneCb,

@@ -1,5 +1,6 @@
-import { uniq } from "lodash";
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
+import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 
 import { SelectionStateBranch } from "../selection/types";
 import {
@@ -10,7 +11,9 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
+    CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+    OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
@@ -21,9 +24,12 @@ import {
     AddEventAction,
     AddRequestInProgressAction,
     ClearAlertAction,
+    CloseModalAction,
     CloseSetMountPointNotificationAction,
     FeedbackStateBranch,
+    OpenModalAction,
     OpenSetMountPointNotificationAction,
+    OpenTemplateEditorAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
     StartLoadingAction,
@@ -35,6 +41,7 @@ export const initialState: FeedbackStateBranch = {
     isLoading: false,
     requestsInProgress: [],
     setMountPointNotificationVisible: false,
+    visibleModals: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -116,6 +123,27 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             setMountPointNotificationVisible: false,
+        }),
+    },
+    [OPEN_MODAL]: {
+        accepts: (action: AnyAction): action is OpenModalAction => action.type === OPEN_MODAL,
+        perform: (state: FeedbackStateBranch, action: OpenModalAction) => ({
+            ...state,
+            visibleModals: uniq([...state.visibleModals, action.payload]),
+        }),
+    },
+    [CLOSE_MODAL]: {
+        accepts: (action: AnyAction): action is CloseModalAction => action.type === CLOSE_MODAL,
+        perform: (state: FeedbackStateBranch, action: CloseModalAction) => ({
+            ...state,
+            visibleModals: without(state.visibleModals, action.payload),
+        }),
+    },
+    [OPEN_TEMPLATE_EDITOR]: {
+        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            visibleModals: uniq([...state.visibleModals, "templateEditor"]),
         }),
     },
 };

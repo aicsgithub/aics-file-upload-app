@@ -7,12 +7,12 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { OPEN_SAVE_UPLOAD_DRAFT } from "../../../shared/constants";
+import { closeModal, openModal } from "../../state/feedback/actions";
+import { getSaveUploadDraftModalVisible } from "../../state/feedback/selectors";
+import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { gatherUploadDraftNames } from "../../state/metadata/actions";
 import { getUploadDraftNames } from "../../state/metadata/selectors";
 import { GatherUploadDraftNamesAction } from "../../state/metadata/types";
-import { closeModal, openModal } from "../../state/selection/actions";
-import { getSaveUploadDraftModalVisible } from "../../state/selection/selectors";
-import { CloseModalAction, OpenModalAction } from "../../state/selection/types";
 import { State } from "../../state/types";
 import { saveUploadDraft } from "../../state/upload/actions";
 import { getCanSaveUploadDraft } from "../../state/upload/selectors";

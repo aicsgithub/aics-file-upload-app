@@ -1,10 +1,16 @@
+import { AnyAction } from "redux";
+
 export interface FeedbackStateBranch {
     alert?: AppAlert;
+    deferredAction?: AnyAction; // action to dispatch when modal closes
     events: AppEvent[];
     isLoading: boolean;
     requestsInProgress: AsyncRequest[];
     setMountPointNotificationVisible: boolean;
+    visibleModals: ModalName[];
 }
+
+export type ModalName = "openTemplate" | "openUpload" | "saveUploadDraft" | "settings" | "templateEditor";
 
 export interface StartLoadingAction {
     type: string;
@@ -85,4 +91,19 @@ export interface AddEventAction {
         message: string;
         type: AlertType;
     };
+}
+
+export interface OpenModalAction {
+    payload: ModalName;
+    type: string;
+}
+
+export interface CloseModalAction {
+    payload: ModalName;
+    type: string;
+}
+
+export interface OpenTemplateEditorAction {
+    payload?: number;
+    type: string;
 }

@@ -32,18 +32,8 @@ export const getUser = (state: State) => state.selection.present.user;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
-export const getTemplateEditorVisible = (state: State) => !!state.selection.present.visibleModals
-    .find((m) => m === "templateEditor");
-export const getOpenTemplateModalVisible = (state: State) => !!state.selection.present.visibleModals
-    .find((m) => m === "openTemplate");
 export const getExpandedUploadJobRows = (state: State) => state.selection.present.expandedUploadJobRows;
 export const getFolderTreeOpen = (state: State) => state.selection.present.folderTreeOpen;
-export const getSettingsEditorVisible = (state: State) => !!state.selection.present.visibleModals
-    .find((m) => m === "settings");
-export const getSaveUploadDraftModalVisible = (state: State) => !!state.selection.present.visibleModals
-    .find((m) => m === "saveUploadDraft");
-export const getOpenUploadModalVisible = (state: State) => !!state.selection.present.visibleModals
-    .find((m) => m === "openUpload");
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

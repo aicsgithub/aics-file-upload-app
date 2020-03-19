@@ -11,8 +11,8 @@ import selections from "../";
 import { feedback } from "../../";
 import { SERVICE_IS_DOWN_MESSAGE, SERVICE_MIGHT_BE_DOWN_MESSAGE } from "../../../util";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
-import { addRequestToInProgress } from "../../feedback/actions";
-import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
+import { addRequestToInProgress, closeModal } from "../../feedback/actions";
+import { getAlert, getRequestsInProgressContains, getTemplateEditorVisible } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
@@ -33,7 +33,7 @@ import {
 import { HTTP_STATUS } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { clearStagedFiles, closeModal, openTemplateEditor, selectBarcode, selectWells } from "../actions";
+import { clearStagedFiles, openTemplateEditor, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
@@ -43,7 +43,6 @@ import {
     getSelectedPlates,
     getSelectedWells,
     getStagedFiles,
-    getTemplateEditorVisible,
     getWells,
 } from "../selectors";
 import {
@@ -628,10 +627,10 @@ describe("Selection logics", () => {
             () => {
             const { store } = createMockReduxStore({
                 ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
+                feedback: {
+                    ...mockState.feedback,
                     visibleModals: ["templateEditor"],
-                }),
+                },
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
                     draft: {

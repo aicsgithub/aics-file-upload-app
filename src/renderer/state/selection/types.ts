@@ -12,14 +12,11 @@ export interface SelectionStateBranch {
     imagingSessionIds: Array<number | null>;
     plate: ImagingSessionIdToPlateMap;
     wells: ImagingSessionIdToWellsMap;
-    visibleModals: ModalName[];
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
     stagedFiles: UploadFile[];
     user: string;
 }
-
-export type ModalName = "openTemplate" | "openUpload" | "saveUploadDraft" | "settings" | "templateEditor";
 
 export interface ImagingSessionIdToPlateMap {
     [imagingSessionId: number]: PlateResponse;
@@ -215,31 +212,6 @@ export interface SelectUserAction {
     type: string;
 }
 
-export interface CloseTemplateEditorAction {
-    type: string;
-}
-
-export interface OpenTemplateEditorAction {
-    payload?: number;
-    type: string;
-}
-
-export interface OpenOpenTemplateModalAction {
-    type: string;
-}
-
-export interface CloseOpenTemplateModalAction {
-    type: string;
-}
-
-export interface OpenSettingsEditorAction {
-    type: string;
-}
-
-export interface CloseSettingsEditorAction {
-    type: string;
-}
-
 export interface DragAndDropFileList {
     readonly length: number;
     [index: number]: DragAndDropFile;
@@ -274,15 +246,5 @@ export interface ToggleFolderTreeAction {
 
 export interface SelectImagingSessionIdAction extends AutoSaveAction  {
     payload: number;
-    type: string;
-}
-
-export interface OpenModalAction {
-    payload: ModalName;
-    type: string;
-}
-
-export interface CloseModalAction {
-    payload: ModalName;
     type: string;
 }

@@ -6,13 +6,10 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { OPEN_SETTINGS_EDITOR } from "../../../shared/constants";
+import { closeModal, openModal } from "../../state/feedback/actions";
 
-import { closeModal, openModal } from "../../state/selection/actions";
-import { getSettingsEditorVisible } from "../../state/selection/selectors";
-import {
-    CloseModalAction,
-    OpenModalAction,
-} from "../../state/selection/types";
+import { getSettingsEditorVisible } from "../../state/feedback/selectors";
+import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { setMountPoint, switchEnvironment } from "../../state/setting/actions";
 import { getLimsUrl, getMountPoint } from "../../state/setting/selectors";
 import { State } from "../../state/types";

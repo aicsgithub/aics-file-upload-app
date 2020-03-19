@@ -1,6 +1,4 @@
 import { AnyAction } from "redux";
-import { OPEN_MODAL } from "../selection/constants";
-import { OpenModalAction } from "../selection/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
@@ -8,7 +6,6 @@ import { SELECT_PAGE, SELECT_VIEW } from "./constants";
 import { Page, RouteStateBranch, SelectPageAction, SelectViewAction } from "./types";
 
 export const initialState: RouteStateBranch = {
-    nextPage: undefined,
     page: Page.UploadSummary,
     view: Page.UploadSummary,
 };
@@ -29,31 +26,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             ...state,
             view: action.payload,
         }),
-    },
-    [OPEN_MODAL]: {
-        accepts: (action: AnyAction): action is OpenModalAction => action.type === OPEN_MODAL,
-        perform: (state: RouteStateBranch, action: OpenModalAction) => {
-            if (action.payload === "saveUploadDraft") {
-                return {
-                    ...state,
-                    nextPage: Page.UploadSummary,
-                };
-            }
-
-            return state;
-        },
-    },
-    [OPEN_MODAL]: {
-        accepts: (action: AnyAction): action is OpenModalAction => action.type === OPEN_MODAL,
-        perform: (state: RouteStateBranch, action: OpenModalAction) => {
-            if (action.payload === "saveUploadDraft") {
-                return {
-                    ...state,
-                    nextPage: Page.UploadSummary,
-                };
-            }
-            return state;
-        },
     },
 };
 

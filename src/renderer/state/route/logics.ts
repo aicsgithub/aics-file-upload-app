@@ -5,11 +5,11 @@ import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
-import { openSetMountPointNotification } from "../feedback/actions";
+import { openModal, openSetMountPointNotification } from "../feedback/actions";
 
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
-import { clearSelectionHistory, jumpToPastSelection, openModal, toggleFolderTree } from "../selection/actions";
+import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
