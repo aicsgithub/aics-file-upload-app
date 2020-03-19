@@ -1,8 +1,8 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
-import { Channel } from "../metadata/types";
+import { Channel, CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
-import { AutoSaveAction } from "../types";
+import { AutoSaveAction, State } from "../types";
 
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
@@ -230,6 +230,14 @@ export interface SaveUploadDraftAction {
 
 export interface OpenUploadDraftAction {
     payload: string;
+    type: string;
+}
+
+export interface ReplaceUploadAction {
+    payload: {
+        state: State;
+        metadata: CurrentUpload;
+    };
     type: string;
 }
 

@@ -1,6 +1,8 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { CurrentUpload } from "../metadata/types";
 
 import { Workflow } from "../selection/types";
+import { State } from "../types";
 
 import {
     APPLY_TEMPLATE,
@@ -16,6 +18,7 @@ import {
     OPEN_UPLOAD_DRAFT,
     REMOVE_FILE_FROM_ARCHIVE,
     REMOVE_FILE_FROM_ISILON,
+    REPLACE_UPLOAD,
     RETRY_UPLOAD,
     SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
@@ -40,7 +43,7 @@ import {
     OpenUploadDraftAction,
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
-    RemoveUploadsAction,
+    RemoveUploadsAction, ReplaceUploadAction,
     RetryUploadAction, SaveUploadDraftAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
@@ -257,5 +260,12 @@ export function openUploadDraft(draftName: string): OpenUploadDraftAction {
     return {
         payload: draftName,
         type: OPEN_UPLOAD_DRAFT,
+    };
+}
+
+export function replaceUpload(upload: { metadata: CurrentUpload, state: State }): ReplaceUploadAction {
+    return {
+        payload: upload,
+        type: REPLACE_UPLOAD,
     };
 }

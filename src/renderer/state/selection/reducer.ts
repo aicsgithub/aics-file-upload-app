@@ -7,6 +7,8 @@ import undoable, {
 import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
@@ -30,6 +32,15 @@ import {
     TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
 } from "./constants";
+import {
+    getExpandedUploadJobRows,
+    getFolderTreeOpen,
+    getSelectedBarcode,
+    getSelectedImagingSessionId,
+    getSelectedImagingSessionIds,
+    getSelectedPlates,
+    getStagedFiles, getWells,
+} from "./selectors";
 import {
     AddStageFilesAction,
     ClearStagedFilesAction,
@@ -194,6 +205,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectImagingSessionIdAction) => ({
             ...state,
             imagingSessionId: action.payload,
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: SelectionStateBranch, { payload }: ReplaceUploadAction) => ({
+            ...state,
+            barcode: getSelectedBarcode(payload.state),
+            expandedUploadJobRows: getExpandedUploadJobRows(payload.state),
+            folderTreeOpen: getFolderTreeOpen(payload.state),
+            imagingSessionId: getSelectedImagingSessionId(payload.state),
+            imagingSessionIds: getSelectedImagingSessionIds(payload.state),
+            plate: getSelectedPlates(payload.state), //  todo might want to get this again?
+            stagedFiles: getStagedFiles(payload.state), // todo check that these still exist on computer
+            wells: getWells(payload.state),
         }),
     },
 };

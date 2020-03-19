@@ -22,6 +22,7 @@ import {
     JUMP_TO_UPLOAD,
     REMOVE_FILE_FROM_ARCHIVE,
     REMOVE_FILE_FROM_ISILON,
+    REPLACE_UPLOAD,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
@@ -36,6 +37,7 @@ import {
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
     RemoveUploadsAction,
+    ReplaceUploadAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateUploadAction,
@@ -194,6 +196,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 ...state[action.payload],
                 shouldBeInLocal: false,
             },
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: UploadStateBranch, action: ReplaceUploadAction) => ({
+            ...action.payload.state.upload.present,
         }),
     },
 };

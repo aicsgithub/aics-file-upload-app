@@ -1,8 +1,11 @@
 import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 import { SELECT_PAGE, SELECT_VIEW } from "./constants";
+import { getPage } from "./selectors";
 import { Page, RouteStateBranch, SelectPageAction, SelectViewAction } from "./types";
 
 export const initialState: RouteStateBranch = {
@@ -25,6 +28,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: RouteStateBranch, action: SelectViewAction) => ({
             ...state,
             view: action.payload,
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: RouteStateBranch, action: ReplaceUploadAction) => ({
+            ...state,
+            page: getPage(action.payload.state),
+            view: getPage(action.payload.state),
         }),
     },
 };

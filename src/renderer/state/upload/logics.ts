@@ -8,21 +8,21 @@ import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
-    addRequestToInProgress,
+    addRequestToInProgress, openModal,
     removeRequestFromInProgress,
-    setAlert,
+    setAlert, setDeferredActions,
     setErrorAlert,
     setSuccessAlert,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId, getUploadDraftNames } from "../metadata/selectors";
-import { Channel } from "../metadata/types";
+import { Channel, CurrentUpload } from "../metadata/types";
 import { goForward } from "../route/actions";
-import { clearStagedFiles, deselectFiles } from "../selection/actions";
+import { clearSelectionHistory, clearStagedFiles, deselectFiles } from "../selection/actions";
 import { getSelectedBarcode, getSelectedWellIds } from "../selection/selectors";
 import { updateSettings } from "../setting/actions";
-import { getTemplate } from "../template/actions";
+import { clearTemplateHistory, getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
 import {
@@ -34,7 +34,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removeUploads, updateUpload, updateUploads } from "./actions";
+import { clearUploadHistory, removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
@@ -646,11 +646,12 @@ const saveUploadDraftLogic = createLogic({
         }
 
         const now = new Date();
-        const metadata = {
+        const metadata: CurrentUpload = {
             created: now,
-            lastModified: now,
+            name: draftName,
         };
-        storage.set(draftName, { metadata, upload });
+
+        storage.set(draftName, { metadata, state: getState() });
 
         const uploadDraftNames = getUploadDraftNames(getState());
         storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
@@ -668,19 +669,21 @@ const openUploadLogic = createLogic({
             return;
         }
 
+        const actions = [
+            replaceUpload(draft),
+            clearUploadHistory(),
+            clearSelectionHistory(),
+            clearTemplateHistory(),
+        ];
+
         if (getCanSaveUploadDraft(getState())) {
-            // todo: make sure you cant open a upload that is already open
-            // open save upload draft modal
-            // on save or cancel, load the new upload draft
-
-            // how to handle deferred actions?
-            // examples: close tab -> open save dialog -> save and close tab on save dialog close
-            //           File > Open > Upload Draft -> click draft to open -> open save dialog -> save & open new upload
-            // next(openSaveUploadDraftModalAndThenReplaceUpload(draft.upload));
+            next(batchActions([
+                openModal("saveUploadDraft"),
+                setDeferredActions(actions),
+            ]));
         }
-        // next(replaceUpload(draft))
 
-        next(action);
+        next(batchActions(actions));
     },
 });
 

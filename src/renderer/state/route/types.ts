@@ -1,5 +1,4 @@
 export interface RouteStateBranch {
-    nextPage?: Page; // defined if user is to be redirected after clicking on an alert
     page: Page;
     view: Page;
 }

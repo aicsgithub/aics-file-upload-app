@@ -2,6 +2,8 @@ import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -108,6 +110,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch, action: GatherUploadDraftNamesAction) => ({
             ...state,
             uploadDraftNames: uniq(action.payload),
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction =>
+            action.type === REPLACE_UPLOAD,
+        perform: (state: MetadataStateBranch, action: ReplaceUploadAction) => ({
+            ...state,
+            currentUpload: action.payload.metadata,
         }),
     },
 };

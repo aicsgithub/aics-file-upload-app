@@ -3,6 +3,8 @@ import undoable, { UndoableOptions } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
 
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 import {
     CLEAR_TEMPLATE_DRAFT,
@@ -12,6 +14,7 @@ import {
     JUMP_TO_TEMPLATE, SET_APPLIED_TEMPLATE,
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
+import { getAppliedTemplate } from "./selectors";
 
 import {
     ClearTemplateDraftAction,
@@ -48,6 +51,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 ...state.draft,
                 ...action.payload,
             },
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: TemplateStateBranch, { payload }: ReplaceUploadAction) => ({
+            ...state,
+            appliedTemplate: getAppliedTemplate(payload.state),
         }),
     },
 };

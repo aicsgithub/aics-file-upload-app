@@ -12,6 +12,7 @@ export interface MetadataStateBranch {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
     channels: Channel[];
+    currentUpload?: CurrentUpload;
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataSearchResults?: SearchResultRow[];
     imagingSessions: ImagingSession[];
@@ -31,6 +32,12 @@ export interface MetadataStateBranch {
 
     // expected type is string[] but typescript index signatures won't allow explicit typing like this in this case
     [lookupName: string]: any;
+}
+
+export interface CurrentUpload {
+    created: Date;
+    jobId?: string;
+    name?: string;
 }
 
 export interface BarcodePrefix {

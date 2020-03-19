@@ -10,7 +10,7 @@ import FormPage from "../../components/FormPage";
 import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { AsyncRequest, OpenTemplateEditorAction, SetAlertAction } from "../../state/feedback/types";
 import {
     getAnnotationTypes,
     getBooleanAnnotationTypeId,
@@ -31,7 +31,6 @@ import {
 } from "../../state/selection/selectors";
 import {
     ExpandedRows,
-    OpenTemplateEditorAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
@@ -114,7 +113,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        this.props.applyTemplate(this.props.savedTemplateId);
+        const templateId = this.props.appliedTemplate || this.props.savedTemplateId;
+        this.props.applyTemplate(templateId);
     }
 
     public render() {
