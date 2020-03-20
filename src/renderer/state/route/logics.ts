@@ -4,6 +4,7 @@ import { isEmpty, isNil } from "lodash";
 import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { getCurrentUploadName } from "../../containers/App/selectors";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
 import {
     closeSetMountPointNotification,
@@ -27,7 +28,7 @@ import {
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
+import { clearUploadHistory, jumpToPastUpload, saveUploadDraft, updateUpload } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
@@ -216,7 +217,12 @@ const closeUploadTabLogic = createLogic({
             clearStagedFiles(),
             closeSetMountPointNotification(),
         ]; // todo evaluate whether it matters that we're not going through select page logics
-        if (getCanSaveUploadDraft(getState())) {
+        const draftName = getCurrentUploadName(getState());
+        // automatically save if user has chosen to save this draft
+        if (draftName) {
+            actions.push(saveUploadDraft(draftName));
+            next(batchActions(actions));
+        } else if (getCanSaveUploadDraft(getState())) {
             dialog.showMessageBox({
                 buttons: ["Cancel", "Discard", "Save Upload Draft"],
                 cancelId: 0,
