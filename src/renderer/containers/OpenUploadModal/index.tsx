@@ -49,7 +49,7 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
         ipcRenderer.on(OPEN_OPEN_UPLOAD_MODAL, this.openModal);
     }
 
-    public componentWillUpdate(prevProps: Props): void {
+    public componentDidUpdate(prevProps: Props): void {
         if (prevProps.visible !== this.props.visible) {
             this.props.gatherUploadDraftNames();
             this.setState({
