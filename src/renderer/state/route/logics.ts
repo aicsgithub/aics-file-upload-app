@@ -5,11 +5,16 @@ import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
-import { openModal, openSetMountPointNotification, setDeferredActions } from "../feedback/actions";
+import {
+    closeSetMountPointNotification,
+    openModal,
+    openSetMountPointNotification,
+    setDeferredActions,
+} from "../feedback/actions";
 
 import { clearCurrentUpload, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
-import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
+import { clearSelectionHistory, clearStagedFiles, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
@@ -208,6 +213,8 @@ const closeUploadTabLogic = createLogic({
         const actions = [
             selectPage(currentPage, Page.UploadSummary), // this closes the tab
             clearCurrentUpload(),
+            clearStagedFiles(),
+            closeSetMountPointNotification(),
         ]; // todo evaluate whether it matters that we're not going through select page logics
         if (getCanSaveUploadDraft(getState())) {
             dialog.showMessageBox({
