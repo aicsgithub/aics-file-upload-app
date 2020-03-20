@@ -29,6 +29,7 @@ import {
     UPDATE_UPLOAD,
     UPDATE_UPLOADS,
 } from "./constants";
+import { getUpload } from "./selectors";
 import {
     ApplyTemplateAction,
     AssociateFilesAndWellsAction,
@@ -200,8 +201,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [REPLACE_UPLOAD]: {
         accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
-        perform: (state: UploadStateBranch, action: ReplaceUploadAction) => ({
-            ...action.payload.state.upload.present,
+        perform: (state: UploadStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
+            ...getUpload(savedState),
         }),
     },
 };

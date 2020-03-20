@@ -32,10 +32,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [REPLACE_UPLOAD]: {
         accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
-        perform: (state: RouteStateBranch, action: ReplaceUploadAction) => ({
+        perform: (state: RouteStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
             ...state,
-            page: getPage(action.payload.state),
-            view: getPage(action.payload.state),
+            page: getPage(savedState),
+            view: getPage(savedState),
         }),
     },
 };

@@ -55,9 +55,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [REPLACE_UPLOAD]: {
         accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
-        perform: (state: TemplateStateBranch, { payload }: ReplaceUploadAction) => ({
+        perform: (state: TemplateStateBranch, { payload: { state: savedState} }: ReplaceUploadAction) => ({
             ...state,
-            appliedTemplate: getAppliedTemplate(payload.state),
+            appliedTemplate: getAppliedTemplate(savedState),
         }),
     },
 };

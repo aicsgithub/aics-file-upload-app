@@ -209,16 +209,16 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [REPLACE_UPLOAD]: {
         accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
-        perform: (state: SelectionStateBranch, { payload }: ReplaceUploadAction) => ({
+        perform: (state: SelectionStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
             ...state,
-            barcode: getSelectedBarcode(payload.state),
-            expandedUploadJobRows: getExpandedUploadJobRows(payload.state),
-            folderTreeOpen: getFolderTreeOpen(payload.state),
-            imagingSessionId: getSelectedImagingSessionId(payload.state),
-            imagingSessionIds: getSelectedImagingSessionIds(payload.state),
-            plate: getSelectedPlates(payload.state), //  todo might want to get this again?
-            stagedFiles: getStagedFiles(payload.state), // todo check that these still exist on computer
-            wells: getWells(payload.state),
+            barcode: getSelectedBarcode(savedState),
+            expandedUploadJobRows: getExpandedUploadJobRows(savedState),
+            folderTreeOpen: getFolderTreeOpen(savedState),
+            imagingSessionId: getSelectedImagingSessionId(savedState),
+            imagingSessionIds: getSelectedImagingSessionIds(savedState),
+            plate: getSelectedPlates(savedState), //  todo might want to get this again?
+            stagedFiles: getStagedFiles(savedState), // todo check that these still exist on computer
+            wells: getWells(savedState),
         }),
     },
 };
