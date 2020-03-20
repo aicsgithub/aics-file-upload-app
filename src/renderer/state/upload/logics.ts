@@ -12,10 +12,10 @@ import {
     removeRequestFromInProgress,
     setAlert, setDeferredActions,
     setErrorAlert,
-    setSuccessAlert,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
+import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId, getUploadDraftNames } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { goForward } from "../route/actions";
@@ -655,7 +655,7 @@ const saveUploadDraftLogic = createLogic({
 
         const uploadDraftNames = getUploadDraftNames(getState());
         storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
-        next(setSuccessAlert(`${draftName} was saved successfully!`));
+        next(setCurrentUpload(metadata));
     },
 });
 

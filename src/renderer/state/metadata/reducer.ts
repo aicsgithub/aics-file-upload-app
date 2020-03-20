@@ -13,6 +13,7 @@ import {
     RECEIVE_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
+    SET_CURRENT_UPLOAD,
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import {
@@ -23,6 +24,7 @@ import {
     ReceiveMetadataAction,
     ResetHistoryAction,
     SearchFileMetadataAction,
+    SetCurrentUploadAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -120,6 +122,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch, action: ReplaceUploadAction) => ({
             ...state,
             currentUpload: action.payload.metadata,
+        }),
+    },
+    [SET_CURRENT_UPLOAD]: {
+        accepts: (action: AnyAction): action is SetCurrentUploadAction =>
+            action.type === SET_CURRENT_UPLOAD,
+        perform: (state: MetadataStateBranch, action: SetCurrentUploadAction) => ({
+            ...state,
+            currentUpload: action.payload,
         }),
     },
     [CLEAR_CURRENT_UPLOAD]: {

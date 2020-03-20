@@ -14,6 +14,7 @@ import {
     REQUEST_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
+    SET_CURRENT_UPLOAD,
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
@@ -23,6 +24,7 @@ import {
     ClearFileMetadataForJobAction,
     ClearOptionsForLookupAction,
     CreateBarcodeAction,
+    CurrentUpload,
     ExportFileMetadataAction,
     GatherUploadDraftNamesAction,
     GetAnnotationsAction,
@@ -36,6 +38,7 @@ import {
     ResetHistoryAction,
     SearchConfig,
     SearchFileMetadataAction,
+    SetCurrentUploadAction,
     UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -153,6 +156,13 @@ export function gatherUploadDraftNames(): GatherUploadDraftNamesAction {
     return {
         payload: [],
         type: GATHER_UPLOAD_DRAFT_NAMES,
+    };
+}
+
+export function setCurrentUpload(currentUpload: CurrentUpload): SetCurrentUploadAction {
+    return {
+        payload: currentUpload,
+        type: SET_CURRENT_UPLOAD,
     };
 }
 
