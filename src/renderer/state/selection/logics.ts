@@ -1,12 +1,9 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { stat as fsStat, Stats } from "fs";
-import { uniq } from "lodash";
-import { basename, dirname, resolve as resolvePath } from "path";
+import { basename, dirname } from "path";
 import { createLogic } from "redux-logic";
-import { promisify } from "util";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { canUserRead, getWithRetry } from "../../util";
+import { getWithRetry } from "../../util";
 
 import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -25,7 +22,7 @@ import {
 } from "../types";
 import { clearUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
-import { batchActions, getActionFromBatch } from "../util";
+import { batchActions, getActionFromBatch, getUploadFilePromise, mergeChildPaths } from "../util";
 
 import {
     deselectFiles,
@@ -45,36 +42,12 @@ import {
     SELECT_WELLS,
     SELECT_WORKFLOW_PATH,
 } from "./constants";
-import { UploadFileImpl } from "./models/upload-file";
 import {
     getSelectedBarcode,
     getStagedFiles,
     getWellsWithModified,
 } from "./selectors";
 import { DragAndDropFileList, GetPlateResponse, PlateResponse, UploadFile, WellResponse } from "./types";
-
-const stat = promisify(fsStat);
-
-const mergeChildPaths = (filePaths: string[]): string[] => {
-    filePaths = uniq(filePaths);
-
-    return filePaths.filter((filePath) => {
-        const otherFilePaths = filePaths.filter((otherFilePath) => otherFilePath !== filePath);
-        return !otherFilePaths.find((otherFilePath) => filePath.indexOf(otherFilePath) === 0);
-    });
-};
-
-const getUploadFilePromise = async (name: string, path: string): Promise<UploadFile> => {
-    const fullPath = resolvePath(path, name);
-    const stats: Stats = await stat(fullPath);
-    const isDirectory = stats.isDirectory();
-    const canRead = await canUserRead(fullPath);
-    const file = new UploadFileImpl(name, path, isDirectory, canRead);
-    if (isDirectory && canRead) {
-        file.files = await Promise.all(await file.loadFiles());
-    }
-    return file;
-};
 
 const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<UploadFile>>,
                                         currentPage: Page,

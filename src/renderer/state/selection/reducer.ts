@@ -39,7 +39,7 @@ import {
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds,
     getSelectedPlates,
-    getStagedFiles, getWells,
+    getWells,
 } from "./selectors";
 import {
     AddStageFilesAction,
@@ -217,7 +217,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             imagingSessionId: getSelectedImagingSessionId(savedState),
             imagingSessionIds: getSelectedImagingSessionIds(savedState),
             plate: getSelectedPlates(savedState), //  todo might want to get this again?
-            stagedFiles: getStagedFiles(savedState), // todo check that these still exist on computer
             wells: getWells(savedState),
         }),
     },

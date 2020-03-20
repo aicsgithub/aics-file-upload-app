@@ -2,6 +2,7 @@ import Logger from "js-logger";
 import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
+import { basename, dirname, resolve } from "path";
 import { createLogic } from "redux-logic";
 import { LIST_DELIMITER_SPLIT } from "../../constants";
 
@@ -15,12 +16,18 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
-import { requestMetadata, requestTemplates, setCurrentUpload } from "../metadata/actions";
+import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { goForward } from "../route/actions";
-import { clearSelectionHistory, clearStagedFiles, deselectFiles } from "../selection/actions";
-import { getSelectedBarcode, getSelectedWellIds } from "../selection/selectors";
+import {
+    clearSelectionHistory,
+    clearStagedFiles,
+    deselectFiles,
+    stageFiles,
+} from "../selection/actions";
+import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
+import { UploadFile } from "../selection/types";
 import { updateSettings } from "../setting/actions";
 import { clearTemplateHistory, getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -32,7 +39,7 @@ import {
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { batchActions } from "../util";
+import { batchActions, getUploadFilePromise, mergeChildPaths } from "../util";
 
 import { clearUploadHistory, removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
 import {
@@ -42,7 +49,7 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
-    OPEN_UPLOAD_DRAFT, REPLACE_UPLOAD,
+    OPEN_UPLOAD_DRAFT,
     RETRY_UPLOAD, SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
@@ -658,20 +665,33 @@ const saveUploadDraftLogic = createLogic({
 
 const openUploadLogic = createLogic({
     type: OPEN_UPLOAD_DRAFT,
-    validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
-               reject: ReduxLogicRejectCb) => {
+    validate: async ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+                     reject: ReduxLogicRejectCb) => {
         const draft = storage.get(`${DRAFT_KEY}.${action.payload}`);
         if (!draft) {
             reject(setErrorAlert(`Could not find draft named ${action.payload}`));
             return;
         }
 
+        // todo metadata
         const actions = [
             replaceUpload(draft),
             clearUploadHistory(),
             clearSelectionHistory(),
             clearTemplateHistory(),
         ];
+
+        const topLevelFilesToLoadAgain = getStagedFiles(draft.state).map((f) => resolve(f.path, f.name));
+        const filesToLoad: string[] = mergeChildPaths(topLevelFilesToLoadAgain);
+        try {
+            const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map((filePath: string) => (
+                getUploadFilePromise(basename(filePath), dirname(filePath))
+            ));
+            const uploadFiles = await Promise.all(uploadFilePromises);
+            actions.push(stageFiles(uploadFiles));
+        } catch (e) {
+            actions.push(setErrorAlert(`Encountered error while resolving files: ${e}`));
+        }
 
         if (getCanSaveUploadDraft(getState())) {
             next(batchActions([
@@ -684,22 +704,12 @@ const openUploadLogic = createLogic({
     },
 });
 
-const replaceUploadLogic = createLogic({
-    process: (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        dispatch(requestMetadata());
-        dispatch(requestTemplates());
-        done();
-    },
-    type: REPLACE_UPLOAD,
-});
-
 export default [
     applyTemplateLogic,
     associateFilesAndWellsLogic,
     cancelUploadLogic,
     initiateUploadLogic,
     openUploadLogic,
-    replaceUploadLogic,
     retryUploadLogic,
     saveUploadDraftLogic,
     undoFileWellAssociationLogic,
