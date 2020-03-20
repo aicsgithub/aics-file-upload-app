@@ -48,7 +48,7 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
         ipcRenderer.on(OPEN_SAVE_UPLOAD_DRAFT, this.openModal);
     }
 
-    public componentWillUpdate(prevProps: SaveUploadDraftModalProps): void {
+    public componentDidUpdate(prevProps: SaveUploadDraftModalProps): void {
         if (prevProps.visible !== this.props.visible) {
             this.setState({name: undefined});
         }
