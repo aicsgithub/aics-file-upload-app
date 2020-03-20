@@ -175,3 +175,7 @@ export interface GatherUploadDraftNamesAction {
     payload: string[];
     type: string;
 }
+
+export interface ClearCurrentUploadAction {
+    type: string;
+}

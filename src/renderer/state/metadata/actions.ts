@@ -1,4 +1,5 @@
 import {
+    CLEAR_CURRENT_UPLOAD,
     CLEAR_FILE_METADATA_FOR_JOB,
     CLEAR_OPTIONS_FOR_LOOKUP,
     CREATE_BARCODE,
@@ -18,6 +19,7 @@ import {
 import { initialState } from "./reducer";
 import {
     BarcodePrefix,
+    ClearCurrentUploadAction,
     ClearFileMetadataForJobAction,
     ClearOptionsForLookupAction,
     CreateBarcodeAction,
@@ -151,5 +153,11 @@ export function gatherUploadDraftNames(): GatherUploadDraftNamesAction {
     return {
         payload: [],
         type: GATHER_UPLOAD_DRAFT_NAMES,
+    };
+}
+
+export function clearCurrentUpload(): ClearCurrentUploadAction {
+    return {
+        type: CLEAR_CURRENT_UPLOAD,
     };
 }

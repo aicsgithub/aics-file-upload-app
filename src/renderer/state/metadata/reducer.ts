@@ -7,6 +7,7 @@ import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
+    CLEAR_CURRENT_UPLOAD,
     CLEAR_FILE_METADATA_FOR_JOB,
     CLEAR_OPTIONS_FOR_LOOKUP, GATHER_UPLOAD_DRAFT_NAMES,
     RECEIVE_METADATA,
@@ -15,6 +16,7 @@ import {
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import {
+    ClearCurrentUploadAction,
     ClearFileMetadataForJobAction,
     ClearOptionsForLookupAction, GatherUploadDraftNamesAction,
     MetadataStateBranch,
@@ -118,6 +120,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch, action: ReplaceUploadAction) => ({
             ...state,
             currentUpload: action.payload.metadata,
+        }),
+    },
+    [CLEAR_CURRENT_UPLOAD]: {
+        accepts: (action: AnyAction): action is ClearCurrentUploadAction => action.type === CLEAR_CURRENT_UPLOAD,
+        perform: (state: MetadataStateBranch) => ({
+            ...state,
+            currentUpload: undefined,
         }),
     },
 };

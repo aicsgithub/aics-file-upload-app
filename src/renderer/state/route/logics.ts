@@ -7,7 +7,7 @@ import { createLogic } from "redux-logic";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
 import { openModal, openSetMountPointNotification, setDeferredActions } from "../feedback/actions";
 
-import { updatePageHistory } from "../metadata/actions";
+import { clearCurrentUpload, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
@@ -205,7 +205,10 @@ const closeUploadTabLogic = createLogic({
     validate: ({ action, dialog, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
         const currentPage = getPage(getState());
-        const nextAction = selectPage(currentPage, Page.UploadSummary);
+        const actions = [
+            selectPage(currentPage, Page.UploadSummary), // this closes the tab
+            clearCurrentUpload(),
+        ]; // todo evaluate whether it matters that we're not going through select page logics
         if (getCanSaveUploadDraft(getState())) {
             dialog.showMessageBox({
                 buttons: ["Cancel", "Discard", "Save Upload Draft"],
@@ -216,19 +219,19 @@ const closeUploadTabLogic = createLogic({
                 type: "question",
             }, (buttonIndex: number) => {
                 if (buttonIndex === 1) { // Discard Draft
-                    next(nextAction);
+                    next(batchActions(actions));
                 } else if (buttonIndex === 2) { // Save Upload Draft
                     next(batchActions([
                         openModal("saveUploadDraft"),
                         // close tab after Saving
-                        setDeferredActions([selectPage(getPage(getState()), Page.UploadSummary)]),
+                        setDeferredActions(actions),
                     ]));
                 } else { // Cancel
                     reject(action);
                 }
             });
         } else {
-            next(nextAction);
+            next(batchActions(actions));
         }
     },
 });

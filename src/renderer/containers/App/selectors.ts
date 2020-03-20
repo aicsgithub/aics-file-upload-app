@@ -1,7 +1,7 @@
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
-import { getImagingSessions } from "../../state/metadata/selectors";
-import { ImagingSession } from "../../state/metadata/types";
+import { getCurrentUpload, getImagingSessions } from "../../state/metadata/selectors";
+import { CurrentUpload, ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
 import { getAllPlates, getAllWells } from "../../state/selection/selectors";
@@ -89,4 +89,14 @@ export const getFileToTags = createSelector([
         result.set(file, tags);
     });
     return result;
+});
+
+export const getCurrentUploadName = createSelector([
+    getCurrentUpload,
+], (currentUpload?: CurrentUpload) => {
+    if (!currentUpload || !currentUpload.name) {
+        return "Current Upload";
+    }
+
+    return currentUpload.name;
 });
