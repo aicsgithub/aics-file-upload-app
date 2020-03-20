@@ -26,9 +26,9 @@ import {
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { DRAFT_KEY, REPLACE_UPLOAD } from "../upload/constants";
+import { DRAFT_KEY } from "../upload/constants";
 import { batchActions } from "../util";
-import { receiveMetadata, requestMetadata, requestTemplates } from "./actions";
+import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
@@ -397,19 +397,9 @@ const gatherUploadDraftNamesLogic = createLogic({
     type: GATHER_UPLOAD_DRAFT_NAMES,
 });
 
-const replaceUploadLogic = createLogic({
-    process: (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        dispatch(requestMetadata());
-        dispatch(requestTemplates());
-        done();
-    },
-    type: REPLACE_UPLOAD,
-});
-
 export default [
     createBarcodeLogic,
     exportFileMetadataLogic,
-    replaceUploadLogic,
     requestAnnotationsLogic,
     getBarcodeSearchResultsLogic,
     retrieveFileMetadataForJobLogic,

@@ -15,7 +15,7 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
-import { setCurrentUpload } from "../metadata/actions";
+import { requestMetadata, requestTemplates, setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { goForward } from "../route/actions";
@@ -42,7 +42,7 @@ import {
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
-    OPEN_UPLOAD_DRAFT,
+    OPEN_UPLOAD_DRAFT, REPLACE_UPLOAD,
     RETRY_UPLOAD, SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
@@ -684,12 +684,22 @@ const openUploadLogic = createLogic({
     },
 });
 
+const replaceUploadLogic = createLogic({
+    process: (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dispatch(requestMetadata());
+        dispatch(requestTemplates());
+        done();
+    },
+    type: REPLACE_UPLOAD,
+});
+
 export default [
     applyTemplateLogic,
     associateFilesAndWellsLogic,
     cancelUploadLogic,
     initiateUploadLogic,
     openUploadLogic,
+    replaceUploadLogic,
     retryUploadLogic,
     saveUploadDraftLogic,
     undoFileWellAssociationLogic,
