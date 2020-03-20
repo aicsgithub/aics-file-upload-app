@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { forEach, includes, isEmpty, isNil, map, trim, uniq, values } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { createLogic } from "redux-logic";
@@ -16,7 +16,7 @@ import {
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
 import { setCurrentUpload } from "../metadata/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId, getUploadDraftNames } from "../metadata/selectors";
+import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { goForward } from "../route/actions";
 import { clearSelectionHistory, clearStagedFiles, deselectFiles } from "../selection/actions";
@@ -38,7 +38,7 @@ import { clearUploadHistory, removeUploads, replaceUpload, updateUpload, updateU
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
-    CANCEL_UPLOAD,
+    CANCEL_UPLOAD, DRAFT_KEY,
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
@@ -651,10 +651,7 @@ const saveUploadDraftLogic = createLogic({
             name: draftName,
         };
 
-        storage.set(draftName, { metadata, state: getState() });
-
-        const uploadDraftNames = getUploadDraftNames(getState());
-        storage.set("uploadDraftNames", uniq([...uploadDraftNames, draftName]));
+        storage.set(`${DRAFT_KEY}.${draftName}`, { metadata, state: getState() });
         next(setCurrentUpload(metadata));
     },
 });
@@ -663,7 +660,7 @@ const openUploadLogic = createLogic({
     type: OPEN_UPLOAD_DRAFT,
     validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        const draft = storage.get(action.payload);
+        const draft = storage.get(`${DRAFT_KEY}.${action.payload}`);
         if (!draft) {
             reject(setErrorAlert(`Could not find draft named ${action.payload}`));
             return;

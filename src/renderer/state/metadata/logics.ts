@@ -26,19 +26,20 @@ import {
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { REPLACE_UPLOAD } from "../upload/constants";
+import { DRAFT_KEY, REPLACE_UPLOAD } from "../upload/constants";
 import { batchActions } from "../util";
 import { receiveMetadata, requestMetadata, requestTemplates } from "./actions";
 import {
     CREATE_BARCODE,
-    EXPORT_FILE_METADATA, GATHER_UPLOAD_DRAFT_NAMES,
+    EXPORT_FILE_METADATA,
+    GATHER_UPLOAD_DRAFT_NAMES,
     GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
     REQUEST_FILE_METADATA_FOR_JOB,
     REQUEST_METADATA,
-    SEARCH_FILE_METADATA, UPLOAD_DRAFT_NAMES,
+    SEARCH_FILE_METADATA,
 } from "./constants";
 import { getAnnotationLookups, getAnnotations, getLookups, getSearchResultsHeader } from "./selectors";
 
@@ -383,7 +384,8 @@ const exportFileMetadataLogic = createLogic({
 const gatherUploadDraftNamesLogic = createLogic({
     transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const names = storage.get(UPLOAD_DRAFT_NAMES);
+            const drafts = storage.get(DRAFT_KEY);
+            const names = !!drafts ? Object.keys(drafts) : [];
             next({
                 ...action,
                 payload: names,
