@@ -1,20 +1,29 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { constants, promises } from "fs";
+import { constants, promises, stat as fsStat, Stats } from "fs";
 import {
     castArray,
     isNil,
     startCase,
     trim,
+    uniq,
 } from "lodash";
+import { resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
+import { promisify } from "util";
+
 import { LIST_DELIMITER_SPLIT } from "../constants";
 import { API_WAIT_TIME_SECONDS } from "../state/constants";
 import { addRequestToInProgress, clearAlert, removeRequestFromInProgress, setAlert } from "../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../state/feedback/types";
-import { DragAndDropFileList } from "../state/selection/types";
+import { CurrentUpload } from "../state/metadata/types";
+import { UploadFileImpl } from "../state/selection/models/upload-file";
+import { DragAndDropFileList, UploadFile } from "../state/selection/types";
 import { TemplateAnnotation } from "../state/template/types";
-import { HTTP_STATUS, ReduxLogicNextCb } from "../state/types";
+import { HTTP_STATUS, LocalStorage, ReduxLogicNextCb, State } from "../state/types";
+import { DRAFT_KEY } from "../state/upload/constants";
 import { batchActions } from "../state/util";
+
+const stat = promisify(fsStat);
 
 export async function onDrop(files: DragAndDropFileList, handleError: (error: string) => void): Promise<string> {
     if (files.length > 1) {
@@ -238,3 +247,43 @@ export function getWithRetry<T = any>(
         }
     });
 }
+
+export const getUploadFilePromise = async (name: string, path: string): Promise<UploadFile> => {
+    const fullPath = resolvePath(path, name);
+    const stats: Stats = await stat(fullPath);
+    const isDirectory = stats.isDirectory();
+    const canRead = await canUserRead(fullPath);
+    const file = new UploadFileImpl(name, path, isDirectory, canRead);
+    if (isDirectory && canRead) {
+        file.files = await Promise.all(await file.loadFiles());
+    }
+    return file;
+};
+
+export const saveUploadDraftToLocalStorage =
+    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
+    const draftKey = `${DRAFT_KEY}.${draftName}`;
+    const now = new Date();
+    const metadata: CurrentUpload = {
+        created: now,
+        modified: now,
+        name: draftName,
+    };
+    const draft = storage.get(draftKey);
+    if (draft) {
+        metadata.created = draft.metadata.created;
+    }
+
+    storage.set(draftKey, { metadata, state });
+
+    return metadata;
+};
+
+export const mergeChildPaths = (filePaths: string[]): string[] => {
+    filePaths = uniq(filePaths);
+
+    return filePaths.filter((filePath) => {
+        const otherFilePaths = filePaths.filter((otherFilePath) => otherFilePath !== filePath);
+        return !otherFilePaths.find((otherFilePath) => filePath.indexOf(otherFilePath) === 0);
+    });
+};

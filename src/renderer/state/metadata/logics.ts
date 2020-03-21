@@ -140,7 +140,7 @@ const getBarcodeSearchResultsLogic = createLogic({
         const { payload } = action;
         const searchStr = trim(payload);
         if (!searchStr) {
-            reject(action);
+            reject({type: "ignore"});
         } else {
             next({
                 ...action,

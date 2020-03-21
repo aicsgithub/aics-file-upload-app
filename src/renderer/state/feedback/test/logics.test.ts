@@ -68,8 +68,8 @@ describe("Feedback logics", () => {
 
     describe("closeModalLogic", () => {
         it("sets templateEditor visibility to false and resets template draft when modal name is templateEditor",
-            () => {
-                const { store } = createMockReduxStore({
+            async () => {
+                const { logicMiddleware, store } = createMockReduxStore({
                     ...mockState,
                     feedback: {
                         ...mockState.feedback,
@@ -90,6 +90,7 @@ describe("Feedback logics", () => {
 
                 // apply
                 store.dispatch(closeModal("templateEditor"));
+                await logicMiddleware.whenComplete();
 
                 // after
                 expect(getTemplateEditorVisible(store.getState())).to.be.false;

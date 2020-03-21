@@ -2,12 +2,12 @@ import Logger from "js-logger";
 import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
-import { basename, dirname, resolve } from "path";
+import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
-import { LIST_DELIMITER_SPLIT } from "../../constants";
 
+import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { pivotAnnotations, splitTrimAndFilter } from "../../util";
+import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
     addRequestToInProgress,
     openModal,
@@ -34,24 +34,28 @@ import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
 import {
+    LocalStorage,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
+    State,
 } from "../types";
-import { batchActions, getUploadFilePromise, mergeChildPaths, saveUploadDraftToLocalStorage } from "../util";
+import { batchActions } from "../util";
 
 import { removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
-    CANCEL_UPLOAD, DRAFT_KEY,
+    CANCEL_UPLOAD,
+    DRAFT_KEY,
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
     OPEN_UPLOAD_DRAFT,
-    RETRY_UPLOAD, SAVE_UPLOAD_DRAFT,
+    RETRY_UPLOAD,
+    SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
@@ -280,7 +284,7 @@ const cancelUploadLogic = createLogic({
                 if (response === 1) {
                     next(action);
                 } else {
-                    reject(action);
+                    reject({type: "ignore"});
                 }
             });
         }
@@ -637,6 +641,25 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     type: UPDATE_FILES_TO_ARCHIVE,
 });
 
+const saveUploadDraftToLocalStorage =
+    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
+        const draftKey = `${DRAFT_KEY}.${draftName}`;
+        const now = new Date();
+        const metadata: CurrentUpload = {
+            created: now,
+            modified: now,
+            name: draftName,
+        };
+        const draft = storage.get(draftKey);
+        if (draft) {
+            metadata.created = draft.metadata.created;
+        }
+
+        storage.set(draftKey, { metadata, state });
+
+        return metadata;
+    };
+
 const saveUploadDraftLogic = createLogic({
     type: SAVE_UPLOAD_DRAFT,
     validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
@@ -662,7 +685,7 @@ const openUploadLogic = createLogic({
     process: async ({ ctx, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const { draft } = ctx;
-        const topLevelFilesToLoadAgain = getStagedFiles(draft.state).map((f) => resolve(f.path, f.name));
+        const topLevelFilesToLoadAgain = getStagedFiles(draft.state).map((f) => resolvePath(f.path, f.name));
         const filesToLoad: string[] = mergeChildPaths(topLevelFilesToLoadAgain);
         try {
             const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map((filePath: string) => (

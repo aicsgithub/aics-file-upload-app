@@ -80,7 +80,7 @@ const updateSettingsLogic = createLogic({
                 });
                 next(action);
             } else {
-                reject(action);
+                reject({type: "ignore"});
             }
         } catch (e) {
             next(batchActions([

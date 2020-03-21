@@ -14,12 +14,14 @@ import {
 
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
+import { CurrentUpload } from "../metadata/types";
 import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
+    LocalStorage,
     Logger,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
@@ -29,9 +31,9 @@ import {
     State,
 } from "../types";
 import { clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
-import { getUploadRowKey } from "../upload/constants";
+import { DRAFT_KEY, getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
-import { batchActions, saveUploadDraftToLocalStorage } from "../util";
+import { batchActions } from "../util";
 
 import { selectPage } from "./actions";
 import { CLOSE_UPLOAD_TAB, findNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
@@ -187,11 +189,11 @@ const goBackLogic = createLogic({
                 if (buttonIndex === 1) {
                     next(selectPage(currentPage, nextPage));
                 } else {
-                    reject(action);
+                    reject({type: "ignore"});
                 }
             });
         } else {
-            reject(action);
+            reject({type: "ignore"});
         }
     },
 });
@@ -206,10 +208,29 @@ const goForwardLogic = createLogic({
         if (nextPage) {
             next(selectPage(currentPage, nextPage));
         } else {
-           reject(action);
+            reject({type: "ignore"});
         }
     },
 });
+
+const saveUploadDraftToLocalStorage =
+    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
+        const draftKey = `${DRAFT_KEY}.${draftName}`;
+        const now = new Date();
+        const metadata: CurrentUpload = {
+            created: now,
+            modified: now,
+            name: draftName,
+        };
+        const draft = storage.get(draftKey);
+        if (draft) {
+            metadata.created = draft.metadata.created;
+        }
+
+        storage.set(draftKey, { metadata, state });
+
+        return metadata;
+    };
 
 const closeUploadTabLogic = createLogic({
     type: CLOSE_UPLOAD_TAB,

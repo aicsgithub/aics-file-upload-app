@@ -3,7 +3,7 @@ import { basename, dirname } from "path";
 import { createLogic } from "redux-logic";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { getWithRetry } from "../../util";
+import { getUploadFilePromise, getWithRetry, mergeChildPaths } from "../../util";
 
 import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -22,7 +22,7 @@ import {
 } from "../types";
 import { clearUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
-import { batchActions, getActionFromBatch, getUploadFilePromise, mergeChildPaths } from "../util";
+import { batchActions, getActionFromBatch } from "../util";
 
 import {
     deselectFiles,
