@@ -1,6 +1,8 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { SelectionStateBranch } from "../selection/types";
 import {
@@ -11,14 +13,14 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
-    CLEAR_DEFERRED_ACTIONS,
+    CLEAR_DEFERRED_ACTION,
     CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
-    SET_DEFERRED_ACTIONS,
+    SET_DEFERRED_ACTION,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -35,13 +37,13 @@ import {
     OpenTemplateEditorAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
-    SetDeferredActionsAction,
+    SetDeferredActionAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
 
 export const initialState: FeedbackStateBranch = {
-    deferredActions: [],
+    deferredAction: undefined,
     events: [],
     isLoading: false,
     requestsInProgress: [],
@@ -151,18 +153,26 @@ const actionToConfigMap: TypeToDescriptionMap = {
             visibleModals: uniq([...state.visibleModals, "templateEditor"]),
         }),
     },
-    [SET_DEFERRED_ACTIONS]: {
-        accepts: (action: AnyAction): action is SetDeferredActionsAction => action.type === SET_DEFERRED_ACTIONS,
-        perform: (state: FeedbackStateBranch, action: SetDeferredActionsAction) => ({
+    [SET_DEFERRED_ACTION]: {
+        accepts: (action: AnyAction): action is SetDeferredActionAction => action.type === SET_DEFERRED_ACTION,
+        perform: (state: FeedbackStateBranch, action: SetDeferredActionAction) => ({
             ...state,
             deferredAction: action.payload,
         }),
     },
-    [CLEAR_DEFERRED_ACTIONS]: {
-        accepts: (action: AnyAction): action is ClearDeferredAction => action.type === CLEAR_DEFERRED_ACTIONS,
+    [CLEAR_DEFERRED_ACTION]: {
+        accepts: (action: AnyAction): action is ClearDeferredAction => action.type === CLEAR_DEFERRED_ACTION,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            deferredAction: [],
+            deferredAction: undefined,
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            setMountPointNotificationVisible: false,
         }),
     },
 };

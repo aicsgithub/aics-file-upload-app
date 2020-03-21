@@ -73,7 +73,7 @@ describe("Feedback logics", () => {
                     ...mockState,
                     feedback: {
                         ...mockState.feedback,
-                        deferredActions: [clearTemplateDraft()],
+                        deferredAction: clearTemplateDraft(),
                         visibleModals: ["templateEditor"],
                     },
                     template: getMockStateWithHistory({

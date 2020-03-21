@@ -2,7 +2,7 @@ import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
 import { Audited, AutoSaveAction } from "../types";
 
-export interface SelectionStateBranch {
+export interface SelectionStateBranch extends UploadTabSelections {
     annotation: string;
     barcode?: string;
     expandedUploadJobRows: ExpandedRows;
@@ -16,6 +16,18 @@ export interface SelectionStateBranch {
     selectedWorkflows: Workflow[];
     stagedFiles: UploadFile[];
     user: string;
+}
+
+export interface UploadTabSelections {
+    barcode?: string;
+    expandedUploadJobRows: ExpandedRows;
+    imagingSessionId?: number;
+    imagingSessionIds: Array<number | null>;
+    plate: ImagingSessionIdToPlateMap;
+    wells: ImagingSessionIdToWellsMap;
+    selectedWells: GridCell[];
+    selectedWorkflows: Workflow[];
+    stagedFiles: UploadFile[];
 }
 
 export interface ImagingSessionIdToPlateMap {

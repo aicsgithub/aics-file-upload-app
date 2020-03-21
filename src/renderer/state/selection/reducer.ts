@@ -5,6 +5,8 @@ import undoable, {
     UndoableOptions,
 } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
@@ -59,25 +61,29 @@ import {
     SetWellsAction,
     ToggleExpandedUploadJobRowAction,
     ToggleFolderTreeAction,
-    UpdateStagedFilesAction,
+    UpdateStagedFilesAction, UploadTabSelections,
 } from "./types";
 
 const DEFAULT_ANNOTATION = "Dataset";
 
-export const initialState: SelectionStateBranch = {
-    annotation: DEFAULT_ANNOTATION,
+const uploadTabSelectionInitialState: UploadTabSelections = {
     barcode: undefined,
     expandedUploadJobRows: {},
-    files: [],
-    folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [],
     plate: {},
     selectedWells: [],
     selectedWorkflows: [],
     stagedFiles: [],
-    user: userInfo().username,
     wells: {},
+};
+
+export const initialState: SelectionStateBranch = {
+    ...uploadTabSelectionInitialState,
+    annotation: DEFAULT_ANNOTATION,
+    files: [],
+    folderTreeOpen: true,
+    user: userInfo().username,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -211,6 +217,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
         perform: (state: SelectionStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
             ...state,
+            ...uploadTabSelectionInitialState,
             barcode: getSelectedBarcode(savedState),
             expandedUploadJobRows: getExpandedUploadJobRows(savedState),
             folderTreeOpen: getFolderTreeOpen(savedState),
@@ -218,6 +225,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
             imagingSessionIds: getSelectedImagingSessionIds(savedState),
             plate: getSelectedPlates(savedState), //  todo might want to get this again?
             wells: getWells(savedState),
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            ...uploadTabSelectionInitialState,
         }),
     },
 };

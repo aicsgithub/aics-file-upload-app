@@ -3,14 +3,14 @@ import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
-    CLEAR_DEFERRED_ACTIONS,
+    CLEAR_DEFERRED_ACTION,
     CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
-    SET_DEFERRED_ACTIONS,
+    SET_DEFERRED_ACTION,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -29,7 +29,7 @@ import {
     OpenSetMountPointNotificationAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
-    SetDeferredActionsAction,
+    SetDeferredActionAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
@@ -139,15 +139,15 @@ export function closeModal(modalName: ModalName): CloseModalAction {
     };
 }
 
-export function setDeferredActions(action: AnyAction[]): SetDeferredActionsAction {
+export function setDeferredAction(action: AnyAction): SetDeferredActionAction {
     return {
         payload: action,
-        type: SET_DEFERRED_ACTIONS,
+        type: SET_DEFERRED_ACTION,
     };
 }
 
 export function clearDeferredAction(): ClearDeferredAction {
     return {
-        type: CLEAR_DEFERRED_ACTIONS,
+        type: CLEAR_DEFERRED_ACTION,
     };
 }

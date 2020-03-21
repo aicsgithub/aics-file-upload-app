@@ -1,5 +1,7 @@
 import { uniq } from "lodash";
 import { AnyAction } from "redux";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
@@ -135,6 +137,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [CLEAR_CURRENT_UPLOAD]: {
         accepts: (action: AnyAction): action is ClearCurrentUploadAction => action.type === CLEAR_CURRENT_UPLOAD,
         perform: (state: MetadataStateBranch) => ({
+            ...state,
+            currentUpload: undefined,
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: MetadataStateBranch, action: CloseUploadTabAction) => ({
             ...state,
             currentUpload: undefined,
         }),

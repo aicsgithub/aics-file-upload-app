@@ -1,6 +1,8 @@
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
@@ -58,6 +60,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: TemplateStateBranch, { payload: { state: savedState} }: ReplaceUploadAction) => ({
             ...state,
             appliedTemplate: getAppliedTemplate(savedState),
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: TemplateStateBranch) => ({
+            ...state,
+            appliedTemplate: undefined,
         }),
     },
 };

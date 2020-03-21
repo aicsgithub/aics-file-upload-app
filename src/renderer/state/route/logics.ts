@@ -7,15 +7,14 @@ import { createLogic } from "redux-logic";
 import { getCurrentUploadName } from "../../containers/App/selectors";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
 import {
-    closeSetMountPointNotification,
     openModal,
     openSetMountPointNotification,
-    setDeferredActions,
+    setDeferredAction,
 } from "../feedback/actions";
 
-import { clearCurrentUpload, updatePageHistory } from "../metadata/actions";
+import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
-import { clearSelectionHistory, clearStagedFiles, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
+import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
@@ -27,16 +26,17 @@ import {
     ReduxLogicProcessDependencies,
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
+    State,
 } from "../types";
-import { clearUploadHistory, jumpToPastUpload, saveUploadDraft, updateUpload } from "../upload/actions";
+import { clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
-import { batchActions } from "../util";
+import { batchActions, saveUploadDraftToLocalStorage } from "../util";
 
 import { selectPage } from "./actions";
 import { CLOSE_UPLOAD_TAB, findNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
 import { getPage } from "./selectors";
-import { Page } from "./types";
+import { Page, SelectPageAction } from "./types";
 
 interface MenuItemWithSubMenu extends MenuItem {
     submenu?: Menu;
@@ -80,78 +80,83 @@ const stateBranchHistory = [
     },
 ];
 const pagesToAllowSwitchingEnvironments = [Page.UploadSummary, Page.DragAndDrop];
+const getSelectPageActions = (
+    logger: Logger,
+    state: State,
+    getApplicationMenu: () => Menu | null,
+    action: SelectPageAction
+) => {
+    const { payload: { currentPage, nextPage } } = action;
+    const actions: AnyAction[] = [action];
+    if (nextPage === Page.DragAndDrop) {
+        const isMountedAsExpected = existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()));
+        const mountPoint = getMountPoint(state);
+        if (!isMountedAsExpected && !mountPoint) {
+            actions.push(openSetMountPointNotification());
+        }
+    }
+
+    // Folder tree is a necessary part of associating files, so open if not already
+    if (!state.selection.present.folderTreeOpen && nextPage === Page.AssociateFiles) {
+        actions.push(toggleFolderTree());
+    }
+
+    const nextPageOrder: number = pageOrder.indexOf(nextPage);
+    const currentPageOrder: number = pageOrder.indexOf(currentPage);
+
+    const menu = getApplicationMenu();
+    if (menu) {
+        setSwitchEnvEnabled(menu, pagesToAllowSwitchingEnvironments.includes(nextPage), logger);
+    }
+
+    // going back - rewind selections, uploads & template to the state they were at when user was on previous page
+    if (nextPageOrder < currentPageOrder) {
+        stateBranchHistory.forEach((history) => {
+            const historyForThisStateBranch = history.getHistory(state);
+
+            if (nextPageOrder === 0 && currentPageOrder === pageOrder.length - 1) {
+                actions.push(
+                    history.jumpToPast(0),
+                    history.clearHistory()
+                );
+            } else if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
+                const index = historyForThisStateBranch[nextPage];
+                actions.push(history.jumpToPast(index));
+            }
+        });
+
+    } else if (nextPage === Page.UploadSummary) {
+        stateBranchHistory.forEach(
+            (history) => actions.push(history.jumpToPast(0), history.clearHistory())
+        );
+
+        // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
+    } else if (nextPageOrder > currentPageOrder) {
+        const selectionIndex = getCurrentSelectionIndex(state);
+        const uploadIndex = getCurrentUploadIndex(state);
+        const templateIndex = getCurrentTemplateIndex(state);
+        actions.push(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
+        if (nextPage === Page.SelectStorageLocation) {
+            const files = getUploadFiles(state);
+            const uploadPartial = {
+                shouldBeInArchive: true,
+                shouldBeInLocal: true,
+            };
+            actions.push(
+                ...files.map((file: string) => updateUpload(getUploadRowKey({file}), uploadPartial))
+            );
+        }
+    }
+    return actions;
+};
+
 const selectPageLogic = createLogic({
     process: (
         { action, getApplicationMenu, getState, logger }: ReduxLogicProcessDependencies,
         dispatch: ReduxLogicNextCb,
         done: ReduxLogicDoneCb
     ) => {
-        const {currentPage, nextPage} = action.payload;
-
-        if (nextPage === Page.DragAndDrop) {
-            const isMountedAsExpected = existsSync(makePosixPathCompatibleWithPlatform("/allen/aics", platform()));
-            const mountPoint = getMountPoint(getState());
-            if (!isMountedAsExpected && !mountPoint) {
-                dispatch(openSetMountPointNotification());
-            }
-        }
-
-        const state = getState();
-
-        const actions: AnyAction[] = [];
-        // Folder tree is a necessary part of associating files, so open if not already
-        if (!state.selection.present.folderTreeOpen && nextPage === Page.AssociateFiles) {
-            actions.push(toggleFolderTree());
-        }
-
-        const nextPageOrder: number = pageOrder.indexOf(nextPage);
-        const currentPageOrder: number = pageOrder.indexOf(currentPage);
-
-        const menu = getApplicationMenu();
-        if (menu) {
-            setSwitchEnvEnabled(menu, pagesToAllowSwitchingEnvironments.includes(nextPage), logger);
-        }
-
-        // going back - rewind selections, uploads & template to the state they were at when user was on previous page
-        if (nextPageOrder < currentPageOrder) {
-            actions.push(action);
-
-            stateBranchHistory.forEach((history) => {
-                const historyForThisStateBranch = history.getHistory(state);
-
-                if (nextPageOrder === 0 && currentPageOrder === pageOrder.length - 1) {
-                    actions.push(
-                        history.jumpToPast(0),
-                        history.clearHistory()
-                    );
-                } else if (historyForThisStateBranch && !isNil(historyForThisStateBranch[nextPage])) {
-                    const index = historyForThisStateBranch[nextPage];
-                    actions.push(history.jumpToPast(index));
-                }
-            });
-
-        } else if (nextPage === Page.UploadSummary) {
-            stateBranchHistory.forEach(
-                (history) => actions.push(history.jumpToPast(0), history.clearHistory())
-            );
-
-        // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
-        } else if (nextPageOrder > currentPageOrder) {
-            const selectionIndex = getCurrentSelectionIndex(state);
-            const uploadIndex = getCurrentUploadIndex(state);
-            const templateIndex = getCurrentTemplateIndex(state);
-            actions.push(updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex));
-            if (nextPage === Page.SelectStorageLocation) {
-                const files = getUploadFiles(state);
-                const uploadPartial = {
-                    shouldBeInArchive: true,
-                    shouldBeInLocal: true,
-                };
-                actions.push(
-                    ...files.map((file: string) => updateUpload(getUploadRowKey({file}), uploadPartial))
-                );
-            }
-        }
+        const actions = getSelectPageActions(logger, getState(), getApplicationMenu, action as SelectPageAction);
 
         if (!isEmpty(actions)) {
             dispatch(batchActions(actions));
@@ -208,20 +213,21 @@ const goForwardLogic = createLogic({
 
 const closeUploadTabLogic = createLogic({
     type: CLOSE_UPLOAD_TAB,
-    validate: ({ action, dialog, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+    validate: ({ action, dialog, getApplicationMenu, getState, logger, storage }: ReduxLogicTransformDependencies,
+               next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
         const currentPage = getPage(getState());
-        const actions = [
-            selectPage(currentPage, Page.UploadSummary), // this closes the tab
-            clearCurrentUpload(),
-            clearStagedFiles(),
-            closeSetMountPointNotification(),
-        ]; // todo evaluate whether it matters that we're not going through select page logics
-        const draftName = getCurrentUploadName(getState());
+        const selectPageAction: SelectPageAction = selectPage(currentPage, Page.UploadSummary);
+        const nextAction = batchActions([
+            action,
+            ...getSelectPageActions(logger, getState(), getApplicationMenu, selectPageAction),
+        ]);
+
+        const draftName: string | undefined = getCurrentUploadName(getState());
         // automatically save if user has chosen to save this draft
         if (draftName) {
-            actions.push(saveUploadDraft(draftName));
-            next(batchActions(actions));
+            saveUploadDraftToLocalStorage(storage, draftName, getState());
+            next(nextAction);
         } else if (getCanSaveUploadDraft(getState())) {
             dialog.showMessageBox({
                 buttons: ["Cancel", "Discard", "Save Upload Draft"],
@@ -232,19 +238,19 @@ const closeUploadTabLogic = createLogic({
                 type: "question",
             }, (buttonIndex: number) => {
                 if (buttonIndex === 1) { // Discard Draft
-                    next(batchActions(actions));
+                    next(nextAction);
                 } else if (buttonIndex === 2) { // Save Upload Draft
                     next(batchActions([
                         openModal("saveUploadDraft"),
                         // close tab after Saving
-                        setDeferredActions(actions),
+                        setDeferredAction(nextAction),
                     ]));
                 } else { // Cancel
-                    reject(action);
+                    reject({ type: "ignore" });
                 }
             });
         } else {
-            next(batchActions(actions));
+            next(nextAction);
         }
     },
 });

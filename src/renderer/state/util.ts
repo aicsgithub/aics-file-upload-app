@@ -10,13 +10,15 @@ import { promisify } from "util";
 
 import { APP_ID } from "../constants";
 import { canUserRead } from "../util";
+import { CurrentUpload } from "./metadata/types";
 import { UploadFileImpl } from "./selection/models/upload-file";
 import { UploadFile } from "./selection/types";
 
 import {
-    BatchedAction,
+    BatchedAction, LocalStorage, State,
     TypeToDescriptionMap,
 } from "./types";
+import { DRAFT_KEY } from "./upload/constants";
 
 const stat = promisify(fsStat);
 
@@ -93,4 +95,23 @@ export const getUploadFilePromise = async (name: string, path: string): Promise<
         file.files = await Promise.all(await file.loadFiles());
     }
     return file;
+};
+
+export const saveUploadDraftToLocalStorage =
+    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
+    const draftKey = `${DRAFT_KEY}.${draftName}`;
+    const now = new Date();
+    const metadata: CurrentUpload = {
+        created: now,
+        modified: now,
+        name: draftName,
+    };
+    const draft = storage.get(draftKey);
+    if (draft) {
+        metadata.created = draft.metadata.created;
+    }
+
+    storage.set(draftKey, { metadata, state });
+
+    return metadata;
 };

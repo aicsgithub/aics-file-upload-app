@@ -93,9 +93,9 @@ export const getFileToTags = createSelector([
 
 export const getCurrentUploadName = createSelector([
     getCurrentUpload,
-], (currentUpload?: CurrentUpload) => {
+], (currentUpload?: CurrentUpload): string | undefined => {
     if (!currentUpload || !currentUpload.name) {
-        return "Current Upload";
+        return undefined;
     }
 
     return currentUpload.name;

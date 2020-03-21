@@ -6,6 +6,8 @@ import {
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
@@ -204,6 +206,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: UploadStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
             ...getUpload(savedState),
         }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: () => ({}),
     },
 };
 

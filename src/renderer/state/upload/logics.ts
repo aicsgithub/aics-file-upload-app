@@ -9,9 +9,11 @@ import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
-    addRequestToInProgress, openModal,
+    addRequestToInProgress,
+    openModal,
     removeRequestFromInProgress,
-    setAlert, setDeferredActions,
+    setAlert,
+    setDeferredAction,
     setErrorAlert,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -21,7 +23,6 @@ import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/sele
 import { Channel, CurrentUpload } from "../metadata/types";
 import { goForward } from "../route/actions";
 import {
-    clearSelectionHistory,
     clearStagedFiles,
     deselectFiles,
     stageFiles,
@@ -29,7 +30,7 @@ import {
 import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { updateSettings } from "../setting/actions";
-import { clearTemplateHistory, getTemplate } from "../template/actions";
+import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
 import {
@@ -39,9 +40,9 @@ import {
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { batchActions, getUploadFilePromise, mergeChildPaths } from "../util";
+import { batchActions, getUploadFilePromise, mergeChildPaths, saveUploadDraftToLocalStorage } from "../util";
 
-import { clearUploadHistory, removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
+import { removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
@@ -652,35 +653,15 @@ const saveUploadDraftLogic = createLogic({
             return;
         }
 
-        const now = new Date();
-        const metadata: CurrentUpload = {
-            created: now,
-            name: draftName,
-        };
-
-        storage.set(`${DRAFT_KEY}.${draftName}`, { metadata, state: getState() });
-        next(setCurrentUpload(metadata));
+        const currentUpload: CurrentUpload = saveUploadDraftToLocalStorage(storage, draftName, getState());
+        next(setCurrentUpload(currentUpload));
     },
 });
 
 const openUploadLogic = createLogic({
-    type: OPEN_UPLOAD_DRAFT,
-    validate: async ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
-                     reject: ReduxLogicRejectCb) => {
-        const draft = storage.get(`${DRAFT_KEY}.${action.payload}`);
-        if (!draft) {
-            reject(setErrorAlert(`Could not find draft named ${action.payload}`));
-            return;
-        }
-
-        // todo metadata
-        const actions = [
-            replaceUpload(draft),
-            clearUploadHistory(),
-            clearSelectionHistory(),
-            clearTemplateHistory(),
-        ];
-
+    process: async ({ ctx, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const { draft } = ctx;
         const topLevelFilesToLoadAgain = getStagedFiles(draft.state).map((f) => resolve(f.path, f.name));
         const filesToLoad: string[] = mergeChildPaths(topLevelFilesToLoadAgain);
         try {
@@ -688,19 +669,32 @@ const openUploadLogic = createLogic({
                 getUploadFilePromise(basename(filePath), dirname(filePath))
             ));
             const uploadFiles = await Promise.all(uploadFilePromises);
-            actions.push(stageFiles(uploadFiles));
+            dispatch(stageFiles(uploadFiles));
         } catch (e) {
-            actions.push(setErrorAlert(`Encountered error while resolving files: ${e}`));
+            dispatch(setErrorAlert(`Encountered error while resolving files: ${e}`));
         }
 
+        done();
+    },
+    type: OPEN_UPLOAD_DRAFT,
+    validate: ({ action, ctx, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const draft = storage.get(`${DRAFT_KEY}.${action.payload}`);
+        ctx.draft = draft;
+        if (!draft) {
+            reject(setErrorAlert(`Could not find draft named ${action.payload}`));
+            return;
+        }
+
+        const nextAction = replaceUpload(draft);
         if (getCanSaveUploadDraft(getState())) {
             next(batchActions([
                 openModal("saveUploadDraft"),
-                setDeferredActions(actions),
+                setDeferredAction(nextAction),
             ]));
+        } else {
+            next(nextAction);
         }
-
-        next(batchActions(actions));
     },
 });
 

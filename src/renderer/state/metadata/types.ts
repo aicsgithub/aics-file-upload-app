@@ -36,6 +36,7 @@ export interface MetadataStateBranch {
 
 export interface CurrentUpload {
     created: Date;
+    modified: Date;
     jobId?: string;
     name?: string;
 }

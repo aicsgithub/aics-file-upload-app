@@ -62,13 +62,15 @@ import {
 } from "../../state/setting/types";
 import { State } from "../../state/types";
 import {
-    removeFileFromArchive, removeFileFromIsilon,
+    removeFileFromArchive,
+    removeFileFromIsilon,
     undoFileWellAssociation,
     undoFileWorkflowAssociation,
 } from "../../state/upload/actions";
 import {
     FileTag,
-    RemoveFileFromArchiveAction, RemoveFileFromIsilonAction,
+    RemoveFileFromArchiveAction,
+    RemoveFileFromIsilonAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
@@ -292,7 +294,12 @@ class App extends React.Component<AppProps, {}> {
                                 <SearchFiles key="searchFiles"/>
                             </TabPane>
                             {page !== Page.UploadSummary && (
-                                <TabPane className={styles.tabContent} tab={uploadTabName} key={page} closable={true}>
+                                <TabPane
+                                    className={styles.tabContent}
+                                    tab={uploadTabName || "Current Upload"}
+                                    key={page}
+                                    closable={true}
+                                >
                                     {pageConfig.container}
                                 </TabPane>
                             )}

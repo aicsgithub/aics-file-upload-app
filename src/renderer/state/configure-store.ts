@@ -16,7 +16,6 @@ import { enableBatching, feedback, job, metadata, route, selection, setting, tem
 import { addEvent } from "./feedback/actions";
 import { AlertType } from "./feedback/types";
 import { State } from "./types";
-import { batchActions } from "./util";
 
 const storage = new Store();
 
@@ -75,23 +74,13 @@ const autoSaver = (store: any) => (next: any) => (action: AnyAction) => {
     if (action.autoSave) {
         const nextState = store.getState();
         storage.set(TEMP_UPLOAD_STORAGE_KEY, nextState);
-        result = next(batchActions([
-            action,
-            addEvent(`Your draft was saved at ${moment().format("h:mm a")}`, AlertType.INFO, new Date()),
-        ]));
+        result = next(
+            addEvent(`Your draft was saved at ${moment().format("h:mm a")}`, AlertType.INFO, new Date())
+        );
     }
 
-    // trim branches that we want to resaturate
-    // add to local storage
-
-    // on upload successful, clear
-    // on failed upload, ??
-    // if closing a tab, allow users to choose whether they would like to save their work and open again
-    //      if yes - give users a way to name and keep in local storage
-    //      if no - clear local storage
-    // File > Open Upload: show modal with uploads in local storage
     return result;
-}
+};
 
 export default function createReduxStore(initialState?: State) {
     const logicMiddleware = createLogicMiddleware(logics, reduxLogicDependencies);
