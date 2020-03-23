@@ -165,6 +165,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
         perform: (state: UploadStateBranch, action: UpdateUploadAction) => {
+            // prevent updating an upload that doesn't exist anymore
+            if (!state[action.payload.key]) {
+                return state;
+            }
+
             return {
                 ...state,
                 [action.payload.key]: {
