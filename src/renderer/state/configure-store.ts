@@ -89,7 +89,8 @@ const storageWriter = () => (next: any) => (action: AnyAction) => {
             Logger.info(`Deleting key=${action.key} from local storage`); // todo: not sure how to mock
             storage.delete(action.key);
         } else {
-            Logger.info(`Writing to local storage: ${action.key}=${action.value}`); // todo: not sure how to mock
+            Logger.info(`Writing to local storage for key: ${action.key}, and value:`);
+            Logger.info(JSON.stringify(action.value));
             storage.set(action.key, action.value);
         }
     }
