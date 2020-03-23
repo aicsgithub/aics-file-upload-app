@@ -113,8 +113,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        if (!this.props.appliedTemplate && this.props.savedTemplateId) {
-            this.props.applyTemplate(this.props.savedTemplateId);
+        const templateId = this.props.appliedTemplate ? this.props.appliedTemplate.templateId :
+            this.props.savedTemplateId;
+        if (templateId) {
+            this.props.applyTemplate(templateId);
         }
     }
 

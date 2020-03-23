@@ -49,6 +49,7 @@ export interface MMSAnnotationValueRequest {
 
 export interface ApplyTemplateAction {
     payload: {
+        clearAnnotations: boolean;
         templateId?: number;
         uploads: UploadStateBranch;
     };

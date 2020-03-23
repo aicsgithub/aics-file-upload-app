@@ -142,26 +142,28 @@ const applyTemplateLogic = createLogic({
     },
     transform: ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb) => {
-        const { templateId } = action.payload;
+        const { clearAnnotations, templateId } = action.payload;
         ctx.templateId = templateId;
-        const state = getState();
-        const uploads: UploadStateBranch = getUpload(state);
 
-        map(uploads,  (upload: UploadMetadata, filepath: string) => {
-            // By only grabbing the initial fields of the upload we can remove old schema columns
-            // We're also apply the new templateId now
-            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
-            action.payload.uploads[getUploadRowKey({file: filepath})] = {
-                barcode,
-                file: upload.file,
-                notes,
-                shouldBeInArchive,
-                shouldBeInLocal,
-                templateId,
-                wellIds,
-                workflows,
-            };
-        });
+        if (clearAnnotations) {
+            const uploads = getUpload(getState());
+            map(uploads,  (upload: UploadMetadata, filepath: string) => {
+                // By only grabbing the initial fields of the upload we can remove old schema columns
+                // We're also apply the new templateId now
+                const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
+                action.payload.uploads[getUploadRowKey({file: filepath})] = {
+                    barcode,
+                    file: upload.file,
+                    notes,
+                    shouldBeInArchive,
+                    shouldBeInLocal,
+                    templateId,
+                    wellIds,
+                    workflows,
+                };
+            });
+        }
+
         next(action);
     },
     type: APPLY_TEMPLATE,

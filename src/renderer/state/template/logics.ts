@@ -132,15 +132,14 @@ const getTemplateLogic = createLogic({
 
             if (addAnnotationsToUpload) {
                 const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
-                console.log("template logics, updating upload")
                 actions.push(
                     setAppliedTemplate({
                         ...etc,
                         annotations,
                     }),
                     ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
-                        ...metadata,
                         ...additionalAnnotations,
+                        ...metadata, // prevent existing annotations from getting overwritten
                     }))
                 );
             } else {

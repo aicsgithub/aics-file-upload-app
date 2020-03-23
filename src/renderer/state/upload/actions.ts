@@ -153,9 +153,10 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-export function applyTemplate(templateId: number): ApplyTemplateAction {
+export function applyTemplate(templateId: number, clearAnnotations: boolean = true): ApplyTemplateAction {
     return {
         payload: {
+            clearAnnotations,
             templateId,
             uploads: {},
         },
