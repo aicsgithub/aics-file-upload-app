@@ -162,6 +162,7 @@ export function applyTemplate(templateId: number): ApplyTemplateAction {
 
 export function updateUpload(key: string, upload: Partial<UploadMetadata>): UpdateUploadAction {
     return {
+        autoSave: true,
         payload: {
             key,
             upload,

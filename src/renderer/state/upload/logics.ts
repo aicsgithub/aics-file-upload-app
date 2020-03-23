@@ -6,6 +6,7 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
+import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
@@ -670,8 +671,8 @@ const saveUploadDraftLogic = createLogic({
             return;
         }
 
-        const draftName = trim(action.payload);
-        if (isEmpty(draftName)) {
+        const draftName = trim(action.payload) || getCurrentUploadName(getState());
+        if (!draftName) {
             reject(setErrorAlert("Draft name cannot be empty"));
             return;
         }

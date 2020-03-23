@@ -1,12 +1,10 @@
 import { Alert, Input, Modal } from "antd";
-import { ipcRenderer } from "electron";
 import { includes, isEmpty, trim } from "lodash";
 import { ChangeEvent, ReactNode } from "react";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { OPEN_SAVE_UPLOAD_DRAFT } from "../../../shared/constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getSaveUploadDraftModalVisible } from "../../state/feedback/selectors";
 import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
@@ -45,17 +43,12 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
 
     public componentDidMount(): void {
         this.props.gatherUploadDraftNames();
-        ipcRenderer.on(OPEN_SAVE_UPLOAD_DRAFT, this.openModal);
     }
 
     public componentDidUpdate(prevProps: SaveUploadDraftModalProps): void {
         if (prevProps.visible !== this.props.visible) {
             this.setState({name: undefined});
         }
-    }
-
-    public componentWillUnmount(): void {
-        ipcRenderer.removeListener(OPEN_SAVE_UPLOAD_DRAFT, this.openModal);
     }
 
     public render(): ReactNode {
@@ -97,7 +90,6 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
         );
     }
 
-    private openModal = () => this.props.openModal("saveUploadDraft");
     private closeModal = () => this.props.closeModal("saveUploadDraft");
     private updateName = (e: ChangeEvent<HTMLInputElement>) => this.setState({name: e.target.value});
 

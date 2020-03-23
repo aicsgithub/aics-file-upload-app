@@ -6,12 +6,16 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SAFELY_CLOSE_WINDOW, SWITCH_ENVIRONMENT } from "../../../shared/constants";
+import {
+    SAFELY_CLOSE_WINDOW,
+    SAVE_UPLOAD,
+    SWITCH_ENVIRONMENT,
+} from "../../../shared/constants";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
-import { clearAlert, setAlert } from "../../state/feedback/actions";
+import { clearAlert, openModal, setAlert } from "../../state/feedback/actions";
 import {
     getAlert,
     getIsLoading,
@@ -23,6 +27,7 @@ import {
     AppAlert,
     AppEvent,
     ClearAlertAction,
+    OpenModalAction,
     SetAlertAction,
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
@@ -63,7 +68,7 @@ import {
 import { State } from "../../state/types";
 import {
     removeFileFromArchive,
-    removeFileFromIsilon,
+    removeFileFromIsilon, saveUploadDraft,
     undoFileWellAssociation,
     undoFileWorkflowAssociation,
 } from "../../state/upload/actions";
@@ -71,6 +76,7 @@ import {
     FileTag,
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
+    SaveUploadDraftAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
@@ -110,11 +116,13 @@ interface AppProps {
     limsUrl: string;
     loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
     openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
+    openModal: ActionCreator<OpenModalAction>;
     loading: boolean;
     recentEvent?: AppEvent;
     removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
     removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
     requestMetadata: ActionCreator<RequestMetadataAction>;
+    saveUploadDraft: ActionCreator<SaveUploadDraftAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
@@ -183,6 +191,13 @@ class App extends React.Component<AppProps, {}> {
                 remote.app.exit();
             }
         });
+        ipcRenderer.on(SAVE_UPLOAD, () => {
+            if (this.props.uploadTabName) {
+                this.props.saveUploadDraft();
+            } else {
+                this.props.openModal("saveUploadDraft");
+            }
+        });
     }
 
     public componentDidUpdate(prevProps: AppProps) {
@@ -222,6 +237,12 @@ class App extends React.Component<AppProps, {}> {
                 },
             });
         }
+    }
+
+    public componentWillUnmount(): void {
+        ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT);
+        ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
+        ipcRenderer.removeAllListeners(SAVE_UPLOAD);
     }
 
     public render() {
@@ -351,9 +372,11 @@ const dispatchToPropsMap = {
     getFilesInFolder: selection.actions.getFilesInFolder,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
+    openModal,
     removeFileFromArchive,
     removeFileFromIsilon,
     requestMetadata,
+    saveUploadDraft,
     selectFile: selection.actions.selectFile,
     selectView,
     setAlert,

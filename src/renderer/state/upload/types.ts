@@ -55,7 +55,7 @@ export interface ApplyTemplateAction {
     type: string;
 }
 
-export interface UpdateUploadAction {
+export interface UpdateUploadAction extends AutoSaveAction {
     payload: {
         key: string;
         upload: Partial<UploadMetadata>;
