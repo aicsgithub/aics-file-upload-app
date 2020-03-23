@@ -36,13 +36,11 @@ import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
 import {
-    LocalStorage,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
-    State,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -643,25 +641,6 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     type: UPDATE_FILES_TO_ARCHIVE,
 });
 
-const saveUploadDraftToLocalStorage =
-    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
-        const draftKey = `${DRAFT_KEY}.${draftName}`;
-        const now = new Date();
-        const metadata: CurrentUpload = {
-            created: now,
-            modified: now,
-            name: draftName,
-        };
-        const draft = storage.get(draftKey);
-        if (draft) {
-            metadata.created = draft.metadata.created;
-        }
-
-        storage.set(draftKey, { metadata, state });
-
-        return metadata;
-    };
-
 const saveUploadDraftLogic = createLogic({
     type: SAVE_UPLOAD_DRAFT,
     validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
@@ -679,11 +658,26 @@ const saveUploadDraftLogic = createLogic({
             return;
         }
 
-        const currentUpload: CurrentUpload = saveUploadDraftToLocalStorage(storage, draftName, getState());
-        next(batchActions([
-            setCurrentUpload(currentUpload),
-            clearUploadDraft(),
-        ]));
+        const draftKey = `${DRAFT_KEY}.${draftName}`;
+        const now = new Date();
+        const metadata: CurrentUpload = {
+            created: now,
+            modified: now,
+            name: draftName,
+        };
+        if (draft) {
+            metadata.created = draft.metadata.created;
+        }
+
+        next({
+            key: draftKey,
+            value: { metadata, state: getState() },
+            writeToStore: true,
+            ...batchActions([
+                setCurrentUpload(metadata),
+                clearUploadDraft(),
+            ]),
+        });
     },
 });
 
