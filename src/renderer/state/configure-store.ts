@@ -3,6 +3,7 @@ import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
 import * as Logger from "js-logger";
+import { isNil } from "lodash";
 import moment from "moment";
 import { userInfo } from "os";
 import { AnyAction, applyMiddleware, combineReducers, createStore } from "redux";
@@ -82,9 +83,22 @@ const autoSaver = (store: any) => (next: any) => (action: AnyAction) => {
     return result;
 };
 
+const storageWriter = () => (next: any) => (action: AnyAction) => {
+    if (action.writeToStore && action.key) {
+        if (isNil(action.value)) {
+            Logger.info(`Deleting key=${action.key} from local storage`); // todo: not sure how to mock
+            storage.delete(action.key);
+        } else {
+            Logger.info(`Writing to local storage: ${action.key}=${action.value}`); // todo: not sure how to mock
+            storage.set(action.key, action.value);
+        }
+    }
+    return next(action);
+};
+
 export default function createReduxStore(initialState?: State) {
     const logicMiddleware = createLogicMiddleware(logics, reduxLogicDependencies);
-    const middleware = applyMiddleware(logicMiddleware, autoSaver);
+    const middleware = applyMiddleware(logicMiddleware, autoSaver, storageWriter);
     const rootReducer = enableBatching<State>(combineReducers(reducers));
 
     if (initialState) {

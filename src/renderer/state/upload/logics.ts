@@ -4,6 +4,7 @@ import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
+import { TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
@@ -45,7 +46,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
+import { clearUploadDraft, removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
@@ -665,8 +666,9 @@ const saveUploadDraftLogic = createLogic({
     type: SAVE_UPLOAD_DRAFT,
     validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
+        const draft = storage.get(TEMP_UPLOAD_STORAGE_KEY);
         const upload = getUpload(getState());
-        if (isEmpty(upload)) {
+        if (isEmpty(upload) && isEmpty(draft)) {
             reject(setErrorAlert("Nothing to save"));
             return;
         }
@@ -678,7 +680,10 @@ const saveUploadDraftLogic = createLogic({
         }
 
         const currentUpload: CurrentUpload = saveUploadDraftToLocalStorage(storage, draftName, getState());
-        next(setCurrentUpload(currentUpload));
+        next(batchActions([
+            setCurrentUpload(currentUpload),
+            clearUploadDraft(),
+        ]));
     },
 });
 

@@ -1,3 +1,4 @@
+import { TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { CurrentUpload } from "../metadata/types";
 
@@ -10,6 +11,7 @@ import {
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CANCEL_UPLOAD,
     CLEAR_UPLOAD,
+    CLEAR_UPLOAD_DRAFT,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOADS,
     INITIATE_UPLOAD,
@@ -35,6 +37,7 @@ import {
     AssociateFilesAndWorkflowsAction,
     CancelUploadAction,
     ClearUploadAction,
+    ClearUploadDraftAction,
     ClearUploadHistoryAction,
     FilepathToBoolean,
     InitiateUploadAction,
@@ -268,5 +271,14 @@ export function replaceUpload(upload: { metadata: CurrentUpload, state: State })
     return {
         payload: upload,
         type: REPLACE_UPLOAD,
+    };
+}
+
+export function clearUploadDraft(): ClearUploadDraftAction {
+    return {
+        key: TEMP_UPLOAD_STORAGE_KEY,
+        type: CLEAR_UPLOAD_DRAFT,
+        value: undefined,
+        writeToStore: true,
     };
 }

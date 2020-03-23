@@ -11,6 +11,7 @@ export const ASSOCIATE_FILES_AND_WELLS = makeConstant(BRANCH_NAME, "associate-fi
 export const ASSOCIATE_FILES_AND_WORKFLOWS = makeConstant(BRANCH_NAME, "associate-files-and-workflows");
 export const CANCEL_UPLOAD = makeConstant(BRANCH_NAME, "cancel-upload");
 export const CLEAR_UPLOAD = makeConstant(BRANCH_NAME, "clear-upload");
+export const CLEAR_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "clear-upload-draft");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOADS = makeConstant(BRANCH_NAME, "delete-uploads");
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");

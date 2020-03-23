@@ -30,7 +30,7 @@ import {
     ReduxLogicTransformDependencies,
     State,
 } from "../types";
-import { clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
+import { clearUploadDraft, clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
 import { DRAFT_KEY, getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
@@ -239,10 +239,14 @@ const closeUploadTabLogic = createLogic({
                reject: ReduxLogicRejectCb) => {
         const currentPage = getPage(getState());
         const selectPageAction: SelectPageAction = selectPage(currentPage, Page.UploadSummary);
-        const nextAction = batchActions([
-            action,
-            ...getSelectPageActions(logger, getState(), getApplicationMenu, selectPageAction),
-        ]);
+        const nextAction = {
+            // we want to write to local storage but also keep this as a batched action
+            ...clearUploadDraft(),
+            ...batchActions([
+                action,
+                ...getSelectPageActions(logger, getState(), getApplicationMenu, selectPageAction),
+            ]),
+        };
 
         const draftName: string | undefined = getCurrentUploadName(getState());
         // automatically save if user has chosen to save this draft
@@ -267,7 +271,7 @@ const closeUploadTabLogic = createLogic({
                         setDeferredAction(nextAction),
                     ]));
                 } else { // Cancel
-                    reject({ type: "ignore" });
+                    reject(clearUploadDraft());
                 }
             });
         } else {
