@@ -144,7 +144,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [CLOSE_UPLOAD_TAB]: {
         accepts: (action: AnyAction): action is CloseUploadTabAction =>
             action.type === CLOSE_UPLOAD_TAB,
-        perform: (state: MetadataStateBranch, action: CloseUploadTabAction) => ({
+        perform: (state: MetadataStateBranch) => ({
             ...state,
             currentUpload: undefined,
         }),
