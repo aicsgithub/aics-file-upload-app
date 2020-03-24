@@ -20,7 +20,7 @@ export interface MetadataStateBranch {
     templates: LabkeyTemplate[];
     users: LabkeyUser[];
     units: Unit[];
-    uploadDraftNames: string[];
+    uploadDrafts: CurrentUpload[];
     // Gets updated every time app changes pages.
     // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
     history: {
@@ -38,7 +38,7 @@ export interface CurrentUpload {
     created: Date;
     modified: Date;
     jobId?: string;
-    name?: string;
+    name: string;
 }
 
 export interface BarcodePrefix {
@@ -172,12 +172,8 @@ export interface ExportFileMetadataAction {
     type: string;
 }
 
-export interface GatherUploadDraftNamesAction {
+export interface GatherUploadDraftsAction {
     payload: string[];
-    type: string;
-}
-
-export interface ClearCurrentUploadAction {
     type: string;
 }
 

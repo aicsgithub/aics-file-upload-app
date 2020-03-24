@@ -1,10 +1,9 @@
 import {
-    CLEAR_CURRENT_UPLOAD,
     CLEAR_FILE_METADATA_FOR_JOB,
     CLEAR_OPTIONS_FOR_LOOKUP,
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
-    GATHER_UPLOAD_DRAFT_NAMES,
+    GATHER_UPLOAD_DRAFTS,
     GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
@@ -20,13 +19,12 @@ import {
 import { initialState } from "./reducer";
 import {
     BarcodePrefix,
-    ClearCurrentUploadAction,
     ClearFileMetadataForJobAction,
     ClearOptionsForLookupAction,
     CreateBarcodeAction,
     CurrentUpload,
     ExportFileMetadataAction,
-    GatherUploadDraftNamesAction,
+    GatherUploadDraftsAction,
     GetAnnotationsAction,
     GetBarcodeSearchResultsAction,
     GetOptionsForLookupAction,
@@ -152,10 +150,10 @@ export function exportFileMetadataCSV(fileName: string): ExportFileMetadataActio
     };
 }
 
-export function gatherUploadDraftNames(): GatherUploadDraftNamesAction {
+export function gatherUploadDrafts(): GatherUploadDraftsAction {
     return {
         payload: [],
-        type: GATHER_UPLOAD_DRAFT_NAMES,
+        type: GATHER_UPLOAD_DRAFTS,
     };
 }
 
@@ -163,11 +161,5 @@ export function setCurrentUpload(currentUpload: CurrentUpload): SetCurrentUpload
     return {
         payload: currentUpload,
         type: SET_CURRENT_UPLOAD,
-    };
-}
-
-export function clearCurrentUpload(): ClearCurrentUploadAction {
-    return {
-        type: CLEAR_CURRENT_UPLOAD,
     };
 }

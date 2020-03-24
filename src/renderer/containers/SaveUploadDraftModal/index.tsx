@@ -8,9 +8,9 @@ import { ActionCreator } from "redux";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getSaveUploadDraftModalVisible } from "../../state/feedback/selectors";
 import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
-import { gatherUploadDraftNames } from "../../state/metadata/actions";
+import { gatherUploadDrafts } from "../../state/metadata/actions";
 import { getUploadDraftNames } from "../../state/metadata/selectors";
-import { GatherUploadDraftNamesAction } from "../../state/metadata/types";
+import { GatherUploadDraftsAction } from "../../state/metadata/types";
 import { State } from "../../state/types";
 import { saveUploadDraft } from "../../state/upload/actions";
 import { getCanSaveUploadDraft } from "../../state/upload/selectors";
@@ -22,7 +22,7 @@ interface SaveUploadDraftModalProps {
     canSaveUploadDraft: boolean;
     className?: string;
     closeModal: ActionCreator<CloseModalAction>;
-    gatherUploadDraftNames: ActionCreator<GatherUploadDraftNamesAction>;
+    gatherUploadDrafts: ActionCreator<GatherUploadDraftsAction>;
     openModal: ActionCreator<OpenModalAction>;
     saveUploadDraft: ActionCreator<SaveUploadDraftAction>;
     usedNames: string[];
@@ -42,7 +42,7 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
     }
 
     public componentDidMount(): void {
-        this.props.gatherUploadDraftNames();
+        this.props.gatherUploadDrafts();
     }
 
     public componentDidUpdate(prevProps: SaveUploadDraftModalProps): void {
@@ -109,7 +109,7 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
     closeModal,
-    gatherUploadDraftNames,
+    gatherUploadDrafts,
     openModal,
     saveUploadDraft,
 };

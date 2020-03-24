@@ -1,4 +1,3 @@
-import { uniq } from "lodash";
 import { AnyAction } from "redux";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
@@ -9,9 +8,9 @@ import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
-    CLEAR_CURRENT_UPLOAD,
     CLEAR_FILE_METADATA_FOR_JOB,
-    CLEAR_OPTIONS_FOR_LOOKUP, GATHER_UPLOAD_DRAFT_NAMES,
+    CLEAR_OPTIONS_FOR_LOOKUP,
+    GATHER_UPLOAD_DRAFTS,
     RECEIVE_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
@@ -19,9 +18,9 @@ import {
     UPDATE_PAGE_HISTORY,
 } from "./constants";
 import {
-    ClearCurrentUploadAction,
     ClearFileMetadataForJobAction,
-    ClearOptionsForLookupAction, GatherUploadDraftNamesAction,
+    ClearOptionsForLookupAction,
+    GatherUploadDraftsAction,
     MetadataStateBranch,
     ReceiveMetadataAction,
     ResetHistoryAction,
@@ -47,7 +46,7 @@ export const initialState: MetadataStateBranch = {
     lookups: [],
     templates: [],
     units: [],
-    uploadDraftNames: [],
+    uploadDrafts: [],
     users: [],
     workflowOptions: [],
 };
@@ -110,12 +109,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
             fileMetadataForJob: undefined,
         }),
     },
-    [GATHER_UPLOAD_DRAFT_NAMES]: {
-        accepts: (action: AnyAction): action is GatherUploadDraftNamesAction =>
-            action.type === GATHER_UPLOAD_DRAFT_NAMES,
-        perform: (state: MetadataStateBranch, action: GatherUploadDraftNamesAction) => ({
+    [GATHER_UPLOAD_DRAFTS]: {
+        accepts: (action: AnyAction): action is GatherUploadDraftsAction =>
+            action.type === GATHER_UPLOAD_DRAFTS,
+        perform: (state: MetadataStateBranch, action: GatherUploadDraftsAction) => ({
             ...state,
-            uploadDraftNames: uniq(action.payload),
+            uploadDrafts: action.payload || {},
         }),
     },
     [REPLACE_UPLOAD]: {
@@ -132,13 +131,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch, action: SetCurrentUploadAction) => ({
             ...state,
             currentUpload: action.payload,
-        }),
-    },
-    [CLEAR_CURRENT_UPLOAD]: {
-        accepts: (action: AnyAction): action is ClearCurrentUploadAction => action.type === CLEAR_CURRENT_UPLOAD,
-        perform: (state: MetadataStateBranch) => ({
-            ...state,
-            currentUpload: undefined,
         }),
     },
     [CLOSE_UPLOAD_TAB]: {
