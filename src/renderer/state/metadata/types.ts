@@ -12,6 +12,8 @@ export interface MetadataStateBranch {
     barcodePrefixes: BarcodePrefix[];
     barcodeSearchResults: LabkeyPlateResponse[];
     channels: Channel[];
+    // this represents some metadata about the upload that is in the Upload Wizard Tab. If it is not named yet,
+    // this will be undefined. If the tab is not open, it will also be undefined
     currentUpload?: CurrentUpload;
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataSearchResults?: SearchResultRow[];
