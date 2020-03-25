@@ -586,9 +586,9 @@ export const getUploadPayload = createSelector([
 });
 
 export const getUploadFileNames = createSelector([
-    getUploadPayload,
-], (upload: Uploads): string => (
-    Object.keys(upload).map((filePath: string) => basename(filePath)).sort().join(", ")
+    getUpload,
+], (upload: UploadStateBranch): string => (
+    uniq(Object.values(upload).map(({file}: UploadMetadata) => basename(file))).sort().join(", ")
 ));
 
 export const getUploadFiles = createSelector([
