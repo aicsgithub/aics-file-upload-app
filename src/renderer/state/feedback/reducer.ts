@@ -6,7 +6,9 @@ import { CloseUploadTabAction } from "../route/types";
 
 import { SelectionStateBranch } from "../selection/types";
 import {
-    TypeToDescriptionMap } from "../types";
+    HTTP_STATUS,
+    TypeToDescriptionMap,
+} from "../types";
 import { makeReducer } from "../util";
 
 import {
@@ -42,6 +44,11 @@ import {
     StopLoadingAction,
 } from "./types";
 
+export const httpStatusToMessage: Map<number, string> = new Map([
+    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server"],
+    [HTTP_STATUS.BAD_GATEWAY, "Bad Gateway Error: Labkey or MMS is down."],
+]);
+
 export const initialState: FeedbackStateBranch = {
     deferredAction: undefined,
     events: [],
@@ -55,18 +62,34 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [CLEAR_ALERT]: {
         accepts: (action: AnyAction): action is ClearAlertAction => action.type === CLEAR_ALERT,
         perform: (state: FeedbackStateBranch) => {
+            const { alert } = state;
+            if (!alert) {
+                return state;
+            }
+
+            const { message, type } = alert;
+            const event = {
+                date: new Date(),
+                message,
+                type,
+            };
             return {
                 ...state,
                 alert: undefined,
+                events: [...state.events, event],
             };
         },
     },
     [SET_ALERT]: {
         accepts: (action: AnyAction): action is SetAlertAction => action.type === SET_ALERT,
-        perform: (state: FeedbackStateBranch, action: SetAlertAction) => {
+        perform: (state: FeedbackStateBranch, {payload}: SetAlertAction) => {
+            const updatedPayload = { ...payload };
+            if (payload.statusCode && httpStatusToMessage.has(payload.statusCode) && !payload.message) {
+                updatedPayload.message = httpStatusToMessage.get(payload.statusCode);
+            }
             return {
                 ...state,
-                alert: action.payload,
+                alert: updatedPayload,
             };
         },
     },

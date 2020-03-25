@@ -7,7 +7,7 @@ import { SET_ALERT } from "../../feedback/constants";
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 
-import { createMockReduxStore, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, getApplicationMenu, logger, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     mockFailedUploadJob,
     mockState,
@@ -94,7 +94,7 @@ describe("Job logics", () => {
 
         it("Sets jobs passed in",  () => {
             const getState = () => mockState;
-            const actions = mapJobsToActions(getState, storage)({
+            const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [],
@@ -119,7 +119,7 @@ describe("Job logics", () => {
                     pendingJobs: [{...mockSuccessfulUploadJob, uploads: {}}],
                 },
             });
-            const actions = mapJobsToActions(getState, storage)({
+            const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [],
@@ -142,7 +142,7 @@ describe("Job logics", () => {
                 },
             });
 
-            const actions = mapJobsToActions(getState, storage)({
+            const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [
@@ -180,7 +180,7 @@ describe("Job logics", () => {
                     jobFilter: JobFilter.All,
                 },
             });
-            const actions = mapJobsToActions(getState, storage)({
+            const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
                 addMetadataJobs,
                 copyJobs,
                 potentiallyIncompleteJobs: [mockFailedUploadJob],

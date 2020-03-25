@@ -4,6 +4,7 @@ import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
+
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
@@ -20,12 +21,11 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
+import { getCurrentJobName } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
-import { goForward } from "../route/actions";
 import {
-    clearStagedFiles,
     deselectFiles,
     stageFiles,
 } from "../selection/actions";
@@ -62,7 +62,7 @@ import {
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
 } from "./constants";
-import { getCanSaveUploadDraft, getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
+import { getCanSaveUploadDraft, getUpload, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
@@ -179,10 +179,7 @@ const initiateUploadLogic = createLogic({
             const payload = getUploadPayload(getState());
             const { job: { incompleteJobNames } } = getState();
 
-            // Go forward needs to be handled by redux-logic so we're dispatching separately
-            dispatch(goForward());
-            dispatch(batchActions([
-                clearStagedFiles(),
+            dispatch(
                 addPendingJob({
                     created: now,
                     currentStage: "Pending",
@@ -192,8 +189,8 @@ const initiateUploadLogic = createLogic({
                     status: "WAITING",
                     uploads: ctx.uploads,
                     user: userInfo().username,
-                }),
-            ]));
+                })
+            );
             dispatch(updateIncompleteJobNames([...incompleteJobNames, ctx.name]));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
@@ -212,7 +209,7 @@ const initiateUploadLogic = createLogic({
                      rejectCb: ReduxLogicRejectCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = getUploadFileNames(getState());
+            ctx.name = getCurrentJobName(getState());
             ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({

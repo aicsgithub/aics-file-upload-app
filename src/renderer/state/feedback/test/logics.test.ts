@@ -7,7 +7,7 @@ import { createMockReduxStore } from "../../test/configure-mock-store";
 import { getMockStateWithHistory, mockState, mockTemplateStateBranch } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
 import { closeModal, setAlert } from "../actions";
-import { httpStatusToMessage } from "../logics";
+import { httpStatusToMessage } from "../reducer";
 import { getAlert, getTemplateEditorVisible } from "../selectors";
 import { AlertType } from "../types";
 

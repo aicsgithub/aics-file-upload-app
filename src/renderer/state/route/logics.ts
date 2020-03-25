@@ -82,7 +82,7 @@ const stateBranchHistory = [
     },
 ];
 const pagesToAllowSwitchingEnvironments = [Page.UploadSummary, Page.DragAndDrop];
-const getSelectPageActions = (
+export const getSelectPageActions = (
     logger: Logger,
     state: State,
     getApplicationMenu: () => Menu | null,

@@ -1,19 +1,27 @@
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+import { Menu } from "electron";
 import { intersection, isEmpty } from "lodash";
 import { userInfo } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
-import { interval, of } from "rxjs";
-import { catchError, map, mergeMap } from "rxjs/operators";
+import { interval } from "rxjs";
+import { map, mergeMap } from "rxjs/operators";
+import { Error } from "tslint/lib/error";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 
-import { removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
+import { selectPage } from "../route/actions";
+import { findNextPage } from "../route/constants";
+import { getSelectPageActions } from "../route/logics";
+import { getPage } from "../route/selectors";
+import { clearStagedFiles } from "../selection/actions";
 
 import {
     LocalStorage,
+    Logger,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
@@ -48,10 +56,11 @@ const convertJobDates = (j: JSSJob) => ({
 });
 
 interface Jobs {
-    addMetadataJobs: JSSJob[];
-    copyJobs: JSSJob[];
-    potentiallyIncompleteJobs: JSSJob[];
-    uploadJobs: JSSJob[];
+    addMetadataJobs?: JSSJob[];
+    copyJobs?: JSSJob[];
+    error?: Error;
+    potentiallyIncompleteJobs?: JSSJob[];
+    uploadJobs?: JSSJob[];
 }
 
 export const getJobStatusesToInclude = (jobFilter: JobFilter) => {
@@ -104,14 +113,29 @@ export const fetchJobs = (getStateFn: () => State, jssClient: JobStatusClient): 
         getAddMetadataPromise,
         potentiallyIncompleteJobsPromise,
     ]).then(([uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs]) =>
-        ({uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs}));
+        ({uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs}))
+        .catch((error) => ({ error }));
 };
 
-export const mapJobsToActions = (getState: () => State, storage: LocalStorage) => ({
-                         addMetadataJobs,
-                         copyJobs,
-                         potentiallyIncompleteJobs,
-                         uploadJobs}: Jobs) => {
+export const mapJobsToActions = (
+    getState: () => State,
+    storage: LocalStorage,
+    logger: Logger,
+    getApplicationMenu: () => Menu | null
+) =>
+    (jobs: Jobs) => {
+    const {
+        addMetadataJobs,
+        copyJobs,
+        error,
+        potentiallyIncompleteJobs,
+        uploadJobs,
+    } = jobs;
+    if (!addMetadataJobs || !copyJobs || !potentiallyIncompleteJobs || !uploadJobs) {
+        const message = error ? error.message : "Could not retrieve jobs";
+        return setErrorAlert(message);
+    }
+
     const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
     const pendingJobNames = getPendingJobNames(getState());
     const pendingJobsToRemove: string[] = intersection(uploadJobNames, pendingJobNames)
@@ -125,6 +149,17 @@ export const mapJobsToActions = (getState: () => State, storage: LocalStorage) =
     ];
 
     if (!isEmpty(pendingJobsToRemove)) {
+        // todo remove draft
+        const currentPage = getPage(getState());
+        const nextPage = findNextPage(currentPage, 1);
+        if (nextPage) {
+            actions.push(...getSelectPageActions(
+                logger,
+                getState(),
+                getApplicationMenu,
+                selectPage(currentPage, nextPage)
+            ), clearStagedFiles());
+        }
         actions.push(removePendingJobs(pendingJobsToRemove));
     }
     // If there are potentially incomplete jobs, see if they are actually completed
@@ -198,20 +233,14 @@ const retrieveJobsLogic = createLogic({
     latest: true,
     // Redux Logic's type definitions do not include dispatching observable actions so we are setting
     // the type of dispatch to any
-    process: async ({ action, getState, jssClient, storage }: ReduxLogicProcessDependencies, dispatch: any,
-                    done: ReduxLogicDoneCb) => {
+    process: async (deps: ReduxLogicProcessDependencies, dispatch: any, done: ReduxLogicDoneCb) => {
+        const { getApplicationMenu, getState, jssClient, logger,  storage } = deps;
         dispatch(interval(1000)
             .pipe(
                 mergeMap(() => {
                     return fetchJobs(getState, jssClient);
                 }),
-                map(mapJobsToActions(getState, storage)),
-                catchError((err: any) =>
-                    of(setAlert({
-                        message: "error!" + err.message,
-                        type: AlertType.ERROR,
-                    }))
-                )
+                map(mapJobsToActions(getState, storage, logger, getApplicationMenu))
             ));
     },
     type: RETRIEVE_JOBS,
