@@ -410,7 +410,7 @@ export const mockState: State = {
         lookups: [],
         templates: [],
         units: [],
-        uploadDraftNames: [],
+        uploadDrafts: [],
         users: [],
         workflowOptions: [],
     },
