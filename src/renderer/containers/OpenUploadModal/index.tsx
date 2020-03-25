@@ -2,7 +2,7 @@ import { Modal, Table } from "antd";
 import { RowSelectionType } from "antd/lib/table";
 import * as classNames from "classnames";
 import { ipcRenderer } from "electron";
-import moment from "moment";
+import * as moment from "moment";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";

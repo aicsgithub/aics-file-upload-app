@@ -4,7 +4,7 @@ import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
 import * as Logger from "js-logger";
 import { isNil } from "lodash";
-import moment from "moment";
+import * as moment from "moment";
 import { userInfo } from "os";
 import { AnyAction, applyMiddleware, combineReducers, createStore } from "redux";
 import { createLogicMiddleware } from "redux-logic";
