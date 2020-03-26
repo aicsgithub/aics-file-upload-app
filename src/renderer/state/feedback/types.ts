@@ -7,6 +7,7 @@ export interface FeedbackStateBranch {
     isLoading: boolean;
     requestsInProgress: AsyncRequest[];
     setMountPointNotificationVisible: boolean;
+    uploadError?: string;
     visibleModals: ModalName[];
 }
 
@@ -114,5 +115,14 @@ export interface SetDeferredActionAction {
 }
 
 export interface ClearDeferredAction {
+    type: string;
+}
+
+export interface SetUploadErrorAction {
+    payload: string;
+    type: string;
+}
+
+export interface ClearUploadErrorAction {
     type: string;
 }

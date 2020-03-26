@@ -1,7 +1,7 @@
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Menu } from "electron";
-import { intersection, isEmpty } from "lodash";
+import { intersection, isEmpty, without } from "lodash";
 import { userInfo } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -44,7 +44,6 @@ import {
     RETRIEVE_JOBS,
     STOP_JOB_POLL,
     SUCCESSFUL_STATUS,
-    UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
 import { getIncompleteJobNames, getJobFilter, getPendingJobNames } from "./selectors";
 import { JobFilter } from "./types";
@@ -164,31 +163,14 @@ export const mapJobsToActions = (
     }
     // If there are potentially incomplete jobs, see if they are actually completed
     // so we can report the status
-    if (potentiallyIncompleteJobs.length) {
-        // We want to check the newest job in the event there are jobs with the same name
-        let newestPotentiallyIncompleteJobs: JSSJob[] = [];
-        potentiallyIncompleteJobs.forEach((job: JSSJob) => {
-            // See if we have already have a job with this name
-            const matchingJob = newestPotentiallyIncompleteJobs.find(({ jobName }) => (
-                jobName === job.jobName
-            ));
-            if (!matchingJob) {
-                newestPotentiallyIncompleteJobs.push(job);
-            } else if (job.created > matchingJob.created) {
-                // If we did have a job with this name already and the
-                // current job is newer replace the old one
-                newestPotentiallyIncompleteJobs = [
-                    ...newestPotentiallyIncompleteJobs.filter(({ jobName }) => (
-                        jobName !== job.jobName
-                    )), job];
-            }
-        });
+    const incompleteJobNames = getIncompleteJobNames(getState());
+    if (incompleteJobNames.length) {
         // Gather the actually incompleteJobs from the list of jobs that previously were incomplete
-        const incompleteJobs = newestPotentiallyIncompleteJobs.filter((job) => {
-            // If job is still pending then it might not be the right job based on name alone,
-            // so hold off
-            if (pendingJobNames.includes(job.jobName)) {
-                return true;
+
+        // todo revisit this. how to keep track of pending jobs
+        const latestIncompleteJobNames = potentiallyIncompleteJobs.filter((job) => {
+            if (job.jobName && pendingJobsToRemove.includes(job.jobName)) {
+                return false;
             }
             if (job.status === SUCCESSFUL_STATUS) {
                 actions.push(setAlert({
@@ -204,14 +186,16 @@ export const mapJobsToActions = (
                 }));
                 return false;
             }
+            // If job is still pending then it might not be the right job based on name alone,
+            // so hold off
             return true;
-        });
+        }).map(({jobName}) => jobName);
+        latestIncompleteJobNames.push(...without(pendingJobNames, ...pendingJobsToRemove));
         // Only update the state if the current incompleteJobs are different than the existing ones
         const potentiallyIncompleteJobNames = getIncompleteJobNames(getState());
-        if (potentiallyIncompleteJobNames.length !== incompleteJobs.length) {
-            const incompleteJobNames = incompleteJobs.map((job) => job.jobName || "");
+        if (potentiallyIncompleteJobNames.length !== latestIncompleteJobNames.length) {
             try {
-                storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, incompleteJobNames);
+                storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, latestIncompleteJobNames);
             } catch (e) {
                 actions.push(
                     setAlert({
@@ -220,7 +204,7 @@ export const mapJobsToActions = (
                     })
                 );
             }
-            actions.push(updateIncompleteJobNames(incompleteJobNames));
+            actions.push(updateIncompleteJobNames(latestIncompleteJobNames.filter((n) => !!n) as string[]));
         }
     }
 
@@ -247,24 +231,6 @@ const retrieveJobsLogic = createLogic({
     warnTimeout: 0,
 });
 
-const updateIncompleteJobNamesLogic = createLogic({
-    transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        try {
-            storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, action.payload || []);
-            next(action);
-        } catch (e) {
-            next(batchActions([
-                action,
-                setAlert({
-                    message: "Failed to persist settings",
-                    type: AlertType.WARN,
-                }),
-            ]));
-        }
-    },
-    type: UPDATE_INCOMPLETE_JOB_NAMES,
-});
-
 const gatherStoredIncompleteJobNamesLogic = createLogic({
     transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
@@ -283,5 +249,4 @@ const gatherStoredIncompleteJobNamesLogic = createLogic({
 export default [
     retrieveJobsLogic,
     gatherStoredIncompleteJobNamesLogic,
-    updateIncompleteJobNamesLogic,
 ];

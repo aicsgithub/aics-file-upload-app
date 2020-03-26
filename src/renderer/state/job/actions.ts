@@ -1,4 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
 import {
     ADD_PENDING_JOB,
     GATHER_STORED_INCOMPLETE_JOB_NAMES,
@@ -61,8 +62,11 @@ export function gatherIncompleteJobNames(): GatherIncompleteJobNamesAction {
 
 export function updateIncompleteJobNames(incompleteJobNames: string[]): UpdateIncompleteJobNamesAction {
     return {
+        key: INCOMPLETE_JOB_NAMES_KEY,
         payload: incompleteJobNames,
         type: UPDATE_INCOMPLETE_JOB_NAMES,
+        value: incompleteJobNames,
+        writeToStore: true,
     };
 }
 

@@ -382,6 +382,7 @@ export const mockState: State = {
         isLoading: false,
         requestsInProgress: [],
         setMountPointNotificationVisible: false,
+        uploadError: undefined,
         visibleModals: [],
     },
     job: {

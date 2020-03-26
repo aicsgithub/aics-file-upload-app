@@ -26,6 +26,7 @@ export const getTemplateEditorVisible = (state: State) => !!state.feedback.visib
     .find((m: ModalName) => m === "templateEditor");
 export const getOpenTemplateModalVisible = (state: State) => !!state.feedback.visibleModals
     .find((m: ModalName) => m === "openTemplate");
+export const getUploadError = (state: State) => state.feedback.uploadError;
 
 // COMPOSED SELECTORS
 export const getRecentEvent = createSelector([

@@ -96,9 +96,9 @@ export const getUploadInProgress = createSelector([
     getIncompleteJobNamesContainsCurrentJobName,
     getPendingJobs,
     getCurrentJobName,
-], (currentJobIsPending: boolean, pendingJobs: PendingJob[], currentJobName?: string): boolean => {
+], (currentJobIsInProgress: boolean, pendingJobs: PendingJob[], currentJobName?: string): boolean => {
     if (!currentJobName) {
         return false;
     }
-    return currentJobIsPending || !!pendingJobs.find((j: PendingJob) => j.jobName === currentJobName);
+    return currentJobIsInProgress || !!pendingJobs.find((j: PendingJob) => j.jobName === currentJobName);
 });

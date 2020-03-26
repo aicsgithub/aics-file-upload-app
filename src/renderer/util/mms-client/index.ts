@@ -10,7 +10,7 @@ export default class MMSClient extends BaseServiceClient {
 
     constructor(config: {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
         super(config);
-        this.username = config.username;
+        this.username = "lisah"; // config.username;
     }
 
     /**

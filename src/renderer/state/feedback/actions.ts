@@ -4,6 +4,7 @@ import {
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
     CLEAR_DEFERRED_ACTION,
+    CLEAR_UPLOAD_ERROR,
     CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     OPEN_MODAL,
@@ -11,6 +12,7 @@ import {
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
     SET_DEFERRED_ACTION,
+    SET_UPLOAD_ERROR,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -21,7 +23,9 @@ import {
     AlertType,
     AppAlert,
     AsyncRequest,
-    ClearAlertAction, ClearDeferredAction,
+    ClearAlertAction,
+    ClearDeferredAction,
+    ClearUploadErrorAction,
     CloseModalAction,
     CloseSetMountPointNotificationAction,
     ModalName,
@@ -30,6 +34,7 @@ import {
     RemoveRequestInProgressAction,
     SetAlertAction,
     SetDeferredActionAction,
+    SetUploadErrorAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
@@ -149,5 +154,18 @@ export function setDeferredAction(action: AnyAction): SetDeferredActionAction {
 export function clearDeferredAction(): ClearDeferredAction {
     return {
         type: CLEAR_DEFERRED_ACTION,
+    };
+}
+
+export function setUploadError(error: string): SetUploadErrorAction {
+    return {
+        payload: error,
+        type: SET_UPLOAD_ERROR,
+    };
+}
+
+export function clearUploadError(): ClearUploadErrorAction {
+    return {
+        type: CLEAR_UPLOAD_ERROR,
     };
 }

@@ -16,6 +16,7 @@ import {
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
     CLEAR_DEFERRED_ACTION,
+    CLEAR_UPLOAD_ERROR,
     CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
     OPEN_MODAL,
@@ -23,6 +24,7 @@ import {
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
     SET_DEFERRED_ACTION,
+    SET_UPLOAD_ERROR,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -31,6 +33,7 @@ import {
     AddRequestInProgressAction,
     ClearAlertAction,
     ClearDeferredAction,
+    ClearUploadErrorAction,
     CloseModalAction,
     CloseSetMountPointNotificationAction,
     FeedbackStateBranch,
@@ -39,7 +42,7 @@ import {
     OpenTemplateEditorAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
-    SetDeferredActionAction,
+    SetDeferredActionAction, SetUploadErrorAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
@@ -55,6 +58,7 @@ export const initialState: FeedbackStateBranch = {
     isLoading: false,
     requestsInProgress: [],
     setMountPointNotificationVisible: false,
+    uploadError: undefined,
     visibleModals: [],
 };
 
@@ -196,6 +200,22 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             setMountPointNotificationVisible: false,
+        }),
+    },
+    [SET_UPLOAD_ERROR]: {
+        accepts: (action: AnyAction): action is SetUploadErrorAction =>
+            action.type === SET_UPLOAD_ERROR,
+        perform: (state: FeedbackStateBranch, action: SetUploadErrorAction) => ({
+            ...state,
+            uploadError: action.payload,
+        }),
+    },
+    [CLEAR_UPLOAD_ERROR]: {
+        accepts: (action: AnyAction): action is ClearUploadErrorAction =>
+            action.type === CLEAR_UPLOAD_ERROR,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            uploadError: undefined,
         }),
     },
 };

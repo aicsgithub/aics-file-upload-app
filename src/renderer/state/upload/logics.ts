@@ -1,11 +1,11 @@
 import Logger from "js-logger";
-import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
 
-import { TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
+import { INCOMPLETE_JOB_NAMES_KEY, TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
@@ -13,15 +13,17 @@ import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
     addRequestToInProgress,
+    clearUploadError,
     openModal,
     removeRequestFromInProgress,
     setAlert,
     setDeferredAction,
     setErrorAlert,
+    setUploadError,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
-import { getCurrentJobName } from "../job/selectors";
+import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
@@ -178,27 +180,39 @@ const initiateUploadLogic = createLogic({
             // page until we call it successfully.
             const payload = getUploadPayload(getState());
             const { job: { incompleteJobNames } } = getState();
+            const updatedIncompleteJobNames = [...incompleteJobNames, ctx.name];
 
             dispatch(
-                addPendingJob({
-                    created: now,
-                    currentStage: "Pending",
-                    jobId: (now).toLocaleString(),
-                    jobName: ctx.name,
-                    modified: now,
-                    status: "WAITING",
-                    uploads: ctx.uploads,
-                    user: userInfo().username,
-                })
+                {
+                    ...batchActions([
+                        addPendingJob({
+                            created: now,
+                            currentStage: "Pending",
+                            jobId: (now).toLocaleString(),
+                            jobName: ctx.name,
+                            modified: now,
+                            status: "WAITING",
+                            uploads: ctx.uploads,
+                            user: userInfo().username,
+                        }),
+                        updateIncompleteJobNames(updatedIncompleteJobNames),
+                        clearUploadError(),
+                    ]),
+                    key: INCOMPLETE_JOB_NAMES_KEY,
+                    value: updatedIncompleteJobNames,
+                    writeToStore: true,
+                }
             );
-            dispatch(updateIncompleteJobNames([...incompleteJobNames, ctx.name]));
             await fms.uploadFiles(payload, ctx.name);
         } catch (e) {
-            Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
-            dispatch(setAlert({
-                message: `Upload Failed: ${e.message}`,
-                type: AlertType.ERROR,
-            }));
+            const error = `Upload Failed: ${e.message}`;
+            Logger.error(error);
+            dispatch(batchActions([
+                setErrorAlert(error),
+                removePendingJobs([ctx.name]),
+                updateIncompleteJobNames(without(getIncompleteJobNames(getState()), ctx.name)),
+                setUploadError(error),
+            ]));
         }
 
         dispatch(removePendingJobs(ctx.name));
