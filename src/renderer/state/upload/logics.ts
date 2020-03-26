@@ -22,7 +22,7 @@ import {
     setUploadError,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
+import { addPendingJob, removePendingJobs, updateIncompleteJobNames } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
@@ -264,7 +264,6 @@ const cancelUploadLogic = createLogic({
                 message: `Cancel upload ${uploadJob.jobName} succeeded!`,
                 type: AlertType.SUCCESS,
             }));
-            dispatch(retrieveJobs());
         } catch (e) {
             Logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
             dispatch(setAlert({
@@ -322,7 +321,6 @@ const retryUploadLogic = createLogic({
                 message: `Retry upload ${uploadJob.jobName} succeeded!`,
                 type: AlertType.SUCCESS,
             }));
-            dispatch(retrieveJobs());
         } catch (e) {
             Logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
             dispatch(setAlert({
