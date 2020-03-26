@@ -25,7 +25,8 @@ import {
     SET_ADD_METADATA_JOBS,
     SET_COPY_JOBS,
     SET_UPLOAD_JOBS,
-    SUCCESSFUL_STATUS, UPDATE_INCOMPLETE_JOB_NAMES,
+    SUCCESSFUL_STATUS,
+    UPDATE_INCOMPLETE_JOB_NAMES,
 } from "../constants";
 import { getJobStatusesToInclude, mapJobsToActions } from "../logics";
 import { getIncompleteJobNames } from "../selectors";
