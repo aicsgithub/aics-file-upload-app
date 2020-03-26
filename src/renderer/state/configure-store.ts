@@ -3,13 +3,14 @@ import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
 import Store from "electron-store";
 import * as Logger from "js-logger";
-import { isNil } from "lodash";
+import { forEach, isNil } from "lodash";
 import * as moment from "moment";
 import { userInfo } from "os";
 import { AnyAction, applyMiddleware, combineReducers, createStore } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL, TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
+import { getCurrentUploadName } from "../containers/App/selectors";
 import LabkeyClient from "../util/labkey-client";
 import MMSClient from "../util/mms-client";
 
@@ -74,7 +75,8 @@ const autoSaver = (store: any) => (next: any) => (action: AnyAction) => {
     let result = next(action);
     if (action.autoSave) {
         const nextState = store.getState();
-        storage.set(TEMP_UPLOAD_STORAGE_KEY, nextState);
+        const currentDraftName = getCurrentUploadName(store.getState()) || TEMP_UPLOAD_STORAGE_KEY;
+        storage.set(currentDraftName, nextState);
         result = next(
             addEvent(`Your draft was saved at ${moment().format("h:mm a")}`, AlertType.INFO, new Date())
         );
@@ -84,15 +86,17 @@ const autoSaver = (store: any) => (next: any) => (action: AnyAction) => {
 };
 
 const storageWriter = () => (next: any) => (action: AnyAction) => {
-    if (action.writeToStore && action.key) {
-        if (isNil(action.value)) {
-            Logger.info(`Deleting key=${action.key} from local storage`); // todo: not sure how to mock
-            storage.delete(action.key);
-        } else {
-            Logger.info(`Writing to local storage for key: ${action.key}, and value:`);
-            Logger.info(JSON.stringify(action.value));
-            storage.set(action.key, action.value);
-        }
+    if (action.writeToStore && action.updates) {
+        forEach(action.updates, (value: any, key: string) => {
+            if (isNil(value)) {
+                Logger.info(`Deleting key=${key} from local storage`);
+                storage.delete(key);
+            } else {
+                Logger.info(`Writing to local storage for key: ${key}, and value:`);
+                Logger.info(JSON.stringify(value));
+                storage.set(key, value);
+            }
+        });
     }
     return next(action);
 };

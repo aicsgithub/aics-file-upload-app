@@ -102,9 +102,8 @@ export interface AutoSaveAction extends AnyAction {
 }
 
 export interface WriteToStoreAction extends AnyAction {
+    updates?: {[key: string]: any};
     writeToStore: boolean;
-    key: string;
-    value: any;
 }
 
 export enum HTTP_STATUS {

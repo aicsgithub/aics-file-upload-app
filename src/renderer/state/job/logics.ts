@@ -28,6 +28,7 @@ import {
     ReduxLogicTransformDependencies,
     State,
 } from "../types";
+import { DRAFT_KEY } from "../upload/constants";
 import { batchActions } from "../util";
 
 import {
@@ -148,7 +149,6 @@ export const mapJobsToActions = (
     ];
 
     if (!isEmpty(pendingJobsToRemove)) {
-        // todo remove draft
         const currentPage = getPage(getState());
         const nextPage = findNextPage(currentPage, 1);
         if (nextPage) {
@@ -167,7 +167,6 @@ export const mapJobsToActions = (
     if (incompleteJobNames.length) {
         // Gather the actually incompleteJobs from the list of jobs that previously were incomplete
 
-        // todo revisit this. how to keep track of pending jobs
         const latestIncompleteJobNames = potentiallyIncompleteJobs.filter((job) => {
             if (job.jobName && pendingJobsToRemove.includes(job.jobName)) {
                 return false;
@@ -208,7 +207,20 @@ export const mapJobsToActions = (
         }
     }
 
-    return batchActions(actions);
+    let nextAction: AnyAction = batchActions(actions);
+    if (!isEmpty(pendingJobsToRemove)) {
+        // delete drafts that are no longer pending
+        const updates = pendingJobsToRemove.reduce((accum: {[key: string]: any}, curr: string) => ({
+            ...accum,
+            [`${DRAFT_KEY}.${curr}`]: undefined,
+        }), {});
+        nextAction = {
+            ...nextAction,
+            updates,
+            writeToStore: true,
+        };
+    }
+    return nextAction;
 };
 
 const retrieveJobsLogic = createLogic({
@@ -234,7 +246,7 @@ const retrieveJobsLogic = createLogic({
 const gatherStoredIncompleteJobNamesLogic = createLogic({
     transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const incompleteJobNames = storage.get(`${JOB_STORAGE_KEY}.incompleteJobNames`);
+            const incompleteJobNames = storage.get(`${JOB_STORAGE_KEY}.incompleteJobNames`) || [];
             next(updateIncompleteJobNames(incompleteJobNames));
         } catch (e) {
             next(setAlert({

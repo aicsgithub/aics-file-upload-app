@@ -62,10 +62,11 @@ export function gatherIncompleteJobNames(): GatherIncompleteJobNamesAction {
 
 export function updateIncompleteJobNames(incompleteJobNames: string[]): UpdateIncompleteJobNamesAction {
     return {
-        key: INCOMPLETE_JOB_NAMES_KEY,
         payload: incompleteJobNames,
         type: UPDATE_INCOMPLETE_JOB_NAMES,
-        value: incompleteJobNames,
+        updates: {
+            [INCOMPLETE_JOB_NAMES_KEY]: incompleteJobNames,
+        },
         writeToStore: true,
     };
 }

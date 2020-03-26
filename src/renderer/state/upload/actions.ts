@@ -277,9 +277,10 @@ export function replaceUpload(upload: { metadata: CurrentUpload, state: State })
 
 export function clearUploadDraft(): ClearUploadDraftAction {
     return {
-        key: TEMP_UPLOAD_STORAGE_KEY,
         type: CLEAR_UPLOAD_DRAFT,
-        value: undefined,
+        updates: {
+            [TEMP_UPLOAD_STORAGE_KEY]: undefined,
+        },
         writeToStore: true,
     };
 }

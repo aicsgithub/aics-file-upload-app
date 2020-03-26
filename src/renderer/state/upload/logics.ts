@@ -198,8 +198,9 @@ const initiateUploadLogic = createLogic({
                         updateIncompleteJobNames(updatedIncompleteJobNames),
                         clearUploadError(),
                     ]),
-                    key: INCOMPLETE_JOB_NAMES_KEY,
-                    value: updatedIncompleteJobNames,
+                    updates: {
+                        [INCOMPLETE_JOB_NAMES_KEY]: updatedIncompleteJobNames,
+                    },
                     writeToStore: true,
                 }
             );
@@ -669,8 +670,8 @@ const saveUploadDraftLogic = createLogic({
             return;
         }
 
-        const draftKey = `${DRAFT_KEY}.${draftName}`;
         const now = new Date();
+        const draftKey = `${DRAFT_KEY}.${draftName} ${now}`;
         const metadata: CurrentUpload = {
             created: now,
             modified: now,
@@ -681,8 +682,9 @@ const saveUploadDraftLogic = createLogic({
         }
 
         next({
-            key: draftKey,
-            value: { metadata, state: getState() },
+            updates: {
+                [draftKey]: { metadata, state: getState() },
+            },
             writeToStore: true,
             ...batchActions([
                 setCurrentUpload(metadata),
