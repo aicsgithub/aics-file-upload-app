@@ -68,7 +68,8 @@ import {
 import { State } from "../../state/types";
 import {
     removeFileFromArchive,
-    removeFileFromIsilon, saveUploadDraft,
+    removeFileFromIsilon,
+    saveUploadDraft,
     undoFileWellAssociation,
     undoFileWorkflowAssociation,
 } from "../../state/upload/actions";
