@@ -19,6 +19,7 @@ import {
     State,
 } from "../../state/types";
 import { openUploadDraft } from "../../state/upload/actions";
+import { getUploadDraftKey } from "../../state/upload/constants";
 import { OpenUploadDraftAction } from "../../state/upload/types";
 
 const styles = require("./style.pcss");
@@ -61,7 +62,7 @@ interface Props {
 }
 
 interface OpenUploadState {
-    selectedDraft?: string;
+    selectedDraft?: DraftRow;
 }
 
 class OpenUploadModal extends React.Component<Props, OpenUploadState> {
@@ -93,11 +94,7 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
     public render() {
         const { className, drafts, visible } = this.props;
         const { selectedDraft } = this.state;
-        const formattedDrafts = drafts.map((d) => ({
-            ...d,
-            created: moment(d.created).format(LONG_DATETIME_FORMAT),
-            modified: moment(d.modified).format(LONG_DATETIME_FORMAT),
-        }));
+        const formattedDrafts = drafts.map(this.draftRowToCurrentUpload);
         const rowSelectionType: RowSelectionType = "radio";
         return (
             <Modal
@@ -119,8 +116,9 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
                     pagination={false}
                     rowKey={this.getRowKey}
                     rowSelection={{
-                        onSelect: this.selectDraftName,
-                        selectedRowKeys: selectedDraft ? [selectedDraft] : [],
+                        onSelect: this.selectDraft,
+                        selectedRowKeys: selectedDraft ?
+                            [this.getRowKey(selectedDraft)] : [],
                         type: rowSelectionType,
                     }}
                     size="small"
@@ -129,17 +127,20 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
         );
     }
 
-    private getRowKey = (record: DraftRow) => record.name;
+    private getRowKey = (record: DraftRow) => record.name + record.created;
+    private draftRowToCurrentUpload = (draft: CurrentUpload): DraftRow => ({
+        ...draft,
+        created: moment(draft.created).format(LONG_DATETIME_FORMAT),
+        modified: moment(draft.modified).format(LONG_DATETIME_FORMAT),
+    })
 
-    private selectDraftName = (selectedDraft: DraftRow) => {
-        this.setState({
-            selectedDraft: selectedDraft.name,
-        });
-    }
+    private selectDraft = (selectedDraft: DraftRow) => this.setState({ selectedDraft });
 
     private openDraft = () => {
-        this.props.openUploadDraft(this.state.selectedDraft);
-        this.closeModal();
+        if (this.state.selectedDraft) {
+            const {created, name} = this.state.selectedDraft;
+            this.props.openUploadDraft(getUploadDraftKey(name, moment(created, LONG_DATETIME_FORMAT).toDate()));
+        }
     }
 
     private openModal = () => this.props.openModal("openUpload");

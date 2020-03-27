@@ -73,7 +73,7 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
                     <Alert
                         className={styles.alert}
                         type="warning"
-                        message={`Warning: Found an existing draft named ${this.state.name}. Saving will overwrite.`}
+                        message={`Warning: Found an existing draft named ${this.state.name}.`}
                         showIcon={true}
                     />
                 )}

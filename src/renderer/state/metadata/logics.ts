@@ -383,10 +383,10 @@ const exportFileMetadataLogic = createLogic({
     type: EXPORT_FILE_METADATA,
 });
 
-const gatherUploadDraftNamesLogic = createLogic({
+const gatherUploadDraftsLogic = createLogic({
     transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const drafts: {[draftName: string]: {metadata: CurrentUpload, state: State}} = storage.get(DRAFT_KEY);
+            const drafts: {[draftKey: string]: {metadata: CurrentUpload, state: State}} = storage.get(DRAFT_KEY);
             const draftInfo = !!drafts ? Object.values(drafts).map((d) => d.metadata).filter((m) => !!m) : [];
             next({
                 ...action,
@@ -409,5 +409,5 @@ export default [
     requestOptionsForLookupLogic,
     requestTemplatesLogicLogic,
     searchFileMetadataLogic,
-    gatherUploadDraftNamesLogic,
+    gatherUploadDraftsLogic,
 ];

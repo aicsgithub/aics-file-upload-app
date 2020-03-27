@@ -4,7 +4,7 @@ import { isEmpty, isNil } from "lodash";
 import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
-import { getCurrentUploadName } from "../../containers/App/selectors";
+import { getCurrentUploadKey, getCurrentUploadName } from "../../containers/App/selectors";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
 import {
     openModal,
@@ -31,7 +31,7 @@ import {
     State,
 } from "../types";
 import { clearUploadDraft, clearUploadHistory, jumpToPastUpload, updateUpload } from "../upload/actions";
-import { DRAFT_KEY, getUploadRowKey } from "../upload/constants";
+import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
@@ -214,8 +214,7 @@ const goForwardLogic = createLogic({
 });
 
 const saveUploadDraftToLocalStorage =
-    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
-        const draftKey = `${DRAFT_KEY}.${draftName}`;
+    (storage: LocalStorage, draftName: string, draftKey: string, state: State): CurrentUpload => {
         const now = new Date();
         const metadata: CurrentUpload = {
             created: now,
@@ -249,9 +248,10 @@ const closeUploadTabLogic = createLogic({
         };
 
         const draftName: string | undefined = getCurrentUploadName(getState());
+        const draftKey: string | undefined = getCurrentUploadKey(getState());
         // automatically save if user has chosen to save this draft
-        if (draftName) {
-            saveUploadDraftToLocalStorage(storage, draftName, getState());
+        if (draftName && draftKey) {
+            saveUploadDraftToLocalStorage(storage, draftName, draftKey, getState());
             next(nextAction);
         } else if (getCanSaveUploadDraft(getState())) {
             dialog.showMessageBox({

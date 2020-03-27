@@ -1,4 +1,6 @@
 import { get, isNil } from "lodash";
+import * as moment from "moment";
+import { LONG_DATETIME_FORMAT } from "../../constants";
 
 import { makeConstant } from "../util";
 
@@ -85,3 +87,6 @@ export const isChannelOnlyRow = (metadata: UploadMetadata) => !isNil(metadata.ch
 export const isFileRow = (metadata: UploadMetadata) => !isChannelOnlyRow(metadata) && !isSubImageRow(metadata);
 
 export const DRAFT_KEY = "draft";
+
+export const getUploadDraftKey = (name: string, created: Date) =>
+    `${DRAFT_KEY}.${name}-${moment(created).format(LONG_DATETIME_FORMAT)}`;

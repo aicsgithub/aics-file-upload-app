@@ -6,7 +6,7 @@ import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
 import { getAllPlates, getAllWells } from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
-import { isFileRow } from "../../state/upload/constants";
+import { getUploadDraftKey, isFileRow } from "../../state/upload/constants";
 
 import { getUpload, getWellLabelAndImagingSessionName } from "../../state/upload/selectors";
 import { FileTag, FileTagType, UploadMetadata, UploadStateBranch } from "../../state/upload/types";
@@ -99,4 +99,14 @@ export const getCurrentUploadName = createSelector([
     }
 
     return currentUpload.name;
+});
+
+export const getCurrentUploadKey = createSelector([
+    getCurrentUpload,
+], (currentUpload?: CurrentUpload) => {
+    if (!currentUpload) {
+        return undefined;
+    }
+
+    return getUploadDraftKey(currentUpload.name, currentUpload.created);
 });

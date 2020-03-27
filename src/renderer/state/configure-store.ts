@@ -10,7 +10,7 @@ import { AnyAction, applyMiddleware, combineReducers, createStore } from "redux"
 import { createLogicMiddleware } from "redux-logic";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL, TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
-import { getCurrentUploadName } from "../containers/App/selectors";
+import { getCurrentUploadKey } from "../containers/App/selectors";
 import LabkeyClient from "../util/labkey-client";
 import MMSClient from "../util/mms-client";
 
@@ -75,8 +75,8 @@ const autoSaver = (store: any) => (next: any) => (action: AnyAction) => {
     let result = next(action);
     if (action.autoSave) {
         const nextState = store.getState();
-        const currentDraftName = getCurrentUploadName(store.getState()) || TEMP_UPLOAD_STORAGE_KEY;
-        storage.set(currentDraftName, nextState);
+        const currentDraftKey = getCurrentUploadKey(store.getState()) || TEMP_UPLOAD_STORAGE_KEY;
+        storage.set(currentDraftKey, nextState);
         result = next(
             addEvent(`Your draft was saved at ${moment().format("h:mm a")}`, AlertType.INFO, new Date())
         );

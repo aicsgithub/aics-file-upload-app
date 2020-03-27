@@ -5,15 +5,16 @@ import { userInfo } from "os";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
 
-import { INCOMPLETE_JOB_NAMES_KEY, TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
+import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
-import { getCurrentUploadName } from "../../containers/App/selectors";
+import { getCurrentUploadKey, getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
     addRequestToInProgress,
     clearUploadError,
+    closeModal,
     openModal,
     removeRequestFromInProgress,
     setAlert,
@@ -23,9 +24,9 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, updateIncompleteJobNames } from "../job/actions";
-import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
+import { getIncompleteJobNames } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import {
     deselectFiles,
@@ -51,7 +52,7 @@ import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     CANCEL_UPLOAD,
-    DRAFT_KEY,
+    getUploadDraftKey,
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
@@ -224,7 +225,7 @@ const initiateUploadLogic = createLogic({
                      rejectCb: ReduxLogicRejectCb) => {
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = getCurrentJobName(getState());
+            ctx.name = getCurrentUploadKey(getState());
             ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({
@@ -653,13 +654,14 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     type: UPDATE_FILES_TO_ARCHIVE,
 });
 
+// Saves what is currently in the upload wizard tab whether a new upload in progress or
+// a draft that was saved previously
 const saveUploadDraftLogic = createLogic({
     type: SAVE_UPLOAD_DRAFT,
     validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        const draft = storage.get(TEMP_UPLOAD_STORAGE_KEY);
         const upload = getUpload(getState());
-        if (isEmpty(upload) && isEmpty(draft)) {
+        if (isEmpty(upload)) {
             reject(setErrorAlert("Nothing to save"));
             return;
         }
@@ -670,16 +672,15 @@ const saveUploadDraftLogic = createLogic({
             return;
         }
 
-        const now = new Date();
-        const draftKey = `${DRAFT_KEY}.${draftName} ${now}`;
+        const currentUpload = getCurrentUpload(getState()); // this is populated if the draft was saved previously
+        const created = currentUpload ? currentUpload.created : new Date();
+        const draftKey: string | undefined = getUploadDraftKey(draftName, created);
+
         const metadata: CurrentUpload = {
-            created: now,
-            modified: now,
+            created,
+            modified: currentUpload ? currentUpload.modified : created,
             name: draftName,
         };
-        if (draft) {
-            metadata.created = draft.metadata.created;
-        }
 
         next({
             updates: {
@@ -715,21 +716,25 @@ const openUploadLogic = createLogic({
     type: OPEN_UPLOAD_DRAFT,
     validate: ({ action, ctx, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                reject: ReduxLogicRejectCb) => {
-        const draft = storage.get(`${DRAFT_KEY}.${action.payload}`);
+        const draft = storage.get(action.payload);
         ctx.draft = draft;
         if (!draft) {
             reject(setErrorAlert(`Could not find draft named ${action.payload}`));
             return;
         }
 
-        const nextAction = replaceUpload(draft);
+        const nextAction = replaceUpload(draft); // also close modal
         if (getCanSaveUploadDraft(getState())) {
             next(batchActions([
                 openModal("saveUploadDraft"),
+                closeModal("openUpload"),
                 setDeferredAction(nextAction),
             ]));
         } else {
-            next(nextAction);
+            next(batchActions([
+                nextAction,
+                closeModal("openUpload"),
+            ]));
         }
     },
 });
