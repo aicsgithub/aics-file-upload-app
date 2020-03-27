@@ -93,20 +93,15 @@ export const getFileToTags = createSelector([
 
 export const getCurrentUploadName = createSelector([
     getCurrentUpload,
-], (currentUpload?: CurrentUpload): string | undefined => {
-    if (!currentUpload || !currentUpload.name) {
-        return undefined;
-    }
+], (currentUpload?: CurrentUpload): string | undefined =>
+    currentUpload ? currentUpload.name : undefined
+);
 
-    return currentUpload.name;
-});
-
+// reasoning for this is so that job names also match draft keys.
+// If we just used draft name, we can't ensure that jobs are unique. If we include
+// the created datetime, we can be sure that the job name is unique.
 export const getCurrentUploadKey = createSelector([
     getCurrentUpload,
-], (currentUpload?: CurrentUpload) => {
-    if (!currentUpload) {
-        return undefined;
-    }
-
-    return getUploadDraftKey(currentUpload.name, currentUpload.created);
-});
+], (currentUpload?: CurrentUpload) =>
+    currentUpload ? getUploadDraftKey(currentUpload.name, currentUpload.created) : undefined
+);

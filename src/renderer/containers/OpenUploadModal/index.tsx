@@ -6,7 +6,9 @@ import * as moment from "moment";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
+
 import { OPEN_OPEN_UPLOAD_MODAL } from "../../../shared/constants";
+
 import { LONG_DATETIME_FORMAT } from "../../constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getOpenUploadModalVisible } from "../../state/feedback/selectors";
@@ -14,7 +16,6 @@ import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { gatherUploadDrafts } from "../../state/metadata/actions";
 import { getUploadDraftInfo } from "../../state/metadata/selectors";
 import { CurrentUpload, GatherUploadDraftsAction } from "../../state/metadata/types";
-
 import {
     State,
 } from "../../state/types";

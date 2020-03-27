@@ -7,8 +7,8 @@ import {
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
 } from "../types";
-import { clearDeferredAction, setDeferredAction } from "./actions";
 
+import { clearDeferredAction, setDeferredAction } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
 
