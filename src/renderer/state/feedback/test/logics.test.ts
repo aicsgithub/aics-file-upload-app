@@ -115,12 +115,13 @@ describe("Feedback logics", () => {
         });
     });
     describe("openTemplateEditorLogic", () => {
-        it("dispatches setDeferredAction and getTemplate", () => {
-            const { actions, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+        it("dispatches setDeferredAction and getTemplate", async () => {
+            const { actions, logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             expect(actions.includesMatch(setDeferredAction(clearTemplateDraft()))).to.be.false;
             expect(actions.includesMatch(getTemplate(1))).to.be.false;
 
             store.dispatch(openTemplateEditor(1));
+            await logicMiddleware.whenComplete();
 
             expect(actions.includesMatch(setDeferredAction(clearTemplateDraft()))).to.be.true;
             expect(actions.includesMatch(getTemplate(1))).to.be.true;
