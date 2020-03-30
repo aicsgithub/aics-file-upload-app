@@ -264,7 +264,7 @@ const getSubImageRows = (allMetadataForFile: UploadMetadataWithDisplayFields[],
                     allMetadataForSubImage.length > 1
                 );
                 subImageRows.push(subImageRow);
-                if (expandedRows[subImageRow.key]) { // todo ensure this works
+                if (expandedRows[subImageRow.key]) {
                     subImageRows.push(...getSubImageChannelRows(allMetadataForSubImage, subImageRowTreeDepth + 1,
                         subImageOnlyMetadata, template));
                 }
