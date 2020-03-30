@@ -42,7 +42,8 @@ import {
     OpenTemplateEditorAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
-    SetDeferredActionAction, SetUploadErrorAction,
+    SetDeferredActionAction,
+    SetUploadErrorAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
