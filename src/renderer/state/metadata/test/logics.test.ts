@@ -408,10 +408,10 @@ describe("Metadata logics", () => {
             // after
             expect(getAlert(store.getState())).to.not.be.undefined;
         });
-        it("doesn't request data if payload is empty", () => {
+        it("doesn't request data if payload is empty", async () => {
             const getPlatesByBarcodeStub = stub().rejects();
             sandbox.replace(labkeyClient, "getPlatesByBarcode", getPlatesByBarcodeStub);
-            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getBarcodeSearchResults(store.getState())).to.be.empty;
@@ -419,6 +419,7 @@ describe("Metadata logics", () => {
 
             // apply
             store.dispatch(requestBarcodeSearchResults("  "));
+            await logicMiddleware.whenComplete();
 
             // after
             expect(getBarcodeSearchResults(store.getState())).to.be.empty;
