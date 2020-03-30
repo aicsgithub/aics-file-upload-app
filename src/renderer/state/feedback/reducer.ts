@@ -49,7 +49,7 @@ import {
 } from "./types";
 
 export const httpStatusToMessage: Map<number, string> = new Map([
-    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server"],
+    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server."],
     [HTTP_STATUS.BAD_GATEWAY, "Bad Gateway Error: Labkey or MMS is down."],
 ]);
 

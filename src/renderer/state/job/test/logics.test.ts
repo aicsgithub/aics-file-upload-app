@@ -4,10 +4,9 @@ import { createSandbox, stub } from "sinon";
 import { JOB_STORAGE_KEY } from "../../../../shared/constants";
 
 import { SET_ALERT } from "../../feedback/constants";
-import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 
-import { createMockReduxStore, getApplicationMenu, logger, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { getApplicationMenu, logger } from "../../test/configure-mock-store";
 import {
     mockFailedUploadJob,
     mockState,
@@ -17,7 +16,6 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import { getActionFromBatch } from "../../util";
-import { updateIncompleteJobNames } from "../actions";
 import {
     FAILED_STATUSES,
     PENDING_STATUSES,
@@ -29,7 +27,6 @@ import {
     UPDATE_INCOMPLETE_JOB_NAMES,
 } from "../constants";
 import { getJobStatusesToInclude, mapJobsToActions } from "../logics";
-import { getIncompleteJobNames } from "../selectors";
 import { JobFilter } from "../types";
 
 describe("Job logics", () => {
@@ -201,26 +198,6 @@ describe("Job logics", () => {
                 expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
                 expect(setAlertAction.payload.message).to.equal("mockFailedUploadJob Failed");
             }
-        });
-    });
-
-    describe("updateIncompleteJobsLogic", () => {
-        it("Sets incomplete jobs", async () => {
-            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
-
-            // before
-            let state = store.getState();
-            expect(getAlert(state)).to.be.undefined;
-            expect(getIncompleteJobNames(state)).to.be.empty;
-
-            // apply
-            store.dispatch(updateIncompleteJobNames(["file1", "file2"]));
-
-            // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getAlert(state)).to.be.undefined;
-            expect(getIncompleteJobNames(state)).to.deep.equal(["file1", "file2"]);
         });
     });
 });

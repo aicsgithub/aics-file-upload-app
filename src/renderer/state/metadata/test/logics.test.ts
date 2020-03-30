@@ -426,4 +426,10 @@ describe("Metadata logics", () => {
             expect(getPlatesByBarcodeStub.called).to.be.false;
         });
     });
+    describe("gatherUploadDraftsLogic", () => {
+        it("updates payload with drafts found in localStorage", () => {
+
+        });
+        it("")
+    });
 });

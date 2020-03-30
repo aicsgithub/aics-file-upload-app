@@ -385,7 +385,9 @@ const exportFileMetadataLogic = createLogic({
 });
 
 const gatherUploadDraftsLogic = createLogic({
-    transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    type: GATHER_UPLOAD_DRAFTS,
+    validate: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
         try {
             const drafts: {[draftKey: string]: {metadata: CurrentUpload, state: State}} = storage.get(DRAFT_KEY);
             const draftInfo = !!drafts ? Object.values(drafts).map((d) => d.metadata).filter((m) => !!m) : [];
@@ -394,10 +396,9 @@ const gatherUploadDraftsLogic = createLogic({
                 payload: draftInfo,
             });
         } catch (e) {
-            next(setWarningAlert("Failed to get existing upload draft names"));
+            reject(setWarningAlert("Failed to get existing upload draft names"));
         }
     },
-    type: GATHER_UPLOAD_DRAFTS,
 });
 
 export default [
