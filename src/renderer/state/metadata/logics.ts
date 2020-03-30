@@ -142,7 +142,8 @@ const getBarcodeSearchResultsLogic = createLogic({
         const { payload } = action;
         const searchStr = trim(payload);
         if (!searchStr) {
-            reject(action);
+            // Redux logic types don't allow undefined as an argument
+            reject({type: "ignore"});
         } else {
             next({
                 ...action,
