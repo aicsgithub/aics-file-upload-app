@@ -16,9 +16,7 @@ import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { gatherUploadDrafts } from "../../state/metadata/actions";
 import { getUploadDraftInfo } from "../../state/metadata/selectors";
 import { CurrentUpload, GatherUploadDraftsAction } from "../../state/metadata/types";
-import {
-    State,
-} from "../../state/types";
+import { State } from "../../state/types";
 import { openUploadDraft } from "../../state/upload/actions";
 import { getUploadDraftKey } from "../../state/upload/constants";
 import { OpenUploadDraftAction } from "../../state/upload/types";

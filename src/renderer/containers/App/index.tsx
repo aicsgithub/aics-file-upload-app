@@ -1,7 +1,6 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message, notification, Tabs } from "antd";
 import { ipcRenderer, remote } from "electron";
-import * as Logger from "js-logger";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -34,7 +33,6 @@ import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
-import { setSwitchEnvEnabled } from "../../state/route/logics";
 import { getPage, getView } from "../../state/route/selectors";
 import { AppPageConfig, CloseUploadTabAction, Page, SelectViewAction } from "../../state/route/types";
 import {
@@ -169,10 +167,6 @@ class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
-        const menu = remote.Menu.getApplicationMenu();
-        if (menu) {
-            setSwitchEnvEnabled(menu, true, Logger);
-        }
         ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
             const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
