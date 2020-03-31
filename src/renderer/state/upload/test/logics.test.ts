@@ -12,7 +12,7 @@ import {
 import { AlertType } from "../../feedback/types";
 import {
     getIncompleteJobNames,
-    getIncompleteJobNamesContainsCurrentJobName,
+    getCurrentJobIsIncomplete,
     getNumberOfPendingJobs,
 } from "../../job/selectors";
 import { getCurrentUpload } from "../../metadata/selectors";
@@ -384,7 +384,7 @@ describe("Upload logics", () => {
             // after
             await logicMiddleware.whenComplete();
             state = store.getState();
-            expect(getIncompleteJobNamesContainsCurrentJobName(state)).to.be.true;
+            expect(getCurrentJobIsIncomplete(state)).to.be.true;
             expect(getUploadError(state)).to.be.undefined;
             expect(getNumberOfPendingJobs(state)).to.equal(1);
         });
