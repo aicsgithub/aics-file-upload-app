@@ -105,6 +105,13 @@ export const logger = {
     warn: stub(),
 };
 
+export const storage = {
+    clear: stub(),
+    get: stub(),
+    has: stub(),
+    set: stub(),
+};
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
     dialog,
     fms,
@@ -117,12 +124,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
     labkeyClient,
     logger,
     mmsClient,
-    storage: {
-        clear: stub(),
-        get: stub(),
-        has: stub(),
-        set: stub(),
-    },
+    storage,
 };
 
 const reducers = {
