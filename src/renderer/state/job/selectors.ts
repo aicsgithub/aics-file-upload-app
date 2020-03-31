@@ -81,11 +81,13 @@ export const getCurrentJobName = createSelector([
     if (isEmpty(upload)) {
         return undefined;
     }
-    return currentUpload ? `${currentUpload.name} ${currentUpload.created}` :
-        `${fileNames} ${moment().format(DATETIME_FORMAT)}`;
+    const created = currentUpload ? moment(currentUpload.created).format(DATETIME_FORMAT) :
+        moment().format(DATETIME_FORMAT);
+    return currentUpload ? `${currentUpload.name} ${created}` :
+        `${fileNames} ${created}`;
 });
 
-export const getIncompleteJobNamesContainsCurrentJobName = createSelector([
+export const getCurrentJobIsIncomplete = createSelector([
     getIncompleteJobNames,
     getCurrentJobName,
 ], (incompleteJobNames: string[], currentJobName?: string): boolean => {
@@ -93,7 +95,7 @@ export const getIncompleteJobNamesContainsCurrentJobName = createSelector([
 });
 
 export const getUploadInProgress = createSelector([
-    getIncompleteJobNamesContainsCurrentJobName,
+    getCurrentJobIsIncomplete,
     getPendingJobs,
     getCurrentJobName,
 ], (currentJobIsInProgress: boolean, pendingJobs: PendingJob[], currentJobName?: string): boolean => {
