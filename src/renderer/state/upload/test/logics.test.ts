@@ -11,8 +11,8 @@ import {
 } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import {
-    getIncompleteJobNames,
     getCurrentJobIsIncomplete,
+    getIncompleteJobNames,
     getNumberOfPendingJobs,
 } from "../../job/selectors";
 import { getCurrentUpload } from "../../metadata/selectors";
