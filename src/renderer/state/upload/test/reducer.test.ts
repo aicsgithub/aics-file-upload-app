@@ -21,7 +21,7 @@ describe("upload reducer", () => {
     });
     describe("updateUpload", () => {
         it("does not change anything if key doesn't exist on upload", () => {
-            const result = reducer(getMockStateWithHistory({}), updateUpload("foo",{ wellIds: [1, 2] }));
+            const result = reducer(getMockStateWithHistory({}), updateUpload("foo", { wellIds: [1, 2] }));
             const { present } = result;
             expect(present).to.be.empty;
         });
