@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { forEach, includes, isEmpty, isNil, map, trim, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
@@ -8,7 +7,7 @@ import { createLogic } from "redux-logic";
 import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
-import { getCurrentUploadKey, getCurrentUploadName } from "../../containers/App/selectors";
+import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
 import {
@@ -24,7 +23,7 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, updateIncompleteJobNames } from "../job/actions";
-import { getIncompleteJobNames } from "../job/selectors";
+import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
@@ -148,13 +147,32 @@ const applyTemplateLogic = createLogic({
         const { clearAnnotations, templateId } = action.payload;
         ctx.templateId = templateId;
 
-        if (clearAnnotations) {
-            const uploads = getUpload(getState());
-            map(uploads,  (upload: UploadMetadata, filepath: string) => {
-                // By only grabbing the initial fields of the upload we can remove old schema columns
-                // We're also apply the new templateId now
-                const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
-                action.payload.uploads[getUploadRowKey({file: filepath})] = {
+        const uploads = getUpload(getState());
+        forEach(uploads,  (upload: UploadMetadata) => {
+            // By only grabbing the initial fields of the upload we can remove old schema columns
+            // We're also apply the new templateId now
+            const {
+                barcode,
+                channelId,
+                file,
+                notes,
+                positionIndex,
+                scene,
+                shouldBeInArchive,
+                shouldBeInLocal,
+                subImageName,
+                wellIds,
+                workflows,
+            } = upload;
+            const key = getUploadRowKey({
+                channelId,
+                file,
+                positionIndex,
+                scene,
+                subImageName,
+            });
+            if (clearAnnotations) {
+                action.payload.uploads[key] = {
                     barcode,
                     file: upload.file,
                     notes,
@@ -164,8 +182,14 @@ const applyTemplateLogic = createLogic({
                     wellIds,
                     workflows,
                 };
-            });
-        }
+            } else {
+                action.payload.uploads[key] = {
+                    ...upload,
+                    templateId,
+                };
+            }
+
+        });
 
         next(action);
     },
@@ -173,15 +197,16 @@ const applyTemplateLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
-    process: async ({ctx, fms, getState, ipcRenderer}: ReduxLogicProcessDependencies,
+    process: async ({ctx, fms, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const now = new Date();
+        const uploads = getUploadPayload(getState());
+        const { jobName } = ctx;
+
         try {
-            // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
-            // page until we call it successfully.
             const payload = getUploadPayload(getState());
             const { job: { incompleteJobNames } } = getState();
-            const updatedIncompleteJobNames = [...incompleteJobNames, ctx.name];
+            const updatedIncompleteJobNames = [...incompleteJobNames, jobName];
 
             dispatch(
                 {
@@ -190,10 +215,10 @@ const initiateUploadLogic = createLogic({
                             created: now,
                             currentStage: "Pending",
                             jobId: (now).toLocaleString(),
-                            jobName: ctx.name,
+                            jobName,
                             modified: now,
                             status: "WAITING",
-                            uploads: ctx.uploads,
+                            uploads,
                             user: userInfo().username,
                         }),
                         updateIncompleteJobNames(updatedIncompleteJobNames),
@@ -205,28 +230,31 @@ const initiateUploadLogic = createLogic({
                     writeToStore: true,
                 }
             );
-            await fms.uploadFiles(payload, ctx.name);
+            await fms.uploadFiles(payload, jobName);
         } catch (e) {
             const error = `Upload Failed: ${e.message}`;
-            Logger.error(error);
+            logger.error(error);
             dispatch(batchActions([
                 setErrorAlert(error),
-                removePendingJobs([ctx.name]),
-                updateIncompleteJobNames(without(getIncompleteJobNames(getState()), ctx.name)),
+                removePendingJobs([jobName]),
+                updateIncompleteJobNames(without(getIncompleteJobNames(getState()), jobName)),
                 setUploadError(error),
             ]));
         }
 
-        dispatch(removePendingJobs(ctx.name));
         done();
     },
     type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                      rejectCb: ReduxLogicRejectCb) => {
+        ctx.jobName = getCurrentJobName(getState());
+        if (!ctx.jobName) {
+            rejectCb({ type: "ignore" });
+            return;
+        }
+
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = getCurrentUploadKey(getState());
-            ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({
                     message: "Starting upload",
@@ -244,7 +272,7 @@ const initiateUploadLogic = createLogic({
 });
 
 const cancelUploadLogic = createLogic({
-    process: async ({action, ctx, jssClient, getState}: ReduxLogicProcessDependencies,
+    process: async ({action, ctx, jssClient, getState, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
@@ -267,7 +295,7 @@ const cancelUploadLogic = createLogic({
                 type: AlertType.SUCCESS,
             }));
         } catch (e) {
-            Logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
+            logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
             dispatch(setAlert({
                 message: `Cancel upload ${uploadJob.jobName} failed: ${e.message}`,
                 type: AlertType.ERROR,
@@ -306,7 +334,7 @@ const cancelUploadLogic = createLogic({
 });
 
 const retryUploadLogic = createLogic({
-    process: async ({action, ctx, fms, getState}: ReduxLogicProcessDependencies,
+    process: async ({action, ctx, fms, getState, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
@@ -324,7 +352,7 @@ const retryUploadLogic = createLogic({
                 type: AlertType.SUCCESS,
             }));
         } catch (e) {
-            Logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
+            logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
             dispatch(setAlert({
                 message: `Retry upload ${uploadJob.jobName} failed: ${e.message}`,
                 type: AlertType.ERROR,
@@ -567,7 +595,7 @@ const convertDatePickerValueToDate = (d: any) => {
 // Additionally we take care of converting moment dates back to dates.
 const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
 const updateUploadLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({action, getState, logger}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const {upload} = action.payload;
         const state = getState();
         const template = getAppliedTemplate(state);
@@ -610,7 +638,7 @@ const updateUploadLogic = createLogic({
                                 value = parseStringArray(value);
                             }
                         } catch (e) {
-                            Logger.error("Something went wrong while updating metadata: ", e.message);
+                            logger.error("Something went wrong while updating metadata: ", e.message);
                         }
                     }
                 }
@@ -685,12 +713,10 @@ const saveUploadDraftLogic = createLogic({
         next({
             updates: {
                 [draftKey]: { metadata, state: getState() },
+                ...clearUploadDraft().updates,
             },
             writeToStore: true,
-            ...batchActions([
-                setCurrentUpload(metadata),
-                clearUploadDraft(),
-            ]),
+            ...setCurrentUpload(metadata),
         });
     },
 });
