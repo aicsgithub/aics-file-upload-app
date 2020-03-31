@@ -14,7 +14,7 @@ import { closeModal, openModal } from "../../state/feedback/actions";
 import { getOpenUploadModalVisible } from "../../state/feedback/selectors";
 import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { gatherUploadDrafts } from "../../state/metadata/actions";
-import { getUploadDraftInfo } from "../../state/metadata/selectors";
+import { getUploadDrafts } from "../../state/metadata/selectors";
 import { CurrentUpload, GatherUploadDraftsAction } from "../../state/metadata/types";
 import { State } from "../../state/types";
 import { openUploadDraft } from "../../state/upload/actions";
@@ -148,7 +148,7 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
 
 function mapStateToProps(state: State) {
     return {
-        drafts: getUploadDraftInfo(state),
+        drafts: getUploadDrafts(state),
         visible: getOpenUploadModalVisible(state),
     };
 }
