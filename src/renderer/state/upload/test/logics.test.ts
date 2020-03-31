@@ -3,14 +3,25 @@ import { get, keys } from "lodash";
 import * as moment from "moment";
 import { createSandbox, stub } from "sinon";
 
-import { getAlert } from "../../feedback/selectors";
+import {
+    getAlert,
+    getOpenUploadModalVisible,
+    getSaveUploadDraftModalVisible,
+    getUploadError,
+} from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
+import {
+    getIncompleteJobNames,
+    getIncompleteJobNamesContainsCurrentJobName,
+    getNumberOfPendingJobs,
+} from "../../job/selectors";
+import { getCurrentUpload } from "../../metadata/selectors";
 import { getSelectedBarcode, getSelectedFiles } from "../../selection/selectors";
-import { createMockReduxStore, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, fms, mockReduxLogicDeps, storage } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
     mockDateAnnotation,
-    mockNumberAnnotation,
+    mockNumberAnnotation, mockState,
     mockTemplateStateBranch,
     mockTemplateWithManyValues,
     mockTextAnnotation,
@@ -21,6 +32,8 @@ import {
     applyTemplate,
     associateFilesAndWells,
     initiateUpload,
+    openUploadDraft,
+    saveUploadDraft,
     undoFileWellAssociation,
     updateFilesToArchive,
     updateFilesToStoreOnIsilon,
@@ -228,27 +241,65 @@ describe("Upload logics", () => {
     });
 
     describe("applyTemplateLogic", () => {
-        it("updates uploads with a templateId", async () => {
-            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
-            const file1 = "/path1";
-            const file2 = "/path2";
-            const wellId = 1;
+        const file = "/path/to/file1";
+        const key = getUploadRowKey({file});
+        const wellId = 1;
+        const templateId = 2;
+        const favoriteColor = "red";
+
+        let mockStateWithFavoriteColor: State;
+
+        beforeEach(() => {
+            mockStateWithFavoriteColor = {
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [key]: {
+                        barcode: "1234",
+                        favoriteColor,
+                        file,
+                        key,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: true,
+                        wellIds: [wellId],
+                    },
+                }),
+            };
+        });
+        it("updates uploads with a templateId and clears template-specific annotations by default", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithFavoriteColor);
 
             // before
             const state = store.getState();
             expect(getAppliedTemplateId(state)).to.be.undefined;
-            store.dispatch(associateFilesAndWells([{file: file1}, {file: file2}]));
+            expect(getUpload(state)[key].favoriteColor).to.equal(favoriteColor);
 
             // apply
-            store.dispatch(applyTemplate(1));
+            store.dispatch(applyTemplate(templateId));
 
             // after
             await logicMiddleware.whenComplete();
             const upload = getUpload(store.getState());
-            expect(get(upload, [file1, "templateId"])).to.equal(1);
-            expect(get(upload, [file2, "templateId"])).to.equal(1);
-            expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
-            expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+            expect(get(upload, [key, "templateId"])).to.equal(templateId);
+            expect(get(upload, [key, "wellIds", 0])).to.equal(wellId);
+            expect(getUpload(store.getState())[key].favoriteColor).to.be.undefined;
+        });
+        it("does not clear template-related annotations if clearAnnotations=false", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithFavoriteColor);
+
+            // before
+            const state = store.getState();
+            expect(getAppliedTemplateId(state)).to.be.undefined;
+            expect(getUpload(state)[key].favoriteColor).to.equal(favoriteColor);
+
+            // apply
+            store.dispatch(applyTemplate(templateId, false));
+
+            // after
+            await logicMiddleware.whenComplete();
+            const upload = getUpload(store.getState());
+            expect(get(upload, [key, "templateId"])).to.equal(templateId);
+            expect(get(upload, [key, "wellIds", 0])).to.equal(wellId);
+            expect(getUpload(store.getState())[key].favoriteColor).to.equal(favoriteColor);
         });
     });
 
@@ -306,6 +357,64 @@ describe("Upload logics", () => {
             if (alert) {
                 expect(alert.type).to.equal(AlertType.ERROR);
             }
+        });
+        it("adds job to incomplete jobs, clears Upload Error, and adds pending job", async () => {
+            sandbox.replace(fms, "validateMetadata", stub().resolves());
+            sandbox.replace(fms, "uploadFiles", stub().resolves());
+            const { logicMiddleware, store } = createMockReduxStore(
+                {
+                    ...nonEmptyStateForInitiatingUpload,
+                    feedback: {
+                        ...nonEmptyStateForInitiatingUpload.feedback,
+                        uploadError: "foo",
+                    },
+                },
+                mockReduxLogicDeps
+            );
+
+            // before
+            let state = store.getState();
+            expect(getIncompleteJobNames(state)).to.be.empty;
+            expect(getUploadError(state)).to.not.be.undefined;
+            expect(getNumberOfPendingJobs(state)).to.equal(0);
+
+            // apply
+            store.dispatch(initiateUpload());
+
+            // after
+            await logicMiddleware.whenComplete();
+            state = store.getState();
+            expect(getIncompleteJobNamesContainsCurrentJobName(state)).to.be.true;
+            expect(getUploadError(state)).to.be.undefined;
+            expect(getNumberOfPendingJobs(state)).to.equal(1);
+        });
+        it("sets error alert, removes pending job, updates incomplete job names, and sets upload error" +
+            " if upload fails", async () => {
+            const error = "bar";
+            sandbox.replace(fms, "validateMetadata", stub().resolves());
+            sandbox.replace(fms, "uploadFiles", stub().rejects(new Error(error)));
+            const { logicMiddleware, store } = createMockReduxStore(
+                nonEmptyStateForInitiatingUpload,
+                mockReduxLogicDeps
+            );
+
+            // before
+            let state = store.getState();
+            expect(getAlert(state)).to.be.undefined;
+            expect(getUploadError(state)).to.be.undefined;
+            expect(getNumberOfPendingJobs(state)).to.equal(0);
+            expect(getIncompleteJobNames(state)).to.be.empty;
+
+            // apply
+            store.dispatch(initiateUpload());
+            await logicMiddleware.whenComplete();
+
+            // after
+            state = store.getState();
+            expect(getAlert(state)).to.not.be.undefined;
+            expect(getUploadError(state)).to.not.be.undefined;
+            expect(getNumberOfPendingJobs(state)).to.equal(0);
+            expect(getIncompleteJobNames(state)).to.be.empty;
         });
     });
     describe("updateSubImagesLogic", () => {
@@ -1141,6 +1250,151 @@ describe("Upload logics", () => {
             // after
             await logicMiddleware.whenComplete();
             expect(getFileToArchive(store.getState())["/path/to/file1"]).to.be.false;
+        });
+    });
+    describe("saveUploadDraftLogic", () => {
+        it("sets error alert if upload is empty", async () => {
+            const { store, logicMiddleware } = createMockReduxStore({
+                ...mockState,
+                upload: getMockStateWithHistory({}),
+            });
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(saveUploadDraft("test"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            const alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+                expect(alert.message).to.equal("Nothing to save");
+            }
+        });
+        it("sets error alert if a draftName cannot be resolved", async () => {
+            const { store, logicMiddleware } = createMockReduxStore(mockState);
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(saveUploadDraft(" "));
+            await logicMiddleware.whenComplete();
+
+            // after
+            const alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+                expect(alert.message).to.equal("Draft name cannot be empty");
+            }
+        });
+        it("sets current upload", async () => {
+            const { store, logicMiddleware } = createMockReduxStore(mockState);
+
+            // before
+            expect(getCurrentUpload(store.getState())).to.be.undefined;
+            // apply
+            store.dispatch(saveUploadDraft("test"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            const currentUpload = getCurrentUpload(store.getState());
+            expect(getCurrentUpload(store.getState())).to.not.be.undefined;
+            if (currentUpload) {
+                expect(currentUpload.name).to.equal("test");
+            }
+        });
+    });
+    describe("openUploadLogic", () => {
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("sets error alert if local storage does not contain draft", async () => {
+            const storageGetStub = stub().returns(undefined);
+            sandbox.replace(storage, "get", storageGetStub);
+            const { store, logicMiddleware } = createMockReduxStore(mockState);
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(openUploadDraft("test"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            const alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
+            if (alert) {
+                expect(alert.type).to.equal(AlertType.ERROR);
+                expect(alert.message).to.equal("Could not find draft named test");
+            }
+        });
+        it("opens saveUploadDraft modal if a user is currently working on an upload", async () => {
+            const storageGetStub = stub().returns({
+                metadata: {
+                    created: new Date(),
+                    modified: new Date(),
+                    name: "test",
+                },
+                state: mockState,
+            });
+            sandbox.replace(storage, "get", storageGetStub);
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+                feedback: {
+                    ...mockState.feedback,
+                    visibleModals: ["openUpload"],
+                },
+            });
+
+            // before
+            expect(getOpenUploadModalVisible(store.getState())).to.be.true;
+            expect(getSaveUploadDraftModalVisible(store.getState())).to.be.false;
+
+            // apply
+            store.dispatch(openUploadDraft("test"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(getOpenUploadModalVisible(store.getState())).to.be.false;
+            expect(getSaveUploadDraftModalVisible(store.getState())).to.be.true;
+         });
+        it("closes openUpload modal if nothing to save", async () => {
+            const storageGetStub = stub().returns({
+                metadata: {
+                    created: new Date(),
+                    modified: new Date(),
+                    name: "test",
+                },
+                state: mockState,
+            });
+            sandbox.replace(storage, "get", storageGetStub);
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+                feedback: {
+                    ...mockState.feedback,
+                    visibleModals: ["openUpload"],
+                },
+                upload: getMockStateWithHistory({}),
+            });
+
+            // before
+            expect(getOpenUploadModalVisible(store.getState())).to.be.true;
+
+            // apply
+            store.dispatch(openUploadDraft("test"));
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(getOpenUploadModalVisible(store.getState())).to.be.false;
+            expect(getSaveUploadDraftModalVisible(store.getState())).to.be.false;
         });
     });
 });
