@@ -10,7 +10,7 @@ import { Annotation, AnnotationOption, AnnotationType, AnnotationWithOptions, Co
 import { State } from "../types";
 
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
-import { SearchResultRow, SearchResultsHeader } from "./types";
+import { CurrentUpload, SearchResultRow, SearchResultsHeader } from "./types";
 
 // BASIC SELECTORS
 export const getMetadata = (state: State) => state.metadata;
@@ -32,6 +32,8 @@ export const getChannels = (state: State) => state.metadata.channels;
 export const getFileMetadataSearchResults = (state: State) => state.metadata.fileMetadataSearchResults;
 export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) => state.metadata.fileMetadataForJob;
+export const getUploadDrafts = (state: State) => state.metadata.uploadDrafts;
+export const getCurrentUpload = (state: State) => state.metadata.currentUpload;
 
 // Some annotations are used purely for displaying data in the File Explorer, here we exclude those
 export const getAnnotations = createSelector([
@@ -148,4 +150,10 @@ export const getAnnotationsWithAnnotationOptions = createSelector([
             annotationOptions: options.length ? options : undefined,
         };
     });
+});
+
+export const getUploadDraftNames = createSelector([
+    getUploadDrafts,
+], (drafts: CurrentUpload[]) => {
+    return drafts.map((d) => d.name);
 });

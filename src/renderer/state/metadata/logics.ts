@@ -9,7 +9,13 @@ import { createLogic } from "redux-logic";
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
+import {
+    addRequestToInProgress,
+    removeRequestFromInProgress,
+    setAlert,
+    setErrorAlert,
+    setWarningAlert
+} from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 
@@ -19,12 +25,15 @@ import {
     ReduxLogicProcessDependencies,
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
+    State,
 } from "../types";
+import { DRAFT_KEY } from "../upload/constants";
 import { batchActions } from "../util";
 import { receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
+    GATHER_UPLOAD_DRAFTS,
     GET_ANNOTATIONS,
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
@@ -34,6 +43,7 @@ import {
     SEARCH_FILE_METADATA,
 } from "./constants";
 import { getAnnotationLookups, getAnnotations, getLookups, getSearchResultsHeader } from "./selectors";
+import { CurrentUpload } from "./types";
 
 const createBarcodeLogic = createLogic({
     transform: async ({getState, action, mmsClient}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -132,7 +142,8 @@ const getBarcodeSearchResultsLogic = createLogic({
         const { payload } = action;
         const searchStr = trim(payload);
         if (!searchStr) {
-            reject(action);
+            // Redux logic types don't allow undefined as an argument
+            reject({type: "ignore"});
         } else {
             next({
                 ...action,
@@ -373,6 +384,23 @@ const exportFileMetadataLogic = createLogic({
     type: EXPORT_FILE_METADATA,
 });
 
+const gatherUploadDraftsLogic = createLogic({
+    type: GATHER_UPLOAD_DRAFTS,
+    validate: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        try {
+            const drafts: {[draftKey: string]: {metadata: CurrentUpload, state: State}} = storage.get(DRAFT_KEY);
+            const draftInfo = !!drafts ? Object.values(drafts).map((d) => d.metadata).filter((m) => !!m) : [];
+            next({
+                ...action,
+                payload: draftInfo,
+            });
+        } catch (e) {
+            reject(setWarningAlert("Failed to get existing upload draft names"));
+        }
+    },
+});
+
 export default [
     createBarcodeLogic,
     exportFileMetadataLogic,
@@ -383,4 +411,5 @@ export default [
     requestOptionsForLookupLogic,
     requestTemplatesLogicLogic,
     searchFileMetadataLogic,
+    gatherUploadDraftsLogic,
 ];

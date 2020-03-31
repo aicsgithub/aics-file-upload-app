@@ -17,15 +17,18 @@ export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 
 // emitted by main process when user selects File > New > Template
 export const OPEN_TEMPLATE_EDITOR = "OPEN_TEMPLATE_EDITOR";
-export const CLOSE_TEMPLATE_EDITOR = "CLOSE_TEMPLATE_EDITOR";
+
+// emitted by main process when user selects File > Open > Upload Draft
+export const OPEN_OPEN_UPLOAD_MODAL = "OPEN_OPEN_UPLOAD_MODAL";
+
+// emitted by main process when user selects File > Save Upload Draft
+export const SAVE_UPLOAD = "SAVE_UPLOAD";
 
 // emitted by main process when user selects File > Open > Template
 export const OPEN_OPEN_TEMPLATE_MODAL = "OPEN_OPEN_TEMPLATE_MODAL";
-export const CLOSE_OPEN_TEMPLATE_MODAL = "CLOSE_OPEN_TEMPLATE_MODAL";
 
 // emitted by main process when user selects File > Settings
 export const OPEN_SETTINGS_EDITOR = "OPEN_SETTINGS_MODAL";
-export const CLOSE_SETTINGS_EDITOR = "CLOSE_SETTINGS_MODAL";
 
 // User settings
 export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
@@ -35,3 +38,5 @@ export const LIMS_PROTOCOL = process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "
 // User setting storage
 export const USER_SETTINGS_KEY = "userSettings";
 export const JOB_STORAGE_KEY = "job";
+export const INCOMPLETE_JOB_NAMES_KEY = `${JOB_STORAGE_KEY}.incompleteJobNames`;
+export const TEMP_UPLOAD_STORAGE_KEY = "upload";

@@ -1,19 +1,30 @@
-import { uniq } from "lodash";
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
+import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { SelectionStateBranch } from "../selection/types";
 import {
-    TypeToDescriptionMap } from "../types";
+    HTTP_STATUS,
+    TypeToDescriptionMap,
+} from "../types";
 import { makeReducer } from "../util";
 
 import {
     ADD_EVENT,
     ADD_REQUEST_IN_PROGRESS,
     CLEAR_ALERT,
+    CLEAR_DEFERRED_ACTION,
+    CLEAR_UPLOAD_ERROR,
+    CLOSE_MODAL,
     CLOSE_SET_MOUNT_POINT_NOTIFICATION,
+    OPEN_MODAL,
     OPEN_SET_MOUNT_POINT_NOTIFICATION,
     REMOVE_REQUEST_IN_PROGRESS,
     SET_ALERT,
+    SET_DEFERRED_ACTION,
+    SET_UPLOAD_ERROR,
     START_LOADING,
     STOP_LOADING,
 } from "./constants";
@@ -21,38 +32,69 @@ import {
     AddEventAction,
     AddRequestInProgressAction,
     ClearAlertAction,
+    ClearDeferredAction,
+    ClearUploadErrorAction,
+    CloseModalAction,
     CloseSetMountPointNotificationAction,
     FeedbackStateBranch,
+    OpenModalAction,
     OpenSetMountPointNotificationAction,
+    OpenTemplateEditorAction,
     RemoveRequestInProgressAction,
     SetAlertAction,
+    SetDeferredActionAction,
+    SetUploadErrorAction,
     StartLoadingAction,
     StopLoadingAction,
 } from "./types";
 
+export const httpStatusToMessage: Map<number, string> = new Map([
+    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server."],
+    [HTTP_STATUS.BAD_GATEWAY, "Bad Gateway Error: Labkey or MMS is down."],
+]);
+
 export const initialState: FeedbackStateBranch = {
+    deferredAction: undefined,
     events: [],
     isLoading: false,
     requestsInProgress: [],
     setMountPointNotificationVisible: false,
+    uploadError: undefined,
+    visibleModals: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
     [CLEAR_ALERT]: {
         accepts: (action: AnyAction): action is ClearAlertAction => action.type === CLEAR_ALERT,
         perform: (state: FeedbackStateBranch) => {
+            const { alert } = state;
+            if (!alert) {
+                return state;
+            }
+
+            const { message, type } = alert;
+            const event = {
+                date: new Date(),
+                message,
+                type,
+            };
             return {
                 ...state,
                 alert: undefined,
+                events: [...state.events, event],
             };
         },
     },
     [SET_ALERT]: {
         accepts: (action: AnyAction): action is SetAlertAction => action.type === SET_ALERT,
-        perform: (state: FeedbackStateBranch, action: SetAlertAction) => {
+        perform: (state: FeedbackStateBranch, {payload}: SetAlertAction) => {
+            const updatedPayload = { ...payload };
+            if (payload.statusCode && httpStatusToMessage.has(payload.statusCode) && !payload.message) {
+                updatedPayload.message = httpStatusToMessage.get(payload.statusCode);
+            }
             return {
                 ...state,
-                alert: action.payload,
+                alert: updatedPayload,
             };
         },
     },
@@ -116,6 +158,65 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             setMountPointNotificationVisible: false,
+        }),
+    },
+    [OPEN_MODAL]: {
+        accepts: (action: AnyAction): action is OpenModalAction => action.type === OPEN_MODAL,
+        perform: (state: FeedbackStateBranch, action: OpenModalAction) => ({
+            ...state,
+            visibleModals: uniq([...state.visibleModals, action.payload]),
+        }),
+    },
+    [CLOSE_MODAL]: {
+        accepts: (action: AnyAction): action is CloseModalAction => action.type === CLOSE_MODAL,
+        perform: (state: FeedbackStateBranch, action: CloseModalAction) => ({
+            ...state,
+            visibleModals: without(state.visibleModals, action.payload),
+        }),
+    },
+    [OPEN_TEMPLATE_EDITOR]: {
+        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            visibleModals: uniq([...state.visibleModals, "templateEditor"]),
+        }),
+    },
+    [SET_DEFERRED_ACTION]: {
+        accepts: (action: AnyAction): action is SetDeferredActionAction => action.type === SET_DEFERRED_ACTION,
+        perform: (state: FeedbackStateBranch, action: SetDeferredActionAction) => ({
+            ...state,
+            deferredAction: action.payload,
+        }),
+    },
+    [CLEAR_DEFERRED_ACTION]: {
+        accepts: (action: AnyAction): action is ClearDeferredAction => action.type === CLEAR_DEFERRED_ACTION,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            deferredAction: undefined,
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            setMountPointNotificationVisible: false,
+        }),
+    },
+    [SET_UPLOAD_ERROR]: {
+        accepts: (action: AnyAction): action is SetUploadErrorAction =>
+            action.type === SET_UPLOAD_ERROR,
+        perform: (state: FeedbackStateBranch, action: SetUploadErrorAction) => ({
+            ...state,
+            uploadError: action.payload,
+        }),
+    },
+    [CLEAR_UPLOAD_ERROR]: {
+        accepts: (action: AnyAction): action is ClearUploadErrorAction =>
+            action.type === CLEAR_UPLOAD_ERROR,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            uploadError: undefined,
         }),
     },
 };

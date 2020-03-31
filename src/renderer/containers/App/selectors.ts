@@ -1,12 +1,12 @@
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
-import { getImagingSessions } from "../../state/metadata/selectors";
-import { ImagingSession } from "../../state/metadata/types";
+import { getCurrentUpload, getImagingSessions } from "../../state/metadata/selectors";
+import { CurrentUpload, ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
 import { getAllPlates, getAllWells } from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
-import { isFileRow } from "../../state/upload/constants";
+import { getUploadDraftKey, isFileRow } from "../../state/upload/constants";
 
 import { getUpload, getWellLabelAndImagingSessionName } from "../../state/upload/selectors";
 import { FileTag, FileTagType, UploadMetadata, UploadStateBranch } from "../../state/upload/types";
@@ -90,3 +90,18 @@ export const getFileToTags = createSelector([
     });
     return result;
 });
+
+export const getCurrentUploadName = createSelector([
+    getCurrentUpload,
+], (currentUpload?: CurrentUpload): string | undefined =>
+    currentUpload ? currentUpload.name : undefined
+);
+
+// reasoning for this is so that job names also match draft keys.
+// If we just used draft name, we can't ensure that jobs are unique. If we include
+// the created datetime, we can be sure that the job name is unique.
+export const getCurrentUploadKey = createSelector([
+    getCurrentUpload,
+], (currentUpload?: CurrentUpload) =>
+    currentUpload ? getUploadDraftKey(currentUpload.name, currentUpload.created) : undefined
+);

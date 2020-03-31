@@ -5,18 +5,14 @@ import undoable, {
     UndoableOptions,
 } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
-import {
-    CLOSE_OPEN_TEMPLATE_MODAL,
-    CLOSE_SETTINGS_EDITOR,
-    CLOSE_TEMPLATE_EDITOR,
-    OPEN_OPEN_TEMPLATE_MODAL,
-    OPEN_SETTINGS_EDITOR,
-    OPEN_TEMPLATE_EDITOR,
-} from "../../../shared/constants";
 import {
     ADD_STAGE_FILES,
     CLEAR_SELECTION_HISTORY,
@@ -39,15 +35,18 @@ import {
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
+    getExpandedUploadJobRows,
+    getFolderTreeOpen,
+    getSelectedBarcode,
+    getSelectedImagingSessionId,
+    getSelectedImagingSessionIds,
+    getSelectedPlates,
+    getWells,
+} from "./selectors";
+import {
     AddStageFilesAction,
     ClearStagedFilesAction,
-    CloseOpenTemplateModalAction,
-    CloseSettingsEditorAction,
-    CloseTemplateEditorAction,
     DeselectFilesAction,
-    OpenOpenTemplateModalAction,
-    OpenSettingsEditorAction,
-    OpenTemplateEditorAction,
     SelectAnnotationAction,
     SelectBarcodeAction,
     SelectFileAction,
@@ -62,28 +61,29 @@ import {
     SetWellsAction,
     ToggleExpandedUploadJobRowAction,
     ToggleFolderTreeAction,
-    UpdateStagedFilesAction,
+    UpdateStagedFilesAction, UploadTabSelections,
 } from "./types";
 
 const DEFAULT_ANNOTATION = "Dataset";
 
-export const initialState: SelectionStateBranch = {
-    annotation: DEFAULT_ANNOTATION,
+const uploadTabSelectionInitialState: UploadTabSelections = {
     barcode: undefined,
     expandedUploadJobRows: {},
-    files: [],
-    folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [],
-    openTemplateModalVisible: false,
     plate: {},
     selectedWells: [],
     selectedWorkflows: [],
-    settingsEditorVisible: false,
     stagedFiles: [],
-    templateEditorVisible: false,
-    user: userInfo().username,
     wells: {},
+};
+
+export const initialState: SelectionStateBranch = {
+    ...uploadTabSelectionInitialState,
+    annotation: DEFAULT_ANNOTATION,
+    files: [],
+    folderTreeOpen: true,
+    user: userInfo().username,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -187,49 +187,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [OPEN_TEMPLATE_EDITOR]: {
-        accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            templateEditorVisible: true,
-        }),
-    },
-    [CLOSE_TEMPLATE_EDITOR]: {
-        accepts: (action: AnyAction): action is CloseTemplateEditorAction => action.type === CLOSE_TEMPLATE_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            templateEditorVisible: false,
-        }),
-    },
-    [OPEN_OPEN_TEMPLATE_MODAL]: {
-        accepts: (action: AnyAction): action is OpenOpenTemplateModalAction => action.type === OPEN_OPEN_TEMPLATE_MODAL,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            openTemplateModalVisible: true,
-        }),
-    },
-    [CLOSE_OPEN_TEMPLATE_MODAL]: {
-        accepts: (action: AnyAction): action is CloseOpenTemplateModalAction =>
-            action.type === CLOSE_OPEN_TEMPLATE_MODAL,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            openTemplateModalVisible: false,
-        }),
-    },
-    [OPEN_SETTINGS_EDITOR]: {
-        accepts: (action: AnyAction): action is OpenSettingsEditorAction => action.type === OPEN_SETTINGS_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            settingsEditorVisible: true,
-        }),
-    },
-    [CLOSE_SETTINGS_EDITOR]: {
-        accepts: (action: AnyAction): action is CloseSettingsEditorAction => action.type === CLOSE_SETTINGS_EDITOR,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            settingsEditorVisible: false,
-        }),
-    },
     [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {
         accepts: (action: AnyAction): action is ToggleExpandedUploadJobRowAction =>
             action.type === TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
@@ -254,6 +211,28 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectImagingSessionIdAction) => ({
             ...state,
             imagingSessionId: action.payload,
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: SelectionStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
+            ...state,
+            ...uploadTabSelectionInitialState,
+            barcode: getSelectedBarcode(savedState),
+            expandedUploadJobRows: getExpandedUploadJobRows(savedState),
+            folderTreeOpen: getFolderTreeOpen(savedState),
+            imagingSessionId: getSelectedImagingSessionId(savedState),
+            imagingSessionIds: getSelectedImagingSessionIds(savedState),
+            plate: getSelectedPlates(savedState),
+            wells: getWells(savedState),
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: SelectionStateBranch) => ({
+            ...state,
+            ...uploadTabSelectionInitialState,
         }),
     },
 };

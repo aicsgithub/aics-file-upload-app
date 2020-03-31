@@ -1,17 +1,20 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message, notification, Tabs } from "antd";
 import { ipcRenderer, remote } from "electron";
-import * as Logger from "js-logger";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SAFELY_CLOSE_WINDOW, SWITCH_ENVIRONMENT } from "../../../shared/constants";
+import {
+    SAFELY_CLOSE_WINDOW,
+    SAVE_UPLOAD,
+    SWITCH_ENVIRONMENT,
+} from "../../../shared/constants";
 
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
-import { clearAlert, setAlert } from "../../state/feedback/actions";
+import { clearAlert, openModal, setAlert } from "../../state/feedback/actions";
 import {
     getAlert,
     getIsLoading,
@@ -23,13 +26,13 @@ import {
     AppAlert,
     AppEvent,
     ClearAlertAction,
+    OpenModalAction,
     SetAlertAction,
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
-import { setSwitchEnvEnabled } from "../../state/route/logics";
 import { getPage, getView } from "../../state/route/selectors";
 import { AppPageConfig, CloseUploadTabAction, Page, SelectViewAction } from "../../state/route/types";
 import {
@@ -62,13 +65,17 @@ import {
 } from "../../state/setting/types";
 import { State } from "../../state/types";
 import {
-    removeFileFromArchive, removeFileFromIsilon,
+    removeFileFromArchive,
+    removeFileFromIsilon,
+    saveUploadDraft,
     undoFileWellAssociation,
     undoFileWorkflowAssociation,
 } from "../../state/upload/actions";
 import {
     FileTag,
-    RemoveFileFromArchiveAction, RemoveFileFromIsilonAction,
+    RemoveFileFromArchiveAction,
+    RemoveFileFromIsilonAction,
+    SaveUploadDraftAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
@@ -77,6 +84,8 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
+import OpenUploadModal from "../OpenUploadModal";
+import SaveUploadDraftModal from "../SaveUploadDraftModal";
 import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
@@ -84,7 +93,7 @@ import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
 import SearchFiles from "../SearchFiles";
-import { getFileToTags } from "./selectors";
+import { getCurrentUploadName, getFileToTags } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -106,11 +115,13 @@ interface AppProps {
     limsUrl: string;
     loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
     openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
+    openModal: ActionCreator<OpenModalAction>;
     loading: boolean;
     recentEvent?: AppEvent;
     removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
     removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
     requestMetadata: ActionCreator<RequestMetadataAction>;
+    saveUploadDraft: ActionCreator<SaveUploadDraftAction>;
     selectFile: ActionCreator<SelectFileAction>;
     selectedFiles: string[];
     setAlert: ActionCreator<SetAlertAction>;
@@ -123,6 +134,7 @@ interface AppProps {
     undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
     undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
     updateSettings: ActionCreator<UpdateSettingsAction>;
+    uploadTabName?: string;
     view: Page;
 }
 
@@ -155,7 +167,6 @@ class App extends React.Component<AppProps, {}> {
     public componentDidMount() {
         this.props.requestMetadata();
         this.props.gatherSettings();
-        setSwitchEnvEnabled(remote.Menu.getApplicationMenu(), true, Logger);
         ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
         ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
             const warning = "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
@@ -173,6 +184,13 @@ class App extends React.Component<AppProps, {}> {
                 });
             } else {
                 remote.app.exit();
+            }
+        });
+        ipcRenderer.on(SAVE_UPLOAD, () => {
+            if (this.props.uploadTabName) {
+                this.props.saveUploadDraft();
+            } else {
+                this.props.openModal("saveUploadDraft");
             }
         });
     }
@@ -216,6 +234,12 @@ class App extends React.Component<AppProps, {}> {
         }
     }
 
+    public componentWillUnmount(): void {
+        ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT);
+        ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
+        ipcRenderer.removeAllListeners(SAVE_UPLOAD);
+    }
+
     public render() {
         const {
             fileToTags,
@@ -228,6 +252,7 @@ class App extends React.Component<AppProps, {}> {
             selectFile,
             selectedFiles,
             page,
+            uploadTabName,
             view,
         } = this.props;
         const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
@@ -285,7 +310,12 @@ class App extends React.Component<AppProps, {}> {
                                 <SearchFiles key="searchFiles"/>
                             </TabPane>
                             {page !== Page.UploadSummary && (
-                                <TabPane className={styles.tabContent} tab="Current Upload" key={page} closable={true}>
+                                <TabPane
+                                    className={styles.tabContent}
+                                    tab={uploadTabName || "Current Upload"}
+                                    key={page}
+                                    closable={true}
+                                >
                                     {pageConfig.container}
                                 </TabPane>
                             )}
@@ -296,6 +326,8 @@ class App extends React.Component<AppProps, {}> {
                 <TemplateEditorModal/>
                 <OpenTemplateModal/>
                 <SettingsEditorModal/>
+                <SaveUploadDraftModal/>
+                <OpenUploadModal/>
             </div>
         );
     }
@@ -322,6 +354,7 @@ function mapStateToProps(state: State) {
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
         setMountPointNotificationVisible: getSetMountPointNotificationVisible(state),
+        uploadTabName: getCurrentUploadName(state),
         view: getView(state),
     };
 }
@@ -334,9 +367,11 @@ const dispatchToPropsMap = {
     getFilesInFolder: selection.actions.getFilesInFolder,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
+    openModal,
     removeFileFromArchive,
     removeFileFromIsilon,
     requestMetadata,
+    saveUploadDraft,
     selectFile: selection.actions.selectFile,
     selectView,
     setAlert,

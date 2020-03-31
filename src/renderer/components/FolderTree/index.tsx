@@ -239,10 +239,10 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
     private removeTag = (tag: FileTag, fullpath: string) => (): void => {
         switch (tag.type) {
             case FileTagType.WELL:
-                this.props.undoFileWellAssociation(fullpath, undefined, true, [tag.wellId]);
+                this.props.undoFileWellAssociation({file: fullpath}, true, [tag.wellId]);
                 break;
             case FileTagType.WORKFLOW:
-                this.props.undoFileWorkflowAssociation(fullpath, [tag.workflow]);
+                this.props.undoFileWorkflowAssociation({file: fullpath}, true, [tag.workflow]);
                 break;
             case FileTagType.STORAGE:
                 if (tag.title.toLowerCase() === "archive") {

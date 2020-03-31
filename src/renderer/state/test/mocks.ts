@@ -192,13 +192,10 @@ export const mockSelection: SelectionStateBranch = {
     folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [null, 1],
-    openTemplateModalVisible: false,
     plate: mockPlate,
     selectedWells: [],
     selectedWorkflows: [],
-    settingsEditorVisible: false,
     stagedFiles: [],
-    templateEditorVisible: false,
     user: "fake_user",
     wells: mockWells,
 };
@@ -380,10 +377,13 @@ export const mockTemplateWithManyValues: Template = {
 
 export const mockState: State = {
     feedback: {
+        deferredAction: undefined,
         events: [],
         isLoading: false,
         requestsInProgress: [],
         setMountPointNotificationVisible: false,
+        uploadError: undefined,
+        visibleModals: [],
     },
     job: {
         addMetadataJobs: [],
@@ -411,6 +411,7 @@ export const mockState: State = {
         lookups: [],
         templates: [],
         units: [],
+        uploadDrafts: [],
         users: [],
         workflowOptions: [],
     },

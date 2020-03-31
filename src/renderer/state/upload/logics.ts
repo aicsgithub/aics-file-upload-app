@@ -1,20 +1,38 @@
-import Logger from "js-logger";
-import { forEach, includes, isEmpty, isNil, map, trim, values } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
+import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
-import { LIST_DELIMITER_SPLIT } from "../../constants";
 
+import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
+
+import { LIST_DELIMITER_SPLIT } from "../../constants";
+import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { pivotAnnotations, splitTrimAndFilter } from "../../util";
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
+import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
+import {
+    addRequestToInProgress,
+    clearUploadError,
+    closeModal,
+    openModal,
+    removeRequestFromInProgress,
+    setAlert,
+    setDeferredAction,
+    setErrorAlert,
+    setUploadError,
+} from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { addPendingJob, removePendingJobs, retrieveJobs, updateIncompleteJobNames } from "../job/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId } from "../metadata/selectors";
-import { Channel } from "../metadata/types";
-import { goForward } from "../route/actions";
-import { clearStagedFiles, deselectFiles } from "../selection/actions";
-import { getSelectedBarcode, getSelectedWellIds } from "../selection/selectors";
+import { addPendingJob, removePendingJobs, updateIncompleteJobNames } from "../job/actions";
+import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
+import { setCurrentUpload } from "../metadata/actions";
+import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
+import { Channel, CurrentUpload } from "../metadata/types";
+import {
+    deselectFiles,
+    stageFiles,
+} from "../selection/actions";
+import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
+import { UploadFile } from "../selection/types";
 import { updateSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -28,22 +46,25 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { removeUploads, updateUpload, updateUploads } from "./actions";
+import { clearUploadDraft, removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     CANCEL_UPLOAD,
+    getUploadDraftKey,
     getUploadRowKey,
     INITIATE_UPLOAD,
     isSubImageOnlyRow,
+    OPEN_UPLOAD_DRAFT,
     RETRY_UPLOAD,
+    SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
 } from "./constants";
-import { getUpload, getUploadFileNames, getUploadPayload } from "./selectors";
+import { getCanSaveUploadDraft, getUpload, getUploadPayload } from "./selectors";
 import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
@@ -123,76 +144,117 @@ const applyTemplateLogic = createLogic({
     },
     transform: ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
                 next: ReduxLogicNextCb) => {
-        const { templateId } = action.payload;
+        const { clearAnnotations, templateId } = action.payload;
         ctx.templateId = templateId;
-        const state = getState();
-        const uploads: UploadStateBranch = getUpload(state);
 
-        map(uploads,  (upload: UploadMetadata, filepath: string) => {
+        const uploads = getUpload(getState());
+        forEach(uploads,  (upload: UploadMetadata) => {
             // By only grabbing the initial fields of the upload we can remove old schema columns
             // We're also apply the new templateId now
-            const { barcode, notes, shouldBeInArchive, shouldBeInLocal, wellIds, workflows } = upload;
-            action.payload.uploads[getUploadRowKey({file: filepath})] = {
+            const {
                 barcode,
-                file: upload.file,
+                channelId,
+                file,
                 notes,
+                positionIndex,
+                scene,
                 shouldBeInArchive,
                 shouldBeInLocal,
-                templateId,
+                subImageName,
                 wellIds,
                 workflows,
-            };
+            } = upload;
+            const key = getUploadRowKey({
+                channelId,
+                file,
+                positionIndex,
+                scene,
+                subImageName,
+            });
+            if (clearAnnotations) {
+                action.payload.uploads[key] = {
+                    barcode,
+                    file: upload.file,
+                    notes,
+                    shouldBeInArchive,
+                    shouldBeInLocal,
+                    templateId,
+                    wellIds,
+                    workflows,
+                };
+            } else {
+                action.payload.uploads[key] = {
+                    ...upload,
+                    templateId,
+                };
+            }
+
         });
+
         next(action);
     },
     type: APPLY_TEMPLATE,
 });
 
 const initiateUploadLogic = createLogic({
-    process: async ({ctx, fms, getState, ipcRenderer}: ReduxLogicProcessDependencies,
+    process: async ({ctx, fms, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const now = new Date();
+        const uploads = getUploadPayload(getState());
+        const { jobName } = ctx;
+
         try {
-            // this selector throws errors if the payload cannot be constructed so don't move back to the UploadSummary
-            // page until we call it successfully.
             const payload = getUploadPayload(getState());
             const { job: { incompleteJobNames } } = getState();
+            const updatedIncompleteJobNames = [...incompleteJobNames, jobName];
 
-            // Go forward needs to be handled by redux-logic so we're dispatching separately
-            dispatch(goForward());
-            dispatch(batchActions([
-                clearStagedFiles(),
-                addPendingJob({
-                    created: now,
-                    currentStage: "Pending",
-                    jobId: (now).toLocaleString(),
-                    jobName: ctx.name,
-                    modified: now,
-                    status: "WAITING",
-                    uploads: ctx.uploads,
-                    user: userInfo().username,
-                }),
-            ]));
-            dispatch(updateIncompleteJobNames([...incompleteJobNames, ctx.name]));
-            await fms.uploadFiles(payload, ctx.name);
+            dispatch(
+                {
+                    ...batchActions([
+                        addPendingJob({
+                            created: now,
+                            currentStage: "Pending",
+                            jobId: (now).toLocaleString(),
+                            jobName,
+                            modified: now,
+                            status: "WAITING",
+                            uploads,
+                            user: userInfo().username,
+                        }),
+                        updateIncompleteJobNames(updatedIncompleteJobNames),
+                        clearUploadError(),
+                    ]),
+                    updates: {
+                        [INCOMPLETE_JOB_NAMES_KEY]: updatedIncompleteJobNames,
+                    },
+                    writeToStore: true,
+                }
+            );
+            await fms.uploadFiles(payload, jobName);
         } catch (e) {
-            Logger.error(`UPLOAD_FAILED for jobName=${ctx.name}`, e.message);
-            dispatch(setAlert({
-                message: `Upload Failed: ${e.message}`,
-                type: AlertType.ERROR,
-            }));
+            const error = `Upload Failed: ${e.message}`;
+            logger.error(error);
+            dispatch(batchActions([
+                setErrorAlert(error),
+                removePendingJobs([jobName]),
+                updateIncompleteJobNames(without(getIncompleteJobNames(getState()), jobName)),
+                setUploadError(error),
+            ]));
         }
 
-        dispatch(removePendingJobs(ctx.name));
         done();
     },
     type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                      rejectCb: ReduxLogicRejectCb) => {
+        ctx.jobName = getCurrentJobName(getState());
+        if (!ctx.jobName) {
+            rejectCb({ type: "ignore" });
+            return;
+        }
+
         try {
             await fms.validateMetadata(getUploadPayload(getState()));
-            ctx.name = getUploadFileNames(getState());
-            ctx.uploads = getUploadPayload(getState());
             next(batchActions([
                 setAlert({
                     message: "Starting upload",
@@ -210,7 +272,7 @@ const initiateUploadLogic = createLogic({
 });
 
 const cancelUploadLogic = createLogic({
-    process: async ({action, ctx, jssClient, getState}: ReduxLogicProcessDependencies,
+    process: async ({action, ctx, jssClient, getState, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
@@ -232,9 +294,8 @@ const cancelUploadLogic = createLogic({
                 message: `Cancel upload ${uploadJob.jobName} succeeded!`,
                 type: AlertType.SUCCESS,
             }));
-            dispatch(retrieveJobs());
         } catch (e) {
-            Logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
+            logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
             dispatch(setAlert({
                 message: `Cancel upload ${uploadJob.jobName} failed: ${e.message}`,
                 type: AlertType.ERROR,
@@ -265,7 +326,7 @@ const cancelUploadLogic = createLogic({
                 if (response === 1) {
                     next(action);
                 } else {
-                    reject(action);
+                    reject({type: "ignore"});
                 }
             });
         }
@@ -273,7 +334,7 @@ const cancelUploadLogic = createLogic({
 });
 
 const retryUploadLogic = createLogic({
-    process: async ({action, ctx, fms, getState}: ReduxLogicProcessDependencies,
+    process: async ({action, ctx, fms, getState, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
@@ -290,9 +351,8 @@ const retryUploadLogic = createLogic({
                 message: `Retry upload ${uploadJob.jobName} succeeded!`,
                 type: AlertType.SUCCESS,
             }));
-            dispatch(retrieveJobs());
         } catch (e) {
-            Logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
+            logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
             dispatch(setAlert({
                 message: `Retry upload ${uploadJob.jobName} failed: ${e.message}`,
                 type: AlertType.ERROR,
@@ -535,7 +595,7 @@ const convertDatePickerValueToDate = (d: any) => {
 // Additionally we take care of converting moment dates back to dates.
 const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
 const updateUploadLogic = createLogic({
-    transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({action, getState, logger}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const {upload} = action.payload;
         const state = getState();
         const template = getAppliedTemplate(state);
@@ -578,7 +638,7 @@ const updateUploadLogic = createLogic({
                                 value = parseStringArray(value);
                             }
                         } catch (e) {
-                            Logger.error("Something went wrong while updating metadata: ", e.message);
+                            logger.error("Something went wrong while updating metadata: ", e.message);
                         }
                     }
                 }
@@ -622,12 +682,97 @@ const updateFilesToStoreInArchiveLogic = createLogic({
     type: UPDATE_FILES_TO_ARCHIVE,
 });
 
+// Saves what is currently in the upload wizard tab whether a new upload in progress or
+// a draft that was saved previously
+const saveUploadDraftLogic = createLogic({
+    type: SAVE_UPLOAD_DRAFT,
+    validate: ({ action, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const upload = getUpload(getState());
+        if (isEmpty(upload)) {
+            reject(setErrorAlert("Nothing to save"));
+            return;
+        }
+
+        const draftName = trim(action.payload) || getCurrentUploadName(getState());
+        if (!draftName) {
+            reject(setErrorAlert("Draft name cannot be empty"));
+            return;
+        }
+
+        const currentUpload = getCurrentUpload(getState()); // this is populated if the draft was saved previously
+        const created = currentUpload ? currentUpload.created : new Date();
+        const draftKey: string | undefined = getUploadDraftKey(draftName, created);
+
+        const metadata: CurrentUpload = {
+            created,
+            modified: currentUpload ? currentUpload.modified : created,
+            name: draftName,
+        };
+
+        next({
+            updates: {
+                [draftKey]: { metadata, state: getState() },
+                ...clearUploadDraft().updates,
+            },
+            writeToStore: true,
+            ...setCurrentUpload(metadata),
+        });
+    },
+});
+
+const openUploadLogic = createLogic({
+    process: async ({ ctx, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const { draft } = ctx;
+        const topLevelFilesToLoadAgain = getStagedFiles(draft.state).map((f) => resolvePath(f.path, f.name));
+        const filesToLoad: string[] = mergeChildPaths(topLevelFilesToLoadAgain);
+        try {
+            const uploadFilePromises: Array<Promise<UploadFile>> = filesToLoad.map((filePath: string) => (
+                getUploadFilePromise(basename(filePath), dirname(filePath))
+            ));
+            const uploadFiles = await Promise.all(uploadFilePromises);
+            dispatch(stageFiles(uploadFiles));
+        } catch (e) {
+            dispatch(setErrorAlert(`Encountered error while resolving files: ${e}`));
+        }
+
+        done();
+    },
+    type: OPEN_UPLOAD_DRAFT,
+    validate: ({ action, ctx, getState, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
+               reject: ReduxLogicRejectCb) => {
+        const draft = storage.get(action.payload);
+        ctx.draft = draft;
+        if (!draft) {
+            reject(setErrorAlert(`Could not find draft named ${action.payload}`));
+            return;
+        }
+
+        const nextAction = replaceUpload(draft); // also close modal
+        if (getCanSaveUploadDraft(getState())) {
+            next(batchActions([
+                openModal("saveUploadDraft"),
+                closeModal("openUpload"),
+                setDeferredAction(nextAction),
+            ]));
+        } else {
+            next(batchActions([
+                nextAction,
+                closeModal("openUpload"),
+            ]));
+        }
+    },
+});
+
 export default [
     applyTemplateLogic,
     associateFilesAndWellsLogic,
     cancelUploadLogic,
     initiateUploadLogic,
+    openUploadLogic,
     retryUploadLogic,
+    saveUploadDraftLogic,
     undoFileWellAssociationLogic,
     updateSubImagesLogic,
     updateUploadLogic,

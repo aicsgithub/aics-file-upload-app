@@ -6,9 +6,10 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { OPEN_SETTINGS_EDITOR } from "../../../shared/constants";
-import { closeSettingsEditor, openSettingsEditor } from "../../state/selection/actions";
-import { getSettingsEditorVisible } from "../../state/selection/selectors";
-import { CloseSettingsEditorAction, OpenSettingsEditorAction } from "../../state/selection/types";
+import { closeModal, openModal } from "../../state/feedback/actions";
+
+import { getSettingsEditorVisible } from "../../state/feedback/selectors";
+import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { setMountPoint, switchEnvironment } from "../../state/setting/actions";
 import { getLimsUrl, getMountPoint } from "../../state/setting/selectors";
 import { State } from "../../state/types";
@@ -17,10 +18,10 @@ const styles = require("./styles.pcss");
 
 interface Props {
     className?: string;
-    closeModal: ActionCreator<CloseSettingsEditorAction>;
+    closeModal: ActionCreator<CloseModalAction>;
     limsUrl: string;
     mountPoint?: string;
-    openModal: ActionCreator<OpenSettingsEditorAction>;
+    openModal: ActionCreator<OpenModalAction>;
     setMountPoint: () => void;
     switchEnvironment: () => void;
     visible: boolean;
@@ -42,12 +43,11 @@ class SettingsEditorModal extends React.Component<Props, {}> {
         ipcRenderer.removeListener(OPEN_SETTINGS_EDITOR, this.openModal);
     }
 
-    public openModal = () => this.props.openModal();
+    public openModal = () => this.props.openModal("settings");
 
     public render() {
         const {
             className,
-            closeModal,
             visible,
         } = this.props;
 
@@ -57,8 +57,8 @@ class SettingsEditorModal extends React.Component<Props, {}> {
                 className={className}
                 title="Settings"
                 visible={visible}
-                onCancel={closeModal}
-                onOk={closeModal}
+                onCancel={this.closeModal}
+                onOk={this.closeModal}
                 maskClosable={false}
             >
                 {this.renderBody()}
@@ -90,6 +90,8 @@ class SettingsEditorModal extends React.Component<Props, {}> {
                 </div>
             </>);
     }
+
+    private closeModal = () => this.props.closeModal("settings");
 }
 
 function mapStateToProps(state: State) {
@@ -101,8 +103,8 @@ function mapStateToProps(state: State) {
 }
 
 const dispatchToPropsMap = {
-    closeModal: closeSettingsEditor,
-    openModal: openSettingsEditor,
+    closeModal,
+    openModal,
     setMountPoint,
     switchEnvironment,
 };

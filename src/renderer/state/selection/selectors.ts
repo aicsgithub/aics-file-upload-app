@@ -32,11 +32,8 @@ export const getUser = (state: State) => state.selection.present.user;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
-export const getTemplateEditorVisible = (state: State) => state.selection.present.templateEditorVisible;
-export const getOpenTemplateModalVisible = (state: State) => state.selection.present.openTemplateModalVisible;
 export const getExpandedUploadJobRows = (state: State) => state.selection.present.expandedUploadJobRows;
 export const getFolderTreeOpen = (state: State) => state.selection.present.folderTreeOpen;
-export const getSettingsEditorVisible = (state: State) => state.selection.present.settingsEditorVisible;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

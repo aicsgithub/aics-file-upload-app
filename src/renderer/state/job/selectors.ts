@@ -1,11 +1,17 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, get, includes, orderBy } from "lodash";
+import { every, get, includes, isEmpty, orderBy } from "lodash";
+import * as moment from "moment";
 import { createSelector } from "reselect";
+import { DATETIME_FORMAT } from "../../constants";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { IN_PROGRESS_STATUSES } from "../constants";
+import { getCurrentUpload } from "../metadata/selectors";
+import { CurrentUpload } from "../metadata/types";
 import { State } from "../types";
+import { getUpload, getUploadFileNames } from "../upload/selectors";
+import { UploadStateBranch } from "../upload/types";
 import { PendingJob } from "./types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
@@ -65,4 +71,36 @@ export const getAreAllJobsComplete = createSelector([
     getNumberOfPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: number) => {
     return pendingJobs === 0 && every(uploadJobs, (job: JSSJob) => !includes(IN_PROGRESS_STATUSES, job.status));
+});
+
+export const getCurrentJobName = createSelector([
+    getUpload,
+    getUploadFileNames,
+    getCurrentUpload,
+], (upload: UploadStateBranch, fileNames: string, currentUpload?: CurrentUpload): string | undefined => {
+    if (isEmpty(upload)) {
+        return undefined;
+    }
+    const created = currentUpload ? moment(currentUpload.created).format(DATETIME_FORMAT) :
+        moment().format(DATETIME_FORMAT);
+    return currentUpload ? `${currentUpload.name} ${created}` :
+        `${fileNames} ${created}`;
+});
+
+export const getCurrentJobIsIncomplete = createSelector([
+    getIncompleteJobNames,
+    getCurrentJobName,
+], (incompleteJobNames: string[], currentJobName?: string): boolean => {
+    return !!currentJobName && incompleteJobNames.includes(currentJobName);
+});
+
+export const getUploadInProgress = createSelector([
+    getCurrentJobIsIncomplete,
+    getPendingJobs,
+    getCurrentJobName,
+], (currentJobIsInProgress: boolean, pendingJobs: PendingJob[], currentJobName?: string): boolean => {
+    if (!currentJobName) {
+        return false;
+    }
+    return currentJobIsInProgress || !!pendingJobs.find((j: PendingJob) => j.jobName === currentJobName);
 });

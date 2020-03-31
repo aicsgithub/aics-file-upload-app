@@ -97,6 +97,15 @@ export interface Audited {
     modifiedBy: number;
 }
 
+export interface AutoSaveAction extends AnyAction {
+    autoSave: boolean;
+}
+
+export interface WriteToStoreAction extends AnyAction {
+    updates?: {[key: string]: any};
+    writeToStore: boolean;
+}
+
 export enum HTTP_STATUS {
     BAD_GATEWAY = 502,
     BAD_REQUEST = 400,

@@ -7,7 +7,6 @@ import { LimsUrl } from "../../../shared/types";
 import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
 import { AlertType } from "../feedback/types";
-import { retrieveJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
 import {
     ReduxLogicDoneCb,
@@ -45,7 +44,6 @@ const updateSettingsLogic = createLogic({
             mmsClient.port = port;
 
             dispatch(requestMetadata());
-            dispatch(retrieveJobs());
         }
 
         if (mountPoint && mountPoint !== ctx.mountPoint) {
@@ -80,7 +78,7 @@ const updateSettingsLogic = createLogic({
                 });
                 next(action);
             } else {
-                reject(action);
+                reject({type: "ignore"});
             }
         } catch (e) {
             next(batchActions([
