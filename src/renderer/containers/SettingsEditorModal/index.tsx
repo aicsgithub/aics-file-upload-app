@@ -43,7 +43,7 @@ class SettingsEditorModal extends React.Component<Props, {}> {
         ipcRenderer.removeListener(OPEN_SETTINGS_EDITOR, this.openModal);
     }
 
-    public openModal = () => this.props.openModal();
+    public openModal = () => this.props.openModal("settings");
 
     public render() {
         const {
