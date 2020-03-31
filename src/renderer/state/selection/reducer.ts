@@ -223,7 +223,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             folderTreeOpen: getFolderTreeOpen(savedState),
             imagingSessionId: getSelectedImagingSessionId(savedState),
             imagingSessionIds: getSelectedImagingSessionIds(savedState),
-            plate: getSelectedPlates(savedState), //  todo might want to get this again?
+            plate: getSelectedPlates(savedState),
             wells: getWells(savedState),
         }),
     },
