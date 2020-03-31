@@ -18,7 +18,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is SelectPageAction => action.type === SELECT_PAGE,
         perform: (state: RouteStateBranch, action: SelectPageAction) => ({
             ...state,
-            nextPage: undefined,
             page: action.payload.nextPage,
             view: action.payload.nextPage,
         }),
