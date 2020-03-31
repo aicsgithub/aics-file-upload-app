@@ -1,6 +1,11 @@
 import { expect } from "chai";
+import * as moment from "moment";
+
+import { DATETIME_FORMAT } from "../../../constants";
+import { getCurrentUploadName } from "../../../containers/App/selectors";
 
 import {
+    getMockStateWithHistory,
     mockBlockedUploadJob,
     mockFailedAddMetadataJob,
     mockFailedCopyJob,
@@ -19,7 +24,13 @@ import {
     nonEmptyJobStateBranch,
 } from "../../test/mocks";
 
-import { getAreAllJobsComplete, getIsSafeToExit, getJobsForTable } from "../selectors";
+import {
+    getAreAllJobsComplete,
+    getCurrentJobIsIncomplete,
+    getCurrentJobName,
+    getIsSafeToExit,
+    getJobsForTable, getUploadInProgress,
+} from "../selectors";
 
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
@@ -279,6 +290,219 @@ describe("Job selectors", () => {
                 },
             });
             expect(complete).to.be.true;
+        });
+    });
+    describe("getCurrentJobName", () => {
+        it("returns undefined if upload is empty", () => {
+            const name = getCurrentUploadName({
+                ...mockState,
+                upload: getMockStateWithHistory({}),
+            });
+            expect(name).to.be.undefined;
+        });
+        it("returns name of current upload if already saved", () => {
+            const now = new Date();
+            const name = getCurrentJobName({
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    currentUpload: {
+                        created: now,
+                        modified: now,
+                        name: "test",
+                    },
+                },
+                upload: getMockStateWithHistory({
+                    foo: {
+                        barcode: "1234",
+                        file: "/path",
+                        wellIds: [1, 2],
+                    },
+                }),
+            });
+            expect(name).to.equal(`test ${moment(now).format(DATETIME_FORMAT)}`);
+        });
+        it("returns names of files and created date if not saved", () => {
+            const name = getCurrentJobName({
+                ...mockState,
+                upload: getMockStateWithHistory({
+                    bar: {
+                        barcode: "1234",
+                        file: "bar",
+                        wellIds: [1, 2],
+                    },
+                    foo: {
+                        barcode: "1234",
+                        file: "foo",
+                        wellIds: [1, 2],
+                    },
+                }),
+            });
+            expect(name).to.not.be.undefined;
+            if (name) {
+                expect(name.includes("bar, foo")).to.be.true;
+            }
+        });
+    });
+    describe("getCurrentJobIsIncomplete", () => {
+        it("returns false if no current job", () => {
+            const now = new Date();
+            const currentJobIsIncomplete = getCurrentJobIsIncomplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
+                },
+                upload: getMockStateWithHistory({}),
+            });
+            expect(currentJobIsIncomplete).to.be.false;
+        });
+        it("returns false if incompleteJobNames does not include current job name", () => {
+            const now = new Date();
+            const currentJobIsIncomplete = getCurrentJobIsIncomplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [],
+                },
+                metadata: {
+                    ...mockState.metadata,
+                    currentUpload: {
+                        created: now,
+                        modified: now,
+                        name: "foo",
+                    },
+                },
+                upload: getMockStateWithHistory({
+                    foo: {
+                        barcode: "1234",
+                        file: "foo",
+                        wellIds: [1],
+                    },
+                }),
+            });
+            expect(currentJobIsIncomplete).to.be.false;
+        });
+        it("returns true if incompleteJobNames includes current job name", () => {
+            const now = new Date();
+            const currentJobIsIncomplete = getCurrentJobIsIncomplete({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
+                },
+                metadata: {
+                    ...mockState.metadata,
+                    currentUpload: {
+                        created: now,
+                        modified: now,
+                        name: "foo",
+                    },
+                },
+                upload: getMockStateWithHistory({
+                    foo: {
+                        barcode: "1234",
+                        file: "foo",
+                        wellIds: [1],
+                    },
+                }),
+            });
+            expect(currentJobIsIncomplete).to.be.true;
+        });
+    });
+    describe("getUploadInProgress", () => {
+        const now = new Date();
+        it("returns false if no current job", () => {
+
+            const inProgress = getUploadInProgress({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
+                },
+                upload: getMockStateWithHistory({}),
+            });
+            expect(inProgress).to.be.false;
+        });
+        it("returns true if current job is incomplete", () => {
+            const inProgress = getUploadInProgress({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
+                },
+                metadata: {
+                    ...mockState.metadata,
+                    currentUpload: {
+                        created: now,
+                        modified: now,
+                        name: "foo",
+                    },
+                },
+                upload: getMockStateWithHistory({
+                    foo: {
+                        barcode: "1234",
+                        file: "foo",
+                        wellIds: [1],
+                    },
+                }),
+            });
+            expect(inProgress).to.be.true;
+        });
+        it("returns true if current job is pending", () => {
+            const inProgress = getUploadInProgress({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [],
+                    pendingJobs: [{
+                        ...mockPendingJob,
+                        jobName: `foo ${moment(now).format(DATETIME_FORMAT)}`,
+                    }],
+                },
+                metadata: {
+                    ...mockState.metadata,
+                    currentUpload: {
+                        created: now,
+                        modified: now,
+                        name: "foo",
+                    },
+                },
+                upload: getMockStateWithHistory({
+                    foo: {
+                        barcode: "1234",
+                        file: "foo",
+                        wellIds: [1],
+                    },
+                }),
+            });
+            expect(inProgress).to.be.true;
+        });
+        it("returns false if current job is not incomplete or pending", () => {
+            const inProgress = getUploadInProgress({
+                ...mockState,
+                job: {
+                    ...mockState.job,
+                    incompleteJobNames: [],
+                    pendingJobs: [],
+                },
+                metadata: {
+                    ...mockState.metadata,
+                    currentUpload: {
+                        created: now,
+                        modified: now,
+                        name: "foo",
+                    },
+                },
+                upload: getMockStateWithHistory({
+                    foo: {
+                        barcode: "1234",
+                        file: "foo",
+                        wellIds: [1],
+                    },
+                }),
+            });
+            expect(inProgress).to.be.false;
         });
     });
 });
