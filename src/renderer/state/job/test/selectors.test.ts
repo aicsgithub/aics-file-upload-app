@@ -29,7 +29,8 @@ import {
     getCurrentJobIsIncomplete,
     getCurrentJobName,
     getIsSafeToExit,
-    getJobsForTable, getUploadInProgress,
+    getJobsForTable,
+    getUploadInProgress,
 } from "../selectors";
 
 describe("Job selectors", () => {
