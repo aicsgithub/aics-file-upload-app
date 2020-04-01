@@ -30,37 +30,46 @@ describe("Setting logics", () => {
 
     let fmsHostSetterSpy: SinonSpy;
     let fmsPortSetterSpy: SinonSpy;
+    let fmsUsernameSetterSpy: SinonSpy;
     let fmsMountPointSetterSpy: SinonSpy;
     let jssHostSetterSpy: SinonSpy;
     let jssPortSetterSpy: SinonSpy;
+    let jssUsernameSetterSpy: SinonSpy;
     let labkeyClientHostSetterSpy: SinonSpy;
     let labkeyClientPortSetterSpy: SinonSpy;
     let mmsClientHostSetterSpy: SinonSpy;
     let mmsClientPortSetterSpy: SinonSpy;
+    let mmsClientUsernameSetterSpy: SinonSpy;
 
     beforeEach(() => {
         fmsHostSetterSpy = spy();
         fmsPortSetterSpy = spy();
+        fmsUsernameSetterSpy = spy();
         fmsMountPointSetterSpy = spy();
         jssHostSetterSpy = spy();
         jssPortSetterSpy = spy();
+        jssUsernameSetterSpy = spy();
         labkeyClientHostSetterSpy = spy();
         labkeyClientPortSetterSpy = spy();
         mmsClientHostSetterSpy = spy();
         mmsClientPortSetterSpy = spy();
+        mmsClientUsernameSetterSpy = spy();
 
         const { fms, jssClient, mmsClient } = mockReduxLogicDeps;
         stub(fms, "host").set(fmsHostSetterSpy);
         stub(fms, "port").set(fmsPortSetterSpy);
+        stub(fms, "username").set(fmsUsernameSetterSpy);
 
         stub(jssClient, "host").set(jssHostSetterSpy);
         stub(jssClient, "port").set(jssPortSetterSpy);
+        stub(jssClient, "username").set(jssUsernameSetterSpy);
 
         stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
         stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
 
         stub(mmsClient, "host").set(mmsClientHostSetterSpy);
         stub(mmsClient, "port").set(mmsClientPortSetterSpy);
+        stub(mmsClient, "username").set(mmsClientUsernameSetterSpy);
 
         const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
         const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
@@ -110,6 +119,8 @@ describe("Setting logics", () => {
             expect(fmsPortSetterSpy.called).to.be.false;
             expect(jssHostSetterSpy.called).to.be.false;
             expect(jssPortSetterSpy.called).to.be.false;
+            expect(mmsClientHostSetterSpy.called).to.be.false;
+            expect(mmsClientPortSetterSpy.called).to.be.false;
 
             // apply
             store.dispatch(updateSettings({limsHost: stagingHost, limsPort: "90"}));
@@ -119,6 +130,25 @@ describe("Setting logics", () => {
             expect(fmsPortSetterSpy.called).to.be.true;
             expect(jssHostSetterSpy.called).to.be.true;
             expect(jssPortSetterSpy.called).to.be.true;
+            expect(mmsClientHostSetterSpy.called).to.be.true;
+            expect(mmsClientPortSetterSpy.called).to.be.true;
+        });
+
+        it("sets username on all LIMS clients", () => {
+            const { store } = createMockReduxStore(mockState);
+
+            // before
+            expect(fmsUsernameSetterSpy.called).to.be.false;
+            expect(jssUsernameSetterSpy.called).to.be.false;
+            expect(mmsClientUsernameSetterSpy.called).to.be.false;
+
+            // apply
+            store.dispatch(updateSettings({username: "bar"}));
+
+            // after
+            expect(fmsUsernameSetterSpy.called).to.be.true;
+            expect(jssUsernameSetterSpy.called).to.be.true;
+            expect(mmsClientUsernameSetterSpy.called).to.be.true;
         });
 
         it("sets mount point on FMS", () => {
@@ -173,7 +203,7 @@ describe("Setting logics", () => {
             expect(jssPortSetterSpy.called).to.be.false;
         });
 
-        it("updates settings in memory and sets warning alert if data persistance failure", () => {
+        it("updates settings in memory and sets warning alert if data persistence failure", () => {
             const deps = {
                 ...mockReduxLogicDeps,
                 storage: {

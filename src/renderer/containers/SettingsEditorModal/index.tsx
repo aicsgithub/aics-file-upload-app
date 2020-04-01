@@ -21,6 +21,7 @@ const styles = require("./styles.pcss");
 interface Props {
     className?: string;
     closeModal: ActionCreator<CloseModalAction>;
+    key: boolean;
     limsUrl: string;
     mountPoint?: string;
     openModal: ActionCreator<OpenModalAction>;
@@ -45,12 +46,6 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
 
     public componentDidMount(): void {
         ipcRenderer.on(OPEN_SETTINGS_EDITOR, this.openModal);
-    }
-
-    public componentDidUpdate(prevProps: Props): void {
-        if (prevProps.username !== this.props.username) {
-            this.setState({username: this.props.username});
-        }
     }
 
     public componentWillUnmount(): void {
@@ -129,11 +124,13 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
 }
 
 function mapStateToProps(state: State) {
+    const visible = getSettingsEditorVisible(state);
     return {
+        key: visible,
         limsUrl: getLimsUrl(state),
         mountPoint: getMountPoint(state),
         username: getLoggedInUser(state),
-        visible: getSettingsEditorVisible(state),
+        visible,
     };
 }
 

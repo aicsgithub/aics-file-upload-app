@@ -9,7 +9,6 @@ export const getLimsHost = (state: State) => state.setting.limsHost;
 export const getLimsPort = (state: State) => state.setting.limsPort;
 export const getLimsProtocol = (state: State) => state.setting.limsProtocol;
 export const getMountPoint = (state: State) => state.setting.mountPoint;
-// the name of this selector is misleading but differentiates it from a similar selector in the selection state branch
 export const getLoggedInUser = (state: State) => state.setting.username;
 export const getTemplateId = (state: State) => state.setting.templateId;
 export const getMetadataColumns = (state: State) => state.setting.metadataColumns;
