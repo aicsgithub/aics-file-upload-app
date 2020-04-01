@@ -27,8 +27,8 @@ export const getStagedFiles = (state: State) => state.selection.present.stagedFi
 export const getWells = (state: State) => state.selection.present.wells;
 export const getSelectedWorkflows = (state: State) => state.selection.present.selectedWorkflows;
 export const getSelectedWells = (state: State) => state.selection.present.selectedWells;
-export const getAnnotation = (state: State) => state.selection.present.annotation;
-export const getUser = (state: State) => state.selection.present.user;
+export const getSelectedAnnotation = (state: State) => state.selection.present.annotation;
+export const getSelectedUser = (state: State) => state.selection.present.user;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
@@ -38,7 +38,7 @@ export const getFolderTreeOpen = (state: State) => state.selection.present.folde
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
 export const getAnnotationIsLookup = createSelector([
-    getAnnotation,
+    getSelectedAnnotation,
     getAnnotations,
     getLookupAnnotationTypeId,
 ], (ann: string, annotations?: Annotation[], lookupAnnotationTypeId?: number) => {

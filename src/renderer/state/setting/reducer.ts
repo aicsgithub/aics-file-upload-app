@@ -1,3 +1,4 @@
+import { userInfo } from "os";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
@@ -24,6 +25,7 @@ export const initialState: SettingStateBranch = {
     limsPort: LIMS_PORT,
     limsProtocol: LIMS_PROTOCOL,
     metadataColumns: [],
+    username: userInfo().username,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {

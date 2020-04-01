@@ -36,7 +36,7 @@ import {
     SearchResultRow,
 } from "../../state/metadata/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
-import { getAnnotation, getAnnotationIsLookup, getUser } from "../../state/selection/selectors";
+import { getAnnotationIsLookup, getSelectedAnnotation, getSelectedUser } from "../../state/selection/selectors";
 import { SelectAnnotationAction, SelectUserAction } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
 import { getAreAllMetadataColumnsSelected, getMetadataColumns } from "../../state/setting/selectors";
@@ -356,7 +356,7 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
 function mapStateToProps(state: State) {
     return {
         allMetadataColumnsSelected: getAreAllMetadataColumnsSelected(state),
-        annotation: getAnnotation(state),
+        annotation: getSelectedAnnotation(state),
         annotationIsLookup: getAnnotationIsLookup(state),
         annotations: getAnnotations(state),
         exportingCSV: getRequestsInProgressContains(state, AsyncRequest.EXPORT_FILE_METADATA),
@@ -365,7 +365,7 @@ function mapStateToProps(state: State) {
         searchLoading: getRequestsInProgressContains(state, AsyncRequest.SEARCH_FILE_METADATA),
         searchResults: getFileMetadataSearchResults(state),
         searchResultsHeader: getSearchResultsHeader(state),
-        user: getUser(state),
+        user: getSelectedUser(state),
         users: getUsers(state),
     };
 }
