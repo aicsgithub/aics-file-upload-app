@@ -23,6 +23,7 @@ interface SaveUploadDraftModalProps {
     className?: string;
     closeModal: ActionCreator<CloseModalAction>;
     gatherUploadDrafts: ActionCreator<GatherUploadDraftsAction>;
+    key: boolean;
     openModal: ActionCreator<OpenModalAction>;
     saveUploadDraft: ActionCreator<SaveUploadDraftAction>;
     usedNames: string[];
@@ -43,12 +44,6 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
 
     public componentDidMount(): void {
         this.props.gatherUploadDrafts();
-    }
-
-    public componentDidUpdate(prevProps: SaveUploadDraftModalProps): void {
-        if (prevProps.visible !== this.props.visible) {
-            this.setState({name: undefined});
-        }
     }
 
     public render(): ReactNode {
@@ -102,6 +97,7 @@ class SaveUploadDraftModal extends React.Component<SaveUploadDraftModalProps, Sa
 function mapStateToProps(state: State) {
     return {
         canSaveUploadDraft: getCanSaveUploadDraft(state),
+        key: getSaveUploadDraftModalVisible(state),
         usedNames: getUploadDraftNames(state),
         visible: getSaveUploadDraftModalVisible(state),
     };
