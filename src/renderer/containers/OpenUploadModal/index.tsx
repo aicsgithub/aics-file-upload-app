@@ -55,6 +55,7 @@ interface Props {
     closeModal: ActionCreator<CloseModalAction>;
     drafts: CurrentUpload[];
     gatherUploadDrafts: ActionCreator<GatherUploadDraftsAction>;
+    key: boolean;
     openModal: ActionCreator<OpenModalAction>;
     openUploadDraft: ActionCreator<OpenUploadDraftAction>;
     visible: boolean;
@@ -75,15 +76,6 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
     public componentDidMount(): void {
         this.props.gatherUploadDrafts();
         ipcRenderer.on(OPEN_OPEN_UPLOAD_MODAL, this.openModal);
-    }
-
-    public componentDidUpdate(prevProps: Props): void {
-        if (prevProps.visible !== this.props.visible) {
-            this.props.gatherUploadDrafts();
-            this.setState({
-                selectedDraft: undefined,
-            });
-        }
     }
 
     public componentWillUnmount(): void {
@@ -149,6 +141,7 @@ class OpenUploadModal extends React.Component<Props, OpenUploadState> {
 function mapStateToProps(state: State) {
     return {
         drafts: getUploadDrafts(state),
+        key: getOpenUploadModalVisible(state),
         visible: getOpenUploadModalVisible(state),
     };
 }

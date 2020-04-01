@@ -93,9 +93,7 @@ export const getFileToTags = createSelector([
 
 export const getCurrentUploadName = createSelector([
     getCurrentUpload,
-], (currentUpload?: CurrentUpload): string | undefined =>
-    currentUpload ? currentUpload.name : undefined
-);
+], (currentUpload?: CurrentUpload): string | undefined => currentUpload?.name);
 
 // reasoning for this is so that job names also match draft keys.
 // If we just used draft name, we can't ensure that jobs are unique. If we include
