@@ -48,10 +48,7 @@ import {
     StopLoadingAction,
 } from "./types";
 
-export const httpStatusToMessage: Map<number, string> = new Map([
-    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server."],
-    [HTTP_STATUS.BAD_GATEWAY, "Bad Gateway Error: Labkey or MMS is down."],
-]);
+const BAD_GATEWAY_ERROR = "Bad Gateway Error: Labkey or MMS is down.";
 
 export const initialState: FeedbackStateBranch = {
     deferredAction: undefined,
@@ -89,8 +86,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is SetAlertAction => action.type === SET_ALERT,
         perform: (state: FeedbackStateBranch, {payload}: SetAlertAction) => {
             const updatedPayload = { ...payload };
-            if (payload.statusCode && httpStatusToMessage.has(payload.statusCode) && !payload.message) {
-                updatedPayload.message = httpStatusToMessage.get(payload.statusCode);
+            // nginx returns HTML rather than a helpful concise message so we're adding one here
+            if (payload.statusCode === HTTP_STATUS.BAD_GATEWAY && !payload.message) {
+                updatedPayload.message = BAD_GATEWAY_ERROR;
             }
             return {
                 ...state,

@@ -60,17 +60,6 @@ describe("feedback reducer", () => {
                 expect(result.alert.message).to.equal(message);
             }
         });
-        it("it adds the message 'Unknown error from server.' if the statusCode is 500", () => {
-            const result = reducer(initialState, setAlert({
-                message: undefined,
-                statusCode: 500,
-                type: AlertType.ERROR,
-            }));
-            expect(result.alert).to.not.be.undefined;
-            if (result.alert) {
-                expect(result.alert.message).to.equal("Unknown error from server.");
-            }
-        });
         it("it adds the message 'Bad Gateway Error: Labkey or MMS is down.' if the statusCode is 502", () => {
             const result = reducer(initialState, setAlert({
                 message: undefined,

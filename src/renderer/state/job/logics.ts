@@ -10,7 +10,7 @@ import { Error } from "tslint/lib/error";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 
-import { removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
+import { addEvent, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -134,7 +134,7 @@ export const mapJobsToActions = (
     } = jobs;
     if (!addMetadataJobs || !copyJobs || !potentiallyIncompleteJobs || !uploadJobs) {
         const message = error ? error.message : "Could not retrieve jobs";
-        return setErrorAlert(message);
+        return addEvent(message, AlertType.ERROR, new Date());
     }
 
     const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);
