@@ -187,8 +187,11 @@ class App extends React.Component<AppProps, {}> {
             }
         });
         ipcRenderer.on(SAVE_UPLOAD, () => {
+            // If the upload tab already has a name, this means the user has saved a draft already
+            // so we don't need to ask them for a name again and we can just update the draft saved
             if (this.props.uploadTabName) {
                 this.props.saveUploadDraft();
+            // If the upload tab doesn't have a name, open a modal that asks them to name the draft to save
             } else {
                 this.props.openModal("saveUploadDraft");
             }
