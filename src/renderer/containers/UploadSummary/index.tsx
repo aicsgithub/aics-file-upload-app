@@ -45,8 +45,13 @@ import { Page, SelectPageAction, SelectViewAction } from "../../state/route/type
 import { getStagedFiles } from "../../state/selection/selectors";
 import { UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
-import { cancelUpload, retryUpload } from "../../state/upload/actions";
-import { CancelUploadAction, RetryUploadAction, UploadMetadata } from "../../state/upload/types";
+import { cancelUpload, editFileMetadataForJob, retryUpload } from "../../state/upload/actions";
+import {
+    CancelUploadAction,
+    EditFileMetadataForJobAction,
+    RetryUploadAction,
+    UploadMetadata,
+} from "../../state/upload/types";
 
 const styles = require("./styles.pcss");
 
@@ -72,6 +77,7 @@ interface Props {
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
     clearFileMetadataForJob: ActionCreator<ClearFileMetadataForJobAction>;
+    editFileMetadataForJob: ActionCreator<EditFileMetadataForJobAction>;
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataForJobHeader?: SearchResultsHeader[];
     fileMetadataForJobLoading: boolean;
@@ -153,6 +159,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             render: (_: any, row: UploadSummaryTableRow) => (
                 <>
                     <a className={styles.action} onClick={this.viewJob(row)}>View</a>
+                    {row.status === "SUCCEEDED" && (
+                        <a className={styles.action} onClick={this.editJob(row)}>Edit</a>
+                    )}
                 </>
             ),
             title: "Action",
@@ -324,6 +333,8 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.setState({selectedJobId: row.jobId});
     }
 
+    private editJob = (row: UploadSummaryTableRow) => () => this.props.editFileMetadataForJob(row);
+
     private closeModal = () => {
         this.props.clearFileMetadataForJob();
         this.setState({ selectedJobId: undefined, selectedRowInJob: undefined });
@@ -348,6 +359,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
+    editFileMetadataForJob,
     gatherIncompleteJobNames,
     requestFileMetadataForJob,
     retrieveJobs,

@@ -1,3 +1,4 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { CurrentUpload } from "../metadata/types";
@@ -14,6 +15,7 @@ import {
     CLEAR_UPLOAD_DRAFT,
     CLEAR_UPLOAD_HISTORY,
     DELETE_UPLOADS,
+    EDIT_FILE_METADATA_FOR_JOB,
     INITIATE_UPLOAD,
     JUMP_TO_PAST_UPLOAD,
     JUMP_TO_UPLOAD,
@@ -39,6 +41,7 @@ import {
     ClearUploadAction,
     ClearUploadDraftAction,
     ClearUploadHistoryAction,
+    EditFileMetadataForJobAction,
     FilepathToBoolean,
     InitiateUploadAction,
     JumpToPastUploadAction,
@@ -282,5 +285,12 @@ export function clearUploadDraft(): ClearUploadDraftAction {
             [TEMP_UPLOAD_STORAGE_KEY]: undefined,
         },
         writeToStore: true,
+    };
+}
+
+export function editFileMetadataForJob(job: JSSJob): EditFileMetadataForJobAction {
+    return {
+        payload: job,
+        type: EDIT_FILE_METADATA_FOR_JOB,
     };
 }
