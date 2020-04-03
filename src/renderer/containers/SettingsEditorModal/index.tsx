@@ -21,7 +21,6 @@ const styles = require("./styles.pcss");
 interface Props {
     className?: string;
     closeModal: ActionCreator<CloseModalAction>;
-    key: boolean;
     limsUrl: string;
     mountPoint?: string;
     openModal: ActionCreator<OpenModalAction>;
