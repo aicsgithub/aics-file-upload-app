@@ -1,4 +1,6 @@
 import { get, isNil } from "lodash";
+import * as moment from "moment";
+import { LONG_DATETIME_FORMAT } from "../../constants";
 
 import { makeConstant } from "../util";
 
@@ -11,16 +13,20 @@ export const ASSOCIATE_FILES_AND_WELLS = makeConstant(BRANCH_NAME, "associate-fi
 export const ASSOCIATE_FILES_AND_WORKFLOWS = makeConstant(BRANCH_NAME, "associate-files-and-workflows");
 export const CANCEL_UPLOAD = makeConstant(BRANCH_NAME, "cancel-upload");
 export const CLEAR_UPLOAD = makeConstant(BRANCH_NAME, "clear-upload");
+export const CLEAR_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "clear-upload-draft");
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOADS = makeConstant(BRANCH_NAME, "delete-uploads");
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");
+export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
 export const REMOVE_FILE_FROM_ARCHIVE = makeConstant(BRANCH_NAME, "remove-file-from-archive");
 export const REMOVE_FILE_FROM_ISILON = makeConstant(BRANCH_NAME, "remove-file-from-isilon");
+export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
 export const UNDO_FILE_WELL_ASSOCIATION = makeConstant(BRANCH_NAME, "undo-file-well-association");
 export const UNDO_FILE_WORKFLOW_ASSOCIATION = makeConstant(BRANCH_NAME, "undo-file-workflow-association");
 export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
 export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
+export const SAVE_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "save-upload-draft");
 export const UPDATE_SUB_IMAGES = makeConstant(BRANCH_NAME, "update-sub-images");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
 export const UPDATE_UPLOADS = makeConstant(BRANCH_NAME, "update-uploads");
@@ -79,3 +85,8 @@ export const isSubImageRow = ({positionIndex, scene, subImageName}: UploadMetada
 export const isSubImageOnlyRow = (metadata: UploadMetadata) => isSubImageRow(metadata) && isNil(metadata.channel);
 export const isChannelOnlyRow = (metadata: UploadMetadata) => !isNil(metadata.channel) && !isSubImageRow(metadata);
 export const isFileRow = (metadata: UploadMetadata) => !isChannelOnlyRow(metadata) && !isSubImageRow(metadata);
+
+export const DRAFT_KEY = "draft";
+
+export const getUploadDraftKey = (name: string, created: Date) =>
+    `${DRAFT_KEY}.${name}-${moment(created).format(LONG_DATETIME_FORMAT)}`;

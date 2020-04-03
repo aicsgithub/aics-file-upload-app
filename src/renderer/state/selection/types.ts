@@ -1,8 +1,8 @@
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
-import { Audited } from "../types";
+import { Audited, AutoSaveAction } from "../types";
 
-export interface SelectionStateBranch {
+export interface SelectionStateBranch extends UploadTabSelections {
     annotation: string;
     barcode?: string;
     expandedUploadJobRows: ExpandedRows;
@@ -10,15 +10,24 @@ export interface SelectionStateBranch {
     folderTreeOpen: boolean;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
-    openTemplateModalVisible: boolean;
     plate: ImagingSessionIdToPlateMap;
     wells: ImagingSessionIdToWellsMap;
     selectedWells: GridCell[];
     selectedWorkflows: Workflow[];
-    settingsEditorVisible: boolean;
     stagedFiles: UploadFile[];
-    templateEditorVisible: boolean;
     user: string;
+}
+
+export interface UploadTabSelections {
+    barcode?: string;
+    expandedUploadJobRows: ExpandedRows;
+    imagingSessionId?: number;
+    imagingSessionIds: Array<number | null>;
+    plate: ImagingSessionIdToPlateMap;
+    wells: ImagingSessionIdToWellsMap;
+    selectedWells: GridCell[];
+    selectedWorkflows: Workflow[];
+    stagedFiles: UploadFile[];
 }
 
 export interface ImagingSessionIdToPlateMap {
@@ -148,32 +157,32 @@ export interface Workflow {
     description: string;
 }
 
-export interface LoadFilesFromDragAndDropAction {
+export interface LoadFilesFromDragAndDropAction extends AutoSaveAction {
     payload: DragAndDropFileList;
     type: string;
 }
 
-export interface LoadFilesFromOpenDialogAction {
+export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
     payload: string[];
     type: string;
 }
 
-export interface AddStageFilesAction {
+export interface AddStageFilesAction extends AutoSaveAction {
     payload: UploadFile[];
     type: string;
 }
 
-export interface UpdateStagedFilesAction {
+export interface UpdateStagedFilesAction extends AutoSaveAction {
     payload: UploadFile[];
     type: string;
 }
 
-export interface GetFilesInFolderAction {
+export interface GetFilesInFolderAction extends AutoSaveAction {
     payload: UploadFile;
     type: string;
 }
 
-export interface SelectBarcodeAction {
+export interface SelectBarcodeAction extends AutoSaveAction {
     payload: {
         barcode: string;
         imagingSessionIds: Array<number | null>;
@@ -181,7 +190,7 @@ export interface SelectBarcodeAction {
     type: string;
 }
 
-export interface SelectWorkflowPathAction {
+export interface SelectWorkflowPathAction extends AutoSaveAction  {
     type: string;
 }
 
@@ -190,12 +199,12 @@ export interface SelectWorkflowsAction {
     type: string;
 }
 
-export interface SetPlateAction {
+export interface SetPlateAction extends AutoSaveAction  {
     payload: {[imagingSessionId: number]: PlateResponse};
     type: string;
 }
 
-export interface SetWellsAction {
+export interface SetWellsAction extends AutoSaveAction  {
     payload: {[imagingSessionId: number]: WellResponse[]};
     type: string;
 }
@@ -215,31 +224,6 @@ export interface SelectUserAction {
     type: string;
 }
 
-export interface CloseTemplateEditorAction {
-    type: string;
-}
-
-export interface OpenTemplateEditorAction {
-    payload?: number;
-    type: string;
-}
-
-export interface OpenOpenTemplateModalAction {
-    type: string;
-}
-
-export interface CloseOpenTemplateModalAction {
-    type: string;
-}
-
-export interface OpenSettingsEditorAction {
-    type: string;
-}
-
-export interface CloseSettingsEditorAction {
-    type: string;
-}
-
 export interface DragAndDropFileList {
     readonly length: number;
     [index: number]: DragAndDropFile;
@@ -250,16 +234,16 @@ export interface DragAndDropFile {
     readonly path: string;
 }
 
-export interface JumpToPastSelectionAction {
+export interface JumpToPastSelectionAction extends AutoSaveAction  {
     index: number;
     type: string;
 }
 
-export interface ClearSelectionHistoryAction {
+export interface ClearSelectionHistoryAction extends AutoSaveAction  {
     type: string;
 }
 
-export interface ClearStagedFilesAction {
+export interface ClearStagedFilesAction extends AutoSaveAction  {
     type: string;
 }
 
@@ -272,7 +256,7 @@ export interface ToggleFolderTreeAction {
     type: string;
 }
 
-export interface SelectImagingSessionIdAction {
+export interface SelectImagingSessionIdAction extends AutoSaveAction  {
     payload: number;
     type: string;
 }

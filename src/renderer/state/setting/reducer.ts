@@ -1,13 +1,17 @@
+import { userInfo } from "os";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 import {
     ASSOCIATE_BY_WORKFLOW,
     GATHER_SETTINGS,
     UPDATE_SETTINGS,
 } from "./constants";
+import { getAssociateByWorkflow } from "./selectors";
 import {
     AssociateByWorkflowAction,
     GatherSettingsAction,
@@ -21,6 +25,7 @@ export const initialState: SettingStateBranch = {
     limsPort: LIMS_PORT,
     limsProtocol: LIMS_PROTOCOL,
     metadataColumns: [],
+    username: userInfo().username,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -36,6 +41,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is AssociateByWorkflowAction => action.type === ASSOCIATE_BY_WORKFLOW,
         perform: (state: SettingStateBranch, action: AssociateByWorkflowAction) =>
             ({ ...state, associateByWorkflow: action.payload }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction =>
+            action.type === REPLACE_UPLOAD,
+        perform: (state: SettingStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
+            ...state,
+            associateByWorkflow: getAssociateByWorkflow(savedState),
+        }),
     },
 };
 

@@ -1,8 +1,12 @@
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
+import { REPLACE_UPLOAD } from "../upload/constants";
+import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 import {
     CLEAR_TEMPLATE_DRAFT,
@@ -12,6 +16,7 @@ import {
     JUMP_TO_TEMPLATE, SET_APPLIED_TEMPLATE,
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
+import { getAppliedTemplate } from "./selectors";
 
 import {
     ClearTemplateDraftAction,
@@ -48,6 +53,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 ...state.draft,
                 ...action.payload,
             },
+        }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: TemplateStateBranch, { payload: { state: savedState} }: ReplaceUploadAction) => ({
+            ...state,
+            appliedTemplate: getAppliedTemplate(savedState),
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: (state: TemplateStateBranch) => ({
+            ...state,
+            appliedTemplate: undefined,
         }),
     },
 };

@@ -1,4 +1,4 @@
-import { Button, Spin } from "antd";
+import { Alert, Button, Spin } from "antd";
 import classNames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -9,8 +9,9 @@ import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
 import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
-import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { getRequestsInProgressContains, getUploadError } from "../../state/feedback/selectors";
+import { AsyncRequest, OpenTemplateEditorAction, SetAlertAction } from "../../state/feedback/types";
+import { getUploadInProgress } from "../../state/job/selectors";
 import {
     getAnnotationTypes,
     getBooleanAnnotationTypeId,
@@ -31,7 +32,6 @@ import {
 } from "../../state/selection/selectors";
 import {
     ExpandedRows,
-    OpenTemplateEditorAction,
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
@@ -94,6 +94,8 @@ interface Props {
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
+    uploadError?: string;
+    uploadInProgress: boolean;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
@@ -114,7 +116,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     public componentDidMount() {
-        this.props.applyTemplate(this.props.savedTemplateId);
+        const templateId = this.props.appliedTemplate ? this.props.appliedTemplate.templateId :
+            this.props.savedTemplateId;
+        if (templateId) {
+            this.props.applyTemplate(templateId);
+        }
     }
 
     public render() {
@@ -126,6 +132,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canUndo,
             className,
             loading,
+            uploadError,
+            uploadInProgress,
             uploads,
             validationErrors,
         } = this.props;
@@ -136,6 +144,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
                 saveButtonDisabled={!canSave}
+                saveInProgress={uploadInProgress}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
                 page={Page.AddCustomData}
@@ -149,6 +158,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
+                {uploadError && (<Alert className={styles.alert} message={uploadError} type="error" showIcon={true}/>)}
                 {appliedTemplate && this.renderPlateInfo()}
                 {!loading && appliedTemplate && (
                     <CustomDataGrid
@@ -252,6 +262,8 @@ function mapStateToProps(state: State) {
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
         templates: getTemplates(state),
+        uploadError: getUploadError(state),
+        uploadInProgress: getUploadInProgress(state),
         uploads: getUploadSummaryRows(state),
         validationErrors: getValidationErrorsMap(state),
     };

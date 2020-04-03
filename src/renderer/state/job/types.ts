@@ -1,13 +1,21 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+import { WriteToStoreAction } from "../types";
 
 export interface JobStateBranch {
+    // Parent job representing an upload of a batch of files
     uploadJobs: JSSJob[];
+    // Child job representing the copy step of an upload job
     copyJobs: JSSJob[];
+    // Child job representing the add metadata step of an upload job
     addMetadataJobs: JSSJob[];
+    // List of upload jobs that are either pending (no FSS Job Id yet) or in-progress (has FSS Job Id)
     incompleteJobNames: string[];
+    // Represents which filter has been selected on the Upload Summary page
     jobFilter: JobFilter;
+    // Jobs where the user has initiated an upload but do not have FSS Job Id yet
     pendingJobs: PendingJob[];
+    // Whether the app is polling for jobs
     polling: boolean;
 }
 
@@ -47,7 +55,7 @@ export interface GatherIncompleteJobNamesAction {
     type: string;
 }
 
-export interface UpdateIncompleteJobNamesAction {
+export interface UpdateIncompleteJobNamesAction extends WriteToStoreAction {
     payload: string[];
     type: string;
 }

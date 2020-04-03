@@ -1,8 +1,10 @@
 import electron, { dialog, Menu, shell } from "electron";
 import {
     OPEN_OPEN_TEMPLATE_MODAL,
+    OPEN_OPEN_UPLOAD_MODAL,
     OPEN_SETTINGS_EDITOR,
     OPEN_TEMPLATE_EDITOR,
+    SAVE_UPLOAD,
     SCHEMA_SYNONYM,
     SWITCH_ENVIRONMENT,
 } from "../shared/constants";
@@ -51,10 +53,19 @@ export const setMenu = (webContents: WebContents) => {
                     label: "Open",
                     submenu: [
                         {
+                            click: () => webContents.send(OPEN_OPEN_UPLOAD_MODAL),
+                            label: "Upload Draft",
+                        },
+                        {
                             click: () => webContents.send(OPEN_OPEN_TEMPLATE_MODAL),
                             label: SCHEMA_SYNONYM,
                         },
                     ],
+                },
+                { type: "separator" },
+                {
+                    click: () => webContents.send(SAVE_UPLOAD),
+                    label: "Save",
                 },
                 { type: "separator" },
                 {

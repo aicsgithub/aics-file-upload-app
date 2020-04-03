@@ -23,7 +23,7 @@ export const pageOrder: Page[] = [
  * @param currentPage page to start at
  * @param direction number of steps forward or back (negative) from currentPage
  */
-export const getNextPage = (currentPage: Page, direction: number): Page | null => {
+export const findNextPage = (currentPage: Page, direction: number): Page | null => {
     const currentPageIndex = pageOrder.indexOf(currentPage);
     if (currentPageIndex > -1) {
         const nextPageIndex = currentPageIndex + direction;

@@ -90,7 +90,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
                         type="primary"
                         size="large"
                         onClick={this.onSave}
-                        disabled={saveButtonDisabled}
+                        disabled={saveButtonDisabled || saveInProgress}
                     >
                         {saveInProgress ? "Loading" : saveButtonName}
                         {FormPage.renderSpinner(saveInProgress)}

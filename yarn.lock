@@ -24,22 +24,22 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^2.3.3":
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.3.3.tgz#f35f583d2a0e90b3171842711be7775bb6de220d"
-  integrity sha512-M0FDRtsYThNVvM7dXaRNOXhZOO4P82viQeB/19pxSjrBb5KHeaCB+fwBPMpuHYv6KrAPVm9IPZVAnBYme3u/7g==
+"@aics/aicsfiles@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-2.4.0.tgz#17ac6682dab9bbd4759734062142e6a5c200a4a8"
+  integrity sha512-cNlWMIK5PDef8+cLtDcoMW4EjswrhAWDBVRYXPTAEEGqjHj3Uk4cvqBt2lsRx+DOb6h2wrN9nmLRQy5KaAX/Ag==
   dependencies:
-    "@aics/job-status-client" "^1.1.0"
+    "@aics/job-status-client" "1.1.1"
     "@babel/polyfill" "^7.4.4"
     axios "^0.19.0"
     humps "^2.0.1"
     lodash "^4.17.11"
     uuid "^3.3.2"
 
-"@aics/job-status-client@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@aics/job-status-client/-/job-status-client-1.1.0.tgz#30a3f60cab346c756c3eb8dc3c1cafd97a620004"
-  integrity sha512-nbEvLjBzb8N0/5IdoVQojTxEhBqz1F+rRitKCTebu2GIJSkOTfipPAynx9UMVgCBWAqiEHOXqMNXi/ctjShbyQ==
+"@aics/job-status-client@1.1.1", "@aics/job-status-client@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@aics/job-status-client/-/job-status-client-1.1.1.tgz#d8296fe1e6519f6e7c384a011496e7a79914511f"
+  integrity sha512-PrgTezCt3BNvYcIO9zpvmoIKP09BOoTtV+53BTjOdmax9s4FHmhKBv2ciZe0/yhvvUGA3VNf+tJzLWEi+XzXBw==
   dependencies:
     "@babel/polyfill" "^7.4.4"
     axios "^0.19.0"

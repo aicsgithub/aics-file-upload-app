@@ -4,7 +4,7 @@ import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { createMockReduxStore, fms, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, fms, labkeyClient, mockReduxLogicDeps, storage } from "../../test/configure-mock-store";
 import {
     mockAnnotationLookups,
     mockAnnotationOptions,
@@ -24,13 +24,14 @@ import {
     mockWellAnnotation,
 } from "../../test/mocks";
 import {
+    gatherUploadDrafts,
     requestAnnotations,
     requestBarcodeSearchResults,
     requestFileMetadataForJob,
     requestMetadata,
     requestTemplates,
     retrieveOptionsForLookup,
-    searchFileMetadata
+    searchFileMetadata,
 } from "../actions";
 
 import {
@@ -48,6 +49,7 @@ import {
     getMetadata,
     getTemplates,
     getUnits,
+    getUploadDrafts,
     getUsers,
     getWorkflowOptions,
 } from "../selectors";
@@ -408,10 +410,10 @@ describe("Metadata logics", () => {
             // after
             expect(getAlert(store.getState())).to.not.be.undefined;
         });
-        it("doesn't request data if payload is empty", () => {
+        it("doesn't request data if payload is empty", async () => {
             const getPlatesByBarcodeStub = stub().rejects();
             sandbox.replace(labkeyClient, "getPlatesByBarcode", getPlatesByBarcodeStub);
-            const { store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
 
             // before
             expect(getBarcodeSearchResults(store.getState())).to.be.empty;
@@ -419,10 +421,53 @@ describe("Metadata logics", () => {
 
             // apply
             store.dispatch(requestBarcodeSearchResults("  "));
+            await logicMiddleware.whenComplete();
 
             // after
             expect(getBarcodeSearchResults(store.getState())).to.be.empty;
             expect(getPlatesByBarcodeStub.called).to.be.false;
+        });
+    });
+    describe("gatherUploadDraftsLogic", () => {
+        it("populates uploadDrafts with drafts found in localStorage", async () => {
+            const drafts = {
+                foo: {
+                    metadata: {
+                        created: new Date(),
+                        modified: new Date(),
+                        name: "foo",
+                    },
+                    state: mockState,
+                },
+            };
+            const storageGetStub = stub().returns(drafts);
+            sandbox.replace(storage, "get", storageGetStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            // before
+            expect(getUploadDrafts(store.getState())).to.be.empty;
+
+            // apply
+            store.dispatch(gatherUploadDrafts());
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(getUploadDrafts(store.getState())).to.not.be.empty;
+        });
+        it("sets warning alert if getting drafts from localStorage fails", async () => {
+            const storageGetStub = stub().throws();
+            sandbox.replace(storage, "get", storageGetStub);
+            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(gatherUploadDrafts());
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(getAlert(store.getState())).to.not.be.undefined;
         });
     });
 });

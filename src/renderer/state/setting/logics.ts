@@ -7,7 +7,6 @@ import { LimsUrl } from "../../../shared/types";
 import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
 import { AlertType } from "../feedback/types";
-import { retrieveJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
 import {
     ReduxLogicDoneCb,
@@ -23,7 +22,7 @@ import {
     SET_MOUNT_POINT,
     UPDATE_SETTINGS
 } from "./constants";
-import { getLimsHost, getLimsPort, getMountPoint } from "./selectors";
+import { getLimsHost, getLimsPort, getLoggedInUser, getMountPoint } from "./selectors";
 
 const updateSettingsLogic = createLogic({
     process: async ({ctx, fms, getState, jssClient, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
@@ -31,9 +30,10 @@ const updateSettingsLogic = createLogic({
         const state = getState();
         const host = getLimsHost(state);
         const port = getLimsPort(state);
+        const username = getLoggedInUser(state);
         const mountPoint = getMountPoint(state);
 
-        if (ctx.host !== host || ctx.port !== port) {
+        if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
             fms.host = host;
             jssClient.host = host;
             labkeyClient.host = host;
@@ -44,8 +44,11 @@ const updateSettingsLogic = createLogic({
             labkeyClient.port = port;
             mmsClient.port = port;
 
+            fms.username = username;
+            jssClient.username = username;
+            mmsClient.username = username;
+
             dispatch(requestMetadata());
-            dispatch(retrieveJobs());
         }
 
         if (mountPoint && mountPoint !== ctx.mountPoint) {
@@ -74,13 +77,14 @@ const updateSettingsLogic = createLogic({
                 ctx.host = getLimsHost(getState());
                 ctx.port = getLimsPort(getState());
                 ctx.mountPoint = getMountPoint(getState());
+                ctx.username = getLoggedInUser(getState());
 
                 map(action.payload, (value: any, key: string) => {
                     storage.set(`${USER_SETTINGS_KEY}.${key}`, value);
                 });
                 next(action);
             } else {
-                reject(action);
+                reject({type: "ignore"});
             }
         } catch (e) {
             next(batchActions([

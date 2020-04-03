@@ -6,6 +6,8 @@ import {
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
@@ -22,12 +24,14 @@ import {
     JUMP_TO_UPLOAD,
     REMOVE_FILE_FROM_ARCHIVE,
     REMOVE_FILE_FROM_ISILON,
+    REPLACE_UPLOAD,
     RETRY_UPLOAD,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_UPLOAD,
     UPDATE_UPLOADS,
 } from "./constants";
+import { getUpload } from "./selectors";
 import {
     ApplyTemplateAction,
     AssociateFilesAndWellsAction,
@@ -36,6 +40,7 @@ import {
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
     RemoveUploadsAction,
+    ReplaceUploadAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateUploadAction,
@@ -160,6 +165,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
         perform: (state: UploadStateBranch, action: UpdateUploadAction) => {
+            // prevent updating an upload that doesn't exist anymore
+            if (!state[action.payload.key]) {
+                return state;
+            }
+
             return {
                 ...state,
                 [action.payload.key]: {
@@ -195,6 +205,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 shouldBeInLocal: false,
             },
         }),
+    },
+    [REPLACE_UPLOAD]: {
+        accepts: (action: AnyAction): action is ReplaceUploadAction => action.type === REPLACE_UPLOAD,
+        perform: (state: UploadStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
+            ...getUpload(savedState),
+        }),
+    },
+    [CLOSE_UPLOAD_TAB]: {
+        accepts: (action: AnyAction): action is CloseUploadTabAction =>
+            action.type === CLOSE_UPLOAD_TAB,
+        perform: () => ({}),
     },
 };
 

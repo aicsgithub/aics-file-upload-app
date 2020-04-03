@@ -1,52 +1,42 @@
 import { createLogic } from "redux-logic";
+import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { clearTemplateDraft, getTemplate } from "../template/actions";
 
 import {
-    HTTP_STATUS,
+    ReduxLogicDoneCb,
     ReduxLogicNextCb,
-    ReduxLogicTransformDependencies
+    ReduxLogicProcessDependencies,
 } from "../types";
-import { batchActions } from "../util";
-import { addEvent } from "./actions";
 
-import { CLEAR_ALERT, SET_ALERT } from "./constants";
-import { getAlert } from "./selectors";
+import { clearDeferredAction, setDeferredAction } from "./actions";
+import { CLOSE_MODAL } from "./constants";
+import { getDeferredAction } from "./selectors";
 
-export const httpStatusToMessage: Map<number, string> = new Map([
-    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error from server"],
-    [HTTP_STATUS.BAD_GATEWAY, "Bad Gateway Error: Labkey or MMS is down."],
-]);
-
-const setAlertLogic = createLogic({
-    transform: ({ action }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const { payload } = action;
-        const updatedPayload = { ...payload };
-
-        if (httpStatusToMessage.has(payload.statusCode) && !payload.message) {
-            updatedPayload.message = httpStatusToMessage.get(payload.statusCode);
+const openTemplateEditorLogic = createLogic({
+    process: ({action}: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dispatch(setDeferredAction(clearTemplateDraft()));
+        if (action.payload) {
+            dispatch(getTemplate(action.payload));
         }
 
-        next({
-            ...action,
-            payload: updatedPayload,
-        });
+        done();
     },
-    type: SET_ALERT,
+    type: OPEN_TEMPLATE_EDITOR,
 });
 
-const clearAlertLogic = createLogic({
-    transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        const alert = getAlert(getState());
-        if (alert && alert.message) {
-            next(batchActions([
-                addEvent(alert.message, alert.type, new Date()),
-                action,
-            ]));
+const closeModalLogic = createLogic({
+    process: ({ getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const deferredAction = getDeferredAction(getState());
+        if (deferredAction) {
+            dispatch(deferredAction);
         }
+        dispatch(clearDeferredAction());
+        done();
     },
-    type: CLEAR_ALERT,
+    type: CLOSE_MODAL,
 });
 
 export default [
-    clearAlertLogic,
-    setAlertLogic,
+    closeModalLogic,
+    openTemplateEditorLogic,
 ];

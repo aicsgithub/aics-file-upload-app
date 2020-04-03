@@ -17,23 +17,19 @@ import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
-import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
-import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore, dialog, mmsClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
-    mockAnnotations,
-    mockAnnotationTypes,
     mockAuditInfo,
-    mockMMSTemplate,
     mockSelection,
     mockState,
-    mockTemplateStateBranch, mockWells, nonEmptyStateForInitiatingUpload,
+    mockWells,
+    nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { HTTP_STATUS } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { clearStagedFiles, closeTemplateEditor, openTemplateEditor, selectBarcode, selectWells } from "../actions";
+import { clearStagedFiles, selectBarcode, selectWells } from "../actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
@@ -43,7 +39,6 @@ import {
     getSelectedPlates,
     getSelectedWells,
     getStagedFiles,
-    getTemplateEditorVisible,
     getWells,
 } from "../selectors";
 import {
@@ -585,70 +580,6 @@ describe("Selection logics", () => {
             expect(getPage(state)).to.equal(Page.AssociateFiles);
             expect(getSelectedBarcode(state)).to.equal(barcode);
             expect(getSelectedPlateId(state)).to.equal(plateId);
-        });
-    });
-
-    describe("openTemplateEditorLogic", () => {
-        it("gets template if template id passed", async () => {
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-                metadata: {
-                    ...mockState.metadata,
-                    annotationTypes: mockAnnotationTypes,
-                    annotations: mockAnnotations,
-                },
-            });
-            const getTemplateStub = stub().resolves(mockMMSTemplate);
-            sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
-
-            // before
-            expect(getTemplateEditorVisible(store.getState())).to.be.false;
-            expect(getTemplateStub.called).to.be.false;
-
-            // apply
-            store.dispatch(openTemplateEditor(1));
-
-            // after
-            await logicMiddleware.whenComplete();
-            expect(getTemplateEditorVisible(store.getState())).to.be.true;
-            expect(getTemplateStub.called).to.be.true;
-        });
-        it("sets templateEditorVisible to true", () => {
-            const { store } = createMockReduxStore({
-                ...mockState,
-            });
-            expect(getTemplateEditorVisible(store.getState())).to.be.false;
-            store.dispatch(openTemplateEditor());
-            expect(getTemplateEditorVisible(store.getState())).to.be.true;
-        });
-    });
-
-    describe("closeTemplateEditorLogic", () => {
-        it("sets templateEditorVisible to false and resets template draft", () => {
-            const { store } = createMockReduxStore({
-                ...mockState,
-                selection: getMockStateWithHistory({
-                    ...mockSelection,
-                    templateEditorVisible: true,
-                }),
-                template: getMockStateWithHistory({
-                    ...mockTemplateStateBranch,
-                    draft: {
-                        annotations: [],
-                        name: "My Template",
-                    },
-                }),
-            });
-            // before
-            expect(getTemplateEditorVisible(store.getState())).to.be.true;
-            expect(getTemplateDraft(store.getState())).to.not.equal(DEFAULT_TEMPLATE_DRAFT);
-
-            // apply
-            store.dispatch(closeTemplateEditor());
-
-            // after
-            expect(getTemplateEditorVisible(store.getState())).to.be.false;
-            expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
         });
     });
 

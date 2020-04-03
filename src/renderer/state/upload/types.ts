@@ -1,7 +1,8 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
-import { Channel } from "../metadata/types";
+import { Channel, CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
+import { AutoSaveAction, State, WriteToStoreAction } from "../types";
 
 export interface UploadStateBranch {
     [fullPath: string]: UploadMetadata;
@@ -48,13 +49,14 @@ export interface MMSAnnotationValueRequest {
 
 export interface ApplyTemplateAction {
     payload: {
+        clearAnnotations: boolean;
         templateId?: number;
         uploads: UploadStateBranch;
     };
     type: string;
 }
 
-export interface UpdateUploadAction {
+export interface UpdateUploadAction extends AutoSaveAction {
     payload: {
         key: string;
         upload: Partial<UploadMetadata>;
@@ -109,7 +111,7 @@ export interface UploadJobTableRow extends UploadRowId {
     workflows?: string;
 }
 
-export interface AssociateFilesAndWellsAction {
+export interface AssociateFilesAndWellsAction extends AutoSaveAction {
     payload: {
         barcode: string;
         rowIds: UploadRowId[];
@@ -118,7 +120,7 @@ export interface AssociateFilesAndWellsAction {
     type: string;
 }
 
-export interface AssociateFilesAndWorkflowsAction {
+export interface AssociateFilesAndWorkflowsAction extends AutoSaveAction {
     payload: {
         fullPaths: string[],
         workflows: Workflow[],
@@ -126,7 +128,7 @@ export interface AssociateFilesAndWorkflowsAction {
     type: string;
 }
 
-export interface UndoFileWellAssociationAction {
+export interface UndoFileWellAssociationAction extends AutoSaveAction {
     payload: {
         deleteUpload: boolean; // whether or not to delete this part of upload if no well associations left
         rowId: UploadRowId;
@@ -135,7 +137,7 @@ export interface UndoFileWellAssociationAction {
     type: string;
 }
 
-export interface UndoFileWorkflowAssociationAction {
+export interface UndoFileWorkflowAssociationAction extends AutoSaveAction {
     payload: {
         fullPath: string,
         workflows: Workflow[],
@@ -143,26 +145,26 @@ export interface UndoFileWorkflowAssociationAction {
     type: string;
 }
 
-export interface JumpToPastUploadAction {
+export interface JumpToPastUploadAction extends AutoSaveAction {
     index: number;
     type: string;
 }
 
-export interface JumpToUploadAction {
+export interface JumpToUploadAction extends AutoSaveAction {
     index: number;
     type: string;
 }
 
-export interface ClearUploadHistoryAction {
+export interface ClearUploadHistoryAction extends AutoSaveAction {
     type: string;
 }
 
-export interface RemoveUploadsAction {
+export interface RemoveUploadsAction extends AutoSaveAction {
     payload: string[]; // fullpaths to remove from upload state branch
     type: string;
 }
 
-export interface InitiateUploadAction {
+export interface InitiateUploadAction extends AutoSaveAction {
     type: string;
 }
 
@@ -176,7 +178,7 @@ export interface RetryUploadAction {
     type: string;
 }
 
-export interface UpdateUploadsAction {
+export interface UpdateUploadsAction extends AutoSaveAction {
     payload: Partial<UploadMetadata>;
     type: string;
 }
@@ -189,7 +191,7 @@ export interface UpdateSubImagesPayload {
     subImageNames: string[];
 }
 
-export interface UpdateSubImagesAction {
+export interface UpdateSubImagesAction extends AutoSaveAction {
     payload: UpdateSubImagesPayload;
     type: string;
 }
@@ -198,27 +200,49 @@ export interface FilepathToBoolean {
     [filepath: string]: boolean;
 }
 
-export interface UpdateFilesToArchive {
+export interface UpdateFilesToArchive extends AutoSaveAction {
     payload: FilepathToBoolean;
     type: string;
 }
 
-export interface UpdateFilesToStoreOnIsilon {
+export interface UpdateFilesToStoreOnIsilon extends AutoSaveAction {
     payload: FilepathToBoolean;
     type: string;
 }
 
-export interface RemoveFileFromArchiveAction {
+export interface RemoveFileFromArchiveAction extends AutoSaveAction {
     payload: string;
     type: string;
 }
 
-export interface RemoveFileFromIsilonAction {
+export interface RemoveFileFromIsilonAction extends AutoSaveAction {
     payload: string;
     type: string;
 }
 
-export interface ClearUploadAction {
+export interface ClearUploadAction extends AutoSaveAction {
+    type: string;
+}
+
+export interface SaveUploadDraftAction {
+    payload: string;
+    type: string;
+}
+
+export interface OpenUploadDraftAction {
+    payload: string;
+    type: string;
+}
+
+export interface ReplaceUploadAction {
+    payload: {
+        state: State;
+        metadata: CurrentUpload;
+    };
+    type: string;
+}
+
+export interface ClearUploadDraftAction extends WriteToStoreAction {
     type: string;
 }
 

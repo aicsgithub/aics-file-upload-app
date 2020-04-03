@@ -4,7 +4,7 @@ import { createLogic } from "redux-logic";
 
 import { getWithRetry, pivotAnnotations } from "../../util";
 
-import { addRequestToInProgress, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import { addRequestToInProgress, closeModal, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { requestTemplates } from "../metadata/actions";
 import {
@@ -14,7 +14,6 @@ import {
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
-import { closeTemplateEditor } from "../selection/actions";
 import { updateSettings } from "../setting/actions";
 import {
     ReduxLogicDoneCb,
@@ -133,15 +132,14 @@ const getTemplateLogic = createLogic({
 
             if (addAnnotationsToUpload) {
                 const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
-
                 actions.push(
                     setAppliedTemplate({
                         ...etc,
                         annotations,
                     }),
                     ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
-                        ...metadata,
                         ...additionalAnnotations,
+                        ...metadata, // prevent existing annotations from getting overwritten
                     }))
                 );
             } else {
@@ -200,7 +198,7 @@ const saveTemplateLogic = createLogic({
             }
 
             // these need to be dispatched separately because they have logics associated with them
-            dispatch(closeTemplateEditor());
+            dispatch(closeModal("templateEditor"));
             dispatch(requestTemplates());
             dispatch(applyTemplate(createdTemplateId));
             dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));

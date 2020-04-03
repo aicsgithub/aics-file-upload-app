@@ -6,7 +6,7 @@ import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
 
 export default class MMSClient extends BaseServiceClient {
-    private readonly username: string;
+    public username: string;
 
     constructor(config: {host: string, localStorage: LocalStorage, port: string, protocol: string, username: string}) {
         super(config);

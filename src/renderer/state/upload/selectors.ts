@@ -264,7 +264,7 @@ const getSubImageRows = (allMetadataForFile: UploadMetadataWithDisplayFields[],
                     allMetadataForSubImage.length > 1
                 );
                 subImageRows.push(subImageRow);
-                if (expandedRows[subImageRow.key]) { // todo ensure this works
+                if (expandedRows[subImageRow.key]) {
                     subImageRows.push(...getSubImageChannelRows(allMetadataForSubImage, subImageRowTreeDepth + 1,
                         subImageOnlyMetadata, template));
                 }
@@ -586,9 +586,9 @@ export const getUploadPayload = createSelector([
 });
 
 export const getUploadFileNames = createSelector([
-    getUploadPayload,
-], (upload: Uploads): string => (
-    Object.keys(upload).map((filePath: string) => basename(filePath)).sort().join(", ")
+    getUpload,
+], (upload: UploadStateBranch): string => (
+    uniq(Object.values(upload).map(({file}: UploadMetadata) => basename(file))).sort().join(", ")
 ));
 
 export const getUploadFiles = createSelector([
@@ -623,3 +623,9 @@ export const getCanGoForwardFromSelectStorageLocationPage = createSelector([
     getFileToStoreOnIsilon,
 ], (files: string[], fileToArchive: FilepathToBoolean, fileToStoreOnIsilon: FilepathToBoolean) =>
     !some(files, (f: string) => !fileToArchive[f] && !fileToStoreOnIsilon[f]));
+
+export const getCanSaveUploadDraft = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) => {
+    return !isEmpty(upload);
+});
