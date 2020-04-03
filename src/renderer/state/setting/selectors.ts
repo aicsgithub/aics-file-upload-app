@@ -9,6 +9,7 @@ export const getLimsHost = (state: State) => state.setting.limsHost;
 export const getLimsPort = (state: State) => state.setting.limsPort;
 export const getLimsProtocol = (state: State) => state.setting.limsProtocol;
 export const getMountPoint = (state: State) => state.setting.mountPoint;
+export const getLoggedInUser = (state: State) => state.setting.username;
 export const getTemplateId = (state: State) => state.setting.templateId;
 export const getMetadataColumns = (state: State) => state.setting.metadataColumns;
 

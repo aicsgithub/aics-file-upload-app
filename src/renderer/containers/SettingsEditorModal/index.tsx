@@ -1,7 +1,8 @@
-import { Button, Modal } from "antd";
+import { Alert, Button, Input, Modal } from "antd";
 import { ipcRenderer } from "electron";
+import { trim } from "lodash";
 import * as React from "react";
-import { ReactNode, ReactNodeArray } from "react";
+import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
@@ -10,8 +11,9 @@ import { closeModal, openModal } from "../../state/feedback/actions";
 
 import { getSettingsEditorVisible } from "../../state/feedback/selectors";
 import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
-import { setMountPoint, switchEnvironment } from "../../state/setting/actions";
-import { getLimsUrl, getMountPoint } from "../../state/setting/selectors";
+import { setMountPoint, switchEnvironment, updateSettings } from "../../state/setting/actions";
+import { getLimsUrl, getLoggedInUser, getMountPoint } from "../../state/setting/selectors";
+import { UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
@@ -24,14 +26,20 @@ interface Props {
     openModal: ActionCreator<OpenModalAction>;
     setMountPoint: () => void;
     switchEnvironment: () => void;
+    updateSettings: ActionCreator<UpdateSettingsAction>;
+    username: string;
     visible: boolean;
 }
 
-class SettingsEditorModal extends React.Component<Props, {}> {
+interface SettingsEditorState {
+    username: string;
+}
+
+class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            showInfoAlert: true,
+            username: props.username,
         };
     }
 
@@ -57,8 +65,12 @@ class SettingsEditorModal extends React.Component<Props, {}> {
                 className={className}
                 title="Settings"
                 visible={visible}
+                okButtonProps={{
+                    disabled: !this.canSave(),
+                }}
+                okText="Save"
                 onCancel={this.closeModal}
-                onOk={this.closeModal}
+                onOk={this.save}
                 maskClosable={false}
             >
                 {this.renderBody()}
@@ -71,6 +83,8 @@ class SettingsEditorModal extends React.Component<Props, {}> {
             mountPoint,
             limsUrl,
         } = this.props;
+
+        const { username } = this.state;
 
         return (
             <>
@@ -88,17 +102,34 @@ class SettingsEditorModal extends React.Component<Props, {}> {
                         Update
                     </Button>
                 </div>
+                {!this.canSave() && <Alert message="Username must be defined" type="error" showIcon={true}/>}
+                <div className={styles.row}>
+                    <div className={styles.key}>Username</div>
+                    <Input className={styles.value} value={username} onChange={this.setUsername}/>
+                </div>
             </>);
     }
 
     private closeModal = () => this.props.closeModal("settings");
+    private setUsername = (e: ChangeEvent<HTMLInputElement>) => this.setState({username: e.target.value});
+    private canSave = () => !!trim(this.state.username);
+    private save = () => {
+        if (this.state.username !== this.props.username && this.canSave()) {
+            this.props.updateSettings({username: this.state.username});
+        }
+
+        this.closeModal();
+    }
 }
 
 function mapStateToProps(state: State) {
+    const visible = getSettingsEditorVisible(state);
     return {
+        key: visible,
         limsUrl: getLimsUrl(state),
         mountPoint: getMountPoint(state),
-        visible: getSettingsEditorVisible(state),
+        username: getLoggedInUser(state),
+        visible,
     };
 }
 
@@ -107,5 +138,6 @@ const dispatchToPropsMap = {
     openModal,
     setMountPoint,
     switchEnvironment,
+    updateSettings,
 };
 export default connect(mapStateToProps, dispatchToPropsMap)(SettingsEditorModal);

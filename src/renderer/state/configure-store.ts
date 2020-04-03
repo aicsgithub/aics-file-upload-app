@@ -43,16 +43,23 @@ const logics = [
     ...upload.logics,
 ];
 
+const username: string = userInfo().username;
+
 export const reduxLogicDependencies = {
     dialog: remote.dialog,
-    fms: new FileManagementSystem({host: LIMS_HOST, port: LIMS_PORT, logLevel: "trace"}),
+    fms: new FileManagementSystem({
+        host: LIMS_HOST,
+        logLevel: "trace",
+        port: LIMS_PORT,
+        username,
+    }),
     getApplicationMenu: remote.Menu.getApplicationMenu,
     ipcRenderer,
     jssClient: new JobStatusClient({
         host: LIMS_HOST,
         logLevel: "debug",
         port: LIMS_PORT,
-        username: userInfo().username,
+        username,
     }),
     labkeyClient: new LabkeyClient({
         host: LIMS_HOST,
@@ -66,7 +73,7 @@ export const reduxLogicDependencies = {
         localStorage: storage,
         port: LIMS_PORT,
         protocol: LIMS_PROTOCOL,
-        username: userInfo().username,
+        username,
     }),
     storage,
 };

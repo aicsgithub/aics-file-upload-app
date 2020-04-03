@@ -2,7 +2,6 @@ import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Menu } from "electron";
 import { intersection, isEmpty, without } from "lodash";
-import { userInfo } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { interval } from "rxjs";
@@ -11,13 +10,14 @@ import { Error } from "tslint/lib/error";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 
-import { removeRequestFromInProgress, setAlert, setErrorAlert } from "../feedback/actions";
+import { addEvent, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
 import { clearStagedFiles } from "../selection/actions";
+import { getLoggedInUser } from "../setting/selectors";
 
 import {
     LocalStorage,
@@ -78,33 +78,34 @@ export const fetchJobs = (getStateFn: () => State, jssClient: JobStatusClient): 
     const statusesToInclude = getJobStatusesToInclude(getJobFilter(getStateFn()));
 
     const potentiallyIncompleteJobNames = getIncompleteJobNames(getStateFn());
+    const user = getLoggedInUser(getStateFn());
     const potentiallyIncompleteJobsPromise = potentiallyIncompleteJobNames.length ? jssClient.getJobs({
         jobName: { $in: potentiallyIncompleteJobNames },
         serviceFields: {
             type: "upload",
         },
-        user: userInfo().username,
+        user,
     }) : Promise.resolve([]);
     const getUploadJobsPromise = jssClient.getJobs({
         serviceFields: {
             type: "upload",
         },
         status: { $in: statusesToInclude },
-        user: userInfo().username,
+        user,
     });
     const getCopyJobsPromise = jssClient.getJobs({
         serviceFields: {
             type: "copy",
         },
         status: { $in: statusesToInclude },
-        user: userInfo().username,
+        user,
     });
     const getAddMetadataPromise = jssClient.getJobs({
         serviceFields: {
             type: "add_metadata",
         },
         status: { $in: statusesToInclude },
-        user: userInfo().username,
+        user,
     });
 
     return Promise.all([
@@ -133,7 +134,7 @@ export const mapJobsToActions = (
     } = jobs;
     if (!addMetadataJobs || !copyJobs || !potentiallyIncompleteJobs || !uploadJobs) {
         const message = error ? error.message : "Could not retrieve jobs";
-        return setErrorAlert(message);
+        return addEvent(message, AlertType.ERROR, new Date());
     }
 
     const uploadJobNames = uploadJobs.map((job: JSSJob) => job.jobName);

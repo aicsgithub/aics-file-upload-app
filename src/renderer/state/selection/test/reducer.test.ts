@@ -13,13 +13,15 @@ import { replaceUpload } from "../../upload/actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import {
-    getAnnotation,
     getExpandedUploadJobRows,
     getFolderTreeOpen,
-    getSelectedBarcode, getSelectedFiles,
+    getSelectedAnnotation,
+    getSelectedBarcode,
+    getSelectedFiles,
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds,
-    getSelectedPlates, getUser,
+    getSelectedPlates,
+    getSelectedUser,
     getWells,
 } from "../selectors";
 
@@ -82,9 +84,9 @@ describe("selection reducer", () => {
             expect(present.selectedWorkflows).to.deep.equal(initialState.selectedWorkflows);
             expect(present.stagedFiles).to.deep.equal(initialState.stagedFiles);
 
-            expect(present.annotation).to.equal(getAnnotation(nonEmptySelectionsState));
+            expect(present.annotation).to.equal(getSelectedAnnotation(nonEmptySelectionsState));
             expect(present.files).to.equal(getSelectedFiles(nonEmptySelectionsState));
-            expect(present.user).to.equal(getUser(nonEmptySelectionsState));
+            expect(present.user).to.equal(getSelectedUser(nonEmptySelectionsState));
         });
     });
 });

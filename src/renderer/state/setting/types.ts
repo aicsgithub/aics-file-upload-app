@@ -5,6 +5,7 @@ export interface SettingStateBranch extends LimsUrl {
     metadataColumns: string[];
     mountPoint?: string;
     templateId?: number;
+    username: string;
 }
 
 export interface AssociateByWorkflowAction {
