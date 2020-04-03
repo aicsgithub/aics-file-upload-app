@@ -320,7 +320,7 @@ const retrieveFileMetadataForJobLogic = createLogic({
                     done: ReduxLogicDoneCb) => {
         dispatch(addRequestToInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
         try {
-            const fileIds: string[] = action.payload;
+            const fileIds: string[] = ["183b5038f5c548109849df678d787ff2"]; // action.payload;
             const resolvedPromises: FileMetadata[] = await Promise.all(
                 fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
             );
