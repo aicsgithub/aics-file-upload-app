@@ -16,7 +16,7 @@ import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
 import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
-import { getCurrentSelectionIndex } from "../selection/selectors";
+import { getCurrentSelectionIndex, getFolderTreeOpen } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
@@ -99,7 +99,7 @@ export const getSelectPageActions = (
     }
 
     // Folder tree is a necessary part of associating files, so open if not already
-    if (!state.selection.present.folderTreeOpen && nextPage === Page.AssociateFiles) {
+    if (!getFolderTreeOpen(state) && nextPage === Page.AssociateFiles) {
         actions.push(toggleFolderTree());
     }
 
