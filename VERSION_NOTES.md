@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.31 (4/3/20)
+- Feature: Allow users to set which username to use for requests
+- Feature: Open and Save upload drafts
+
 ## 1.0.30 (2/25/20) (1.0.27-1.0.29 testing auto update)
 - Feature: Style improvements
 - Bugfix: Fix issue with annotations on scenes and channels not being unique per file
