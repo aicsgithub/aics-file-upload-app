@@ -148,6 +148,16 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             title: "Last Modified",
             width: "300px",
         },
+        {
+            key: "action",
+            render: (_: any, row: UploadSummaryTableRow) => (
+                <>
+                    <a className={styles.action} onClick={this.viewJob(row)}>View</a>
+                </>
+            ),
+            title: "Action",
+            width: "200px",
+        },
     ];
 
     constructor(props: Props) {
@@ -209,7 +219,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                             className={classNames(styles.content, styles.jobTable)}
                             columns={this.columns}
                             dataSource={jobs}
-                            onRow={this.onRow}
                         />
                     ) : (
                         <div className={classNames(styles.content, styles.empty)}>
@@ -310,13 +319,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         }
     }
 
-    private onRow = (record: UploadSummaryTableRow) => {
-        return {
-            onClick: () => {
-                this.requestFileMetadataForJob(record.jobId);
-                this.setState({selectedJobId: record.jobId});
-            },
-        };
+    private viewJob = (row: UploadSummaryTableRow) => () => {
+        this.requestFileMetadataForJob(row.jobId);
+        this.setState({selectedJobId: row.jobId});
     }
 
     private closeModal = () => {
