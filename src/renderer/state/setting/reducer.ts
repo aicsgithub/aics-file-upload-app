@@ -3,8 +3,8 @@ import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
 import { TypeToDescriptionMap } from "../types";
-import { REPLACE_UPLOAD } from "../upload/constants";
-import { ReplaceUploadAction } from "../upload/types";
+import { APPLY_TEMPLATE, REPLACE_UPLOAD } from "../upload/constants";
+import { ApplyTemplateAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 import {
     ASSOCIATE_BY_WORKFLOW,
@@ -48,6 +48,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SettingStateBranch, { payload: { state: savedState } }: ReplaceUploadAction) => ({
             ...state,
             associateByWorkflow: getAssociateByWorkflow(savedState),
+        }),
+    },
+    [APPLY_TEMPLATE]: {
+        accepts: (action: AnyAction): action is ApplyTemplateAction =>
+            action.type === APPLY_TEMPLATE,
+        perform: (state: SettingStateBranch, action: ApplyTemplateAction) => ({
+            ...state,
+            templateId: action.payload.templateId,
         }),
     },
 };

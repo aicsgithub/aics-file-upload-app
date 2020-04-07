@@ -33,7 +33,6 @@ import {
 } from "../selection/actions";
 import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
-import { updateSettings } from "../setting/actions";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
@@ -129,70 +128,11 @@ const undoFileWellAssociationLogic = createLogic({
 
 });
 
-// This logic will request the template from MMS and remove any old columns from existing uploads
-// The template applied does not contain annotation information yet
 const applyTemplateLogic = createLogic({
-    process: ({ctx, getState, labkeyClient, mmsClient}: ReduxLogicProcessDependencies,
-              dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const { templateId } = ctx;
-        if (templateId) {
-            // these need to be dispatched separately to go through logics
-            dispatch(getTemplate(templateId, true));
-            dispatch(updateSettings({ templateId }));
-        }
-
+    process: ({action, getState}: ReduxLogicProcessDependencies, next: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const { templateId } = action.payload;
+        next(getTemplate(templateId, true));
         done();
-    },
-    transform: ({action, ctx, getState, labkeyClient}: ReduxLogicTransformDependencies,
-                next: ReduxLogicNextCb) => {
-        const { clearAnnotations, templateId } = action.payload;
-        ctx.templateId = templateId;
-
-        const uploads = getUpload(getState());
-        forEach(uploads,  (upload: UploadMetadata) => {
-            // By only grabbing the initial fields of the upload we can remove old schema columns
-            // We're also apply the new templateId now
-            const {
-                barcode,
-                channelId,
-                file,
-                notes,
-                positionIndex,
-                scene,
-                shouldBeInArchive,
-                shouldBeInLocal,
-                subImageName,
-                wellIds,
-                workflows,
-            } = upload;
-            const key = getUploadRowKey({
-                channelId,
-                file,
-                positionIndex,
-                scene,
-                subImageName,
-            });
-            if (clearAnnotations) {
-                action.payload.uploads[key] = {
-                    barcode,
-                    file: upload.file,
-                    notes,
-                    shouldBeInArchive,
-                    shouldBeInLocal,
-                    templateId,
-                    wellIds,
-                    workflows,
-                };
-            } else {
-                action.payload.uploads[key] = {
-                    ...upload,
-                    templateId,
-                };
-            }
-
-        });
-
-        next(action);
     },
     type: APPLY_TEMPLATE,
 });
