@@ -47,11 +47,10 @@ export interface MMSAnnotationValueRequest {
     values: string[];
 }
 
-export interface ApplyTemplateAction {
+export interface ApplyTemplateAction extends WriteToStoreAction {
     payload: {
         clearAnnotations: boolean;
         templateId?: number;
-        uploads: UploadStateBranch;
     };
     type: string;
 }
