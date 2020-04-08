@@ -1,8 +1,10 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
-import { CLOSE_UPLOAD_TAB } from "../route/constants";
-import { CloseUploadTabAction } from "../route/types";
+import { REQUEST_FILE_METADATA_FOR_JOB } from "../metadata/constants";
+import { RequestFileMetadataForJobAction } from "../metadata/types";
+import { CLOSE_UPLOAD_TAB, OPEN_EDIT_FILE_METADATA_TAB } from "../route/constants";
+import { CloseUploadTabAction, OpenEditFileMetadataTabAction } from "../route/types";
 
 import { SelectionStateBranch } from "../selection/types";
 import {
@@ -31,6 +33,7 @@ import {
 import {
     AddEventAction,
     AddRequestInProgressAction,
+    AsyncRequest,
     ClearAlertAction,
     ClearDeferredAction,
     ClearUploadErrorAction,
@@ -215,6 +218,22 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             uploadError: undefined,
+        }),
+    },
+    [OPEN_EDIT_FILE_METADATA_TAB]: {
+        accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
+            action.type === OPEN_EDIT_FILE_METADATA_TAB,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]),
+        }),
+    },
+    [REQUEST_FILE_METADATA_FOR_JOB]: {
+        accepts: (action: AnyAction): action is RequestFileMetadataForJobAction =>
+            action.type === REQUEST_FILE_METADATA_FOR_JOB,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]),
         }),
     },
 };

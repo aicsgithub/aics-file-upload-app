@@ -1,7 +1,8 @@
 import { expect } from "chai";
 
-import { closeUploadTab } from "../../route/actions";
+import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import { openTemplateEditor } from "../../selection/actions";
+import { mockSuccessfulUploadJob } from "../../test/mocks";
 import {
     addEvent,
     addRequestToInProgress,
@@ -179,6 +180,18 @@ describe("feedback reducer", () => {
         it("clears uploadError", () => {
             const result = reducer({...initialState, uploadError: "foo"}, clearUploadError());
             expect(result.uploadError).to.be.undefined;
+        });
+    });
+    describe("openEditFileMetadataTab", () => {
+        it("adds request in progress for REQUEST_FILE_METADATA_FOR_JOB", () => {
+            const result = reducer(initialState, openEditFileMetadataTab(mockSuccessfulUploadJob));
+            expect(result.requestsInProgress.includes(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
+        });
+    });
+    describe("requestFileMetadataForJob", () => {
+        it("adds request in progress for REQUEST_FILE_METADATA_FOR_JOB", () => {
+            const result = reducer(initialState, openEditFileMetadataTab(mockSuccessfulUploadJob));
+            expect(result.requestsInProgress.includes(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
         });
     });
 });
