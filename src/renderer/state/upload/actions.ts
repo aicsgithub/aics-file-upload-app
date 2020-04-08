@@ -1,4 +1,4 @@
-import { TEMP_UPLOAD_STORAGE_KEY } from "../../../shared/constants";
+import { TEMP_UPLOAD_STORAGE_KEY, USER_SETTINGS_KEY } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { CurrentUpload } from "../metadata/types";
 
@@ -158,9 +158,12 @@ export function applyTemplate(templateId: number, clearAnnotations: boolean = tr
         payload: {
             clearAnnotations,
             templateId,
-            uploads: {},
         },
         type: APPLY_TEMPLATE,
+        updates: {
+            [`${USER_SETTINGS_KEY}.templateId`]: templateId,
+        },
+        writeToStore: true,
     };
 }
 

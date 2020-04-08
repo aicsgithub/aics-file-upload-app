@@ -1,9 +1,11 @@
 import { expect } from "chai";
+import { StateWithHistory } from "redux-undo";
 
 import { closeUploadTab } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 
-import { replaceUpload, updateUpload } from "../actions";
+import { applyTemplate, replaceUpload, updateUpload } from "../actions";
+import { getUploadRowKey } from "../constants";
 import reducer from "../reducer";
 import { UploadStateBranch } from "../types";
 
@@ -63,6 +65,56 @@ describe("upload reducer", () => {
             const result = reducer(getMockStateWithHistory(uploads), closeUploadTab());
             const { present } = result;
             expect(present).to.be.empty;
+        });
+    });
+    describe("applyTemplate", () => {
+        const file = "/path/to/file1";
+        const key = getUploadRowKey({file});
+        const wellId = 1;
+        const templateId = 2;
+        const favoriteColor = "red";
+        let mockStateWithFavoriteColor: StateWithHistory<UploadStateBranch>;
+
+        beforeEach(() => {
+            mockStateWithFavoriteColor = getMockStateWithHistory({
+                [key]: {
+                    barcode: "1234",
+                    favoriteColor,
+                    file,
+                    key,
+                    shouldBeInArchive: true,
+                    shouldBeInLocal: true,
+                    templateId: 100,
+                    wellIds: [wellId],
+                },
+            });
+        });
+        it("updates uploads with a templateId and clears template-specific annotations by default", () => {
+            const result = reducer(mockStateWithFavoriteColor, applyTemplate(templateId));
+            const upload = result.present[key];
+            expect(upload).to.deep.equal({
+                barcode: "1234",
+                file,
+                key,
+                shouldBeInArchive: true,
+                shouldBeInLocal: true,
+                templateId,
+                wellIds: [wellId],
+            });
+        });
+        it("does not clear template-related annotations if clearAnnotations=false", () => {
+            const result = reducer(mockStateWithFavoriteColor, applyTemplate(templateId, false));
+            const upload = result.present[key];
+            expect(upload).to.deep.equal({
+                barcode: "1234",
+                favoriteColor,
+                file,
+                key,
+                shouldBeInArchive: true,
+                shouldBeInLocal: true,
+                templateId,
+                wellIds: [wellId],
+            });
         });
     });
 });
