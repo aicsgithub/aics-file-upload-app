@@ -1,13 +1,13 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
-import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
+import { FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-import { isEmpty, reduce, sortBy, trim } from "lodash";
+import { isEmpty, sortBy, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
-import { getWithRetry } from "../../util";
+import { getWithRetry, retrieveFileMetadata } from "../../util";
 
 import {
     addRequestToInProgress,
@@ -318,32 +318,16 @@ const searchFileMetadataLogic = createLogic({
 const retrieveFileMetadataForJobLogic = createLogic({
     process: async ({ action, fms, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        dispatch(addRequestToInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
+        const fileIds: string[] = ["183b5038f5c548109849df678d787ff2"]; // action.payload;
+        const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB)];
         try {
-            const fileIds: string[] = ["183b5038f5c548109849df678d787ff2"]; // action.payload;
-            const resolvedPromises: FileMetadata[] = await Promise.all(
-                fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
-            );
-            const fileMetadataForFileIds = reduce(
-                resolvedPromises,
-                (filesToFileMetadata: FileToFileMetadata, fileMetadata: FileMetadata) => ({
-                    ...filesToFileMetadata,
-                    [fileMetadata.fileId]: fileMetadata,
-                }), {});
-            const fileMetadataForJob = await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
-            dispatch(batchActions([
-                receiveMetadata({ fileMetadataForJob }),
-                removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
-            ]));
+            const fileMetadataForJob = await retrieveFileMetadata(fileIds, fms);
+            actions.push(receiveMetadata({ fileMetadataForJob }));
         } catch (e) {
-            dispatch(batchActions([
-                removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
-                setAlert({
-                    message: "Could retrieve metadata for job: " + e.message,
-                    type: AlertType.ERROR,
-                }),
-            ]));
+            actions.push(setErrorAlert( "Could retrieve metadata for job: " + e.message));
         }
+
+        dispatch(batchActions(actions));
         done();
     },
     type: REQUEST_FILE_METADATA_FOR_JOB,
