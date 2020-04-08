@@ -16,12 +16,22 @@ import { API_WAIT_TIME_SECONDS } from "../state/constants";
 import { addRequestToInProgress, clearAlert, removeRequestFromInProgress, setAlert } from "../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../state/feedback/types";
 import { CurrentUpload } from "../state/metadata/types";
+import { selectImagingSessionId, setPlate, setWells } from "../state/selection/actions";
+import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
-import { DragAndDropFileList, UploadFile } from "../state/selection/types";
+import {
+    DragAndDropFileList,
+    GetPlateResponse,
+    PlateResponse,
+    UploadFile,
+    WellResponse,
+} from "../state/selection/types";
+import { associateByWorkflow } from "../state/setting/actions";
 import { TemplateAnnotation } from "../state/template/types";
 import { HTTP_STATUS, LocalStorage, ReduxLogicNextCb, State } from "../state/types";
 import { DRAFT_KEY } from "../state/upload/constants";
 import { batchActions } from "../state/util";
+import MMSClient from "./mms-client";
 
 const stat = promisify(fsStat);
 
@@ -286,4 +296,48 @@ export const mergeChildPaths = (filePaths: string[]): string[] => {
         const otherFilePaths = filePaths.filter((otherFilePath) => otherFilePath !== filePath);
         return !otherFilePaths.find((otherFilePath) => filePath.indexOf(otherFilePath) === 0);
     });
+};
+
+/**
+ * Queries for plate with given barcode and transforms the response into a list of actions to dispatch
+ * @param {string} barcode
+ * @param {number[]} imagingSessionIds the imagingSessionIds for the plate with this barcode
+ * @param {MMSClient} mmsClient
+ * @param {ReduxLogicNextCb} dispatch
+ * @returns {Promise<AnyAction[]>}
+ */
+export const getSelectBarcodeActions = async (
+    barcode: string,
+    imagingSessionIds: number[],
+    mmsClient: MMSClient,
+    dispatch: ReduxLogicNextCb
+): Promise<AnyAction[]> => {
+    const request = (): Promise<GetPlateResponse[]> => Promise.all(
+        imagingSessionIds.map((imagingSessionId: number) => mmsClient.getPlate(barcode, imagingSessionId))
+    );
+
+    const platesAndWells: GetPlateResponse[] = await getWithRetry(
+        request,
+        AsyncRequest.GET_PLATE,
+        dispatch,
+        "MMS",
+        GENERIC_GET_WELLS_ERROR_MESSAGE(barcode)
+    );
+
+    const imagingSessionIdToPlate: {[imagingSessionId: number]: PlateResponse} = {};
+    const imagingSessionIdToWells: {[imagingSessionId: number]: WellResponse[]} = {};
+    imagingSessionIds.forEach((imagingSessionId: number, i: number) => {
+        imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
+        const { plate, wells } = platesAndWells[i];
+        imagingSessionIdToPlate[imagingSessionId] = plate;
+        imagingSessionIdToWells[imagingSessionId] = wells;
+    });
+
+    return [
+        selectImagingSessionId(imagingSessionIds[0]),
+        setPlate(imagingSessionIdToPlate),
+        setWells(imagingSessionIdToWells),
+        removeRequestFromInProgress(AsyncRequest.GET_PLATE),
+        associateByWorkflow(false),
+    ];
 };
