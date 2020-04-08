@@ -1,4 +1,3 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { Channel, CurrentUpload } from "../metadata/types";
@@ -179,7 +178,10 @@ export interface RetryUploadAction {
 }
 
 export interface UpdateUploadsAction extends AutoSaveAction {
-    payload: Partial<UploadMetadata>;
+    payload: {
+        clearAll: boolean;
+        upload: Partial<UploadMetadata>;
+    };
     type: string;
 }
 
@@ -243,11 +245,6 @@ export interface ReplaceUploadAction {
 }
 
 export interface ClearUploadDraftAction extends WriteToStoreAction {
-    type: string;
-}
-
-export interface EditFileMetadataForJobAction {
-    payload: JSSJob;
     type: string;
 }
 
