@@ -69,10 +69,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 return state;
             }
 
-            const { message: alertMessage, type } = alert;
+            const { message, type } = alert;
             const event = {
                 date: new Date(),
-                message: alertMessage,
+                message,
                 type,
             };
             return {
