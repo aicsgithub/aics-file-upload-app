@@ -551,6 +551,8 @@ export const mockSuccessfulUploadJob: JSSJob = {
     modified: new Date(),
     serviceFields: {
         copyJobId: "copyJobId1",
+        result: [{fileId: "abcd"}],
+        type: "upload",
     },
     status: "SUCCEEDED",
     user: "test_user",
