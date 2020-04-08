@@ -31,6 +31,7 @@ import { TemplateAnnotation } from "../state/template/types";
 import { HTTP_STATUS, LocalStorage, ReduxLogicNextCb, State } from "../state/types";
 import { DRAFT_KEY } from "../state/upload/constants";
 import { batchActions } from "../state/util";
+
 import MMSClient from "./mms-client";
 
 const stat = promisify(fsStat);
