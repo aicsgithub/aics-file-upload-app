@@ -17,6 +17,7 @@ import {
 } from "../../job/selectors";
 import { getCurrentUpload } from "../../metadata/selectors";
 import { getSelectedBarcode, getSelectedFiles } from "../../selection/selectors";
+import { getTemplate } from "../../template/actions";
 import { createMockReduxStore, fms, mockReduxLogicDeps, storage } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
@@ -42,7 +43,6 @@ import {
 } from "../actions";
 import { getUploadRowKey } from "../constants";
 import {
-    getAppliedTemplateId,
     getFileToArchive,
     getFileToStoreOnIsilon,
     getUpload,
@@ -241,65 +241,17 @@ describe("Upload logics", () => {
     });
 
     describe("applyTemplateLogic", () => {
-        const file = "/path/to/file1";
-        const key = getUploadRowKey({file});
-        const wellId = 1;
-        const templateId = 2;
-        const favoriteColor = "red";
-
-        let mockStateWithFavoriteColor: State;
-
-        beforeEach(() => {
-            mockStateWithFavoriteColor = {
-                ...nonEmptyStateForInitiatingUpload,
-                upload: getMockStateWithHistory({
-                    [key]: {
-                        barcode: "1234",
-                        favoriteColor,
-                        file,
-                        key,
-                        shouldBeInArchive: true,
-                        shouldBeInLocal: true,
-                        wellIds: [wellId],
-                    },
-                }),
-            };
-        });
-        it("updates uploads with a templateId and clears template-specific annotations by default", async () => {
-            const { logicMiddleware, store } = createMockReduxStore(mockStateWithFavoriteColor);
+        it("calls getTemplate using templateId provided", () => {
+            const { actions, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
             // before
-            const state = store.getState();
-            expect(getAppliedTemplateId(state)).to.be.undefined;
-            expect(getUpload(state)[key].favoriteColor).to.equal(favoriteColor);
+            expect(actions.includes(getTemplate(1))).to.be.false;
 
             // apply
-            store.dispatch(applyTemplate(templateId));
+            store.dispatch(applyTemplate(1));
 
             // after
-            await logicMiddleware.whenComplete();
-            const upload = getUpload(store.getState());
-            expect(get(upload, [key, "templateId"])).to.equal(templateId);
-            expect(get(upload, [key, "wellIds", 0])).to.equal(wellId);
-            expect(getUpload(store.getState())[key].favoriteColor).to.be.undefined;
-        });
-        it("does not clear template-related annotations if clearAnnotations=false", async () => {
-            const { logicMiddleware, store } = createMockReduxStore(mockStateWithFavoriteColor);
-
-            // before
-            const state = store.getState();
-            expect(getAppliedTemplateId(state)).to.be.undefined;
-            expect(getUpload(state)[key].favoriteColor).to.equal(favoriteColor);
-
-            // apply
-            store.dispatch(applyTemplate(templateId, false));
-
-            // after
-            await logicMiddleware.whenComplete();
-            const upload = getUpload(store.getState());
-            expect(get(upload, [key, "templateId"])).to.equal(templateId);
-            expect(get(upload, [key, "wellIds", 0])).to.equal(wellId);
-            expect(getUpload(store.getState())[key].favoriteColor).to.equal(favoriteColor);
+            expect(actions.includes(getTemplate(1))).to.be.false;
         });
     });
 
