@@ -177,6 +177,13 @@ describe("General utilities", () => {
             },
         };
 
+        const mockCannotFindAddressError = {
+            code: "ENOTFOUND",
+            config: {},
+            message: "getaddrinfo ENOTFOUND stg-aics.corp.alleninstitute.org",
+            name: "Error",
+        };
+
         it("Adds request to requests in progress", async () => {
             const request = stub().resolves({});
             const dispatchSpy = spy();
@@ -222,7 +229,7 @@ describe("General utilities", () => {
                 expect(e.message).to.equal(genericError);
             }
         });
-        it("does not retry request if response is non Bad Gateway error", async () => {
+        it("does not retry request if response is non Bad Gateway or Cannot Find Address error", async () => {
             const message = "oops";
             const request = stub().onFirstCall().callsFake(() => {
                 return Promise.reject({message, status: HTTP_STATUS.BAD_REQUEST});
@@ -240,7 +247,7 @@ describe("General utilities", () => {
                 expect(e.message).to.equal(message);
             }
         });
-        it("does not retry request if a response is non Bad Gateway error", async () => {
+        it("does not retry request if a response is non Bad Gateway or Cannot Find Address error", async () => {
             const message = "oops";
             const badRequest = stub().onFirstCall().callsFake(() => {
                 return Promise.reject({message, status: HTTP_STATUS.BAD_REQUEST});
@@ -296,10 +303,78 @@ describe("General utilities", () => {
                 expect(secondsPassed).to.be.equal(API_WAIT_TIME_SECONDS);
             }
         });
-        it("Stops retrying request after receiving OK response", async function() {
+        it("shows error message if it only receives Cannot Find Address error for 20 seconds", async function() {
+            // here we're using a fake clock so that 20 seconds passes more quickly and to give control
+            // over to the test in terms of timing.
+            this.clock = useFakeTimers((new Date()).getTime());
+
+            // extends timeout for this test since we're testing a potentially long running process
+            const waitTime = API_WAIT_TIME_SECONDS * 1000 + 3000;
+            this.timeout(waitTime);
+
+            let secondsPassed = 0;
+            const incrementMs = 5000;
+
+            const getStub = stub().callsFake(() => {
+                this.clock.tick(incrementMs);
+                secondsPassed += incrementMs / 1000;
+
+                return Promise.reject(mockCannotFindAddressError);
+            });
+
+            const dispatchSpy = spy();
+
+            try {
+                await getWithRetry(
+                    getStub,
+                    AsyncRequest.REQUEST_METADATA,
+                    dispatchSpy,
+                    "Service"
+                );
+            } catch (e) {
+                expect(dispatchSpy.calledWith(setAlert({
+                    manualClear: true,
+                    message: "Could not reach host. Retrying request...",
+                    type: AlertType.WARN,
+                }))).to.be.true;
+                expect(secondsPassed).to.be.equal(API_WAIT_TIME_SECONDS);
+            }
+        });
+        it("Stops retrying request after receiving OK response (After Bad Gateway Error)", async function() {
             this.timeout(API_WAIT_TIME_SECONDS * 1000 + 3000);
             const getStub = stub()
                 .onFirstCall().rejects(mockBadGatewayResponse)
+                .onSecondCall().callsFake(() => {
+                    return Promise.resolve({});
+                });
+            const dispatchSpy = spy();
+            const batchActionsSpy = spy();
+
+            await getWithRetry(
+                getStub,
+                AsyncRequest.REQUEST_METADATA,
+                dispatchSpy,
+                "Service",
+                undefined,
+                batchActionsSpy
+            );
+
+            expect(dispatchSpy.calledWith(
+                setAlert({
+                    manualClear: true,
+                    message: SERVICE_MIGHT_BE_DOWN_MESSAGE("Service"),
+                    type: AlertType.WARN,
+                })
+            ));
+            expect(batchActionsSpy.calledWith([
+                clearAlert(),
+                removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA),
+            ]));
+        });
+        it("Stops retrying request after receiving OK response (After Cannot Find Address Error)", async function() {
+            this.timeout(API_WAIT_TIME_SECONDS * 1000 + 3000);
+            const getStub = stub()
+                .onFirstCall().rejects(mockCannotFindAddressError)
                 .onSecondCall().callsFake(() => {
                     return Promise.resolve({});
                 });
