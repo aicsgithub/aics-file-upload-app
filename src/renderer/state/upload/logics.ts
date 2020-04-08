@@ -50,7 +50,6 @@ import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     CANCEL_UPLOAD,
-    EDIT_FILE_METADATA_FOR_JOB,
     getUploadDraftKey,
     getUploadRowKey,
     INITIATE_UPLOAD,
@@ -706,34 +705,10 @@ const openUploadLogic = createLogic({
     },
 });
 
-const editFileMetadataForJob = createLogic({
-    transform: ({ action, getState }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
-        // const { payload: job } = action;
-        // save current upload if there
-        const state = getState();
-        const currentUploadName = getCurrentUploadName(state);
-        if (currentUploadName) {
-
-        } else if (getCanSaveUploadDraft(state)) {
-            // Case 2: upload tab is open but draft has not been saved. Since we cannot handle more
-            // than one upload at a time (lame, I know but this is temporary)
-            // ask user if they want to save current upload first
-            // set some actions to be dispatched later after this modal is closed
-            next(batchActions([
-                openModal("saveUploadDraft"),
-                // setDeferredAction(batchActions()),
-            ]));
-        }
-        // request file metadata
-    },
-    type: EDIT_FILE_METADATA_FOR_JOB,
-});
-
 export default [
     applyTemplateLogic,
     associateFilesAndWellsLogic,
     cancelUploadLogic,
-    editFileMetadataForJob,
     initiateUploadLogic,
     openUploadLogic,
     retryUploadLogic,
