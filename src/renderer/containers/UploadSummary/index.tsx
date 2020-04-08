@@ -39,16 +39,15 @@ import {
     SearchResultRow,
     SearchResultsHeader
 } from "../../state/metadata/types";
-import { selectPage, selectView } from "../../state/route/actions";
+import { openEditFileMetadataTab, selectPage, selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
-import { Page, SelectPageAction, SelectViewAction } from "../../state/route/types";
+import { OpenEditFileMetadataTabAction, Page, SelectPageAction, SelectViewAction } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
 import { UploadFile } from "../../state/selection/types";
 import { State } from "../../state/types";
-import { cancelUpload, editFileMetadataForJob, retryUpload } from "../../state/upload/actions";
+import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
     CancelUploadAction,
-    EditFileMetadataForJobAction,
     RetryUploadAction,
     UploadMetadata,
 } from "../../state/upload/types";
@@ -77,7 +76,6 @@ interface Props {
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
     clearFileMetadataForJob: ActionCreator<ClearFileMetadataForJobAction>;
-    editFileMetadataForJob: ActionCreator<EditFileMetadataForJobAction>;
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataForJobHeader?: SearchResultsHeader[];
     fileMetadataForJobLoading: boolean;
@@ -86,6 +84,7 @@ interface Props {
     loading: boolean;
     jobFilter: JobFilter;
     jobs: UploadSummaryTableRow[];
+    openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
     page: Page;
     requestFileMetadataForJob: ActionCreator<RequestFileMetadataForJobAction>;
     retrieveJobs: ActionCreator<RetrieveJobsAction>;
@@ -333,7 +332,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.setState({selectedJobId: row.jobId});
     }
 
-    private editJob = (row: UploadSummaryTableRow) => () => this.props.editFileMetadataForJob(row);
+    private editJob = (row: UploadSummaryTableRow) => () => {
+        this.props.openEditFileMetadataTab(row);
+    }
 
     private closeModal = () => {
         this.props.clearFileMetadataForJob();
@@ -359,8 +360,8 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
-    editFileMetadataForJob,
     gatherIncompleteJobNames,
+    openEditFileMetadataTab,
     requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,
