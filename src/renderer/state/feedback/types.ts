@@ -11,7 +11,8 @@ export interface FeedbackStateBranch {
     visibleModals: ModalName[];
 }
 
-export type ModalName = "openTemplate" | "openUpload" | "saveUploadDraft" | "settings" | "templateEditor";
+export type ModalName = "openTemplate" | "openUpload" | "saveUploadDraft" |
+    "settings" | "templateEditor" | "saveExistingUploadDraft";
 
 export interface StartLoadingAction {
     type: string;
