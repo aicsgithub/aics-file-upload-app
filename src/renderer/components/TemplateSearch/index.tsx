@@ -20,6 +20,7 @@ const styles = require("./styles.pcss");
 interface TemplateSearchProps {
     className?: string;
     defaultOpen?: boolean;
+    disabled?: boolean;
     loading?: boolean;
     onSelect: (selectedTemplateId: number) => void;
     requestTemplates: ActionCreator<GetTemplatesAction>;
@@ -36,6 +37,7 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
         const {
             className,
             defaultOpen,
+            disabled,
             loading,
             onSelect,
             templates,
@@ -47,7 +49,7 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
             autoFocus={true}
             className={classNames(styles.container, className)}
             defaultOpen={defaultOpen}
-            disabled={loading && !templates}
+            disabled={disabled || (loading && !templates)}
             loading={loading && !templates}
             onSelect={onSelect}
             placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
