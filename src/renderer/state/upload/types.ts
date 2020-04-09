@@ -64,6 +64,9 @@ export interface UpdateUploadAction extends AutoSaveAction {
 }
 
 export interface UploadJobTableRow extends UploadRowId {
+    // custom annotations
+    [key: string]: any;
+
     // plate barcode associated with well and file
     barcode: string;
 

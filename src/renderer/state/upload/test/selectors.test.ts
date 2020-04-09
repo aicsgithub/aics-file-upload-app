@@ -6,6 +6,7 @@ import { TemplateAnnotation } from "../../template/types";
 import {
     getMockStateWithHistory,
     mockAnnotationTypes,
+    mockAuditInfo,
     mockBooleanAnnotation,
     mockChannel,
     mockDateAnnotation,
@@ -71,6 +72,37 @@ describe("Upload selectors", () => {
     });
 
     describe("getUploadPayload", () => {
+        it("Does not include annotations that are not on the template", () => {
+            const file = "/path/to/image.tiff";
+            const payload = getUploadPayload({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockState.template.present,
+                    appliedTemplate: {
+                        ...mockAuditInfo,
+                        annotations: [mockFavoriteColorAnnotation],
+                        name: "foo",
+                        templateId: 1,
+                        version: 1,
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey({ file })]: {
+                        barcode: "452",
+                        favoriteColor: "Blue",
+                        file,
+                        plateId: 4,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
+                        unexpectedAnnotation: "Hello World",
+                        wellIds: [],
+                    },
+                }),
+            });
+            const unexpectedAnnotation = payload[file]?.customMetadata.annotations
+                .find((a: {values: string[]}) => a.values.includes("Hello World"));
+            expect(unexpectedAnnotation).to.be.undefined;
+        });
         it("Converts upload state branch into correct payload for aicsfiles-js", () => {
             const state: State = {
                 ...nonEmptyStateForInitiatingUpload,
@@ -924,6 +956,32 @@ describe("Upload selectors", () => {
                 wellLabels: "",
                 workflows: "",
             });
+        });
+        it("does not throw error for annotations that don't exist on the template", () => {
+            const file = "/path/to/file1";
+            const getRows = () => getUploadSummaryRows({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockState.template.present,
+                    appliedTemplate: {
+                        ...mockAuditInfo,
+                        annotations: [mockFavoriteColorAnnotation],
+                        name: "foo",
+                        templateId: 1,
+                        version: 1,
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey({ file })]: {
+                        barcode: "1234",
+                        favoriteColor: "Red",
+                        file,
+                        somethingUnexpected: "Hello World",
+                        wellIds: [],
+                    },
+                }),
+            });
+            expect(getRows).to.not.throw();
         });
     });
 
