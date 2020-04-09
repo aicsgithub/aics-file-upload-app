@@ -1,5 +1,5 @@
 import { camelizeKeys } from "humps";
-import { isEmpty, map, pick } from "lodash";
+import { isEmpty, map, pick, uniq } from "lodash";
 
 import { Channel } from "../../state/metadata/types";
 import { BarcodePrefix, ImagingSession, LabkeyUnit, Unit } from "../../state/metadata/types";
@@ -222,6 +222,25 @@ export default class LabkeyClient extends BaseServiceClient {
             description: channel.Description,
             name: channel.Name,
         }));
+    }
+
+    public async getPlateBarcodeAndAllImagingSessionIdsFromWellId(wellId: number): Promise<string> {
+        const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Well", [`query.wellid~eq=${wellId}`]);
+        const response = await this.httpClient.get(query);
+        const plateId: number | undefined = response.rows[0]?.PlateId;
+        if (!plateId) {
+            throw new Error("could not find plate from wellId");
+        }
+        const plateQuery = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate",
+            [`query.plateid~eq=${plateId}`]);
+        const plateResponse = await this.httpClient.get(plateQuery);
+        return plateResponse.rows[0]?.Barcode;
+    }
+
+    public async getImagingSessionIdsForBarcode(barcode: string): Promise<number[]> {
+        const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate", [`query.barcode~eq=${barcode}`]);
+        const response = await this.httpClient.get(query);
+        return uniq(response.rows[0].map((plate: LabkeyPlate) => plate.ImagingSessionId));
     }
 
     protected get baseURL(): string {
