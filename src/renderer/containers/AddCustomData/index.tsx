@@ -35,7 +35,7 @@ import {
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
-import { getTemplateId } from "../../state/setting/selectors";
+import { getAssociateByWorkflow, getTemplateId } from "../../state/setting/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
@@ -73,6 +73,7 @@ interface Props {
     annotationTypes: AnnotationType[];
     appliedTemplate?: Template;
     applyTemplate: ActionCreator<ApplyTemplateAction>;
+    associateByWorkflow: boolean;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
     canSave: boolean;
@@ -84,7 +85,8 @@ interface Props {
     goBack: ActionCreator<GoBackAction>;
     initiateUpload: ActionCreator<InitiateUploadAction>;
     jumpToUpload: ActionCreator<JumpToUploadAction>;
-    loading: boolean;
+    loading: boolean; // todo separate PR rename
+    loadingFileMetadata: boolean;
     openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
     removeUploads: ActionCreator<RemoveUploadsAction>;
     savedTemplateId?: number;
@@ -127,16 +129,19 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         const {
             annotationTypes,
             appliedTemplate,
+            associateByWorkflow,
             canRedo,
             canSave,
             canUndo,
             className,
             loading,
+            loadingFileMetadata,
             uploadError,
             uploadInProgress,
             uploads,
             validationErrors,
         } = this.props;
+        const showLoading = loading || loadingFileMetadata;
         return (
             <FormPage
                 className={className}
@@ -150,20 +155,21 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 page={Page.AddCustomData}
             >
                 {this.renderButtons()}
-                {loading && !appliedTemplate && (
+                {showLoading && !appliedTemplate && (
                     <div className={styles.spinContainer}>
                         <div className={styles.spinText}>
-                            Getting template details...
+                            Loading...
                         </div>
                         <Spin/>
                     </div>
                 )}
                 {uploadError && (<Alert className={styles.alert} message={uploadError} type="error" showIcon={true}/>)}
                 {appliedTemplate && this.renderPlateInfo()}
-                {!loading && appliedTemplate && (
+                {!showLoading && appliedTemplate && (
                     <CustomDataGrid
                         allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                         annotationTypes={annotationTypes}
+                        associateByWorkflow={associateByWorkflow}
                         canRedo={canRedo}
                         canUndo={canUndo}
                         channels={this.props.channels}
@@ -199,7 +205,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
 
     private renderButtons = () => {
-        const { appliedTemplate } = this.props;
+        const { appliedTemplate, loading } = this.props;
 
         return (
             <div className={styles.buttonRow}>
@@ -207,6 +213,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     <p className={styles.schemaSelectorLabel}>{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
                     <TemplateSearch
                         className={styles.schemaSelector}
+                        disabled={loading}
                         value={appliedTemplate ? appliedTemplate.templateId : undefined}
                         onSelect={this.props.applyTemplate}
                     />
@@ -251,6 +258,7 @@ function mapStateToProps(state: State) {
         allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
         annotationTypes: getAnnotationTypes(state),
         appliedTemplate: getAppliedTemplate(state),
+        associateByWorkflow: getAssociateByWorkflow(state),
         booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
         canSave: getCanSave(state),
@@ -259,6 +267,7 @@ function mapStateToProps(state: State) {
         expandedRows: getExpandedUploadJobRows(state),
         fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
+        loadingFileMetadata: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
         templates: getTemplates(state),

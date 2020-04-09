@@ -45,6 +45,7 @@ type SortDirections = "ASC" | "DESC" | "NONE";
 interface Props {
     allWellsForSelectedPlate: Well[][];
     annotationTypes: AnnotationType[];
+    associateByWorkflow: boolean;
     canUndo: boolean;
     canRedo: boolean;
     channels: Channel[];
@@ -295,7 +296,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             return [];
         }
         let basicColumns;
-        if (this.props.uploads[0].barcode) {
+        if (!this.props.associateByWorkflow) {
             basicColumns = this.uploadColumns(this.wellUploadColumns);
         } else {
             basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
