@@ -13,9 +13,13 @@ import { promisify } from "util";
 
 import { LIST_DELIMITER_SPLIT } from "../constants";
 import { API_WAIT_TIME_SECONDS } from "../state/constants";
-import { addRequestToInProgress, clearAlert, removeRequestFromInProgress, setAlert } from "../state/feedback/actions";
+import {
+    addRequestToInProgress,
+    removeRequestFromInProgress,
+    setAlert,
+    setSuccessAlert,
+} from "../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../state/feedback/types";
-import { CurrentUpload } from "../state/metadata/types";
 import { selectImagingSessionId, setPlate, setWells } from "../state/selection/actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
@@ -28,8 +32,7 @@ import {
 } from "../state/selection/types";
 import { associateByWorkflow } from "../state/setting/actions";
 import { TemplateAnnotation } from "../state/template/types";
-import { HTTP_STATUS, LocalStorage, ReduxLogicNextCb, State } from "../state/types";
-import { DRAFT_KEY } from "../state/upload/constants";
+import { HTTP_STATUS, ReduxLogicNextCb } from "../state/types";
 import { batchActions } from "../state/util";
 
 import MMSClient from "./mms-client";
@@ -182,6 +185,7 @@ export function makePosixPathCompatibleWithPlatform(
 export const SERVICE_IS_DOWN_MESSAGE = (service: string) =>
     `Could not contact server. Make sure ${service} is running.`;
 export const SERVICE_MIGHT_BE_DOWN_MESSAGE = (service: string) => `${service} might be down. Retrying request...`;
+const CANNOT_FIND_ADDRESS = "ENOTFOUND";
 
 /**
  * Returns the result of a request and retries for 2 minutes while the response is a Gateway Error
@@ -206,17 +210,18 @@ export function getWithRetry<T = any>(
         const startTime = (new Date()).getTime() / 1000;
         let currentTime = startTime;
         let response: T | undefined;
-        let receivedNonGatewayError = false;
+        let receivedRetryableError = false;
         let sentRetryAlert = false;
         let error;
 
         while ((currentTime - startTime < API_WAIT_TIME_SECONDS) && !response
-        && !receivedNonGatewayError) {
+        && !receivedRetryableError) {
             try {
                 response = await request();
 
             } catch (e) {
-                if (e.response && e.response.status === HTTP_STATUS.BAD_GATEWAY) {
+                // Retry if we get a Bad Gateway. This is common when a server goes down during deployment.
+                if (e.response?.status === HTTP_STATUS.BAD_GATEWAY) {
                     if (!sentRetryAlert) {
                         dispatch(setAlert({
                             manualClear: true,
@@ -225,8 +230,18 @@ export function getWithRetry<T = any>(
                         }));
                         sentRetryAlert = true;
                     }
+                // Retrying requests where the host could not be resolved. This is common for VPN issues.
+                } else if (e.code === CANNOT_FIND_ADDRESS) {
+                    if (!sentRetryAlert) {
+                        dispatch(setAlert({
+                            manualClear: true,
+                            message: "Could not reach host. Retrying request...",
+                            type: AlertType.WARN,
+                        }));
+                    }
+                    sentRetryAlert = true;
                 } else {
-                    receivedNonGatewayError = true;
+                    receivedRetryableError = true;
                     error = e.message;
                 }
             } finally {
@@ -236,7 +251,7 @@ export function getWithRetry<T = any>(
 
         if (response) {
             if (sentRetryAlert) {
-                dispatch(clearAlert());
+                dispatch(setSuccessAlert("Success!"));
             }
             dispatch(removeRequestFromInProgress(requestType));
             resolve(response);
@@ -269,25 +284,6 @@ export const getUploadFilePromise = async (name: string, path: string): Promise<
         file.files = await Promise.all(await file.loadFiles());
     }
     return file;
-};
-
-export const saveUploadDraftToLocalStorage =
-    (storage: LocalStorage, draftName: string, state: State): CurrentUpload => {
-    const draftKey = `${DRAFT_KEY}.${draftName}`;
-    const now = new Date();
-    const metadata: CurrentUpload = {
-        created: now,
-        modified: now,
-        name: draftName,
-    };
-    const draft = storage.get(draftKey);
-    if (draft) {
-        metadata.created = draft.metadata.created;
-    }
-
-    storage.set(draftKey, { metadata, state });
-
-    return metadata;
 };
 
 export const mergeChildPaths = (filePaths: string[]): string[] => {
