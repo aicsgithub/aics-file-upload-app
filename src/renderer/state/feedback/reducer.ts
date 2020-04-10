@@ -1,6 +1,8 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { RECEIVE_FILE_METADATA, REQUEST_FILE_METADATA_FOR_JOB } from "../metadata/constants";
+import { ReceiveFileMetadataAction, RequestFileMetadataForJobAction } from "../metadata/types";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
@@ -232,6 +234,22 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_PLATE),
+        }),
+    },
+    [REQUEST_FILE_METADATA_FOR_JOB]: {
+        accepts: (action: AnyAction): action is RequestFileMetadataForJobAction =>
+            action.type === REQUEST_FILE_METADATA_FOR_JOB,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]),
+        }),
+    },
+    [RECEIVE_FILE_METADATA]: {
+        accepts: (action: AnyAction): action is ReceiveFileMetadataAction =>
+            action.type === RECEIVE_FILE_METADATA,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: without(state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         }),
     },
 };

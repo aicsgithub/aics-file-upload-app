@@ -113,6 +113,11 @@ export interface ReceiveMetadataAction {
     type: string;
 }
 
+export interface ReceiveFileMetadataAction {
+    payload: SearchResultRow[];
+    type: string;
+}
+
 export interface RequestMetadataAction {
     type: string;
 }
