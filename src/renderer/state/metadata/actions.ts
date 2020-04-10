@@ -8,6 +8,7 @@ import {
     GET_BARCODE_SEARCH_RESULTS,
     GET_OPTIONS_FOR_LOOKUP,
     GET_TEMPLATES,
+    RECEIVE_FILE_METADATA,
     RECEIVE_METADATA,
     REQUEST_FILE_METADATA_FOR_JOB,
     REQUEST_METADATA,
@@ -30,12 +31,14 @@ import {
     GetOptionsForLookupAction,
     GetTemplatesAction,
     MetadataStateBranch,
+    ReceiveFileMetadataAction,
     ReceiveMetadataAction,
     RequestFileMetadataForJobAction,
     RequestMetadataAction,
     ResetHistoryAction,
     SearchConfig,
     SearchFileMetadataAction,
+    SearchResultRow,
     SetCurrentUploadAction,
     UpdatePageHistoryMapAction,
 } from "./types";
@@ -70,6 +73,13 @@ export function receiveMetadata(payload: Partial<MetadataStateBranch> = initialS
     return {
         payload,
         type: RECEIVE_METADATA,
+    };
+}
+
+export function receiveFileMetadata(fileMetadata: SearchResultRow[]): ReceiveFileMetadataAction {
+    return {
+        payload: fileMetadata,
+        type: RECEIVE_FILE_METADATA,
     };
 }
 

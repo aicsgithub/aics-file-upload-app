@@ -29,7 +29,7 @@ import {
 } from "../types";
 import { DRAFT_KEY } from "../upload/constants";
 import { batchActions } from "../util";
-import { receiveMetadata } from "./actions";
+import { receiveFileMetadata, receiveMetadata } from "./actions";
 import {
     CREATE_BARCODE,
     EXPORT_FILE_METADATA,
@@ -318,16 +318,22 @@ const searchFileMetadataLogic = createLogic({
 const retrieveFileMetadataForJobLogic = createLogic({
     process: async ({ action, fms, getState }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
-        const fileIds: string[] = ["183b5038f5c548109849df678d787ff2"]; // action.payload;
-        const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB)];
+        const fileIds: string[] = action.payload;
+        const request = () => retrieveFileMetadata(fileIds, fms);
         try {
-            const fileMetadataForJob = await retrieveFileMetadata(fileIds, fms);
-            actions.push(receiveMetadata({ fileMetadataForJob }));
+            const fileMetadataForJob = await getWithRetry(
+                request,
+                AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
+                dispatch,
+                "Labkey or MMS"
+            );
+            dispatch(receiveFileMetadata(fileMetadataForJob));
         } catch (e) {
-            actions.push(setErrorAlert( "Could retrieve metadata for job: " + e.message));
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+                setErrorAlert( "Could retrieve metadata for job: " + e.message),
+            ]));
         }
-
-        dispatch(batchActions(actions));
         done();
     },
     type: REQUEST_FILE_METADATA_FOR_JOB,

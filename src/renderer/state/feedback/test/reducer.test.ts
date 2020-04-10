@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { receiveFileMetadata, requestFileMetadataForJob } from "../../metadata/actions";
 
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
@@ -206,6 +207,20 @@ describe("feedback reducer", () => {
                 setPlate(mockPlate, mockWells, [null])
             );
             expect(result.requestsInProgress.includes(AsyncRequest.GET_PLATE)).to.be.false;
+        });
+    });
+    describe("requestFileMetadataForJob", () => {
+        it("adds REQUEST_FILE_METADATA_FOR_JOB to requestsInProgress", () => {
+            const result = reducer(initialState, requestFileMetadataForJob(["abc"]));
+            expect(result.requestsInProgress.includes(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB)).to.be.true;
+        });
+    });
+    describe("receiveFileMetadata", () => {
+        it("removes REQUEST_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
+            const result = reducer(
+                {...initialState, requestsInProgress: [AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]},
+                receiveFileMetadata([{foo: "bar"}]));
+            expect(result.requestsInProgress.includes(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB)).to.be.false;
         });
     });
 });
