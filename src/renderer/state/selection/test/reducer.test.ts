@@ -9,6 +9,7 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import { replaceUpload } from "../../upload/actions";
+import { setPlate } from "../actions";
 
 import reducer from "../reducer";
 import { initialState } from "../reducer";
@@ -87,6 +88,14 @@ describe("selection reducer", () => {
             expect(present.annotation).to.equal(getSelectedAnnotation(nonEmptySelectionsState));
             expect(present.files).to.equal(getSelectedFiles(nonEmptySelectionsState));
             expect(present.user).to.equal(getSelectedUser(nonEmptySelectionsState));
+        });
+    });
+    describe("setPlate", () => {
+        it("sets imagingSessionId to first value in imagingSessionIds, plate to payload.plate and wells to payload.wells", () => {
+            const result = reducer(getMockStateWithHistory(initialState), setPlate(mockPlate, mockWells, [1, 2]));
+            expect(result.present.imagingSessionId).to.equal(1);
+            expect(result.present.plate).to.equal(mockPlate);
+            expect(result.present.wells).to.equal(mockWells);
         });
     });
 });

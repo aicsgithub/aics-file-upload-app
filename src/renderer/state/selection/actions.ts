@@ -21,7 +21,6 @@ import {
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
     SET_PLATE,
-    SET_WELLS,
     TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
     TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
@@ -47,7 +46,6 @@ import {
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
     SetPlateAction,
-    SetWellsAction,
     ToggleExpandedUploadJobRowAction,
     ToggleFolderTreeAction,
     UpdateStagedFilesAction,
@@ -140,19 +138,19 @@ export function selectWorkflows(workflows: Workflow[]): SelectWorkflowsAction {
     };
 }
 
-export function setPlate(plate: ImagingSessionIdToPlateMap): SetPlateAction {
+export function setPlate(
+    plate: ImagingSessionIdToPlateMap,
+    wells: ImagingSessionIdToWellsMap,
+    imagingSessionIds: Array<number | null> = [null]
+): SetPlateAction {
     return {
         autoSave: true,
-        payload: plate,
+        payload: {
+            imagingSessionIds,
+            plate,
+            wells,
+        },
         type: SET_PLATE,
-    };
-}
-
-export function setWells(wells: ImagingSessionIdToWellsMap): SetWellsAction {
-    return {
-        autoSave: true,
-        payload: wells,
-        type: SET_WELLS,
     };
 }
 

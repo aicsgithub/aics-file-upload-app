@@ -20,17 +20,16 @@ import {
     setSuccessAlert,
 } from "../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../state/feedback/types";
-import { selectImagingSessionId, setPlate, setWells } from "../state/selection/actions";
+import { setPlate } from "../state/selection/actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
 import {
     DragAndDropFileList,
     GetPlateResponse,
-    PlateResponse,
+    PlateResponse, SetPlateAction,
     UploadFile,
     WellResponse,
 } from "../state/selection/types";
-import { associateByWorkflow } from "../state/setting/actions";
 import { TemplateAnnotation } from "../state/template/types";
 import { HTTP_STATUS, ReduxLogicNextCb } from "../state/types";
 import { batchActions } from "../state/util";
@@ -303,14 +302,15 @@ export const mergeChildPaths = (filePaths: string[]): string[] => {
  * @param {ReduxLogicNextCb} dispatch
  * @returns {Promise<AnyAction[]>}
  */
-export const getSelectBarcodeActions = async (
+export const getSetPlateAction = async (
     barcode: string,
-    imagingSessionIds: number[],
+    imagingSessionIds: Array<number | null>,
     mmsClient: MMSClient,
     dispatch: ReduxLogicNextCb
-): Promise<AnyAction[]> => {
+): Promise<SetPlateAction> => {
     const request = (): Promise<GetPlateResponse[]> => Promise.all(
-        imagingSessionIds.map((imagingSessionId: number) => mmsClient.getPlate(barcode, imagingSessionId))
+        imagingSessionIds.map((imagingSessionId: number | null) =>
+            mmsClient.getPlate(barcode, imagingSessionId || undefined))
     );
 
     const platesAndWells: GetPlateResponse[] = await getWithRetry(
@@ -323,18 +323,12 @@ export const getSelectBarcodeActions = async (
 
     const imagingSessionIdToPlate: {[imagingSessionId: number]: PlateResponse} = {};
     const imagingSessionIdToWells: {[imagingSessionId: number]: WellResponse[]} = {};
-    imagingSessionIds.forEach((imagingSessionId: number, i: number) => {
+    imagingSessionIds.forEach((imagingSessionId: number | null, i: number) => {
         imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
         const { plate, wells } = platesAndWells[i];
         imagingSessionIdToPlate[imagingSessionId] = plate;
         imagingSessionIdToWells[imagingSessionId] = wells;
     });
 
-    return [
-        selectImagingSessionId(imagingSessionIds[0]),
-        setPlate(imagingSessionIdToPlate),
-        setWells(imagingSessionIdToWells),
-        removeRequestFromInProgress(AsyncRequest.GET_PLATE),
-        associateByWorkflow(false),
-    ];
+    return setPlate(imagingSessionIdToPlate, imagingSessionIdToWells, imagingSessionIds);
 };

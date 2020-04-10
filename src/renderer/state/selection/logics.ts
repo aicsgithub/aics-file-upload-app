@@ -4,7 +4,7 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { getSelectBarcodeActions, getUploadFilePromise, mergeChildPaths } from "../../util";
+import { getSetPlateAction, getUploadFilePromise, mergeChildPaths } from "../../util";
 
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
@@ -152,13 +152,13 @@ const selectBarcodeLogic = createLogic({
             selectPage(Page.SelectUploadType, nextPage)
         );
         try {
-            const selectBarcodeActions: AnyAction[] = await getSelectBarcodeActions(
+            const setPlateAction: AnyAction = await getSetPlateAction(
                 barcode,
                 imagingSessionIds,
                 mmsClient,
                 dispatch
             );
-            dispatch(batchActions([...selectPageActions, ...selectBarcodeActions]));
+            dispatch(batchActions([...selectPageActions, setPlateAction]));
         } catch (e) {
             logger.error(e.message);
         }
