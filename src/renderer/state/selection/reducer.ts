@@ -29,7 +29,6 @@ import {
     SELECT_WORKFLOW_PATH,
     SELECT_WORKFLOWS,
     SET_PLATE,
-    SET_WELLS,
     TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
     TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
@@ -58,10 +57,10 @@ import {
     SelectWorkflowPathAction,
     SelectWorkflowsAction,
     SetPlateAction,
-    SetWellsAction,
     ToggleExpandedUploadJobRowAction,
     ToggleFolderTreeAction,
-    UpdateStagedFilesAction, UploadTabSelections,
+    UpdateStagedFilesAction,
+    UploadTabSelections,
 } from "./types";
 
 const DEFAULT_ANNOTATION = "Dataset";
@@ -124,9 +123,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
     },
     [SET_PLATE]: {
         accepts: (action: AnyAction): action is SetPlateAction => action.type === SET_PLATE,
-        perform: (state: SelectionStateBranch, action: SetPlateAction) => ({
+        perform: (state: SelectionStateBranch, { payload: { imagingSessionIds, plate, wells }}: SetPlateAction) => ({
             ...state,
-            plate: action.payload,
+            imagingSessionId: imagingSessionIds[0],
+            imagingSessionIds,
+            plate,
+            wells,
         }),
     },
     [SELECT_FILE]: {
@@ -148,13 +150,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectWorkflowsAction) => ({
             ...state,
             selectedWorkflows: action.payload,
-        }),
-    },
-    [SET_WELLS]: {
-        accepts: (action: AnyAction): action is SetWellsAction => action.type === SET_WELLS,
-        perform: (state: SelectionStateBranch, action: SetWellsAction) => ({
-            ...state,
-            wells: action.payload,
         }),
     },
     [ADD_STAGE_FILES]: {

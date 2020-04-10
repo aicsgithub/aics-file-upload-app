@@ -1,5 +1,6 @@
 import { expect } from "chai";
-import { mockState } from "../../test/mocks";
+import { setPlate } from "../../selection/actions";
+import { mockPlate, mockState, mockWells } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
 
 import reducer from "../reducer";
@@ -25,6 +26,12 @@ describe("setting reducer", () => {
                     },
                 },
             }));
+            expect(result.associateByWorkflow).to.be.false;
+        });
+    });
+    describe("setPlate", () => {
+        it("sets associateByWorkflow to false", () => {
+            const result = reducer({...initialState, associateByWorkflow: true}, setPlate(mockPlate, mockWells));
             expect(result.associateByWorkflow).to.be.false;
         });
     });

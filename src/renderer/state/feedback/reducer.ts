@@ -5,8 +5,9 @@ import { REQUEST_FILE_METADATA_FOR_JOB } from "../metadata/constants";
 import { RequestFileMetadataForJobAction } from "../metadata/types";
 import { CLOSE_UPLOAD_TAB, OPEN_EDIT_FILE_METADATA_TAB } from "../route/constants";
 import { CloseUploadTabAction, OpenEditFileMetadataTabAction } from "../route/types";
+import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 
-import { SelectionStateBranch } from "../selection/types";
+import { SelectBarcodeAction, SelectionStateBranch, SetPlateAction } from "../selection/types";
 import {
     HTTP_STATUS,
     TypeToDescriptionMap,
@@ -234,6 +235,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]),
+        }),
+    },
+    [SELECT_BARCODE]: {
+        accepts: (action: AnyAction): action is SelectBarcodeAction =>
+            action.type === SELECT_BARCODE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.GET_PLATE]),
+        }),
+    },
+    [SET_PLATE]: {
+        accepts: (action: AnyAction): action is SetPlateAction => action.type === SET_PLATE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_PLATE),
         }),
     },
 };

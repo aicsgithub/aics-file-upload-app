@@ -1,8 +1,8 @@
 import { expect } from "chai";
 
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
-import { openTemplateEditor } from "../../selection/actions";
-import { mockSuccessfulUploadJob } from "../../test/mocks";
+import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
+import { mockPlate, mockSuccessfulUploadJob, mockWells } from "../../test/mocks";
 import {
     addEvent,
     addRequestToInProgress,
@@ -192,6 +192,20 @@ describe("feedback reducer", () => {
         it("adds request in progress for REQUEST_FILE_METADATA_FOR_JOB", () => {
             const result = reducer(initialState, openEditFileMetadataTab(mockSuccessfulUploadJob));
             expect(result.requestsInProgress.includes(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB));
+        });
+    });
+    describe("selectBarcode", () => {
+        it("adds GET_PLATE from requestsInProgress", () => {
+            const result = reducer(initialState, selectBarcode("foo"));
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_PLATE)).to.be.true;
+        });
+    });
+    describe("setPlate", () => {
+        it("removes GET_PLATE from requestsInProgress", () => {
+            const result = reducer({...initialState, requestsInProgress: [AsyncRequest.GET_PLATE]},
+                setPlate(mockPlate, mockWells, [null])
+            );
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_PLATE)).to.be.false;
         });
     });
 });
