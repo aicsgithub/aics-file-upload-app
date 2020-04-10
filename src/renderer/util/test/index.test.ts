@@ -1,11 +1,12 @@
 /* tslint:disable:max-classes-per-file */
 
 import { expect } from "chai";
-import { spy, stub, useFakeTimers } from "sinon";
+import { createSandbox, spy, stub, useFakeTimers } from "sinon";
 
 import {
     alphaOrderComparator,
     convertToArray,
+    getSetPlateAction,
     getWithRetry,
     makePosixPathCompatibleWithPlatform,
     SERVICE_MIGHT_BE_DOWN_MESSAGE,
@@ -20,6 +21,9 @@ import {
     setAlert,
 } from "../../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../../state/feedback/types";
+import { GetPlateResponse, PlateResponse, Well } from "../../state/selection/types";
+import { mmsClient } from "../../state/test/configure-mock-store";
+import { mockAuditInfo } from "../../state/test/mocks";
 import { HTTP_STATUS } from "../../state/types";
 import { getWellLabel } from "../index";
 
@@ -401,6 +405,63 @@ describe("General utilities", () => {
                 clearAlert(),
                 removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA),
             ]));
+        });
+    });
+    describe("getSetPlateAction", () => {
+        const sandbox = createSandbox();
+        const barcode = "123456";
+        const mockEmptyWell: Well = {
+            cellPopulations: [],
+            col: 0,
+            plateId: 1,
+            row: 0,
+            solutions: [],
+            wellId: 1,
+        };
+        const mockPlate: PlateResponse = {
+            ...mockAuditInfo,
+            barcode,
+            comments: "",
+            imagingSessionId: undefined,
+            plateGeometryId: 1,
+            plateId: 1,
+            plateStatusId: 1,
+            seededOn: "2018-02-14 23:03:52",
+        };
+        afterEach(() => {
+            sandbox.restore();
+        });
+        it("creates a map of imagingSessionIds to plate and well info", async () => {
+            const mockGetPlateResponse1: GetPlateResponse = {
+                plate: mockPlate,
+                wells: [mockEmptyWell],
+            };
+            const mockGetPlateResponse2: GetPlateResponse = {
+                plate: {...mockPlate, imagingSessionId: 4, plateId: 2},
+                wells: [{...mockEmptyWell, plateId: 2, wellId: 2}],
+            };
+            const getPlateStub = stub();
+            getPlateStub.withArgs(barcode, undefined).resolves(mockGetPlateResponse1);
+            getPlateStub.withArgs(barcode, 4).resolves(mockGetPlateResponse2);
+            sandbox.replace(mmsClient, "getPlate", getPlateStub);
+            const dispatchSpy = spy();
+            const imagingSessionIds = [null, 4];
+
+            const setPlateAction = await getSetPlateAction(
+                barcode,
+                imagingSessionIds,
+                mmsClient,
+                dispatchSpy
+            );
+            expect(setPlateAction.payload.imagingSessionIds).to.equal(imagingSessionIds);
+            expect(setPlateAction.payload.plate).to.deep.equal({
+                0: mockPlate,
+                4: {...mockPlate, imagingSessionId: 4, plateId: 2},
+            });
+            expect(setPlateAction.payload.wells).to.deep.equal({
+                0: [mockEmptyWell],
+                4: [{...mockEmptyWell, plateId: 2, wellId: 2}],
+            });
         });
     });
 });

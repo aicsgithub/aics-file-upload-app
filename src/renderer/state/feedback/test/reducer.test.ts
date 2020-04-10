@@ -1,7 +1,8 @@
 import { expect } from "chai";
 
 import { closeUploadTab } from "../../route/actions";
-import { openTemplateEditor } from "../../selection/actions";
+import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
+import { mockPlate, mockWells } from "../../test/mocks";
 import {
     addEvent,
     addRequestToInProgress,
@@ -179,6 +180,20 @@ describe("feedback reducer", () => {
         it("clears uploadError", () => {
             const result = reducer({...initialState, uploadError: "foo"}, clearUploadError());
             expect(result.uploadError).to.be.undefined;
+        });
+    });
+    describe("selectBarcode", () => {
+        it("adds GET_PLATE from requestsInProgress", () => {
+            const result = reducer(initialState, selectBarcode("foo"));
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_PLATE)).to.be.true;
+        });
+    });
+    describe("setPlate", () => {
+        it("removes GET_PLATE from requestsInProgress", () => {
+            const result = reducer({...initialState, requestsInProgress: [AsyncRequest.GET_PLATE]},
+                setPlate(mockPlate, mockWells, [null])
+            );
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_PLATE)).to.be.false;
         });
     });
 });

@@ -1,15 +1,16 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { basename, dirname } from "path";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { getUploadFilePromise, getWithRetry, mergeChildPaths } from "../../util";
+import { getSetPlateAction, getUploadFilePromise, mergeChildPaths } from "../../util";
 
-import { removeRequestFromInProgress, setAlert, startLoading, stopLoading } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
-import { receiveMetadata } from "../metadata/actions";
+import { setAlert, startLoading, stopLoading } from "../feedback/actions";
+import { AlertType } from "../feedback/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
+import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
@@ -26,10 +27,7 @@ import { batchActions, getActionFromBatch } from "../util";
 
 import {
     deselectFiles,
-    selectImagingSessionId,
     selectWells,
-    setPlate,
-    setWells,
     stageFiles,
     updateStagedFiles,
 } from "./actions";
@@ -47,7 +45,7 @@ import {
     getStagedFiles,
     getWellsWithModified,
 } from "./selectors";
-import { DragAndDropFileList, GetPlateResponse, PlateResponse, UploadFile, WellResponse } from "./types";
+import { DragAndDropFileList, UploadFile } from "./types";
 
 const stageFilesAndStopLoading = async (uploadFilePromises: Array<Promise<UploadFile>>,
                                         currentPage: Page,
@@ -142,42 +140,25 @@ const getFilesInFolderLogic = createLogic({
 export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) => `Could not retrieve wells for barcode ${barcode}`;
 
 const selectBarcodeLogic = createLogic({
-    process: async ({ action, getState, labkeyClient, logger, mmsClient }: ReduxLogicProcessDependencies,
+    process: async ({ action, getApplicationMenu, getState, labkeyClient,
+                        logger, mmsClient }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const { barcode, imagingSessionIds } = action.payload;
-        const request = (): Promise<GetPlateResponse[]> => Promise.all(
-            imagingSessionIds.map((imagingSessionId: number) => mmsClient.getPlate(barcode, imagingSessionId))
+        const nextPage = findNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
+        const selectPageActions = getSelectPageActions(
+            logger,
+            getState(),
+            getApplicationMenu,
+            selectPage(Page.SelectUploadType, nextPage)
         );
-
         try {
-            const platesAndWells: GetPlateResponse[] = await getWithRetry(
-                request,
-                AsyncRequest.GET_PLATE,
-                dispatch,
-                "MMS",
-                GENERIC_GET_WELLS_ERROR_MESSAGE(action.payload.barcode)
+            const setPlateAction: AnyAction = await getSetPlateAction(
+                barcode,
+                imagingSessionIds,
+                mmsClient,
+                dispatch
             );
-
-            const imagingSessionIdToPlate: {[imagingSessionId: number]: PlateResponse} = {};
-            const imagingSessionIdToWells: {[imagingSessionId: number]: WellResponse[]} = {};
-            imagingSessionIds.forEach((imagingSessionId: number, i: number) => {
-                imagingSessionId = !imagingSessionId ? 0 : imagingSessionId;
-                const { plate, wells } = platesAndWells[i];
-                imagingSessionIdToPlate[imagingSessionId] = plate;
-                imagingSessionIdToWells[imagingSessionId] = wells;
-            });
-
-            const actions = [
-                selectImagingSessionId(imagingSessionIds[0]),
-                setPlate(imagingSessionIdToPlate),
-                setWells(imagingSessionIdToWells),
-                removeRequestFromInProgress(AsyncRequest.GET_PLATE),
-                associateByWorkflow(false),
-                receiveMetadata({barcodeSearchResults: []}),
-            ];
-            const nextPage = findNextPage(Page.SelectUploadType, 1) || Page.AssociateFiles;
-            dispatch(batchActions(actions));
-            dispatch(selectPage(Page.SelectUploadType, nextPage));
+            dispatch(batchActions([...selectPageActions, setPlateAction]));
         } catch (e) {
             logger.error(e.message);
         }

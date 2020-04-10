@@ -11,7 +11,6 @@ import selections from "../";
 import { feedback } from "../../";
 import { SERVICE_IS_DOWN_MESSAGE, SERVICE_MIGHT_BE_DOWN_MESSAGE } from "../../../util";
 import { API_WAIT_TIME_SECONDS } from "../../constants";
-import { addRequestToInProgress } from "../../feedback/actions";
 import { getAlert, getRequestsInProgressContains } from "../../feedback/selectors";
 import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
@@ -389,38 +388,6 @@ describe("Selection logics", () => {
                     statusText: "Bad Gateway",
                 },
             };
-        });
-
-        it("Adds GET wells request to requests in progress", async () => {
-            const getStub = sinon.stub().onFirstCall().resolves(mockOkGetPlateResponse);
-            sandbox.replace(mmsClient, "getPlate", getStub);
-            const { actions, logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
-
-            // before
-            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
-
-            // apply
-            store.dispatch(selectBarcode(barcode));
-
-            // after
-            await logicMiddleware.whenComplete();
-            expect(actions.includes(addRequestToInProgress(AsyncRequest.GET_PLATE))).to.be.true;
-        });
-
-        it ("removes GET wells from requests in progress if GET wells is OK",  async () => {
-            const getStub = sinon.stub().onFirstCall().callsFake(() => {
-                return Promise.resolve(mockOkGetPlateResponse);
-            });
-            sandbox.replace(mmsClient, "getPlate", getStub);
-
-            const { logicMiddleware, store } = createMockReduxStore(mockState, mockReduxLogicDeps);
-
-            // apply
-            store.dispatch(selectBarcode(barcode));
-
-            // after
-            await logicMiddleware.whenComplete();
-            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.GET_PLATE)).to.be.false;
         });
 
         it("Sets wells, page, barcode, and plateId if GET wells is OK",  async () => {
