@@ -68,7 +68,7 @@ export interface UploadJobTableRow extends UploadRowId {
     [key: string]: any;
 
     // plate barcode associated with well and file
-    barcode: string;
+    barcode?: string;
 
     // if this row keeps track of information for a channel, the channel should be present here
     channel?: Channel;

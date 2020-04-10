@@ -1,17 +1,19 @@
 import { expect } from "chai";
 import { ActionCreator } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
+import { getAlert } from "../../feedback/selectors";
+import { AlertType } from "../../feedback/types";
 
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
 import { createMockReduxStore, dialog, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { mockSelectedWorkflows, mockState } from "../../test/mocks";
+import { getMockStateWithHistory, mockSelectedWorkflows, mockState, mockSuccessfulUploadJob } from "../../test/mocks";
 import { Logger } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getCurrentUploadIndex } from "../../upload/selectors";
 
-import { closeUploadTab, goBack, selectPage } from "../actions";
+import { closeUploadTab, goBack, openEditFileMetadataTab, selectPage } from "../actions";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
 import { Page } from "../types";
@@ -343,6 +345,64 @@ describe("Route logics", () => {
         });
         it("stays on current page given Cancel from dialog", async () => {
             await runShowMessageBoxTest(Page.AssociateFiles, Page.AssociateFiles, closeUploadTab, false);
+        });
+    });
+
+    describe("openEditFileMetadataTabLogic", () => {
+        it("sets error alert if job passed in does not have fileId information", async () => {
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+            });
+
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(openEditFileMetadataTab({
+                ...mockSuccessfulUploadJob,
+                serviceFields: {
+                    ...mockSuccessfulUploadJob.serviceFields,
+                    result: undefined,
+                },
+            }));
+            await logicMiddleware.whenComplete();
+
+            // after
+            const alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
+            expect(alert?.type).to.equal(AlertType.ERROR);
+            expect(alert?.message).to.equal("No fileIds found in selected Job.");
+        });
+        it("sets page and view to AddCustomData", async () => {
+            const { logicMiddleware, store } = createMockReduxStore({
+                ...mockState,
+                route: {
+                    page: Page.UploadSummary,
+                    view: Page.UploadSummary,
+                },
+                upload: getMockStateWithHistory({}),
+            });
+
+            expect(getPage(store.getState())).to.equal(Page.UploadSummary);
+            expect(getView(store.getState())).to.equal(Page.UploadSummary);
+
+            store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+            await logicMiddleware.whenComplete();
+
+            expect(getPage(store.getState())).to.equal(Page.AddCustomData);
+            expect(getView(store.getState())).to.equal(Page.AddCustomData);
+        });
+        it("sets fileMetadataForJob given OK response", () => {
+
+        });
+        it("sets uploadError given not OK response when getting file metadata", () => {
+
+        });
+        it("dispatches setPlate action if file metadata contains well annotation", () => {
+
+        });
+        it("does not dispatch setPlate action file metadata contains well annotation", () => {
+
         });
     });
 });
