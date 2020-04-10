@@ -19,7 +19,7 @@ export interface UploadRowId {
 
 // Metadata associated with a file
 export interface UploadMetadata extends UploadRowId {
-    barcode: string;
+    barcode?: string;
     notes?: string;
     shouldBeInArchive?: boolean;
     shouldBeInLocal?: boolean;
