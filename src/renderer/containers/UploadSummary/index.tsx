@@ -11,6 +11,7 @@ import { ActionCreator } from "redux";
 import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
+import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import {
@@ -153,6 +154,12 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             render: (_: any, row: UploadSummaryTableRow) => (
                 <>
                     <a className={styles.action} onClick={this.viewJob(row)}>View</a>
+                    {row.status === FAILED_STATUS && (
+                        <a className={styles.action} onClick={this.retryJob(row)}>Retry</a>
+                    )}
+                    {IN_PROGRESS_STATUSES.includes(row.status) && (
+                        <a className={styles.action} onClick={this.cancelJob(row)}>Cancel</a>
+                    )}
                 </>
             ),
             title: "Action",
@@ -322,6 +329,14 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     private viewJob = (row: UploadSummaryTableRow) => () => {
         this.requestFileMetadataForJob(row.jobId);
         this.setState({selectedJobId: row.jobId});
+    }
+
+    private retryJob = (row: UploadSummaryTableRow) => () => {
+
+    }
+
+    private cancelJob = (row: UploadSummaryTableRow) => () => {
+
     }
 
     private closeModal = () => {
