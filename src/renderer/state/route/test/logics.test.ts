@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { ActionCreator } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
-import { getAlert } from "../../feedback/selectors";
+import { getAlert, getUploadError } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
 import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
-import { createMockReduxStore, dialog, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import { createMockReduxStore, dialog, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import { getMockStateWithHistory, mockSelectedWorkflows, mockState, mockSuccessfulUploadJob } from "../../test/mocks";
 import { Logger } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
@@ -349,6 +349,7 @@ describe("Route logics", () => {
     });
 
     describe("openEditFileMetadataTabLogic", () => {
+
         it("sets error alert if job passed in does not have fileId information", async () => {
             const { logicMiddleware, store } = createMockReduxStore({
                 ...mockState,
@@ -395,8 +396,19 @@ describe("Route logics", () => {
         it("sets fileMetadataForJob given OK response", () => {
 
         });
-        it("sets uploadError given not OK response when getting file metadata", () => {
+        it("sets uploadError given not OK response when getting file metadata", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockState);
+            const getCustomMetadataForFileStub = stub().resolves({});
+            const transformFileMetadataIntoTableStub = stub().rejects("error!");
+            sandbox.replace(fms, "getCustomMetadataForFile", getCustomMetadataForFileStub);
+            sandbox.replace(fms, "transformFileMetadataIntoTable", transformFileMetadataIntoTableStub);
 
+            expect(getUploadError(store.getState())).to.be.undefined;
+
+            store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+            await logicMiddleware.whenComplete();
+
+            expect(getUploadError(store.getState())).to.not.be.undefined;
         });
         it("dispatches setPlate action if file metadata contains well annotation", () => {
 

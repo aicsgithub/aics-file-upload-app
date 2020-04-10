@@ -19,10 +19,11 @@ import {
     removeRequestFromInProgress,
     setDeferredAction,
     setErrorAlert,
+    setUploadError,
 } from "../feedback/actions";
 import { AsyncRequest, ModalName } from "../feedback/types";
 
-import { receiveFileMetadata, receiveMetadata, updatePageHistory } from "../metadata/actions";
+import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
 import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
@@ -351,7 +352,6 @@ const openEditFileMetadataTabLogic = createLogic({
 
         // Second, we fetch the file metadata for the fileIds acquired in the validate phase
         const { fileIds } = ctx;
-        const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB)];
         let fileMetadataForJob: ImageModelMetadata[];
         const request = () => retrieveFileMetadata(fileIds, fms);
         try {
@@ -362,12 +362,17 @@ const openEditFileMetadataTabLogic = createLogic({
                 "MMS"
             );
         } catch (e) {
-            logger.error(`Could not retrieve file metadata for fileIds=${fileIds.join(", ")}`, e);
-            dispatch(batchActions(e));
+            const error = `Could not retrieve file metadata for fileIds=${fileIds.join(", ")}: ${e.message}`;
+            logger.error(error);
+            dispatch(batchActions([
+                removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+                setUploadError(error),
+            ]));
             done();
             return;
         }
 
+        const actions: AnyAction[] = [];
         actions.push(receiveFileMetadata(fileMetadataForJob)); // not sure how important this is
         const uploadsHaveWorkflow = !!fileMetadataForJob[0].workflow; // todo move into reducer?
         actions.push(associateByWorkflow(uploadsHaveWorkflow));
