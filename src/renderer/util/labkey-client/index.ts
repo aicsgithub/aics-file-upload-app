@@ -234,13 +234,16 @@ export default class LabkeyClient extends BaseServiceClient {
         const plateQuery = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate",
             [`query.plateid~eq=${plateId}`]);
         const plateResponse = await this.httpClient.get(plateQuery);
-        return plateResponse.rows[0]?.Barcode;
+        return plateResponse.rows[0]?.BarCode;
     }
 
-    public async getImagingSessionIdsForBarcode(barcode: string): Promise<number[]> {
+    public async getImagingSessionIdsForBarcode(barcode: string): Promise<Array<number | null>> {
         const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate", [`query.barcode~eq=${barcode}`]);
         const response = await this.httpClient.get(query);
-        return uniq(response.rows[0].map((plate: LabkeyPlate) => plate.ImagingSessionId));
+        if (response.rows.length) {
+            return uniq(response.rows.map((plate: LabkeyPlate) => plate.ImagingSessionId));
+        }
+        return [];
     }
 
     protected get baseURL(): string {
