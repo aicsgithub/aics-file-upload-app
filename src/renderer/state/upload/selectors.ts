@@ -164,17 +164,18 @@ const convertToUploadJobRow = (
         forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === key);
 
-            if (!templateAnnotation) {
-                throw new Error("Could not get template annotation named " + key);
-            }
-
-            const { type } = templateAnnotation;
-            // When a text or number annotation has supports multiple values, the editor will be
-            // an Input so we need to convert arrays to strings
-            const formatList = templateAnnotation && templateAnnotation.canHaveManyValues && Array.isArray(value) &&
-                (type === ColumnType.TEXT || type === ColumnType.NUMBER);
-            if (formatList) {
-                formattedMetadata[key] = value.join(LIST_DELIMITER_JOIN);
+            if (templateAnnotation) {
+                const { type } = templateAnnotation;
+                // When a text or number annotation has supports multiple values, the editor will be
+                // an Input so we need to convert arrays to strings
+                const formatList = templateAnnotation && templateAnnotation.canHaveManyValues && Array.isArray(value) &&
+                    (type === ColumnType.TEXT || type === ColumnType.NUMBER);
+                if (formatList) {
+                    formattedMetadata[key] = value.join(LIST_DELIMITER_JOIN);
+                }
+            } else {
+                // tslint:disable-next-line
+                console.warn(`Found unexpected annotation on file metadata: ${key}.`);
             }
         });
     }
@@ -496,28 +497,27 @@ const getAnnotations = (
                 annotationName = titleCase(annotationName);
                 const annotation = appliedTemplate.annotations
                     .find((a) => a.name === annotationName);
-                if (!annotation) {
-                    throw new Error(
-                        `Could not find an annotation named ${annotationName} in your template`
-                    );
+                if (annotation) {
+                    result.push({
+                        annotationId: annotation.annotationId,
+                        channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
+                        positionIndex: metadatum.positionIndex,
+                        scene: metadatum.scene,
+                        subImageName: metadatum.subImageName,
+                        timePointId: undefined,
+                        values: castArray(value).map((v) => {
+                            if (annotation.type === ColumnType.DATETIME) {
+                                return moment(v).format("YYYY-MM-DD HH:mm:ss");
+                            } else if (annotation.type === ColumnType.DATE) {
+                                return moment(v).format("YYYY-MM-DD");
+                            }
+                            return v.toString();
+                        }),
+                    });
+                } else {
+                    // tslint:disable-next-line
+                    console.warn(`Found annotation named ${annotationName} that is not in template`);
                 }
-
-                result.push({
-                    annotationId: annotation.annotationId,
-                    channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
-                    positionIndex: metadatum.positionIndex,
-                    scene: metadatum.scene,
-                    subImageName: metadatum.subImageName,
-                    timePointId: undefined,
-                    values: castArray(value).map((v) => {
-                        if (annotation.type === ColumnType.DATETIME) {
-                            return moment(v).format("YYYY-MM-DD HH:mm:ss");
-                        } else if (annotation.type === ColumnType.DATE) {
-                            return moment(v).format("YYYY-MM-DD");
-                        }
-                        return v.toString();
-                    }),
-                });
             }
         });
         return result;
