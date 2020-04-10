@@ -200,12 +200,11 @@ export interface SelectWorkflowsAction {
 }
 
 export interface SetPlateAction extends AutoSaveAction  {
-    payload: {[imagingSessionId: number]: PlateResponse};
-    type: string;
-}
-
-export interface SetWellsAction extends AutoSaveAction  {
-    payload: {[imagingSessionId: number]: WellResponse[]};
+    payload: {
+        imagingSessionIds: Array<number | null>;
+        plate: ImagingSessionIdToPlateMap;
+        wells: ImagingSessionIdToWellsMap;
+    };
     type: string;
 }
 

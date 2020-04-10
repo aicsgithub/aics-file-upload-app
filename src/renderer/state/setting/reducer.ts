@@ -2,6 +2,8 @@ import { userInfo } from "os";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
+import { SET_PLATE } from "../selection/constants";
+import { SetPlateAction } from "../selection/types";
 import { TypeToDescriptionMap } from "../types";
 import { APPLY_TEMPLATE, REPLACE_UPLOAD } from "../upload/constants";
 import { ApplyTemplateAction, ReplaceUploadAction } from "../upload/types";
@@ -56,6 +58,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SettingStateBranch, action: ApplyTemplateAction) => ({
             ...state,
             templateId: action.payload.templateId,
+        }),
+    },
+    [SET_PLATE]: {
+        accepts: (action: AnyAction): action is SetPlateAction =>
+            action.type === SET_PLATE,
+        perform: (state: SettingStateBranch) => ({
+            ...state,
+            associateByWorkflow: false,
         }),
     },
 };

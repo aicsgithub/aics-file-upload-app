@@ -3,8 +3,9 @@ import { AnyAction } from "redux";
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
+import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 
-import { SelectionStateBranch } from "../selection/types";
+import { SelectBarcodeAction, SelectionStateBranch, SetPlateAction } from "../selection/types";
 import {
     HTTP_STATUS,
     TypeToDescriptionMap,
@@ -31,6 +32,7 @@ import {
 import {
     AddEventAction,
     AddRequestInProgressAction,
+    AsyncRequest,
     ClearAlertAction,
     ClearDeferredAction,
     ClearUploadErrorAction,
@@ -215,6 +217,21 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             uploadError: undefined,
+        }),
+    },
+    [SELECT_BARCODE]: {
+        accepts: (action: AnyAction): action is SelectBarcodeAction =>
+            action.type === SELECT_BARCODE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.GET_PLATE]),
+        }),
+    },
+    [SET_PLATE]: {
+        accepts: (action: AnyAction): action is SetPlateAction => action.type === SET_PLATE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_PLATE),
         }),
     },
 };
