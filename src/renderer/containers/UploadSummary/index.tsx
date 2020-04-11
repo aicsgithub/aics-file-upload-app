@@ -3,6 +3,7 @@ import { Button, Col, Empty, Icon, Modal, Progress, Radio, Row, Table } from "an
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
+import { remote } from "electron";
 import { capitalize, isEmpty, map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -168,7 +169,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                                 className={classNames(styles.action, {[styles.disabled]: this.props.loading})}
                                 onClick={this.cancelJob(row)}
                             >
-                                Cancel
+                                Stop
                             </a>
                         )}
                     </>
@@ -335,7 +336,16 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
     private cancelJob = (row: UploadSummaryTableRow) => () => {
         if (!this.props.loading) {
-            this.props.cancelUpload(row);
+            remote.dialog.showMessageBox({
+                buttons: ["Cancel", "Yes"],
+                message: "Stopping will make this upload unrecoverable. Are you sure?",
+                title: "Danger!",
+                type: "warning",
+            }, (response: number) => {
+                if (response === 1) {
+                    this.props.cancelUpload(row);
+                }
+            });
         }
     }
 
