@@ -235,6 +235,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === OPEN_EDIT_FILE_METADATA_TAB,
         perform: (state: SelectionStateBranch, action: OpenEditFileMetadataTabAction) => ({
             ...state,
+            folderTreeOpen: false, // there's no use to this when editing files already uploaded
             job: action.payload,
         }),
     },
