@@ -5,8 +5,8 @@ import undoable, {
     UndoableOptions,
 } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
-import { CLOSE_UPLOAD_TAB } from "../route/constants";
-import { CloseUploadTabAction } from "../route/types";
+import { CLOSE_UPLOAD_TAB, OPEN_EDIT_FILE_METADATA_TAB } from "../route/constants";
+import { CloseUploadTabAction, OpenEditFileMetadataTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
@@ -228,6 +228,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch) => ({
             ...state,
             ...uploadTabSelectionInitialState,
+        }),
+    },
+    [OPEN_EDIT_FILE_METADATA_TAB]: {
+        accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
+            action.type === OPEN_EDIT_FILE_METADATA_TAB,
+        perform: (state: SelectionStateBranch, action: OpenEditFileMetadataTabAction) => ({
+            ...state,
+            job: action.payload,
         }),
     },
 };

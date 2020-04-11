@@ -1,9 +1,10 @@
 import { expect } from "chai";
-import { closeUploadTab } from "../../route/actions";
+import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import {
     getMockStateWithHistory,
     mockPlate,
     mockSelection,
+    mockSuccessfulUploadJob,
     mockWells,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
@@ -96,6 +97,15 @@ describe("selection reducer", () => {
             expect(result.present.imagingSessionId).to.equal(1);
             expect(result.present.plate).to.equal(mockPlate);
             expect(result.present.wells).to.equal(mockWells);
+        });
+    });
+    describe("openEditFileMetadataTab", () => {
+        it("sets selected job", () => {
+            const result = reducer(
+                getMockStateWithHistory(initialState),
+                openEditFileMetadataTab(mockSuccessfulUploadJob)
+            );
+            expect(result.present.job).to.equal(mockSuccessfulUploadJob);
         });
     });
 });
