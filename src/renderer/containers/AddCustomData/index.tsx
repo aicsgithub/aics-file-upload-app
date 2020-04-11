@@ -149,6 +149,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         const showLoading = loading || loadingFileMetadata;
         return (
             <FormPage
+                backButtonDisabled={!!selectedJob}
                 className={className}
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
