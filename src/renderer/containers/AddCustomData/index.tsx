@@ -1,3 +1,4 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Alert, Button, Spin } from "antd";
 import classNames from "classnames";
 import * as React from "react";
@@ -7,6 +8,7 @@ import { ActionCreator } from "redux";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
+import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains, getUploadError } from "../../state/feedback/selectors";
@@ -28,6 +30,7 @@ import {
 import {
     getExpandedUploadJobRows,
     getSelectedBarcode,
+    getSelectedJob,
     getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
@@ -91,6 +94,7 @@ interface Props {
     removeUploads: ActionCreator<RemoveUploadsAction>;
     savedTemplateId?: number;
     selectedBarcode?: string;
+    selectedJob?: JSSJob;
     setAlert: ActionCreator<SetAlertAction>;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
@@ -136,6 +140,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             className,
             loading,
             loadingFileMetadata,
+            selectedJob,
             uploadError,
             uploadInProgress,
             uploads,
@@ -154,6 +159,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 onBack={this.props.goBack}
                 page={Page.AddCustomData}
             >
+                {selectedJob && (
+                    <JobOverviewDisplay job={selectedJob}/>
+                )}
                 {this.renderButtons()}
                 {showLoading && !appliedTemplate && (
                     <div className={styles.spinContainer}>
@@ -270,6 +278,7 @@ function mapStateToProps(state: State) {
         loadingFileMetadata: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
+        selectedJob: getSelectedJob(state),
         templates: getTemplates(state),
         uploadError: getUploadError(state),
         uploadInProgress: getUploadInProgress(state),
