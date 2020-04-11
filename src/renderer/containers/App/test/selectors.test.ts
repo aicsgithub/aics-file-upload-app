@@ -3,10 +3,16 @@ import { get } from "lodash";
 import * as moment from "moment";
 
 import { Page } from "../../../state/route/types";
-import { getMockStateWithHistory, mockSelection, mockState, mockWells } from "../../../state/test/mocks";
+import {
+    getMockStateWithHistory,
+    mockSelection,
+    mockState,
+    mockSuccessfulUploadJob,
+    mockWells,
+} from "../../../state/test/mocks";
 import { State } from "../../../state/types";
 import { DRAFT_KEY } from "../../../state/upload/constants";
-import { getCurrentUploadKey, getCurrentUploadName, getFileToTags } from "../selectors";
+import { getCurrentUploadKey, getCurrentUploadName, getFileToTags, getUploadTabName } from "../selectors";
 
 const CREATED = "Mar 24, 2020 3:14 PM";
 const UPLOAD_NAME = "foo";
@@ -300,6 +306,26 @@ describe("App selectors", () => {
         it("returns undefined if there is not a current upload", () => {
             const key = getCurrentUploadKey(mockState);
             expect(key).to.be.undefined;
+        });
+    });
+    describe("getUploadTabName", () => {
+        it("returns upload name if an upload draft is open", () => {
+            const name = getUploadTabName(stateWithCurrentUpload);
+            expect(name).to.equal(getCurrentUploadName(stateWithCurrentUpload));
+        });
+        it("returns 'Edit Job: [JobName]' if job is selected", () => {
+            const name = getUploadTabName({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    job: mockSuccessfulUploadJob,
+                }),
+            });
+            expect(name).to.equal(`Edit Job: ${mockSuccessfulUploadJob.jobName}`);
+        });
+        it("returns 'Current Upload' if user is working on a new upload", () => {
+            const name = getUploadTabName(mockState);
+            expect(name).to.equal("Current Upload");
         });
     });
 });

@@ -93,7 +93,7 @@ import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
 import SearchFiles from "../SearchFiles";
-import { getCurrentUploadName, getFileToTags } from "./selectors";
+import { getFileToTags, getUploadTabName } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -134,7 +134,7 @@ interface AppProps {
     undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
     undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
     updateSettings: ActionCreator<UpdateSettingsAction>;
-    uploadTabName?: string;
+    uploadTabName: string;
     view: Page;
 }
 
@@ -315,7 +315,7 @@ class App extends React.Component<AppProps, {}> {
                             {page !== Page.UploadSummary && (
                                 <TabPane
                                     className={styles.tabContent}
-                                    tab={uploadTabName || "Current Upload"}
+                                    tab={uploadTabName}
                                     key={page}
                                     closable={true}
                                 >
@@ -357,7 +357,7 @@ function mapStateToProps(state: State) {
         recentEvent: getRecentEvent(state),
         selectedFiles: getSelectedFiles(state),
         setMountPointNotificationVisible: getSetMountPointNotificationVisible(state),
-        uploadTabName: getCurrentUploadName(state),
+        uploadTabName: getUploadTabName(state),
         view: getView(state),
     };
 }
