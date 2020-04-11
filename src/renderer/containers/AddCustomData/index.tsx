@@ -152,11 +152,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 backButtonDisabled={!!selectedJob}
                 className={className}
                 formTitle="ADD ADDITIONAL DATA"
-                formPrompt="Review and add information to the files below and click Upload to submit the job."
+                formPrompt="Review and add information to the files below and click Submit."
                 onSave={this.upload}
                 saveButtonDisabled={!canSave}
                 saveInProgress={uploadInProgress}
-                saveButtonName="Upload"
+                saveButtonName="Submit"
                 showProgressBar={!selectedJob}
                 onBack={this.props.goBack}
                 page={Page.AddCustomData}
