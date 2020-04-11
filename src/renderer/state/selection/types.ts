@@ -1,3 +1,4 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
 import { Audited, AutoSaveAction } from "../types";
@@ -10,6 +11,7 @@ export interface SelectionStateBranch extends UploadTabSelections {
     folderTreeOpen: boolean;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
+    job?: JSSJob;
     plate: ImagingSessionIdToPlateMap;
     wells: ImagingSessionIdToWellsMap;
     selectedWells: GridCell[];
