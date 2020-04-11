@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { closeUploadTab } from "../../route/actions";
-import { mockState } from "../../test/mocks";
+import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
+import { mockState, mockSuccessfulUploadJob } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
 
 import { setCurrentUpload } from "../actions";
@@ -38,6 +38,15 @@ describe("metadata reducer", () => {
                 ...initialState,
                 currentUpload,
             }, closeUploadTab());
+            expect(result.currentUpload).to.be.undefined;
+        });
+    });
+    describe("openEditFileMetadataTab", () => {
+        it("clears currentUpload", () => {
+            const result = reducer({
+                ...initialState,
+                currentUpload,
+            }, openEditFileMetadataTab(mockSuccessfulUploadJob));
             expect(result.currentUpload).to.be.undefined;
         });
     });

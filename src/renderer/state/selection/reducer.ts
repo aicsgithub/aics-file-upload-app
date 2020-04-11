@@ -70,6 +70,7 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
     expandedUploadJobRows: {},
     imagingSessionId: undefined,
     imagingSessionIds: [],
+    job: undefined,
     plate: {},
     selectedWells: [],
     selectedWorkflows: [],

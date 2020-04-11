@@ -11,7 +11,6 @@ export interface SelectionStateBranch extends UploadTabSelections {
     folderTreeOpen: boolean;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
-    job?: JSSJob;
     plate: ImagingSessionIdToPlateMap;
     wells: ImagingSessionIdToWellsMap;
     selectedWells: GridCell[];
@@ -25,6 +24,7 @@ export interface UploadTabSelections {
     expandedUploadJobRows: ExpandedRows;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
+    job?: JSSJob;
     plate: ImagingSessionIdToPlateMap;
     wells: ImagingSessionIdToWellsMap;
     selectedWells: GridCell[];

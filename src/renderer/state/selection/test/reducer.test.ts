@@ -85,6 +85,7 @@ describe("selection reducer", () => {
             expect(present.selectedWells).to.deep.equal(initialState.selectedWells);
             expect(present.selectedWorkflows).to.deep.equal(initialState.selectedWorkflows);
             expect(present.stagedFiles).to.deep.equal(initialState.stagedFiles);
+            expect(present.job).to.be.undefined;
 
             expect(present.annotation).to.equal(getSelectedAnnotation(nonEmptySelectionsState));
             expect(present.files).to.equal(getSelectedFiles(nonEmptySelectionsState));

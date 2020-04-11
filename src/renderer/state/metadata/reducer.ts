@@ -1,6 +1,6 @@
 import { AnyAction } from "redux";
-import { CLOSE_UPLOAD_TAB } from "../route/constants";
-import { CloseUploadTabAction } from "../route/types";
+import { CLOSE_UPLOAD_TAB, OPEN_EDIT_FILE_METADATA_TAB } from "../route/constants";
+import { CloseUploadTabAction, OpenEditFileMetadataTabAction } from "../route/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
@@ -147,6 +147,16 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch, action: ReceiveFileMetadataAction) => ({
             ...state,
             fileMetadataForJob: action.payload,
+        }),
+    },
+    // todo: in the future this shouldn't happen but it is necessary bc we are sharing the upload tab
+    // todo: JIRA ticket
+    [OPEN_EDIT_FILE_METADATA_TAB]: {
+        accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
+            action.type === OPEN_EDIT_FILE_METADATA_TAB,
+        perform: (state: MetadataStateBranch) => ({
+            ...state,
+            currentUpload: undefined,
         }),
     },
 };
