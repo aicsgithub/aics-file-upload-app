@@ -112,60 +112,72 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private timeout: number | undefined;
-    private columns: Array<ColumnProps<UploadSummaryTableRow>> = [
-        {
-            align: "center",
-            dataIndex: "status",
-            key: "status",
-            render: (status: JSSJobStatus) => <StatusCircle status={status}/>,
-            title: "Status",
-            width: "90px",
-        },
-        {
-            dataIndex: "currentStage",
-            key: "currentStage",
-            render: (stage: string, row) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ? (
-                <Progress
-                    showInfo={false}
-                    status="active"
-                    percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
-                    successPercent={50}
-                />
-            ) : (row.serviceFields && row.serviceFields.replacementJobId ? "Replaced" : capitalize(row.status)),
-            title: "Progress",
-            width: "190px",
-        },
-        {
-            dataIndex: "jobName",
-            ellipsis: true,
-            key: "fileName",
-            title: "File Names",
-            width: "100%",
-        },
-        {
-            dataIndex: "modified",
-            key: "modified",
-            render: (modified: Date) => modified.toLocaleTimeString([], TIME_DISPLAY_CONFIG),
-            title: "Last Modified",
-            width: "300px",
-        },
-        {
-            key: "action",
-            render: (_: any, row: UploadSummaryTableRow) => (
-                <>
-                    <a className={styles.action} onClick={this.viewJob(row)}>View</a>
-                    {row.status === FAILED_STATUS && (
-                        <a className={styles.action} onClick={this.retryJob(row)}>Retry</a>
-                    )}
-                    {IN_PROGRESS_STATUSES.includes(row.status) && (
-                        <a className={styles.action} onClick={this.cancelJob(row)}>Cancel</a>
-                    )}
-                </>
-            ),
-            title: "Action",
-            width: "200px",
-        },
-    ];
+    private get columns(): Array<ColumnProps<UploadSummaryTableRow>> {
+        return [
+            {
+                align: "center",
+                dataIndex: "status",
+                key: "status",
+                render: (status: JSSJobStatus) => <StatusCircle status={status}/>,
+                title: "Status",
+                width: "90px",
+            },
+            {
+                dataIndex: "currentStage",
+                key: "currentStage",
+                render: (stage: string, row) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ? (
+                    <Progress
+                        showInfo={false}
+                        status="active"
+                        percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
+                        successPercent={50}
+                    />
+                ) : (row.serviceFields && row.serviceFields.replacementJobId ? "Replaced" : capitalize(row.status)),
+                title: "Progress",
+                width: "190px",
+            },
+            {
+                dataIndex: "jobName",
+                ellipsis: true,
+                key: "fileName",
+                title: "File Names",
+                width: "100%",
+            },
+            {
+                dataIndex: "modified",
+                key: "modified",
+                render: (modified: Date) => modified.toLocaleTimeString([], TIME_DISPLAY_CONFIG),
+                title: "Last Modified",
+                width: "300px",
+            },
+            {
+                key: "action",
+                render: (_: any, row: UploadSummaryTableRow) => (
+                    <>
+                        <a className={styles.action} onClick={this.viewJob(row)}>View</a>
+                        {row.status === FAILED_STATUS && (
+                            <a
+                                className={classNames(styles.action, {[styles.disabled]: this.props.loading})}
+                                onClick={this.retryJob(row)}
+                            >
+                                Retry
+                            </a>
+                        )}
+                        {IN_PROGRESS_STATUSES.includes(row.status) && (
+                            <a
+                                className={classNames(styles.action, {[styles.disabled]: this.props.loading})}
+                                onClick={this.cancelJob(row)}
+                            >
+                                Cancel
+                            </a>
+                        )}
+                    </>
+                ),
+                title: "Action",
+                width: "200px",
+            },
+        ];
+    }
 
     constructor(props: Props) {
         super(props);
@@ -192,7 +204,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             fileMetadataForJobLoading,
             jobFilter,
             jobs,
-            loading,
             page,
         } = this.props;
         const { selectedRowInJob } = this.state;
@@ -242,10 +253,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                         onCancel={this.closeModal}
                     >
                         <UploadJobDisplay
-                            cancelUpload={this.cancelUpload}
                             job={selectedJob}
-                            retryUpload={this.retryUpload}
-                            loading={loading}
                             fileMetadataForJob={fileMetadataForJob}
                             fileMetadataForJobHeader={fileMetadataForJobHeader}
                             fileMetadataForJobLoading={fileMetadataForJobLoading}
@@ -287,18 +295,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         return jobs.find((j) => j.jobId === selectedJobId);
     }
 
-    private cancelUpload = (): void => {
-        // Start refreshing again if we aren't
-        this.props.retrieveJobs();
-        this.props.cancelUpload(this.getSelectedJob());
-    }
-
-    private retryUpload = (): void => {
-        // Start refreshing again if we aren't
-        this.props.retrieveJobs();
-        this.props.retryUpload(this.getSelectedJob());
-    }
-
     private startNewUpload = (): void => {
         // If the current page is UploadSummary we must just be a view
         if (this.props.page !== Page.UploadSummary) {
@@ -332,11 +328,15 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     private retryJob = (row: UploadSummaryTableRow) => () => {
-
+        if (!this.props.loading) {
+            this.props.retryUpload(row);
+        }
     }
 
     private cancelJob = (row: UploadSummaryTableRow) => () => {
-
+        if (!this.props.loading) {
+            this.props.cancelUpload(row);
+        }
     }
 
     private closeModal = () => {

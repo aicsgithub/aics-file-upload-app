@@ -5,7 +5,6 @@ import { basename } from "path";
 import * as React from "react";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { IN_PROGRESS_STATUSES } from "../../state/constants";
 import { SearchResultRow } from "../../state/metadata/types";
 import { titleCase } from "../../util";
 
@@ -15,10 +14,7 @@ const styles = require("./styles.pcss");
 
 interface UploadJobDisplayProps {
     className?: string;
-    cancelUpload: () => void;
     job: UploadSummaryTableRow;
-    loading: boolean;
-    retryUpload: () => void;
     fileMetadataForJob?: SearchResultRow[];
     fileMetadataForJobHeader?: Array<ColumnProps<SearchResultRow>>;
     fileMetadataForJobLoading: boolean;
@@ -34,29 +30,14 @@ const determineError = (error: string): string => {
 };
 
 const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
-                                                                              cancelUpload,
                                                                               className,
                                                                               job,
-                                                                              loading,
-                                                                              retryUpload,
                                                                               fileMetadataForJob,
                                                                               fileMetadataForJobHeader,
                                                                               fileMetadataForJobLoading,
                                                                               onFileRowClick,
                                                                           }: UploadJobDisplayProps) => {
     const alerts: JSX.Element[] = [];
-    const allowCancel = IN_PROGRESS_STATUSES.includes(job.status);
-    if (allowCancel) {
-        alerts.push(
-            <Alert
-                className={styles.alert}
-                type="warning"
-                message="Warning"
-                key="cancellationAlert"
-                description="Cancelling will make this upload unrecoverable"
-                showIcon={true}
-            />);
-    }
     if (job.serviceFields && job.serviceFields.error) {
         alerts.push(
             <Alert
@@ -123,13 +104,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     return (
         <div className={className}>
             {alerts}
-            <JobOverviewDisplay
-                allowCancel={allowCancel}
-                cancelUpload={cancelUpload}
-                job={job}
-                loading={loading}
-                retryUpload={retryUpload}
-            />
+            <JobOverviewDisplay job={job}/>
             <div className="ant-descriptions-title">Files</div>
             {fileMetadata}
         </div>
