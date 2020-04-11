@@ -43,8 +43,6 @@ export interface AnnotationOption {
     value: string;
 }
 
-export type AnnotationRequest = CreateAnnotationRequest | { annotationId: number };
-
 export interface AnnotationType {
     annotationTypeId: number;
     name: ColumnType;
@@ -71,18 +69,6 @@ export interface ClearTemplateDraftAction {
 
 export interface ClearTemplateHistoryAction {
     type: string;
-}
-
-export interface CreateAnnotationRequest {
-    annotationOptions?: string[];
-    annotationTypeId: number;
-    canHaveManyValues: boolean;
-    description: string;
-    name: string;
-    lookupColumn?: string;
-    lookupSchema?: string;
-    lookupTable?: string;
-    required: boolean;
 }
 
 export interface GetTemplateAction {
@@ -113,11 +99,6 @@ export interface RemoveAnnotationsAction {
 
 export interface SaveTemplateAction {
     type: string;
-}
-
-export interface SaveTemplateRequest {
-    name: string;
-    annotations: AnnotationRequest[];
 }
 
 export interface SetAppliedTemplateAction extends AutoSaveAction {

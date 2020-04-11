@@ -3,6 +3,7 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { getWithRetry, pivotAnnotations } from "../../util";
+import { SaveTemplateRequest } from "../../util/mms-client/types";
 
 import { addRequestToInProgress, closeModal, removeRequestFromInProgress, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -28,7 +29,7 @@ import { batchActions } from "../util";
 import { setAppliedTemplate, updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";
-import { AnnotationDraft, SaveTemplateRequest, Template, TemplateAnnotation } from "./types";
+import { AnnotationDraft, Template, TemplateAnnotation } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {

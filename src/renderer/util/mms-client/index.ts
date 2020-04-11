@@ -1,9 +1,10 @@
 import { AxiosRequestConfig } from "axios";
 import { GetPlateResponse, WellResponse } from "../../state/selection/types";
-import { SaveTemplateRequest, Template } from "../../state/template/types";
+import { Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 
 import BaseServiceClient from "../base-service-client";
+import { CreateFileMetadataRequest, SaveTemplateRequest } from "./types";
 
 export default class MMSClient extends BaseServiceClient {
     public username: string;
@@ -57,6 +58,23 @@ export default class MMSClient extends BaseServiceClient {
     public async editTemplate(request: SaveTemplateRequest, templateId: number): Promise<number> {
         const url = `/1.0/template/${templateId}`;
         const response = await this.httpClient.put(url, request, this.config);
+        return response.data[0];
+    }
+
+    // TODO: change the request type and implementation once the PUT endpoint is created
+    public async editFileMetadata(fileId: string, request: CreateFileMetadataRequest): Promise<void> {
+        await this.deleteFileMetadata(fileId, true);
+        await this.createFileMetadata(fileId, request);
+    }
+
+    public async deleteFileMetadata(fileId: string, deleteFile: boolean): Promise<void> {
+        const url = `/1.0/filemetadata/${fileId}`;
+        await this.httpClient.delete(url, this.config);
+    }
+
+    public async createFileMetadata(fileId: string, request: CreateFileMetadataRequest): Promise<void> {
+        const url = `/1.0/filemetadata/${fileId}`;
+        const response = await this.httpClient.post(url, request, this.config);
         return response.data[0];
     }
 
