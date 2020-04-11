@@ -330,7 +330,6 @@ const convertImageModelMetadataToUploadStateBranch = (metadata: ImageModelMetada
     }, {} as UploadStateBranch);
 };
 
-// todo handle fileIds not found
 const openEditFileMetadataTabLogic = createLogic({
     process: async ({ action, ctx, fms, getState, labkeyClient, logger, mmsClient }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
