@@ -38,6 +38,11 @@ export default class HttpCacheClient {
         return response.data;
     }
 
+    public delete = async <T = any>(url: string, config?: AxiosRequestConfig) => {
+        const response = await this.httpClient.delete(url, config);
+        return response.data;
+    }
+
     private getAndReturnCache = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
         const key = `GET ${url}`;
         const action = () => this.httpClient.get(url, config);
