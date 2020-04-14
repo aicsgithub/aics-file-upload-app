@@ -47,6 +47,7 @@ import {
     initiateUpload,
     jumpToUpload,
     removeUploads,
+    submitFileMetadataUpdate,
     updateSubImages,
     updateUpload,
 } from "../../state/upload/actions";
@@ -63,6 +64,7 @@ import {
     InitiateUploadAction,
     JumpToUploadAction,
     RemoveUploadsAction,
+    SubmitFileMetadataUpdateAction,
     UpdateSubImagesAction,
     UpdateUploadAction,
     UploadJobTableRow,
@@ -96,8 +98,10 @@ interface Props {
     selectedBarcode?: string;
     selectedJob?: JSSJob;
     setAlert: ActionCreator<SetAlertAction>;
+    submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
+    updateInProgress: boolean;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploadError?: string;
@@ -141,6 +145,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             loading,
             loadingFileMetadata,
             selectedJob,
+            updateInProgress,
             uploadError,
             uploadInProgress,
             uploads,
@@ -153,9 +158,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 className={className}
                 formTitle={selectedJob ? "EDIT UPLOAD JOB" : "ADD ADDITIONAL DATA"}
                 formPrompt="Review and add information to the files below and click Submit."
-                onSave={this.upload}
+                onSave={this.submit}
                 saveButtonDisabled={!canSave}
-                saveInProgress={uploadInProgress}
+                saveInProgress={uploadInProgress || updateInProgress}
                 saveButtonName="Submit"
                 showProgressBar={!selectedJob}
                 onBack={this.props.goBack}
@@ -252,8 +257,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private openTemplateEditor = () => this.props.openSchemaCreator();
     private openTemplateEditorWithId = (id: number | undefined) => () => this.props.openSchemaCreator(id);
 
-    private upload = (): void => {
-        this.props.initiateUpload();
+    private submit = (): void => {
+        if (this.props.selectedJob) {
+            this.props.submitFileMetadataUpdate();
+        } else {
+            this.props.initiateUpload();
+        }
     }
 
     private undo = (): void => {
@@ -284,6 +293,7 @@ function mapStateToProps(state: State) {
         selectedBarcode: getSelectedBarcode(state),
         selectedJob: getSelectedJob(state),
         templates: getTemplates(state),
+        updateInProgress: getRequestsInProgressContains(state, AsyncRequest.UPDATE_FILE_METADATA),
         uploadError: getUploadError(state),
         uploadInProgress: getUploadInProgress(state),
         uploads: getUploadSummaryRows(state),
@@ -299,6 +309,7 @@ const dispatchToPropsMap = {
     openSchemaCreator: openTemplateEditor,
     removeUploads,
     setAlert,
+    submitFileMetadataUpdate,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateSubImages,
     updateUpload,

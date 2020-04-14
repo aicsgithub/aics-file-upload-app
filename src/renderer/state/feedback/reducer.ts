@@ -12,6 +12,8 @@ import {
     HTTP_STATUS,
     TypeToDescriptionMap,
 } from "../types";
+import { SUBMIT_FILE_METADATA_UPDATE } from "../upload/constants";
+import { SubmitFileMetadataUpdateAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -258,6 +260,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             requestsInProgress: without(state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+        }),
+    },
+    [SUBMIT_FILE_METADATA_UPDATE]: {
+        accepts: (action: AnyAction): action is SubmitFileMetadataUpdateAction =>
+            action.type === SUBMIT_FILE_METADATA_UPDATE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.UPDATE_FILE_METADATA]),
         }),
     },
 };

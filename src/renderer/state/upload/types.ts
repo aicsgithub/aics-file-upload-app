@@ -251,6 +251,10 @@ export interface ClearUploadDraftAction extends WriteToStoreAction {
     type: string;
 }
 
+export interface SubmitFileMetadataUpdateAction {
+    type: string;
+}
+
 export enum FileTagType {
     WELL = "well",
     WORKFLOW = "workflow",
