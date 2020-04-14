@@ -69,7 +69,7 @@ export default class MMSClient extends BaseServiceClient {
 
     public async deleteFileMetadata(fileId: string, deleteFile: boolean): Promise<void> {
         const url = `/1.0/filemetadata/${fileId}`;
-        await this.httpClient.delete(url, this.config);
+        await this.httpClient.delete(url, { deleteFile }, this.config);
     }
 
     public async createFileMetadata(fileId: string, request: CreateFileMetadataRequest): Promise<void> {
