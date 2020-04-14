@@ -164,8 +164,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 {selectedJob && (
                     <JobOverviewDisplay job={selectedJob}/>
                 )}
-                {this.renderButtons()}
-                {showLoading && !appliedTemplate && (
+                {!loadingFileMetadata && this.renderButtons()}
+                {showLoading && (
                     <div className={styles.spinContainer}>
                         <div className={styles.spinText}>
                             Loading...
@@ -173,7 +173,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
-                {uploadError && (<Alert className={styles.alert} message={uploadError} type="error" showIcon={true}/>)}
+                {!loading && uploadError && (
+                    <Alert className={styles.alert} message={uploadError} type="error" showIcon={true}/>
+                )}
                 {appliedTemplate && this.renderPlateInfo()}
                 {!showLoading && appliedTemplate && (
                     <CustomDataGrid
