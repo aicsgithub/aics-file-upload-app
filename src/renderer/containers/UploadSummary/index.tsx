@@ -346,7 +346,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         if (!this.props.loading) {
             remote.dialog.showMessageBox({
                 buttons: ["Cancel", "Yes"],
-                message: "Stopping will make this upload unrecoverable. Are you sure?",
+                message: "If you cancel this upload, you'll have to start the upload process for these files from the beginning again.",
                 title: "Danger!",
                 type: "warning",
             }, (response: number) => {
