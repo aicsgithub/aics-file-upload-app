@@ -315,7 +315,7 @@ const convertImageModelMetadataToUploadStateBranch = (metadata: ImageModelMetada
         // TODO handle channelId, scene, subImageName
         const key: string = getUploadRowKey({file, positionIndex});
         // TODO handle well, barcode, image model
-        const well: string | number | undefined = curr.well;
+        const well: string | number | undefined = curr.Well;
         const wellIds: number[] = well ? castArray(well).map((w: string | number) => parseInt(`${w}`, 10))
             : [];
         return {
@@ -373,14 +373,14 @@ const openEditFileMetadataTabLogic = createLogic({
 
         const actions: AnyAction[] = [];
         actions.push(receiveFileMetadata(fileMetadataForJob)); // not sure how important this is
-        const uploadsHaveWorkflow = !!fileMetadataForJob[0].workflow; // todo move into reducer?
+        const uploadsHaveWorkflow = !!fileMetadataForJob[0].Workflow; // todo move into reducer?
         actions.push(associateByWorkflow(uploadsHaveWorkflow));
 
         if (!uploadsHaveWorkflow) {
             // if we have a well, we can get the barcode and other plate info. This will be necessary
             // to display the well editor
-            if (fileMetadataForJob[0].well) {
-                const wells: Array<string | number> = castArray(fileMetadataForJob[0].well);
+            if (fileMetadataForJob[0].Well) {
+                const wells: Array<string | number> = castArray(fileMetadataForJob[0].Well);
                 const wellIds: number[] = castArray(wells)
                     .map((w: string | number) => parseInt(w + "", 10));
                 // assume all wells have same barcode
