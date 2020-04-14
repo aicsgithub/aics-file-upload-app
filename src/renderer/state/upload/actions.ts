@@ -23,6 +23,7 @@ import {
     REPLACE_UPLOAD,
     RETRY_UPLOAD,
     SAVE_UPLOAD_DRAFT,
+    SUBMIT_FILE_METADATA_UPDATE,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
@@ -47,7 +48,9 @@ import {
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
     RemoveUploadsAction, ReplaceUploadAction,
-    RetryUploadAction, SaveUploadDraftAction,
+    RetryUploadAction,
+    SaveUploadDraftAction,
+    SubmitFileMetadataUpdateAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateFilesToArchive,
@@ -288,5 +291,11 @@ export function clearUploadDraft(): ClearUploadDraftAction {
             [TEMP_UPLOAD_STORAGE_KEY]: undefined,
         },
         writeToStore: true,
+    };
+}
+
+export function submitFileMetadataUpdate(): SubmitFileMetadataUpdateAction {
+    return {
+        type: SUBMIT_FILE_METADATA_UPDATE,
     };
 }

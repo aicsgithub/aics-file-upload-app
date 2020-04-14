@@ -21,6 +21,7 @@ export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
 export const REMOVE_FILE_FROM_ARCHIVE = makeConstant(BRANCH_NAME, "remove-file-from-archive");
 export const REMOVE_FILE_FROM_ISILON = makeConstant(BRANCH_NAME, "remove-file-from-isilon");
 export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
+export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(BRANCH_NAME, "submit-file-metadata-update");
 export const UNDO_FILE_WELL_ASSOCIATION = makeConstant(BRANCH_NAME, "undo-file-well-association");
 export const UNDO_FILE_WORKFLOW_ASSOCIATION = makeConstant(BRANCH_NAME, "undo-file-workflow-association");
 export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
