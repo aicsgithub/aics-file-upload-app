@@ -1,4 +1,5 @@
 import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
     castArray,
     difference,
@@ -35,7 +36,7 @@ import {
     getTextAnnotationTypeId,
 } from "../metadata/selectors";
 import { ImagingSession } from "../metadata/types";
-import { getAllPlates, getAllWells, getExpandedUploadJobRows } from "../selection/selectors";
+import { getAllPlates, getAllWells, getExpandedUploadJobRows, getSelectedJob } from "../selection/selectors";
 
 import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
@@ -628,4 +629,17 @@ export const getCanSaveUploadDraft = createSelector([
     getUpload,
 ], (upload: UploadStateBranch) => {
     return !isEmpty(upload);
+});
+
+// returns files that were on the selected job that are no longer there
+export const getFileIdsToDelete = createSelector([
+    getUpload,
+    getSelectedJob,
+], (upload: UploadStateBranch, selectedJob?: JSSJob): string[] => {
+    if (!selectedJob || isEmpty(upload) || !Array.isArray(selectedJob.serviceFields?.result)) {
+        return [];
+    }
+    const uploadFileIds: string[] = values(upload).map((u) => u.fileId);
+    const selectedJobFileIds: string[] = selectedJob.serviceFields.result.map(({ fileId }: UploadMetadata) => fileId);
+    return difference(selectedJobFileIds, uploadFileIds);
 });

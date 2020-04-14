@@ -19,6 +19,7 @@ import {
     mockNumberAnnotation,
     mockSelection,
     mockState,
+    mockSuccessfulUploadJob,
     mockTemplateStateBranch,
     mockTemplateStateBranchWithAppliedTemplate,
     mockTemplateWithManyValues,
@@ -32,6 +33,7 @@ import { getUploadRowKey } from "../constants";
 
 import {
     getCanGoForwardFromSelectStorageLocationPage,
+    getFileIdsToDelete,
     getFileToAnnotationHasValueMap,
     getFileToArchive,
     getFileToStoreOnIsilon,
@@ -1298,6 +1300,25 @@ describe("Upload selectors", () => {
                 }),
             });
             expect(result).to.be.false;
+        });
+    });
+    describe("getFileIdsToDelete", () => {
+        it("returns files that don't exist in uploads that exist on selectedJob", () => {
+            const fileIds = getFileIdsToDelete({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    job: mockSuccessfulUploadJob,
+                }),
+                upload: getMockStateWithHistory({
+                    someKey: {
+                        file: "/path/to/file",
+                        fileId: "cat",
+                        wellIds: [],
+                    },
+                }),
+            });
+            expect(fileIds).to.deep.equal(["dog"]);
         });
     });
 });
