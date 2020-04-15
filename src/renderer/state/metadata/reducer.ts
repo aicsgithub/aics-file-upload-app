@@ -11,6 +11,7 @@ import {
     CLEAR_FILE_METADATA_FOR_JOB,
     CLEAR_OPTIONS_FOR_LOOKUP,
     GATHER_UPLOAD_DRAFTS,
+    RECEIVE_FILE_METADATA,
     RECEIVE_METADATA,
     RESET_HISTORY,
     SEARCH_FILE_METADATA,
@@ -22,6 +23,7 @@ import {
     ClearOptionsForLookupAction,
     GatherUploadDraftsAction,
     MetadataStateBranch,
+    ReceiveFileMetadataAction,
     ReceiveMetadataAction,
     ResetHistoryAction,
     SearchFileMetadataAction,
@@ -139,6 +141,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: MetadataStateBranch) => ({
             ...state,
             currentUpload: undefined,
+        }),
+    },
+    [RECEIVE_FILE_METADATA]: {
+        accepts: (action: AnyAction): action is ReceiveFileMetadataAction =>
+            action.type === RECEIVE_FILE_METADATA,
+        perform: (state: MetadataStateBranch, action: ReceiveFileMetadataAction) => ({
+            ...state,
+            fileMetadataForJob: action.payload,
         }),
     },
 };

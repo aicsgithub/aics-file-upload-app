@@ -1,8 +1,11 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
+import { FileManagementSystem } from "@aics/aicsfiles";
+import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { constants, promises, stat as fsStat, Stats } from "fs";
 import {
     castArray,
     isNil,
+    reduce,
     startCase,
     trim,
     uniq,
@@ -331,4 +334,26 @@ export const getSetPlateAction = async (
     });
 
     return setPlate(imagingSessionIdToPlate, imagingSessionIdToWells, imagingSessionIds);
+};
+
+/**
+ * Helper for logics that need to retrieve file metadata
+ * @param {string[]} fileIds
+ * @param {FileManagementSystem} fms
+ * @returns {AnyAction} actions to dispatch
+ */
+export const retrieveFileMetadata = async (
+    fileIds: string[],
+    fms: FileManagementSystem
+): Promise<ImageModelMetadata[]> => {
+    const resolvedPromises: FileMetadata[] = await Promise.all(
+        fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
+    );
+    const fileMetadataForFileIds = reduce(
+        resolvedPromises,
+        (filesToFileMetadata: FileToFileMetadata, fileMetadata: FileMetadata) => ({
+            ...filesToFileMetadata,
+            [fileMetadata.fileId]: fileMetadata,
+        }), {});
+    return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
 };

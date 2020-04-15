@@ -1,5 +1,6 @@
 /* tslint:disable:max-classes-per-file */
 
+import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { createSandbox, spy, stub, useFakeTimers } from "sinon";
 
@@ -8,7 +9,7 @@ import {
     convertToArray,
     getSetPlateAction,
     getWithRetry,
-    makePosixPathCompatibleWithPlatform,
+    makePosixPathCompatibleWithPlatform, retrieveFileMetadata,
     SERVICE_MIGHT_BE_DOWN_MESSAGE,
     splitTrimAndFilter,
     titleCase,
@@ -22,7 +23,7 @@ import {
 } from "../../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../../state/feedback/types";
 import { GetPlateResponse, PlateResponse, Well } from "../../state/selection/types";
-import { mmsClient } from "../../state/test/configure-mock-store";
+import { fms, mmsClient } from "../../state/test/configure-mock-store";
 import { mockAuditInfo } from "../../state/test/mocks";
 import { HTTP_STATUS } from "../../state/types";
 import { getWellLabel } from "../index";
@@ -462,6 +463,30 @@ describe("General utilities", () => {
                 0: [mockEmptyWell],
                 4: [{...mockEmptyWell, plateId: 2, wellId: 2}],
             });
+        });
+    });
+    describe("retrieveFileMetadata", () => {
+        const sandbox = createSandbox();
+        afterEach(() => {
+            sandbox.restore();
+        });
+        it("returns result of fms.transformFileMetadataIntoTable", async () => {
+            const expected: ImageModelMetadata[] = [{
+                fileId: "abc123",
+                fileSize: 100,
+                fileType: "image",
+                filename: "my file",
+                modified: "",
+                modifiedBy: "foo",
+                template: "my template",
+                templateId: 1,
+            }];
+            const getCustomMetadataForFileStub = stub().resolves([]);
+            const transformFileMetadataIntoTableStub = stub().resolves(expected);
+            sandbox.replace(fms, "getCustomMetadataForFile", getCustomMetadataForFileStub);
+            sandbox.replace(fms, "transformFileMetadataIntoTable", transformFileMetadataIntoTableStub);
+            const result = await retrieveFileMetadata(["abc123"], fms);
+            expect(result).to.equal(expected);
         });
     });
 });
