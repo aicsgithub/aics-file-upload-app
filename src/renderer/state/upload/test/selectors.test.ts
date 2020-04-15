@@ -202,7 +202,7 @@ describe("Upload selectors", () => {
                     },
                 }),
             };
-            const expected = {
+            const expected: Uploads = {
                 "/path/to.dot/image.tiff": {
                     customMetadata: {
                         annotations: [
@@ -212,7 +212,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["blue"],
                             },
                             {
@@ -221,7 +220,6 @@ describe("Upload selectors", () => {
                                 positionIndex: 1,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["yellow"],
                             },
                             {
@@ -230,7 +228,6 @@ describe("Upload selectors", () => {
                                 positionIndex: 1,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["6"],
                             },
                             {
@@ -239,7 +236,6 @@ describe("Upload selectors", () => {
                                 positionIndex: 1,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["Seeing some interesting things here!"],
                             },
                         ],
@@ -264,7 +260,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["red"],
                             },
                             {
@@ -273,7 +268,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["1"],
                             },
                         ],
@@ -298,7 +292,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["green"],
                             },
                             {
@@ -307,7 +300,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["2"],
                             },
                         ],
@@ -332,7 +324,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["purple"],
                             },
                             {
@@ -341,7 +332,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["3"],
                             },
                         ],
@@ -366,7 +356,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["orange"],
                             },
                             {
@@ -375,7 +364,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["4"],
                             },
                         ],
@@ -400,7 +388,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["pink"],
                             },
                             {
@@ -409,7 +396,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["5", "6", "7"],
                             },
                         ],
@@ -434,7 +420,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["gold"],
                             },
                             {
@@ -443,7 +428,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["7"],
                             },
                         ],
@@ -468,7 +452,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["grey"],
                             },
                             {
@@ -477,7 +460,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["8"],
                             },
                         ],
@@ -502,7 +484,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["black"],
                             },
                             {
@@ -511,7 +492,6 @@ describe("Upload selectors", () => {
                                 positionIndex: undefined,
                                 scene: undefined,
                                 subImageName: undefined,
-                                timePointId: undefined,
                                 values: ["5"],
                             },
                         ],

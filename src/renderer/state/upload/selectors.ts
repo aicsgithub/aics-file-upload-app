@@ -1,4 +1,4 @@
-import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import { UploadMetadata as AicsFilesUploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
     castArray,
@@ -562,9 +562,10 @@ export const getUploadPayload = createSelector([
             fileRows[0].shouldBeInArchive : true;
         const shouldBeInLocal = fileRows.length && !isNil(fileRows[0].shouldBeInLocal) ?
             fileRows[0].shouldBeInLocal : true;
+        const fileKey = metadata[0]?.fileId || fullPath;
         result = {
             ...result,
-            [fullPath]: {
+            [fileKey]: {
                 customMetadata: {
                     annotations: getAnnotations(metadata, template),
                     templateId: template.templateId,
@@ -631,15 +632,35 @@ export const getCanSaveUploadDraft = createSelector([
     return !isEmpty(upload);
 });
 
+export const getFileIdsFromUploads = createSelector([
+    getUpload,
+], (upload: UploadStateBranch) => {
+    return values(upload).map((u) => u.fileId);
+});
+
 // returns files that were on the selected job that are no longer there
 export const getFileIdsToDelete = createSelector([
-    getUpload,
+    getFileIdsFromUploads,
     getSelectedJob,
-], (upload: UploadStateBranch, selectedJob?: JSSJob): string[] => {
-    if (!selectedJob || isEmpty(upload) || !Array.isArray(selectedJob.serviceFields?.result)) {
+], (uploadFileIds: string[], selectedJob?: JSSJob): string[] => {
+    if (!selectedJob) {
         return [];
     }
-    const uploadFileIds: string[] = values(upload).map((u) => u.fileId);
     const selectedJobFileIds: string[] = selectedJob.serviceFields.result.map(({ fileId }: UploadMetadata) => fileId);
     return difference(selectedJobFileIds, uploadFileIds);
+});
+
+export const getCreateFileMetadataRequests = createSelector([
+    getUploadPayload,
+], (uploads: Uploads): Array<{fileId: string; request: AicsFilesUploadMetadata}> => {
+    const result: Array<{fileId: string; request: AicsFilesUploadMetadata}> = [];
+    forEach(uploads, (request: AicsFilesUploadMetadata, fileId: string) => {
+       result.push(
+           {
+               fileId,
+               request,
+           }
+       );
+    });
+    return result;
 });

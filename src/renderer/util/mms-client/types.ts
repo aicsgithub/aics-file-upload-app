@@ -16,21 +16,3 @@ export interface SaveTemplateRequest {
     name: string;
     annotations: AnnotationRequest[];
 }
-
-export interface CustomFileAnnotationRequest {
-    annotationId: number;
-    channelId?: number;
-    fovId?: number;
-    positionIndex?: number;
-    scene?: number;
-    subImageName?: string;
-    timePointId?: number;
-    values: string[];
-}
-
-export interface CreateFileMetadataRequest {
-    customMetadata: {
-        annotations: CustomFileAnnotationRequest[],
-        templateId?: string;
-    };
-}
