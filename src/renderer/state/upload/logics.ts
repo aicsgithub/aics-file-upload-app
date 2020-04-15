@@ -2,6 +2,7 @@ import { forEach, includes, isEmpty, isNil, map, trim, values, without } from "l
 import { isDate, isMoment } from "moment";
 import { userInfo } from "os";
 import { basename, dirname, resolve as resolvePath } from "path";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
@@ -19,6 +20,7 @@ import {
     setAlert,
     setDeferredAction,
     setErrorAlert,
+    setSuccessAlert,
     setUploadError,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -31,12 +33,18 @@ import {
     deselectFiles,
     stageFiles,
 } from "../selection/actions";
-import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
+import {
+    getSelectedBarcode,
+    getSelectedJob,
+    getSelectedWellIds,
+    getStagedFiles,
+} from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
 import {
+    HTTP_STATUS,
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
@@ -57,13 +65,20 @@ import {
     OPEN_UPLOAD_DRAFT,
     RETRY_UPLOAD,
     SAVE_UPLOAD_DRAFT,
+    SUBMIT_FILE_METADATA_UPDATE,
     UNDO_FILE_WELL_ASSOCIATION,
     UPDATE_FILES_TO_ARCHIVE,
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
 } from "./constants";
-import { getCanSaveUploadDraft, getUpload, getUploadPayload } from "./selectors";
+import {
+    getCanSaveUploadDraft,
+    getCreateFileMetadataRequests,
+    getFileIdsToDelete,
+    getUpload,
+    getUploadPayload,
+} from "./selectors";
 import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
@@ -705,6 +720,69 @@ const openUploadLogic = createLogic({
     },
 });
 
+const submitFileMetadataUpdateLogic = createLogic({
+    process: async ({ getState, jssClient, mmsClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
+                    done: ReduxLogicDoneCb) => {
+        const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.UPDATE_FILE_METADATA)];
+        const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
+
+        // We delete files in series so that we can ignore the files that have already been deleted
+        fileIdsToDelete.forEach(async (fileId: string) => {
+            try {
+                await mmsClient.deleteFileMetadata(fileId, true);
+            } catch (e) {
+                // ignoring not found to keep this idempotent
+                if (e.status !== HTTP_STATUS.NOT_FOUND) {
+                    dispatch(batchActions([
+                        ...actions,
+                        setErrorAlert(`Could not delete file ${fileId}: ${e.message}`),
+                    ]));
+                    done();
+                    return;
+                }
+            }
+        });
+
+        const selectedJob = getSelectedJob(getState());
+        if (selectedJob) {
+            try {
+                await jssClient.updateJob(
+                    selectedJob.jobId,
+                    {serviceFields: {deletedFileIds: fileIdsToDelete}},
+                    true)
+                ;
+            } catch (e) {
+                dispatch(batchActions([
+                    ...actions,
+                    setErrorAlert(`Could not update upload with deleted fileIds`),
+                ]));
+            }
+        }
+
+        // This method currently deletes file metadata and then re-creates the file metadata since we
+        // do not have a PUT endpoint yet.
+        const createFileMetadataRequests = getCreateFileMetadataRequests(getState());
+        await Promise.all(
+            createFileMetadataRequests.map(({fileId, request}) => mmsClient.editFileMetadata(fileId, request))
+        );
+
+        dispatch(batchActions([
+            ...actions,
+            setSuccessAlert("File metadata updates successful!"),
+        ]));
+        done();
+    },
+    type: SUBMIT_FILE_METADATA_UPDATE,
+    validate: ({ action, getState }: ReduxLogicTransformDependencies,
+               next: ReduxLogicNextCb, reject: ReduxLogicRejectCb) => {
+        const selectedJob = getSelectedJob(getState());
+        if (!selectedJob) {
+            reject(setErrorAlert("Nothing found to update"));
+        }
+        next(action);
+    },
+});
+
 export default [
     applyTemplateLogic,
     associateFilesAndWellsLogic,
@@ -713,6 +791,7 @@ export default [
     openUploadLogic,
     retryUploadLogic,
     saveUploadDraftLogic,
+    submitFileMetadataUpdateLogic,
     undoFileWellAssociationLogic,
     updateSubImagesLogic,
     updateUploadLogic,

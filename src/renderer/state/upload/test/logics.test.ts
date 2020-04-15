@@ -1349,4 +1349,18 @@ describe("Upload logics", () => {
             expect(getSaveUploadDraftModalVisible(store.getState())).to.be.false;
         });
     });
+    describe("submitFileMetadataUpdateLogic", () => {
+        it("sets error alert if no selectedJob", () => {
+
+        });
+        it("deletes any file that is found on the selectedJob but not in uploads", () => {
+
+        });
+        it("updates selected job with file ids that were deleted", () => {
+
+        });
+        it("edits file metadata", () => {
+
+        });
+    });
 });
