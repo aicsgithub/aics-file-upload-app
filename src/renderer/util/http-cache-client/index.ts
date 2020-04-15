@@ -15,6 +15,7 @@ export default class HttpCacheClient {
             this.post = this.postAndReturnCache;
             this.put = this.putAndReturnCache;
             this.patch = this.patchAndReturnCache;
+            this.delete = this.deleteAndReturnCache;
         }
     }
 
@@ -70,6 +71,16 @@ export default class HttpCacheClient {
                                                   config?: AxiosRequestConfig): Promise<T> => {
         const key = `PATCH ${url}`;
         const action = () => this.httpClient.patch(url, request, config);
+        return this.checkCache(key, action);
+    }
+
+    private deleteAndReturnCache = async <T = any>(url: string, request: any,
+                                                   config?: AxiosRequestConfig): Promise<T> => {
+        const key = `DELETE ${url}`;
+        const action = () => this.httpClient.delete(url, {
+            ...config,
+            data: request,
+        });
         return this.checkCache(key, action);
     }
 
