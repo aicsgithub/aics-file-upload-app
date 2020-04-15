@@ -1,10 +1,11 @@
+import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { AxiosRequestConfig } from "axios";
 import { GetPlateResponse, WellResponse } from "../../state/selection/types";
 import { Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 
 import BaseServiceClient from "../base-service-client";
-import { CreateFileMetadataRequest, SaveTemplateRequest } from "./types";
+import { SaveTemplateRequest } from "./types";
 
 export default class MMSClient extends BaseServiceClient {
     public username: string;
@@ -62,8 +63,8 @@ export default class MMSClient extends BaseServiceClient {
     }
 
     // TODO: change the request type and implementation once the PUT endpoint is created
-    public async editFileMetadata(fileId: string, request: CreateFileMetadataRequest): Promise<void> {
-        await this.deleteFileMetadata(fileId, true);
+    public async editFileMetadata(fileId: string, request: AicsFilesUploadMetadata): Promise<void> {
+        await this.deleteFileMetadata(fileId, false);
         await this.createFileMetadata(fileId, request);
     }
 
@@ -72,7 +73,7 @@ export default class MMSClient extends BaseServiceClient {
         await this.httpClient.delete(url, { deleteFile }, this.config);
     }
 
-    public async createFileMetadata(fileId: string, request: CreateFileMetadataRequest): Promise<void> {
+    public async createFileMetadata(fileId: string, request: AicsFilesUploadMetadata): Promise<void> {
         const url = `/1.0/filemetadata/${fileId}`;
         const response = await this.httpClient.post(url, request, this.config);
         return response.data[0];
