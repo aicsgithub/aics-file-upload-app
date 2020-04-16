@@ -2,7 +2,8 @@ import { expect } from "chai";
 
 import {
     getMockStateWithHistory,
-    mockAnnotationTypes, mockBooleanAnnotation,
+    mockAnnotationTypes,
+    mockBooleanAnnotation,
     mockLookupAnnotation,
     mockSelectedWells,
     mockSelection,
@@ -13,7 +14,8 @@ import {
 import { State } from "../../types";
 import {
     getAllPlates,
-    getAllWells, getAnnotationIsLookup,
+    getAllWells,
+    getAnnotationIsLookup,
     getSelectedImagingSession,
     getSelectedPlate,
     getSelectedPlateId,

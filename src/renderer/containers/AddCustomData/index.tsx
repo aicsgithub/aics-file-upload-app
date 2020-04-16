@@ -53,11 +53,11 @@ import {
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
-    getCanSave,
     getCanUndoUpload,
     getFileToAnnotationHasValueMap,
+    getUploadKeyToAnnotationErrorMap,
     getUploadSummaryRows,
-    getValidationErrorsMap,
+    getUploadValidationErrors,
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
@@ -81,7 +81,6 @@ interface Props {
     associateByWorkflow: boolean;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
-    canSave: boolean;
     canUndo: boolean;
     channels: Channel[];
     className?: string;
@@ -106,8 +105,9 @@ interface Props {
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploadError?: string;
     uploadInProgress: boolean;
+    uploadRowKeyToAnnotationErrorMap: {[key: string]: {[annotationName: string]: string}};
     uploads: UploadJobTableRow[];
-    validationErrors: {[key: string]: {[annotationName: string]: string}};
+    validationErrors: string[];
 }
 
 interface AddCustomDataState {
@@ -139,7 +139,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             appliedTemplate,
             associateByWorkflow,
             canRedo,
-            canSave,
             canUndo,
             className,
             loading,
@@ -148,6 +147,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             updateInProgress,
             uploadError,
             uploadInProgress,
+            uploadRowKeyToAnnotationErrorMap,
             uploads,
             validationErrors,
         } = this.props;
@@ -159,7 +159,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 formTitle={selectedJob ? "EDIT UPLOAD JOB" : "ADD ADDITIONAL DATA"}
                 formPrompt="Review and add information to the files below and click Submit."
                 onSave={this.submit}
-                saveButtonDisabled={!canSave}
+                saveButtonDisabled={validationErrors.length}
                 saveInProgress={uploadInProgress || updateInProgress}
                 saveButtonName="Submit"
                 showProgressBar={!selectedJob}
@@ -178,8 +178,23 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
-                {!loading && uploadError && (
-                    <Alert className={styles.alert} message={uploadError} type="error" showIcon={true}/>
+                {!showLoading && uploadError && (
+                    <Alert
+                        className={styles.alert}
+                        message="Upload Failed"
+                        description={uploadError}
+                        type="error"
+                        showIcon={true}
+                    />
+                )}
+                {!showLoading && validationErrors.length && (
+                    validationErrors.map((e: string) => (<Alert
+                        className={styles.alert}
+                        key={e}
+                        message={e}
+                        showIcon={true}
+                        type="error"
+                    />))
                 )}
                 {appliedTemplate && this.renderPlateInfo()}
                 {!showLoading && appliedTemplate && (
@@ -201,7 +216,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         updateSubImages={this.props.updateSubImages}
                         updateUpload={this.props.updateUpload}
                         uploads={uploads}
-                        validationErrors={validationErrors}
+                        validationErrors={uploadRowKeyToAnnotationErrorMap}
                     />
                 )}
             </FormPage>
@@ -282,7 +297,6 @@ function mapStateToProps(state: State) {
         associateByWorkflow: getAssociateByWorkflow(state),
         booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
-        canSave: getCanSave(state),
         canUndo: getCanUndoUpload(state),
         channels: getChannels(state),
         expandedRows: getExpandedUploadJobRows(state),
@@ -296,8 +310,9 @@ function mapStateToProps(state: State) {
         updateInProgress: getRequestsInProgressContains(state, AsyncRequest.UPDATE_FILE_METADATA),
         uploadError: getUploadError(state),
         uploadInProgress: getUploadInProgress(state),
+        uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),
         uploads: getUploadSummaryRows(state),
-        validationErrors: getValidationErrorsMap(state),
+        validationErrors: getUploadValidationErrors(state),
     };
 }
 

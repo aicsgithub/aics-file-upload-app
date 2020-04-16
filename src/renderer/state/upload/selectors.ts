@@ -11,7 +11,7 @@ import {
     isNil,
     keys,
     omit,
-    pick,
+    pickBy,
     reduce,
     some,
     uniq,
@@ -356,7 +356,7 @@ export const getFileToAnnotationHasValueMap = createSelector([getFileToMetadataM
     }
 );
 
-export const getValidationErrorsMap = createSelector([
+export const getUploadKeyToAnnotationErrorMap = createSelector([
     getUpload,
     getDropdownAnnotationTypeId,
     getLookupAnnotationTypeId,
@@ -448,40 +448,49 @@ export const getValidationErrorsMap = createSelector([
     return result;
 });
 
-export const getCanSave = createSelector([
+export const getUploadValidationErrors = createSelector([
     getUploadSummaryRows,
     getFileToAnnotationHasValueMap,
-    getValidationErrorsMap,
+    getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
 ], (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}},
     validationErrorsMap: {[key: string]: {[annotation: string]: string}},
     template?: TemplateWithTypeNames
-): boolean => {
-    if (!template || !rows.length) {
-        return false;
+): string[] => {
+    const errors: string[] = [];
+    if (!template) {
+        errors.push("A template must be selected to submit an upload");
+    } else {
+        const requiredAnnotations = template.annotations.filter((a) => a.required).map((a) => a.name);
+        forEach(fileToAnnotationHasValueMap, (annotationHasValueMap: {[key: string]: boolean}, file: string) => {
+            const fileName = basename(file);
+            if (!annotationHasValueMap.wellIds && !annotationHasValueMap.workflows) {
+                errors.push(`${fileName} must have either a well or workflow association`);
+            }
+            const requiredAnnotationsThatDontHaveValues = keys(pickBy(annotationHasValueMap,
+                (hasValue: boolean, annotationName: string) =>
+                    !hasValue && requiredAnnotations.includes(annotationName)
+            ));
+
+            if (requiredAnnotationsThatDontHaveValues.length) {
+                const requiredAnnotationsMissingNames = requiredAnnotationsThatDontHaveValues.join(", ");
+                errors.push(
+                    `"${fileName}" is missing the following required annotations: ${requiredAnnotationsMissingNames}`
+                );
+            }
+        });
+    }
+    if (!rows.length) {
+        errors.push("No files to upload");
     }
 
     if (keys(validationErrorsMap).length) {
-        return false;
+        errors.push("Unexpected format for annotation type. Hover red x icons for more information.");
     }
 
-    const requiredAnnotations = template.annotations.filter((a) => a.required).map((a) => a.name);
-    let isValid = true;
-    forEach(fileToAnnotationHasValueMap, (annotationHasValueMap: {[key: string]: boolean}) => {
-        if (!annotationHasValueMap.wellIds && !annotationHasValueMap.workflows) {
-            isValid = false;
-        }
-        const onlyRequiredAnnotations = pick(annotationHasValueMap, requiredAnnotations);
-        const valuesOfRequired = values(onlyRequiredAnnotations);
-        const aFalseExists = some(valuesOfRequired, (x) => !x);
-        if (aFalseExists) {
-            isValid = false;
-        }
-    });
-
-    return isValid;
+    return errors;
 });
 
 // the userData relates to the same file but differs for subimage/channel combinations
