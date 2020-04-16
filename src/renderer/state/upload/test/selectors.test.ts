@@ -1330,14 +1330,15 @@ describe("Upload selectors", () => {
                 ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey({file: "foo"})]: {
-                        barcode: "abc",
-                        file: "foo",
-                        key: getUploadRowKey({file: "foo"}),
-                        wellIds: [],
+                        "Favorite Color": undefined,
+                        "barcode": "abc",
+                        "file": "foo",
+                        "key": getUploadRowKey({file: "foo"}),
+                        "wellIds": [],
                     },
                 }),
             });
-            expect(errors.includes("foo is missing the following required annotations: Favorite Color")).to.be.true;
+            expect(errors.includes("\"foo\" is missing the following required annotations: Favorite Color")).to.be.true;
         });
         it("adds error if an annotation value is not formatted correctly", () => {
             const file = "foo";
