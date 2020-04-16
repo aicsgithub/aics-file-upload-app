@@ -453,11 +453,13 @@ export const getUploadValidationErrors = createSelector([
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
+    getSelectedJob,
 ], (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}},
     validationErrorsMap: {[key: string]: {[annotation: string]: string}},
-    template?: TemplateWithTypeNames
+    template?: TemplateWithTypeNames,
+    selectedJob?: JSSJob,
 ): string[] => {
     const errors: string[] = [];
     if (!template) {
@@ -482,7 +484,7 @@ export const getUploadValidationErrors = createSelector([
             }
         });
     }
-    if (!rows.length) {
+    if (!rows.length && !selectedJob) {
         errors.push("No files to upload");
     }
 

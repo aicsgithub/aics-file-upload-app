@@ -1308,9 +1308,20 @@ describe("Upload selectors", () => {
             const errors = getUploadValidationErrors(mockState);
             expect(errors.includes("A template must be selected to submit an upload"));
         });
-        it("adds error if no files to upload", () => {
+        it("adds error if no files to upload and no job selected", () => {
             const errors = getUploadValidationErrors({...mockState, upload: getMockStateWithHistory({})});
             expect(errors.includes("No files to upload"));
+        });
+        it("does not add error if no files to upload but a job is selected", () => {
+            const errors = getUploadValidationErrors({
+                ...mockState,
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    job: mockSuccessfulUploadJob,
+                }),
+                upload: getMockStateWithHistory({}),
+            });
+            expect(errors.includes("No files to upload")).to.be.false;
         });
         it("adds error if a row does not have a well or workflow annotation", () => {
             const errors = getUploadValidationErrors({
