@@ -74,7 +74,11 @@ export const getJobStatusesToInclude = (jobFilter: JobFilter) => {
     return statusesToInclude;
 };
 
-export const fetchJobs = (getStateFn: () => State, jssClient: JobStatusClient): Promise<Jobs> => {
+export const fetchJobs = (getStateFn: () => State, jssClient: JobStatusClient, storage: any): Promise<Jobs> => {
+    // todo remove later
+    if (storage.has("jobs")) {
+        return Promise.resolve(storage.get("jobs") as any as Jobs);
+    }
     const statusesToInclude = getJobStatusesToInclude(getJobFilter(getStateFn()));
 
     const potentiallyIncompleteJobNames = getIncompleteJobNames(getStateFn());
@@ -115,6 +119,11 @@ export const fetchJobs = (getStateFn: () => State, jssClient: JobStatusClient): 
         potentiallyIncompleteJobsPromise,
     ]).then(([uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs]) =>
         ({uploadJobs, copyJobs, addMetadataJobs, potentiallyIncompleteJobs}))
+        // todo remove later
+        .then((jobs: any) => {
+            storage.set("jobs", jobs);
+            return jobs;
+        })
         .catch((error) => ({ error }));
 };
 
@@ -235,7 +244,7 @@ const retrieveJobsLogic = createLogic({
         dispatch(interval(1000)
             .pipe(
                 mergeMap(() => {
-                    return fetchJobs(getState, jssClient);
+                    return fetchJobs(getState, jssClient, storage);
                 }),
                 map(mapJobsToActions(getState, storage, logger, getApplicationMenu))
             ));

@@ -32,7 +32,7 @@ export const initialState: JobStateBranch = {
     addMetadataJobs: [],
     copyJobs: [],
     incompleteJobNames: [],
-    jobFilter: JobFilter.Pending,
+    jobFilter: JobFilter.Successful,
     pendingJobs: [],
     polling: false,
     uploadJobs: [],

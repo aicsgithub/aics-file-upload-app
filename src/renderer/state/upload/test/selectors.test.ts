@@ -1306,11 +1306,11 @@ describe("Upload selectors", () => {
     describe("getUploadValidationErrors", () => {
         it("adds error if template not applied", () => {
             const errors = getUploadValidationErrors(mockState);
-            expect(errors.includes("A template must be selected to submit an upload"));
+            expect(errors.includes("A template must be selected to submit an upload")).to.be.true;
         });
         it("adds error if no files to upload and no job selected", () => {
             const errors = getUploadValidationErrors({...mockState, upload: getMockStateWithHistory({})});
-            expect(errors.includes("No files to upload"));
+            expect(errors.includes("No files to upload")).to.be.true;
         });
         it("does not add error if no files to upload but a job is selected", () => {
             const errors = getUploadValidationErrors({
@@ -1342,14 +1342,15 @@ describe("Upload selectors", () => {
                 ...nonEmptyStateForInitiatingUpload,
                 upload: getMockStateWithHistory({
                     [getUploadRowKey({file: "foo"})]: {
-                        barcode: "abc",
-                        file: "foo",
-                        key: getUploadRowKey({file: "foo"}),
-                        wellIds: [],
+                        "Favorite Color": undefined,
+                        "barcode": "abc",
+                        "file": "foo",
+                        "key": getUploadRowKey({file: "foo"}),
+                        "wellIds": [],
                     },
                 }),
             });
-            expect(errors.includes("foo is missing the following required annotations: Favorite Color"));
+            expect(errors.includes("\"foo\" is missing the following required annotations: Favorite Color")).to.be.true;
         });
         it("adds error if an annotation value is not formatted correctly", () => {
             const file = "foo";
@@ -1366,7 +1367,8 @@ describe("Upload selectors", () => {
                     },
                 }),
             });
-            expect(errors.includes("Unexpected format for annotation type. Hover red x icons for more information."));
+            expect(errors.includes("Unexpected format for annotation type. Hover red x icons for more information."))
+                .to.be.true;
         });
     });
 });
