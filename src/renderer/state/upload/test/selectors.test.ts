@@ -39,7 +39,8 @@ import {
     getUploadFiles,
     getUploadKeyToAnnotationErrorMap,
     getUploadPayload,
-    getUploadSummaryRows, getUploadValidationErrors,
+    getUploadSummaryRows,
+    getUploadValidationErrors,
     getUploadWithCalculatedData,
 } from "../selectors";
 import { FileType, MMSAnnotationValueRequest, UploadMetadata as UploadMetadataRow } from "../types";
