@@ -24,11 +24,10 @@ import {
 import { AsyncRequest, ModalName } from "../feedback/types";
 
 import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
-import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
+import { getSelectionHistory, getTemplateHistory, getUploadHistory, getWellAnnotation } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
 import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex, getFolderTreeOpen } from "../selection/selectors";
-import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
@@ -372,33 +371,35 @@ const openEditFileMetadataTabLogic = createLogic({
         }
 
         const actions: AnyAction[] = [];
-        actions.push(receiveFileMetadata(fileMetadataForJob)); // not sure how important this is
-        const uploadsHaveWorkflow = !!fileMetadataForJob[0].Workflow; // todo move into reducer?
-        actions.push(associateByWorkflow(uploadsHaveWorkflow));
+        actions.push(receiveFileMetadata(fileMetadataForJob));
 
-        if (!uploadsHaveWorkflow) {
-            // if we have a well, we can get the barcode and other plate info. This will be necessary
-            // to display the well editor
-            if (fileMetadataForJob[0].Well) {
-                const wells: Array<string | number> = castArray(fileMetadataForJob[0].Well);
-                const wellIds: number[] = castArray(wells)
-                    .map((w: string | number) => parseInt(w + "", 10));
-                // assume all wells have same barcode
-                if (wellIds.length) {
-                    const wellId = wellIds[0];
-                    try {
-                        const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(wellId);
-                        const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(barcode);
-                        actions.push(await getSetPlateAction(
-                            barcode,
-                            imagingSessionIds,
-                            mmsClient,
-                            dispatch
-                        ));
-                    } catch (e) {
-                        // todo
-                    }
-                }
+        // if we have a well, we can get the barcode and other plate info. This will be necessary
+        // to display the well editor
+        const wellAnnotationName = getWellAnnotation(getState())?.name || "Well";
+        let wellIds: any = fileMetadataForJob[0][wellAnnotationName];
+        if (wellIds) {
+            wellIds = castArray(wellIds).map((w: string | number) => parseInt(w + "", 10));
+            // assume all wells have same barcode
+            const wellId = wellIds[0];
+            try {
+                // we want to find the barcode associated with any well id found in this upload
+                const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(wellId);
+                const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(barcode);
+                actions.push(await getSetPlateAction(
+                    barcode,
+                    imagingSessionIds,
+                    mmsClient,
+                    dispatch
+                ));
+            } catch (e) {
+                const error = `Could not get plate information from upload: ${e.message}`;
+                logger.error(error);
+                dispatch(batchActions([
+                    removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+                    setUploadError(error),
+                ]));
+                done();
+                return;
             }
         }
 
@@ -409,7 +410,6 @@ const openEditFileMetadataTabLogic = createLogic({
 
         const newUpload = convertImageModelMetadataToUploadStateBranch(fileMetadataForJob);
 
-        // todo: make sure templateId gets added to uploads
         if (modalToOpen) {
             actions.push(
                 openModal(modalToOpen),
@@ -430,7 +430,9 @@ const openEditFileMetadataTabLogic = createLogic({
                      reject: ReduxLogicRejectCb) => {
         // Validate the job passed in as the action payload
         const { payload: job } = action;
-        if (Array.isArray(job?.serviceFields?.result) && !isEmpty(job?.serviceFields?.result)) {
+        if (job.status !== "SUCCEEDED") {
+            reject(setErrorAlert("Cannot update file metadata because upload has not succeeded"));
+        } else if (Array.isArray(job?.serviceFields?.result) && !isEmpty(job?.serviceFields?.result)) {
             ctx.fileIds = job.serviceFields.result.map(({ fileId }: UploadMetadata) => fileId);
             next(action);
         } else {

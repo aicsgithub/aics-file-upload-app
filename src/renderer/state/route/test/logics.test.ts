@@ -1,17 +1,29 @@
+import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
+import { omit } from "lodash";
 import { ActionCreator } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
-import { getAlert, getUploadError } from "../../feedback/selectors";
-import { AlertType } from "../../feedback/types";
+import { getAlert, getRequestsInProgressContains, getUploadError } from "../../feedback/selectors";
+import { AlertType, AsyncRequest } from "../../feedback/types";
 
-import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../../metadata/selectors";
+import {
+    getFileMetadataForJob,
+    getSelectionHistory,
+    getTemplateHistory,
+    getUploadHistory,
+} from "../../metadata/selectors";
 import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection/actions";
-import { getCurrentSelectionIndex } from "../../selection/selectors";
-import { createMockReduxStore, dialog, fms, mockReduxLogicDeps } from "../../test/configure-mock-store";
-import { getMockStateWithHistory, mockSelectedWorkflows, mockState, mockSuccessfulUploadJob } from "../../test/mocks";
+import { getCurrentSelectionIndex, getSelectedPlate } from "../../selection/selectors";
+import { createMockReduxStore, dialog, fms, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
+import {
+    mockSelectedWorkflows,
+    mockState, mockStateWithMetadata,
+    mockSuccessfulUploadJob,
+} from "../../test/mocks";
 import { Logger } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
-import { getCurrentUploadIndex } from "../../upload/selectors";
+import { getUploadRowKey } from "../../upload/constants";
+import { getAppliedTemplateId, getCurrentUploadIndex, getUpload } from "../../upload/selectors";
 
 import { closeUploadTab, goBack, openEditFileMetadataTab, selectPage } from "../actions";
 import { setSwitchEnvEnabled } from "../logics";
@@ -349,11 +361,21 @@ describe("Route logics", () => {
     });
 
     describe("openEditFileMetadataTabLogic", () => {
+        const fileMetadata: ImageModelMetadata[] = [{
+            Well: [100],
+            fileId: "abc123",
+            fileSize: 100,
+            fileType: "image",
+            filename: "my file",
+            localFilePath: "/localFilePath",
+            modified: "",
+            modifiedBy: "foo",
+            template: "my template",
+            templateId: 1,
+        }];
 
         it("sets error alert if job passed in does not have fileId information", async () => {
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-            });
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
 
             // before
             expect(getAlert(store.getState())).to.be.undefined;
@@ -374,27 +396,55 @@ describe("Route logics", () => {
             expect(alert?.type).to.equal(AlertType.ERROR);
             expect(alert?.message).to.equal("No fileIds found in selected Job.");
         });
-        it("sets page and view to AddCustomData", async () => {
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...mockState,
-                route: {
-                    page: Page.UploadSummary,
-                    view: Page.UploadSummary,
-                },
-                upload: getMockStateWithHistory({}),
-            });
+        it("sets error alert if job passed is not succeeded", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
 
-            expect(getPage(store.getState())).to.equal(Page.UploadSummary);
-            expect(getView(store.getState())).to.equal(Page.UploadSummary);
+            // before
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            // apply
+            store.dispatch(openEditFileMetadataTab({
+                ...mockSuccessfulUploadJob,
+                status: "FAILED",
+            }));
+            await logicMiddleware.whenComplete();
+
+            // after
+            const alert = getAlert(store.getState());
+            expect(alert).to.not.be.undefined;
+            expect(alert?.type).to.equal(AlertType.ERROR);
+            expect(alert?.message).to.equal("Cannot update file metadata because upload has not succeeded");
+        });
+        it("handles case where upload tab is not open yet", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
+            sandbox.replace(fms, "getCustomMetadataForFile", stub().resolves([]));
+            sandbox.replace(fms, "transformFileMetadataIntoTable", stub().resolves(fileMetadata));
+            sandbox.replace(labkeyClient, "getPlateBarcodeAndAllImagingSessionIdsFromWellId", stub().resolves("abc"));
+            sandbox.replace(labkeyClient, "getImagingSessionIdsForBarcode", stub().resolves([]));
+
+            let state = store.getState();
+            expect(getPage(state)).to.equal(Page.UploadSummary);
+            expect(getView(state)).to.equal(Page.UploadSummary);
+            expect(getFileMetadataForJob(state)).to.be.undefined;
+            expect(getUpload(state)).to.be.empty;
+            expect(getAppliedTemplateId(state)).to.be.undefined;
 
             store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
             await logicMiddleware.whenComplete();
 
-            expect(getPage(store.getState())).to.equal(Page.AddCustomData);
-            expect(getView(store.getState())).to.equal(Page.AddCustomData);
-        });
-        it("sets fileMetadataForJob given OK response", () => {
-
+            state = store.getState();
+            expect(getPage(state)).to.equal(Page.AddCustomData);
+            expect(getView(state)).to.equal(Page.AddCustomData);
+            expect(getFileMetadataForJob(state)).to.equal(fileMetadata);
+            expect(getUpload(state)).to.deep.equal({
+                [getUploadRowKey({file: "/localFilePath"})]: {
+                    ...fileMetadata[0],
+                    barcode: undefined, // TODO
+                    file: "/localFilePath",
+                    wellIds: [100],
+                },
+            });
+            expect(getAppliedTemplateId(state)).to.not.be.undefined;
         });
         it("sets uploadError given not OK response when getting file metadata", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockState);
@@ -409,12 +459,37 @@ describe("Route logics", () => {
             await logicMiddleware.whenComplete();
 
             expect(getUploadError(store.getState())).to.not.be.undefined;
+            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB))
+                .to.be.false;
         });
-        it("dispatches setPlate action if file metadata contains well annotation", () => {
+        it("does not dispatch setPlate action file metadata does not contain well annotation", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
+            const transformResult = {
+                ...omit(fileMetadata, ["Well"]),
+                Workflow: ["Pipeline 5"],
+            };
+            sandbox.replace(fms, "getCustomMetadataForFile", stub().resolves([]));
+            sandbox.replace(fms, "transformFileMetadataIntoTable", stub().resolves(transformResult));
 
+            store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+            await logicMiddleware.whenComplete();
+
+            expect(getSelectedPlate(store.getState())).to.be.undefined;
         });
-        it("does not dispatch setPlate action file metadata contains well annotation", () => {
+        it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
+            sandbox.replace(fms, "getCustomMetadataForFile", stub().resolves([]));
+            sandbox.replace(fms, "transformFileMetadataIntoTable", stub().resolves(fileMetadata));
+            sandbox.replace(labkeyClient, "getPlateBarcodeAndAllImagingSessionIdsFromWellId", stub().resolves("abc"));
+            sandbox.replace(labkeyClient, "getImagingSessionIdsForBarcode",
+                stub().rejects(new Error("Not Authorized")));
 
+            store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+            await logicMiddleware.whenComplete();
+
+            expect(getUploadError(store.getState())).to.not.be.undefined;
+            expect(getRequestsInProgressContains(store.getState(), AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB))
+                .to.be.false;
         });
     });
 });

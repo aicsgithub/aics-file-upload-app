@@ -818,3 +818,31 @@ export const nonEmptyStateForInitiatingUpload: State = {
     }),
     upload: getMockStateWithHistory(mockWellUpload),
 };
+
+export const mockStateWithMetadata: State = {
+    ...mockState,
+    metadata: {
+        ...mockState.metadata,
+        annotationOptions: mockAnnotationOptions,
+        annotationTypes: mockAnnotationTypes,
+        annotations: mockAnnotations,
+    },
+    route: {
+        ...mockState.route,
+        page: Page.UploadSummary,
+        view: Page.UploadSummary,
+    },
+    selection: getMockStateWithHistory({
+        ...mockState.selection.present,
+        barcode: undefined,
+        expandedUploadJobRows: {},
+        imagingSessionId: undefined,
+        imagingSessionIds: [],
+        job: undefined,
+        plate: {},
+        selectedWells: [],
+        selectedWorkflows: [],
+        stagedFiles: [],
+        wells: {},
+    }),
+};
