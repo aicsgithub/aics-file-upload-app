@@ -16,11 +16,15 @@ import { selectFile, selectWorkflowPath, selectWorkflows } from "../../selection
 import { getCurrentSelectionIndex, getSelectedPlate } from "../../selection/selectors";
 import { createMockReduxStore, dialog, fms, labkeyClient, mockReduxLogicDeps } from "../../test/configure-mock-store";
 import {
+    getMockStateWithHistory,
+    mockAnnotationOptions,
+    mockAnnotations,
+    mockAnnotationTypes,
     mockSelectedWorkflows,
-    mockState, mockStateWithMetadata,
+    mockState,
     mockSuccessfulUploadJob,
 } from "../../test/mocks";
-import { Logger } from "../../types";
+import { Logger, State } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
 import { getAppliedTemplateId, getCurrentUploadIndex, getUpload } from "../../upload/selectors";
@@ -374,6 +378,39 @@ describe("Route logics", () => {
             templateId: 1,
         }];
 
+        let mockStateWithMetadata: State;
+
+        beforeEach(() => {
+            mockStateWithMetadata = {
+                ...mockState,
+                metadata: {
+                    ...mockState.metadata,
+                    annotationOptions: mockAnnotationOptions,
+                    annotationTypes: mockAnnotationTypes,
+                    annotations: mockAnnotations,
+                },
+                route: {
+                    ...mockState.route,
+                    page: Page.UploadSummary,
+                    view: Page.UploadSummary,
+                },
+                selection: getMockStateWithHistory({
+                    ...mockState.selection.present,
+                    barcode: undefined,
+                    expandedUploadJobRows: {},
+                    imagingSessionId: undefined,
+                    imagingSessionIds: [],
+                    job: undefined,
+                    plate: {},
+                    selectedWells: [],
+                    selectedWorkflows: [],
+                    stagedFiles: [],
+                    wells: {},
+                }),
+                upload: getMockStateWithHistory({}),
+            };
+        });
+
         it("sets error alert if job passed in does not have fileId information", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
 
@@ -414,6 +451,26 @@ describe("Route logics", () => {
             expect(alert).to.not.be.undefined;
             expect(alert?.type).to.equal(AlertType.ERROR);
             expect(alert?.message).to.equal("Cannot update file metadata because upload has not succeeded");
+        });
+        it("sets error alert if all files for the job have since been deleted", async () => {
+            const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);
+
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            store.dispatch(openEditFileMetadataTab({
+                ...mockSuccessfulUploadJob,
+                serviceFields: {
+                    ...mockSuccessfulUploadJob.serviceFields,
+                    deletedFileIds: ["cat", "dog"],
+                },
+            }));
+            await logicMiddleware.whenComplete();
+
+            const alert = getAlert(store.getState());
+            expect(alert).to.deep.equal({
+                message: "All files in this upload have been deleted!",
+                type: AlertType.ERROR,
+            });
         });
         it("handles case where upload tab is not open yet", async () => {
             const { logicMiddleware, store } = createMockReduxStore(mockStateWithMetadata);

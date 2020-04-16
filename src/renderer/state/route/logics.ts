@@ -1,7 +1,7 @@
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Menu, MenuItem } from "electron";
 import { existsSync } from "fs";
-import { castArray, isEmpty, isNil } from "lodash";
+import { castArray, difference, isEmpty, isNil } from "lodash";
 import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -433,8 +433,14 @@ const openEditFileMetadataTabLogic = createLogic({
         if (job.status !== "SUCCEEDED") {
             reject(setErrorAlert("Cannot update file metadata because upload has not succeeded"));
         } else if (Array.isArray(job?.serviceFields?.result) && !isEmpty(job?.serviceFields?.result)) {
-            ctx.fileIds = job.serviceFields.result.map(({ fileId }: UploadMetadata) => fileId);
-            next(action);
+            const originalFileIds = job.serviceFields.result.map(({ fileId }: UploadMetadata) => fileId);
+            const deletedFileIds = job.serviceFields.deletedFileIds ? castArray(job.serviceFields.deletedFileIds) : [];
+            ctx.fileIds = difference(originalFileIds, deletedFileIds);
+            if (isEmpty(ctx.fileIds)) {
+                reject(setErrorAlert("All files in this upload have been deleted!"));
+            } else {
+                next(action);
+            }
         } else {
             logger.error("No fileIds found in selected Job:", job);
             reject(setErrorAlert("No fileIds found in selected Job."));
