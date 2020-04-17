@@ -26,7 +26,7 @@ import { AsyncRequest, ModalName } from "../feedback/types";
 import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory, getWellAnnotation } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
-import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
+import { clearSelectionHistory, jumpToPastSelection, selectBarcode, toggleFolderTree } from "../selection/actions";
 import { getCurrentSelectionIndex, getFolderTreeOpen } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
@@ -323,6 +323,7 @@ const convertImageModelMetadataToUploadStateBranch = (metadata: ImageModelMetada
                 ...curr,
                 barcode: curr.barcode ? `${curr.barcode}` : undefined,
                 file,
+                notes: curr.Notes,
                 wellIds,
             },
         };
@@ -391,6 +392,7 @@ const openEditFileMetadataTabLogic = createLogic({
                     mmsClient,
                     dispatch
                 ));
+                actions.push(selectBarcode(barcode, imagingSessionIds));
             } catch (e) {
                 const error = `Could not get plate information from upload: ${e.message}`;
                 logger.error(error);
