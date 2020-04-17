@@ -159,7 +159,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 formTitle={selectedJob ? "EDIT UPLOAD JOB" : "ADD ADDITIONAL DATA"}
                 formPrompt="Review and add information to the files below and click Submit."
                 onSave={this.submit}
-                saveButtonDisabled={validationErrors.length}
+                saveButtonDisabled={validationErrors.length > 0}
                 saveInProgress={uploadInProgress || updateInProgress}
                 saveButtonName="Submit"
                 showProgressBar={!selectedJob}
