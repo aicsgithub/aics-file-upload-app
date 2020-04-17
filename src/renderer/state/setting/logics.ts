@@ -99,9 +99,31 @@ const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-    transform: ({ action, storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
+    transform: ({ action, fms, jssClient, labkeyClient, mmsClient, storage }: ReduxLogicTransformDependencies,
+                next: ReduxLogicNextCb) => {
         try {
             const settings = storage.get(USER_SETTINGS_KEY);
+            const { host, port, username } = settings;
+            if (host) {
+                fms.host = host;
+                jssClient.host = host;
+                labkeyClient.host = host;
+                mmsClient.host = host;
+            }
+
+            if (port) {
+                fms.port = port;
+                jssClient.port = port;
+                labkeyClient.port = port;
+                mmsClient.port = port;
+            }
+
+            if (username) {
+                fms.username = username;
+                jssClient.username = username;
+                mmsClient.username = username;
+            }
+
             next({
                 ...action,
                 payload: settings,
