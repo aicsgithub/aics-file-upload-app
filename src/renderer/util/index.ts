@@ -5,6 +5,7 @@ import { constants, promises, stat as fsStat, Stats } from "fs";
 import {
     castArray,
     isNil,
+    map,
     reduce,
     startCase,
     trim,
@@ -23,6 +24,7 @@ import {
     setSuccessAlert,
 } from "../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../state/feedback/types";
+import { getBooleanAnnotationTypeId } from "../state/metadata/selectors";
 import { setPlate } from "../state/selection/actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
@@ -33,8 +35,12 @@ import {
     UploadFile,
     WellResponse,
 } from "../state/selection/types";
-import { TemplateAnnotation } from "../state/template/types";
-import { HTTP_STATUS, ReduxLogicNextCb } from "../state/types";
+import { setAppliedTemplate } from "../state/template/actions";
+import { Template, TemplateAnnotation } from "../state/template/types";
+import { HTTP_STATUS, ReduxLogicNextCb, State } from "../state/types";
+import { updateUpload } from "../state/upload/actions";
+import { getUpload } from "../state/upload/selectors";
+import { UploadMetadata } from "../state/upload/types";
 import { batchActions } from "../state/util";
 
 import MMSClient from "./mms-client";
@@ -356,4 +362,48 @@ export const retrieveFileMetadata = async (
             [fileMetadata.fileId]: fileMetadata,
         }), {});
     return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
+};
+
+/***
+ * Returns a list of actions to dispatch in order to get the requested template
+ * and update the uploads with those annotations
+ * @param {number} templateId
+ * @param {() => State} getState
+ * @param {MMSClient} mmsClient
+ * @param {ReduxLogicNextCb} dispatch
+ * @returns {Promise<AnyAction[]>}
+ */
+export const getTemplateAndUpdateUploads = async (
+    templateId: number,
+    getState: () => State,
+    mmsClient: MMSClient,
+    dispatch: ReduxLogicNextCb
+): Promise<AnyAction[]> => {
+    const uploads = getUpload(getState());
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!booleanAnnotationTypeId) {
+        throw new Error("Could not get boolean annotation type. Contact Software");
+    }
+
+    const template: Template = await getWithRetry(
+        () => mmsClient.getTemplate(templateId),
+        AsyncRequest.GET_TEMPLATE,
+        dispatch,
+        "MMS",
+        "Could not retrieve template"
+    );
+    const { annotations, ...etc } = template;
+    const actions: AnyAction[] = [];
+    const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
+    actions.push(
+        setAppliedTemplate({
+            ...etc,
+            annotations,
+        }),
+        ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
+            ...additionalAnnotations,
+            ...metadata, // prevent existing annotations from getting overwritten
+        }))
+    );
+    return actions;
 };

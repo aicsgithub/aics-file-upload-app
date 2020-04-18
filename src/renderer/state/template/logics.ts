@@ -2,9 +2,15 @@ import { get, includes, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { getWithRetry, pivotAnnotations } from "../../util";
+import { getTemplateAndUpdateUploads, getWithRetry, pivotAnnotations } from "../../util";
 
-import { addRequestToInProgress, closeModal, removeRequestFromInProgress, setAlert } from "../feedback/actions";
+import {
+    addRequestToInProgress,
+    closeModal,
+    removeRequestFromInProgress,
+    setAlert, setErrorAlert,
+    setSuccessAlert,
+} from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { requestTemplates } from "../metadata/actions";
 import {
@@ -21,8 +27,8 @@ import {
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { applyTemplate, updateUpload } from "../upload/actions";
-import { getUpload } from "../upload/selectors";
+import { updateUpload } from "../upload/actions";
+import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
 import { UploadMetadata } from "../upload/types";
 import { batchActions } from "../util";
 import { setAppliedTemplate, updateTemplateDraft } from "./actions";
@@ -197,16 +203,33 @@ const saveTemplateLogic = createLogic({
                 createdTemplateId = await mmsClient.createTemplate(request);
             }
 
-            // these need to be dispatched separately because they have logics associated with them
-            dispatch(closeModal("templateEditor"));
+            dispatch(batchActions([
+                closeModal("templateEditor"),
+                removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE),
+                updateSettings({ templateId: createdTemplateId }),
+                setSuccessAlert("Template saved successfully!"),
+                addRequestToInProgress(AsyncRequest.GET_TEMPLATES),
+            ]));
+
+            // this need to be dispatched separately because it has logics associated with them
+            // todo create util method for this so we dispatch less often
             dispatch(requestTemplates());
-            dispatch(applyTemplate(createdTemplateId));
-            dispatch(removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE));
-            dispatch(updateSettings({ templateId: createdTemplateId }));
-            dispatch(setAlert({
-                message: "Template saved successfully!",
-                type: AlertType.SUCCESS,
-            }));
+
+            if (getCanSaveUploadDraft(getState())) {
+                const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)];
+                try {
+                    actions.push(...(await getTemplateAndUpdateUploads(
+                        createdTemplateId,
+                        getState,
+                        mmsClient,
+                        dispatch
+                    )));
+                } catch (e) {
+                    actions.push(setErrorAlert("Could not retrieve template and update uploads: " + e.message));
+                } finally {
+                    dispatch(batchActions(actions));
+                }
+            }
 
         } catch (e) {
             const error = get(e, ["response", "data", "error"], e.message);
