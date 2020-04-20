@@ -7,7 +7,8 @@ import {
     addRequestToInProgress,
     closeModal,
     removeRequestFromInProgress,
-    setAlert, setErrorAlert,
+    setAlert,
+    setErrorAlert,
     setSuccessAlert,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
