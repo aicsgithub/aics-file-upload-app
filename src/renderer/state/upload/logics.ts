@@ -135,7 +135,7 @@ const undoFileWellAssociationLogic = createLogic({
 const applyTemplateLogic = createLogic({
     process: async ({action, getState, mmsClient }: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const { templateId } = action.payload;
+        const templateId = action.payload;
         try {
             const setAppliedTemplateAction = await getSetAppliedTemplateAction(
                 templateId,
