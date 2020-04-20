@@ -17,11 +17,12 @@ import {
 } from "../../job/selectors";
 import { getCurrentUpload } from "../../metadata/selectors";
 import { getSelectedBarcode, getSelectedFiles } from "../../selection/selectors";
-import { getTemplate } from "../../template/actions";
-import { createMockReduxStore, fms, mockReduxLogicDeps, storage } from "../../test/configure-mock-store";
+import { setAppliedTemplate } from "../../template/actions";
+import { createMockReduxStore, fms, mmsClient, mockReduxLogicDeps, storage } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
     mockDateAnnotation,
+    mockMMSTemplate,
     mockNumberAnnotation, mockState,
     mockTemplateStateBranch,
     mockTemplateWithManyValues,
@@ -241,17 +242,48 @@ describe("Upload logics", () => {
     });
 
     describe("applyTemplateLogic", () => {
-        it("calls getTemplate using templateId provided", () => {
-            const { actions, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("calls getTemplate using templateId provided", async () => {
+            sandbox.replace(mmsClient, "getTemplate", stub().resolves(mockMMSTemplate));
+            const { actions, logicMiddleware, store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey({file: "/path/to/file1"})]: {
+                        barcode: "1234",
+                        file: "/path/to/file1",
+                        key: getUploadRowKey({file: "/path/to/file"}),
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: true,
+                        wellIds: [1],
+                    },
+                }),
+            });
+            const expectedAction = setAppliedTemplate(mockMMSTemplate, {
+                [getUploadRowKey({file: "/path/to/file1"})]: {
+                    ["Favorite Color"]: undefined,
+                    barcode: "1234",
+                    file: "/path/to/file1",
+                    key: getUploadRowKey({file: "/path/to/file"}),
+                    shouldBeInArchive: true,
+                    shouldBeInLocal: true,
+                    wellIds: [1],
+                },
+            });
 
             // before
-            expect(actions.includes(getTemplate(1))).to.be.false;
+            expect(actions.includesMatch(expectedAction)).to.be.false;
 
             // apply
             store.dispatch(applyTemplate(1));
+            await logicMiddleware.whenComplete();
 
             // after
-            expect(actions.includes(getTemplate(1))).to.be.false;
+            expect(actions.includesMatch(expectedAction)).to.be.true;
         });
     });
 

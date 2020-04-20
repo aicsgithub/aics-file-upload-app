@@ -7,9 +7,11 @@ import { createSandbox, spy, stub, useFakeTimers } from "sinon";
 import {
     alphaOrderComparator,
     convertToArray,
+    getSetAppliedTemplateAction,
     getSetPlateAction,
     getWithRetry,
-    makePosixPathCompatibleWithPlatform, retrieveFileMetadata,
+    makePosixPathCompatibleWithPlatform,
+    retrieveFileMetadata,
     SERVICE_MIGHT_BE_DOWN_MESSAGE,
     splitTrimAndFilter,
     titleCase,
@@ -23,9 +25,17 @@ import {
 } from "../../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../../state/feedback/types";
 import { GetPlateResponse, PlateResponse, Well } from "../../state/selection/types";
+import { setAppliedTemplate } from "../../state/template/actions";
+import { SetAppliedTemplateAction } from "../../state/template/types";
 import { fms, mmsClient } from "../../state/test/configure-mock-store";
-import { mockAuditInfo } from "../../state/test/mocks";
-import { HTTP_STATUS } from "../../state/types";
+import {
+    getMockStateWithHistory,
+    mockAuditInfo, mockBooleanAnnotation, mockFavoriteColorAnnotation,
+    mockMMSTemplate, mockNumberAnnotation,
+    nonEmptyStateForInitiatingUpload,
+} from "../../state/test/mocks";
+import { HTTP_STATUS, State } from "../../state/types";
+import { getUploadRowKey } from "../../state/upload/constants";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
@@ -487,6 +497,98 @@ describe("General utilities", () => {
             sandbox.replace(fms, "transformFileMetadataIntoTable", transformFileMetadataIntoTableStub);
             const result = await retrieveFileMetadata(["abc123"], fms);
             expect(result).to.equal(expected);
+        });
+    });
+    describe("getSetAppliedTemplateAction", () => {
+        const sandbox = createSandbox();
+        let mockStateWithUploads: State;
+        const key = getUploadRowKey({file: "/path/to/file1"});
+        const template = {
+            ...mockMMSTemplate,
+            annotations: [mockFavoriteColorAnnotation, mockBooleanAnnotation, mockNumberAnnotation],
+        };
+
+        beforeEach(() => {
+            mockStateWithUploads = {
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...nonEmptyStateForInitiatingUpload.template.present,
+                    appliedTemplate: {
+                        ...mockMMSTemplate,
+                        annotations: [mockFavoriteColorAnnotation, { ...mockNumberAnnotation, name: "Age" }],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [key]: {
+                        "Age": 16,
+                        "Favorite Color": "red",
+                        "barcode": "1234",
+                        "file": "/path/to/file1",
+                        "key": getUploadRowKey({ file: "/path/to/file" }),
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
+                        "wellIds": [1],
+                    },
+                }),
+            };
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("throws error if no boolean type set", () => {
+            const getStateStub = stub().returns({
+                ...mockStateWithUploads,
+                metadata: {
+                    ...mockStateWithUploads.metadata,
+                    annotationTypes: [],
+                },
+            });
+            sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
+            expect(getSetAppliedTemplateAction(
+                1,
+                getStateStub,
+                mmsClient,
+                stub()
+            )).to.be.rejectedWith(Error);
+        });
+        it("throws error if getTemplate request fails", () => {
+            const getStateStub = stub().returns(mockStateWithUploads);
+            sandbox.replace(mmsClient, "getTemplate", stub().rejects(new Error("Oops")));
+            expect(getSetAppliedTemplateAction(
+                1,
+                getStateStub,
+                mmsClient,
+                stub()
+            )).to.be.rejectedWith(Error);
+        });
+        it("returns setAppliedTemplate action with template returned from MMS and expected upload", async () => {
+            const getStateStub = stub().returns(mockStateWithUploads);
+            sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
+            const result: SetAppliedTemplateAction = await getSetAppliedTemplateAction(
+                1,
+                getStateStub,
+                mmsClient,
+                stub()
+            );
+            // the Age annotation goes away since it's not part of the applied template
+            expect(result).to.deep.equal(setAppliedTemplate(template, {
+                [key]: {
+                    // This annotation got added and is initialized as undefined
+                    "Clone Number Garbage": [],
+                    // this stays here because it is part of the template and does not get cleared out
+                    "Favorite Color": "red",
+                    // This annotation got added and is initialized as false
+                    "Qc": [false],
+                    "barcode": "1234",
+                    "file": "/path/to/file1",
+                    "key": getUploadRowKey({ file: "/path/to/file" }),
+                    "shouldBeInArchive": true,
+                    "shouldBeInLocal": true,
+                    "wellIds": [1],
+                },
+            }));
         });
     });
 });

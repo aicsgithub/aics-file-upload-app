@@ -1,4 +1,5 @@
 import { Audited, AutoSaveAction } from "../types";
+import { UploadStateBranch } from "../upload/types";
 
 export interface TemplateStateBranch {
     appliedTemplate?: Template;
@@ -85,14 +86,6 @@ export interface CreateAnnotationRequest {
     required: boolean;
 }
 
-export interface GetTemplateAction {
-    payload: {
-        addAnnotationsToUpload: boolean;
-        templateId: number;
-    };
-    type: string;
-}
-
 export interface JumpToPastTemplateAction {
     index: number;
     type: string;
@@ -121,7 +114,10 @@ export interface SaveTemplateRequest {
 }
 
 export interface SetAppliedTemplateAction extends AutoSaveAction {
-    payload: Template;
+    payload: {
+        template: Template;
+        uploads: UploadStateBranch;
+    };
     type: string;
 }
 

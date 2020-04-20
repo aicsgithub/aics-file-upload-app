@@ -10,6 +10,8 @@ import undoable, { UndoableOptions } from "redux-undo";
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
+import { SET_APPLIED_TEMPLATE } from "../template/constants";
+import { SetAppliedTemplateAction } from "../template/types";
 
 import { TypeToDescriptionMap } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
@@ -270,6 +272,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is CloseUploadTabAction =>
             action.type === CLOSE_UPLOAD_TAB,
         perform: () => ({}),
+    },
+    [SET_APPLIED_TEMPLATE]: {
+        accepts: (action: AnyAction): action is SetAppliedTemplateAction =>
+            action.type === SET_APPLIED_TEMPLATE,
+        perform: (state: UploadStateBranch, { payload: { uploads } }: SetAppliedTemplateAction) => ({
+            ...uploads,
+        }),
     },
 };
 

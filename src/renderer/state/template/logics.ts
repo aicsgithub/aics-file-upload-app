@@ -1,8 +1,7 @@
-import { get, includes, map } from "lodash";
-import { AnyAction } from "redux";
+import { get, includes } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { getTemplateAndUpdateUploads, getWithRetry, pivotAnnotations } from "../../util";
+import { getSetAppliedTemplateAction } from "../../util";
 
 import {
     addRequestToInProgress,
@@ -16,7 +15,6 @@ import { requestTemplates } from "../metadata/actions";
 import {
     getAnnotationLookups,
     getAnnotationTypes,
-    getBooleanAnnotationTypeId,
     getLookupAnnotationTypeId,
     getLookups,
 } from "../metadata/selectors";
@@ -27,14 +25,12 @@ import {
     ReduxLogicProcessDependencies,
     ReduxLogicTransformDependencies,
 } from "../types";
-import { updateUpload } from "../upload/actions";
-import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
-import { UploadMetadata } from "../upload/types";
+import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
-import { setAppliedTemplate, updateTemplateDraft } from "./actions";
-import { ADD_ANNOTATION, GET_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
+import { updateTemplateDraft } from "./actions";
+import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";
-import { AnnotationDraft, SaveTemplateRequest, Template, TemplateAnnotation } from "./types";
+import { AnnotationDraft, SaveTemplateRequest } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
@@ -107,74 +103,6 @@ const addExistingAnnotationLogic = createLogic({
     type: ADD_ANNOTATION,
 });
 
-const getTemplateLogic = createLogic({
-    process: async ({action, getState, labkeyClient, logger, mmsClient}: ReduxLogicProcessDependencies,
-                    dispatch: ReduxLogicNextCb,
-                    done: ReduxLogicDoneCb) => {
-        const state = getState();
-        const { addAnnotationsToUpload, templateId } = action.payload;
-        const uploads = getUpload(state);
-        const annotationTypes = getAnnotationTypes(state);
-        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(state);
-
-        if (!booleanAnnotationTypeId) {
-            dispatch(setAlert({
-                message: "Could not get boolean annotation type. Contact Software",
-                type: AlertType.ERROR,
-            }));
-            throw new Error("Could not get boolean annotation type. Contact Software");
-        }
-
-        try {
-            const template: Template = await getWithRetry(
-                () => mmsClient.getTemplate(templateId),
-                AsyncRequest.GET_TEMPLATE,
-                dispatch,
-                "MMS",
-                "Could not retrieve template"
-            );
-            const { annotations, ...etc } = template;
-            const actions: AnyAction[] = [];
-
-            if (addAnnotationsToUpload) {
-                const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
-                actions.push(
-                    setAppliedTemplate({
-                        ...etc,
-                        annotations,
-                    }),
-                    ...map(uploads, (metadata: UploadMetadata, key: string) => updateUpload(key,  {
-                        ...additionalAnnotations,
-                        ...metadata, // prevent existing annotations from getting overwritten
-                    }))
-                );
-            } else {
-                actions.push(updateTemplateDraft({
-                    ...etc,
-                    annotations: annotations.map((a: TemplateAnnotation, index: number) => {
-                        const type = annotationTypes.find((t) => t.annotationTypeId === a.annotationTypeId);
-                        if (!type) {
-                            throw new Error(`Could not find matching type for annotation named ${a.name},
-                             annotationTypeId: ${a.annotationTypeId}`);
-                        }
-                        return {
-                            ...a,
-                            annotationTypeName: type.name,
-                            index,
-                        };
-                    }),
-                }));
-            }
-            dispatch(batchActions(actions));
-        } catch (e) {
-            logger.error("Could not retrieve template", e);
-        }
-
-        done();
-    },
-    type: GET_TEMPLATE,
-});
-
 const removeAnnotationsLogic = createLogic({
     transform: ({action, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const { annotations: oldAnnotations } = getTemplateDraft(getState());
@@ -194,7 +122,7 @@ const saveTemplateLogic = createLogic({
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const draft = getTemplateDraft(getState());
         const request: SaveTemplateRequest = getSaveTemplateRequest(getState());
-        dispatch(addRequestToInProgress(AsyncRequest.SAVE_TEMPLATE));
+
         let createdTemplateId;
         try {
             if (draft.templateId) {
@@ -210,36 +138,35 @@ const saveTemplateLogic = createLogic({
                 setSuccessAlert("Template saved successfully!"),
                 addRequestToInProgress(AsyncRequest.GET_TEMPLATES),
             ]));
-
-            // this need to be dispatched separately because it has logics associated with them
-            // todo create util method for this so we dispatch less often
-            dispatch(requestTemplates());
-
-            if (getCanSaveUploadDraft(getState())) {
-                const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)];
-                try {
-                    actions.push(...(await getTemplateAndUpdateUploads(
-                        createdTemplateId,
-                        getState,
-                        mmsClient,
-                        dispatch
-                    )));
-                } catch (e) {
-                    actions.push(setErrorAlert("Could not retrieve template and update uploads: " + e.message));
-                } finally {
-                    dispatch(batchActions(actions));
-                }
-            }
-
         } catch (e) {
             const error = get(e, ["response", "data", "error"], e.message);
             dispatch(batchActions([
-                setAlert({
-                    message: "Could not save template: " + error,
-                    type: AlertType.ERROR,
-                }),
+                setErrorAlert("Could not save template: " + error),
                 removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE),
             ]));
+            done();
+            return;
+        }
+
+        // this need to be dispatched separately because it has logics associated with them
+        // todo create util method for this so we dispatch less often
+        dispatch(requestTemplates());
+
+        if (getCanSaveUploadDraft(getState())) {
+            try {
+                const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+                    createdTemplateId,
+                    getState,
+                    mmsClient,
+                    dispatch
+                );
+                dispatch(setAppliedTemplateAction);
+            } catch (e) {
+                dispatch(batchActions([
+                    setErrorAlert("Could not retrieve template and update uploads: " + e.message),
+                    removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
+                ]));
+            }
         }
         done();
     },
@@ -248,7 +175,6 @@ const saveTemplateLogic = createLogic({
 
 export default [
     addExistingAnnotationLogic,
-    getTemplateLogic,
     removeAnnotationsLogic,
     saveTemplateLogic,
 ];

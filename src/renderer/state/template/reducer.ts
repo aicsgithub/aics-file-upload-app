@@ -13,7 +13,8 @@ import {
     CLEAR_TEMPLATE_HISTORY,
     DEFAULT_TEMPLATE_DRAFT,
     JUMP_TO_PAST_TEMPLATE,
-    JUMP_TO_TEMPLATE, SET_APPLIED_TEMPLATE,
+    JUMP_TO_TEMPLATE,
+    SET_APPLIED_TEMPLATE,
     UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import { getAppliedTemplate } from "./selectors";
@@ -42,7 +43,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is SetAppliedTemplateAction => action.type === SET_APPLIED_TEMPLATE,
         perform: (state: TemplateStateBranch, action: SetAppliedTemplateAction) => ({
             ...state,
-            appliedTemplate: action.payload,
+            appliedTemplate: action.payload.template,
         }),
     },
     [UPDATE_TEMPLATE_DRAFT]: {

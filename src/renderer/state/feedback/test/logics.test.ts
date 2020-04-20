@@ -1,21 +1,23 @@
 import { expect } from "chai";
+import { createSandbox, stub } from "sinon";
 
 import { openTemplateEditor } from "../../selection/actions";
-import { clearTemplateDraft, getTemplate } from "../../template/actions";
+import { clearTemplateDraft, updateTemplateDraft } from "../../template/actions";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
-import { createMockReduxStore } from "../../test/configure-mock-store";
+import { createMockReduxStore, mmsClient } from "../../test/configure-mock-store";
 
 import {
-    getMockStateWithHistory,
+    getMockStateWithHistory, mockFavoriteColorAnnotation, mockMMSTemplate,
     mockState,
     mockTemplateStateBranch,
     nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
 
-import { closeModal, setDeferredAction } from "../actions";
+import { closeModal, removeRequestFromInProgress } from "../actions";
 import { getTemplateEditorVisible } from "../selectors";
+import { AsyncRequest } from "../types";
 
 describe("Feedback logics", () => {
     describe("closeModalLogic", () => {
@@ -61,16 +63,31 @@ describe("Feedback logics", () => {
         });
     });
     describe("openTemplateEditorLogic", () => {
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
         it("dispatches setDeferredAction and getTemplate", async () => {
+            const expectedUpdateTemplateDraftAction = updateTemplateDraft({
+                ...mockMMSTemplate,
+                annotations: [{
+                    ...mockFavoriteColorAnnotation,
+                    annotationTypeName: "Text",
+                    index: 0,
+                }],
+            });
+            sandbox.replace(mmsClient, "getTemplate", stub().resolves(mockMMSTemplate));
             const { actions, logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
-            expect(actions.includesMatch(setDeferredAction(clearTemplateDraft()))).to.be.false;
-            expect(actions.includesMatch(getTemplate(1))).to.be.false;
+            expect(actions.includesMatch(removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE))).to.be.false;
+            expect(actions.includesMatch(expectedUpdateTemplateDraftAction)).to.be.false;
 
             store.dispatch(openTemplateEditor(1));
             await logicMiddleware.whenComplete();
 
-            expect(actions.includesMatch(setDeferredAction(clearTemplateDraft()))).to.be.true;
-            expect(actions.includesMatch(getTemplate(1))).to.be.true;
+            expect(actions.includesMatch(removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE))).to.be.true;
+            expect(actions.includesMatch(expectedUpdateTemplateDraftAction)).to.be.true;
         });
     });
 });
