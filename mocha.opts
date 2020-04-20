@@ -2,3 +2,4 @@
 --require jsdom-global/register
 --require ./scripts/mock-css-modules.js
 --require ./scripts/adapt-enzyme-to-react-16.js
+--require ./scripts/chai-promise.js
