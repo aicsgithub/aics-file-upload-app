@@ -1,7 +1,5 @@
 import {
-    forEach,
     omit,
-    pick,
     uniq,
     without,
 } from "lodash";
@@ -16,7 +14,6 @@ import { SetAppliedTemplateAction } from "../template/types";
 import { TypeToDescriptionMap } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 import {
-    APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CLEAR_UPLOAD,
@@ -37,7 +34,6 @@ import {
 } from "./constants";
 import { getUpload } from "./selectors";
 import {
-    ApplyTemplateAction,
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     ClearUploadAction,
@@ -49,28 +45,12 @@ import {
     UndoFileWorkflowAssociationAction,
     UpdateUploadAction,
     UpdateUploadsAction,
-    UploadMetadata,
     UploadStateBranch,
 } from "./types";
 
 export const initialState = {
 
 };
-
-const nonTemplateUploadFields: Array<keyof UploadMetadata> = [
-    "barcode",
-    "channelId",
-    "file",
-    "key",
-    "notes",
-    "positionIndex",
-    "scene",
-    "shouldBeInArchive",
-    "shouldBeInLocal",
-    "subImageName",
-    "wellIds",
-    "workflows",
-];
 
 const actionToConfigMap: TypeToDescriptionMap = {
     [ASSOCIATE_FILES_AND_WELLS]: {
@@ -174,49 +154,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [DELETE_UPLOADS]: {
         accepts: (action: AnyAction): action is RemoveUploadsAction => action.type === DELETE_UPLOADS,
         perform: (state: UploadStateBranch, action: RemoveUploadsAction) => omit(state, action.payload),
-    },
-    [APPLY_TEMPLATE]: {
-        accepts: (action: AnyAction): action is ApplyTemplateAction =>
-            action.type === APPLY_TEMPLATE,
-        perform: (state: UploadStateBranch,
-                  { payload: { clearAnnotations, templateId } }: ApplyTemplateAction) => {
-            const update: UploadStateBranch = {};
-            forEach(state,  (uploadMetadata: UploadMetadata) => {
-                // By only grabbing the initial fields of the upload we can remove old schema columns
-                // We're also apply the new templateId now
-                const {
-                    channelId,
-                    file,
-                    positionIndex,
-                    scene,
-                    subImageName,
-                } = uploadMetadata;
-                const key = getUploadRowKey({
-                    channelId,
-                    file,
-                    positionIndex,
-                    scene,
-                    subImageName,
-                });
-
-                // This is the default path. Don't clear annotations if replacing upload
-                // with an upload draft from local storage.
-                // This will clear all annotations besides well/workflow related annotations
-                if (clearAnnotations) {
-                    update[key] = {
-                        ...pick(uploadMetadata, nonTemplateUploadFields) as UploadMetadata,
-                        templateId,
-                    };
-                } else {
-                    update[key] = {
-                        ...uploadMetadata,
-                        templateId,
-                    };
-                }
-
-            });
-            return update;
-        },
     },
     [UPDATE_UPLOAD]: {
         accepts: (action: AnyAction): action is UpdateUploadAction => action.type === UPDATE_UPLOAD,
