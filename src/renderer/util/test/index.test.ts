@@ -30,8 +30,11 @@ import { SetAppliedTemplateAction } from "../../state/template/types";
 import { fms, mmsClient } from "../../state/test/configure-mock-store";
 import {
     getMockStateWithHistory,
-    mockAuditInfo, mockBooleanAnnotation, mockFavoriteColorAnnotation,
-    mockMMSTemplate, mockNumberAnnotation,
+    mockAuditInfo,
+    mockBooleanAnnotation,
+    mockFavoriteColorAnnotation,
+    mockMMSTemplate,
+    mockNumberAnnotation,
     nonEmptyStateForInitiatingUpload,
 } from "../../state/test/mocks";
 import { HTTP_STATUS, State } from "../../state/types";
