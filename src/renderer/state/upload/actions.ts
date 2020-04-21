@@ -257,6 +257,8 @@ export function clearUpload(): ClearUploadAction {
     };
 }
 
+// If draftName is provided, create a new draft with this name to storage
+// If not, get current upload that is open and save it to storage
 export function saveUploadDraft(draftName?: string): SaveUploadDraftAction {
     return {
         payload: draftName,
