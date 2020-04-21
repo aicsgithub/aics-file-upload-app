@@ -168,13 +168,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     />
                 )}
                 {validationErrors.length > 0 && (
-                    validationErrors.map((e: string) => (<Alert
+                    <Alert
                         className={styles.alert}
-                        key={e}
-                        message={e}
+                        message={validationErrors.map((e) => <div key={e}>{e}</div>)}
                         showIcon={true}
                         type="error"
-                    />))
+                    />
                 )}
                 {appliedTemplate && this.renderPlateInfo()}
                 {!loading && appliedTemplate && (
