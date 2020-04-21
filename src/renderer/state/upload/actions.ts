@@ -257,7 +257,7 @@ export function clearUpload(): ClearUploadAction {
     };
 }
 
-export function saveUploadDraft(draftName: string): SaveUploadDraftAction {
+export function saveUploadDraft(draftName?: string): SaveUploadDraftAction {
     return {
         payload: draftName,
         type: SAVE_UPLOAD_DRAFT,
