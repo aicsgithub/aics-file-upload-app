@@ -8,7 +8,9 @@ import { getTemplateDraft } from "../../template/selectors";
 import { createMockReduxStore, mmsClient } from "../../test/configure-mock-store";
 
 import {
-    getMockStateWithHistory, mockFavoriteColorAnnotation, mockMMSTemplate,
+    getMockStateWithHistory,
+    mockFavoriteColorAnnotation,
+    mockMMSTemplate,
     mockState,
     mockTemplateStateBranch,
     nonEmptyStateForInitiatingUpload,
