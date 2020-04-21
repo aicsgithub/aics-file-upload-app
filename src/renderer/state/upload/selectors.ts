@@ -448,6 +448,13 @@ export const getUploadKeyToAnnotationErrorMap = createSelector([
     return result;
 });
 
+/**
+ * This selector validates that a template has been selected, there are uploads,
+ * and enforces that each file in an upload batch:
+ *    - have either a well id defined OR a workflow
+ *    - have values for all annotations required by template
+ *    - have values for annotations that match the expected type
+ */
 export const getUploadValidationErrors = createSelector([
     getUploadSummaryRows,
     getFileToAnnotationHasValueMap,
