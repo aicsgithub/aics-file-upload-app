@@ -49,11 +49,11 @@ import {
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
-    getCanSave,
     getCanUndoUpload,
     getFileToAnnotationHasValueMap,
+    getUploadKeyToAnnotationErrorMap,
     getUploadSummaryRows,
-    getValidationErrorsMap,
+    getUploadValidationErrors,
 } from "../../state/upload/selectors";
 import {
     ApplyTemplateAction,
@@ -75,7 +75,6 @@ interface Props {
     applyTemplate: ActionCreator<ApplyTemplateAction>;
     booleanAnnotationTypeId?: number;
     canRedo: boolean;
-    canSave: boolean;
     canUndo: boolean;
     channels: Channel[];
     className?: string;
@@ -96,8 +95,9 @@ interface Props {
     updateUpload: ActionCreator<UpdateUploadAction>;
     uploadError?: string;
     uploadInProgress: boolean;
+    uploadRowKeyToAnnotationErrorMap: {[key: string]: {[annotationName: string]: string}};
     uploads: UploadJobTableRow[];
-    validationErrors: {[key: string]: {[annotationName: string]: string}};
+    validationErrors: string[];
 }
 
 interface AddCustomDataState {
@@ -128,12 +128,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             annotationTypes,
             appliedTemplate,
             canRedo,
-            canSave,
             canUndo,
             className,
             loading,
             uploadError,
             uploadInProgress,
+            uploadRowKeyToAnnotationErrorMap,
             uploads,
             validationErrors,
         } = this.props;
@@ -143,7 +143,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 formTitle="ADD ADDITIONAL DATA"
                 formPrompt="Review and add information to the files below and click Upload to submit the job."
                 onSave={this.upload}
-                saveButtonDisabled={!canSave}
+                saveButtonDisabled={validationErrors.length > 0}
                 saveInProgress={uploadInProgress}
                 saveButtonName="Upload"
                 onBack={this.props.goBack}
@@ -158,7 +158,23 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         <Spin/>
                     </div>
                 )}
-                {uploadError && (<Alert className={styles.alert} message={uploadError} type="error" showIcon={true}/>)}
+                {uploadError && (
+                    <Alert
+                        className={styles.alert}
+                        message="Upload Failed"
+                        description={uploadError}
+                        type="error"
+                        showIcon={true}
+                    />
+                )}
+                {validationErrors.length > 0 && (
+                    <Alert
+                        className={styles.alert}
+                        message={validationErrors.map((e) => <div key={e}>{e}</div>)}
+                        showIcon={true}
+                        type="error"
+                    />
+                )}
                 {appliedTemplate && this.renderPlateInfo()}
                 {!loading && appliedTemplate && (
                     <CustomDataGrid
@@ -178,7 +194,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         updateSubImages={this.props.updateSubImages}
                         updateUpload={this.props.updateUpload}
                         uploads={uploads}
-                        validationErrors={validationErrors}
+                        validationErrors={uploadRowKeyToAnnotationErrorMap}
                     />
                 )}
             </FormPage>
@@ -253,7 +269,6 @@ function mapStateToProps(state: State) {
         appliedTemplate: getAppliedTemplate(state),
         booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
         canRedo: getCanRedoUpload(state),
-        canSave: getCanSave(state),
         canUndo: getCanUndoUpload(state),
         channels: getChannels(state),
         expandedRows: getExpandedUploadJobRows(state),
@@ -264,8 +279,9 @@ function mapStateToProps(state: State) {
         templates: getTemplates(state),
         uploadError: getUploadError(state),
         uploadInProgress: getUploadInProgress(state),
+        uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),
         uploads: getUploadSummaryRows(state),
-        validationErrors: getValidationErrorsMap(state),
+        validationErrors: getUploadValidationErrors(state),
     };
 }
 

@@ -37,10 +37,11 @@ import {
     getFileToStoreOnIsilon,
     getUploadFileNames,
     getUploadFiles,
+    getUploadKeyToAnnotationErrorMap,
     getUploadPayload,
     getUploadSummaryRows,
+    getUploadValidationErrors,
     getUploadWithCalculatedData,
-    getValidationErrorsMap,
 } from "../selectors";
 import { FileType, MMSAnnotationValueRequest, UploadMetadata as UploadMetadataRow } from "../types";
 
@@ -1046,7 +1047,7 @@ describe("Upload selectors", () => {
         });
     });
 
-    describe("getValidationErrorsMap", () => {
+    describe("getUploadKeyToAnnotationErrorMap", () => {
         const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
         let goodUploadRow: UploadMetadataRow;
         const updateTemplateAnnotation = (annotation: TemplateAnnotation, canHaveManyValues: boolean) => {
@@ -1059,7 +1060,7 @@ describe("Upload selectors", () => {
             if (annotationToTest.canHaveManyValues !== canHaveManyValues) {
                 template = updateTemplateAnnotation(annotationToTest, canHaveManyValues);
             }
-            return getValidationErrorsMap({
+            return getUploadKeyToAnnotationErrorMap({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
@@ -1094,7 +1095,7 @@ describe("Upload selectors", () => {
             };
         });
         it("returns empty object if no validation errors", () => {
-            const result = getValidationErrorsMap({
+            const result = getUploadKeyToAnnotationErrorMap({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
@@ -1298,6 +1299,64 @@ describe("Upload selectors", () => {
                 }),
             });
             expect(result).to.be.false;
+        });
+    });
+
+    describe("getUploadValidationErrors", () => {
+        it("adds error if template not applied", () => {
+            const errors = getUploadValidationErrors(mockState);
+            expect(errors.includes("A template must be selected to submit an upload")).to.be.true;
+        });
+        it("adds error if no files to upload", () => {
+            const errors = getUploadValidationErrors({...mockState, upload: getMockStateWithHistory({})});
+            expect(errors.includes("No files to upload")).to.be.true;
+        });
+        it("adds error if a row does not have a well or workflow annotation", () => {
+            const errors = getUploadValidationErrors({
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey({file: "foo"})]: {
+                        barcode: "abc",
+                        file: "foo",
+                        key: getUploadRowKey({file: "foo"}),
+                        wellIds: [],
+                    },
+                }),
+            });
+            expect(errors.includes("foo must have either a well or workflow association")).to.be.true;
+        });
+        it("adds error if row is missing an annotation value that is required", () => {
+            const errors = getUploadValidationErrors({
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [getUploadRowKey({file: "foo"})]: {
+                        "Favorite Color": undefined,
+                        "barcode": "abc",
+                        "file": "foo",
+                        "key": getUploadRowKey({file: "foo"}),
+                        "wellIds": [],
+                    },
+                }),
+            });
+            expect(errors.includes("\"foo\" is missing the following required annotations: Favorite Color")).to.be.true;
+        });
+        it("adds error if an annotation value is not formatted correctly", () => {
+            const file = "foo";
+            const key = getUploadRowKey({file});
+            const errors = getUploadValidationErrors({
+                ...nonEmptyStateForInitiatingUpload,
+                upload: getMockStateWithHistory({
+                    [key]: {
+                        "Favorite Color": "red",
+                        "barcode": "1234",
+                        file,
+                        key,
+                        "wellIds": [1],
+                    },
+                }),
+            });
+            expect(errors.includes("Unexpected format for annotation type. Hover red x icons for more information."))
+                .to.be.true;
         });
     });
 });
