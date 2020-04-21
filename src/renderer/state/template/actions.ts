@@ -1,8 +1,8 @@
+import { UploadStateBranch } from "../upload/types";
 import {
     ADD_ANNOTATION,
     CLEAR_TEMPLATE_DRAFT,
     CLEAR_TEMPLATE_HISTORY,
-    GET_TEMPLATE,
     JUMP_TO_PAST_TEMPLATE,
     REMOVE_ANNOTATIONS,
     SAVE_TEMPLATE,
@@ -14,7 +14,6 @@ import {
     Annotation,
     ClearTemplateDraftAction,
     ClearTemplateHistoryAction,
-    GetTemplateAction,
     JumpToPastTemplateAction,
     RemoveAnnotationsAction,
     SaveTemplateAction,
@@ -43,16 +42,6 @@ export function clearTemplateHistory(): ClearTemplateHistoryAction {
     };
 }
 
-export function getTemplate(templateId: number, addAnnotationsToUpload: boolean = false): GetTemplateAction {
-    return {
-        payload: {
-            addAnnotationsToUpload,
-            templateId,
-        },
-        type: GET_TEMPLATE,
-    };
-}
-
 export function jumpToPastTemplate(index: number): JumpToPastTemplateAction {
     return {
         index,
@@ -73,10 +62,13 @@ export function saveTemplate(): SaveTemplateAction {
     };
 }
 
-export function setAppliedTemplate(template: Template): SetAppliedTemplateAction {
+export function setAppliedTemplate(template: Template, uploads: UploadStateBranch): SetAppliedTemplateAction {
     return {
         autoSave: true,
-        payload: template,
+        payload: {
+            template,
+            uploads,
+        },
         type: SET_APPLIED_TEMPLATE,
     };
 }

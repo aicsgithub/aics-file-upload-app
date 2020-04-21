@@ -48,10 +48,7 @@ export interface MMSAnnotationValueRequest {
 }
 
 export interface ApplyTemplateAction extends WriteToStoreAction {
-    payload: {
-        clearAnnotations: boolean;
-        templateId?: number;
-    };
+    payload: number;
     type: string;
 }
 

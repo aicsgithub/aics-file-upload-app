@@ -8,12 +8,14 @@ import { CloseUploadTabAction, OpenEditFileMetadataTabAction } from "../route/ty
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 
 import { SelectBarcodeAction, SelectionStateBranch, SetPlateAction } from "../selection/types";
+import { SAVE_TEMPLATE, SET_APPLIED_TEMPLATE } from "../template/constants";
+import { SaveTemplateAction, SetAppliedTemplateAction } from "../template/types";
 import {
     HTTP_STATUS,
     TypeToDescriptionMap,
 } from "../types";
-import { SUBMIT_FILE_METADATA_UPDATE } from "../upload/constants";
-import { SubmitFileMetadataUpdateAction } from "../upload/types";
+import { APPLY_TEMPLATE, SUBMIT_FILE_METADATA_UPDATE } from "../upload/constants";
+import { ApplyTemplateAction, SubmitFileMetadataUpdateAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -182,6 +184,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is OpenTemplateEditorAction => action.type === OPEN_TEMPLATE_EDITOR,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
+            deferredAction: clearTemplateDraft(),
             visibleModals: uniq([...state.visibleModals, "templateEditor"]),
         }),
     },
@@ -260,6 +263,29 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             requestsInProgress: without(state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+        }),
+    },
+    [APPLY_TEMPLATE]: {
+        accepts: (action: AnyAction): action is ApplyTemplateAction =>
+            action.type === APPLY_TEMPLATE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.GET_TEMPLATE]),
+        }),
+    },
+    [SET_APPLIED_TEMPLATE]: {
+        accepts: (action: AnyAction): action is SetAppliedTemplateAction => action.type === SET_APPLIED_TEMPLATE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_TEMPLATE),
+        }),
+    },
+    [SAVE_TEMPLATE]: {
+        accepts: (action: AnyAction): action is SaveTemplateAction =>
+            action.type === SAVE_TEMPLATE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.SAVE_TEMPLATE]),
         }),
     },
     [SUBMIT_FILE_METADATA_UPDATE]: {

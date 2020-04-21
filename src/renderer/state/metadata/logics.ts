@@ -241,14 +241,13 @@ const requestTemplatesLogicLogic = createLogic({
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         try {
-            let templates = await getWithRetry(
+            const templates = await getWithRetry(
                 () => labkeyClient.getTemplates(),
                 AsyncRequest.GET_TEMPLATES,
                 dispatch,
                 "LabKey",
                 "Could not retrieve templates"
             );
-            templates = sortBy(templates, ["name"]);
             dispatch(receiveMetadata({templates}));
         } catch (e) {
             logger.error("Could not retrieve templates", e);

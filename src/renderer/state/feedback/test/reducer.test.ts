@@ -3,6 +3,7 @@ import { receiveFileMetadata, requestFileMetadataForJob } from "../../metadata/a
 
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
+import { clearTemplateDraft } from "../../template/actions";
 import { mockPlate, mockSuccessfulUploadJob, mockWells } from "../../test/mocks";
 import {
     addEvent,
@@ -146,6 +147,10 @@ describe("feedback reducer", () => {
             const result = reducer(initialState, openTemplateEditor());
             expect(result.visibleModals.includes("templateEditor")).to.be.true;
         });
+        it("sets clearTemplateDraft as the deferredAction", () => {
+            const result = reducer(initialState, openTemplateEditor());
+            expect(result.deferredAction).to.deep.equal(clearTemplateDraft());
+        });
     });
     describe("setDeferredAction", () => {
         it("sets deferredAction", () => {
@@ -221,6 +226,25 @@ describe("feedback reducer", () => {
                 {...initialState, requestsInProgress: [AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]},
                 receiveFileMetadata([{foo: "bar"}]));
             expect(result.requestsInProgress.includes(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB)).to.be.false;
+        });
+    });
+    describe("applyTemplate", () => {
+        it("adds GET_TEMPLATE to requestsInProgress", () => {
+            const result = reducer(initialState, applyTemplate(1));
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_TEMPLATE)).to.be.true;
+        });
+    });
+    describe("setAppliedTemplate", () => {
+        it("removes GET_TEMPLATE from requestsInProgress", () => {
+            const result = reducer({...initialState, requestsInProgress: [AsyncRequest.GET_TEMPLATE]},
+                setAppliedTemplate(mockMMSTemplate, {}));
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_TEMPLATE)).to.be.false;
+        });
+    });
+    describe("saveTemplate", () => {
+        it("adds SAVE_TEMPLATE to requestsInProgress", () => {
+            const result = reducer(initialState, saveTemplate());
+            expect(result.requestsInProgress.includes(AsyncRequest.SAVE_TEMPLATE));
         });
     });
 });

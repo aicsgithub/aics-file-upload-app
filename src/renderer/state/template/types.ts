@@ -1,4 +1,5 @@
 import { Audited, AutoSaveAction } from "../types";
+import { UploadStateBranch } from "../upload/types";
 
 export interface TemplateStateBranch {
     appliedTemplate?: Template;
@@ -102,7 +103,10 @@ export interface SaveTemplateAction {
 }
 
 export interface SetAppliedTemplateAction extends AutoSaveAction {
-    payload: Template;
+    payload: {
+        template: Template;
+        uploads: UploadStateBranch;
+    };
     type: string;
 }
 

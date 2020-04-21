@@ -10,7 +10,13 @@ import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
 import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { getUploadFilePromise, mergeChildPaths, pivotAnnotations, splitTrimAndFilter } from "../../util";
+import {
+    getSetAppliedTemplateAction,
+    getUploadFilePromise,
+    mergeChildPaths,
+    pivotAnnotations,
+    splitTrimAndFilter,
+} from "../../util";
 import {
     addRequestToInProgress,
     clearUploadError,
@@ -40,7 +46,6 @@ import {
     getStagedFiles,
 } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
-import { getTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
 import {
@@ -143,9 +148,23 @@ const undoFileWellAssociationLogic = createLogic({
 });
 
 const applyTemplateLogic = createLogic({
-    process: ({action, getState}: ReduxLogicProcessDependencies, next: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const { templateId } = action.payload;
-        next(getTemplate(templateId, true));
+    process: async ({action, getState, mmsClient }: ReduxLogicProcessDependencies,
+                    dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        const templateId = action.payload;
+        try {
+            const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+                templateId,
+                getState,
+                mmsClient,
+                dispatch
+            );
+            dispatch(setAppliedTemplateAction);
+        } catch (e) {
+            dispatch(batchActions([
+                setErrorAlert("Could not apply template: " + e.message),
+                removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
+            ]));
+        }
         done();
     },
     type: APPLY_TEMPLATE,
