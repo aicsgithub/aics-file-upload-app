@@ -3,8 +3,9 @@ import { receiveFileMetadata, requestFileMetadataForJob } from "../../metadata/a
 
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
-import { clearTemplateDraft } from "../../template/actions";
-import { mockPlate, mockSuccessfulUploadJob, mockWells } from "../../test/mocks";
+import { clearTemplateDraft, saveTemplate, setAppliedTemplate } from "../../template/actions";
+import { mockMMSTemplate, mockPlate, mockSuccessfulUploadJob, mockWells } from "../../test/mocks";
+import { applyTemplate } from "../../upload/actions";
 import {
     addEvent,
     addRequestToInProgress,

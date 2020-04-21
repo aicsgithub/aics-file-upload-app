@@ -7,6 +7,7 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { getCurrentUploadKey, getCurrentUploadName } from "../../containers/App/selectors";
 import {
+    getSetAppliedTemplateAction,
     getSetPlateAction,
     getWithRetry,
     makePosixPathCompatibleWithPlatform,
@@ -42,7 +43,6 @@ import {
     State,
 } from "../types";
 import {
-    applyTemplate,
     clearUploadDraft,
     clearUploadHistory,
     jumpToPastUpload,
@@ -386,13 +386,13 @@ const openEditFileMetadataTabLogic = createLogic({
                 // we want to find the barcode associated with any well id found in this upload
                 const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(wellId);
                 const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(barcode);
-                actions.push(await getSetPlateAction(
+                const setPlateAction = await getSetPlateAction(
                     barcode,
                     imagingSessionIds,
                     mmsClient,
                     dispatch
-                ));
-                actions.push(selectBarcode(barcode, imagingSessionIds));
+                );
+                actions.push(selectBarcode(barcode, imagingSessionIds), setPlateAction);
             } catch (e) {
                 const error = `Could not get plate information from upload: ${e.message}`;
                 logger.error(error);
@@ -407,7 +407,13 @@ const openEditFileMetadataTabLogic = createLogic({
 
         // Currently we only allow applying one template at a time
         if (fileMetadataForJob[0]?.templateId) {
-            actions.push(applyTemplate(fileMetadataForJob[0]?.templateId, false));
+            const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+                fileMetadataForJob[0]?.templateId,
+                getState,
+                mmsClient,
+                dispatch
+            );
+            actions.push(setAppliedTemplateAction);
         }
 
         const newUpload = convertImageModelMetadataToUploadStateBranch(fileMetadataForJob);

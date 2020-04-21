@@ -8,6 +8,7 @@ import { CloseUploadTabAction, OpenEditFileMetadataTabAction } from "../route/ty
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 
 import { SelectBarcodeAction, SelectionStateBranch, SetPlateAction } from "../selection/types";
+import { clearTemplateDraft } from "../template/actions";
 import { SAVE_TEMPLATE, SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SaveTemplateAction, SetAppliedTemplateAction } from "../template/types";
 import {
