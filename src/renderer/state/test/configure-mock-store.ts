@@ -22,9 +22,17 @@ import {
     template,
     upload,
 } from "../";
-import { LocalStorage, State } from "../types";
+import { State } from "../types";
 import { Actions, default as ActionTracker } from "./action-tracker";
 import { getMockStateWithHistory } from "./mocks";
+
+export interface LocalStorageStub {
+    clear: SinonStub;
+    delete: SinonStub;
+    get: SinonStub;
+    has: SinonStub;
+    set: SinonStub;
+}
 
 export interface ReduxLogicDependencies {
     dialog: {
@@ -46,20 +54,16 @@ export interface ReduxLogicDependencies {
         warn: SinonStub;
     };
     mmsClient: MMSClient;
-    storage: {
-        clear: SinonStub;
-        get: SinonStub;
-        has: SinonStub;
-        set: SinonStub;
-    };
+    storage: LocalStorageStub;
 }
 
 const host = "localhost";
 const port = "80";
 const protocol = "http";
 const username = "foo";
-const localStorage: LocalStorage = {
+export const storage: LocalStorageStub = {
     clear: stub(),
+    delete: stub(),
     get: stub(),
     has: stub(),
     set: stub(),
@@ -67,8 +71,8 @@ const localStorage: LocalStorage = {
 
 export const fms = new FileManagementSystem({host, port});
 export const jssClient = new JobStatusClient({host, port, username});
-export const labkeyClient = new LabkeyClient({host, localStorage, port, protocol});
-export const mmsClient = new MMSClient({host, localStorage, port, protocol, username});
+export const labkeyClient = new LabkeyClient({host, localStorage: storage, port, protocol});
+export const mmsClient = new MMSClient({host, localStorage: storage, port, protocol, username});
 
 export const switchEnvMenuItem = {
     enabled: true,
@@ -103,13 +107,6 @@ export const logger = {
     error: stub(),
     info: stub(),
     warn: stub(),
-};
-
-export const storage = {
-    clear: stub(),
-    get: stub(),
-    has: stub(),
-    set: stub(),
 };
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {

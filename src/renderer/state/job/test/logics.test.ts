@@ -85,6 +85,7 @@ describe("Job logics", () => {
         const uploadJobs =  [mockSuccessfulUploadJob];
         const storage = {
             clear: stub(),
+            delete: stub(),
             get: stub(),
             has: stub(),
             set: stub(),
