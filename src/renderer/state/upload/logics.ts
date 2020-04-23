@@ -743,7 +743,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     process: async ({ getState, jssClient, mmsClient }: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
         const actions: AnyAction[] = [removeRequestFromInProgress(AsyncRequest.UPDATE_FILE_METADATA)];
-        const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
+        const fileIdsToDelete: string[] = []; // todo reset to this: getFileIdsToDelete(getState());
 
         // We delete files in series so that we can ignore the files that have already been deleted
         fileIdsToDelete.forEach(async (fileId: string) => {
@@ -781,9 +781,20 @@ const submitFileMetadataUpdateLogic = createLogic({
         // This method currently deletes file metadata and then re-creates the file metadata since we
         // do not have a PUT endpoint yet.
         const createFileMetadataRequests = getCreateFileMetadataRequests(getState());
-        await Promise.all(
-            createFileMetadataRequests.map(({fileId, request}) => mmsClient.editFileMetadata(fileId, request))
-        );
+        try {
+            await Promise.all(
+                createFileMetadataRequests.map(({fileId, request}) => mmsClient.editFileMetadata(fileId, request))
+            );
+        } catch (e) {
+            console.log(e);
+            dispatch(batchActions([
+                ...actions,
+                setErrorAlert("Could not edit files: " + e.message),
+            ]));
+            done();
+            return;
+        }
+
 
         dispatch(batchActions([
             ...actions,

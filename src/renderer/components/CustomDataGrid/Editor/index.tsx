@@ -1,11 +1,12 @@
 import { DatePicker, Input, InputNumber, Select } from "antd";
 import Logger from "js-logger";
+import { castArray, isNil } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import { editors } from "react-data-grid";
+
 import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
-
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
@@ -35,7 +36,20 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
     public input = React.createRef<HTMLDivElement>();
 
     public render() {
-        const { column: { allowMultipleValues, dropdownValues, type }, value } = this.props;
+        const { column: { allowMultipleValues, dropdownValues, type }, value: rawValue } = this.props;
+
+        console.log(`${this.props.column.key}`, rawValue);
+        let value: any;
+        if (allowMultipleValues) {
+            console.log("allow multiple");
+            value = isNil(rawValue) ? [] : castArray(rawValue);
+        } else if (Array.isArray(rawValue)) {
+            console.log("dont allow multiple");
+            value = rawValue.length > 0 ? rawValue[0] : undefined;
+            if (type === ColumnType.BOOLEAN && isNil(value)) {
+                value = false;
+            }
+        }
 
         let input;
         switch (type) {

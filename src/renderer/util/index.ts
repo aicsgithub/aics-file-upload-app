@@ -350,17 +350,20 @@ export const getSetPlateAction = async (
  * Helper for logics that need to retrieve file metadata
  * @param {string[]} fileIds
  * @param {FileManagementSystem} fms
+ * @param {boolean} transformDates whether to convert annotation values for date annotations to dates or
+ * leave them as strings
  * @returns {AnyAction} actions to dispatch
  */
 export const retrieveFileMetadata = async (
     fileIds: string[],
-    fms: FileManagementSystem
+    fms: FileManagementSystem,
+    transformDates: boolean = true
 ): Promise<ImageModelMetadata[]> => {
     // todo remove hack
-    const storage = new Store();
-    if (storage.has("fileMetadata")) {
-        return Promise.resolve(storage.get("fileMetadata") as ImageModelMetadata[]);
-    }
+    // const storage = new Store();
+    // if (storage.has("fileMetadata")) {
+    //     return Promise.resolve(storage.get("fileMetadata") as ImageModelMetadata[]);
+    // }
     fileIds = ["345da69bbd1348799bbaaa4139cbd96c"];
     const resolvedPromises: FileMetadata[] = await Promise.all(
         fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
@@ -371,8 +374,8 @@ export const retrieveFileMetadata = async (
             ...filesToFileMetadata,
             [fileMetadata.fileId]: fileMetadata,
         }), {});
-    const result = await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
-    storage.set("fileMetadata", result);
+    const result = await fms.transformFileMetadataIntoTable(fileMetadataForFileIds, transformDates);
+    // storage.set("fileMetadata", result);
     return result;
 };
 

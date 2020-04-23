@@ -27,8 +27,14 @@ import { AsyncRequest, ModalName } from "../feedback/types";
 import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory, getWellAnnotation } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
-import { clearSelectionHistory, jumpToPastSelection, selectBarcode, toggleFolderTree } from "../selection/actions";
+import {
+    clearSelectionHistory,
+    jumpToPastSelection,
+    selectBarcode,
+    toggleFolderTree,
+} from "../selection/actions";
 import { getCurrentSelectionIndex, getFolderTreeOpen } from "../selection/selectors";
+import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
@@ -309,22 +315,25 @@ const closeUploadTabLogic = createLogic({
 
 const convertImageModelMetadataToUploadStateBranch = (metadata: ImageModelMetadata[]): UploadStateBranch => {
     return metadata.reduce((accum: UploadStateBranch, curr: ImageModelMetadata) => {
-        const {archiveFilePath, localFilePath, positionIndex} = curr;
+        const {archiveFilePath, channelId, localFilePath, positionIndex, scene, subImageName} = curr;
         const file = localFilePath || archiveFilePath || "";
-        // TODO handle channelId, scene, subImageName
-        const key: string = getUploadRowKey({file, positionIndex});
-        // TODO handle well, barcode, image model
+        const key: string = getUploadRowKey({channelId, file, positionIndex, scene, subImageName});
         const well: string | number | undefined = curr.Well;
         const wellIds: number[] = well ? castArray(well).map((w: string | number) => parseInt(`${w}`, 10))
             : [];
+        const workflows = curr.Workflow;
+        const notes = curr.Notes;
+        const channel = curr.channel && curr.channelId ? { name: curr.channel, channelId: curr.channelId } : undefined;
         return {
             ...accum,
             [key]: {
                 ...curr,
                 barcode: curr.barcode ? `${curr.barcode}` : undefined,
+                channel,
                 file,
-                notes: curr.Notes,
+                notes,
                 wellIds,
+                workflows,
             },
         };
     }, {} as UploadStateBranch);
@@ -403,6 +412,8 @@ const openEditFileMetadataTabLogic = createLogic({
                 done();
                 return;
             }
+        } else {
+            actions.push(associateByWorkflow(true));
         }
 
         // Currently we only allow applying one template at a time
