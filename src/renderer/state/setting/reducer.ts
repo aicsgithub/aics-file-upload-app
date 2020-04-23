@@ -57,7 +57,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === APPLY_TEMPLATE,
         perform: (state: SettingStateBranch, action: ApplyTemplateAction) => ({
             ...state,
-            templateId: action.payload.templateId,
+            templateId: action.payload,
         }),
     },
     [SET_PLATE]: {

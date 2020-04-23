@@ -2,21 +2,18 @@ import { expect } from "chai";
 import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
-import { createMockReduxStore, labkeyClient, mmsClient } from "../../test/configure-mock-store";
+import { createMockReduxStore, mmsClient } from "../../test/configure-mock-store";
 import {
     getMockStateWithHistory,
     mockAnnotationDraft,
     mockAnnotationTypes,
     mockFavoriteColorAnnotation,
     mockLookups,
-    mockMMSTemplate,
     mockState,
 } from "../../test/mocks";
-import { getUpload } from "../../upload/selectors";
 
-import { addExistingAnnotation, getTemplate, removeAnnotations, saveTemplate } from "../actions";
-import { DEFAULT_TEMPLATE_DRAFT } from "../constants";
-import { getAppliedTemplate, getTemplateDraft, getTemplateDraftAnnotations } from "../selectors";
+import { addExistingAnnotation, removeAnnotations, saveTemplate } from "../actions";
+import { getTemplateDraftAnnotations } from "../selectors";
 import { ColumnType } from "../types";
 
 describe("Template Logics", () => {
@@ -105,65 +102,6 @@ describe("Template Logics", () => {
 
             state = store.getState();
             expect(getAlert(state)).to.not.be.undefined;
-        });
-    });
-
-    describe("getTemplateLogic", () => {
-        it("sets applied template and updates uploads if addAnnotationsToUpload=true", async () => {
-            const key = "somekey";
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...startState,
-                upload: getMockStateWithHistory({
-                    ...startState.upload.present,
-                    [key]: {
-                        barcode: "abc",
-                        file: key,
-                        wellIds: [1, 2],
-                    },
-                }),
-            });
-            const getColumnValuesStub = stub().resolves(["a"]);
-            const getTemplateStub = stub().resolves(mockMMSTemplate);
-
-            sandbox.replace(labkeyClient, "getColumnValues", getColumnValuesStub);
-            sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
-
-            expect(getAppliedTemplate(store.getState())).to.be.undefined;
-            expect("Favorite Color" in getUpload(store.getState())[key]).to.be.false;
-
-            store.dispatch(getTemplate(1, true));
-
-            await logicMiddleware.whenComplete();
-            expect(getAppliedTemplate(store.getState())).to.not.be.undefined;
-            expect("Favorite Color" in getUpload(store.getState())[key]).to.be.true;
-        });
-        it("updates template draft if addAnnotationsToUpload=false", async () => {
-            const getTemplateStub = stub().rejects();
-            sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...startState,
-            });
-
-            expect(getAlert(store.getState())).to.be.undefined;
-
-            store.dispatch(getTemplate(1));
-
-            await logicMiddleware.whenComplete();
-            expect(getAlert(store.getState())).to.not.be.undefined;
-        });
-        it("sets alert if getTemplate returns not OK response", async () => {
-            const getTemplateStub = stub().resolves(mockMMSTemplate);
-            sandbox.replace(mmsClient, "getTemplate", getTemplateStub);
-            const { logicMiddleware, store } = createMockReduxStore({
-                ...startState,
-            });
-
-            expect(getTemplateDraft(store.getState())).to.deep.equal(DEFAULT_TEMPLATE_DRAFT);
-
-            store.dispatch(getTemplate(1));
-
-            await logicMiddleware.whenComplete();
-            expect(getTemplateDraft(store.getState())).to.not.deep.equal(DEFAULT_TEMPLATE_DRAFT);
         });
     });
 

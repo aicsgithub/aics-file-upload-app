@@ -153,12 +153,9 @@ export function initiateUpload(): InitiateUploadAction {
     };
 }
 
-export function applyTemplate(templateId: number, clearAnnotations: boolean = true): ApplyTemplateAction {
+export function applyTemplate(templateId: number): ApplyTemplateAction {
     return {
-        payload: {
-            clearAnnotations,
-            templateId,
-        },
+        payload: templateId,
         type: APPLY_TEMPLATE,
         updates: {
             [`${USER_SETTINGS_KEY}.templateId`]: templateId,
