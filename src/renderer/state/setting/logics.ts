@@ -103,19 +103,19 @@ const gatherSettingsLogic = createLogic({
                 next: ReduxLogicNextCb) => {
         try {
             const settings = storage.get(USER_SETTINGS_KEY);
-            const { host, port, username } = settings;
-            if (host) {
-                fms.host = host;
-                jssClient.host = host;
-                labkeyClient.host = host;
-                mmsClient.host = host;
+            const { limsHost, limsPort, username } = settings;
+            if (limsHost) {
+                fms.host = limsHost;
+                jssClient.host = limsHost;
+                labkeyClient.host = limsHost;
+                mmsClient.host = limsHost;
             }
 
-            if (port) {
-                fms.port = port;
-                jssClient.port = port;
-                labkeyClient.port = port;
-                mmsClient.port = port;
+            if (limsPort) {
+                fms.port = limsPort;
+                jssClient.port = limsPort;
+                labkeyClient.port = limsPort;
+                mmsClient.port = limsPort;
             }
 
             if (username) {
