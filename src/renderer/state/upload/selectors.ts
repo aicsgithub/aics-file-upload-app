@@ -407,7 +407,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector([
                             invalidValues = value.filter((v: any) => typeof v !== "boolean").join(", ");
                             if (invalidValues) {
                                 annotationToErrorMap[annotationName] =
-                                    `${invalidValues} did not match expected type: Yes/No`;
+                                    `${invalidValues} did not match expected type: YesNo`;
                             }
                             break;
                         case numberAnnotationTypeId:

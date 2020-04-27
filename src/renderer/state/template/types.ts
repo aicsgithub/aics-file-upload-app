@@ -59,10 +59,10 @@ export interface AnnotationWithOptions extends Annotation {
 export enum ColumnType {
     TEXT = "Text",
     DROPDOWN = "Dropdown",
-    BOOLEAN = "Yes/No",
+    BOOLEAN = "YesNo",
     NUMBER = "Number",
     DATE = "Date",
-    DATETIME = "Date/Time",
+    DATETIME = "DateTime",
     LOOKUP = "Lookup",
 }
 
