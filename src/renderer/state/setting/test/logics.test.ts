@@ -249,6 +249,56 @@ describe("Setting logics", () => {
             expect(getAlert(store.getState())).to.be.undefined;
         });
 
+        it("updates various lims clients", async () => {
+            const deps = {
+                ...mockReduxLogicDeps,
+                storage: {
+                    ...mockReduxLogicDeps.storage,
+                    get: sinon.stub().returns({
+                        limsHost: stagingHost,
+                        limsPort: "80",
+                        username: "foo",
+                    }),
+                },
+            };
+            const { logicMiddleware, store } = createMockReduxStore(mockState, deps);
+
+            // before
+            expect(fmsHostSetterSpy.called).to.be.false;
+            expect(jssHostSetterSpy.called).to.be.false;
+            expect(labkeyClientHostSetterSpy.called).to.be.false;
+            expect(mmsClientHostSetterSpy.called).to.be.false;
+
+            expect(fmsPortSetterSpy.called).to.be.false;
+            expect(jssHostSetterSpy.called).to.be.false;
+            expect(labkeyClientPortSetterSpy.called).to.be.false;
+            expect(mmsClientPortSetterSpy.called).to.be.false;
+
+            expect(fmsUsernameSetterSpy.called).to.be.false;
+            expect(jssUsernameSetterSpy.called).to.be.false;
+            // labkey client currently doesn't need a username
+            expect(mmsClientUsernameSetterSpy.called).to.be.false;
+
+            // apply
+            store.dispatch(gatherSettings());
+            await logicMiddleware.whenComplete();
+
+            // after
+            expect(fmsHostSetterSpy.calledWith(stagingHost)).to.be.true;
+            expect(jssHostSetterSpy.calledWith(stagingHost)).to.be.true;
+            expect(labkeyClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
+            expect(mmsClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
+
+            expect(fmsPortSetterSpy.calledWith("80")).to.be.true;
+            expect(jssPortSetterSpy.calledWith("80")).to.be.true;
+            expect(labkeyClientPortSetterSpy.calledWith("80")).to.be.true;
+            expect(mmsClientPortSetterSpy.calledWith("80")).to.be.true;
+
+            expect(fmsUsernameSetterSpy.calledWith("foo")).to.be.true;
+            expect(jssUsernameSetterSpy.calledWith("foo")).to.be.true;
+            expect(mmsClientUsernameSetterSpy.calledWith("foo")).to.be.true;
+       });
+
         it("sets alert if error in getting storage settings", () => {
             const deps = {
                 ...mockReduxLogicDeps,
