@@ -1,6 +1,8 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
+import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
 import { RECEIVE_FILE_METADATA, REQUEST_FILE_METADATA_FOR_JOB } from "../metadata/constants";
 import { ReceiveFileMetadataAction, RequestFileMetadataForJobAction } from "../metadata/types";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
@@ -279,6 +281,22 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.SAVE_TEMPLATE]),
+        }),
+    },
+    [RETRIEVE_JOBS]: {
+        accepts: (action: AnyAction): action is RetrieveJobsAction =>
+            action.type === RETRIEVE_JOBS,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.GET_JOBS]),
+        }),
+    },
+    [RECEIVE_JOBS]: {
+        accepts: (action: AnyAction): action is ReceiveJobsAction =>
+            action.type === RECEIVE_JOBS,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_JOBS),
         }),
     },
 };

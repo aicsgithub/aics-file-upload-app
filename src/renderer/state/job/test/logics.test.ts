@@ -1,32 +1,20 @@
 import { expect } from "chai";
-import { difference } from "lodash";
 import { createSandbox, stub } from "sinon";
 import { JOB_STORAGE_KEY } from "../../../../shared/constants";
 
-import { SET_ALERT } from "../../feedback/constants";
+import { ADD_EVENT, SET_ALERT } from "../../feedback/constants";
 import { AlertType } from "../../feedback/types";
 
 import { getApplicationMenu, logger } from "../../test/configure-mock-store";
 import {
-    mockFailedUploadJob,
     mockState,
     mockSuccessfulAddMetadataJob,
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob,
 } from "../../test/mocks";
-import { State } from "../../types";
 import { getActionFromBatch } from "../../util";
-import {
-    FAILED_STATUSES,
-    PENDING_STATUSES,
-    REMOVE_PENDING_JOB,
-    SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
-    SET_UPLOAD_JOBS,
-    SUCCESSFUL_STATUS,
-    UPDATE_INCOMPLETE_JOB_NAMES,
-} from "../constants";
-import { getJobStatusesToInclude, mapJobsToActions } from "../logics";
+import { RECEIVE_JOBS } from "../constants";
+import { mapJobsToActions } from "../logics";
 import { JobFilter } from "../types";
 
 describe("Job logics", () => {
@@ -36,53 +24,12 @@ describe("Job logics", () => {
         sandbox.restore();
     });
 
-    describe("getJobStatusesToInclude", () => {
-        it("Filters by failed jobs when Failed Job Filter supplied", () => {
-            const statuses = getJobStatusesToInclude(JobFilter.Failed);
-            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
-            expect(pendingStatusesNotIncluded).to.be.empty;
-
-            const failedStatusesNotIncluded = difference(FAILED_STATUSES, statuses);
-            expect(failedStatusesNotIncluded).to.be.empty;
-            expect(statuses.length).to.equal(PENDING_STATUSES.length + FAILED_STATUSES.length);
-        });
-
-        it("Filters by successful jobs when Successful Job Filter supplied", () => {
-            const statuses = getJobStatusesToInclude(JobFilter.Successful);
-            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
-            expect(pendingStatusesNotIncluded).to.be.empty;
-
-            const successfulStatus = statuses.find((s) => s === SUCCESSFUL_STATUS);
-            expect(successfulStatus).to.not.be.undefined;
-            expect(statuses.length).to.equal(PENDING_STATUSES.length + 1);
-        });
-
-        it("Filters by pending jobs when Pending Job Filter supplied", () => {
-            const statuses = getJobStatusesToInclude(JobFilter.Pending);
-            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
-            expect(pendingStatusesNotIncluded).to.be.empty;
-            expect(statuses.length).to.equal(PENDING_STATUSES.length);
-        });
-
-        it("Includes all statuses when All Job Filter supplied", () => {
-            const statuses = getJobStatusesToInclude(JobFilter.All);
-            const pendingStatusesNotIncluded = difference(PENDING_STATUSES, statuses);
-            expect(pendingStatusesNotIncluded).to.be.empty;
-
-            const successfulStatus = statuses.find((s) => s === SUCCESSFUL_STATUS);
-            expect(successfulStatus).to.not.be.undefined;
-
-            const failedStatusesNotIncluded = difference(FAILED_STATUSES, statuses);
-            expect(failedStatusesNotIncluded).to.be.empty;
-
-            expect(statuses.length).to.equal(PENDING_STATUSES.length + FAILED_STATUSES.length + 1);
-        });
-    });
-
     describe("mapJobsToActions", () => {
         const addMetadataJobs = [mockSuccessfulAddMetadataJob];
         const copyJobs = [mockSuccessfulCopyJob];
         const uploadJobs =  [mockSuccessfulUploadJob];
+        const recentlyFailedJobNames = ["jobName"];
+        const recentlySucceededJobNames = ["jobName2"];
         const storage = {
             clear: stub(),
             delete: stub(),
@@ -91,47 +38,44 @@ describe("Job logics", () => {
             set: stub(),
         };
 
-        it("Sets jobs passed in",  () => {
+        it("Sets error if error is present", () => {
             const getState = () => mockState;
-            const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
-                addMetadataJobs,
-                copyJobs,
-                potentiallyIncompleteJobs: [],
-                uploadJobs,
-            });
-            const setAddMetadataJobsAction = getActionFromBatch(actions, SET_ADD_METADATA_JOBS);
-            const setCopyJobsAction = getActionFromBatch(actions, SET_COPY_JOBS);
-            const setUploadJobsAction = getActionFromBatch(actions, SET_UPLOAD_JOBS);
-            const removePendingJobsAction = getActionFromBatch(actions, REMOVE_PENDING_JOB);
-
-            expect(setAddMetadataJobsAction).to.not.be.undefined;
-            expect(setCopyJobsAction).to.not.be.undefined;
-            expect(setUploadJobsAction).to.not.be.undefined;
-            expect(removePendingJobsAction).to.be.undefined;
+            const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({error: new Error("boo")});
+            const addEventAction = getActionFromBatch(actions, ADD_EVENT);
+            expect(addEventAction).to.not.be.undefined;
+            expect(addEventAction?.payload.type).to.equal(AlertType.ERROR);
+            expect(addEventAction?.payload.message).to.equal("Could not retrieve jobs: boo");
         });
 
-        it("Removes pending job names that are found in the uploadJobs passed in", () => {
-            const getState = (): State => ({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    pendingJobs: [{...mockSuccessfulUploadJob, uploads: {}}],
-                },
-            });
+        it("Sets jobs passed in",  () => {
+            const actualIncompleteJobNames = ["imActuallyIncomplete"];
+            const getState = () => mockState;
+            const pendingJobsToRemove = [mockSuccessfulUploadJob];
             const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
+                actualIncompleteJobNames,
                 addMetadataJobs,
                 copyJobs,
-                potentiallyIncompleteJobs: [],
+                pendingJobsToRemove,
+                recentlyFailedJobNames,
+                recentlySucceededJobNames,
                 uploadJobs,
             });
-            const removePendingJobsAction = getActionFromBatch(actions, REMOVE_PENDING_JOB);
-            expect(removePendingJobsAction).to.not.be.undefined;
+            const receiveJobsAction = getActionFromBatch(actions, RECEIVE_JOBS);
+
+            expect(receiveJobsAction).to.deep.equal({
+                payload: {
+                    addMetadataJobs,
+                    copyJobs,
+                    inProgressUploadJobs: [],
+                    incompleteJobNames: actualIncompleteJobNames,
+                    pendingJobNamesToRemove: ["mockJob1"],
+                    uploadJobs,
+                },
+                type: RECEIVE_JOBS,
+            });
         });
 
         it("Sends alert for successful upload job given incomplete job",  () => {
-            const setStub = stub();
-            sandbox.replace(storage, "set", setStub);
-
             const getState = () => ({
                 ...mockState,
                 job: {
@@ -142,25 +86,23 @@ describe("Job logics", () => {
             });
 
             const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
+                actualIncompleteJobNames: [],
                 addMetadataJobs,
                 copyJobs,
-                potentiallyIncompleteJobs: [
-                    {...mockSuccessfulUploadJob, created: new Date("2019-01-01"), jobId: "job1"},
-                    {...mockSuccessfulUploadJob, created: new Date("2020-01-01"), jobId: "job2"},
-                    {...mockSuccessfulUploadJob, created: new Date("2018-01-01"), jobId: "job3"},
+                recentlySucceededJobNames: [
+                    "mockJob1",
                 ],
                 uploadJobs,
             });
 
-            const updateIncompleteJobNamesAction = getActionFromBatch(actions, UPDATE_INCOMPLETE_JOB_NAMES);
-            expect(updateIncompleteJobNamesAction).to.not.be.undefined;
-            if (updateIncompleteJobNamesAction) {
-                expect(updateIncompleteJobNamesAction.payload).to.be.empty;
-            }
+            const receivedJobsAction = getActionFromBatch(actions, RECEIVE_JOBS);
+            expect(receivedJobsAction).to.not.be.undefined;
+            expect(receivedJobsAction?.payload.incompleteJobNames).to.be.empty;
 
             const setAlertAction = getActionFromBatch(actions, SET_ALERT);
             expect(setAlertAction).to.not.be.undefined;
-            expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobNames`, [])).to.be.true;
+            expect(actions.updates).to.not.be.undefined;
+            expect(actions?.updates[`${JOB_STORAGE_KEY}.incompleteJobNames`]).to.deep.equal([]);
             if (setAlertAction) {
                 expect(setAlertAction.payload.type).to.equal(AlertType.SUCCESS);
                 expect(setAlertAction.payload.message).to.equal("mockJob1 Succeeded");
@@ -180,17 +122,16 @@ describe("Job logics", () => {
                 },
             });
             const actions = mapJobsToActions(getState, storage, logger, getApplicationMenu)({
+                actualIncompleteJobNames: [],
                 addMetadataJobs,
                 copyJobs,
-                potentiallyIncompleteJobs: [mockFailedUploadJob],
+                recentlyFailedJobNames: ["mockFailedUploadJob"],
                 uploadJobs,
             });
 
-            const updateIncompleteJobNamesAction = getActionFromBatch(actions, UPDATE_INCOMPLETE_JOB_NAMES);
-            expect(updateIncompleteJobNamesAction).to.not.be.undefined;
-            if (updateIncompleteJobNamesAction) {
-                expect(updateIncompleteJobNamesAction.payload).to.be.empty;
-            }
+            const receiveJobsAction = getActionFromBatch(actions, RECEIVE_JOBS);
+            expect(receiveJobsAction).to.not.be.undefined;
+            expect(receiveJobsAction?.payload.incompleteJobNames).to.be.empty;
 
             const setAlertAction = getActionFromBatch(actions, SET_ALERT);
             expect(setAlertAction).to.not.be.undefined;

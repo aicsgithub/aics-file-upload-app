@@ -5,12 +5,10 @@ import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 import {
     ADD_PENDING_JOB,
+    RECEIVE_JOBS,
     REMOVE_PENDING_JOB,
-    RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
-    SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
-    SET_UPLOAD_JOBS,
+    START_JOB_POLL,
     STOP_JOB_POLL,
     UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
@@ -18,12 +16,10 @@ import {
     AddPendingJobAction,
     JobFilter,
     JobStateBranch,
+    ReceiveJobsAction,
     RemovePendingJobsAction,
-    RetrieveJobsAction,
     SelectJobFilterAction,
-    SetAddMetadataJobsAction,
-    SetCopyJobsAction,
-    SetUploadJobsAction,
+    StartJobPollAction,
     StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
@@ -31,40 +27,33 @@ import {
 export const initialState: JobStateBranch = {
     addMetadataJobs: [],
     copyJobs: [],
+    inProgressUploadJobs: [],
     incompleteJobNames: [],
-    jobFilter: JobFilter.Pending,
+    jobFilter: JobFilter.InProgress,
     pendingJobs: [],
     polling: false,
     uploadJobs: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [SET_UPLOAD_JOBS]: {
-        accepts: (action: AnyAction): action is SetUploadJobsAction => action.type === SET_UPLOAD_JOBS,
-        perform: (state: JobStateBranch, action: SetUploadJobsAction) => {
-            const uploadJobs = action.payload;
+    [RECEIVE_JOBS]: {
+        accepts: (action: AnyAction): action is ReceiveJobsAction => action.type === RECEIVE_JOBS,
+        perform: (state: JobStateBranch,
+                  { payload: {
+                      addMetadataJobs,
+                      copyJobs,
+                      incompleteJobNames,
+                      pendingJobNamesToRemove,
+                      uploadJobs,
+                  }}: ReceiveJobsAction) => {
             return {
                 ...state,
-                uploadJobs,
-            };
-        },
-    },
-    [SET_COPY_JOBS]: {
-        accepts: (action: AnyAction): action is SetCopyJobsAction => action.type === SET_COPY_JOBS,
-        perform: (state: JobStateBranch, action: SetCopyJobsAction) => {
-            const copyJobs = action.payload;
-            return {
-                ...state,
+                addMetadataJobs,
                 copyJobs,
-            };
-        },
-    },
-    [SET_ADD_METADATA_JOBS]: {
-        accepts: (action: AnyAction): action is SetAddMetadataJobsAction => action.type === SET_ADD_METADATA_JOBS,
-        perform: (state: JobStateBranch, action: SetAddMetadataJobsAction) => {
-            return {
-                ...state,
-                addMetadataJobs: action.payload,
+                incompleteJobNames,
+                pendingJobs: filter(state.pendingJobs,
+                    ({jobName}) => !includes(pendingJobNamesToRemove, jobName)),
+                uploadJobs,
             };
         },
     },
@@ -105,8 +94,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [RETRIEVE_JOBS]: {
-        accepts: (action: AnyAction): action is RetrieveJobsAction => action.type === RETRIEVE_JOBS,
+    [START_JOB_POLL]: {
+        accepts: (action: AnyAction): action is StartJobPollAction => action.type === START_JOB_POLL,
         perform: (state: JobStateBranch) => ({
             ...state,
             polling: true,

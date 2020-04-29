@@ -1,5 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { every, get, includes, isEmpty, orderBy } from "lodash";
+import { isEmpty, orderBy } from "lodash";
 import * as moment from "moment";
 import { createSelector } from "reselect";
 import { DATETIME_FORMAT } from "../../constants";
@@ -22,6 +22,10 @@ export const getIncompleteJobNames = (state: State) => state.job.incompleteJobNa
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getIsPolling = (state: State) => state.job.polling;
 
+// todo: This is necessary for checking if the app is safe to exit. This isn't necessary if we store
+// upload jobs by jobId rather than jobId. After we do this we should remove this and the query that populates it.
+export const getInProgressUploadJobs = (state: State) => state.job.inProgressUploadJobs;
+
 export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
    return pendingJobs.length;
 });
@@ -30,47 +34,51 @@ export const getPendingJobNames = createSelector([getPendingJobs], (jobs: Pendin
     return jobs.map((job) => job.jobName);
 });
 
-export const getUploadJobsWithChildJobs = createSelector([
-    getCopyJobs,
-    getAddMetadataJobs,
-    getUploadJobs,
-], (copyJobs: JSSJob[], addMetadataJobs: JSSJob[], uploadJobs: JSSJob[]) => {
-   return uploadJobs.map((j) => {
-       return {
-           ...j,
-           serviceFields: {
-               ...j.serviceFields,
-               addMetadataJob: addMetadataJobs.find(({ parentId }) => parentId === j.jobId),
-               copyJob: copyJobs.find((cj) => cj.jobId === get(j, ["serviceFields", "copyJobId"])),
-           },
-       };
-   });
-});
-
 export const getJobsForTable = createSelector([
     getUploadJobs,
     getPendingJobs,
 ], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
-    return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"])
-        .map((job) => ({...job, key: job.jobId}));
+    return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"]).map((job) => ({
+        ...job,
+        created: new Date(job.created),
+        key: job.jobId,
+        modified: new Date(job.modified),
+    }));
 });
 
-// The app is only safe to exit after either fss completes or after the add metadata step has been sent off
+// The app is only safe to exit after the add metadata step has been completed
+// The add metadata step represents sending a request to FSS's /uploadComplete endpoint which delegates
+// The last steps of the upload to FSS
+// Since the add metadata step is a child of the upload job and does not get failed if the upload fails,
+// We want to return false only if the parent upload job is in progress and the add metadata step is
+// in progress.
 export const getIsSafeToExit = createSelector([
-    getUploadJobsWithChildJobs,
+    getIncompleteJobNames,
+    getAddMetadataJobs,
     getNumberOfPendingJobs,
-], (jobs: JSSJob[], numberPendingJobs: number): boolean => (
-    numberPendingJobs === 0 && every(jobs, ({ serviceFields: { addMetadataJob }, status }) => (
-        !includes(IN_PROGRESS_STATUSES, status)
-        || (addMetadataJob && !includes(IN_PROGRESS_STATUSES, addMetadataJob.status))
-    ))
-));
+    getInProgressUploadJobs,
+], (
+    incompleteJobNames: string[],
+    addMetadataJobs: JSSJob[],
+    numberPendingJobs: number,
+    inProgressUploadJobs: JSSJob[]
+): boolean => {
+    const incompleteAddMetadataJobs = addMetadataJobs.filter((addMetadataJob) => {
+        const matchingUploadJob = inProgressUploadJobs.find((uploadJob) => uploadJob.jobId === addMetadataJob.parentId);
+        if (!matchingUploadJob) {
+            // If the parent upload job is not in progress, then this job is not counted
+            return false;
+        }
+        return IN_PROGRESS_STATUSES.includes(addMetadataJob.status);
+    });
+    return numberPendingJobs === 0 && incompleteAddMetadataJobs.length === 0;
+});
 
 export const getAreAllJobsComplete = createSelector([
-    getUploadJobs,
+    getInProgressUploadJobs,
     getNumberOfPendingJobs,
-], (uploadJobs: JSSJob[], pendingJobs: number) => {
-    return pendingJobs === 0 && every(uploadJobs, (job: JSSJob) => !includes(IN_PROGRESS_STATUSES, job.status));
+], (inProgressUploadJobs: JSSJob[], pendingJobs: number) => {
+    return pendingJobs === 0 && inProgressUploadJobs.length === 0;
 });
 
 export const getCurrentJobName = createSelector([

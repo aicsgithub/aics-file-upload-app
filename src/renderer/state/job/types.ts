@@ -5,6 +5,8 @@ import { WriteToStoreAction } from "../types";
 export interface JobStateBranch {
     // Parent job representing an upload of a batch of files
     uploadJobs: JSSJob[];
+    // Parent upload jobs that are in progress
+    inProgressUploadJobs: JSSJob[];
     // Child job representing the copy step of an upload job
     copyJobs: JSSJob[];
     // Child job representing the add metadata step of an upload job
@@ -28,7 +30,7 @@ export interface PendingJob extends JSSJob {
 export enum JobFilter {
     All = "All",
     Failed = "Failed",
-    Pending = "Pending",
+    InProgress = "In Progress",
     Successful = "Successful",
 }
 
@@ -36,18 +38,15 @@ export interface RetrieveJobsAction {
     type: string;
 }
 
-export interface SetUploadJobsAction {
-    payload: JSSJob[];
-    type: string;
-}
-
-export interface SetCopyJobsAction {
-    payload: JSSJob[];
-    type: string;
-}
-
-export interface SetAddMetadataJobsAction {
-    payload: JSSJob[];
+export interface ReceiveJobsAction {
+    payload: {
+        addMetadataJobs: JSSJob[];
+        copyJobs: JSSJob[];
+        incompleteJobNames: string[];
+        inProgressUploadJobs: JSSJob[];
+        pendingJobNamesToRemove: string[];
+        uploadJobs: JSSJob[];
+    };
     type: string;
 }
 
@@ -76,5 +75,9 @@ export interface SelectJobFilterAction {
 }
 
 export interface StopJobPollAction {
+    type: string;
+}
+
+export interface StartJobPollAction {
     type: string;
 }

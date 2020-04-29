@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { receiveJobs, retrieveJobs } from "../../job/actions";
 import { receiveFileMetadata, requestFileMetadataForJob } from "../../metadata/actions";
 
 import { closeUploadTab } from "../../route/actions";
@@ -234,6 +235,18 @@ describe("feedback reducer", () => {
         it("adds SAVE_TEMPLATE to requestsInProgress", () => {
             const result = reducer(initialState, saveTemplate());
             expect(result.requestsInProgress.includes(AsyncRequest.SAVE_TEMPLATE));
+        });
+    });
+    describe("retrieveJobs", () => {
+        it("adds GET_JOBS to requestsInProgress", () => {
+            const result = reducer(initialState, retrieveJobs());
+            expect(result.requestsInProgress.includes(AsyncRequest.GET_JOBS));
+        });
+    });
+    describe("receiveJobs", () => {
+        it("removes GET_JOBS from requestsInProgress", () => {
+            const result = reducer(initialState, receiveJobs([]));
+            expect(!result.requestsInProgress.includes(AsyncRequest.GET_JOBS));
         });
     });
 });

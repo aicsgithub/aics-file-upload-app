@@ -3,12 +3,11 @@ import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
 import {
     ADD_PENDING_JOB,
     GATHER_STORED_INCOMPLETE_JOB_NAMES,
+    RECEIVE_JOBS,
     REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
-    SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
-    SET_UPLOAD_JOBS,
+    START_JOB_POLL,
     STOP_JOB_POLL,
     UPDATE_INCOMPLETE_JOB_NAMES,
 } from "./constants";
@@ -17,12 +16,11 @@ import {
     GatherIncompleteJobNamesAction,
     JobFilter,
     PendingJob,
+    ReceiveJobsAction,
     RemovePendingJobsAction,
     RetrieveJobsAction,
     SelectJobFilterAction,
-    SetAddMetadataJobsAction,
-    SetCopyJobsAction,
-    SetUploadJobsAction,
+    StartJobPollAction,
     StopJobPollAction,
     UpdateIncompleteJobNamesAction,
 } from "./types";
@@ -33,24 +31,24 @@ export function retrieveJobs(): RetrieveJobsAction {
     };
 }
 
-export function setUploadJobs(jobs: JSSJob[]): SetUploadJobsAction {
+export function receiveJobs(
+    uploadJobs: JSSJob[] = [],
+    copyJobs: JSSJob[] = [],
+    addMetadataJobs: JSSJob[] = [],
+    pendingJobNamesToRemove: string[] = [],
+    incompleteJobNames: string[] = [],
+    inProgressUploadJobs: JSSJob[] = []
+): ReceiveJobsAction {
     return {
-        payload: jobs,
-        type: SET_UPLOAD_JOBS,
-    };
-}
-
-export function setCopyJobs(jobs: JSSJob[]): SetCopyJobsAction {
-    return {
-        payload: jobs,
-        type: SET_COPY_JOBS,
-    };
-}
-
-export function setAddMetadataJobs(jobs: JSSJob[]): SetAddMetadataJobsAction {
-    return {
-        payload: jobs,
-        type: SET_ADD_METADATA_JOBS,
+        payload: {
+            addMetadataJobs,
+            copyJobs,
+            inProgressUploadJobs,
+            incompleteJobNames,
+            pendingJobNamesToRemove,
+            uploadJobs,
+        },
+        type: RECEIVE_JOBS,
     };
 }
 
@@ -89,6 +87,12 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
     return {
         payload: jobFilter,
         type: SELECT_JOB_FILTER,
+    };
+}
+
+export function startJobPoll(): StartJobPollAction {
+    return {
+        type: START_JOB_POLL,
     };
 }
 
