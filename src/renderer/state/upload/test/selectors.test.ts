@@ -1137,7 +1137,7 @@ describe("Upload selectors", () => {
             const result = getValidations(mockBooleanAnnotation, true, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
-                    [mockBooleanAnnotation.name]: "BAD did not match expected type: Yes/No",
+                    [mockBooleanAnnotation.name]: "BAD did not match expected type: YesNo",
                 },
             });
         });
@@ -1146,7 +1146,7 @@ describe("Upload selectors", () => {
             const result = getValidations(mockBooleanAnnotation, false, 1);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
-                    [mockBooleanAnnotation.name]: "1 did not match expected type: Yes/No",
+                    [mockBooleanAnnotation.name]: "1 did not match expected type: YesNo",
                 },
             });
         });

@@ -675,12 +675,13 @@ const saveUploadDraftLogic = createLogic({
         }
 
         const currentUpload = getCurrentUpload(getState()); // this is populated if the draft was saved previously
-        const created = currentUpload ? currentUpload.created : new Date();
+        const now = new Date();
+        const created = currentUpload ? currentUpload.created : now;
         const draftKey: string | undefined = getUploadDraftKey(draftName, created);
 
         const metadata: CurrentUpload = {
             created,
-            modified: currentUpload ? currentUpload.modified : created,
+            modified: now,
             name: draftName,
         };
 

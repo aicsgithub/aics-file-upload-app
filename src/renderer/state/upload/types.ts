@@ -227,7 +227,7 @@ export interface ClearUploadAction extends AutoSaveAction {
 }
 
 export interface SaveUploadDraftAction {
-    payload: string;
+    payload?: string;
     type: string;
 }
 

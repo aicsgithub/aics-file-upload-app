@@ -38,6 +38,7 @@ export interface Logger {
 
 export interface LocalStorage {
     clear: () => void;
+    delete: (key: string) => void;
     get: (key: string) => any;
     has: (key: string) => boolean;
     set: (key: string, value: any) => void;
