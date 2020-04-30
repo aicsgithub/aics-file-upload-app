@@ -1,5 +1,5 @@
 import { JSSJob, JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
-import { Button, Col, Empty, Icon, Modal, Progress, Radio, Row, Spin, Switch, Table } from "antd";
+import { Button, Col, Empty, Icon, Modal, Progress, Radio, Row, Spin, Switch, Table, Tooltip } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
@@ -133,12 +133,22 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 dataIndex: "currentStage",
                 key: "currentStage",
                 render: (stage: string, row) => !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ? (
-                    <Progress
-                        showInfo={false}
-                        status="active"
-                        percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
-                        successPercent={50}
-                    />
+                    <div className={styles.progressContainer}>
+                        <Progress
+                            showInfo={false}
+                            status="active"
+                            percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
+                            successPercent={50}
+                        />
+                        {!this.props.isPolling && (
+                            <Tooltip
+                                mouseLeaveDelay={0}
+                                title="Polling is not turned on - progress might not be accurate."
+                            >
+                                <Icon className={styles.warningIcon} type="warning"/>
+                            </Tooltip>
+                        )}
+                    </div>
                 ) : (row.serviceFields && row.serviceFields.replacementJobId ? "Replaced" : capitalize(row.status)),
                 title: "Progress",
                 width: "190px",
