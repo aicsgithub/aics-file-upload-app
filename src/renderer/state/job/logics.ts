@@ -1,6 +1,5 @@
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { Menu } from "electron";
 import { isEmpty, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -13,11 +12,6 @@ import { getWithRetry } from "../../util";
 
 import { addEvent, setAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { selectPage } from "../route/actions";
-import { findNextPage } from "../route/constants";
-import { getSelectPageActions } from "../route/logics";
-import { getPage } from "../route/selectors";
-import { clearStagedFiles } from "../selection/actions";
 import { getLoggedInUser } from "../setting/selectors";
 
 import {
@@ -29,34 +23,32 @@ import {
     ReduxLogicTransformDependencies,
     State,
 } from "../types";
-import { DRAFT_KEY } from "../upload/constants";
 import { batchActions } from "../util";
 
 import {
     receiveJobs,
     selectJobFilter,
     stopJobPoll,
-    updateIncompleteJobNames,
+    updateIncompleteJobIds,
 } from "./actions";
 import {
     FAILED_STATUSES,
-    GATHER_STORED_INCOMPLETE_JOB_NAMES,
+    GATHER_STORED_INCOMPLETE_JOB_IDS,
     IN_PROGRESS_STATUSES,
     RETRIEVE_JOBS,
     START_JOB_POLL,
     STOP_JOB_POLL,
     SUCCESSFUL_STATUS,
 } from "./constants";
-import { getIncompleteJobNames, getJobFilter, getPendingJobNames } from "./selectors";
+import { getIncompleteJobIds, getJobFilter } from "./selectors";
 import { JobFilter } from "./types";
 
 interface Jobs {
-    actualIncompleteJobNames?: string[];
+    actualIncompleteJobIds?: string[];
     addMetadataJobs?: JSSJob[];
     copyJobs?: JSSJob[];
     error?: Error;
     inProgressUploadJobs?: JSSJob[];
-    pendingJobsToRemove?: JSSJob[];
     recentlySucceededJobNames?: string[];
     recentlyFailedJobNames?: string[];
     uploadJobs?: JSSJob[];
@@ -78,41 +70,28 @@ const getJobStatusesToInclude = (jobFilter: JobFilter): string[] => {
 export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusClient): Promise<Jobs> => {
     const statusesToInclude = getJobStatusesToInclude(getJobFilter(getStateFn()));
 
-    const potentiallyIncompleteJobNames = getIncompleteJobNames(getStateFn());
-    const pendingJobNames = getPendingJobNames(getStateFn());
+    const previouslyIncompleteJobIds = getIncompleteJobIds(getStateFn());
     const user = getLoggedInUser(getStateFn());
-    const pendingJobsToRemovePromise = pendingJobNames.length ? jssClient.getJobs({
-        jobName: { $in: pendingJobNames },
-        serviceFields: {
-            type: "upload",
-        },
-        status: { $in: [...FAILED_STATUSES, SUCCESSFUL_STATUS]},
-        user,
-    }) : Promise.resolve([]);
-    const potentiallyIncompleteJobsThatSucceededPromise = potentiallyIncompleteJobNames.length ? jssClient.getJobs({
-        jobName: { $in: potentiallyIncompleteJobNames },
-        serviceFields: {
-            type: "upload",
-        },
-        status: SUCCESSFUL_STATUS,
-        user,
-    }) : Promise.resolve([]);
-    const potentiallyIncompleteJobsThatFailedPromise = potentiallyIncompleteJobNames.length ? jssClient.getJobs({
-        jobName: { $in: potentiallyIncompleteJobNames },
-        serviceFields: {
-            type: "upload",
-        },
-        status: { $in: FAILED_STATUSES },
-        user,
-    }) : Promise.resolve([]);
-    const getUploadJobsPromise = jssClient.getJobs({
+    const recentlySucceededJobsPromise: Promise<JSSJob[]> = previouslyIncompleteJobIds.length ?
+        jssClient.getJobs({
+            jobId: { $in: previouslyIncompleteJobIds },
+            status: SUCCESSFUL_STATUS,
+            user,
+        }) : Promise.resolve([]);
+    const recentlyFailedJobsPromise: Promise<JSSJob[]> = previouslyIncompleteJobIds.length ?
+        jssClient.getJobs({
+            jobId: { $in: previouslyIncompleteJobIds },
+            status: { $in: FAILED_STATUSES },
+            user,
+        }) : Promise.resolve([]);
+    const getUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs({
         serviceFields: {
             type: "upload",
         },
         status: { $in: statusesToInclude },
         user,
     });
-    const getInProgressUploadJobsPromise = jssClient.getJobs({
+    const getInProgressUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs({
         serviceFields: {
             type: "upload",
         },
@@ -122,23 +101,21 @@ export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusCli
 
     try {
         const [
-            potentiallyIncompleteJobsThatSucceeded,
-            potentiallyIncompleteJobsThatFailed,
+            recentlySucceededJobs,
+            recentlyFailedJobs,
             uploadJobs,
-            pendingJobsToRemove,
             inProgressUploadJobs,
         ] = await Promise.all([
-            potentiallyIncompleteJobsThatSucceededPromise,
-            potentiallyIncompleteJobsThatFailedPromise,
+            recentlySucceededJobsPromise,
+            recentlyFailedJobsPromise,
             getUploadJobsPromise,
-            pendingJobsToRemovePromise,
             getInProgressUploadJobsPromise,
         ]);
-        const recentlyFailedJobNames: string[] = (potentiallyIncompleteJobsThatFailed || [])
+        const recentlyFailedJobNames: string[] = (recentlyFailedJobs || [])
             .map(({ jobName }: JSSJob) => `${jobName}`);
-        const recentlySucceededJobNames: string[] = (potentiallyIncompleteJobsThatSucceeded || [])
+        const recentlySucceededJobNames: string[] = (recentlySucceededJobs || [])
             .map(({ jobName }: JSSJob) => `${jobName}`);
-        const actualIncompleteJobNames = without(potentiallyIncompleteJobNames,
+        const actualIncompleteJobNames = without(previouslyIncompleteJobIds,
             ...recentlySucceededJobNames, ...recentlyFailedJobNames);
 
         // only get child jobs for the incomplete jobs
@@ -164,11 +141,10 @@ export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusCli
                      copyJobs,
                      addMetadataJobs,
                  ]) => ({
-            actualIncompleteJobNames,
+            actualIncompleteJobIds: actualIncompleteJobNames,
             addMetadataJobs,
             copyJobs,
             inProgressUploadJobs,
-            pendingJobsToRemove,
             recentlyFailedJobNames,
             recentlySucceededJobNames,
             uploadJobs,
@@ -181,17 +157,15 @@ export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusCli
 export const mapJobsToActions = (
     getState: () => State,
     storage: LocalStorage,
-    logger: Logger,
-    getApplicationMenu: () => Menu | null
+    logger: Logger
 ) =>
     (jobs: Jobs) => {
     const {
-        actualIncompleteJobNames,
+        actualIncompleteJobIds,
         addMetadataJobs,
         copyJobs,
         error,
         inProgressUploadJobs,
-        pendingJobsToRemove,
         recentlyFailedJobNames,
         recentlySucceededJobNames,
         uploadJobs,
@@ -203,24 +177,7 @@ export const mapJobsToActions = (
 
     const actions: AnyAction[] = [];
 
-    const pendingJobNamesToRemove: string[] = [];
     let updates: {[jobName: string]: undefined} = {};
-    if (pendingJobsToRemove && !isEmpty(pendingJobsToRemove)) {
-        const currentPage = getPage(getState());
-        const nextPage = findNextPage(currentPage, 1);
-        if (nextPage) {
-            actions.push(...getSelectPageActions(
-                logger,
-                getState(),
-                getApplicationMenu,
-                selectPage(currentPage, nextPage)
-            ), clearStagedFiles());
-        }
-        pendingJobsToRemove.forEach((job: JSSJob) => {
-            pendingJobNamesToRemove.push(`${job.jobName}`);
-            updates[`${DRAFT_KEY}.${job.jobName}`] = undefined;
-        });
-    }
 
     // report the status of jobs that have recently failed and succeeded
     (recentlyFailedJobNames || []).forEach((jobName: string) => {
@@ -244,18 +201,18 @@ export const mapJobsToActions = (
     });
 
     // Only update the state if the current incompleteJobs are different than the existing ones
-    const potentiallyIncompleteJobNames = getIncompleteJobNames(getState());
-    if (actualIncompleteJobNames && potentiallyIncompleteJobNames.length !== actualIncompleteJobNames.length) {
+    const potentiallyIncompleteJobNames = getIncompleteJobIds(getState());
+    if (actualIncompleteJobIds && potentiallyIncompleteJobNames.length !== actualIncompleteJobIds.length) {
         try {
-            storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, actualIncompleteJobNames);
+            storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, actualIncompleteJobIds);
         } catch (e) {
-            logger.warn(`Failed to update incomplete job names: ${actualIncompleteJobNames.join(", ")}`);
+            logger.warn(`Failed to update incomplete job names: ${actualIncompleteJobIds.join(", ")}`);
         }
         updates = {
             ...updates,
-            ...updateIncompleteJobNames(actualIncompleteJobNames).updates, // write incomplete job names to store
+            ...updateIncompleteJobIds(actualIncompleteJobIds).updates, // write incomplete job names to store
         };
-        if (actualIncompleteJobNames.length === 0) {
+        if (actualIncompleteJobIds.length === 0) {
             actions.push(stopJobPoll());
         }
     }
@@ -263,8 +220,7 @@ export const mapJobsToActions = (
         uploadJobs,
         copyJobs,
         addMetadataJobs,
-        pendingJobNamesToRemove,
-        actualIncompleteJobNames,
+        actualIncompleteJobIds,
         inProgressUploadJobs
     ));
     let nextAction: AnyAction = batchActions(actions);
@@ -280,20 +236,19 @@ export const mapJobsToActions = (
 };
 
 const retrieveJobsLogic = createLogic({
-    cancelType: STOP_JOB_POLL,
     debounce: 500,
     latest: true,
     // Redux Logic's type definitions do not include dispatching observable actions so we are setting
     // the type of dispatch to any
     process: async (deps: ReduxLogicProcessDependencies, dispatch: any, done: ReduxLogicDoneCb) => {
-        const { getApplicationMenu, getState, jssClient, logger,  storage } = deps;
+        const { getState, jssClient, logger,  storage } = deps;
         const jobs = await getWithRetry(
             () => fetchJobs(getState, jssClient),
             AsyncRequest.GET_JOBS,
             dispatch,
             "JSS"
         );
-        dispatch(mapJobsToActions(getState, storage, logger, getApplicationMenu)(jobs));
+        dispatch(mapJobsToActions(getState, storage, logger)(jobs));
         done();
     },
     type: RETRIEVE_JOBS,
@@ -305,13 +260,13 @@ const pollJobsLogic = createLogic({
     debounce: 500,
     latest: true,
     process: async (deps: ReduxLogicProcessDependencies, dispatch: any) => {
-        const { getApplicationMenu, getState, jssClient, logger,  storage } = deps;
+        const { getState, jssClient, logger,  storage } = deps;
         dispatch(interval(1000)
             .pipe(
                 mergeMap(() => {
                     return fetchJobs(getState, jssClient);
                 }),
-                map(mapJobsToActions(getState, storage, logger, getApplicationMenu))
+                map(mapJobsToActions(getState, storage, logger))
             ));
     },
     type: START_JOB_POLL,
@@ -322,7 +277,7 @@ const gatherStoredIncompleteJobNamesLogic = createLogic({
     transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
             const incompleteJobNames = storage.get(`${JOB_STORAGE_KEY}.incompleteJobNames`) || [];
-            next(updateIncompleteJobNames(incompleteJobNames));
+            next(updateIncompleteJobIds(incompleteJobNames));
         } catch (e) {
             next(setAlert({
                 message: "Failed to get saved incomplete jobs",
@@ -330,7 +285,7 @@ const gatherStoredIncompleteJobNamesLogic = createLogic({
             }));
         }
     },
-    type: GATHER_STORED_INCOMPLETE_JOB_NAMES,
+    type: GATHER_STORED_INCOMPLETE_JOB_IDS,
 });
 
 export default [

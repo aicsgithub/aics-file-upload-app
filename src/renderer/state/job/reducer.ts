@@ -1,36 +1,46 @@
-import { filter, includes, uniqBy } from "lodash";
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
+import {
+    CANCEL_UPLOAD,
+    CANCEL_UPLOAD_SUCCEEDED,
+    INITIATE_UPLOAD,
+    RETRY_UPLOAD,
+    RETRY_UPLOAD_FAILED,
+    RETRY_UPLOAD_SUCCEEDED,
+} from "../upload/constants";
+import {
+    CancelUploadAction,
+    CancelUploadSucceededAction,
+    InitiateUploadAction,
+    RetryUploadAction, RetryUploadFailedAction,
+    RetryUploadSucceededAction,
+} from "../upload/types";
 import { makeReducer } from "../util";
 import {
-    ADD_PENDING_JOB,
     RECEIVE_JOBS,
-    REMOVE_PENDING_JOB,
     SELECT_JOB_FILTER,
     START_JOB_POLL,
     STOP_JOB_POLL,
-    UPDATE_INCOMPLETE_JOB_NAMES,
+    UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-    AddPendingJobAction,
     JobFilter,
     JobStateBranch,
     ReceiveJobsAction,
-    RemovePendingJobsAction,
     SelectJobFilterAction,
     StartJobPollAction,
     StopJobPollAction,
-    UpdateIncompleteJobNamesAction,
+     UpdateIncompleteJobIdsAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
     addMetadataJobs: [],
     copyJobs: [],
     inProgressUploadJobs: [],
-    incompleteJobNames: [],
+    incompleteJobIds: [],
     jobFilter: JobFilter.InProgress,
-    pendingJobs: [],
     polling: false,
     uploadJobs: [],
 };
@@ -42,46 +52,25 @@ const actionToConfigMap: TypeToDescriptionMap = {
                   { payload: {
                       addMetadataJobs,
                       copyJobs,
-                      incompleteJobNames,
-                      pendingJobNamesToRemove,
+                      incompleteJobIds,
                       uploadJobs,
                   }}: ReceiveJobsAction) => {
             return {
                 ...state,
                 addMetadataJobs,
                 copyJobs,
-                incompleteJobNames,
-                pendingJobs: filter(state.pendingJobs,
-                    ({jobName}) => !includes(pendingJobNamesToRemove, jobName)),
+                incompleteJobIds,
                 uploadJobs,
             };
         },
     },
-    [UPDATE_INCOMPLETE_JOB_NAMES]: {
+    [UPDATE_INCOMPLETE_JOB_IDS]: {
         accepts: (action: AnyAction):
-            action is UpdateIncompleteJobNamesAction => action.type === UPDATE_INCOMPLETE_JOB_NAMES,
-        perform: (state: JobStateBranch, action: UpdateIncompleteJobNamesAction) => {
+            action is UpdateIncompleteJobIdsAction => action.type === UPDATE_INCOMPLETE_JOB_IDS,
+        perform: (state: JobStateBranch, action: UpdateIncompleteJobIdsAction) => {
             return {
                 ...state,
-                incompleteJobNames: action.payload,
-            };
-        },
-    },
-    [ADD_PENDING_JOB]: {
-        accepts: (action: AnyAction): action is AddPendingJobAction => action.type === ADD_PENDING_JOB,
-        perform: (state: JobStateBranch, action: AddPendingJobAction) => {
-            return {
-                ...state,
-                pendingJobs: uniqBy([...state.pendingJobs, action.payload], "jobName"),
-            };
-        },
-    },
-    [REMOVE_PENDING_JOB]: {
-        accepts: (action: AnyAction): action is RemovePendingJobsAction => action.type === REMOVE_PENDING_JOB,
-        perform: (state: JobStateBranch, action: RemovePendingJobsAction) => {
-            return {
-                ...state,
-                pendingJobs: filter(state.pendingJobs, ({jobName}) => !includes(action.payload, jobName)),
+                incompleteJobIds: action.payload,
             };
         },
     },
@@ -106,6 +95,58 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch) => ({
             ...state,
             polling: false,
+        }),
+    },
+    [INITIATE_UPLOAD]: {
+        accepts: (action: AnyAction): action is InitiateUploadAction =>
+            action.type === INITIATE_UPLOAD,
+        perform: (state: JobStateBranch, action: InitiateUploadAction) => ({
+            ...state,
+            incompleteJobIds: action.payload.incompleteJobIds,
+            jobFilter: JobFilter.InProgress,
+        }),
+    },
+    [RETRY_UPLOAD]: {
+        accepts: (action: AnyAction): action is RetryUploadAction =>
+            action.type === RETRY_UPLOAD,
+        perform: (state: JobStateBranch, action: RetryUploadAction) => ({
+            ...state,
+            incompleteJobIds: uniq([...state.incompleteJobIds, action.payload.jobId]),
+            jobFilter: JobFilter.InProgress,
+        }),
+    },
+    [RETRY_UPLOAD_SUCCEEDED]: {
+        accepts: (action: AnyAction): action is RetryUploadSucceededAction =>
+            action.type === RETRY_UPLOAD_SUCCEEDED,
+        perform: (state: JobStateBranch, action: RetryUploadSucceededAction) => ({
+            ...state,
+            incompleteJobIds: without(state.incompleteJobIds, action.payload.jobId),
+            jobFilter: JobFilter.Successful,
+        }),
+    },
+    [RETRY_UPLOAD_FAILED]: {
+        accepts: (action: AnyAction): action is RetryUploadFailedAction =>
+            action.type === RETRY_UPLOAD_FAILED,
+        perform: (state: JobStateBranch, action: RetryUploadFailedAction) => ({
+            ...state,
+            incompleteJobIds: without(state.incompleteJobIds, action.payload.row.jobId),
+            jobFilter: JobFilter.Failed,
+        }),
+    },
+    [CANCEL_UPLOAD]: {
+        accepts: (action: AnyAction): action is CancelUploadAction =>
+            action.type === CANCEL_UPLOAD,
+        perform: (state: JobStateBranch) => ({
+            ...state,
+            jobFilter: JobFilter.Failed,
+        }),
+    },
+    [CANCEL_UPLOAD_SUCCEEDED]: {
+        accepts: (action: AnyAction): action is CancelUploadSucceededAction =>
+            action.type === CANCEL_UPLOAD_SUCCEEDED,
+        perform: (state: JobStateBranch) => ({
+            ...state,
+            jobFilter: JobFilter.Failed,
         }),
     },
 };

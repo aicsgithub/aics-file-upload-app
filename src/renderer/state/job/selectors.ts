@@ -7,18 +7,18 @@ import { DATETIME_FORMAT } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 
 import { IN_PROGRESS_STATUSES } from "../constants";
+import { getRequestsInProgress } from "../feedback/selectors";
+import { AsyncRequest } from "../feedback/types";
 import { getCurrentUpload } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
 import { State } from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
-import { PendingJob } from "./types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
-export const getPendingJobs = (state: State) => state.job.pendingJobs;
 export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
-export const getIncompleteJobNames = (state: State) => state.job.incompleteJobNames;
+export const getIncompleteJobIds = (state: State) => state.job.incompleteJobIds;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getIsPolling = (state: State) => state.job.polling;
 
@@ -26,19 +26,10 @@ export const getIsPolling = (state: State) => state.job.polling;
 // upload jobs by jobId rather than jobId. After we do this we should remove this and the query that populates it.
 export const getInProgressUploadJobs = (state: State) => state.job.inProgressUploadJobs;
 
-export const getNumberOfPendingJobs = createSelector([getPendingJobs], (pendingJobs: PendingJob[]) => {
-   return pendingJobs.length;
-});
-
-export const getPendingJobNames = createSelector([getPendingJobs], (jobs: PendingJob[]) => {
-    return jobs.map((job) => job.jobName);
-});
-
 export const getJobsForTable = createSelector([
     getUploadJobs,
-    getPendingJobs,
-], (uploadJobs: JSSJob[], pendingJobs: PendingJob[]): UploadSummaryTableRow[] => {
-    return orderBy([...uploadJobs, ...pendingJobs], ["modified"], ["desc"]).map((job) => ({
+], (uploadJobs: JSSJob[]): UploadSummaryTableRow[] => {
+    return orderBy(uploadJobs, ["modified"], ["desc"]).map((job) => ({
         ...job,
         created: new Date(job.created),
         key: job.jobId,
@@ -53,14 +44,12 @@ export const getJobsForTable = createSelector([
 // We want to return false only if the parent upload job is in progress and the add metadata step is
 // in progress.
 export const getIsSafeToExit = createSelector([
-    getIncompleteJobNames,
+    getIncompleteJobIds,
     getAddMetadataJobs,
-    getNumberOfPendingJobs,
     getInProgressUploadJobs,
 ], (
     incompleteJobNames: string[],
     addMetadataJobs: JSSJob[],
-    numberPendingJobs: number,
     inProgressUploadJobs: JSSJob[]
 ): boolean => {
     const incompleteAddMetadataJobs = addMetadataJobs.filter((addMetadataJob) => {
@@ -71,14 +60,13 @@ export const getIsSafeToExit = createSelector([
         }
         return IN_PROGRESS_STATUSES.includes(addMetadataJob.status);
     });
-    return numberPendingJobs === 0 && incompleteAddMetadataJobs.length === 0;
+    return incompleteAddMetadataJobs.length === 0;
 });
 
 export const getAreAllJobsComplete = createSelector([
     getInProgressUploadJobs,
-    getNumberOfPendingJobs,
-], (inProgressUploadJobs: JSSJob[], pendingJobs: number) => {
-    return pendingJobs === 0 && inProgressUploadJobs.length === 0;
+], (inProgressUploadJobs: JSSJob[]) => {
+    return inProgressUploadJobs.length === 0;
 });
 
 export const getCurrentJobName = createSelector([
@@ -95,20 +83,9 @@ export const getCurrentJobName = createSelector([
         `${fileNames} ${created}`;
 });
 
-export const getCurrentJobIsIncomplete = createSelector([
-    getIncompleteJobNames,
-    getCurrentJobName,
-], (incompleteJobNames: string[], currentJobName?: string): boolean => {
-    return !!currentJobName && incompleteJobNames.includes(currentJobName);
-});
-
 export const getUploadInProgress = createSelector([
-    getCurrentJobIsIncomplete,
-    getPendingJobs,
+    getRequestsInProgress,
     getCurrentJobName,
-], (currentJobIsInProgress: boolean, pendingJobs: PendingJob[], currentJobName?: string): boolean => {
-    if (!currentJobName) {
-        return false;
-    }
-    return currentJobIsInProgress || !!pendingJobs.find((j: PendingJob) => j.jobName === currentJobName);
+], (requestsInProgress: string[], currentJobName?: string): boolean => {
+    return !!currentJobName && requestsInProgress.includes(`${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`);
 });

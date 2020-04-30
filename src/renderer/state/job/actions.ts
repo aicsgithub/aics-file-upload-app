@@ -1,28 +1,23 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import {
-    ADD_PENDING_JOB,
-    GATHER_STORED_INCOMPLETE_JOB_NAMES,
+    GATHER_STORED_INCOMPLETE_JOB_IDS,
     RECEIVE_JOBS,
-    REMOVE_PENDING_JOB,
     RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
     START_JOB_POLL,
     STOP_JOB_POLL,
-    UPDATE_INCOMPLETE_JOB_NAMES,
+    UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-    AddPendingJobAction,
     GatherIncompleteJobNamesAction,
     JobFilter,
-    PendingJob,
     ReceiveJobsAction,
-    RemovePendingJobsAction,
     RetrieveJobsAction,
     SelectJobFilterAction,
     StartJobPollAction,
     StopJobPollAction,
-    UpdateIncompleteJobNamesAction,
+    UpdateIncompleteJobIdsAction,
 } from "./types";
 
 export function retrieveJobs(): RetrieveJobsAction {
@@ -35,8 +30,7 @@ export function receiveJobs(
     uploadJobs: JSSJob[] = [],
     copyJobs: JSSJob[] = [],
     addMetadataJobs: JSSJob[] = [],
-    pendingJobNamesToRemove: string[] = [],
-    incompleteJobNames: string[] = [],
+    incompleteJobIds: string[] = [],
     inProgressUploadJobs: JSSJob[] = []
 ): ReceiveJobsAction {
     return {
@@ -44,8 +38,7 @@ export function receiveJobs(
             addMetadataJobs,
             copyJobs,
             inProgressUploadJobs,
-            incompleteJobNames,
-            pendingJobNamesToRemove,
+            incompleteJobIds,
             uploadJobs,
         },
         type: RECEIVE_JOBS,
@@ -54,32 +47,18 @@ export function receiveJobs(
 
 export function gatherIncompleteJobNames(): GatherIncompleteJobNamesAction {
     return {
-        type: GATHER_STORED_INCOMPLETE_JOB_NAMES,
+        type: GATHER_STORED_INCOMPLETE_JOB_IDS,
     };
 }
 
-export function updateIncompleteJobNames(incompleteJobNames: string[]): UpdateIncompleteJobNamesAction {
+export function updateIncompleteJobIds(incompleteJobIds: string[]): UpdateIncompleteJobIdsAction {
     return {
-        payload: incompleteJobNames,
-        type: UPDATE_INCOMPLETE_JOB_NAMES,
+        payload: incompleteJobIds,
+        type: UPDATE_INCOMPLETE_JOB_IDS,
         updates: {
-            [INCOMPLETE_JOB_NAMES_KEY]: incompleteJobNames,
+            [INCOMPLETE_JOB_IDS_KEY]: incompleteJobIds,
         },
         writeToStore: true,
-    };
-}
-
-export function addPendingJob(job: PendingJob): AddPendingJobAction {
-    return {
-        payload: job,
-        type: ADD_PENDING_JOB,
-    };
-}
-
-export function removePendingJobs(jobNames: string[]): RemovePendingJobsAction {
-    return {
-        payload: jobNames,
-        type: REMOVE_PENDING_JOB,
     };
 }
 

@@ -1,4 +1,3 @@
-import { Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { WriteToStoreAction } from "../types";
 
@@ -11,20 +10,13 @@ export interface JobStateBranch {
     copyJobs: JSSJob[];
     // Child job representing the add metadata step of an upload job
     addMetadataJobs: JSSJob[];
-    // List of upload jobs that are either pending (no FSS Job Id yet) or in-progress (has FSS Job Id)
-    incompleteJobNames: string[];
+    // List of upload jobs that may or may not be in-progress - used for reporting on jobs that succeed or failed on app
+    // startup
+    incompleteJobIds: string[];
     // Represents which filter has been selected on the Upload Summary page
     jobFilter: JobFilter;
-    // Jobs where the user has initiated an upload but do not have FSS Job Id yet
-    pendingJobs: PendingJob[];
     // Whether the app is polling for jobs
     polling: boolean;
-}
-
-// When a user submits an upload, a job doesn't get created right away so the job is stored
-// in this form first
-export interface PendingJob extends JSSJob {
-    uploads: Uploads;
 }
 
 export enum JobFilter {
@@ -42,9 +34,8 @@ export interface ReceiveJobsAction {
     payload: {
         addMetadataJobs: JSSJob[];
         copyJobs: JSSJob[];
-        incompleteJobNames: string[];
+        incompleteJobIds: string[];
         inProgressUploadJobs: JSSJob[];
-        pendingJobNamesToRemove: string[];
         uploadJobs: JSSJob[];
     };
     type: string;
@@ -54,18 +45,8 @@ export interface GatherIncompleteJobNamesAction {
     type: string;
 }
 
-export interface UpdateIncompleteJobNamesAction extends WriteToStoreAction {
+export interface UpdateIncompleteJobIdsAction extends WriteToStoreAction {
     payload: string[];
-    type: string;
-}
-
-export interface AddPendingJobAction {
-    payload: PendingJob;
-    type: string;
-}
-
-export interface RemovePendingJobsAction {
-    payload: string[]; // jobNames
     type: string;
 }
 

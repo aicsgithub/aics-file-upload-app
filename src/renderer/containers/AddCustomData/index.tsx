@@ -11,9 +11,7 @@ import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains, getUploadError } from "../../state/feedback/selectors";
 import { AsyncRequest, OpenTemplateEditorAction, SetAlertAction } from "../../state/feedback/types";
-import { startJobPoll } from "../../state/job/actions";
-import { getUploadInProgress } from "../../state/job/selectors";
-import { StartJobPollAction } from "../../state/job/types";
+import { getCurrentJobName, getUploadInProgress } from "../../state/job/selectors";
 import {
     getAnnotationTypes,
     getBooleanAnnotationTypeId,
@@ -80,6 +78,7 @@ interface Props {
     canUndo: boolean;
     channels: Channel[];
     className?: string;
+    currentJobName?: string;
     expandedRows: ExpandedRows;
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     goBack: ActionCreator<GoBackAction>;
@@ -91,7 +90,6 @@ interface Props {
     savedTemplateId?: number;
     selectedBarcode?: string;
     setAlert: ActionCreator<SetAlertAction>;
-    startJobPoll: ActionCreator<StartJobPollAction>;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
@@ -253,8 +251,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private openTemplateEditorWithId = (id: number | undefined) => () => this.props.openSchemaCreator(id);
 
     private upload = (): void => {
-        this.props.initiateUpload();
-        this.props.startJobPoll();
+        this.props.initiateUpload(this.props.currentJobName);
     }
 
     private undo = (): void => {
@@ -275,6 +272,7 @@ function mapStateToProps(state: State) {
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
         channels: getChannels(state),
+        currentJobName: getCurrentJobName(state),
         expandedRows: getExpandedUploadJobRows(state),
         fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
@@ -297,7 +295,6 @@ const dispatchToPropsMap = {
     openSchemaCreator: openTemplateEditor,
     removeUploads,
     setAlert,
-    startJobPoll,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateSubImages,
     updateUpload,

@@ -3,12 +3,12 @@ import * as moment from "moment";
 
 import { DATETIME_FORMAT } from "../../../constants";
 import { getCurrentUploadName } from "../../../containers/App/selectors";
+import { AsyncRequest } from "../../feedback/types";
 
 import {
     getMockStateWithHistory,
     mockFailedAddMetadataJob,
     mockFailedUploadJob,
-    mockPendingJob,
     mockState,
     mockSuccessfulAddMetadataJob,
     mockSuccessfulCopyJob,
@@ -22,7 +22,6 @@ import {
 
 import {
     getAreAllJobsComplete,
-    getCurrentJobIsIncomplete,
     getCurrentJobName,
     getIsSafeToExit,
     getJobsForTable,
@@ -32,7 +31,7 @@ import {
 describe("Job selectors", () => {
     describe("getJobsForTable", () => {
         it("converts jobs in redux store to objects used by upload summary page", () => {
-            const jobs = [...nonEmptyJobStateBranch.uploadJobs, ...nonEmptyJobStateBranch.pendingJobs];
+            const jobs = [...nonEmptyJobStateBranch.uploadJobs];
             const jobTableRows = getJobsForTable({
                 ...mockState,
                 job: {...nonEmptyJobStateBranch},
@@ -55,14 +54,6 @@ describe("Job selectors", () => {
         it("returns true if no jobs", () => {
             const isSafeToExit = getIsSafeToExit(mockState);
             expect(isSafeToExit).to.be.true;
-        });
-
-        it("returns false if there are any pending jobs", () => {
-            const isSafeToExit = getIsSafeToExit({
-                ...mockState,
-                job: {...mockState.job, pendingJobs: [mockPendingJob]},
-            });
-            expect(isSafeToExit).to.be.false;
         });
 
         it("returns true if an upload job is failed", () => {
@@ -135,7 +126,7 @@ describe("Job selectors", () => {
                             copyJobId: mockSuccessfulCopyJob.jobId,
                         },
                     }],
-                    incompleteJobNames: [`${mockWorkingUploadJob.jobName}`],
+                    incompleteJobIds: [mockWorkingUploadJob.jobId],
                     uploadJobs: [],
                 },
             });
@@ -159,18 +150,6 @@ describe("Job selectors", () => {
         it("returns true if no jobs exist", () => {
             const complete = getAreAllJobsComplete(mockState);
             expect(complete).to.be.true;
-        });
-
-        it("returns false if pending jobs exist", () => {
-            const complete = getAreAllJobsComplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    pendingJobs: [mockPendingJob],
-                    uploadJobs: [mockSuccessfulUploadJob, mockSuccessfulUploadJob, mockSuccessfulUploadJob],
-                },
-            });
-            expect(complete).to.be.false;
         });
 
         it("returns false if there are any inProgressUploadJobs", () => {
@@ -281,92 +260,19 @@ describe("Job selectors", () => {
             }
         });
     });
-    describe("getCurrentJobIsIncomplete", () => {
-        it("returns false if no current job", () => {
-            const now = new Date();
-            const currentJobIsIncomplete = getCurrentJobIsIncomplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
-                },
-                upload: getMockStateWithHistory({}),
-            });
-            expect(currentJobIsIncomplete).to.be.false;
-        });
-        it("returns false if incompleteJobNames does not include current job name", () => {
-            const now = new Date();
-            const currentJobIsIncomplete = getCurrentJobIsIncomplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [],
-                },
-                metadata: {
-                    ...mockState.metadata,
-                    currentUpload: {
-                        created: now,
-                        modified: now,
-                        name: "foo",
-                    },
-                },
-                upload: getMockStateWithHistory({
-                    foo: {
-                        barcode: "1234",
-                        file: "foo",
-                        wellIds: [1],
-                    },
-                }),
-            });
-            expect(currentJobIsIncomplete).to.be.false;
-        });
-        it("returns true if incompleteJobNames includes current job name", () => {
-            const now = new Date();
-            const currentJobIsIncomplete = getCurrentJobIsIncomplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
-                },
-                metadata: {
-                    ...mockState.metadata,
-                    currentUpload: {
-                        created: now,
-                        modified: now,
-                        name: "foo",
-                    },
-                },
-                upload: getMockStateWithHistory({
-                    foo: {
-                        barcode: "1234",
-                        file: "foo",
-                        wellIds: [1],
-                    },
-                }),
-            });
-            expect(currentJobIsIncomplete).to.be.true;
-        });
-    });
     describe("getUploadInProgress", () => {
-        const now = new Date();
-        it("returns false if no current job", () => {
-
-            const inProgress = getUploadInProgress({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
-                },
-                upload: getMockStateWithHistory({}),
-            });
+        it("returns false if requestsInProgress does not contain INITIATE_UPLOAD-currentUploadName", () => {
+            const inProgress = getUploadInProgress(mockState);
             expect(inProgress).to.be.false;
         });
-        it("returns true if current job is incomplete", () => {
+        it("returns true if requestsInProgress contains INITIATE_UPLOAD-currentUploadName", () => {
+            const now = new Date();
+            const currentJobName = `foo ${moment(now).format(DATETIME_FORMAT)}`;
             const inProgress = getUploadInProgress({
                 ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [`foo ${moment(now).format(DATETIME_FORMAT)}`],
+                feedback: {
+                    ...mockState.feedback,
+                    requestsInProgress: [`${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`],
                 },
                 metadata: {
                     ...mockState.metadata,
@@ -376,52 +282,16 @@ describe("Job selectors", () => {
                         name: "foo",
                     },
                 },
-                upload: getMockStateWithHistory({
-                    foo: {
-                        barcode: "1234",
-                        file: "foo",
-                        wellIds: [1],
-                    },
-                }),
             });
             expect(inProgress).to.be.true;
         });
-        it("returns true if current job is pending", () => {
+        it("returns false if requestsInProgress contains request belonging to a different upload", () => {
+            const now = new Date();
             const inProgress = getUploadInProgress({
                 ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [],
-                    pendingJobs: [{
-                        ...mockPendingJob,
-                        jobName: `foo ${moment(now).format(DATETIME_FORMAT)}`,
-                    }],
-                },
-                metadata: {
-                    ...mockState.metadata,
-                    currentUpload: {
-                        created: now,
-                        modified: now,
-                        name: "foo",
-                    },
-                },
-                upload: getMockStateWithHistory({
-                    foo: {
-                        barcode: "1234",
-                        file: "foo",
-                        wellIds: [1],
-                    },
-                }),
-            });
-            expect(inProgress).to.be.true;
-        });
-        it("returns false if current job is not incomplete or pending", () => {
-            const inProgress = getUploadInProgress({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobNames: [],
-                    pendingJobs: [],
+                feedback: {
+                    ...mockState.feedback,
+                    requestsInProgress: [`${AsyncRequest.INITIATE_UPLOAD}-bar`],
                 },
                 metadata: {
                     ...mockState.metadata,
