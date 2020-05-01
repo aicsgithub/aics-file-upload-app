@@ -171,7 +171,6 @@ const applyTemplateLogic = createLogic({
 const initiateUploadLogic = createLogic({
     process: async ({ctx, fms, getApplicationMenu, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        dispatch(startJobPoll());
         const { jobName, startUploadResponse } = ctx;
 
         try {
@@ -235,7 +234,10 @@ const initiateUploadLogic = createLogic({
             ]);
             next({
                 ...action,
-                payload: updatedIncompleteJobIds,
+                payload: {
+                    ...action.payload,
+                    incompleteJobIds: updatedIncompleteJobIds,
+                },
                 updates: updateIncompleteJobIds(updatedIncompleteJobIds).updates,
                 writeToStore: true,
             });

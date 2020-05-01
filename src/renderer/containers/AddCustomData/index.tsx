@@ -11,7 +11,9 @@ import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains, getUploadError } from "../../state/feedback/selectors";
 import { AsyncRequest, OpenTemplateEditorAction, SetAlertAction } from "../../state/feedback/types";
+import { startJobPoll } from "../../state/job/actions";
 import { getCurrentJobName, getUploadInProgress } from "../../state/job/selectors";
+import { StartJobPollAction } from "../../state/job/types";
 import {
     getAnnotationTypes,
     getBooleanAnnotationTypeId,
@@ -90,6 +92,7 @@ interface Props {
     savedTemplateId?: number;
     selectedBarcode?: string;
     setAlert: ActionCreator<SetAlertAction>;
+    startJobPoll: ActionCreator<StartJobPollAction>;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
@@ -252,6 +255,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     private upload = (): void => {
         this.props.initiateUpload(this.props.currentJobName);
+        this.props.startJobPoll();
     }
 
     private undo = (): void => {
@@ -295,6 +299,7 @@ const dispatchToPropsMap = {
     openSchemaCreator: openTemplateEditor,
     removeUploads,
     setAlert,
+    startJobPoll,
     toggleRowExpanded: toggleExpandedUploadJobRow,
     updateSubImages,
     updateUpload,

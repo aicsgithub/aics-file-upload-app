@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
 import { createSandbox, stub } from "sinon";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { LONG_DATETIME_FORMAT } from "../../../constants";
 
 import {
@@ -12,9 +13,6 @@ import {
     getUploadError,
 } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import {
-    getIncompleteJobIds,
-} from "../../job/selectors";
 import { getCurrentUpload } from "../../metadata/selectors";
 import { getSelectedBarcode, getSelectedFiles } from "../../selection/selectors";
 import { setAppliedTemplate } from "../../template/actions";
@@ -42,7 +40,7 @@ import {
     updateSubImages,
     updateUpload,
 } from "../actions";
-import { getUploadRowKey } from "../constants";
+import { getUploadRowKey, INITIATE_UPLOAD } from "../constants";
 import {
     getFileToArchive,
     getFileToStoreOnIsilon,
@@ -298,55 +296,75 @@ describe("Upload logics", () => {
             sandbox.restore();
         });
 
-        it("adds an info alert given valid metadata", async () => {
-            sandbox.replace(fms, "uploadFiles", stub().resolves());
+        const setUpSuccessStubs = () => {
+            const uploadFilesStub = stub().resolves();
+            sandbox.replace(fms, "uploadFiles", uploadFilesStub);
             sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().resolves(startUploadResponse));
-            const { logicMiddleware, store } = createMockReduxStore(
-                nonEmptyStateForInitiatingUpload,
-                mockReduxLogicDeps
-            );
+            return uploadFilesStub;
+        };
 
-            // before
-            let state = store.getState();
-            expect(getAlert(state)).to.be.undefined;
-
-            // apply
-            store.dispatch(initiateUpload("jobName"));
-
-            // after
-            await logicMiddleware.whenComplete();
-
-            state = store.getState();
-            const alert = getAlert(state);
-            expect(alert).to.not.be.undefined;
-            if (alert) {
-                expect(alert.type).to.equal(AlertType.INFO);
-            }
-        });
-        it("does not add job given invalid metadata", async () => {
+        it("sets error alert given validation error", async () => {
             sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().rejects());
-            const { logicMiddleware, store } = createMockReduxStore(
-                nonEmptyStateForInitiatingUpload,
-                mockReduxLogicDeps
-            );
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
 
+            expect(getAlert(store.getState())).to.be.undefined;
+
+            store.dispatch(initiateUpload("jobName"));
+            await logicMiddleware.whenComplete();
+
+            expect(getAlert(store.getState())).to.not.be.undefined;
+        });
+
+        it("calls uploadFiles given OK response from validateMetadataAndGetUploadDirectory", async () => {
+            const uploadFilesStub = setUpSuccessStubs();
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
             // before
-            let state = store.getState();
-            expect(getAlert(state)).to.be.undefined;
+            expect(uploadFilesStub.called).to.be.false;
 
             // apply
             store.dispatch(initiateUpload("jobName"));
 
             // after
             await logicMiddleware.whenComplete();
-            state = store.getState();
-            const alert = getAlert(state);
-            expect(alert).to.not.be.undefined;
-            if (alert) {
-                expect(alert.type).to.equal(AlertType.ERROR);
-            }
+            expect(uploadFilesStub.calledWith(startUploadResponse)).to.be.true;
         });
-        it("adds job to incomplete jobs, clears Upload Error", async () => {
+        it("adds to list of incomplete job ids", async () => {
+            setUpSuccessStubs();
+            const { actions, logicMiddleware, store} = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                job: {
+                    ...nonEmptyStateForInitiatingUpload.job,
+                    incompleteJobIds: ["existingIncompleteJob"],
+                },
+            });
+            const incompleteJobIds = ["existingIncompleteJob", startUploadResponse.jobId];
+            expect(actions.includes({
+                payload: incompleteJobIds,
+                type: INITIATE_UPLOAD,
+                updates: {
+                    [INCOMPLETE_JOB_IDS_KEY]: incompleteJobIds,
+                },
+                writeToStore: true,
+            })).to.be.false;
+
+            store.dispatch(initiateUpload("jobName"));
+
+            // after
+            await logicMiddleware.whenComplete();
+            expect(actions.includesMatch({
+                payload: {
+                    incompleteJobIds,
+                    jobName: "jobName",
+                },
+                type: INITIATE_UPLOAD,
+                updates: {
+                    [INCOMPLETE_JOB_IDS_KEY]: incompleteJobIds,
+                },
+                writeToStore: true,
+            })).to.be.true;
+        });
+
+        it("clears Upload Error", async () => {
             sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().resolves(startUploadResponse));
             sandbox.replace(fms, "uploadFiles", stub().resolves());
             const { logicMiddleware, store } = createMockReduxStore(
@@ -362,7 +380,6 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(getIncompleteJobIds(state)).to.be.empty;
             expect(getUploadError(state)).to.not.be.undefined;
 
             // apply
@@ -371,11 +388,9 @@ describe("Upload logics", () => {
             // after
             await logicMiddleware.whenComplete();
             state = store.getState();
-            expect(getIncompleteJobIds(state)).to.not.be.empty;
             expect(getUploadError(state)).to.be.undefined;
         });
-        it("sets error alert, updates incomplete job ids, and sets upload error" +
-            " if upload fails", async () => {
+        it("sets upload error if upload fails", async () => {
             const error = "bar";
             sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().resolves(startUploadResponse));
             sandbox.replace(fms, "uploadFiles", stub().rejects(new Error(error)));
@@ -386,9 +401,7 @@ describe("Upload logics", () => {
 
             // before
             let state = store.getState();
-            expect(getAlert(state)).to.be.undefined;
             expect(getUploadError(state)).to.be.undefined;
-            expect(getIncompleteJobIds(state)).to.be.empty;
 
             // apply
             store.dispatch(initiateUpload("jobName"));
@@ -396,9 +409,7 @@ describe("Upload logics", () => {
 
             // after
             state = store.getState();
-            expect(getAlert(state)).to.not.be.undefined;
             expect(getUploadError(state)).to.not.be.undefined;
-            expect(getIncompleteJobIds(state)).to.be.empty;
         });
     });
     describe("updateSubImagesLogic", () => {
