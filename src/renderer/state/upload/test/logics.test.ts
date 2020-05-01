@@ -41,6 +41,7 @@ import {
     updateUpload,
 } from "../actions";
 import { getUploadRowKey, INITIATE_UPLOAD } from "../constants";
+import uploadLogics from "../logics";
 import {
     getFileToArchive,
     getFileToStoreOnIsilon,
@@ -305,7 +306,7 @@ describe("Upload logics", () => {
 
         it("sets error alert given validation error", async () => {
             sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().rejects());
-            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, undefined, uploadLogics);
 
             expect(getAlert(store.getState())).to.be.undefined;
 
@@ -317,7 +318,7 @@ describe("Upload logics", () => {
 
         it("calls uploadFiles given OK response from validateMetadataAndGetUploadDirectory", async () => {
             const uploadFilesStub = setUpSuccessStubs();
-            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload);
+            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload, undefined, uploadLogics);
             // before
             expect(uploadFilesStub.called).to.be.false;
 
@@ -336,7 +337,7 @@ describe("Upload logics", () => {
                     ...nonEmptyStateForInitiatingUpload.job,
                     incompleteJobIds: ["existingIncompleteJob"],
                 },
-            });
+            }, undefined, uploadLogics);
             const incompleteJobIds = ["existingIncompleteJob", startUploadResponse.jobId];
             expect(actions.includes({
                 payload: incompleteJobIds,
@@ -375,7 +376,8 @@ describe("Upload logics", () => {
                         uploadError: "foo",
                     },
                 },
-                mockReduxLogicDeps
+                mockReduxLogicDeps,
+                uploadLogics
             );
 
             // before
@@ -396,7 +398,8 @@ describe("Upload logics", () => {
             sandbox.replace(fms, "uploadFiles", stub().rejects(new Error(error)));
             const { logicMiddleware, store } = createMockReduxStore(
                 nonEmptyStateForInitiatingUpload,
-                mockReduxLogicDeps
+                mockReduxLogicDeps,
+                uploadLogics
             );
 
             // before

@@ -171,6 +171,7 @@ const applyTemplateLogic = createLogic({
 const initiateUploadLogic = createLogic({
     process: async ({ctx, fms, getApplicationMenu, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
+        dispatch(startJobPoll());
         const { jobName, startUploadResponse } = ctx;
 
         try {
@@ -220,6 +221,7 @@ const initiateUploadLogic = createLogic({
     type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
                      rejectCb: ReduxLogicRejectCb) => {
+
         ctx.jobName = getCurrentJobName(getState());
         if (!ctx.jobName) {
             rejectCb({ type: "ignore" });

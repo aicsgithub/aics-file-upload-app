@@ -22,8 +22,6 @@ export const getIncompleteJobIds = (state: State) => state.job.incompleteJobIds;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getIsPolling = (state: State) => state.job.polling;
 
-// todo: This is necessary for checking if the app is safe to exit. This isn't necessary if we store
-// upload jobs by jobId rather than jobId. After we do this we should remove this and the query that populates it.
 export const getInProgressUploadJobs = (state: State) => state.job.inProgressUploadJobs;
 
 export const getJobsForTable = createSelector([
@@ -44,11 +42,9 @@ export const getJobsForTable = createSelector([
 // We want to return false only if the parent upload job is in progress and the add metadata step is
 // in progress.
 export const getIsSafeToExit = createSelector([
-    getIncompleteJobIds,
     getAddMetadataJobs,
     getInProgressUploadJobs,
 ], (
-    incompleteJobNames: string[],
     addMetadataJobs: JSSJob[],
     inProgressUploadJobs: JSSJob[]
 ): boolean => {
@@ -61,12 +57,6 @@ export const getIsSafeToExit = createSelector([
         return IN_PROGRESS_STATUSES.includes(addMetadataJob.status);
     });
     return incompleteAddMetadataJobs.length === 0;
-});
-
-export const getAreAllJobsComplete = createSelector([
-    getInProgressUploadJobs,
-], (inProgressUploadJobs: JSSJob[]) => {
-    return inProgressUploadJobs.length === 0;
 });
 
 export const getCurrentJobName = createSelector([

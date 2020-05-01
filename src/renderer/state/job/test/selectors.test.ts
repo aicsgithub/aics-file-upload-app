@@ -13,7 +13,6 @@ import {
     mockSuccessfulAddMetadataJob,
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob,
-    mockUnrecoverableUploadJob,
     mockWorkingAddMetadataJob,
     mockWorkingCopyJob,
     mockWorkingUploadJob,
@@ -21,7 +20,6 @@ import {
 } from "../../test/mocks";
 
 import {
-    getAreAllJobsComplete,
     getCurrentJobName,
     getIsSafeToExit,
     getJobsForTable,
@@ -146,68 +144,6 @@ describe("Job selectors", () => {
         });
     });
 
-    describe("getAreAllJobsComplete", () => {
-        it("returns true if no jobs exist", () => {
-            const complete = getAreAllJobsComplete(mockState);
-            expect(complete).to.be.true;
-        });
-
-        it("returns false if there are any inProgressUploadJobs", () => {
-            const complete = getAreAllJobsComplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    inProgressUploadJobs: [mockWorkingUploadJob],
-                    uploadJobs: [mockSuccessfulUploadJob],
-                },
-            });
-            expect(complete).to.be.false;
-        });
-
-        it("returns true if all upload jobs succeeded", () => {
-            const complete = getAreAllJobsComplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    uploadJobs: [mockSuccessfulUploadJob, mockSuccessfulUploadJob],
-                },
-            });
-            expect(complete).to.be.true;
-        });
-
-        it("returns true if all upload jobs failed", () => {
-            const complete = getAreAllJobsComplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    uploadJobs: [mockFailedUploadJob, mockFailedUploadJob],
-                },
-            });
-            expect(complete).to.be.true;
-        });
-
-        it("returns true if upload jobs are unrecoverable", () => {
-            const complete = getAreAllJobsComplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    uploadJobs: [mockUnrecoverableUploadJob],
-                },
-            });
-            expect(complete).to.be.true;
-        });
-
-        it("returns true if all upload jobs failed or succeeded or unrecoverable", () => {
-            const complete = getAreAllJobsComplete({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    uploadJobs: [mockFailedUploadJob, mockSuccessfulUploadJob, mockUnrecoverableUploadJob],
-                },
-            });
-            expect(complete).to.be.true;
-        });
-    });
     describe("getCurrentJobName", () => {
         it("returns undefined if upload is empty", () => {
             const name = getCurrentUploadName({

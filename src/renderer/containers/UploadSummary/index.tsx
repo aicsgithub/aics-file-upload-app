@@ -23,7 +23,6 @@ import {
     stopJobPoll,
 } from "../../state/job/actions";
 import {
-    getAreAllJobsComplete,
     getIsPolling,
     getJobFilter,
     getJobsForTable,
@@ -73,7 +72,6 @@ export interface UploadSummaryTableRow extends JSSJob {
 }
 
 interface Props {
-    allJobsComplete: boolean;
     cancelUpload: ActionCreator<CancelUploadAction>;
     className?: string;
     clearFileMetadataForJob: ActionCreator<ClearFileMetadataForJobAction>;
@@ -118,7 +116,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         return 0;
     }
 
-    private timeout: number | undefined;
     private get columns(): Array<ColumnProps<UploadSummaryTableRow>> {
         return [
             {
@@ -202,15 +199,15 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
 
     public componentDidMount(): void {
+        // this retrieves jobs to display on table (no polling; one-time call.)
         this.props.retrieveJobs();
+        // this gathers jobs that are stored in "local storage" for all uploads that have been initiated and/or retried.
+        // this is solely for reporting purposes in case an upload succeeded or failed while the app was not running
         this.props.gatherIncompleteJobNames();
     }
 
     public componentWillUnmount(): void {
-        this.clearJobInterval();
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-        }
+        this.props.stopJobPoll();
     }
 
     public render() {
@@ -317,13 +314,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.props.retrieveJobs();
     }
 
-    // Stop auto-refreshing jobs
-    private clearJobInterval = (checkIfJobsComplete: boolean = false): void => {
-        if (!checkIfJobsComplete || this.props.allJobsComplete) {
-            this.props.stopJobPoll();
-        }
-    }
-
     private togglePoll = () => this.props.isPolling ? this.props.stopJobPoll() : this.props.startJobPoll();
 
     private getSelectedJob = (): UploadSummaryTableRow | undefined => {
@@ -393,7 +383,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
 function mapStateToProps(state: State) {
     return {
-        allJobsComplete: getAreAllJobsComplete(state),
         fileMetadataForJob: getFileMetadataForJob(state),
         fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
         fileMetadataForJobLoading: getRequestsInProgressContains(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
