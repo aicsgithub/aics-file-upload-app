@@ -1,7 +1,7 @@
 import { expect } from "chai";
+
 import { receiveJobs, retrieveJobs } from "../../job/actions";
 import { receiveFileMetadata, requestFileMetadataForJob } from "../../metadata/actions";
-
 import { closeUploadTab } from "../../route/actions";
 import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
 import { clearTemplateDraft, saveTemplate, setAppliedTemplate } from "../../template/actions";
@@ -13,6 +13,7 @@ import {
     retryUploadFailed,
     retryUploadSucceeded,
 } from "../../upload/actions";
+
 import {
     addEvent,
     addRequestToInProgress,
