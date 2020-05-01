@@ -27,6 +27,7 @@ function createMainWindow() {
         },
         width: 1000,
     });
+    window.maximize();
 
     // webContents allow us to send events to the renderer process
     const { webContents } = window;
