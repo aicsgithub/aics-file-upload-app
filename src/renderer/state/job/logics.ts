@@ -1,10 +1,11 @@
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { isEmpty, without } from "lodash";
+import { isEmpty, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { Observable } from "rxjs";
 import { interval } from "rxjs/internal/observable/interval";
-import { map, mergeMap } from "rxjs/operators";
+import { map, mergeMap, takeUntil } from "rxjs/operators";
 import { Error } from "tslint/lib/error";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
@@ -27,7 +28,6 @@ import { batchActions } from "../util";
 
 import {
     receiveJobs,
-    selectJobFilter,
     stopJobPoll,
     updateIncompleteJobIds,
 } from "./actions";
@@ -67,8 +67,12 @@ const getJobStatusesToInclude = (jobFilter: JobFilter): string[] => {
     }
 };
 
-export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusClient): Promise<Jobs> => {
-    const statusesToInclude = getJobStatusesToInclude(getJobFilter(getStateFn()));
+export const fetchJobs = async (
+    getStateFn: () => State,
+    jssClient: JobStatusClient,
+    jobFilter?: JobFilter
+): Promise<Jobs> => {
+    const statusesToInclude = getJobStatusesToInclude(jobFilter || getJobFilter(getStateFn()));
 
     const previouslyIncompleteJobIds = getIncompleteJobIds(getStateFn());
     const user = getLoggedInUser(getStateFn());
@@ -111,23 +115,23 @@ export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusCli
             getUploadJobsPromise,
             getInProgressUploadJobsPromise,
         ]);
-        const recentlyFailedJobNames: string[] = (recentlyFailedJobs || [])
-            .map(({ jobName }: JSSJob) => `${jobName}`);
-        const recentlySucceededJobNames: string[] = (recentlySucceededJobs || [])
-            .map(({ jobName }: JSSJob) => `${jobName}`);
-        const actualIncompleteJobNames = without(previouslyIncompleteJobIds,
-            ...recentlySucceededJobNames, ...recentlyFailedJobNames);
+        const recentlyFailedJobIds: string[] = (recentlyFailedJobs || [])
+            .map(({ jobId }: JSSJob) => jobId);
+        const recentlySucceededJobIds: string[] = (recentlySucceededJobs || [])
+            .map(({ jobId }: JSSJob) => jobId);
+        const actualIncompleteJobIds = without(previouslyIncompleteJobIds,
+            ...recentlySucceededJobIds, ...recentlyFailedJobIds);
 
         // only get child jobs for the incomplete jobs
         const getCopyJobsPromise = jssClient.getJobs({
-            jobName: { $in: actualIncompleteJobNames },
+            parentId: { $in: actualIncompleteJobIds },
             serviceFields: {
                 type: "copy",
             },
             user,
         });
         const getAddMetadataPromise = jssClient.getJobs({
-            jobName: { $in: actualIncompleteJobNames },
+            parentId: { $in: actualIncompleteJobIds },
             serviceFields: {
                 type: "add_metadata",
             },
@@ -141,12 +145,12 @@ export const fetchJobs = async (getStateFn: () => State, jssClient: JobStatusCli
                      copyJobs,
                      addMetadataJobs,
                  ]) => ({
-            actualIncompleteJobIds: actualIncompleteJobNames,
+            actualIncompleteJobIds,
             addMetadataJobs,
             copyJobs,
             inProgressUploadJobs,
-            recentlyFailedJobNames,
-            recentlySucceededJobNames,
+            recentlyFailedJobNames: recentlyFailedJobIds,
+            recentlySucceededJobNames: recentlySucceededJobIds,
             uploadJobs,
         }));
     } catch (error) {
@@ -185,8 +189,7 @@ export const mapJobsToActions = (
            setAlert({
                message: `${jobName} Failed`,
                type: AlertType.ERROR,
-           }),
-           selectJobFilter(JobFilter.Failed)
+           })
        );
     });
 
@@ -195,16 +198,15 @@ export const mapJobsToActions = (
             setAlert({
                 message: `${jobName} Succeeded`,
                 type: AlertType.SUCCESS,
-            }),
-            selectJobFilter(JobFilter.Failed)
+            })
         );
     });
 
     // Only update the state if the current incompleteJobs are different than the existing ones
-    const potentiallyIncompleteJobNames = getIncompleteJobIds(getState());
-    if (actualIncompleteJobIds && potentiallyIncompleteJobNames.length !== actualIncompleteJobIds.length) {
+    const potentiallyIncompleteJobIdsStored = storage.get(`${JOB_STORAGE_KEY}.incompleteJobIds`);
+    if (actualIncompleteJobIds && potentiallyIncompleteJobIdsStored.length !== actualIncompleteJobIds.length) {
         try {
-            storage.set(`${JOB_STORAGE_KEY}.incompleteJobNames`, actualIncompleteJobIds);
+            storage.set(`${JOB_STORAGE_KEY}.incompleteJobIds`, actualIncompleteJobIds);
         } catch (e) {
             logger.warn(`Failed to update incomplete job names: ${actualIncompleteJobIds.join(", ")}`);
         }
@@ -260,24 +262,25 @@ const pollJobsLogic = createLogic({
     debounce: 500,
     latest: true,
     process: async (deps: ReduxLogicProcessDependencies, dispatch: any) => {
-        const { getState, jssClient, logger,  storage } = deps;
+        const { cancelled$, getState, jssClient, logger,  storage } = deps;
         dispatch(interval(1000)
             .pipe(
                 mergeMap(() => {
                     return fetchJobs(getState, jssClient);
                 }),
-                map(mapJobsToActions(getState, storage, logger))
+                map(mapJobsToActions(getState, storage, logger)),
+                takeUntil(cancelled$ as any as Observable<any>)
             ));
     },
     type: START_JOB_POLL,
     warnTimeout: 0,
 });
 
-const gatherStoredIncompleteJobNamesLogic = createLogic({
+const gatherStoredIncompleteJobIdsLogic = createLogic({
     transform: ({ storage }: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         try {
-            const incompleteJobNames = storage.get(`${JOB_STORAGE_KEY}.incompleteJobNames`) || [];
-            next(updateIncompleteJobIds(incompleteJobNames));
+            const incompleteJobIds = storage.get(`${JOB_STORAGE_KEY}.incompleteJobIds`) || [];
+            next(updateIncompleteJobIds(uniq(incompleteJobIds)));
         } catch (e) {
             next(setAlert({
                 message: "Failed to get saved incomplete jobs",
@@ -291,5 +294,5 @@ const gatherStoredIncompleteJobNamesLogic = createLogic({
 export default [
     retrieveJobsLogic,
     pollJobsLogic,
-    gatherStoredIncompleteJobNamesLogic,
+    gatherStoredIncompleteJobIdsLogic,
 ];
