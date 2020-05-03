@@ -3,7 +3,6 @@ import { Button, Col, Empty, Icon, Modal, Progress, Radio, Row, Spin, Switch, Ta
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
-import { remote } from "electron";
 import { capitalize, isEmpty, map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -16,7 +15,7 @@ import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import {
-    gatherIncompleteJobNames,
+    gatherIncompleteJobIds,
     retrieveJobs,
     selectJobFilter,
     startJobPoll,
@@ -28,7 +27,7 @@ import {
     getJobsForTable,
 } from "../../state/job/selectors";
 import {
-    GatherIncompleteJobNamesAction,
+    GatherIncompleteJobIdsAction,
     JobFilter,
     RetrieveJobsAction,
     SelectJobFilterAction,
@@ -79,7 +78,7 @@ interface Props {
     fileMetadataForJobHeader?: SearchResultsHeader[];
     fileMetadataForJobLoading: boolean;
     files: UploadFile[];
-    gatherIncompleteJobNames: ActionCreator<GatherIncompleteJobNamesAction>;
+    gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
     isPolling: boolean;
     loading: boolean;
     jobFilter: JobFilter;
@@ -203,7 +202,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         this.props.retrieveJobs();
         // this gathers jobs that are stored in "local storage" for all uploads that have been initiated and/or retried.
         // this is solely for reporting purposes in case an upload succeeded or failed while the app was not running
-        this.props.gatherIncompleteJobNames();
+        this.props.gatherIncompleteJobIds();
     }
 
     public componentWillUnmount(): void {
@@ -360,20 +359,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         }
     }
 
-    private cancelJob = (row: UploadSummaryTableRow) => () => {
-        if (!this.props.loading) {
-            remote.dialog.showMessageBox({
-                buttons: ["Cancel", "Yes"],
-                message: "If you cancel this upload, you'll have to start the upload process for these files from the beginning again.",
-                title: "Danger!",
-                type: "warning",
-            }, (response: number) => {
-                if (response === 1) {
-                    this.props.cancelUpload(row);
-                }
-            });
-        }
-    }
+    private cancelJob = (row: UploadSummaryTableRow) => () => this.props.cancelUpload(row);
 
     private closeModal = () => {
         this.props.clearFileMetadataForJob();
@@ -400,7 +386,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
     cancelUpload,
     clearFileMetadataForJob,
-    gatherIncompleteJobNames,
+    gatherIncompleteJobIds,
     requestFileMetadataForJob,
     retrieveJobs,
     retryUpload,
