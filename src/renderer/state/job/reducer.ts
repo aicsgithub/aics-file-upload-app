@@ -3,18 +3,15 @@ import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
 import {
-    CANCEL_UPLOAD,
-    CANCEL_UPLOAD_SUCCEEDED,
     INITIATE_UPLOAD,
     RETRY_UPLOAD,
     RETRY_UPLOAD_FAILED,
     RETRY_UPLOAD_SUCCEEDED,
 } from "../upload/constants";
 import {
-    CancelUploadAction,
-    CancelUploadSucceededAction,
     InitiateUploadAction,
-    RetryUploadAction, RetryUploadFailedAction,
+    RetryUploadAction,
+    RetryUploadFailedAction,
     RetryUploadSucceededAction,
 } from "../upload/types";
 import { makeReducer } from "../util";
@@ -52,6 +49,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
                   { payload: {
                       addMetadataJobs,
                       copyJobs,
+                      inProgressUploadJobs,
                       incompleteJobIds,
                       uploadJobs,
                   }}: ReceiveJobsAction) => {
@@ -59,7 +57,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
                 ...state,
                 addMetadataJobs,
                 copyJobs,
-                incompleteJobIds,
+                inProgressUploadJobs,
+                incompleteJobIds: uniq(incompleteJobIds),
                 uploadJobs,
             };
         },
@@ -102,8 +101,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === INITIATE_UPLOAD,
         perform: (state: JobStateBranch, action: InitiateUploadAction) => ({
             ...state,
-            incompleteJobIds: action.payload.incompleteJobIds,
-            jobFilter: JobFilter.InProgress,
+            incompleteJobIds: uniq(action.payload.incompleteJobIds),
         }),
     },
     [RETRY_UPLOAD]: {
@@ -112,7 +110,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch, action: RetryUploadAction) => ({
             ...state,
             incompleteJobIds: uniq([...state.incompleteJobIds, action.payload.jobId]),
-            jobFilter: JobFilter.InProgress,
         }),
     },
     [RETRY_UPLOAD_SUCCEEDED]: {
@@ -121,7 +118,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch, action: RetryUploadSucceededAction) => ({
             ...state,
             incompleteJobIds: without(state.incompleteJobIds, action.payload.jobId),
-            jobFilter: JobFilter.Successful,
         }),
     },
     [RETRY_UPLOAD_FAILED]: {
@@ -130,23 +126,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch, action: RetryUploadFailedAction) => ({
             ...state,
             incompleteJobIds: without(state.incompleteJobIds, action.payload.row.jobId),
-            jobFilter: JobFilter.Failed,
-        }),
-    },
-    [CANCEL_UPLOAD]: {
-        accepts: (action: AnyAction): action is CancelUploadAction =>
-            action.type === CANCEL_UPLOAD,
-        perform: (state: JobStateBranch) => ({
-            ...state,
-            jobFilter: JobFilter.Failed,
-        }),
-    },
-    [CANCEL_UPLOAD_SUCCEEDED]: {
-        accepts: (action: AnyAction): action is CancelUploadSucceededAction =>
-            action.type === CANCEL_UPLOAD_SUCCEEDED,
-        perform: (state: JobStateBranch) => ({
-            ...state,
-            jobFilter: JobFilter.Failed,
         }),
     },
 };

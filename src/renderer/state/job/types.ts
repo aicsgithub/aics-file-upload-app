@@ -41,7 +41,7 @@ export interface ReceiveJobsAction {
     type: string;
 }
 
-export interface GatherIncompleteJobNamesAction {
+export interface GatherIncompleteJobIdsAction {
     type: string;
 }
 
@@ -60,5 +60,6 @@ export interface StopJobPollAction {
 }
 
 export interface StartJobPollAction {
+    payload?: JobFilter;
     type: string;
 }

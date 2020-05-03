@@ -133,7 +133,7 @@ describe("Job logics", () => {
 
             const setAlertAction = getActionFromBatch(actions, SET_ALERT);
             expect(setAlertAction).to.not.be.undefined;
-            expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobNames`, [])).to.be.true;
+            expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobIds`, [])).to.be.true;
             if (setAlertAction) {
                 expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
                 expect(setAlertAction.payload.message).to.equal("mockFailedUploadJob Failed");
