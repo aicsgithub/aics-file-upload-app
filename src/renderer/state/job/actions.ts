@@ -10,7 +10,7 @@ import {
     UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-    GatherIncompleteJobNamesAction,
+    GatherIncompleteJobIdsAction,
     JobFilter,
     ReceiveJobsAction,
     RetrieveJobsAction,
@@ -45,7 +45,7 @@ export function receiveJobs(
     };
 }
 
-export function gatherIncompleteJobNames(): GatherIncompleteJobNamesAction {
+export function gatherIncompleteJobIds(): GatherIncompleteJobIdsAction {
     return {
         type: GATHER_STORED_INCOMPLETE_JOB_IDS,
     };
