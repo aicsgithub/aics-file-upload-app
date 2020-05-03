@@ -34,7 +34,7 @@ describe("Job logics", () => {
         const storage = {
             clear: stub(),
             delete: stub(),
-            get: stub(),
+            get: stub().returns(["abc"]),
             has: stub(),
             set: stub(),
         };

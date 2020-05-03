@@ -31,7 +31,7 @@ describe("job reducer", () => {
             );
             expect(result.addMetadataJobs).to.equal(addMetadataJobs);
             expect(result.copyJobs).to.equal(copyJobs);
-            expect(result.incompleteJobIds).to.equal(incompleteJobIds);
+            expect(result.incompleteJobIds).to.deep.equal(incompleteJobIds);
             expect(result.uploadJobs).to.equal(uploadJobs);
             expect(result.inProgressUploadJobs).to.equal(inProgressJobs);
         });
@@ -72,7 +72,7 @@ describe("job reducer", () => {
                     incompleteJobIds, // this gets populated by the logics
                 },
             });
-            expect(result.incompleteJobIds).to.equal(incompleteJobIds);
+            expect(result.incompleteJobIds).to.deep.equal(incompleteJobIds);
         });
     });
     describe("retryUpload", () => {
