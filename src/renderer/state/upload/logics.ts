@@ -35,11 +35,7 @@ import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
-import {
-    clearStagedFiles,
-    deselectFiles,
-    stageFiles,
-} from "../selection/actions";
+import { clearStagedFiles, deselectFiles, stageFiles } from "../selection/actions";
 import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
@@ -67,7 +63,8 @@ import {
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
-    CANCEL_UPLOAD, DRAFT_KEY,
+    CANCEL_UPLOAD,
+    DRAFT_KEY,
     getUploadDraftKey,
     getUploadRowKey,
     INITIATE_UPLOAD,
@@ -286,11 +283,11 @@ const cancelUploadLogic = createLogic({
             }));
         } else {
             dialog.showMessageBox({
-                buttons: ["No", "Yes"],
+                buttons: ["Cancel", "Yes"],
                 cancelId: 0,
                 defaultId: 1,
-                message: "An upload cannot be restarted once cancelled. Continue?",
-                title: "Warning",
+                message: "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
+                title: "Danger!",
                 type: "warning",
             }, (response: number) => {
                 if (response === 1) {
