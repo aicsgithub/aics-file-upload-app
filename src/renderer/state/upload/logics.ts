@@ -216,7 +216,6 @@ const initiateUploadLogic = createLogic({
             dispatch(batchActions([
                 setErrorAlert(error),
                 updateIncompleteJobIds(without(getIncompleteJobIds(getState()), startUploadResponse.jobId)),
-                setUploadError(error),
             ]));
         }
 
@@ -225,11 +224,11 @@ const initiateUploadLogic = createLogic({
     },
     type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
-                     rejectCb: ReduxLogicRejectCb) => {
+                     reject: ReduxLogicRejectCb) => {
 
         ctx.jobName = getCurrentJobName(getState());
         if (!ctx.jobName) {
-            rejectCb({ type: "ignore" });
+            reject({ type: "ignore" });
             return;
         }
 
@@ -250,10 +249,7 @@ const initiateUploadLogic = createLogic({
                 writeToStore: true,
             });
         } catch (e) {
-            rejectCb(setAlert({
-                message: e.message || "Validation error",
-                type: AlertType.ERROR,
-            }));
+            reject(setUploadError(e.message || "Validation error"));
         }
     },
 });
