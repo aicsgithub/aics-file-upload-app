@@ -163,7 +163,7 @@ export interface RemoveUploadsAction extends AutoSaveAction {
     type: string;
 }
 
-export interface InitiateUploadAction extends AutoSaveAction, WriteToStoreAction {
+export interface InitiateUploadAction extends AutoSaveAction {
     payload: {
         jobName?: string;
     };

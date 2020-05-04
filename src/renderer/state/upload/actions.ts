@@ -163,8 +163,6 @@ export function initiateUpload(): InitiateUploadAction {
             jobName: undefined,
         },
         type: INITIATE_UPLOAD,
-        updates: {},
-        writeToStore: true,
     };
 }
 
