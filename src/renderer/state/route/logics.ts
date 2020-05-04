@@ -35,7 +35,7 @@ import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { closeUploadTab, selectPage } from "./actions";
+import { selectPage } from "./actions";
 import { CLOSE_UPLOAD_TAB, findNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
 import { getPage } from "./selectors";
 import { Page, SelectPageAction } from "./types";
@@ -131,7 +131,6 @@ export const getSelectPageActions = (
         stateBranchHistory.forEach(
             (history) => actions.push(history.jumpToPast(0), history.clearHistory())
         );
-        actions.push(closeUploadTab());
 
         // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
     } else if (nextPageOrder > currentPageOrder) {

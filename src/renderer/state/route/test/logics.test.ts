@@ -244,7 +244,6 @@ describe("Route logics", () => {
             };
             const startingTemplateHistory = {
                 [Page.DragAndDrop]: 0,
-
             };
             const startingUploadHistory = {
                 [Page.DragAndDrop]: 0,
