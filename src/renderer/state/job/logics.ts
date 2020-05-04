@@ -26,11 +26,7 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import {
-    receiveJobs,
-    stopJobPoll,
-    updateIncompleteJobIds,
-} from "./actions";
+import { receiveJobs, stopJobPoll, updateIncompleteJobIds } from "./actions";
 import {
     FAILED_STATUSES,
     GATHER_STORED_INCOMPLETE_JOB_IDS,
@@ -159,7 +155,6 @@ export const fetchJobs = async (
 };
 
 export const mapJobsToActions = (
-    getState: () => State,
     storage: LocalStorage,
     logger: Logger
 ) =>
@@ -250,7 +245,7 @@ const retrieveJobsLogic = createLogic({
             dispatch,
             "JSS"
         );
-        dispatch(mapJobsToActions(getState, storage, logger)(jobs));
+        dispatch(mapJobsToActions(storage, logger)(jobs));
         done();
     },
     type: RETRIEVE_JOBS,
@@ -268,7 +263,7 @@ const pollJobsLogic = createLogic({
                 mergeMap(() => {
                     return fetchJobs(getState, jssClient);
                 }),
-                map(mapJobsToActions(getState, storage, logger)),
+                map(mapJobsToActions(storage, logger)),
                 takeUntil(cancelled$ as any as Observable<any>)
             ));
     },
