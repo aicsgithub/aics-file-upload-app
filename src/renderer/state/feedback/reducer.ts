@@ -242,6 +242,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: FeedbackStateBranch) => ({
             ...state,
             setMountPointNotificationVisible: false,
+            uploadError: undefined,
         }),
     },
     [SET_UPLOAD_ERROR]: {

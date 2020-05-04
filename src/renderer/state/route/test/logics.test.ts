@@ -269,7 +269,7 @@ describe("Route logics", () => {
             await logicMiddleware.whenComplete();
 
             // before
-            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(0);
+            expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(1);
             expect(getCurrentUploadIndex(store.getState())).to.be.greaterThan(0);
             expect(switchEnv.enabled).to.be.true;
 
@@ -277,8 +277,9 @@ describe("Route logics", () => {
             await logicMiddleware.whenComplete();
 
             const state = store.getState();
-            expect(getCurrentSelectionIndex(state)).to.not.be.greaterThan(0);
-            expect(getCurrentUploadIndex(store.getState())).to.not.be.greaterThan(0);
+            // we dispatching the closeUploadTab action after clearing history
+            expect(getCurrentSelectionIndex(state)).to.not.be.greaterThan(1);
+            expect(getCurrentUploadIndex(store.getState())).to.not.be.greaterThan(1);
             expect(switchEnv.enabled).to.be.true;
         });
     });

@@ -35,7 +35,7 @@ import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
-import { clearStagedFiles, deselectFiles, stageFiles } from "../selection/actions";
+import { deselectFiles, stageFiles } from "../selection/actions";
 import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
@@ -64,7 +64,6 @@ import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
     CANCEL_UPLOAD,
-    DRAFT_KEY,
     getUploadDraftKey,
     getUploadRowKey,
     INITIATE_UPLOAD,
@@ -188,16 +187,25 @@ const initiateUploadLogic = createLogic({
                     getState(),
                     getApplicationMenu,
                     selectPage(currentPage, nextPage)
-                ), clearStagedFiles());
+                ));
+            }
+
+            let updates: {[key: string]: any} = {
+                [INCOMPLETE_JOB_IDS_KEY]: updatedIncompleteJobIds,
+            };
+            const currentUpload = getCurrentUpload(getState());
+            if (currentUpload) {
+                // clear out upload draft so it doesn't get re-submitted on accident
+                updates = {
+                    ...updates,
+                    [getUploadDraftKey(currentUpload.name, currentUpload.created)]: undefined,
+                };
             }
 
             dispatch(
                 {
                     ...batchActions(actions),
-                    updates: {
-                        [INCOMPLETE_JOB_IDS_KEY]: updatedIncompleteJobIds,
-                        [`${DRAFT_KEY}.${jobName}`]: undefined,
-                    },
+                    updates,
                     writeToStore: true,
                 }
             );
@@ -236,6 +244,7 @@ const initiateUploadLogic = createLogic({
                 payload: {
                     ...action.payload,
                     incompleteJobIds: updatedIncompleteJobIds,
+                    jobName: ctx.jobName,
                 },
                 updates: updateIncompleteJobIds(updatedIncompleteJobIds).updates,
                 writeToStore: true,

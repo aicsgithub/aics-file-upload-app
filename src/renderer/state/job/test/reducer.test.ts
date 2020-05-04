@@ -63,7 +63,7 @@ describe("job reducer", () => {
     });
     describe("initiateUpload", () => {
         it("sets incompleteJobIds", () => {
-            const originalAction = initiateUpload("jobName");
+            const originalAction = initiateUpload();
             const incompleteJobIds = ["jobId"];
             const result = reducer(initialState, {
                 ...originalAction,

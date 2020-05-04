@@ -181,8 +181,10 @@ describe("feedback reducer", () => {
             const result = reducer({
                 ...initialState,
                 setMountPointNotificationVisible: true,
+                uploadError: "foo",
             }, closeUploadTab());
             expect(result.setMountPointNotificationVisible).to.be.false;
+            expect(result.uploadError).to.be.undefined;
         });
     });
     describe("setUploadError", () => {
@@ -261,8 +263,15 @@ describe("feedback reducer", () => {
     });
     describe("initiateUpload", () => {
         it("adds INITIATE_UPLOAD-jobName to requestsInProgress and sets info alert", () => {
-            const result = reducer(initialState, initiateUpload("jobName"));
-            expect(result.requestsInProgress.includes("INITIATE_UPLOAD-jobName"));
+            const action = initiateUpload();
+            const result = reducer(initialState, {
+                ...action,
+                payload: {
+                    ...action.payload,
+                    jobName: "foo", // this gets populated in the logics
+                },
+            });
+            expect(result.requestsInProgress.includes("INITIATE_UPLOAD-foo"));
             expect(result.alert).to.deep.equal({
                 message: "Starting upload",
                 type: AlertType.INFO,

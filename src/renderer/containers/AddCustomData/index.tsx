@@ -11,7 +11,7 @@ import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains, getUploadError } from "../../state/feedback/selectors";
 import { AsyncRequest, OpenTemplateEditorAction, SetAlertAction } from "../../state/feedback/types";
-import { getCurrentJobName, getUploadInProgress } from "../../state/job/selectors";
+import { getUploadInProgress } from "../../state/job/selectors";
 import {
     getAnnotationTypes,
     getBooleanAnnotationTypeId,
@@ -78,7 +78,6 @@ interface Props {
     canUndo: boolean;
     channels: Channel[];
     className?: string;
-    currentJobName?: string;
     expandedRows: ExpandedRows;
     fileToAnnotationHasValueMap: {[file: string]: {[key: string]: boolean}};
     goBack: ActionCreator<GoBackAction>;
@@ -251,7 +250,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private openTemplateEditorWithId = (id: number | undefined) => () => this.props.openSchemaCreator(id);
 
     private upload = (): void => {
-        this.props.initiateUpload(this.props.currentJobName);
+        this.props.initiateUpload();
     }
 
     private undo = (): void => {
@@ -272,7 +271,6 @@ function mapStateToProps(state: State) {
         canRedo: getCanRedoUpload(state),
         canUndo: getCanUndoUpload(state),
         channels: getChannels(state),
-        currentJobName: getCurrentJobName(state),
         expandedRows: getExpandedUploadJobRows(state),
         fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),

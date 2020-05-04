@@ -160,7 +160,8 @@ const initialState: State = {
 
 export function createMockReduxStore(mockState: State = initialState,
                                      reduxLogicDependencies: ReduxLogicDependencies = mockReduxLogicDeps,
-                                     logics?: Array<Logic<any, any, any, any, any, any>>
+                                     logics?: Array<Logic<any, any, any, any, any, any>>,
+                                     spreadBatched: boolean = true
 ): {store: Store; logicMiddleware: LogicMiddleware<State, ReduxLogicDependencies>; actions: Actions} {
     if (!logics) {
         logics = allLogics;
@@ -172,7 +173,7 @@ export function createMockReduxStore(mockState: State = initialState,
     // action tracking middleware
     const actionTracker = new ActionTracker();
     const trackActionsMiddleware: Middleware = () => (next) => (action) => {
-        if (action.batch) {
+        if (action.batch && spreadBatched) {
             actionTracker.track(...action.payload);
         } else {
             actionTracker.track(action);

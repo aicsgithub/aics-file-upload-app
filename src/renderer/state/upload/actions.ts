@@ -156,12 +156,12 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
     };
 }
 
-export function initiateUpload(jobName: string): InitiateUploadAction {
+export function initiateUpload(): InitiateUploadAction {
     return {
         autoSave: true,
         payload: {
-            incompleteJobIds: [], // this will get updated by logics
-            jobName,
+            incompleteJobIds: [], // these will get updated by logics
+            jobName: undefined,
         },
         type: INITIATE_UPLOAD,
         updates: {},

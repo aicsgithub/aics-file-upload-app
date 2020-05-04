@@ -7,16 +7,13 @@ import { AlertType } from "../../feedback/types";
 
 import { logger } from "../../test/configure-mock-store";
 import {
-    mockState,
     mockSuccessfulAddMetadataJob,
     mockSuccessfulCopyJob,
     mockSuccessfulUploadJob,
 } from "../../test/mocks";
-import { State } from "../../types";
 import { getActionFromBatch } from "../../util";
 import { RECEIVE_JOBS } from "../constants";
 import { mapJobsToActions } from "../logics";
-import { JobFilter } from "../types";
 
 describe("Job logics", () => {
     const sandbox = createSandbox();
@@ -40,8 +37,7 @@ describe("Job logics", () => {
         };
 
         it("Sets error if error is present", () => {
-            const getState = () => mockState;
-            const actions = mapJobsToActions(getState, storage, logger)({error: new Error("boo")});
+            const actions = mapJobsToActions(storage, logger)({error: new Error("boo")});
             const addEventAction = getActionFromBatch(actions, ADD_EVENT);
             expect(addEventAction).to.not.be.undefined;
             expect(addEventAction?.payload.type).to.equal(AlertType.ERROR);
@@ -50,8 +46,7 @@ describe("Job logics", () => {
 
         it("Sets jobs passed in",  () => {
             const actualIncompleteJobIds = ["imActuallyIncomplete"];
-            const getState = () => mockState;
-            const actions = mapJobsToActions(getState, storage, logger)({
+            const actions = mapJobsToActions(storage, logger)({
                 actualIncompleteJobIds,
                 addMetadataJobs,
                 copyJobs,
@@ -74,16 +69,7 @@ describe("Job logics", () => {
         });
 
         it("Sends alert for successful upload job given incomplete job",  () => {
-            const getState = (): State => ({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobIds: ["mockJob1"],
-                    jobFilter: JobFilter.All,
-                },
-            });
-
-            const actions = mapJobsToActions(getState, storage, logger)({
+            const actions = mapJobsToActions(storage, logger)({
                 actualIncompleteJobIds: [],
                 addMetadataJobs,
                 copyJobs,
@@ -110,16 +96,7 @@ describe("Job logics", () => {
         it("Sends alert for failed upload job given incomplete job", () => {
             const setStub = stub();
             sandbox.replace(storage, "set", setStub);
-
-            const getState = (): State => ({
-                ...mockState,
-                job: {
-                    ...mockState.job,
-                    incompleteJobIds: ["mockFailedUploadJob"],
-                    jobFilter: JobFilter.All,
-                },
-            });
-            const actions = mapJobsToActions(getState, storage, logger)({
+            const actions = mapJobsToActions(storage, logger)({
                 actualIncompleteJobIds: [],
                 addMetadataJobs,
                 copyJobs,
