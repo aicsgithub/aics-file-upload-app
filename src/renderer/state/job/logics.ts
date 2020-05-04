@@ -11,7 +11,7 @@ import { Error } from "tslint/lib/error";
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 
-import { addEvent, setAlert } from "../feedback/actions";
+import { addEvent, setAlert, setErrorAlert, setSuccessAlert } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { getLoggedInUser } from "../setting/selectors";
 
@@ -179,23 +179,16 @@ export const mapJobsToActions = (
     let updates: {[jobName: string]: undefined} = {};
 
     // report the status of jobs that have recently failed and succeeded
-    (recentlyFailedJobNames || []).forEach((jobName: string) => {
-       actions.push(
-           setAlert({
-               message: `${jobName} Failed`,
-               type: AlertType.ERROR,
-           })
-       );
-    });
-
-    (recentlySucceededJobNames || []).forEach((jobName: string) => {
-        actions.push(
-            setAlert({
-                message: `${jobName} Succeeded`,
-                type: AlertType.SUCCESS,
-            })
-        );
-    });
+    // since we can only set one alert at a time, we will leave anything remaining for the next job poll
+    if (recentlyFailedJobNames?.length) {
+        const jobName = recentlyFailedJobNames.shift();
+        actions.push(setErrorAlert(`${jobName} Failed`));
+        (actualIncompleteJobIds || []).push(...recentlyFailedJobNames);
+    } else if (recentlySucceededJobNames?.length) {
+        const jobName = recentlySucceededJobNames.shift();
+        actions.push(setSuccessAlert(`${jobName} Succeeded`));
+        (actualIncompleteJobIds || []).push(...recentlySucceededJobNames);
+    }
 
     // Only update the state if the current incompleteJobs are different than the existing ones
     const potentiallyIncompleteJobIdsStored = storage.get(`${JOB_STORAGE_KEY}.incompleteJobIds`);
