@@ -235,9 +235,7 @@ export const mapJobsToActions = (
 const retrieveJobsLogic = createLogic({
     debounce: 500,
     latest: true,
-    // Redux Logic's type definitions do not include dispatching observable actions so we are setting
-    // the type of dispatch to any
-    process: async (deps: ReduxLogicProcessDependencies, dispatch: any, done: ReduxLogicDoneCb) => {
+    process: async (deps: ReduxLogicProcessDependencies, dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
         const { getState, jssClient, logger,  storage } = deps;
         const jobs = await getWithRetry(
             () => fetchJobs(getState, jssClient),
@@ -252,10 +250,13 @@ const retrieveJobsLogic = createLogic({
     warnTimeout: 0,
 });
 
+// Based on https://codesandbox.io/s/j36jvpn8rv?file=/src/index.js
 const pollJobsLogic = createLogic({
     cancelType: STOP_JOB_POLL,
     debounce: 500,
     latest: true,
+    // Redux Logic's type definitions do not include dispatching observable actions so we are setting
+    // the type of dispatch to any
     process: async (deps: ReduxLogicProcessDependencies, dispatch: any) => {
         const { cancelled$, getState, jssClient, logger,  storage } = deps;
         dispatch(interval(1000)
@@ -264,6 +265,8 @@ const pollJobsLogic = createLogic({
                     return fetchJobs(getState, jssClient);
                 }),
                 map(mapJobsToActions(storage, logger)),
+                // CancelType doesn't seem to prevent polling the server even though the logics stops dispatching
+                // haven't figured out why but this seems to stop the interval
                 takeUntil(cancelled$ as any as Observable<any>)
             ));
     },
