@@ -160,7 +160,6 @@ export function initiateUpload(): InitiateUploadAction {
     return {
         autoSave: true,
         payload: {
-            incompleteJobIds: [], // these will get updated by logics
             jobName: undefined,
         },
         type: INITIATE_UPLOAD,

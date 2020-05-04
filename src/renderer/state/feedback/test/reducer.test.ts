@@ -18,7 +18,8 @@ import {
     addEvent,
     addRequestToInProgress,
     clearAlert,
-    clearDeferredAction, clearUploadError,
+    clearDeferredAction,
+    clearUploadError,
     closeModal,
     closeSetMountPointNotification,
     openModal,
@@ -26,7 +27,8 @@ import {
     removeRequestFromInProgress,
     setAlert,
     setDeferredAction,
-    setErrorAlert, setUploadError,
+    setErrorAlert,
+    setUploadError,
     startLoading,
     stopLoading,
 } from "../actions";
@@ -189,8 +191,13 @@ describe("feedback reducer", () => {
     });
     describe("setUploadError", () => {
         it("sets uploadError", () => {
-            const result = reducer(initialState, setUploadError("foo"));
+            const request = `${AsyncRequest.INITIATE_UPLOAD}-jobName`;
+            const result = reducer({
+                ...initialState,
+                requestsInProgress: [request],
+            }, setUploadError("jobName", "foo"));
             expect(result.uploadError).to.equal("foo");
+            expect(result.requestsInProgress.includes(request)).to.be.false;
         });
     });
     describe("clearUploadError", () => {

@@ -248,9 +248,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [SET_UPLOAD_ERROR]: {
         accepts: (action: AnyAction): action is SetUploadErrorAction =>
             action.type === SET_UPLOAD_ERROR,
-        perform: (state: FeedbackStateBranch, action: SetUploadErrorAction) => ({
+        perform: (state: FeedbackStateBranch, { payload: { error, jobName } }: SetUploadErrorAction) => ({
             ...state,
-            uploadError: action.payload,
+            requestsInProgress: removeRequestFromInProgress(state, `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`),
+            uploadError: error,
         }),
     },
     [CLEAR_UPLOAD_ERROR]: {

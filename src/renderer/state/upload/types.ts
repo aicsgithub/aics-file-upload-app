@@ -166,7 +166,6 @@ export interface RemoveUploadsAction extends AutoSaveAction {
 export interface InitiateUploadAction extends AutoSaveAction, WriteToStoreAction {
     payload: {
         jobName?: string;
-        incompleteJobIds: string[];
     };
     type: string;
 }

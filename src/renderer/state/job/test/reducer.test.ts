@@ -6,7 +6,6 @@ import {
     mockWorkingAddMetadataJob,
 } from "../../test/mocks";
 import {
-    initiateUpload,
     retryUpload,
     retryUploadFailed,
     retryUploadSucceeded,
@@ -59,20 +58,6 @@ describe("job reducer", () => {
         it("sets polling to false", () => {
             const result = reducer({...initialState, polling: true}, stopJobPoll());
             expect(result.polling).to.be.false;
-        });
-    });
-    describe("initiateUpload", () => {
-        it("sets incompleteJobIds", () => {
-            const originalAction = initiateUpload();
-            const incompleteJobIds = ["jobId"];
-            const result = reducer(initialState, {
-                ...originalAction,
-                payload: {
-                    ...originalAction.payload,
-                    incompleteJobIds, // this gets populated by the logics
-                },
-            });
-            expect(result.incompleteJobIds).to.deep.equal(incompleteJobIds);
         });
     });
     describe("retryUpload", () => {

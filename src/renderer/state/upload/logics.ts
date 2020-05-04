@@ -167,9 +167,23 @@ const applyTemplateLogic = createLogic({
 const initiateUploadLogic = createLogic({
     process: async ({ctx, fms, getApplicationMenu, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        dispatch(startJobPoll());
-        const { jobName, startUploadResponse } = ctx;
+        const { jobName } = ctx;
+        // validate and get jobId
+        let startUploadResponse;
+        try {
+            startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(getUploadPayload(getState()));
+            const updatedIncompleteJobIds = uniq([
+                ...getIncompleteJobIds(getState()),
+                startUploadResponse.jobId,
+            ]);
+            dispatch(updateIncompleteJobIds(updatedIncompleteJobIds));
+        } catch (e) {
+            dispatch(setUploadError(jobName, e.message || "Validation failed for upload"));
+            done();
+            return;
+        }
 
+        dispatch(startJobPoll());
         try {
             const payload = getUploadPayload(getState());
             const incompleteJobIds = getIncompleteJobIds(getState());
@@ -232,25 +246,14 @@ const initiateUploadLogic = createLogic({
             return;
         }
 
-        try {
-            ctx.startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(getUploadPayload(getState()));
-            const updatedIncompleteJobIds = uniq([
-                ...getIncompleteJobIds(getState()),
-                ctx.startUploadResponse.jobId,
-            ]);
-            next({
-                ...action,
-                payload: {
-                    ...action.payload,
-                    incompleteJobIds: updatedIncompleteJobIds,
-                    jobName: ctx.jobName,
-                },
-                updates: updateIncompleteJobIds(updatedIncompleteJobIds).updates,
-                writeToStore: true,
-            });
-        } catch (e) {
-            reject(setUploadError(e.message || "Validation error"));
-        }
+        next({
+            ...action,
+            payload: {
+                ...action.payload,
+                jobName: ctx.jobName,
+            },
+            writeToStore: true,
+        });
     },
 });
 

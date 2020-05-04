@@ -120,7 +120,10 @@ export interface ClearDeferredAction {
 }
 
 export interface SetUploadErrorAction {
-    payload: string;
+    payload: {
+        error: string;
+        jobName: string;
+    };
     type: string;
 }
 

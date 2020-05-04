@@ -3,13 +3,11 @@ import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
 import {
-    INITIATE_UPLOAD,
     RETRY_UPLOAD,
     RETRY_UPLOAD_FAILED,
     RETRY_UPLOAD_SUCCEEDED,
 } from "../upload/constants";
 import {
-    InitiateUploadAction,
     RetryUploadAction,
     RetryUploadFailedAction,
     RetryUploadSucceededAction,
@@ -94,14 +92,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch) => ({
             ...state,
             polling: false,
-        }),
-    },
-    [INITIATE_UPLOAD]: {
-        accepts: (action: AnyAction): action is InitiateUploadAction =>
-            action.type === INITIATE_UPLOAD,
-        perform: (state: JobStateBranch, action: InitiateUploadAction) => ({
-            ...state,
-            incompleteJobIds: uniq(action.payload.incompleteJobIds),
         }),
     },
     [RETRY_UPLOAD]: {

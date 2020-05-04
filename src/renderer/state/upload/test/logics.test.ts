@@ -387,9 +387,7 @@ describe("Upload logics", () => {
             expect(getUploadError(state)).to.be.undefined;
         });
         it("sets upload error if upload fails", async () => {
-            const error = "bar";
-            sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().resolves(startUploadResponse));
-            sandbox.replace(fms, "uploadFiles", stub().rejects(new Error(error)));
+            sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().rejects(new Error("Oops")));
             const { logicMiddleware, store } = createMockReduxStore(
                 nonEmptyStateForInitiatingUpload,
                 mockReduxLogicDeps,
