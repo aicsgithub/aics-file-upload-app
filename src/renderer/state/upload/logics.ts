@@ -233,8 +233,11 @@ const initiateUploadLogic = createLogic({
             ]));
         }
 
-        dispatch(stopJobPoll());
-        done();
+        // hopefully give job queries a chance to catch up
+        setTimeout(() => {
+            dispatch(stopJobPoll());
+            done();
+        }, 2000);
     },
     type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,

@@ -2,7 +2,7 @@ import { StartUploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
-import { createSandbox, stub } from "sinon";
+import { createSandbox, SinonFakeTimers, stub, useFakeTimers } from "sinon";
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { LONG_DATETIME_FORMAT } from "../../../constants";
 
@@ -294,9 +294,14 @@ describe("Upload logics", () => {
             jobId: "abcd",
             uploadDirectory: "/test",
         };
+        let clock: SinonFakeTimers;
+        beforeEach(() => {
+            clock = useFakeTimers();
+        });
 
         afterEach(() => {
             sandbox.restore();
+            clock.restore();
         });
 
         const setUpSuccessStubs = () => {
@@ -321,21 +326,25 @@ describe("Upload logics", () => {
 
         it("calls uploadFiles given OK response from validateMetadataAndGetUploadDirectory", async () => {
             const uploadFilesStub = setUpSuccessStubs();
-            const { logicMiddleware, store } = createMockReduxStore(nonEmptyStateForInitiatingUpload,
+            const { store } = createMockReduxStore(nonEmptyStateForInitiatingUpload,
                 undefined, uploadLogics);
             // before
             expect(uploadFilesStub.called).to.be.false;
 
             // apply
-            store.dispatch(initiateUpload());
 
             // after
-            await logicMiddleware.whenComplete();
-            expect(uploadFilesStub.calledWith(startUploadResponse)).to.be.true;
+            // the setTimeout in the logics forces us to use store.subscribe
+            store.subscribe(() => {
+                if (uploadFilesStub.called) {
+                    clock.tick(2000);
+                    expect(uploadFilesStub.calledWith(startUploadResponse)).to.be.true;
+                }
+            });
         });
         it("adds to list of incomplete job ids", async () => {
-            setUpSuccessStubs();
-            const { actions, logicMiddleware, store} = createMockReduxStore({
+            const uploadFilesStub = setUpSuccessStubs();
+            const { actions, store} = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 job: {
                     ...nonEmptyStateForInitiatingUpload.job,
@@ -351,18 +360,22 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
-            await logicMiddleware.whenComplete();
-            expect(actions.list.find((a) => {
-                return a.writeToStore &&
-                    a.updates &&
-                    a.updates[INCOMPLETE_JOB_IDS_KEY];
-            })).to.not.be.undefined;
+            // the setTimeout in the logics forces us to use store.subscribe
+            store.subscribe(() => {
+                if (uploadFilesStub.called) {
+                    clock.tick(2000);
+                    expect(actions.list.find((a) => {
+                        return a.writeToStore &&
+                            a.updates &&
+                            a.updates[INCOMPLETE_JOB_IDS_KEY];
+                    })).to.not.be.undefined;
+                }
+            });
         });
 
         it("clears Upload Error", async () => {
-            sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().resolves(startUploadResponse));
-            sandbox.replace(fms, "uploadFiles", stub().resolves());
-            const { logicMiddleware, store } = createMockReduxStore(
+            const uploadFilesStub = setUpSuccessStubs();
+            const { store } = createMockReduxStore(
                 {
                     ...nonEmptyStateForInitiatingUpload,
                     feedback: {
@@ -382,9 +395,14 @@ describe("Upload logics", () => {
             store.dispatch(initiateUpload());
 
             // after
-            await logicMiddleware.whenComplete();
-            state = store.getState();
-            expect(getUploadError(state)).to.be.undefined;
+            // the setTimeout in the logics forces us to use store.subscribe
+            store.subscribe(() => {
+                if (uploadFilesStub.called) {
+                    clock.tick(2000);
+                    state = store.getState();
+                    expect(getUploadError(state)).to.be.undefined;
+                }
+            });
         });
         it("sets upload error if upload fails", async () => {
             sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().rejects(new Error("Oops")));
@@ -407,9 +425,8 @@ describe("Upload logics", () => {
             expect(getUploadError(state)).to.not.be.undefined;
         });
         it("closes upload tab", async () => {
-            sandbox.replace(fms, "validateMetadataAndGetUploadDirectory", stub().resolves(startUploadResponse));
-            sandbox.replace(fms, "uploadFiles", stub().resolves());
-            const { logicMiddleware, store } = createMockReduxStore(
+            const uploadFilesStub = setUpSuccessStubs();
+            const { store } = createMockReduxStore(
                 {
                     ...nonEmptyStateForInitiatingUpload,
                     route: {
@@ -425,9 +442,12 @@ describe("Upload logics", () => {
             expect(getPage(store.getState())).to.equal(Page.AddCustomData);
 
             store.dispatch(initiateUpload());
-            await logicMiddleware.whenComplete();
-
-            expect(getPage(store.getState())).to.equal(Page.UploadSummary);
+            store.subscribe(() => {
+                if (uploadFilesStub.called) {
+                    clock.tick(2000);
+                    expect(getPage(store.getState())).to.equal(Page.UploadSummary);
+                }
+            });
         });
     });
     describe("updateSubImagesLogic", () => {
