@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Event, ipcMain } from "electron";
+import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 import { autoUpdater } from "electron-updater";
 import * as path from "path";
 import { format as formatUrl } from "url";
@@ -83,6 +84,8 @@ app.on("activate", () => {
 
 // create main BrowserWindow when electron is ready
 app.on("ready", async () => {
+    // TODO: Disable this in prod?
+    await installExtension(REACT_DEVELOPER_TOOLS);
     mainWindow = createMainWindow();
     await autoUpdater.checkForUpdatesAndNotify();
 });
