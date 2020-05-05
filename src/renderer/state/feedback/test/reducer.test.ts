@@ -11,7 +11,8 @@ import {
     addEvent,
     addRequestToInProgress,
     clearAlert,
-    clearDeferredAction, clearUploadError,
+    clearDeferredAction,
+    clearUploadError,
     closeModal,
     closeSetMountPointNotification,
     openModal,
@@ -19,9 +20,11 @@ import {
     removeRequestFromInProgress,
     setAlert,
     setDeferredAction,
-    setErrorAlert, setUploadError,
+    setErrorAlert,
+    setUploadError,
     startLoading,
-    stopLoading, toggleFolderTree,
+    stopLoading,
+    toggleFolderTree,
 } from "../actions";
 
 import reducer from "../reducer";
