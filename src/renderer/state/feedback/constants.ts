@@ -17,3 +17,4 @@ export const SET_DEFERRED_ACTION = makeConstant(BRANCH_NAME, "set-deferred-actio
 export const CLEAR_DEFERRED_ACTION = makeConstant(BRANCH_NAME, "clear-deferred-action");
 export const SET_UPLOAD_ERROR = makeConstant(BRANCH_NAME, "set-upload-error");
 export const CLEAR_UPLOAD_ERROR = makeConstant(BRANCH_NAME, "clear-upload-error");
+export const TOGGLE_FOLDER_TREE = makeConstant(BRANCH_NAME, "toggle-folder-tree");
