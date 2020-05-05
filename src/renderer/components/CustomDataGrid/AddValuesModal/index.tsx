@@ -52,7 +52,8 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                         return (
                             <BooleanFormatter
                                 className={styles.input}
-                                saveValue={this.updateRow(row)}
+                                // TODO: When is this used? Isn't the below line already broken?
+                                // saveValue={this.updateRow(row)}
                                 value={value}
                             />
                         );
