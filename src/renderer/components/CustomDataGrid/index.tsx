@@ -323,7 +323,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 editable: !formatterNeedsModal,
                 key: name,
                 name,
-                onChange: this.saveByRow,
                 resizable: true,
                 type,
             };
@@ -341,8 +340,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
             // eventually we may want to allow undefined Booleans as well but for now, the default value is False
             if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
-                column.formatter = (props) =>
-                    BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
+                column.formatter = BooleanFormatter;
             } else {
                 column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => {
                     let childEl;
@@ -424,12 +422,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
 
     private updateRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>) => {
-        const {fromRow,  toRow, updated } = e;
-        // Updated is a {key:  value }
+        const { fromRow,  toRow, updated } = e;
+        // Updated is a { key: value }
+        // TODO: Dispatch a single action, instead of one for each row to update
         if (updated) {
-            for  (let i = fromRow; i <=  toRow; i++) {
+            for (let i = fromRow; i <=  toRow; i++) {
                 this.props.updateUpload(
-                    getUploadRowKeyFromUploadTableRow(this.props.uploads[i]), updated
+                    getUploadRowKeyFromUploadTableRow(this.props.uploads[i]),
+                    updated
                 );
             }
         }

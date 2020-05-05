@@ -52,7 +52,6 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                         return (
                             <BooleanFormatter
                                 className={styles.input}
-                                saveValue={this.updateRow(row)}
                                 value={value}
                             />
                         );
