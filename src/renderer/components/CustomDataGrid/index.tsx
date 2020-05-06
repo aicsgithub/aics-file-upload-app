@@ -38,7 +38,7 @@ import WellsEditor from "./WellsEditor";
 
 const styles = require("./style.pcss");
 
-const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DATETIME];
+const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.DATE, ColumnType.DATETIME];
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
@@ -314,11 +314,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             }
 
             const type = annotationType.name;
-            // When an annotation can have multiple values and it is a Boolean, Date, or Datetime, we need more space.
-            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
-                templateAnnotation.canHaveManyValues;
+            // When an annotation can have multiple values and it is a Date or Datetime, we need more space.
+            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type);
             const column: UploadJobColumn = {
-                allowMultipleValues: templateAnnotation.canHaveManyValues,
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
                 editable: !formatterNeedsModal,
@@ -340,8 +338,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 column.width = 250;
             }
 
-            // Eventually we should stop allowing multiple boolean values as this makes no sense practically
-            if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
+            if (type === ColumnType.BOOLEAN) {
                 column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
             } else {

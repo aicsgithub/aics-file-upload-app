@@ -1145,7 +1145,7 @@ describe("Upload logics", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "Birth Date": undefined,
+                        "Birth Date": [],
                         "barcode": "",
                         "file": "/path/to/file3",
                         "notes": [],
@@ -1164,15 +1164,17 @@ describe("Upload logics", () => {
 
             // before
             const annotation = "Birth Date";
+            expect(getUpload(store.getState())[uploadRowKey][annotation]).to.be.empty;
 
             // apply
             store.dispatch(updateUpload(uploadRowKey, {[annotation]: moment()}));
 
             // after
             const upload = getUpload(store.getState());
-            expect(upload[uploadRowKey][annotation] instanceof Date).to.be.true;
+            console.log(upload[uploadRowKey][annotation][0])
+            expect(upload[uploadRowKey][annotation][0] instanceof Date).to.be.true;
         });
-        it("converts strings to arrays of strings if canHaveManyValues=true and type is TEXT", () => {
+        it("converts strings to arrays of strings if type is TEXT", () => {
             const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
@@ -1184,7 +1186,7 @@ describe("Upload logics", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "Another Garbage Text Annotation": undefined,
+                        "Another Garbage Text Annotation": [],
                         "barcode": "",
                         "file": "/path/to/file3",
                         "notes": [],
@@ -1203,6 +1205,7 @@ describe("Upload logics", () => {
 
             // before
             const annotation = "Another Garbage Text Annotation";
+            expect(getUpload(store.getState())[uploadRowKey][annotation]).to.be.empty;
 
             // apply
             store.dispatch(updateUpload(uploadRowKey, {[annotation]: "a,b,c"}));
@@ -1211,7 +1214,7 @@ describe("Upload logics", () => {
             const upload = getUpload(store.getState());
             expect(upload[uploadRowKey][annotation]).to.deep.equal(["a", "b", "c"]);
         });
-        it("converts strings to arrays of numbers if canHaveManyValues=true and type is NUMBER", () => {
+        it("converts strings to arrays of numbers if type is NUMBER", () => {
             const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({

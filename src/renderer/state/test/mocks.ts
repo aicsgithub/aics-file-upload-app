@@ -237,7 +237,7 @@ export const mockTextAnnotation: TemplateAnnotation = {
     ...mockAuditInfo,
     annotationId: 56,
     annotationTypeId: 1,
-    canHaveManyValues: true,
+    canHaveManyValues: false, // this will not be relevant for very long. TODO JIRA ticket
     description: "some description",
     lookupSchema: undefined,
     lookupTable: undefined,
@@ -273,7 +273,7 @@ export const mockNumberAnnotation: TemplateAnnotation = {
     ...mockAuditInfo,
     annotationId: 64,
     annotationTypeId: 2,
-    canHaveManyValues: true,
+    canHaveManyValues: false, // this will not be relevant for very long
     description: "for testing number annotations",
     lookupSchema: undefined,
     lookupTable: undefined,

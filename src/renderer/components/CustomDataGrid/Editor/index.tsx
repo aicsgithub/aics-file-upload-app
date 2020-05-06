@@ -1,4 +1,4 @@
-import { DatePicker, Input, InputNumber, Select } from "antd";
+import { DatePicker, Input, Select } from "antd";
 import Logger from "js-logger";
 import * as moment from "moment";
 import * as React from "react";
@@ -13,7 +13,6 @@ import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 const { Option } = Select;
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
-    allowMultipleValues?: boolean;
     dropdownValues?: string[];
     onChange?: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
     type?: ColumnType;
@@ -35,26 +34,20 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
     public input = React.createRef<HTMLDivElement>();
 
     public render() {
-        const { column: { allowMultipleValues, dropdownValues, type }, value } = this.props;
+        const { column: { dropdownValues, type }, value } = this.props;
 
         let input;
-        let formattedValue;
         switch (type) {
             case ColumnType.DROPDOWN:
-                formattedValue = value;
-                if (!allowMultipleValues) {
-                    formattedValue = Array.isArray(value) ? value[0] : value;
-                }
-
                 input = (
                     <Select
                         allowClear={true}
                         autoFocus={true}
                         defaultOpen={true}
-                        mode={allowMultipleValues ? "multiple" : "default"}
+                        mode="multiple"
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
-                        value={formattedValue}
+                        value={value}
                     >
                         {dropdownValues && dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue}>{dropdownValue}</Option>
@@ -71,22 +64,12 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                 );
                 break;
             case ColumnType.NUMBER:
-                input = allowMultipleValues ?
-                    (
+                input = (
                         <Input
                             autoFocus={true}
                             onChange={this.handleInputOnChange}
                             style={{ width: "100%" }}
                             value={value.join(LIST_DELIMITER_JOIN)}
-                        />
-                    )
-                    :
-                    (
-                        <InputNumber
-                            autoFocus={true}
-                            onChange={this.handleOnChange}
-                            style={{ width: "100%" }}
-                            value={value[0]}
                         />
                     );
                 break;
@@ -102,7 +85,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                 break;
             case ColumnType.DATE:
             case ColumnType.DATETIME:
-                input = allowMultipleValues ? null : (
+                input = (
                   <DatePicker
                     autoFocus={true}
                     format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
@@ -117,11 +100,11 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                 input = (
                     <LookupSearch
                         defaultOpen={true}
-                        mode={allowMultipleValues ? "multiple" : "default"}
+                        mode="multiple"
                         lookupAnnotationName={this.props.column.key}
                         onBlur={this.props.onCommit}
                         selectSearchValue={this.handleOnChange}
-                        value={allowMultipleValues ? value : value[0]}
+                        value={value}
                     />
                 );
                 break;
@@ -147,6 +130,8 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
 
     private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
+        // value will be a string at this point. We don't want to convert to an
+        // array yet in case user is typing commas (which adds elements)
         this.handleOnChange(value);
     }
 

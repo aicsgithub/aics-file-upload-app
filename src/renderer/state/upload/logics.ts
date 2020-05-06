@@ -1,4 +1,4 @@
-import { forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
+import { castArray, forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
@@ -504,18 +504,24 @@ const updateSubImagesLogic = createLogic({
     },
 });
 
-const parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
+const parseStringArray = (input: string[]): string[] => {
+    const result: string[] = [];
+    input.forEach((rawValue) => result.push(...splitTrimAndFilter(rawValue)));
+    return result;
+};
 
-const parseNumberArray = (rawValue?: string) => {
-    if (!rawValue) {
-        return undefined;
-    }
-
-    // Remove anything that isn't a number, comma, or whitespace
-    rawValue = rawValue.replace(/[^0-9,\s]/g, "");
-    return rawValue.split(LIST_DELIMITER_SPLIT)
-        .map(parseNumber)
-        .filter((v: number) => !Number.isNaN(v));
+const parseNumberArray = (input: Array<string | number>): number[] => {
+    const result: number[] = [];
+    input.forEach((rawValue: string | number) => {
+        // Remove anything that isn't a number, comma, or whitespace
+        rawValue = `${rawValue}`.replace(/[^0-9,\s]/g, "");
+        result.push(
+            ...rawValue.split(LIST_DELIMITER_SPLIT)
+                .map(parseNumber)
+                .filter((v: number) => !Number.isNaN(v))
+        );
+    });
+    return result;
 };
 
 // returns int if no decimals and float if not
@@ -548,7 +554,6 @@ const convertDatePickerValueToDate = (d: any) => {
 // If we can create a valid array from the text of the input, we'll transform it into an array
 // if not, we pass the value untouched to the reducer.
 // Additionally we take care of converting moment dates back to dates.
-const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
 const updateUploadLogic = createLogic({
     transform: ({action, getState, logger}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const {upload} = action.payload;
@@ -569,28 +574,17 @@ const updateUploadLogic = createLogic({
 
                     if (annotationType) {
                         try {
-                            const { canHaveManyValues } = annotation;
                             const type = annotationType.name;
                             const endsWithComma = trim(value).endsWith(",");
 
-                            // numbers are formatted in text Inputs so they'll be strings at this point
-                            if (type === ColumnType.NUMBER && value && canHaveManyValues) {
-                                // Remove anything that isn't a number, comma, or whitespace
-                                value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
-                            }
-
                             if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
-                                if (canHaveManyValues) {
-                                    value = (value || [])
-                                        .map(convertDatePickerValueToDate)
-                                        .filter((d: any) => !isNil(d));
-                                } else {
-                                    value = convertDatePickerValueToDate(value);
-                                }
-                            } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
-                                value = parseNumberArray(value);
-                            } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
-                                value = parseStringArray(value);
+                                value = (value ? castArray(value) : [])
+                                    .map(convertDatePickerValueToDate)
+                                    .filter((d: any) => !isNil(d));
+                            } else if (type === ColumnType.NUMBER && !endsWithComma) {
+                                value = parseNumberArray(castArray(value));
+                            } else if (type === ColumnType.TEXT && !endsWithComma) {
+                                value = parseStringArray(castArray(value));
                             }
                         } catch (e) {
                             logger.error("Something went wrong while updating metadata: ", e.message);

@@ -1,6 +1,6 @@
 import { UploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { forEach, orderBy, without } from "lodash";
+import { forEach, orderBy } from "lodash";
 import { TemplateAnnotation } from "../../template/types";
 
 import {
@@ -647,13 +647,13 @@ describe("Upload selectors", () => {
                 ...mockState,
             });
             expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
-            console.log(rows)
             expect(rows).to.deep.include({
                 barcode: "1234",
                 channelIds: [],
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 3,
                 positionIndexes: [],
                 scenes: [],
@@ -672,6 +672,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file2",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file2"}),
+                notes: undefined,
                 numberSiblings: 3,
                 positionIndexes: [],
                 scenes: [],
@@ -690,6 +691,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file3",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file3"}),
+                notes: undefined,
                 numberSiblings: 3,
                 positionIndexes: [1],
                 scenes: [],
@@ -729,7 +731,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
-                notes: [],
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [1],
                 scenes: [],
@@ -773,6 +775,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [1],
                 scenes: [],
@@ -789,7 +792,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
-                notes: [],
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -833,7 +836,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
-                notes: [],
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndex: undefined,
                 positionIndexes: [],
@@ -851,7 +854,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
-                notes: [],
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -877,14 +880,14 @@ describe("Upload selectors", () => {
                     [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
-                        notes: [],
+                        notes: undefined,
                         wellIds: [1],
                     },
                     [getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1})]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
-                        notes: [],
+                        notes: undefined,
                         positionIndex: undefined,
                         wellIds: [],
                     },
@@ -897,6 +900,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [],
                 scenes: [],
@@ -914,6 +918,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndex: undefined,
                 positionIndexes: [],
@@ -974,7 +979,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
-                notes: [],
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [1],
                 scenes: [],
@@ -991,6 +996,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -1009,6 +1015,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -1027,6 +1034,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndexes: [],
                 scenes: [],
@@ -1089,6 +1097,7 @@ describe("Upload selectors", () => {
                 age: false,
                 barcode: true,
                 file: true,
+                notes: false,
                 shouldBeInArchive: true,
                 shouldBeInLocal: true,
                 wellIds: false,
@@ -1127,6 +1136,7 @@ describe("Upload selectors", () => {
                 age: true,
                 barcode: true,
                 file: true,
+                notes: false,
                 wellIds: true,
                 wellLabels: true,
             });
@@ -1136,21 +1146,12 @@ describe("Upload selectors", () => {
     describe("getUploadKeyToAnnotationErrorMap", () => {
         const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
         let goodUploadRow: UploadMetadataRow;
-        const updateTemplateAnnotation = (annotation: TemplateAnnotation, canHaveManyValues: boolean) => {
-            const annotations = without(mockTemplateWithManyValues.annotations, annotation);
-            annotations.push({...annotation, canHaveManyValues });
-            return {...mockTemplateWithManyValues, annotations };
-        };
-        const getValidations = (annotationToTest: TemplateAnnotation, canHaveManyValues: boolean, value: any) => {
-            let template = mockTemplateWithManyValues;
-            if (annotationToTest.canHaveManyValues !== canHaveManyValues) {
-                template = updateTemplateAnnotation(annotationToTest, canHaveManyValues);
-            }
+        const getValidations = (annotationToTest: TemplateAnnotation, value: any) => {
             return getUploadKeyToAnnotationErrorMap({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
-                    appliedTemplate: template,
+                    appliedTemplate: mockTemplateWithManyValues,
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
@@ -1167,12 +1168,11 @@ describe("Upload selectors", () => {
                 "Birth Date": [new Date()],
                 "Cas9": ["spCas9"],
                 "Clone Number Garbage": [1, 2, 3],
-                "Dropdown": undefined,
+                "Dropdown": [],
                 "Qc": [false],
                 "barcode": "",
                 "file": "/path/to/file3",
                 "notes": [],
-                "templateId": 8,
                 "wellIds": [],
                 "workflows": [
                     "R&DExp",
@@ -1193,133 +1193,70 @@ describe("Upload selectors", () => {
             });
             expect(result).to.deep.equal({});
         });
-        it("sets error if a multi-value annotation is not an array", () => {
-            const result = getValidations(mockTextAnnotation, true, "BAD, BAD, BAD");
+        it("sets error if an annotation value is not an array", () => {
+            const result = getValidations(mockTextAnnotation, "BAD, BAD, BAD");
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockTextAnnotation.name]: "Invalid format, expected list",
                 },
             });
         });
-        it("sets error if a multi-value lookup annotation contains a value that is not an annotation option",
+        it("sets error if a lookup annotation contains a value that is not an annotation option",
             () => {
-            const result = getValidations(mockLookupAnnotation, true, ["BAD"]);
+            const result = getValidations(mockLookupAnnotation, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockLookupAnnotation.name]: "BAD did not match any of the expected values: spCas9, Not Recorded",
                 },
             });
         });
-        it("sets error if single-value lookup annotation contains a value that is not an annotation option",
+        it("sets error if a dropdown annotation contains a value that is not a dropdown option",
             () => {
-            const result = getValidations(mockLookupAnnotation, false, "BAD");
-            expect(result).to.deep.equal({
-                [uploadRowKey]: {
-                    [mockLookupAnnotation.name]: "BAD did not match any of the expected values: spCas9, Not Recorded",
-                },
-            });
-        });
-        it("sets error if a multi-value dropdown annotation contains a value that is not a dropdown option",
-            () => {
-            const result = getValidations(mockDropdownAnnotation, true, ["BAD"]);
+            const result = getValidations(mockDropdownAnnotation, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockDropdownAnnotation.name]: "BAD did not match any of the expected values: A, B, C, D",
                 },
             });
         });
-        it("sets error if a single value dropdown annotation contains a value that is not an annotation option",
-            () => {
-            const result = getValidations(mockDropdownAnnotation, false, ["BAD"]);
-            expect(result).to.deep.equal({
-                [uploadRowKey]: {
-                    [mockDropdownAnnotation.name]: "BAD did not match any of the expected values: A, B, C, D",
-                },
-            });
-        });
-        it("sets error if a multi-value boolean annotation contains a value that is not a boolean", () => {
-            const result = getValidations(mockBooleanAnnotation, true, ["BAD"]);
+        it("sets error if a boolean annotation contains a value that is not a boolean", () => {
+            const result = getValidations(mockBooleanAnnotation, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockBooleanAnnotation.name]: "BAD did not match expected type: YesNo",
                 },
             });
         });
-        it("sets error if a single-value boolean annotation contains a value that is not a boolean",
+        it("sets error if a text annotation contains a value that is not text",
             () => {
-            const result = getValidations(mockBooleanAnnotation, false, 1);
-            expect(result).to.deep.equal({
-                [uploadRowKey]: {
-                    [mockBooleanAnnotation.name]: "1 did not match expected type: YesNo",
-                },
-            });
-        });
-        it("sets error if a multi-value text annotation contains a value that is not text",
-            () => {
-                const result = getValidations(mockTextAnnotation, true, [1]);
+                const result = getValidations(mockTextAnnotation, [1]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockTextAnnotation.name]: "1 did not match expected type: Text",
                     },
                 });
             });
-        it("sets error if a single-value text annotation contains a value that is not text",
+        it("sets error if a number annotation contains a value that is not number",
             () => {
-                const result = getValidations(mockTextAnnotation, false, 1);
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockTextAnnotation.name]: "1 did not match expected type: Text",
-                    },
-                });
-            });
-        it("sets error if a multi-value number annotation contains a value that is not number",
-            () => {
-                const result = getValidations(mockNumberAnnotation, true, ["BAD"]);
+                const result = getValidations(mockNumberAnnotation, ["BAD"]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockNumberAnnotation.name]: "BAD did not match expected type: Number",
                     },
                 });
             });
-        it("sets error if a single-value number annotation contains a value that is not number",
+        it("sets error if a date annotation contains a value that is not date",
             () => {
-                const result = getValidations(mockNumberAnnotation, false, "BAD");
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockNumberAnnotation.name]: "BAD did not match expected type: Number",
-                    },
-                });
-            });
-        it("sets error if a multi-value date annotation contains a value that is not date",
-            () => {
-                const result = getValidations(mockDateAnnotation, true, ["1-20"]);
+                const result = getValidations(mockDateAnnotation, ["1-20"]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockDateAnnotation.name]: "1-20 did not match expected type: Date or DateTime",
                     },
                 });
             });
-        it("sets error if a single-value date annotation contains a value that is not date",
+        it("sets error if a datetime annotation contains a value that is not datetime",
             () => {
-                const result = getValidations(mockDateAnnotation, false, "BAD");
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockDateAnnotation.name]: "BAD did not match expected type: Date or DateTime",
-                    },
-                });
-            });
-        it("sets error if a multi-value datetime annotation contains a value that is not datetime",
-            () => {
-                const result = getValidations(mockDateTimeAnnotation, true, ["BAD"]);
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockDateTimeAnnotation.name]: "BAD did not match expected type: Date or DateTime",
-                    },
-                });
-            });
-        it("sets error if a single-value datetime annotation contains a value that is not datetime",
-            () => {
-                const result = getValidations(mockDateTimeAnnotation, false, "BAD");
+                const result = getValidations(mockDateTimeAnnotation, ["BAD"]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockDateTimeAnnotation.name]: "BAD did not match expected type: Date or DateTime",
