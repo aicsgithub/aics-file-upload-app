@@ -33,6 +33,10 @@ import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
+import { selectPage } from "../route/actions";
+import { findNextPage } from "../route/constants";
+import { getSelectPageActions } from "../route/logics";
+import { getPage } from "../route/selectors";
 import { deselectFiles, stageFiles } from "../selection/actions";
 import { getSelectedBarcode, getSelectedJob, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
@@ -80,7 +84,6 @@ import {
 import {
     getCanSaveUploadDraft,
     getCreateFileMetadataRequests,
-    getFileIdsToDelete,
     getUpload,
     getUploadPayload,
 } from "./selectors";

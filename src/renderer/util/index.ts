@@ -2,8 +2,7 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { constants, promises, stat as fsStat, Stats } from "fs";
-import * as Store from "electron-store";
-
+``
 import {
     castArray,
     difference,
@@ -359,11 +358,6 @@ export const retrieveFileMetadata = async (
     fms: FileManagementSystem,
     transformDates: boolean = true
 ): Promise<ImageModelMetadata[]> => {
-    // todo remove hack
-    // const storage = new Store();
-    // if (storage.has("fileMetadata")) {
-    //     return Promise.resolve(storage.get("fileMetadata") as ImageModelMetadata[]);
-    // }
     fileIds = ["345da69bbd1348799bbaaa4139cbd96c"];
     const resolvedPromises: FileMetadata[] = await Promise.all(
         fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
@@ -374,9 +368,7 @@ export const retrieveFileMetadata = async (
             ...filesToFileMetadata,
             [fileMetadata.fileId]: fileMetadata,
         }), {});
-    const result = await fms.transformFileMetadataIntoTable(fileMetadataForFileIds, transformDates);
-    // storage.set("fileMetadata", result);
-    return result;
+    return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds, transformDates);
 };
 
 /***
