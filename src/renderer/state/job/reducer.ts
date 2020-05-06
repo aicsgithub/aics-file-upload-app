@@ -1,98 +1,73 @@
-import { filter, includes, uniqBy } from "lodash";
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
 import { TypeToDescriptionMap } from "../types";
+import {
+    RETRY_UPLOAD,
+    RETRY_UPLOAD_FAILED,
+    RETRY_UPLOAD_SUCCEEDED,
+} from "../upload/constants";
+import {
+    RetryUploadAction,
+    RetryUploadFailedAction,
+    RetryUploadSucceededAction,
+} from "../upload/types";
 import { makeReducer } from "../util";
 import {
-    ADD_PENDING_JOB,
-    REMOVE_PENDING_JOB,
-    RETRIEVE_JOBS,
+    RECEIVE_JOBS,
     SELECT_JOB_FILTER,
-    SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
-    SET_UPLOAD_JOBS,
+    START_JOB_POLL,
     STOP_JOB_POLL,
-    UPDATE_INCOMPLETE_JOB_NAMES,
+    UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-    AddPendingJobAction,
     JobFilter,
     JobStateBranch,
-    RemovePendingJobsAction,
-    RetrieveJobsAction,
+    ReceiveJobsAction,
     SelectJobFilterAction,
-    SetAddMetadataJobsAction,
-    SetCopyJobsAction,
-    SetUploadJobsAction,
+    StartJobPollAction,
     StopJobPollAction,
-    UpdateIncompleteJobNamesAction,
+     UpdateIncompleteJobIdsAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
     addMetadataJobs: [],
     copyJobs: [],
-    incompleteJobNames: [],
-    jobFilter: JobFilter.Successful,
-    pendingJobs: [],
+    inProgressUploadJobs: [],
+    incompleteJobIds: [],
+    jobFilter: JobFilter.InProgress,
     polling: false,
     uploadJobs: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [SET_UPLOAD_JOBS]: {
-        accepts: (action: AnyAction): action is SetUploadJobsAction => action.type === SET_UPLOAD_JOBS,
-        perform: (state: JobStateBranch, action: SetUploadJobsAction) => {
-            const uploadJobs = action.payload;
+    [RECEIVE_JOBS]: {
+        accepts: (action: AnyAction): action is ReceiveJobsAction => action.type === RECEIVE_JOBS,
+        perform: (state: JobStateBranch,
+                  { payload: {
+                      addMetadataJobs,
+                      copyJobs,
+                      inProgressUploadJobs,
+                      incompleteJobIds,
+                      uploadJobs,
+                  }}: ReceiveJobsAction) => {
             return {
                 ...state,
+                addMetadataJobs,
+                copyJobs,
+                inProgressUploadJobs,
+                incompleteJobIds: uniq(incompleteJobIds),
                 uploadJobs,
             };
         },
     },
-    [SET_COPY_JOBS]: {
-        accepts: (action: AnyAction): action is SetCopyJobsAction => action.type === SET_COPY_JOBS,
-        perform: (state: JobStateBranch, action: SetCopyJobsAction) => {
-            const copyJobs = action.payload;
-            return {
-                ...state,
-                copyJobs,
-            };
-        },
-    },
-    [SET_ADD_METADATA_JOBS]: {
-        accepts: (action: AnyAction): action is SetAddMetadataJobsAction => action.type === SET_ADD_METADATA_JOBS,
-        perform: (state: JobStateBranch, action: SetAddMetadataJobsAction) => {
-            return {
-                ...state,
-                addMetadataJobs: action.payload,
-            };
-        },
-    },
-    [UPDATE_INCOMPLETE_JOB_NAMES]: {
+    [UPDATE_INCOMPLETE_JOB_IDS]: {
         accepts: (action: AnyAction):
-            action is UpdateIncompleteJobNamesAction => action.type === UPDATE_INCOMPLETE_JOB_NAMES,
-        perform: (state: JobStateBranch, action: UpdateIncompleteJobNamesAction) => {
+            action is UpdateIncompleteJobIdsAction => action.type === UPDATE_INCOMPLETE_JOB_IDS,
+        perform: (state: JobStateBranch, action: UpdateIncompleteJobIdsAction) => {
             return {
                 ...state,
-                incompleteJobNames: action.payload,
-            };
-        },
-    },
-    [ADD_PENDING_JOB]: {
-        accepts: (action: AnyAction): action is AddPendingJobAction => action.type === ADD_PENDING_JOB,
-        perform: (state: JobStateBranch, action: AddPendingJobAction) => {
-            return {
-                ...state,
-                pendingJobs: uniqBy([...state.pendingJobs, action.payload], "jobName"),
-            };
-        },
-    },
-    [REMOVE_PENDING_JOB]: {
-        accepts: (action: AnyAction): action is RemovePendingJobsAction => action.type === REMOVE_PENDING_JOB,
-        perform: (state: JobStateBranch, action: RemovePendingJobsAction) => {
-            return {
-                ...state,
-                pendingJobs: filter(state.pendingJobs, ({jobName}) => !includes(action.payload, jobName)),
+                incompleteJobIds: action.payload,
             };
         },
     },
@@ -105,8 +80,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
             };
         },
     },
-    [RETRIEVE_JOBS]: {
-        accepts: (action: AnyAction): action is RetrieveJobsAction => action.type === RETRIEVE_JOBS,
+    [START_JOB_POLL]: {
+        accepts: (action: AnyAction): action is StartJobPollAction => action.type === START_JOB_POLL,
         perform: (state: JobStateBranch) => ({
             ...state,
             polling: true,
@@ -117,6 +92,30 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: JobStateBranch) => ({
             ...state,
             polling: false,
+        }),
+    },
+    [RETRY_UPLOAD]: {
+        accepts: (action: AnyAction): action is RetryUploadAction =>
+            action.type === RETRY_UPLOAD,
+        perform: (state: JobStateBranch, action: RetryUploadAction) => ({
+            ...state,
+            incompleteJobIds: uniq([...state.incompleteJobIds, action.payload.jobId]),
+        }),
+    },
+    [RETRY_UPLOAD_SUCCEEDED]: {
+        accepts: (action: AnyAction): action is RetryUploadSucceededAction =>
+            action.type === RETRY_UPLOAD_SUCCEEDED,
+        perform: (state: JobStateBranch, action: RetryUploadSucceededAction) => ({
+            ...state,
+            incompleteJobIds: without(state.incompleteJobIds, action.payload.jobId),
+        }),
+    },
+    [RETRY_UPLOAD_FAILED]: {
+        accepts: (action: AnyAction): action is RetryUploadFailedAction =>
+            action.type === RETRY_UPLOAD_FAILED,
+        perform: (state: JobStateBranch, action: RetryUploadFailedAction) => ({
+            ...state,
+            incompleteJobIds: without(state.incompleteJobIds, action.payload.row.jobId),
         }),
     },
 };

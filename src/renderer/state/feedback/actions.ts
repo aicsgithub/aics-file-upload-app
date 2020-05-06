@@ -157,9 +157,12 @@ export function clearDeferredAction(): ClearDeferredAction {
     };
 }
 
-export function setUploadError(error: string): SetUploadErrorAction {
+export function setUploadError(jobName: string, error: string): SetUploadErrorAction {
     return {
-        payload: error,
+        payload: {
+            error,
+            jobName,
+        },
         type: SET_UPLOAD_ERROR,
     };
 }

@@ -6,6 +6,7 @@ import {
     createStore, Middleware, Store,
 } from "redux";
 import { createLogicMiddleware, LogicMiddleware } from "redux-logic";
+import { Logic } from "redux-logic/definitions/logic";
 import { SinonStub, stub } from "sinon";
 
 import LabkeyClient from "../../util/labkey-client";
@@ -135,7 +136,7 @@ const reducers = {
     upload: upload.reducer,
 };
 
-const logics = [
+const allLogics: Array<Logic<any, any, any, any, any, any>> = [
     ...feedback.logics,
     ...job.logics,
     ...metadata.logics,
@@ -158,8 +159,13 @@ const initialState: State = {
 };
 
 export function createMockReduxStore(mockState: State = initialState,
-                                     reduxLogicDependencies: ReduxLogicDependencies = mockReduxLogicDeps
+                                     reduxLogicDependencies: ReduxLogicDependencies = mockReduxLogicDeps,
+                                     logics?: Array<Logic<any, any, any, any, any, any>>,
+                                     spreadBatched: boolean = true
 ): {store: Store; logicMiddleware: LogicMiddleware<State, ReduxLogicDependencies>; actions: Actions} {
+    if (!logics) {
+        logics = allLogics;
+    }
     // redux-logic middleware
     const logicMiddleware: LogicMiddleware<State, ReduxLogicDependencies> = createLogicMiddleware(logics);
     logicMiddleware.addDeps(reduxLogicDependencies);
@@ -167,7 +173,7 @@ export function createMockReduxStore(mockState: State = initialState,
     // action tracking middleware
     const actionTracker = new ActionTracker();
     const trackActionsMiddleware: Middleware = () => (next) => (action) => {
-        if (action.batch) {
+        if (action.batch && spreadBatched) {
             actionTracker.track(...action.payload);
         } else {
             actionTracker.track(action);

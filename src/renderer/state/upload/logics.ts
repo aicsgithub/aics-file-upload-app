@@ -1,11 +1,10 @@
-import { forEach, includes, isEmpty, isNil, map, trim, values, without } from "lodash";
+import { forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
-import { userInfo } from "os";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
@@ -18,7 +17,6 @@ import {
     splitTrimAndFilter,
 } from "../../util";
 import {
-    addRequestToInProgress,
     clearUploadError,
     closeModal,
     openModal,
@@ -30,21 +28,13 @@ import {
     setUploadError,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
-import { addPendingJob, removePendingJobs, updateIncompleteJobNames } from "../job/actions";
-import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
+import { startJobPoll, stopJobPoll, updateIncompleteJobIds } from "../job/actions";
+import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
 import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
-import {
-    deselectFiles,
-    stageFiles,
-} from "../selection/actions";
-import {
-    getSelectedBarcode,
-    getSelectedJob,
-    getSelectedWellIds,
-    getStagedFiles,
-} from "../selection/selectors";
+import { deselectFiles, stageFiles } from "../selection/actions";
+import { getSelectedBarcode, getSelectedJob, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
 import { ColumnType } from "../template/types";
@@ -58,7 +48,17 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { clearUploadDraft, removeUploads, replaceUpload, updateUpload, updateUploads } from "./actions";
+import {
+    cancelUploadFailed,
+    cancelUploadSucceeded,
+    clearUploadDraft,
+    removeUploads,
+    replaceUpload,
+    retryUploadFailed,
+    retryUploadSucceeded,
+    updateUpload,
+    updateUploads,
+} from "./actions";
 import {
     APPLY_TEMPLATE,
     ASSOCIATE_FILES_AND_WELLS,
@@ -171,77 +171,98 @@ const applyTemplateLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
-    process: async ({ctx, fms, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
+    process: async ({ctx, fms, getApplicationMenu, getState, ipcRenderer, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb, done: ReduxLogicDoneCb) => {
-        const now = new Date();
-        const uploads = getUploadPayload(getState());
         const { jobName } = ctx;
+        // validate and get jobId
+        let startUploadResponse;
+        try {
+            startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(getUploadPayload(getState()));
+            const updatedIncompleteJobIds = uniq([
+                ...getIncompleteJobIds(getState()),
+                startUploadResponse.jobId,
+            ]);
+            dispatch(updateIncompleteJobIds(updatedIncompleteJobIds));
+        } catch (e) {
+            dispatch(setUploadError(jobName, e.message || "Validation failed for upload"));
+            done();
+            return;
+        }
 
+        dispatch(startJobPoll());
         try {
             const payload = getUploadPayload(getState());
-            const { job: { incompleteJobNames } } = getState();
-            const updatedIncompleteJobNames = [...incompleteJobNames, jobName];
+            const incompleteJobIds = getIncompleteJobIds(getState());
+            const updatedIncompleteJobIds = [...incompleteJobIds, startUploadResponse.jobId];
+
+            const currentPage = getPage(getState());
+            const nextPage = findNextPage(currentPage, 1);
+            const actions = [
+                updateIncompleteJobIds(updatedIncompleteJobIds),
+                clearUploadError(),
+            ];
+            if (nextPage) {
+                actions.push(...getSelectPageActions(
+                    logger,
+                    getState(),
+                    getApplicationMenu,
+                    selectPage(currentPage, nextPage)
+                ));
+            }
+
+            let updates: {[key: string]: any} = {
+                [INCOMPLETE_JOB_IDS_KEY]: updatedIncompleteJobIds,
+            };
+            const currentUpload = getCurrentUpload(getState());
+            if (currentUpload) {
+                // clear out upload draft so it doesn't get re-submitted on accident
+                updates = {
+                    ...updates,
+                    [getUploadDraftKey(currentUpload.name, currentUpload.created)]: undefined,
+                };
+            }
 
             dispatch(
                 {
-                    ...batchActions([
-                        addPendingJob({
-                            created: now,
-                            currentStage: "Pending",
-                            jobId: (now).toLocaleString(),
-                            jobName,
-                            modified: now,
-                            status: "WAITING",
-                            uploads,
-                            user: userInfo().username,
-                        }),
-                        updateIncompleteJobNames(updatedIncompleteJobNames),
-                        clearUploadError(),
-                    ]),
-                    updates: {
-                        [INCOMPLETE_JOB_NAMES_KEY]: updatedIncompleteJobNames,
-                    },
+                    ...batchActions(actions),
+                    updates,
                     writeToStore: true,
                 }
             );
-            await fms.uploadFiles(payload, jobName);
+            await fms.uploadFiles(startUploadResponse, payload, jobName);
         } catch (e) {
             const error = `Upload Failed: ${e.message}`;
             logger.error(error);
             dispatch(batchActions([
                 setErrorAlert(error),
-                removePendingJobs([jobName]),
-                updateIncompleteJobNames(without(getIncompleteJobNames(getState()), jobName)),
-                setUploadError(error),
+                updateIncompleteJobIds(without(getIncompleteJobIds(getState()), startUploadResponse.jobId)),
             ]));
         }
 
-        done();
+        // hopefully give job queries a chance to catch up
+        setTimeout(() => {
+            dispatch(stopJobPoll());
+            done();
+        }, 2000);
     },
     type: INITIATE_UPLOAD,
     validate: async ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb,
-                     rejectCb: ReduxLogicRejectCb) => {
+                     reject: ReduxLogicRejectCb) => {
+
         ctx.jobName = getCurrentJobName(getState());
         if (!ctx.jobName) {
-            rejectCb({ type: "ignore" });
+            reject({ type: "ignore" });
             return;
         }
 
-        try {
-            await fms.validateMetadata(getUploadPayload(getState()));
-            next(batchActions([
-                setAlert({
-                    message: "Starting upload",
-                    type: AlertType.INFO,
-                }),
-                action,
-            ]));
-        } catch (e) {
-            rejectCb(setAlert({
-                message: e.message || "Validation error",
-                type: AlertType.ERROR,
-            }));
-        }
+        next({
+            ...action,
+            payload: {
+                ...action.payload,
+                jobName: ctx.jobName,
+            },
+            writeToStore: true,
+        });
     },
 });
 
@@ -249,13 +270,8 @@ const cancelUploadLogic = createLogic({
     process: async ({action, ctx, jssClient, getState, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        dispatch(startJobPoll());
         const uploadJob: UploadSummaryTableRow = action.payload;
-
-        dispatch(setAlert({
-            message: `Cancel upload ${uploadJob.jobName}`,
-            type: AlertType.INFO,
-        }));
-        dispatch(addRequestToInProgress(AsyncRequest.CANCEL_UPLOAD));
 
         try {
             await jssClient.updateJob(uploadJob.jobId, {
@@ -264,19 +280,13 @@ const cancelUploadLogic = createLogic({
                 },
                 status: "UNRECOVERABLE",
             });
-            dispatch(setAlert({
-                message: `Cancel upload ${uploadJob.jobName} succeeded!`,
-                type: AlertType.SUCCESS,
-            }));
+            // TODO: Go through FSS?
+            dispatch(cancelUploadSucceeded(uploadJob));
         } catch (e) {
             logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
-            dispatch(setAlert({
-                message: `Cancel upload ${uploadJob.jobName} failed: ${e.message}`,
-                type: AlertType.ERROR,
-            }));
+            dispatch(cancelUploadFailed(uploadJob, `Cancel upload ${uploadJob.jobName} failed: ${e.message}`));
         }
-
-        dispatch(removeRequestFromInProgress(AsyncRequest.CANCEL_UPLOAD));
+        dispatch(stopJobPoll());
         done();
     },
     type: CANCEL_UPLOAD,
@@ -290,11 +300,11 @@ const cancelUploadLogic = createLogic({
             }));
         } else {
             dialog.showMessageBox({
-                buttons: ["No", "Yes"],
+                buttons: ["Cancel", "Yes"],
                 cancelId: 0,
                 defaultId: 1,
-                message: "An upload cannot be restarted once cancelled. Continue?",
-                title: "Warning",
+                message: "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
+                title: "Danger!",
                 type: "warning",
             }, (response: number) => {
                 if (response === 1) {
@@ -311,38 +321,23 @@ const retryUploadLogic = createLogic({
     process: async ({action, ctx, fms, getState, logger}: ReduxLogicProcessDependencies,
                     dispatch: ReduxLogicNextCb,
                     done: ReduxLogicDoneCb) => {
+        dispatch(startJobPoll());
         const uploadJob: UploadSummaryTableRow = action.payload;
-
-        dispatch(setAlert({
-            message: `Retry upload ${uploadJob.jobName}`,
-            type: AlertType.INFO,
-        }));
-        dispatch(addRequestToInProgress(AsyncRequest.RETRY_UPLOAD));
-
         try {
             await fms.retryUpload(uploadJob);
-            dispatch(setAlert({
-                message: `Retry upload ${uploadJob.jobName} succeeded!`,
-                type: AlertType.SUCCESS,
-            }));
+            dispatch(retryUploadSucceeded(uploadJob));
         } catch (e) {
+            const error = `Retry upload ${uploadJob.jobName} failed: ${e.message}`;
             logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-            dispatch(setAlert({
-                message: `Retry upload ${uploadJob.jobName} failed: ${e.message}`,
-                type: AlertType.ERROR,
-            }));
+            dispatch(retryUploadFailed(uploadJob, error));
         }
-
-        dispatch(removeRequestFromInProgress(AsyncRequest.RETRY_UPLOAD));
+        dispatch(stopJobPoll());
         done();
     },
     transform: ({action, ctx, fms, getState}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const uploadJob: UploadSummaryTableRow = action.payload;
         if (!uploadJob) {
-            next(setAlert({
-                message: "Cannot retry undefined upload job",
-                type: AlertType.ERROR,
-            }));
+            next(setErrorAlert("Cannot retry undefined upload job"));
         } else {
             next(action);
         }

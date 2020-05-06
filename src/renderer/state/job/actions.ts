@@ -1,30 +1,23 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { INCOMPLETE_JOB_NAMES_KEY } from "../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import {
-    ADD_PENDING_JOB,
-    GATHER_STORED_INCOMPLETE_JOB_NAMES,
-    REMOVE_PENDING_JOB,
+    GATHER_STORED_INCOMPLETE_JOB_IDS,
+    RECEIVE_JOBS,
     RETRIEVE_JOBS,
     SELECT_JOB_FILTER,
-    SET_ADD_METADATA_JOBS,
-    SET_COPY_JOBS,
-    SET_UPLOAD_JOBS,
+    START_JOB_POLL,
     STOP_JOB_POLL,
-    UPDATE_INCOMPLETE_JOB_NAMES,
+    UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-    AddPendingJobAction,
-    GatherIncompleteJobNamesAction,
+    GatherIncompleteJobIdsAction,
     JobFilter,
-    PendingJob,
-    RemovePendingJobsAction,
+    ReceiveJobsAction,
     RetrieveJobsAction,
     SelectJobFilterAction,
-    SetAddMetadataJobsAction,
-    SetCopyJobsAction,
-    SetUploadJobsAction,
+    StartJobPollAction,
     StopJobPollAction,
-    UpdateIncompleteJobNamesAction,
+    UpdateIncompleteJobIdsAction,
 } from "./types";
 
 export function retrieveJobs(): RetrieveJobsAction {
@@ -33,55 +26,39 @@ export function retrieveJobs(): RetrieveJobsAction {
     };
 }
 
-export function setUploadJobs(jobs: JSSJob[]): SetUploadJobsAction {
+export function receiveJobs(
+    uploadJobs: JSSJob[] = [],
+    copyJobs: JSSJob[] = [],
+    addMetadataJobs: JSSJob[] = [],
+    incompleteJobIds: string[] = [],
+    inProgressUploadJobs: JSSJob[] = []
+): ReceiveJobsAction {
     return {
-        payload: jobs,
-        type: SET_UPLOAD_JOBS,
+        payload: {
+            addMetadataJobs,
+            copyJobs,
+            inProgressUploadJobs,
+            incompleteJobIds,
+            uploadJobs,
+        },
+        type: RECEIVE_JOBS,
     };
 }
 
-export function setCopyJobs(jobs: JSSJob[]): SetCopyJobsAction {
+export function gatherIncompleteJobIds(): GatherIncompleteJobIdsAction {
     return {
-        payload: jobs,
-        type: SET_COPY_JOBS,
+        type: GATHER_STORED_INCOMPLETE_JOB_IDS,
     };
 }
 
-export function setAddMetadataJobs(jobs: JSSJob[]): SetAddMetadataJobsAction {
+export function updateIncompleteJobIds(incompleteJobIds: string[]): UpdateIncompleteJobIdsAction {
     return {
-        payload: jobs,
-        type: SET_ADD_METADATA_JOBS,
-    };
-}
-
-export function gatherIncompleteJobNames(): GatherIncompleteJobNamesAction {
-    return {
-        type: GATHER_STORED_INCOMPLETE_JOB_NAMES,
-    };
-}
-
-export function updateIncompleteJobNames(incompleteJobNames: string[]): UpdateIncompleteJobNamesAction {
-    return {
-        payload: incompleteJobNames,
-        type: UPDATE_INCOMPLETE_JOB_NAMES,
+        payload: incompleteJobIds,
+        type: UPDATE_INCOMPLETE_JOB_IDS,
         updates: {
-            [INCOMPLETE_JOB_NAMES_KEY]: incompleteJobNames,
+            [INCOMPLETE_JOB_IDS_KEY]: incompleteJobIds,
         },
         writeToStore: true,
-    };
-}
-
-export function addPendingJob(job: PendingJob): AddPendingJobAction {
-    return {
-        payload: job,
-        type: ADD_PENDING_JOB,
-    };
-}
-
-export function removePendingJobs(jobNames: string[]): RemovePendingJobsAction {
-    return {
-        payload: jobNames,
-        type: REMOVE_PENDING_JOB,
     };
 }
 
@@ -89,6 +66,12 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
     return {
         payload: jobFilter,
         type: SELECT_JOB_FILTER,
+    };
+}
+
+export function startJobPoll(): StartJobPollAction {
+    return {
+        type: START_JOB_POLL,
     };
 }
 

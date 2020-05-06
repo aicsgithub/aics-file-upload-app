@@ -3,6 +3,8 @@ import { createSandbox, SinonSpy, spy, stub } from "sinon";
 import * as sinon from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
+import { retrieveJobs } from "../../job/actions";
+import { requestMetadata } from "../../metadata/actions";
 import {
     createMockReduxStore,
     labkeyClient,
@@ -21,7 +23,9 @@ import {
 } from "../../test/mocks";
 
 import { gatherSettings, updateSettings } from "../actions";
+import settingsLogics from "../logics";
 import { getLimsHost, getMetadataColumns, getTemplateId } from "../selectors";
+import { SettingStateBranch } from "../types";
 
 describe("Setting logics", () => {
     const localhost = "localhost";
@@ -192,6 +196,28 @@ describe("Setting logics", () => {
             store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
 
             expect(getMetadataColumns(store.getState())).to.deep.equal(["a", "b"]);
+        });
+
+        const testActionsDispatched = async (updateSettingsParam: Partial<SettingStateBranch>) => {
+            const { actions, logicMiddleware, store } = createMockReduxStore(mockState, undefined, settingsLogics);
+            expect(actions.includesMatch(requestMetadata())).to.be.false;
+            expect(actions.includesMatch(retrieveJobs())).to.be.false;
+            store.dispatch(updateSettings(updateSettingsParam));
+            await logicMiddleware.whenComplete();
+            expect(actions.includesMatch(requestMetadata())).to.be.true;
+            expect(actions.includesMatch(retrieveJobs())).to.be.true;
+        };
+
+        it("requests metadata and jobs again if host changes", async () => {
+            await testActionsDispatched({ limsHost: "foo" });
+        });
+
+        it("requests metadata and jobs again if port changes", async () => {
+            await testActionsDispatched({ limsPort: "500" });
+        });
+
+        it("requests metadata and jobs again if username changes", async () => {
+            await testActionsDispatched({ username: "bar" });
         });
 
         it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {

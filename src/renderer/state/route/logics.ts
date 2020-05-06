@@ -60,7 +60,7 @@ import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "..
 import { UploadMetadata, UploadStateBranch } from "../upload/types";
 import { batchActions } from "../util";
 
-import { selectPage, selectView } from "./actions";
+import { closeUploadTab, selectPage, selectView } from "./actions";
 import {
     CLOSE_UPLOAD_TAB,
     findNextPage,
@@ -164,6 +164,7 @@ export const getSelectPageActions = (
         stateBranchHistory.forEach(
             (history) => actions.push(history.jumpToPast(0), history.clearHistory())
         );
+        actions.push(closeUploadTab());
 
         // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
     } else if (nextPageOrder > currentPageOrder) {
@@ -374,7 +375,7 @@ const openEditFileMetadataTabLogic = createLogic({
             logger.error(error);
             dispatch(batchActions([
                 removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
-                setUploadError(error),
+                setUploadError(action.payload.jobId, error),
             ]));
             done();
             return;
@@ -407,7 +408,7 @@ const openEditFileMetadataTabLogic = createLogic({
                 logger.error(error);
                 dispatch(batchActions([
                     removeRequestFromInProgress(AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
-                    setUploadError(error),
+                    setUploadError(action.payload.jobId, error),
                 ]));
                 done();
                 return;
