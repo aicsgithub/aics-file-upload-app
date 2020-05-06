@@ -170,7 +170,7 @@ const convertToUploadJobRow = (
                 subImageName:  metadata.subImageName,
             }
         ),
-        notes: metadata.notes ? metadata.notes[0] : undefined, // todo
+        notes: metadata.notes ? metadata.notes[0] : undefined,
         numberSiblings,
         positionIndexes,
         scenes,

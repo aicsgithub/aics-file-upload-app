@@ -510,31 +510,15 @@ const parseStringArray = (input: string[]): string[] => {
     return result;
 };
 
-const parseNumberArray = (input: Array<string | number>): number[] => {
-    const result: number[] = [];
-    input.forEach((rawValue: string | number) => {
-        // Remove anything that isn't a number, comma, or whitespace
-        rawValue = `${rawValue}`.replace(/[^0-9,\s]/g, "");
-        result.push(
-            ...rawValue.split(LIST_DELIMITER_SPLIT)
-                .map(parseNumber)
-                .filter((v: number) => !Number.isNaN(v))
-        );
-    });
-    return result;
-};
-
-// returns int if no decimals and float if not
-const parseNumber = (n: string) => {
-    const trimmed = trim(n);
-    let parsed = parseFloat(trimmed);
-
-    // convert to int if no decimals
-    if (parsed % 1 !== 0) {
-        parsed = parseInt(trimmed, 10);
-    }
-
-    return parsed;
+const parseNumberArray = (input: string[]): number[] => {
+    return input.reduce((filtered: number[], next: string) => {
+        return [
+            ...filtered,
+            ...`${next}`.split(LIST_DELIMITER_SPLIT)
+                .map((v) => Number(trim(v)))
+                .filter((v) => !Number.isNaN(v)),
+        ];
+    }, []);
 };
 
 // antd's DatePicker passes a moment object rather than Date so we convert back here

@@ -1171,7 +1171,6 @@ describe("Upload logics", () => {
 
             // after
             const upload = getUpload(store.getState());
-            console.log(upload[uploadRowKey][annotation][0])
             expect(upload[uploadRowKey][annotation][0] instanceof Date).to.be.true;
         });
         it("converts strings to arrays of strings if type is TEXT", () => {
@@ -1252,6 +1251,45 @@ describe("Upload logics", () => {
             // after
             const upload = getUpload(store.getState());
             expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2, 3]);
+        });
+        it("converts ['1, 2e3, 3.86, bad'] to [1, 2000, 3.86] if type is NUMBER", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockNumberAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Clone Number Garbage": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": [],
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Clone Number Garbage";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: "1, 2e3, 3.86, bad"}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2000, 3.86]);
         });
     });
     describe("updateFilesToStoreOnIsilonLogic", () => {

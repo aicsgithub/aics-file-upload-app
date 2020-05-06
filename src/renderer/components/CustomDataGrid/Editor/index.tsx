@@ -23,15 +23,26 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
     width?: string;
 }
 
+interface EditorState {
+    value: string;
+}
+
 /*
     This is the editor for the UploadJobGrid, the purpose of this is to dynamically determine the editor based on
     which `type` the Editor is supplied and use that to render an appropriate form.
     Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
     additionally, the element you return must contain an Input element
  */
-class Editor extends editors.EditorBase<EditorProps, {}> {
+class Editor extends editors.EditorBase<EditorProps, EditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
+
+    public constructor(props: EditorProps) {
+        super(props);
+        this.state = {
+            value: this.props.value.join(LIST_DELIMITER_JOIN),
+        };
+    }
 
     public render() {
         const { column: { dropdownValues, type }, value } = this.props;
@@ -68,8 +79,9 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                         <Input
                             autoFocus={true}
                             onChange={this.handleInputOnChange}
+                            onBlur={this.onBlur}
                             style={{ width: "100%" }}
-                            value={value.join(LIST_DELIMITER_JOIN)}
+                            value={this.state.value}
                         />
                     );
                 break;
@@ -78,8 +90,9 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                     <Input
                         autoFocus={true}
                         onChange={this.handleInputOnChange}
+                        onBlur={this.onBlur}
                         style={{ width: "100%" }}
-                        value={value.join(LIST_DELIMITER_JOIN)}
+                        value={this.state.value}
                     />
                 );
                 break;
@@ -128,7 +141,10 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
         return this.input.current;
     }
 
-    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+        this.setState({value: e.target.value})
+
+    private onBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
         // value will be a string at this point. We don't want to convert to an
         // array yet in case user is typing commas (which adds elements)
