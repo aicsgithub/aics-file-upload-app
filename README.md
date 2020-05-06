@@ -21,6 +21,17 @@ cd file-upload-app
 ./gradlew devStg
 ```
 
+### WFH setup (Mac)
+How to run against dev machine in AI building over VPN:
+1. Make sure you are connected to the AI VPN
+2. Set up sshfs and FUSE. Download and run both FUSE and SSHFS installers from here: https://osxfuse.github.io/
+3. Create a directory at /tmp/lk/fss on your local machine
+4. Run `lk_run -xc cps -dr -kc` on your remote dev machine
+5. Once above step is done, run the following replacing "username" and "dev-machine-name" as appropriate:
+`sshfs -o allow_other username@dev-machine-name:/tmp/lk/fss /tmp/lk/fss`
+By default, lk_run will configure FSS's incoming directory to /tmp/lk/fss/incoming and we want
+the upload app to copy files to this directory on the remote.
+
 ## Run Tests
 
 ```bash
