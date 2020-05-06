@@ -3,7 +3,7 @@ import Logger from "js-logger";
 import * as moment from "moment";
 import * as React from "react";
 import { editors } from "react-data-grid";
-import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
@@ -38,8 +38,14 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
         const { column: { allowMultipleValues, dropdownValues, type }, value } = this.props;
 
         let input;
+        let formattedValue;
         switch (type) {
             case ColumnType.DROPDOWN:
+                formattedValue = value;
+                if (!allowMultipleValues) {
+                    formattedValue = Array.isArray(value) ? value[0] : value;
+                }
+
                 input = (
                     <Select
                         allowClear={true}
@@ -48,7 +54,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                         mode={allowMultipleValues ? "multiple" : "default"}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
-                        value={value}
+                        value={formattedValue}
                     >
                         {dropdownValues && dropdownValues.map((dropdownValue: string) => (
                             <Option key={dropdownValue}>{dropdownValue}</Option>
@@ -71,7 +77,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                             autoFocus={true}
                             onChange={this.handleInputOnChange}
                             style={{ width: "100%" }}
-                            value={value}
+                            value={value.join(LIST_DELIMITER_JOIN)}
                         />
                     )
                     :
@@ -80,7 +86,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                             autoFocus={true}
                             onChange={this.handleOnChange}
                             style={{ width: "100%" }}
-                            value={value}
+                            value={value[0]}
                         />
                     );
                 break;
@@ -90,7 +96,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                         autoFocus={true}
                         onChange={this.handleInputOnChange}
                         style={{ width: "100%" }}
-                        value={value}
+                        value={value.join(LIST_DELIMITER_JOIN)}
                     />
                 );
                 break;
@@ -101,7 +107,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                     autoFocus={true}
                     format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
                     onChange={this.handleOnChange}
-                    value={value ? moment(value) : undefined}
+                    value={value.length > 0 ? moment(value[0]) : undefined}
                     showTime={type === ColumnType.DATETIME}
                     style={{ width: "100%" }}
                   />
@@ -115,7 +121,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                         lookupAnnotationName={this.props.column.key}
                         onBlur={this.props.onCommit}
                         selectSearchValue={this.handleOnChange}
-                        value={value}
+                        value={allowMultipleValues ? value : value[0]}
                     />
                 );
                 break;

@@ -31,7 +31,7 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { addPendingJob, removePendingJobs, updateIncompleteJobNames } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobNames } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
+import { getAnnotationTypes, getCurrentUpload } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import {
     deselectFiles,
@@ -393,21 +393,13 @@ const updateSubImagesLogic = createLogic({
         const existingUploadsForFile: UploadMetadata[] = values(uploads).filter((u) => u.file === fileRow.file);
 
         const template = getAppliedTemplate(getState());
-        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
 
         if (!template) {
             next(setErrorAlert("Could not get applied template while attempting to update file sub images. Contact Software."));
             return;
         }
 
-        if (!booleanAnnotationTypeId) {
-            next(setErrorAlert(
-                "Could not get boolean annotation type id while attempting to update file sub images. Contact Software."
-            ));
-            return;
-        }
-
-        const additionalAnnotations = pivotAnnotations(template.annotations, booleanAnnotationTypeId);
+        const additionalAnnotations = pivotAnnotations(template.annotations);
 
         // If there are subimages for a file, remove the well associations from the file row
         if (!isEmpty(subImages)) {
@@ -427,7 +419,7 @@ const updateSubImagesLogic = createLogic({
                     channel,
                     file: fileRow.file,
                     key,
-                    notes: undefined,
+                    notes: [],
                     positionIndex: undefined,
                     scene: undefined,
                     subImageName: undefined,
@@ -450,7 +442,7 @@ const updateSubImagesLogic = createLogic({
                     channel: undefined,
                     file: fileRow.file,
                     key: subImageOnlyRowKey,
-                    notes: undefined,
+                    notes: [],
                     wellIds: [],
                     workflows,
                     [subImageKey]: subImageValue,
@@ -475,7 +467,7 @@ const updateSubImagesLogic = createLogic({
                         channel,
                         file: fileRow.file,
                         key,
-                        notes: undefined,
+                        notes: [],
                         wellIds: [],
                         workflows,
                         [subImageKey]: subImageValue,

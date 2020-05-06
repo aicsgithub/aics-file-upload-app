@@ -137,23 +137,12 @@ export const canUserRead = async (filePath: string): Promise<boolean> => {
     }
 };
 
-export const pivotAnnotations = (annotations: TemplateAnnotation[], booleanAnnotationTypeId: number) => {
-    return annotations.reduce((accum: any, a: TemplateAnnotation) => {
-        let value;
-        if (a.annotationTypeId === booleanAnnotationTypeId) {
-            if (a.canHaveManyValues) {
-                value = [false];
-            } else {
-                value = false;
-            }
-        } else if (a.canHaveManyValues) {
-            value = [];
-        }
-        return {
-            ...accum,
-            [a.name]: value,
-        };
-    }, {});
+// every annotation will be stored in an array, regardless of whether it can have multiple values or not
+export const pivotAnnotations = (annotations: TemplateAnnotation[]) => {
+    return annotations.reduce((accum: any, a: TemplateAnnotation) => ({
+        ...accum,
+        [a.name]: [],
+    }), {});
 };
 
 // start case almost works but adds spaces before numbers which we'll remove here
@@ -397,7 +386,7 @@ export const getSetAppliedTemplateAction = async (
     );
     const { annotations } = template;
     const annotationsToExclude = difference(previousTemplateAnnotationNames, annotations.map((a) => a.name));
-    const additionalAnnotations = pivotAnnotations(annotations, booleanAnnotationTypeId);
+    const additionalAnnotations = pivotAnnotations(annotations);
     const uploads: UploadStateBranch = {};
     forEach(getUpload(getState()), (metadata: UploadMetadata, key: string) => {
         annotationsToExclude.forEach((annotation: string) => delete metadata[annotation]);

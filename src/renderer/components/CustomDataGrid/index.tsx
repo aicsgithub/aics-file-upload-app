@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, includes, isEmpty, without } from "lodash";
+import { castArray, includes, isEmpty, isNil, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -228,6 +228,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
         let inner = childElement;
         if (!inner) {
+            // this should always be true
             if (Array.isArray(value)) {
                 inner = value.join(LIST_DELIMITER_JOIN);
             } else {
@@ -339,7 +340,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 column.width = 250;
             }
 
-            // eventually we may want to allow undefined Booleans as well but for now, the default value is False
+            // Eventually we should stop allowing multiple boolean values as this makes no sense practically
             if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
                 column.formatter = (props) =>
                     BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
@@ -356,7 +357,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                                 values={value}
                             />
                         );
-                    } else if (templateAnnotation.canHaveManyValues && value) {
+                    } else {
                         childEl = castArray(value)
                             .map((v: any) => {
                                 switch (type) {
@@ -369,11 +370,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                                 }
                             })
                             .join(LIST_DELIMITER_JOIN);
-                    } else if (type === ColumnType.DATE && value) {
-                        childEl = moment(value).format(DATE_FORMAT);
-                    } else if (type === ColumnType.DATETIME && value) {
-                        childEl = moment(value).format(DATETIME_FORMAT);
                     }
+
                     return this.renderFormat(row, name, value, childEl, required);
                 };
             }
@@ -453,7 +451,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
 
     private saveByRow = (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => {
-        this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { [key]: value });
+        const values = !isNil(value) ? castArray(value) : [];
+        this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { [key]: values });
     }
 
     private handleError = (error: string) => {

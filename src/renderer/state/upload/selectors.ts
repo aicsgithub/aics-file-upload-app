@@ -39,7 +39,7 @@ import { getAllPlates, getAllWells, getExpandedUploadJobRows } from "../selectio
 
 import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
-import { ColumnType, TemplateWithTypeNames } from "../template/types";
+import { ColumnType, TemplateAnnotationWithTypeName, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSubImageOnlyRow, isSubImageRow } from "./constants";
 import {
@@ -192,6 +192,7 @@ const convertToUploadJobRow = (
                 subImageName:  metadata.subImageName,
             }
         ),
+        notes: metadata.notes ? metadata.notes[0] : undefined,
         numberSiblings,
         positionIndexes,
         scenes,
@@ -504,16 +505,27 @@ const getAnnotations = (
     metadata: UploadMetadata[],
     appliedTemplate: TemplateWithTypeNames
 ): MMSAnnotationValueRequest[] => {
+    const annotationNameToAnnotationMap: {[name: string]: TemplateAnnotationWithTypeName} = appliedTemplate.annotations
+        .reduce((accum, annotation) => ({
+        ...accum,
+        [annotation.name]: annotation,
+    }), {});
     return flatMap(metadata, (metadatum: UploadMetadata) => {
         const customData = standardizeUploadMetadata(metadatum);
         const result: MMSAnnotationValueRequest[] = [];
         forEach(customData, (value: any, annotationName: string) => {
-            const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
-            if (addAnnotation) {
-                annotationName = titleCase(annotationName);
-                const annotation = appliedTemplate.annotations
-                    .find((a) => a.name === annotationName);
-                if (annotation) {
+            annotationName = titleCase(annotationName);
+            const annotation = annotationNameToAnnotationMap[annotationName];
+            if (annotation) {
+                let addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
+                if (annotation.type === ColumnType.BOOLEAN) {
+                    addAnnotation = annotation.type === ColumnType.BOOLEAN;
+                    if (isEmpty(value)) {
+                        value = [false];
+                    }
+                }
+
+                if (addAnnotation ) {
                     result.push({
                         annotationId: annotation.annotationId,
                         channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
@@ -530,10 +542,10 @@ const getAnnotations = (
                             return v.toString();
                         }),
                     });
-                } else {
-                    // tslint:disable-next-line
-                    console.warn(`Found annotation named ${annotationName} that is not in template`);
                 }
+            } else {
+                // tslint:disable-next-line
+                console.warn(`Found annotation named ${annotationName} that is not in template`);
             }
         });
         return result;

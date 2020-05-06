@@ -20,7 +20,7 @@ export interface UploadRowId {
 // Metadata associated with a file
 export interface UploadMetadata extends UploadRowId {
     barcode: string;
-    notes?: string;
+    notes?: string[]; // only one note expected but we treat this like other custom annotations
     shouldBeInArchive?: boolean;
     shouldBeInLocal?: boolean;
     templateId?: number;
