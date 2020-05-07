@@ -108,7 +108,8 @@ export const getSaveTemplateRequest = createSelector([
             if (a.annotationId) {
                 return {
                     annotationId: a.annotationId,
-                    canHaveManyValues: a.canHaveManyValues,
+                    // TODO lisah 5/7/20 this should be removed as part of FMS-1176
+                    canHaveManyValues: true,
                     required: a.required,
                 };
             }
@@ -124,7 +125,8 @@ export const getSaveTemplateRequest = createSelector([
             return {
                 annotationOptions,
                 annotationTypeId: a.annotationTypeId,
-                canHaveManyValues: a.canHaveManyValues,
+                // TODO lisah 5/7/20 this should be removed as part of FMS-1176
+                canHaveManyValues: true,
                 description: trim(a.description) || "",
                 lookupSchema: a.lookupSchema,
                 lookupTable: a.lookupTable,
@@ -178,7 +180,6 @@ export const getCompleteAppliedTemplate = createSelector([
             }),
             {
                 ...well,
-                canHaveManyValues: true,
                 // Renaming because it the annotation name doesn't match the property in UploadMetadata
                 // In the future we should think about renaming the property
                 name: "Well Ids",
@@ -187,7 +188,6 @@ export const getCompleteAppliedTemplate = createSelector([
             },
             {
                 ...workflow,
-                canHaveManyValues: true,
                 // Renaming because it the annotation name doesn't match the property in UploadMetadata
                 // In the future we should think about renaming the property
                 name: "Workflows",
@@ -196,7 +196,6 @@ export const getCompleteAppliedTemplate = createSelector([
             },
             {
                 ...notes,
-                canHaveManyValues: false,
                 required: false,
                 type: ColumnType.TEXT,
             },

@@ -28,7 +28,7 @@ import {
 } from "../../state/upload/types";
 import { onDrop } from "../../util";
 
-import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
+import BooleanFormatter from "../BooleanFormatter";
 import AddValuesModal from "./AddValuesModal";
 
 import CellWithContextMenu from "./CellWithContextMenu";

@@ -8,7 +8,7 @@ import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
-import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
+import BooleanFormatter from "../../BooleanFormatter";
 
 const { Option } = Select;
 

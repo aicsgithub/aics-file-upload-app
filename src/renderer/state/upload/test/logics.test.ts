@@ -1137,10 +1137,7 @@ describe("Upload logics", () => {
                     ...mockTemplateStateBranch,
                     appliedTemplate: {
                         ...mockTemplateWithManyValues,
-                        annotations: [{
-                            ...mockDateAnnotation,
-                            canHaveManyValues: false,
-                        }],
+                        annotations: [mockDateAnnotation],
                     },
                 }),
                 upload: getMockStateWithHistory({
