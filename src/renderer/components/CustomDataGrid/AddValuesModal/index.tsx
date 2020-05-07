@@ -39,7 +39,7 @@ interface AddValuesModalState {
 
 /*
     This is a special kind of editor for the CustomDataGrid for annotations that support multiple values
-    but need more screen space to do so: Dates and Booleans.
+    but need more screen space to do so: Dates and DateTimes.
  */
 class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     private get columns() {
@@ -54,7 +54,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                             className={styles.input}
                             format={isDatetime ? DATETIME_FORMAT : DATE_FORMAT}
                             onChange={this.updateRow(row)}
-                            value={moment(value)}
+                            value={value ? moment(value) : undefined}
                             showTime={isDatetime}
                         />
                     );
@@ -68,17 +68,12 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
 
     constructor(props: Props) {
         super(props);
+        const values =  convertToArray(props.values).length === 0 ? [null] :  convertToArray(props.values);
         this.state = {
             selectedRows: [],
-            values: convertToArray(props.values),
+            values,
             visible: false,
         };
-    }
-
-    public componentDidUpdate(prevProps: Props): void {
-        if (prevProps.values !== this.props.values) {
-            this.setState({ values: convertToArray(this.props.values) });
-        }
     }
 
     public render() {
@@ -182,7 +177,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         const {values} = this.state;
         const {annotationName, row} = this.props;
         if (annotationName && row) {
-            this.props.onOk(values, annotationName, row);
+            this.props.onOk(values.filter((v) => !!v), annotationName, row);
             this.setState({visible: false});
         } else {
             this.setState({error: "AnnotationName or Row info not provided. Contact Software."});

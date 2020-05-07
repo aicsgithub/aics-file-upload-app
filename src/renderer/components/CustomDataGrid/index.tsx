@@ -349,6 +349,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             <AddValuesModal
                                 annotationName={templateAnnotation.name}
                                 annotationType={type}
+                                key={row.key + value}
                                 onOk={this.saveByRow}
                                 row={row}
                                 values={value}
