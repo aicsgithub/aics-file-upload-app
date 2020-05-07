@@ -1,4 +1,4 @@
-import { Alert, Button, DatePicker, Icon, Modal } from "antd";
+import { Alert, Button, DatePicker, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
 import { isEmpty, without } from "lodash";
 import * as moment from "moment";
@@ -126,13 +126,8 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                     />
                     {error && <Alert type="error" message="Could not save values" description={error}/>}
                 </Modal>
-                <div className={styles.cell}>
+                <div className={styles.cell} onDoubleClick={this.openModal}>
                     <span>{formattedValue}</span>
-                    <Icon
-                        className={styles.cellBtn}
-                        onClick={this.openModal}
-                        type={isEmpty(values) ? "plus-circle" : "edit"}
-                    />
                 </div>
             </>
         );
