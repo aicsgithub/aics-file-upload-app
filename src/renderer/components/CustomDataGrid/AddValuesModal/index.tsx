@@ -142,15 +142,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         this.setState({values});
     }
 
-    private addRow = () => {
-        let nextValue: any = false;
-        const {annotationType} = this.props;
-        if (annotationType === ColumnType.DATE || annotationType === ColumnType.DATETIME) {
-            nextValue = new Date();
-        }
-
-        this.setState({values: [...this.state.values, nextValue]});
-    }
+    private addRow = () => this.setState({values: [...this.state.values, undefined]});
 
     private removeRow = () => {
         const { selectedRows } = this.state;
