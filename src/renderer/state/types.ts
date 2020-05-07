@@ -71,6 +71,7 @@ export interface ReduxLogicExtraDependencies {
 
 export type ReduxLogicProcessDependencies = Process.DepObj<State, AnyAction, ReduxLogicExtraDependencies, undefined>;
 export type ReduxLogicTransformDependencies = DepObj<State, AnyAction, ReduxLogicExtraDependencies>;
+export type ReduxLogicTransformDependenciesWithAction<Action> = DepObj<State, Action, ReduxLogicExtraDependencies>;
 
 export type ReduxLogicNextCb = (action: AnyAction) => void;
 export type ReduxLogicRejectCb = (action: AnyAction) => void;
