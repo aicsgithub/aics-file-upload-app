@@ -9,7 +9,6 @@ import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../../cons
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import { convertToArray } from "../../../util";
-import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 import { FormatterProps } from "../index";
 
@@ -48,16 +47,6 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
             {
                 formatter: ({ row, value }: FormatterProps<TableRow>) => {
                     const {annotationType} = this.props;
-                    if (annotationType === ColumnType.BOOLEAN) {
-                        return (
-                            <BooleanFormatter
-                                className={styles.input}
-                                saveValue={this.updateRow(row)}
-                                value={value}
-                            />
-                        );
-                    }
-
                     const isDatetime = annotationType === ColumnType.DATETIME;
                     return (
                         <DatePicker
