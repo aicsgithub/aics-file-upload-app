@@ -23,6 +23,7 @@ import {
     RemoveUploadsAction,
     UpdateSubImagesAction,
     UpdateUploadAction,
+    UpdateUploadRowsAction,
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
@@ -59,6 +60,7 @@ interface Props {
     undo: () => void;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
+    updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
@@ -182,7 +184,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             enableDragAndDrop={true}
                             getSubRowDetails={this.getSubRowDetails}
                             minHeight={550}
-                            onGridRowsUpdated={this.updateRow}
+                            onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
                             onGridSort={this.determineSort}
                             rowGetter={rowGetter}
                             rowsCount={sortedRows.length}
@@ -421,17 +423,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         this.setState({selectedRows});
     }
 
-    private updateRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>) => {
+    private updateRows = (
+        e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>,
+        sortedRows: UploadJobTableRow[]
+    ) => {
         const { fromRow,  toRow, updated } = e;
         // Updated is a { key: value }
-        // TODO: Dispatch a single action, instead of one for each row to update
         if (updated) {
+            const uploadKeys = [];
             for (let i = fromRow; i <=  toRow; i++) {
-                this.props.updateUpload(
-                    getUploadRowKeyFromUploadTableRow(this.props.uploads[i]),
-                    updated
-                );
+                uploadKeys.push(sortedRows[i].key);
             }
+            this.props.updateUploadRows(uploadKeys, updated);
         }
     }
 

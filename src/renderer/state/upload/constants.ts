@@ -29,6 +29,7 @@ export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
 export const SAVE_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "save-upload-draft");
 export const UPDATE_SUB_IMAGES = makeConstant(BRANCH_NAME, "update-sub-images");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
+export const UPDATE_UPLOAD_ROWS = makeConstant(BRANCH_NAME, "update-upload-rows");
 export const UPDATE_UPLOADS = makeConstant(BRANCH_NAME, "update-uploads");
 export const UPDATE_FILES_TO_ARCHIVE = makeConstant(BRANCH_NAME, "update-files-to-archive");
 export const UPDATE_FILES_TO_STORE_ON_ISILON = makeConstant(BRANCH_NAME, "update-files-to-store-on-isilon");
