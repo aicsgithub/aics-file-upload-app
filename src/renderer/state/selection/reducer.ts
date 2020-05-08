@@ -30,12 +30,10 @@ import {
     SELECT_WORKFLOWS,
     SET_PLATE,
     TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
-    TOGGLE_FOLDER_TREE,
     UPDATE_STAGED_FILES,
 } from "./constants";
 import {
     getExpandedUploadJobRows,
-    getFolderTreeOpen,
     getSelectedBarcode,
     getSelectedImagingSessionId,
     getSelectedImagingSessionIds,
@@ -58,7 +56,6 @@ import {
     SelectWorkflowsAction,
     SetPlateAction,
     ToggleExpandedUploadJobRowAction,
-    ToggleFolderTreeAction,
     UpdateStagedFilesAction,
     UploadTabSelections,
 } from "./types";
@@ -81,7 +78,6 @@ export const initialState: SelectionStateBranch = {
     ...uploadTabSelectionInitialState,
     annotation: DEFAULT_ANNOTATION,
     files: [],
-    folderTreeOpen: true,
     user: userInfo().username,
 };
 
@@ -193,13 +189,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             },
         }),
     },
-    [TOGGLE_FOLDER_TREE]: {
-        accepts: (action: AnyAction): action is ToggleFolderTreeAction => action.type === TOGGLE_FOLDER_TREE,
-        perform: (state: SelectionStateBranch) => ({
-            ...state,
-            folderTreeOpen: !state.folderTreeOpen,
-        }),
-    },
     [SELECT_IMAGING_SESSION_ID]: {
         accepts: (action: AnyAction): action is SelectImagingSessionIdAction =>
             action.type === SELECT_IMAGING_SESSION_ID,
@@ -215,7 +204,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             ...uploadTabSelectionInitialState,
             barcode: getSelectedBarcode(savedState),
             expandedUploadJobRows: getExpandedUploadJobRows(savedState),
-            folderTreeOpen: getFolderTreeOpen(savedState),
             imagingSessionId: getSelectedImagingSessionId(savedState),
             imagingSessionIds: getSelectedImagingSessionIds(savedState),
             plate: getSelectedPlates(savedState),

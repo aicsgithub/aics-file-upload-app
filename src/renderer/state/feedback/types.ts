@@ -4,6 +4,7 @@ export interface FeedbackStateBranch {
     alert?: AppAlert;
     deferredAction?: AnyAction; // action to dispatch when modal closes
     events: AppEvent[];
+    folderTreeOpen: boolean;
     isLoading: boolean;
     requestsInProgress: AsyncRequest[];
     setMountPointNotificationVisible: boolean;
@@ -124,5 +125,9 @@ export interface SetUploadErrorAction {
 }
 
 export interface ClearUploadErrorAction {
+    type: string;
+}
+
+export interface ToggleFolderTreeAction {
     type: string;
 }
