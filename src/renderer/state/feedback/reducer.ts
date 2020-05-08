@@ -5,8 +5,8 @@ import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
 import { RECEIVE_FILE_METADATA, REQUEST_FILE_METADATA_FOR_JOB } from "../metadata/constants";
 import { ReceiveFileMetadataAction, RequestFileMetadataForJobAction } from "../metadata/types";
-import { CLOSE_UPLOAD_TAB } from "../route/constants";
-import { CloseUploadTabAction } from "../route/types";
+import { CLOSE_UPLOAD_TAB, SELECT_PAGE } from "../route/constants";
+import { CloseUploadTabAction, Page, SelectPageAction } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 
 import { SelectBarcodeAction, SelectionStateBranch, SetPlateAction } from "../selection/types";
@@ -55,6 +55,7 @@ import {
     SET_UPLOAD_ERROR,
     START_LOADING,
     STOP_LOADING,
+    TOGGLE_FOLDER_TREE,
 } from "./constants";
 import {
     AddEventAction,
@@ -76,6 +77,7 @@ import {
     SetUploadErrorAction,
     StartLoadingAction,
     StopLoadingAction,
+    ToggleFolderTreeAction,
 } from "./types";
 
 const BAD_GATEWAY_ERROR = "Bad Gateway Error: Labkey or MMS is down.";
@@ -99,6 +101,7 @@ const getErrorAlert = (message: string) => ({
 export const initialState: FeedbackStateBranch = {
     deferredAction: undefined,
     events: [],
+    folderTreeOpen: false,
     isLoading: false,
     requestsInProgress: [],
     setMountPointNotificationVisible: false,
@@ -241,6 +244,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === CLOSE_UPLOAD_TAB,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
+            folderTreeOpen: false,
             setMountPointNotificationVisible: false,
             uploadError: undefined,
         }),
@@ -394,6 +398,24 @@ const actionToConfigMap: TypeToDescriptionMap = {
             alert: getErrorAlert(error),
             requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.CANCEL_UPLOAD),
         }),
+    },
+    [TOGGLE_FOLDER_TREE]: {
+        accepts: (action: AnyAction): action is ToggleFolderTreeAction => action.type === TOGGLE_FOLDER_TREE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            folderTreeOpen: !state.folderTreeOpen,
+        }),
+    },
+    [SELECT_PAGE]: {
+        accepts: (action: AnyAction): action is SelectPageAction =>
+            action.type === SELECT_PAGE,
+        perform: (state: SelectionStateBranch, { payload: { nextPage } }: SelectPageAction) => {
+            const pagesToShowFolderTree = [Page.AssociateFiles, Page.SelectStorageLocation];
+            return {
+                ...state,
+                folderTreeOpen: pagesToShowFolderTree.includes(nextPage),
+            };
+        },
     },
 };
 

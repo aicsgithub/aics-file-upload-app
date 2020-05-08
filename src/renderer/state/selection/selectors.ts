@@ -33,7 +33,6 @@ export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) => state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) => state.selection.present.imagingSessionIds;
 export const getExpandedUploadJobRows = (state: State) => state.selection.present.expandedUploadJobRows;
-export const getFolderTreeOpen = (state: State) => state.selection.present.folderTreeOpen;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
