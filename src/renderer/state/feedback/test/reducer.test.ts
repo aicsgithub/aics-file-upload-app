@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { receiveFileMetadata, requestFileMetadataForJob } from "../../metadata/actions";
 
-import { closeUploadTab } from "../../route/actions";
+import { closeUploadTab, selectPage } from "../../route/actions";
+import { Page } from "../../route/types";
 import { openTemplateEditor, selectBarcode, setPlate } from "../../selection/actions";
 import { clearTemplateDraft, saveTemplate, setAppliedTemplate } from "../../template/actions";
 import { mockMMSTemplate, mockPlate, mockWells } from "../../test/mocks";
@@ -10,7 +11,8 @@ import {
     addEvent,
     addRequestToInProgress,
     clearAlert,
-    clearDeferredAction, clearUploadError,
+    clearDeferredAction,
+    clearUploadError,
     closeModal,
     closeSetMountPointNotification,
     openModal,
@@ -18,9 +20,11 @@ import {
     removeRequestFromInProgress,
     setAlert,
     setDeferredAction,
-    setErrorAlert, setUploadError,
+    setErrorAlert,
+    setUploadError,
     startLoading,
     stopLoading,
+    toggleFolderTree,
 } from "../actions";
 
 import reducer from "../reducer";
@@ -234,6 +238,30 @@ describe("feedback reducer", () => {
         it("adds SAVE_TEMPLATE to requestsInProgress", () => {
             const result = reducer(initialState, saveTemplate());
             expect(result.requestsInProgress.includes(AsyncRequest.SAVE_TEMPLATE));
+        });
+    });
+    describe("toggleFolderTree", () => {
+        it("sets folderTreeOpen to opposite value it was set to before", () => {
+            const result = reducer(initialState, toggleFolderTree());
+            expect(result.folderTreeOpen).to.be.true;
+        });
+    });
+    describe("selectPage", () => {
+        it("sets folderTreeOpen to true if page is AssociateFiles", () => {
+            const result = reducer(initialState, selectPage(Page.SelectUploadType, Page.AssociateFiles));
+            expect(result.folderTreeOpen).to.be.true;
+        });
+        it("sets folderTreeOpen to true if page is SelectStorageLocation", () => {
+            const result = reducer(initialState, selectPage(Page.AssociateFiles, Page.SelectStorageLocation));
+            expect(result.folderTreeOpen).to.be.true;
+        });
+        it("sets folderTreeOpen to false if page is AddCustomData", () => {
+            const result = reducer(initialState, selectPage(Page.SelectStorageLocation, Page.AddCustomData));
+            expect(result.folderTreeOpen).to.be.false;
+        });
+        it("sets folderTreeOpen to false if page is UploadSummary", () => {
+            const result = reducer(initialState, selectPage(Page.AddCustomData, Page.UploadSummary));
+            expect(result.folderTreeOpen).to.be.false;
         });
     });
 });

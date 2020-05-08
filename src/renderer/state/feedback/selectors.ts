@@ -27,6 +27,7 @@ export const getTemplateEditorVisible = (state: State) => !!state.feedback.visib
 export const getOpenTemplateModalVisible = (state: State) => !!state.feedback.visibleModals
     .find((m: ModalName) => m === "openTemplate");
 export const getUploadError = (state: State) => state.feedback.uploadError;
+export const getFolderTreeOpen = (state: State) => state.feedback.folderTreeOpen;
 
 // COMPOSED SELECTORS
 export const getRecentEvent = createSelector([

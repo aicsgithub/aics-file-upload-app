@@ -14,9 +14,10 @@ import {
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
-import { clearAlert, openModal, setAlert } from "../../state/feedback/actions";
+import { clearAlert, openModal, setAlert, toggleFolderTree } from "../../state/feedback/actions";
 import {
     getAlert,
+     getFolderTreeOpen,
     getIsLoading,
     getRecentEvent,
     getSetMountPointNotificationVisible,
@@ -28,6 +29,7 @@ import {
     ClearAlertAction,
     OpenModalAction,
     SetAlertAction,
+    ToggleFolderTreeAction,
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
@@ -39,10 +41,8 @@ import {
     clearStagedFiles,
     loadFilesFromDragAndDrop,
     openFilesFromDialog,
-    toggleFolderTree,
 } from "../../state/selection/actions";
 import {
-    getFolderTreeOpen,
     getSelectedFiles,
     getStagedFiles,
 } from "../../state/selection/selectors";
@@ -52,7 +52,6 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     SelectFileAction,
-    ToggleFolderTreeAction,
     UploadFile,
 } from "../../state/selection/types";
 import { gatherSettings, setMountPoint, switchEnvironment, updateSettings } from "../../state/setting/actions";
