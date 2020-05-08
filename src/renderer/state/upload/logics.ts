@@ -36,16 +36,21 @@ import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
 import { deselectFiles, stageFiles } from "../selection/actions";
-import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
+import {
+    getSelectedBarcode,
+    getSelectedWellIds,
+    getStagedFiles
+} from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
-import { ColumnType } from "../template/types";
+import { AnnotationType, ColumnType, Template } from "../template/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
+    ReduxLogicTransformDependenciesWithAction,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -76,9 +81,19 @@ import {
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
+    UPDATE_UPLOAD_ROWS,
 } from "./constants";
-import { getCanSaveUploadDraft, getUpload, getUploadPayload } from "./selectors";
-import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
+import {
+    getCanSaveUploadDraft,
+    getUpload,
+    getUploadPayload,
+} from "./selectors";
+import {
+    UpdateUploadRowsAction,
+    UploadMetadata,
+    UploadRowId,
+    UploadStateBranch
+} from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
     type: ASSOCIATE_FILES_AND_WELLS,
@@ -552,11 +567,58 @@ const convertDatePickerValueToDate = (d: any) => {
     }
 };
 
+const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
 // Here we take care of custom inputs that handle arrays for strings and numbers.
 // If we can create a valid array from the text of the input, we'll transform it into an array
 // if not, we pass the value untouched to the reducer.
 // Additionally we take care of converting moment dates back to dates.
-const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
+function formatUpload(
+    upload: Partial<UploadMetadata>,
+    template: Template,
+    annotationTypes: AnnotationType[]
+) {
+    const formattedUpload: Partial<UploadMetadata> = {};
+
+    forEach(upload, (value: any, key: string) => {
+        const annotation = template.annotations.find((a) => a.name === key);
+
+        if (annotation) {
+            const annotationType = annotationTypes
+                .find((at) => at.annotationTypeId === annotation.annotationTypeId);
+
+            if (annotationType) {
+                const { canHaveManyValues } = annotation;
+                const type = annotationType.name;
+                const endsWithComma = trim(value).endsWith(",");
+
+                // numbers are formatted in text Inputs so they'll be strings at this point
+                if (type === ColumnType.NUMBER && value && canHaveManyValues) {
+                    // Remove anything that isn't a number, comma, or whitespace
+                    value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
+                }
+
+                if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
+                    if (canHaveManyValues) {
+                        value = (value || [])
+                            .map(convertDatePickerValueToDate)
+                            .filter((d: any) => !isNil(d));
+                    } else {
+                        value = convertDatePickerValueToDate(value);
+                    }
+                } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
+                    value = parseNumberArray(value);
+                } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
+                    value = parseStringArray(value);
+                }
+            }
+        }
+
+        formattedUpload[key] = value;
+    });
+
+    return formattedUpload;
+}
+
 const updateUploadLogic = createLogic({
     transform: ({action, getState, logger}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const {upload} = action.payload;
@@ -567,58 +629,48 @@ const updateUploadLogic = createLogic({
         if (!template || !annotationTypes) {
             next(action);
         } else {
-            const formattedUpload: Partial<UploadMetadata> = {};
-            forEach(upload, (value: any, key: string) => {
-                const annotation = template.annotations.find((a) => a.name === key);
-
-                if (annotation) {
-                    const annotationType = annotationTypes
-                        .find((at) => at.annotationTypeId === annotation.annotationTypeId);
-
-                    if (annotationType) {
-                        try {
-                            const { canHaveManyValues } = annotation;
-                            const type = annotationType.name;
-                            const endsWithComma = trim(value).endsWith(",");
-
-                            // numbers are formatted in text Inputs so they'll be strings at this point
-                            if (type === ColumnType.NUMBER && value && canHaveManyValues) {
-                                // Remove anything that isn't a number, comma, or whitespace
-                                value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
-                            }
-
-                            if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
-                                if (canHaveManyValues) {
-                                    value = (value || [])
-                                        .map(convertDatePickerValueToDate)
-                                        .filter((d: any) => !isNil(d));
-                                } else {
-                                    value = convertDatePickerValueToDate(value);
-                                }
-                            } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
-                                value = parseNumberArray(value);
-                            } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
-                                value = parseStringArray(value);
-                            }
-                        } catch (e) {
-                            logger.error("Something went wrong while updating metadata: ", e.message);
-                        }
-                    }
-                }
-
-                formattedUpload[key] = value;
-            });
-
-            next({
-                ...action,
-                payload: {
-                    ...action.payload,
-                    upload: formattedUpload,
-                },
-            });
+            try {
+                const formattedUpload = formatUpload(upload, template, annotationTypes);
+                next({
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        upload: formattedUpload,
+                    },
+                });
+            } catch (e) {
+                logger.error("Something went wrong while updating metadata: ", e.message);
+            }
         }
     },
     type: UPDATE_UPLOAD,
+});
+
+const updateUploadRowsLogic = createLogic({
+    transform: (
+        { action, getState, logger }: ReduxLogicTransformDependenciesWithAction<UpdateUploadRowsAction>,
+        next: ReduxLogicNextCb
+    ) => {
+        const { uploadKeys, metadataUpdate } = action.payload;
+        const state = getState();
+        const template = getAppliedTemplate(state);
+        const annotationTypes = getAnnotationTypes(state);
+
+        // Format update if template and annotation types are present
+        const formattedUpdate = (template && annotationTypes)
+            ? formatUpload(metadataUpdate, template, annotationTypes)
+            : metadataUpdate;
+
+        const updatedAction: UpdateUploadRowsAction = {
+            ...action,
+            payload: {
+                metadataUpdate: formattedUpdate,
+                uploadKeys,
+            },
+        };
+        next(updatedAction);
+    },
+    type: UPDATE_UPLOAD_ROWS,
 });
 
 const updateFilesToStoreOnIsilonLogic = createLogic({
@@ -740,6 +792,7 @@ export default [
     undoFileWellAssociationLogic,
     updateSubImagesLogic,
     updateUploadLogic,
+    updateUploadRowsLogic,
     updateFilesToStoreOnIsilonLogic,
     updateFilesToStoreInArchiveLogic,
 ];
