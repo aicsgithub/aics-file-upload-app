@@ -7,7 +7,6 @@ export interface SelectionStateBranch extends UploadTabSelections {
     barcode?: string;
     expandedUploadJobRows: ExpandedRows;
     files: string[];
-    folderTreeOpen: boolean;
     imagingSessionId?: number;
     imagingSessionIds: Array<number | null>;
     plate: ImagingSessionIdToPlateMap;
@@ -248,10 +247,6 @@ export interface ClearStagedFilesAction extends AutoSaveAction  {
 
 export interface ToggleExpandedUploadJobRowAction {
     payload: string;
-    type: string;
-}
-
-export interface ToggleFolderTreeAction {
     type: string;
 }
 

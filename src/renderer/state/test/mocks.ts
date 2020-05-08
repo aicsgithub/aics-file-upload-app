@@ -187,7 +187,6 @@ export const mockSelection: SelectionStateBranch = {
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
-    folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [null, 1],
     plate: mockPlate,
@@ -367,6 +366,7 @@ export const mockState: State = {
     feedback: {
         deferredAction: undefined,
         events: [],
+        folderTreeOpen: false,
         isLoading: false,
         requestsInProgress: [],
         setMountPointNotificationVisible: false,

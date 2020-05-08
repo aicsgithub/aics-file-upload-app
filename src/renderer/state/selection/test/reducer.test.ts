@@ -15,7 +15,6 @@ import reducer from "../reducer";
 import { initialState } from "../reducer";
 import {
     getExpandedUploadJobRows,
-    getFolderTreeOpen,
     getSelectedAnnotation,
     getSelectedBarcode,
     getSelectedFiles,
@@ -60,7 +59,6 @@ describe("selection reducer", () => {
             const { present } = result;
             expect(present.barcode).to.equal(getSelectedBarcode(nonEmptySelectionsState));
             expect(present.expandedUploadJobRows).to.equal(getExpandedUploadJobRows(nonEmptySelectionsState));
-            expect(present.folderTreeOpen).to.equal(getFolderTreeOpen(nonEmptySelectionsState));
             expect(present.imagingSessionId).to.equal(getSelectedImagingSessionId(nonEmptySelectionsState));
             expect(present.imagingSessionIds).to.equal(getSelectedImagingSessionIds(nonEmptySelectionsState));
             expect(present.plate).to.equal(getSelectedPlates(nonEmptySelectionsState));
