@@ -1,4 +1,6 @@
+import { Button } from "antd";
 import * as classNames from "classnames";
+import * as logger from "js-logger";
 import * as React from "react";
 
 import { AppEvent } from "../../state/feedback/types";
@@ -39,6 +41,21 @@ const getStatusMessage = (event?: AppEvent) => {
     return `${event.message} ${time}`;
 };
 
+const copyStatusToClipboard = (message: string) => async () => {
+    const { state }: PermissionStatus = await navigator.permissions
+        // casting since type definitions are not accurate
+        .query({ name: "clipboard-write" as PermissionName });
+    if (state === "granted" || state === "prompt") {
+        try {
+            await navigator.clipboard.writeText(message);
+        } catch (e) {
+            logger.error(`Could not copy text to your clipboard: ${e.message}`);
+        }
+    } else {
+        logger.error("Did not have correct permissions to copy to clipboard");
+    }
+};
+
 export interface StatusBarProps {
     className?: string;
     event?: AppEvent;
@@ -51,10 +68,21 @@ const StatusBar: React.FunctionComponent<StatusBarProps> = (props) => {
         event,
         limsUrl,
     } = props;
+    const statusMessage = getStatusMessage(event);
 
     return (
         <div className={classNames(styles.container, className)}>
-            <div className={styles.status}>{getStatusMessage(event)}</div>
+            <div className={styles.statusContainer}>
+                <div className={styles.status} title={statusMessage}>{statusMessage}</div>
+                <Button
+                    className={styles.copy}
+                    onClick={copyStatusToClipboard(statusMessage)}
+                    size="small"
+                    type="link"
+                >
+                    Copy
+                </Button>
+            </div>
             <div className={styles.host}>LIMS Host: {limsUrl}</div>
         </div>
     );

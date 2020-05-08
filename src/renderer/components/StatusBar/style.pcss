@@ -2,10 +2,34 @@
   display: flex;
   padding: 0.25em 1em;
   font-size: var(--small);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-container {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  margin-right: 2em;
+  composes: ellipsis from "../../styles/variables.pcss";
+
+  &:hover {
+    & .copy {
+      opacity: 1;
+    }
+  }
 }
 
 .status {
   flex: 1;
+  composes: ellipsis from "../../styles/variables.pcss";
+}
+
+.copy {
+  flex: 0 0 auto;
+  opacity: 0;
+  padding-bottom: 1em;
+  font-size: 1rem;
 }
 
 .host {
