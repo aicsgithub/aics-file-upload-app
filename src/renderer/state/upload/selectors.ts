@@ -22,7 +22,7 @@ import * as moment from "moment";
 import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
-import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../constants";
+import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
 import {
     getBooleanAnnotationTypeId,
@@ -177,8 +177,8 @@ const convertToUploadJobRow = (
         siblingIndex,
         subImageNames,
         treeDepth,
-        wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(LIST_DELIMITER_JOIN) : "",
-        workflows: metadata.workflows ? metadata.workflows.join(LIST_DELIMITER_JOIN) : "",
+        wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
+        workflows: metadata.workflows || [],
     };
 };
 
@@ -263,9 +263,12 @@ export const getUploadSummaryRows = createSelector([
     getExpandedUploadJobRows,
     getFileToMetadataMap,
     getCompleteAppliedTemplate,
-], (uploads: DisplayUploadStateBranch, expandedRows: ExpandedRows,
+], (
+    uploads: DisplayUploadStateBranch,
+    expandedRows: ExpandedRows,
     metadataGroupedByFile: { [file: string]: UploadMetadataWithDisplayFields[] },
-    template?: TemplateWithTypeNames): UploadJobTableRow[] => {
+    template?: TemplateWithTypeNames
+): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
 

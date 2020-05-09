@@ -113,7 +113,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                                 row,
                                 "wellLabels",
                                 value,
-                                <div className={styles.labels}>{row.wellLabels}</div>,
+                                undefined,
                                     true
                             )
                     );
@@ -226,23 +226,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             error = validationErrors[row.key][label];
         }
 
-        let inner = childElement;
-        if (!inner) {
-            // this should always be true
-            if (Array.isArray(value)) {
-                inner = value.join(LIST_DELIMITER_JOIN);
-            } else {
-                inner = value;
-            }
-        }
-
         return (
             <CellWithContextMenu
                 className={classNames(styles.formatterContainer, className)}
                 error={error}
                 template={contextMenuItems}
             >
-                {inner}
+                {childElement || <div className={styles.cell}>{value.join(LIST_DELIMITER_JOIN)}</div>}
             </CellWithContextMenu>
         );
     }
@@ -276,12 +266,15 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             {
                 editable: true,
                 formatter: ({ row }: FormatterProps<UploadJobTableRow>) => (
-                    <div className={styles.formatterContainer} onDrop={this.onDrop(row)}>
-                            <NoteIcon
-                                handleError={this.handleError}
-                                notes={row.notes}
-                                saveNotes={this.saveNotesByRow(row)}
-                            />
+                    <div
+                        className={classNames(styles.formatterContainer, styles.noteIconContainer)}
+                        onDrop={this.onDrop(row)}
+                    >
+                        <NoteIcon
+                            handleError={this.handleError}
+                            notes={row.notes}
+                            saveNotes={this.saveNotesByRow(row)}
+                        />
                     </div>
                 ),
                 key: "notes",
@@ -322,7 +315,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 editable: !formatterNeedsModal,
                 key: name,
                 name,
-                onChange: this.saveByRow,
                 resizable: true,
                 type,
             };

@@ -1,13 +1,14 @@
-import { DatePicker, Input, Select } from "antd";
+import { Input, Select } from "antd";
 import Logger from "js-logger";
-import * as moment from "moment";
+import { trim } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
-import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../../constants";
+import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
 import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
+import { convertToArray } from "../../../util";
 import BooleanFormatter from "../../BooleanFormatter";
 
 const { Option } = Select;
@@ -24,7 +25,7 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
 }
 
 interface EditorState {
-    value: string;
+    value: any;
 }
 
 /*
@@ -39,13 +40,28 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     public constructor(props: EditorProps) {
         super(props);
+        let value = props.value;
+        switch (props.column.type) {
+            case ColumnType.TEXT:
+            case ColumnType.NUMBER:
+                value = convertToArray(value).join(LIST_DELIMITER_JOIN);
+                break;
+            case ColumnType.BOOLEAN:
+                if (value.length === 0) {
+                    value = [true];
+                } else {
+                    value[0] = !value[0];
+                }
+                break;
+        }
         this.state = {
-            value: this.props.value.join(LIST_DELIMITER_JOIN),
+            value,
         };
     }
 
     public render() {
-        const { column: { dropdownValues, type }, value } = this.props;
+        const { column: { dropdownValues, type } } = this.props;
+        const { value } = this.state;
 
         let input;
         switch (type) {
@@ -56,6 +72,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         autoFocus={true}
                         defaultOpen={true}
                         mode="multiple"
+                        onBlur={this.onBlur}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
                         value={value}
@@ -68,10 +85,9 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 break;
             case ColumnType.BOOLEAN:
                 input = (
-                    <BooleanFormatter
-                        saveValue={this.handleOnChange}
-                        value={value}
-                    />
+                    <div onClick={() => this.handleOnChange([!value[0]])}>
+                        <BooleanFormatter value={value} />
+                    </div>
                 );
                 break;
             case ColumnType.NUMBER:
@@ -96,26 +112,13 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     />
                 );
                 break;
-            case ColumnType.DATE:
-            case ColumnType.DATETIME:
-                input = (
-                  <DatePicker
-                    autoFocus={true}
-                    format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
-                    onChange={this.handleOnChange}
-                    value={value.length > 0 ? moment(value[0]) : undefined}
-                    showTime={type === ColumnType.DATETIME}
-                    style={{ width: "100%" }}
-                  />
-                );
-                break;
             case ColumnType.LOOKUP:
                 input = (
                     <LookupSearch
                         defaultOpen={true}
                         mode="multiple"
                         lookupAnnotationName={this.props.column.key}
-                        onBlur={this.props.onCommit}
+                        onBlur={this.onBlur}
                         selectSearchValue={this.handleOnChange}
                         value={value}
                     />
@@ -134,7 +137,18 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     // Should return an object of key/value pairs to be merged back to the row
     public getValue = () => {
-        return { [this.props.column.key]: this.props.value };
+        const { value } = this.state;
+        const { column: { key, type } } = this.props;
+
+        if (type === ColumnType.TEXT || type === ColumnType.NUMBER) {
+            let formattedString = trim(value);
+            if (value.endsWith(LIST_DELIMITER_SPLIT)) {
+                formattedString = value.substring(0, value.length - 1);
+            }
+            return { [key]: formattedString };
+        }
+
+        return { [key]: value };
     }
 
     public getInputNode = (): Element | Text | null => {
@@ -144,19 +158,12 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         this.setState({value: e.target.value})
 
-    private onBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = e.target;
-        // value will be a string at this point. We don't want to convert to an
-        // array yet in case user is typing commas (which adds elements)
-        this.handleOnChange(value);
+    private onBlur = () => {
+        this.props.onCommit();
     }
 
     private handleOnChange = (value: any) => {
-        const { column: { key, onChange }, rowData } = this.props;
-
-        if (onChange) {
-            onChange(value, key, rowData);
-        }
+        this.setState({value});
     }
 }
 

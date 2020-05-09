@@ -84,11 +84,9 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
         if (annotationType === ColumnType.DATE) {
             formattedValue = savedValues
                 .map((v) => moment(v).format(DATE_FORMAT)).join(LIST_DELIMITER_JOIN);
-        } else if (annotationType === ColumnType.DATETIME) {
+        } else {
             formattedValue = savedValues
                 .map((v) => moment(v).format(DATETIME_FORMAT)).join(LIST_DELIMITER_JOIN);
-        } else {
-            formattedValue = savedValues.map((v) => v ? "Yes" : "No").join(LIST_DELIMITER_JOIN);
         }
 
         return (
@@ -122,7 +120,7 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                     {error && <Alert type="error" message="Could not save values" description={error}/>}
                 </Modal>
                 <div className={styles.cell} onDoubleClick={this.openModal}>
-                    <span>{formattedValue}</span>
+                    <div className={styles.value}>{formattedValue}</div>
                 </div>
             </>
         );

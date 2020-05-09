@@ -104,10 +104,10 @@ export interface UploadJobTableRow extends UploadRowId {
     wellIds?: number[];
 
     // human readable identifier of well, such as "A1"
-    wellLabels?: string;
+    wellLabels: string[];
 
     // all workflows associated with this file model
-    workflows?: string;
+    workflows: string[];
 }
 
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {
