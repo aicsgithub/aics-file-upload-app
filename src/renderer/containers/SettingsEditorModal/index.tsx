@@ -1,4 +1,4 @@
-import { Alert, Button, Input, Modal, Radio } from "antd";
+import { Alert, Button, Checkbox, Input, Modal, Radio } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { ipcRenderer } from "electron";
 import { trim } from "lodash";
@@ -13,7 +13,13 @@ import { closeModal, openModal } from "../../state/feedback/actions";
 import { getSettingsEditorVisible } from "../../state/feedback/selectors";
 import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import { setMountPoint, switchEnvironment, updateSettings } from "../../state/setting/actions";
-import { getLimsHost, getLimsUrl, getLoggedInUser, getMountPoint } from "../../state/setting/selectors";
+import {
+    getLimsHost,
+    getLimsUrl,
+    getLoggedInUser,
+    getMountPoint,
+    getShowUploadHint,
+} from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 
@@ -27,6 +33,7 @@ interface Props {
     mountPoint?: string;
     openModal: ActionCreator<OpenModalAction>;
     setMountPoint: () => void;
+    showUploadHint: boolean;
     updateSettings: ActionCreator<UpdateSettingsAction>;
     username: string;
     visible: boolean;
@@ -35,6 +42,7 @@ interface Props {
 interface SettingsEditorState {
     environment: Environment;
     limsUrl: string;
+    showUploadHint: boolean;
     username: string;
 }
 
@@ -60,6 +68,7 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
         this.state = {
             environment,
             limsUrl: props.limsUrl,
+            showUploadHint: props.showUploadHint,
             username: props.username,
         };
     }
@@ -102,7 +111,7 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
     private renderBody = (): ReactNode | ReactNodeArray => {
         const { mountPoint } = this.props;
 
-        const { environment, limsUrl, username } = this.state;
+        const { environment, limsUrl, showUploadHint, username } = this.state;
         const errors = this.getErrors();
 
         return (
@@ -135,6 +144,10 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
                 <div className={styles.row}>
                     <div className={styles.key}>Username</div>
                     <Input className={styles.value} value={username} onChange={this.setUsername}/>
+                </div>
+                <div className={styles.row}>
+                    <div className={styles.key}>Show Upload Hints</div>
+                    <Checkbox className={styles.value} checked={showUploadHint} onChange={this.toggleShowHints}/>
                 </div>
             </>);
     }
@@ -175,12 +188,13 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
         return errors;
     }
     private save = () => {
-        const {username} = this.state;
+        const {showUploadHint, username} = this.state;
         const trimmedUsername = trim(username);
         const url = this.getURL();
         this.props.updateSettings({
             limsHost: url.hostname,
             limsPort: url.port || "80",
+            showUploadHint,
             username: trimmedUsername,
         });
         this.closeModal();
@@ -198,6 +212,8 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
         const completeLimsUrl = url.startsWith("http") ? url : `http://${url}`;
         return new URL(completeLimsUrl);
     }
+
+    private toggleShowHints = () => this.setState({ showUploadHint: !this.state.showUploadHint });
 }
 
 function mapStateToProps(state: State) {
@@ -207,6 +223,7 @@ function mapStateToProps(state: State) {
         limsHost: getLimsHost(state),
         limsUrl: getLimsUrl(state),
         mountPoint: getMountPoint(state),
+        showUploadHint: getShowUploadHint(state),
         username: getLoggedInUser(state),
         visible,
     };

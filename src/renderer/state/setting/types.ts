@@ -4,6 +4,8 @@ export interface SettingStateBranch extends LimsUrl {
     associateByWorkflow: boolean;
     metadataColumns: string[];
     mountPoint?: string;
+    // if true show hints on how to use the grid to enter data
+    showUploadHint: boolean;
     templateId?: number;
     username: string;
 }
