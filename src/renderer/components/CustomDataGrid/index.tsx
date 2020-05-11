@@ -321,10 +321,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 type,
             };
 
+            // dates are handled completely differently from other data types because right now the best
+            // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
             column.editor = formatterNeedsModal ? DatesEditor : Editor;
-
-            // The date selectors need a certain width to function, this helps the grid start off in an initially
-            // acceptable width for them
             if (type === ColumnType.DATE) {
                 column.width = 170;
             } else if (type === ColumnType.DATETIME) {
