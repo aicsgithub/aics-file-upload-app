@@ -391,7 +391,7 @@ const updateSubImagesLogic = createLogic({
         const channelIds = channels.map((c: Channel) => c.channelId);
         const {subImageKey, subImages} = getSubImagesAndKey(positionIndexes, scenes, subImageNames);
         const update: Partial<UploadStateBranch> = {};
-        const workflows = splitTrimAndFilter(fileRow.workflows);
+        const { workflows } = fileRow;
 
         const uploads = getUpload(getState());
         const existingUploadsForFile: UploadMetadata[] = values(uploads).filter((u) => u.file === fileRow.file);

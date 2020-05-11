@@ -663,8 +663,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1],
-                wellLabels: "A1",
-                workflows: "",
+                wellLabels: ["A1"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1235",
@@ -682,8 +682,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1236",
@@ -701,8 +701,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1, 2, 3],
-                wellLabels: "A1, A2, B1",
-                workflows: "",
+                wellLabels: ["A1", "A2", "B1"],
+                workflows: [],
             });
         });
         it("does not show scene row if file row not expanded", () => {
@@ -739,8 +739,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
         });
         it("shows scene row if file row is expanded", () => {
@@ -783,8 +783,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -801,8 +801,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
         });
         it("shows scene and channel only rows if file row is not present", () => {
@@ -845,8 +845,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
             expect(rows[1]).to.deep.equal({
                 barcode: "1234",
@@ -863,8 +863,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
         });
         it("handles files with channels", () => {
@@ -908,8 +908,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1],
-                wellLabels: "A1",
-                workflows: "",
+                wellLabels: ["A1"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -927,8 +927,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
         });
         it("handles files with scenes and channels", () => {
@@ -987,8 +987,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -1005,8 +1005,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -1024,8 +1024,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 2,
                 wellIds: [1],
-                wellLabels: "A1",
-                workflows: "",
+                wellLabels: ["A1"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -1042,8 +1042,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
         });
         it("does not throw error for annotations that don't exist on the template", () => {
