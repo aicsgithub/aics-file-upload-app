@@ -157,7 +157,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         const {
             selectedRows,
         } = this.state;
-        console.log(uploads)
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
         const rowGetter = (idx: number) => sortedRows[idx];
@@ -315,16 +314,15 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             const column: UploadJobColumn = {
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
-                editable: !formatterNeedsModal,
+                editable: true,
                 key: name,
                 name,
                 resizable: true,
                 type,
             };
 
-            if (!formatterNeedsModal) {
-                column.editor = Editor;
-            }
+            column.editor = formatterNeedsModal ? AddValuesModal : Editor;
+
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them
             if (type === ColumnType.DATE) {
@@ -334,36 +332,22 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             }
 
             // eventually we may want to allow undefined Booleans as well but for now, the default value is False
-            if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
+            if (type === ColumnType.BOOLEAN) {
                 column.formatter = BooleanFormatter;
             } else {
                 column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => {
-                    let childEl;
-                    if (formatterNeedsModal) {
-                        childEl = (
-                            <AddValuesModal
-                                annotationName={templateAnnotation.name}
-                                annotationType={type}
-                                key={row.key + value}
-                                onOk={this.saveByRow}
-                                row={row}
-                                values={value}
-                            />
-                        );
-                    } else {
-                        childEl = castArray(value)
-                            .map((v: any) => {
-                                switch (type) {
-                                    case ColumnType.DATETIME:
-                                        return moment(v).format(DATETIME_FORMAT);
-                                    case ColumnType.DATE:
-                                        return moment(v).format(DATE_FORMAT);
-                                    default:
-                                        return v;
-                                }
-                            })
-                            .join(LIST_DELIMITER_JOIN);
-                    }
+                    const childEl = castArray(value)
+                        .map((v: any) => {
+                            switch (type) {
+                                case ColumnType.DATETIME:
+                                    return moment(v).format(DATETIME_FORMAT);
+                                case ColumnType.DATE:
+                                    return moment(v).format(DATE_FORMAT);
+                                default:
+                                    return v;
+                            }
+                        })
+                        .join(LIST_DELIMITER_JOIN);
 
                     return this.renderFormat(row, name, value, childEl, required);
                 };

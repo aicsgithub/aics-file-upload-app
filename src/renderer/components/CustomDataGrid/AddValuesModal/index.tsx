@@ -1,13 +1,12 @@
-import { Alert, Button, DatePicker, Modal } from "antd";
+import { Button, DatePicker, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
 import { isEmpty, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
 
-import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../../constants";
+import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 import { ColumnType } from "../../../state/template/types";
-import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import { convertToArray } from "../../../util";
 
 import { FormatterProps } from "../index";
@@ -20,20 +19,17 @@ interface TableRow {
     [annotationName: string]: any;
 }
 
-interface Props {
-    annotationName: string;
-    annotationType: ColumnType;
-    // When the modal gets submitted, the row that it was opened from should get updated
-    onOk: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
-    // Corresponds to the row of the cell that was clicked to open this modal
-    row: UploadJobTableRow;
-    values?: any[];
+interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
+    type: ColumnType;
+}
+
+interface Props extends AdazzleReactDataGrid.EditorBaseProps {
+    column: EditorColumn;
 }
 
 interface AddValuesModalState {
-    error?: string;
     selectedRows: number[];
-    values: any[];
+    values: Array<moment.Moment | undefined>;
     visible: boolean;
 }
 
@@ -42,12 +38,15 @@ interface AddValuesModalState {
     but need more screen space to do so: Dates and DateTimes.
  */
 class AddValuesModal extends React.Component<Props, AddValuesModalState> {
+    // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
+    public input = React.createRef<HTMLDivElement>();
+
     private get columns() {
         return [
             {
                 formatter: ({ row, value }: FormatterProps<TableRow>) => {
-                    const {annotationType} = this.props;
-                    const isDatetime = annotationType === ColumnType.DATETIME;
+                    const { type } = this.props.column;
+                    const isDatetime = type === ColumnType.DATETIME;
                     return (
                         <DatePicker
                             autoFocus={true}
@@ -59,8 +58,8 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                         />
                     );
                 },
-                key: this.props.annotationName,
-                name: this.props.annotationName,
+                key: this.props.column.key,
+                name: this.props.column.key,
                 resizable: true,
             },
         ];
@@ -68,29 +67,19 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
 
     constructor(props: Props) {
         super(props);
-        const values =  convertToArray(props.values).length === 0 ? [null] :  convertToArray(props.values);
+        const values =  convertToArray(props.value).length === 0 ? [null] :  convertToArray(props.value);
         this.state = {
             selectedRows: [],
             values,
-            visible: false,
+            visible: true,
         };
     }
 
     public render() {
-        const { annotationType } = this.props;
-        const {error, selectedRows, values, visible} = this.state;
-        let formattedValue;
-        const savedValues = convertToArray(this.props.values);
-        if (annotationType === ColumnType.DATE) {
-            formattedValue = savedValues
-                .map((v) => moment(v).format(DATE_FORMAT)).join(LIST_DELIMITER_JOIN);
-        } else {
-            formattedValue = savedValues
-                .map((v) => moment(v).format(DATETIME_FORMAT)).join(LIST_DELIMITER_JOIN);
-        }
+        const { selectedRows, values, visible } = this.state;
 
         return (
-            <>
+            <div ref={this.input} className={styles.cell}>
                 <Modal
                     className={styles.container}
                     width="50%"
@@ -117,20 +106,26 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                             },
                         }}
                     />
-                    {error && <Alert type="error" message="Could not save values" description={error}/>}
                 </Modal>
-                <div className={styles.cell} onDoubleClick={this.openModal}>
-                    <div className={styles.value}>{formattedValue}</div>
-                </div>
-            </>
+            </div>
         );
     }
 
-    private rowGetter = (idx: number) => {
-        return ({[this.props.annotationName]: this.state.values[idx], idx});
+    // react-data-grid required method for accessing input
+    public getInputNode = (): Element | Text | null => {
+        return this.input.current;
     }
 
-    private openModal = () => this.setState({visible: true});
+    // react-data-grid required method for accessing key/value
+    public getValue = () => {
+        const { values } = this.state;
+        const { column: { key } } = this.props;
+        return { [key]: values.filter((v) => !!v) };
+    }
+
+    private rowGetter = (idx: number) => {
+        return ({[this.props.column.key]: this.state.values[idx], idx});
+    }
 
     private cancel = () => this.setState({visible: false});
 
@@ -164,14 +159,8 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     }
 
     private submit = () => {
-        const {values} = this.state;
-        const {annotationName, row} = this.props;
-        if (annotationName && row) {
-            this.props.onOk(values.filter((v) => !!v), annotationName, row);
-            this.setState({visible: false});
-        } else {
-            this.setState({error: "AnnotationName or Row info not provided. Contact Software."});
-        }
+        this.setState({visible: false});
+        this.props.onCommit();
     }
 }
 
