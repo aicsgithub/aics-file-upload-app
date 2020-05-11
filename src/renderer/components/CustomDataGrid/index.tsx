@@ -30,7 +30,7 @@ import {
 import { onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanFormatter";
-import AddValuesModal from "./AddValuesModal";
+import DatesEditor from "./DatesEditor";
 
 import CellWithContextMenu from "./CellWithContextMenu";
 import Editor from "./Editor";
@@ -321,7 +321,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 type,
             };
 
-            column.editor = formatterNeedsModal ? AddValuesModal : Editor;
+            column.editor = formatterNeedsModal ? DatesEditor : Editor;
 
             // The date selectors need a certain width to function, this helps the grid start off in an initially
             // acceptable width for them

@@ -20,14 +20,14 @@ interface TableRow {
 }
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
-    type: ColumnType;
+    type?: ColumnType;
 }
 
 interface Props extends AdazzleReactDataGrid.EditorBaseProps {
     column: EditorColumn;
 }
 
-interface AddValuesModalState {
+interface DatesEditorState {
     selectedRows: number[];
     values: Array<moment.Moment | undefined>;
     visible: boolean;
@@ -37,7 +37,7 @@ interface AddValuesModalState {
     This is a special kind of editor for the CustomDataGrid for annotations that support multiple values
     but need more screen space to do so: Dates and DateTimes.
  */
-class AddValuesModal extends React.Component<Props, AddValuesModalState> {
+class DatesEditor extends React.Component<Props, DatesEditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
 
@@ -83,7 +83,6 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
                 <Modal
                     className={styles.container}
                     width="50%"
-                    title="Add Values"
                     visible={visible}
                     onOk={this.submit}
                     onCancel={this.cancel}
@@ -164,4 +163,4 @@ class AddValuesModal extends React.Component<Props, AddValuesModalState> {
     }
 }
 
-export default AddValuesModal;
+export default DatesEditor;
