@@ -1288,6 +1288,85 @@ describe("Upload logics", () => {
             const upload = getUpload(store.getState());
             expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2000, 3.86]);
         });
+        it("converts '' to [] if type is NUMBER", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockNumberAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Clone Number Garbage": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": [],
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Clone Number Garbage";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: ""}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+        });
+
+        it ("converts '' to [] if type is TEXT", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockTextAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        [mockTextAnnotation.name]: [],
+                        barcode: "",
+                        file: "/path/to/file3",
+                        notes: [],
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: true,
+                        templateId: 8,
+                        wellIds: [],
+                        wellLabels: [],
+                        workflows: [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = mockTextAnnotation.name;
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: ""}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+        });
     });
 
     describe("updateUploadRowsLogic", () => {
