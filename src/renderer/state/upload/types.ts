@@ -60,6 +60,14 @@ export interface UpdateUploadAction extends AutoSaveAction {
     type: string;
 }
 
+export interface UpdateUploadRowsAction extends AutoSaveAction {
+    payload: {
+        uploadKeys: string[],
+        metadataUpdate: Partial<UploadMetadata>;
+    };
+    type: string;
+}
+
 export interface UploadJobTableRow extends UploadRowId {
     // custom annotations
     [key: string]: any;

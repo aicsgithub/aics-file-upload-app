@@ -40,7 +40,7 @@ import {
     updateFilesToArchive,
     updateFilesToStoreOnIsilon,
     updateSubImages,
-    updateUpload,
+    updateUpload, updateUploadRows,
 } from "../actions";
 import { getUploadRowKey } from "../constants";
 import uploadLogics from "../logics";
@@ -1289,6 +1289,121 @@ describe("Upload logics", () => {
             expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2000, 3.86]);
         });
     });
+
+    describe("updateUploadRowsLogic", () => {
+        it("updates a single upload", () => {
+            // arrange
+            const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
+
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockDateAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        barcode: "",
+                        file: "/path/to/file1",
+                        wellIds: [],
+                    },
+                }),
+            });
+
+            const barcode = "123456";
+
+            // act
+            store.dispatch(updateUploadRows([uploadRowKey], { barcode }));
+
+            // assert
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey].barcode).to.equal(barcode);
+        });
+
+        it("updates multiple uploads", () => {
+            // arrange
+            const uploadRowKey1 = getUploadRowKey({file: "/path/to/file1"});
+            const uploadRowKey2 = getUploadRowKey({file: "/path/to/file2"});
+
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockDateAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey1]: {
+                        barcode: "",
+                        file: "/path/to/file1",
+                        wellIds: [],
+                    },
+                    [uploadRowKey2]: {
+                        barcode: "",
+                        file: "/path/to/file2",
+                        wellIds: [],
+                    },
+                }),
+            });
+
+            const barcode = "123456";
+
+            // act
+            store.dispatch(updateUploadRows(
+                [uploadRowKey1, uploadRowKey2],
+                { barcode })
+            );
+
+            // assert
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey1].barcode).to.equal(barcode);
+            expect(upload[uploadRowKey2].barcode).to.equal(barcode);
+        });
+
+        it("converts moment objects to dates", () => {
+            // arrange
+            const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
+
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [{
+                            ...mockDateAnnotation,
+                            canHaveManyValues: false,
+                        }],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Birth Date": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file1",
+                        "templateId": 8,
+                        "wellIds": [],
+                    },
+                }),
+            });
+
+            // act
+            store.dispatch(updateUploadRows(
+                [uploadRowKey],
+                { "Birth Date": moment() })
+            );
+
+            // assert
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey]["Birth Date"][0]).to.be.a("Date");
+        });
+    });
+
     describe("updateFilesToStoreOnIsilonLogic", () => {
         it("sets shouldBeInLocal on each file in payload", async () => {
             const { store, logicMiddleware } = createMockReduxStore({

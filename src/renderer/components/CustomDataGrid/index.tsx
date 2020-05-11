@@ -23,6 +23,7 @@ import {
     RemoveUploadsAction,
     UpdateSubImagesAction,
     UpdateUploadAction,
+    UpdateUploadRowsAction,
     UploadJobTableRow,
     UploadMetadata,
 } from "../../state/upload/types";
@@ -59,6 +60,7 @@ interface Props {
     undo: () => void;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
+    updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
     uploads: UploadJobTableRow[];
     validationErrors: {[key: string]: {[annotationName: string]: string}};
 }
@@ -155,6 +157,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         const {
             selectedRows,
         } = this.state;
+        console.log(uploads)
 
         const sortedRows = this.sortRows(uploads, this.state.sortColumn, this.state.sortDirection);
         const rowGetter = (idx: number) => sortedRows[idx];
@@ -182,7 +185,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                             enableDragAndDrop={true}
                             getSubRowDetails={this.getSubRowDetails}
                             minHeight={550}
-                            onGridRowsUpdated={this.updateRow}
+                            onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
                             onGridSort={this.determineSort}
                             rowGetter={rowGetter}
                             rowsCount={sortedRows.length}
@@ -330,9 +333,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 column.width = 250;
             }
 
-            if (type === ColumnType.BOOLEAN) {
-                column.formatter = (props) =>
-                    BooleanFormatter({...props, rowKey: name, saveValue: this.saveByRow});
+            // eventually we may want to allow undefined Booleans as well but for now, the default value is False
+            if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
+                column.formatter = BooleanFormatter;
             } else {
                 column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => {
                     let childEl;
@@ -411,15 +414,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         this.setState({selectedRows});
     }
 
-    private updateRow = (e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>) => {
-        const {fromRow,  toRow, updated } = e;
-        // Updated is a {key:  value }
+    private updateRows = (
+        e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>,
+        sortedRows: UploadJobTableRow[]
+    ) => {
+        const { fromRow,  toRow, updated } = e;
+        // Updated is a { key: value }
         if (updated) {
-            for  (let i = fromRow; i <=  toRow; i++) {
-                this.props.updateUpload(
-                    getUploadRowKeyFromUploadTableRow(this.props.uploads[i]), updated
-                );
+            const uploadKeys = [];
+            for (let i = fromRow; i <=  toRow; i++) {
+                uploadKeys.push(sortedRows[i].key);
             }
+            this.props.updateUploadRows(uploadKeys, updated);
         }
     }
 

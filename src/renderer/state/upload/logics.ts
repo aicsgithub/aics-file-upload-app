@@ -36,16 +36,21 @@ import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
 import { deselectFiles, stageFiles } from "../selection/actions";
-import { getSelectedBarcode, getSelectedWellIds, getStagedFiles } from "../selection/selectors";
+import {
+    getSelectedBarcode,
+    getSelectedWellIds,
+    getStagedFiles
+} from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
-import { ColumnType } from "../template/types";
+import { AnnotationType, ColumnType, Template } from "../template/types";
 import {
     ReduxLogicDoneCb,
     ReduxLogicNextCb,
     ReduxLogicProcessDependencies,
     ReduxLogicRejectCb,
     ReduxLogicTransformDependencies,
+    ReduxLogicTransformDependenciesWithAction,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -76,9 +81,19 @@ import {
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
+    UPDATE_UPLOAD_ROWS,
 } from "./constants";
-import { getCanSaveUploadDraft, getUpload, getUploadPayload } from "./selectors";
-import { UploadMetadata, UploadRowId, UploadStateBranch } from "./types";
+import {
+    getCanSaveUploadDraft,
+    getUpload,
+    getUploadPayload,
+} from "./selectors";
+import {
+    UpdateUploadRowsAction,
+    UploadMetadata,
+    UploadRowId,
+    UploadStateBranch
+} from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
     type: ASSOCIATE_FILES_AND_WELLS,
@@ -538,6 +553,41 @@ const convertDatePickerValueToDate = (d: any) => {
 // If we can create a valid array from the text of the input, we'll transform it into an array
 // if not, we pass the value untouched to the reducer.
 // Additionally we take care of converting moment dates back to dates.
+function formatUpload(
+    upload: Partial<UploadMetadata>,
+    template: Template,
+    annotationTypes: AnnotationType[]
+) {
+    const formattedUpload: Partial<UploadMetadata> = {};
+    forEach(upload, (value: any, key: string) => {
+        const annotation = template.annotations.find((a) => a.name === key);
+
+        if (annotation) {
+            const annotationType = annotationTypes
+                .find((at) => at.annotationTypeId === annotation.annotationTypeId);
+
+            if (annotationType) {
+                const type = annotationType.name;
+                const endsWithComma = trim(value).endsWith(",");
+
+                if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
+                    value = (value ? castArray(value) : [])
+                        .map(convertDatePickerValueToDate)
+                        .filter((d: any) => !isNil(d));
+                } else if (type === ColumnType.NUMBER && !endsWithComma) {
+                    value = parseNumberArray(castArray(value));
+                } else if (type === ColumnType.TEXT && !endsWithComma) {
+                    value = parseStringArray(castArray(value));
+                }
+            }
+        }
+
+        formattedUpload[key] = value;
+    });
+
+    return formattedUpload;
+}
+
 const updateUploadLogic = createLogic({
     transform: ({action, getState, logger}: ReduxLogicTransformDependencies, next: ReduxLogicNextCb) => {
         const {upload} = action.payload;
@@ -548,47 +598,48 @@ const updateUploadLogic = createLogic({
         if (!template || !annotationTypes) {
             next(action);
         } else {
-            const formattedUpload: Partial<UploadMetadata> = {};
-            forEach(upload, (value: any, key: string) => {
-                const annotation = template.annotations.find((a) => a.name === key);
-
-                if (annotation) {
-                    const annotationType = annotationTypes
-                        .find((at) => at.annotationTypeId === annotation.annotationTypeId);
-
-                    if (annotationType) {
-                        try {
-                            const type = annotationType.name;
-                            const endsWithComma = trim(value).endsWith(",");
-
-                            if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
-                                value = (value ? castArray(value) : [])
-                                    .map(convertDatePickerValueToDate)
-                                    .filter((d: any) => !isNil(d));
-                            } else if (type === ColumnType.NUMBER && !endsWithComma) {
-                                value = parseNumberArray(castArray(value));
-                            } else if (type === ColumnType.TEXT && !endsWithComma) {
-                                value = parseStringArray(castArray(value));
-                            }
-                        } catch (e) {
-                            logger.error("Something went wrong while updating metadata: ", e.message);
-                        }
-                    }
-                }
-
-                formattedUpload[key] = value;
-            });
-
-            next({
-                ...action,
-                payload: {
-                    ...action.payload,
-                    upload: formattedUpload,
-                },
-            });
+            try {
+                const formattedUpload = formatUpload(upload, template, annotationTypes);
+                next({
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        upload: formattedUpload,
+                    },
+                });
+            } catch (e) {
+                logger.error("Something went wrong while updating metadata: ", e.message);
+            }
         }
     },
     type: UPDATE_UPLOAD,
+});
+
+const updateUploadRowsLogic = createLogic({
+    transform: (
+        { action, getState, logger }: ReduxLogicTransformDependenciesWithAction<UpdateUploadRowsAction>,
+        next: ReduxLogicNextCb
+    ) => {
+        const { uploadKeys, metadataUpdate } = action.payload;
+        const state = getState();
+        const template = getAppliedTemplate(state);
+        const annotationTypes = getAnnotationTypes(state);
+
+        // Format update if template and annotation types are present
+        const formattedUpdate = (template && annotationTypes)
+            ? formatUpload(metadataUpdate, template, annotationTypes)
+            : metadataUpdate;
+
+        const updatedAction: UpdateUploadRowsAction = {
+            ...action,
+            payload: {
+                metadataUpdate: formattedUpdate,
+                uploadKeys,
+            },
+        };
+        next(updatedAction);
+    },
+    type: UPDATE_UPLOAD_ROWS,
 });
 
 const updateFilesToStoreOnIsilonLogic = createLogic({
@@ -710,6 +761,7 @@ export default [
     undoFileWellAssociationLogic,
     updateSubImagesLogic,
     updateUploadLogic,
+    updateUploadRowsLogic,
     updateFilesToStoreOnIsilonLogic,
     updateFilesToStoreInArchiveLogic,
 ];

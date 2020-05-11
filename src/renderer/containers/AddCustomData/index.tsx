@@ -48,6 +48,7 @@ import {
     removeUploads,
     updateSubImages,
     updateUpload,
+    updateUploadRows,
 } from "../../state/upload/actions";
 import {
     getCanRedoUpload,
@@ -64,6 +65,7 @@ import {
     RemoveUploadsAction,
     UpdateSubImagesAction,
     UpdateUploadAction,
+    UpdateUploadRowsAction,
     UploadJobTableRow,
 } from "../../state/upload/types";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
@@ -97,6 +99,7 @@ interface Props {
     updateSettings: ActionCreator<UpdateSettingsAction>;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
+    updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
     uploadError?: string;
     uploadInProgress: boolean;
     uploadRowKeyToAnnotationErrorMap: {[key: string]: {[annotationName: string]: string}};
@@ -208,6 +211,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         undo={this.undo}
                         updateSubImages={this.props.updateSubImages}
                         updateUpload={this.props.updateUpload}
+                        updateUploadRows={this.props.updateUploadRows}
                         uploads={uploads}
                         validationErrors={uploadRowKeyToAnnotationErrorMap}
                     />
@@ -276,7 +280,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         this.props.jumpToUpload(1);
     }
 
-    private hideHint = () => this.props.updateSettings({ showUploadHint: false })
+    private hideHint = () => this.props.updateSettings({ showUploadHint: false });
 }
 
 function mapStateToProps(state: State) {
@@ -315,6 +319,7 @@ const dispatchToPropsMap = {
     updateSettings,
     updateSubImages,
     updateUpload,
+    updateUploadRows,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);

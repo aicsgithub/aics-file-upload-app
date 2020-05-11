@@ -30,6 +30,7 @@ import {
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
     UPDATE_UPLOAD,
+    UPDATE_UPLOAD_ROWS,
     UPDATE_UPLOADS,
 } from "./constants";
 import { getUpload } from "./selectors";
@@ -44,6 +45,7 @@ import {
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateUploadAction,
+    UpdateUploadRowsAction,
     UpdateUploadsAction,
     UploadStateBranch,
 } from "./types";
@@ -169,6 +171,23 @@ const actionToConfigMap: TypeToDescriptionMap = {
                     ...state[action.payload.key],
                     ...action.payload.upload,
                 },
+            };
+        },
+    },
+    [UPDATE_UPLOAD_ROWS]: {
+        accepts: (action: AnyAction): action is UpdateUploadRowsAction => action.type === UPDATE_UPLOAD_ROWS,
+        perform: (state: UploadStateBranch, action: UpdateUploadRowsAction) => {
+            const { metadataUpdate, uploadKeys } = action.payload;
+            const update: UploadStateBranch = {};
+            uploadKeys.forEach((key) => {
+                update[key] = {
+                    ...state[key],
+                    ...metadataUpdate,
+                };
+            });
+            return {
+                ...state,
+                ...update,
             };
         },
     },

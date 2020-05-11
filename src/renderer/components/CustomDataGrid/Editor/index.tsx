@@ -7,7 +7,6 @@ import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
-import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import { convertToArray } from "../../../util";
 import BooleanFormatter from "../../BooleanFormatter";
 
@@ -15,13 +14,11 @@ const { Option } = Select;
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
     dropdownValues?: string[];
-    onChange?: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
     type?: ColumnType;
 }
 
 interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
     column: EditorColumn;
-    width?: string;
 }
 
 interface EditorState {
@@ -50,6 +47,8 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 if (value.length === 0) {
                     value = [true];
                 } else {
+                    // For bools, we want to automatically toggle the value when the
+                    // user double clicks to edit it.
                     value[0] = !value[0];
                 }
                 break;
@@ -163,7 +162,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     }
 
     private handleOnChange = (value: any) => {
-        this.setState({value});
+        this.setState({ value });
     }
 }
 
