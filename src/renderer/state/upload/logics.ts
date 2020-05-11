@@ -575,9 +575,9 @@ function formatUpload(
                         .map(convertDatePickerValueToDate)
                         .filter((d: any) => !isNil(d));
                 } else if (type === ColumnType.NUMBER && !endsWithComma) {
-                    value = parseNumberArray(castArray(value));
+                    value = parseNumberArray(castArray(value).filter((v) => !isNil(v) && v !== ""));
                 } else if (type === ColumnType.TEXT && !endsWithComma) {
-                    value = parseStringArray(castArray(value));
+                    value = parseStringArray(castArray(value).filter((v) => !isNil(v) && v !== ""));
                 }
             }
         }
