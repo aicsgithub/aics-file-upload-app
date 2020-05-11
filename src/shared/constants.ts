@@ -38,5 +38,5 @@ export const LIMS_PROTOCOL = process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "
 // User setting storage
 export const USER_SETTINGS_KEY = "userSettings";
 export const JOB_STORAGE_KEY = "job";
-export const INCOMPLETE_JOB_NAMES_KEY = `${JOB_STORAGE_KEY}.incompleteJobNames`;
+export const INCOMPLETE_JOB_IDS_KEY = `${JOB_STORAGE_KEY}.incompleteJobIds`;
 export const TEMP_UPLOAD_STORAGE_KEY = "upload";

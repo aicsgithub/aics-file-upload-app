@@ -78,13 +78,29 @@ export type ReduxLogicRejectCb = (action: AnyAction) => void;
 export type ReduxLogicDoneCb = () => void;
 
 export interface State {
+    // For tracking how to display the app and feedback like alerts and notifications
     feedback: FeedbackStateBranch;
+
+    // Tracks everything related to uploads that have jobIds
     job: JobStateBranch;
+
+    // Extra data that usually originates from the database
     metadata: MetadataStateBranch;
+
+    // Which Upload wizard page to show, which tab to show
     route: RouteStateBranch;
+
+    // Things that the user selects that we would be interested in keeping a history of (for undo/redo)
+    // Include only selections that occur inside the upload tab
     selection: StateWithHistory<SelectionStateBranch>;
+
+    // User settings that are manually and automatically created
     setting: SettingStateBranch;
+
+    // Annotation template
     template: StateWithHistory<TemplateStateBranch>;
+
+    // Tracks current upload metadata (no jobId).
     upload: StateWithHistory<UploadStateBranch>;
 }
 

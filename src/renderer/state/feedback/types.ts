@@ -4,8 +4,9 @@ export interface FeedbackStateBranch {
     alert?: AppAlert;
     deferredAction?: AnyAction; // action to dispatch when modal closes
     events: AppEvent[];
+    folderTreeOpen: boolean;
     isLoading: boolean;
-    requestsInProgress: AsyncRequest[];
+    requestsInProgress: string[];
     setMountPointNotificationVisible: boolean;
     uploadError?: string;
     visibleModals: ModalName[];
@@ -60,6 +61,7 @@ export enum AsyncRequest {
     GET_OPTIONS_FOR_LOOKUP = "GET_OPTIONS_FOR_LOOKUP",
     GET_TEMPLATE = "GET_TEMPLATE", // full template with annotations from MMS
     GET_TEMPLATES = "GET_TEMPLATES", // just template name from Labkey
+    INITIATE_UPLOAD = "INITIATE_UPLOAD",
     REQUEST_METADATA = "REQUEST_METADATA",
     REQUEST_FILE_METADATA_FOR_JOB = "REQUEST_FILE_METADATA_FOR_JOB",
     RETRY_UPLOAD = "RETRY_UPLOAD",
@@ -119,10 +121,17 @@ export interface ClearDeferredAction {
 }
 
 export interface SetUploadErrorAction {
-    payload: string;
+    payload: {
+        error: string;
+        jobName: string;
+    };
     type: string;
 }
 
 export interface ClearUploadErrorAction {
+    type: string;
+}
+
+export interface ToggleFolderTreeAction {
     type: string;
 }

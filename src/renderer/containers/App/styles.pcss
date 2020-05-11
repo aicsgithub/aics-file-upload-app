@@ -66,7 +66,13 @@
 }
 
 .status-bar {
-  flex: 0 0 auto;
+  flex: 0 0 1rem;
   width: 100%;
   border-top: 1px solid var(--border-color);
+}
+
+:global(.ant-message-custom-content) {
+  line-height: 24px;
+  max-height: calc(24px * 5);
+  overflow: hidden;
 }

@@ -172,6 +172,9 @@ export interface RemoveUploadsAction extends AutoSaveAction {
 }
 
 export interface InitiateUploadAction extends AutoSaveAction {
+    payload: {
+        jobName?: string;
+    };
     type: string;
 }
 
@@ -185,6 +188,31 @@ export interface RetryUploadAction {
     type: string;
 }
 
+export interface RetryUploadSucceededAction {
+    payload: UploadSummaryTableRow;
+    type: string;
+}
+
+export interface RetryUploadFailedAction {
+    payload: {
+        error: string;
+        row: UploadSummaryTableRow;
+    };
+    type: string;
+}
+
+export interface CancelUploadSucceededAction {
+    payload: UploadSummaryTableRow;
+    type: string;
+}
+
+export interface CancelUploadFailedAction {
+    payload: {
+        error: string;
+        row: UploadSummaryTableRow;
+    };
+    type: string;
+}
 export interface UpdateUploadsAction extends AutoSaveAction {
     payload: Partial<UploadMetadata>;
     type: string;

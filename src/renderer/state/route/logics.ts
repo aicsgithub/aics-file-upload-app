@@ -15,8 +15,8 @@ import {
 import { updatePageHistory } from "../metadata/actions";
 import { getSelectionHistory, getTemplateHistory, getUploadHistory } from "../metadata/selectors";
 import { CurrentUpload } from "../metadata/types";
-import { clearSelectionHistory, jumpToPastSelection, toggleFolderTree } from "../selection/actions";
-import { getCurrentSelectionIndex, getFolderTreeOpen } from "../selection/selectors";
+import { clearSelectionHistory, jumpToPastSelection } from "../selection/actions";
+import { getCurrentSelectionIndex } from "../selection/selectors";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
@@ -35,7 +35,7 @@ import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft, getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { selectPage } from "./actions";
+import { closeUploadTab, selectPage } from "./actions";
 import { CLOSE_UPLOAD_TAB, findNextPage, GO_BACK, GO_FORWARD, pageOrder, SELECT_PAGE } from "./constants";
 import { getPage } from "./selectors";
 import { Page, SelectPageAction } from "./types";
@@ -98,11 +98,6 @@ export const getSelectPageActions = (
         }
     }
 
-    // Folder tree is a necessary part of associating files, so open if not already
-    if (!getFolderTreeOpen(state) && nextPage === Page.AssociateFiles) {
-        actions.push(toggleFolderTree());
-    }
-
     const nextPageOrder: number = pageOrder.indexOf(nextPage);
     const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
@@ -131,6 +126,7 @@ export const getSelectPageActions = (
         stateBranchHistory.forEach(
             (history) => actions.push(history.jumpToPast(0), history.clearHistory())
         );
+        actions.push(closeUploadTab());
 
         // going forward - store current selection/upload indexes so we can rewind to this state if user goes back
     } else if (nextPageOrder > currentPageOrder) {

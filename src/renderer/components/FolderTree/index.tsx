@@ -5,7 +5,7 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
-import { AlertType, SetAlertAction } from "../../state/feedback/types";
+import { AlertType, SetAlertAction, ToggleFolderTreeAction } from "../../state/feedback/types";
 import {
     ClearStagedFilesAction,
     DragAndDropFileList,
@@ -13,7 +13,6 @@ import {
     LoadFilesFromDragAndDropAction,
     LoadFilesFromOpenDialogAction,
     SelectFileAction,
-    ToggleFolderTreeAction,
     UploadFile,
 } from "../../state/selection/types";
 import {

@@ -1,10 +1,12 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
+import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
 import { RECEIVE_FILE_METADATA, REQUEST_FILE_METADATA_FOR_JOB } from "../metadata/constants";
 import { ReceiveFileMetadataAction, RequestFileMetadataForJobAction } from "../metadata/types";
-import { CLOSE_UPLOAD_TAB } from "../route/constants";
-import { CloseUploadTabAction } from "../route/types";
+import { CLOSE_UPLOAD_TAB, SELECT_PAGE } from "../route/constants";
+import { CloseUploadTabAction, Page, SelectPageAction } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 
 import { SelectBarcodeAction, SelectionStateBranch, SetPlateAction } from "../selection/types";
@@ -15,8 +17,26 @@ import {
     HTTP_STATUS,
     TypeToDescriptionMap,
 } from "../types";
-import { APPLY_TEMPLATE } from "../upload/constants";
-import { ApplyTemplateAction } from "../upload/types";
+import {
+    APPLY_TEMPLATE,
+    CANCEL_UPLOAD,
+    CANCEL_UPLOAD_FAILED,
+    CANCEL_UPLOAD_SUCCEEDED,
+    INITIATE_UPLOAD,
+    RETRY_UPLOAD,
+    RETRY_UPLOAD_FAILED,
+    RETRY_UPLOAD_SUCCEEDED,
+} from "../upload/constants";
+import {
+    ApplyTemplateAction,
+    CancelUploadAction,
+    CancelUploadFailedAction,
+    CancelUploadSucceededAction,
+    InitiateUploadAction,
+    RetryUploadAction,
+    RetryUploadFailedAction,
+    RetryUploadSucceededAction,
+} from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
@@ -35,10 +55,12 @@ import {
     SET_UPLOAD_ERROR,
     START_LOADING,
     STOP_LOADING,
+    TOGGLE_FOLDER_TREE,
 } from "./constants";
 import {
     AddEventAction,
     AddRequestInProgressAction,
+    AlertType,
     AsyncRequest,
     ClearAlertAction,
     ClearDeferredAction,
@@ -55,13 +77,31 @@ import {
     SetUploadErrorAction,
     StartLoadingAction,
     StopLoadingAction,
+    ToggleFolderTreeAction,
 } from "./types";
 
 const BAD_GATEWAY_ERROR = "Bad Gateway Error: Labkey or MMS is down.";
+const addRequestToInProgress = (state: FeedbackStateBranch, request: string) =>
+    uniq([...state.requestsInProgress, request]);
+const removeRequestFromInProgress = (state: FeedbackStateBranch, request: string) =>
+    without(state.requestsInProgress, request);
+const getInfoAlert = (message: string) => ({
+    message,
+    type: AlertType.INFO,
+});
+const getSuccessAlert = (message: string) => ({
+    message,
+    type: AlertType.SUCCESS,
+});
+const getErrorAlert = (message: string) => ({
+    message,
+    type: AlertType.ERROR,
+});
 
 export const initialState: FeedbackStateBranch = {
     deferredAction: undefined,
     events: [],
+    folderTreeOpen: false,
     isLoading: false,
     requestsInProgress: [],
     setMountPointNotificationVisible: false,
@@ -122,11 +162,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
     [ADD_REQUEST_IN_PROGRESS]: {
         accepts: (action: AnyAction): action is AddRequestInProgressAction => action.type === ADD_REQUEST_IN_PROGRESS,
         perform: (state: FeedbackStateBranch, action: AddRequestInProgressAction) => {
-            const requestsInProgress = uniq([...state.requestsInProgress, action.payload]);
-
             return {
                 ...state,
-                requestsInProgress,
+                requestsInProgress: addRequestToInProgress(state, action.payload),
             };
         },
     },
@@ -134,11 +172,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
         accepts: (action: AnyAction): action is RemoveRequestInProgressAction =>
             action.type === REMOVE_REQUEST_IN_PROGRESS,
         perform: (state: FeedbackStateBranch, action: RemoveRequestInProgressAction) => {
-            const requestsInProgress = state.requestsInProgress.filter((req) => req !== action.payload);
-
             return {
                 ...state,
-                requestsInProgress,
+                requestsInProgress: removeRequestFromInProgress(state, action.payload),
             };
         },
     },
@@ -208,15 +244,18 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === CLOSE_UPLOAD_TAB,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
+            folderTreeOpen: false,
             setMountPointNotificationVisible: false,
+            uploadError: undefined,
         }),
     },
     [SET_UPLOAD_ERROR]: {
         accepts: (action: AnyAction): action is SetUploadErrorAction =>
             action.type === SET_UPLOAD_ERROR,
-        perform: (state: FeedbackStateBranch, action: SetUploadErrorAction) => ({
+        perform: (state: FeedbackStateBranch, { payload: { error, jobName } }: SetUploadErrorAction) => ({
             ...state,
-            uploadError: action.payload,
+            requestsInProgress: removeRequestFromInProgress(state, `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`),
+            uploadError: error,
         }),
     },
     [CLEAR_UPLOAD_ERROR]: {
@@ -232,14 +271,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === SELECT_BARCODE,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.GET_PLATE]),
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.GET_PLATE),
         }),
     },
     [SET_PLATE]: {
         accepts: (action: AnyAction): action is SetPlateAction => action.type === SET_PLATE,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_PLATE),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.GET_PLATE),
         }),
     },
     [REQUEST_FILE_METADATA_FOR_JOB]: {
@@ -247,7 +286,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === REQUEST_FILE_METADATA_FOR_JOB,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB]),
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         }),
     },
     [RECEIVE_FILE_METADATA]: {
@@ -255,7 +294,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === RECEIVE_FILE_METADATA,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: without(state.requestsInProgress, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB),
         }),
     },
     [APPLY_TEMPLATE]: {
@@ -263,14 +302,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === APPLY_TEMPLATE,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.GET_TEMPLATE]),
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.GET_TEMPLATE),
         }),
     },
     [SET_APPLIED_TEMPLATE]: {
         accepts: (action: AnyAction): action is SetAppliedTemplateAction => action.type === SET_APPLIED_TEMPLATE,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: without(state.requestsInProgress, AsyncRequest.GET_TEMPLATE),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.GET_TEMPLATE),
         }),
     },
     [SAVE_TEMPLATE]: {
@@ -278,8 +317,105 @@ const actionToConfigMap: TypeToDescriptionMap = {
             action.type === SAVE_TEMPLATE,
         perform: (state: FeedbackStateBranch) => ({
             ...state,
-            requestsInProgress: uniq([...state.requestsInProgress, AsyncRequest.SAVE_TEMPLATE]),
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.SAVE_TEMPLATE),
         }),
+    },
+    [RETRIEVE_JOBS]: {
+        accepts: (action: AnyAction): action is RetrieveJobsAction =>
+            action.type === RETRIEVE_JOBS,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.GET_JOBS),
+        }),
+    },
+    [RECEIVE_JOBS]: {
+        accepts: (action: AnyAction): action is ReceiveJobsAction =>
+            action.type === RECEIVE_JOBS,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.GET_JOBS),
+        }),
+    },
+    [INITIATE_UPLOAD]: {
+        accepts: (action: AnyAction): action is InitiateUploadAction =>
+            action.type === INITIATE_UPLOAD,
+        perform: (state: FeedbackStateBranch, { payload: { jobName } }: InitiateUploadAction) => ({
+            ...state,
+            alert: getInfoAlert("Starting upload"),
+            requestsInProgress: addRequestToInProgress(state, `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`),
+        }),
+    },
+    [RETRY_UPLOAD]: {
+        accepts: (action: AnyAction): action is RetryUploadAction =>
+            action.type === RETRY_UPLOAD,
+        perform: (state: FeedbackStateBranch, { payload: { jobName } }: RetryUploadAction) => ({
+            ...state,
+            alert: getInfoAlert(`Retrying upload ${jobName}`),
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.RETRY_UPLOAD),
+        }),
+    },
+    [RETRY_UPLOAD_SUCCEEDED]: {
+        accepts: (action: AnyAction): action is RetryUploadSucceededAction =>
+            action.type === RETRY_UPLOAD_SUCCEEDED,
+        perform: (state: FeedbackStateBranch, { payload }: RetryUploadSucceededAction) => ({
+            ...state,
+            alert: getSuccessAlert(`Retry upload ${payload.jobName} succeeded!`),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.RETRY_UPLOAD),
+        }),
+    },
+    [RETRY_UPLOAD_FAILED]: {
+        accepts: (action: AnyAction): action is RetryUploadFailedAction =>
+            action.type === RETRY_UPLOAD_FAILED,
+        perform: (state: FeedbackStateBranch, { payload: { error } }: RetryUploadFailedAction) => ({
+            ...state,
+            alert: getErrorAlert(error),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.RETRY_UPLOAD),
+        }),
+    },
+    [CANCEL_UPLOAD]: {
+        accepts: (action: AnyAction): action is CancelUploadAction =>
+            action.type === CANCEL_UPLOAD,
+        perform: (state: FeedbackStateBranch, { payload: { jobName } }: CancelUploadAction) => ({
+            ...state,
+            alert: getInfoAlert(`Cancelling upload ${jobName}`),
+            requestsInProgress: addRequestToInProgress(state, AsyncRequest.CANCEL_UPLOAD),
+        }),
+    },
+    [CANCEL_UPLOAD_SUCCEEDED]: {
+        accepts: (action: AnyAction): action is CancelUploadSucceededAction =>
+            action.type === CANCEL_UPLOAD_SUCCEEDED,
+        perform: (state: FeedbackStateBranch, { payload: { jobName } }: CancelUploadSucceededAction) => ({
+            ...state,
+            alert: getSuccessAlert(`Cancel upload ${jobName} succeeded`),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.CANCEL_UPLOAD),
+        }),
+    },
+    [CANCEL_UPLOAD_FAILED]: {
+        accepts: (action: AnyAction): action is CancelUploadFailedAction =>
+            action.type === CANCEL_UPLOAD_FAILED,
+        perform: (state: FeedbackStateBranch, {  payload: { error } }: CancelUploadFailedAction) => ({
+            ...state,
+            alert: getErrorAlert(error),
+            requestsInProgress: removeRequestFromInProgress(state, AsyncRequest.CANCEL_UPLOAD),
+        }),
+    },
+    [TOGGLE_FOLDER_TREE]: {
+        accepts: (action: AnyAction): action is ToggleFolderTreeAction => action.type === TOGGLE_FOLDER_TREE,
+        perform: (state: FeedbackStateBranch) => ({
+            ...state,
+            folderTreeOpen: !state.folderTreeOpen,
+        }),
+    },
+    [SELECT_PAGE]: {
+        accepts: (action: AnyAction): action is SelectPageAction =>
+            action.type === SELECT_PAGE,
+        perform: (state: SelectionStateBranch, { payload: { nextPage } }: SelectPageAction) => {
+            const pagesToShowFolderTree = [Page.AssociateFiles, Page.SelectStorageLocation];
+            return {
+                ...state,
+                folderTreeOpen: pagesToShowFolderTree.includes(nextPage),
+            };
+        },
     },
 };
 

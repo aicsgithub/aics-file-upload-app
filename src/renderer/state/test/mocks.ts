@@ -4,7 +4,7 @@ import { StateWithHistory } from "redux-undo";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
-import { JobFilter, JobStateBranch, PendingJob } from "../job/types";
+import { JobFilter, JobStateBranch } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
 import {
@@ -30,7 +30,6 @@ import {
 } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey } from "../upload/constants";
-import { getUploadPayload } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
 
 export const mockAuditInfo = {
@@ -189,7 +188,6 @@ export const mockSelection: SelectionStateBranch = {
     barcode: undefined,
     expandedUploadJobRows: {},
     files: [],
-    folderTreeOpen: true,
     imagingSessionId: undefined,
     imagingSessionIds: [null, 1],
     plate: mockPlate,
@@ -379,6 +377,7 @@ export const mockState: State = {
     feedback: {
         deferredAction: undefined,
         events: [],
+        folderTreeOpen: false,
         isLoading: false,
         requestsInProgress: [],
         setMountPointNotificationVisible: false,
@@ -388,9 +387,9 @@ export const mockState: State = {
     job: {
         addMetadataJobs: [],
         copyJobs: [],
-        incompleteJobNames: [],
-        jobFilter: JobFilter.Pending,
-        pendingJobs: [],
+        inProgressUploadJobs: [],
+        incompleteJobIds: [],
+        jobFilter: JobFilter.InProgress,
         polling: true,
         uploadJobs: [],
     },
@@ -683,23 +682,9 @@ export const mockAnnotationTypes: AnnotationType[] = [
     },
 ];
 
-export const mockPendingJob: PendingJob = {
-    ...mockWorkingUploadJob,
-    uploads: getUploadPayload({
-        ...mockState,
-        metadata: {
-            ...mockState.metadata,
-            annotationTypes: mockAnnotationTypes,
-            annotations: [mockWellAnnotation, mockWorkflowAnnotation, mockNotesAnnotation],
-        },
-        template: getMockStateWithHistory(mockTemplateStateBranchWithAppliedTemplate),
-    }),
-};
-
 export const nonEmptyJobStateBranch: JobStateBranch = {
     ...mockState.job,
     copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
-    pendingJobs: [mockPendingJob],
     uploadJobs: [mockSuccessfulUploadJob, mockWorkingUploadJob, mockFailedUploadJob],
 };
 
@@ -804,6 +789,11 @@ export const nonEmptyStateForInitiatingUpload: State = {
         annotationOptions: mockAnnotationOptions,
         annotationTypes: mockAnnotationTypes,
         annotations: mockAnnotations,
+        currentUpload: {
+            created: new Date(),
+            modified: new Date(),
+            name: "foo",
+        },
     },
     selection: getMockStateWithHistory({
         ...mockState.selection.present,
