@@ -10,6 +10,8 @@ import {
     ASSOCIATE_FILES_AND_WELLS,
     ASSOCIATE_FILES_AND_WORKFLOWS,
     CANCEL_UPLOAD,
+    CANCEL_UPLOAD_FAILED,
+    CANCEL_UPLOAD_SUCCEEDED,
     CLEAR_UPLOAD,
     CLEAR_UPLOAD_DRAFT,
     CLEAR_UPLOAD_HISTORY,
@@ -22,6 +24,8 @@ import {
     REMOVE_FILE_FROM_ISILON,
     REPLACE_UPLOAD,
     RETRY_UPLOAD,
+    RETRY_UPLOAD_FAILED,
+    RETRY_UPLOAD_SUCCEEDED,
     SAVE_UPLOAD_DRAFT,
     UNDO_FILE_WELL_ASSOCIATION,
     UNDO_FILE_WORKFLOW_ASSOCIATION,
@@ -36,6 +40,8 @@ import {
     AssociateFilesAndWellsAction,
     AssociateFilesAndWorkflowsAction,
     CancelUploadAction,
+    CancelUploadFailedAction,
+    CancelUploadSucceededAction,
     ClearUploadAction,
     ClearUploadDraftAction,
     ClearUploadHistoryAction,
@@ -46,8 +52,12 @@ import {
     OpenUploadDraftAction,
     RemoveFileFromArchiveAction,
     RemoveFileFromIsilonAction,
-    RemoveUploadsAction, ReplaceUploadAction,
-    RetryUploadAction, SaveUploadDraftAction,
+    RemoveUploadsAction,
+    ReplaceUploadAction,
+    RetryUploadAction,
+    RetryUploadFailedAction,
+    RetryUploadSucceededAction,
+    SaveUploadDraftAction,
     UndoFileWellAssociationAction,
     UndoFileWorkflowAssociationAction,
     UpdateFilesToArchive,
@@ -149,6 +159,9 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
 export function initiateUpload(): InitiateUploadAction {
     return {
         autoSave: true,
+        payload: {
+            jobName: undefined,
+        },
         type: INITIATE_UPLOAD,
     };
 }
@@ -182,10 +195,44 @@ export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
     };
 }
 
+export function cancelUploadSucceeded(job: UploadSummaryTableRow): CancelUploadSucceededAction {
+    return {
+        payload: job,
+        type: CANCEL_UPLOAD_SUCCEEDED,
+    };
+}
+
+export function cancelUploadFailed(row: UploadSummaryTableRow, error: string): CancelUploadFailedAction {
+    return {
+        payload: {
+            error,
+            row,
+        },
+        type: CANCEL_UPLOAD_FAILED,
+    };
+}
+
 export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
     return {
         payload: job,
         type: RETRY_UPLOAD,
+    };
+}
+
+export function retryUploadSucceeded(job: UploadSummaryTableRow): RetryUploadSucceededAction {
+    return {
+        payload: job,
+        type: RETRY_UPLOAD_SUCCEEDED,
+    };
+}
+
+export function retryUploadFailed(row: UploadSummaryTableRow, error: string): RetryUploadFailedAction {
+    return {
+        payload: {
+            error,
+            row,
+        },
+        type: RETRY_UPLOAD_FAILED,
     };
 }
 
