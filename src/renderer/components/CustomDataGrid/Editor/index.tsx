@@ -37,7 +37,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     public constructor(props: EditorProps) {
         super(props);
-        let value = props.value;
+        let value: any[] | string = [...props.value];
         switch (props.column.type) {
             case ColumnType.TEXT:
             case ColumnType.NUMBER:

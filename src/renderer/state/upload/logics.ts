@@ -1,4 +1,4 @@
-import { castArray, forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
+import { castArray, flatMap, forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
@@ -519,11 +519,7 @@ const updateSubImagesLogic = createLogic({
     },
 });
 
-const parseStringArray = (input: string[]): string[] => {
-    const result: string[] = [];
-    input.forEach((rawValue) => result.push(...splitTrimAndFilter(rawValue)));
-    return result;
-};
+const parseStringArray = (input: string[]): string[] => flatMap(input, splitTrimAndFilter);
 
 const parseNumberArray = (input: string[]): number[] => {
     return input.reduce((filtered: number[], next: string) => {
