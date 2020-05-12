@@ -71,7 +71,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         autoFocus={true}
                         defaultOpen={true}
                         mode="multiple"
-                        onBlur={this.onBlur}
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
                         value={value}
@@ -94,7 +93,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         <Input
                             autoFocus={true}
                             onChange={this.handleInputOnChange}
-                            onBlur={this.onBlur}
                             style={{ width: "100%" }}
                             value={this.state.value}
                         />
@@ -105,7 +103,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                     <Input
                         autoFocus={true}
                         onChange={this.handleInputOnChange}
-                        onBlur={this.onBlur}
                         style={{ width: "100%" }}
                         value={this.state.value}
                     />
@@ -117,7 +114,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         defaultOpen={true}
                         mode="multiple"
                         lookupAnnotationName={this.props.column.key}
-                        onBlur={this.onBlur}
                         selectSearchValue={this.handleOnChange}
                         value={value}
                     />
@@ -156,10 +152,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         this.setState({value: e.target.value})
-
-    private onBlur = () => {
-        this.props.onCommit();
-    }
 
     private handleOnChange = (value: any) => {
         this.setState({ value });
