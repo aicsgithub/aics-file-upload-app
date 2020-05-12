@@ -8,6 +8,9 @@
   "rules": {
     "indent": [true, "spaces", 4],
     "interface-name": [true, "never-prefix"],
+    // This rule is not needed, see below:
+    // https://cdb.reacttraining.com/react-inline-functions-and-performance-bdff784f5578
+    "jsx-no-lambda": false,
     "jsx-no-multiline-js": [false],
     "jsx-wrap-multiline": true,
     "no-var-requires": false, // needed for CSS Modules; const styles = require('./style.css')

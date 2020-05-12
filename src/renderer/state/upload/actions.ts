@@ -33,6 +33,7 @@ import {
     UPDATE_FILES_TO_STORE_ON_ISILON,
     UPDATE_SUB_IMAGES,
     UPDATE_UPLOAD,
+    UPDATE_UPLOAD_ROWS,
     UPDATE_UPLOADS,
 } from "./constants";
 import {
@@ -65,6 +66,7 @@ import {
     UpdateSubImagesAction,
     UpdateSubImagesPayload,
     UpdateUploadAction,
+    UpdateUploadRowsAction,
     UpdateUploadsAction,
     UploadJobTableRow,
     UploadMetadata,
@@ -185,6 +187,20 @@ export function updateUpload(key: string, upload: Partial<UploadMetadata>): Upda
             upload,
         },
         type: UPDATE_UPLOAD,
+    };
+}
+
+export function updateUploadRows(
+    uploadKeys: string[],
+    metadataUpdate: Partial<UploadMetadata>
+): UpdateUploadRowsAction {
+    return {
+        autoSave: true,
+        payload: {
+            metadataUpdate,
+            uploadKeys,
+        },
+        type: UPDATE_UPLOAD_ROWS,
     };
 }
 

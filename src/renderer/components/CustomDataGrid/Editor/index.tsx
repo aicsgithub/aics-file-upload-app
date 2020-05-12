@@ -7,7 +7,6 @@ import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
-import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
 import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
 
 const { Option } = Select;
@@ -15,13 +14,15 @@ const { Option } = Select;
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
     allowMultipleValues?: boolean;
     dropdownValues?: string[];
-    onChange?: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
     type?: ColumnType;
 }
 
 interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
     column: EditorColumn;
-    width?: string;
+}
+
+interface EditorState {
+    value: any;
 }
 
 /*
@@ -30,12 +31,27 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
     Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
     additionally, the element you return must contain an Input element
  */
-class Editor extends editors.EditorBase<EditorProps, {}> {
+class Editor extends editors.EditorBase<EditorProps, EditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
 
+    constructor(props: EditorProps) {
+        super(props);
+        const { column, value } = props;
+        const isColumnBoolean = column.type === ColumnType.BOOLEAN;
+        this.state = {
+            // For bools, we want to automatically toggle the value when the
+            // user double clicks to edit it.
+            value: isColumnBoolean ? !value : value,
+        };
+    }
+
     public render() {
-        const { column: { allowMultipleValues, dropdownValues, type }, value } = this.props;
+        const {
+            column: { allowMultipleValues, dropdownValues, type },
+        } = this.props;
+
+        const { value } = this.state;
 
         let input;
         switch (type) {
@@ -58,10 +74,9 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
                 break;
             case ColumnType.BOOLEAN:
                 input = (
-                    <BooleanFormatter
-                        saveValue={this.handleOnChange}
-                        value={value}
-                    />
+                    <div onClick={() => this.handleOnChange(!value)}>
+                        <BooleanFormatter value={value} />
+                    </div>
                 );
                 break;
             case ColumnType.NUMBER:
@@ -132,7 +147,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
 
     // Should return an object of key/value pairs to be merged back to the row
     public getValue = () => {
-        return { [this.props.column.key]: this.props.value };
+        return { [this.props.column.key]: this.state.value };
     }
 
     public getInputNode = (): Element | Text | null => {
@@ -145,11 +160,7 @@ class Editor extends editors.EditorBase<EditorProps, {}> {
     }
 
     private handleOnChange = (value: any) => {
-        const { column: { key, onChange }, rowData } = this.props;
-
-        if (onChange) {
-            onChange(value, key, rowData);
-        }
+        this.setState({ value });
     }
 }
 
