@@ -18,7 +18,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow: BrowserWindow | undefined;
 
-function createMainWindow() {
+async function createMainWindow() {
     const window = new BrowserWindow({
         height: 750,
         webPreferences: {
@@ -39,6 +39,7 @@ function createMainWindow() {
     }
 
     if (isDevelopment) {
+        await installExtension(REACT_DEVELOPER_TOOLS);
         window.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`);
     } else {
         window.loadURL(formatUrl({
@@ -75,18 +76,16 @@ app.on("window-all-closed", () => {
     }
 });
 
-app.on("activate", () => {
+app.on("activate", async () => {
     // on macOS it is common to re-create a window even after all windows have been closed
     if (mainWindow === null) {
-        mainWindow = createMainWindow();
+        mainWindow = await createMainWindow();
     }
 });
 
 // create main BrowserWindow when electron is ready
 app.on("ready", async () => {
-    // TODO: Disable this in prod?
-    await installExtension(REACT_DEVELOPER_TOOLS);
-    mainWindow = createMainWindow();
+    mainWindow = await createMainWindow();
     await autoUpdater.checkForUpdatesAndNotify();
 });
 
