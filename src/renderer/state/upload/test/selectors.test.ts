@@ -1,6 +1,6 @@
 import { UploadMetadata, Uploads } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { forEach, orderBy, without } from "lodash";
+import { forEach, orderBy } from "lodash";
 import { TemplateAnnotation } from "../../template/types";
 
 import {
@@ -83,6 +83,7 @@ describe("Upload selectors", () => {
                         ...mockAuditInfo,
                         annotations: [mockFavoriteColorAnnotation],
                         name: "foo",
+                        notes: [],
                         templateId: 1,
                         version: 1,
                     },
@@ -90,12 +91,13 @@ describe("Upload selectors", () => {
                 upload: getMockStateWithHistory({
                     [getUploadRowKey({ file })]: {
                         barcode: "452",
-                        favoriteColor: "Blue",
+                        favoriteColor: ["Blue"],
                         file,
+                        notes: [],
                         plateId: 4,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
-                        unexpectedAnnotation: "Hello World",
+                        unexpectedAnnotation: ["Hello World"],
                         wellIds: [],
                     },
                 }),
@@ -104,6 +106,57 @@ describe("Upload selectors", () => {
                 .find((a: {values: string[]}) => a.values.includes("Hello World"));
             expect(unexpectedAnnotation).to.be.undefined;
         });
+        it("Interprets no values for a boolean annotation as false", () => {
+            const state: State = {
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...nonEmptyStateForInitiatingUpload.template.present,
+                    appliedTemplate: {
+                        ...mockMMSTemplate,
+                        annotations: [mockBooleanAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    "/path/to.dot/image.tiff": {
+                        Qc: [],
+                        barcode: "452",
+                        file: "/path/to.dot/image.tiff",
+                        notes: [],
+                        plateId: 4,
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
+                        wellIds: [],
+                    },
+                }),
+            };
+            const expectedPayload = {
+                "/path/to.dot/image.tiff": {
+                    customMetadata: {
+                        annotations: [
+                            {
+                                annotationId: mockBooleanAnnotation.annotationId,
+                                channelId: undefined,
+                                positionIndex: undefined,
+                                scene: undefined,
+                                subImageName: undefined,
+                                timePointId: undefined,
+                                values: ["false"],
+                            },
+                        ],
+                        templateId: mockMMSTemplate.templateId,
+                    },
+                    file: {
+                        fileType: FileType.IMAGE,
+                        originalPath: "/path/to.dot/image.tiff",
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: false,
+                    },
+                    microscopy: {},
+                },
+            };
+            const actual = getUploadPayload(state);
+            expect(actual).to.deep.equal(expectedPayload);
+        });
         it("Converts upload state branch into correct payload for aicsfiles-js", () => {
             const state: State = {
                 ...nonEmptyStateForInitiatingUpload,
@@ -111,7 +164,8 @@ describe("Upload selectors", () => {
                     "/path/to.dot/image.tiff": {
                         barcode: "452",
                         file: "/path/to.dot/image.tiff",
-                        ["Favorite Color"]: "blue",
+                        ["Favorite Color"]: ["blue"],
+                        notes: [],
                         plateId: 4,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -122,15 +176,16 @@ describe("Upload selectors", () => {
                         channel: mockChannel,
                         ["Favorite Color"]: "yellow",
                         file: "/path/to.dot/image.tiff",
-                        notes: "Seeing some interesting things here!",
+                        notes: ["Seeing some interesting things here!"],
                         plateId: 4,
                         positionIndex: 1,
                         wellIds: [6],
                     },
                     "/path/to/image.czi": {
                         barcode: "567",
-                        ["Favorite Color"]: "red",
+                        ["Favorite Color"]: ["red"],
                         file: "/path/to/image.czi",
+                        notes: [],
                         plateId: 4,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -138,8 +193,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.ome.tiff": {
                         barcode: "123",
-                        ["Favorite Color"]: "green",
+                        ["Favorite Color"]: ["green"],
                         file: "/path/to/image.ome.tiff",
+                        notes: [],
                         plateId: 2,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -147,8 +203,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.png": {
                         barcode: "345",
-                        ["Favorite Color"]: "purple",
+                        ["Favorite Color"]: ["purple"],
                         file: "/path/to/image.png",
+                        notes: [],
                         plateId: 5,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -156,8 +213,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/image.tiff": {
                         barcode: "234",
-                        ["Favorite Color"]: "orange",
+                        ["Favorite Color"]: ["orange"],
                         file: "/path/to/image.tiff",
+                        notes: [],
                         plateId: 3,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -165,8 +223,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/multi-well.txt": {
                         barcode: "456",
-                        ["Favorite Color"]: "pink",
+                        ["Favorite Color"]: ["pink"],
                         file: "/path/to/multi-well.txt",
+                        notes: [],
                         plateId: 7,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -174,8 +233,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/no-extension": {
                         barcode: "888",
-                        ["Favorite Color"]: "gold",
+                        ["Favorite Color"]: ["gold"],
                         file: "/path/to/no-extension",
+                        notes: [],
                         plateId: 7,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -183,8 +243,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/not-image.csv": {
                         barcode: "578",
-                        ["Favorite Color"]: "grey",
+                        ["Favorite Color"]: ["grey"],
                         file: "/path/to/not-image.csv",
+                        notes: [],
                         plateId: 7,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -192,8 +253,9 @@ describe("Upload selectors", () => {
                     },
                     "/path/to/not-image.txt": {
                         barcode: "456",
-                        ["Favorite Color"]: "black",
+                        ["Favorite Color"]: ["black"],
                         file: "/path/to/not-image.txt",
+                        notes: [],
                         plateId: 7,
                         shouldBeInArchive: true,
                         shouldBeInLocal: false,
@@ -591,6 +653,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 3,
                 positionIndexes: [],
                 scenes: [],
@@ -600,8 +663,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1],
-                wellLabels: "A1",
-                workflows: "",
+                wellLabels: ["A1"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1235",
@@ -609,6 +672,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file2",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file2"}),
+                notes: undefined,
                 numberSiblings: 3,
                 positionIndexes: [],
                 scenes: [],
@@ -618,8 +682,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1236",
@@ -627,6 +691,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file3",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file3"}),
+                notes: undefined,
                 numberSiblings: 3,
                 positionIndexes: [1],
                 scenes: [],
@@ -636,8 +701,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1, 2, 3],
-                wellLabels: "A1, A2, B1",
-                workflows: "",
+                wellLabels: ["A1", "A2", "B1"],
+                workflows: [],
             });
         });
         it("does not show scene row if file row not expanded", () => {
@@ -647,11 +712,13 @@ describe("Upload selectors", () => {
                     [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
+                        notes: [],
                         wellIds: [],
                     },
                     [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1235",
                         file: "/path/to/file1",
+                        notes: [],
                         positionIndex: 1,
                         wellIds: [2],
                     },
@@ -664,6 +731,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [1],
                 scenes: [],
@@ -671,8 +739,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
         });
         it("shows scene row if file row is expanded", () => {
@@ -688,11 +756,13 @@ describe("Upload selectors", () => {
                     [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
+                        notes: [],
                         wellIds: [],
                     },
                     [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
+                        notes: [],
                         positionIndex: 1,
                         wellIds: [2],
                     },
@@ -705,6 +775,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [1],
                 scenes: [],
@@ -712,8 +783,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -721,6 +792,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -729,8 +801,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
         });
         it("shows scene and channel only rows if file row is not present", () => {
@@ -741,6 +813,7 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
+                        notes: [],
                         positionIndex: 1,
                         wellIds: [2],
                     },
@@ -749,6 +822,7 @@ describe("Upload selectors", () => {
                         channel: mockChannel,
                         file: "/path/to/file1",
                         key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
+                        notes: [],
                         positionIndex: undefined,
                         wellIds: [2],
                     },
@@ -762,6 +836,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndex: undefined,
                 positionIndexes: [],
@@ -770,8 +845,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
             expect(rows[1]).to.deep.equal({
                 barcode: "1234",
@@ -779,6 +854,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -787,8 +863,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [2],
-                wellLabels: "A2",
-                workflows: "",
+                wellLabels: ["A2"],
+                workflows: [],
             });
         });
         it("handles files with channels", () => {
@@ -804,12 +880,14 @@ describe("Upload selectors", () => {
                     [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
+                        notes: undefined,
                         wellIds: [1],
                     },
                     [getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1})]: {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
+                        notes: undefined,
                         positionIndex: undefined,
                         wellIds: [],
                     },
@@ -822,6 +900,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [],
                 scenes: [],
@@ -829,8 +908,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [1],
-                wellLabels: "A1",
-                workflows: "",
+                wellLabels: ["A1"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -839,6 +918,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndex: undefined,
                 positionIndexes: [],
@@ -847,8 +927,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
         });
         it("handles files with scenes and channels", () => {
@@ -865,11 +945,13 @@ describe("Upload selectors", () => {
                     [getUploadRowKey({file: "/path/to/file1"})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
+                        notes: [],
                         wellIds: [],
                     },
                     [getUploadRowKey({file: "/path/to/file1", positionIndex: 1})]: {
                         barcode: "1234",
                         file: "/path/to/file1",
+                        notes: [],
                         positionIndex: 1,
                         wellIds: [],
                     },
@@ -877,6 +959,7 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
+                        notes: [],
                         positionIndex: 1,
                         wellIds: [1],
                     },
@@ -884,6 +967,7 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         channel: mockChannel,
                         file: "/path/to/file1",
+                        notes: [],
                         wellIds: [],
                     },
                 }),
@@ -895,6 +979,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1"}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndexes: [1],
                 scenes: [],
@@ -902,8 +987,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 0,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -911,6 +996,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: true,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1}),
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -919,8 +1005,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -929,6 +1015,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: 1, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 1,
                 positionIndex: 1,
                 positionIndexes: [],
@@ -937,8 +1024,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 2,
                 wellIds: [1],
-                wellLabels: "A1",
-                workflows: "",
+                wellLabels: ["A1"],
+                workflows: [],
             });
             expect(rows).to.deep.include({
                 barcode: "1234",
@@ -947,6 +1034,7 @@ describe("Upload selectors", () => {
                 file: "/path/to/file1",
                 group: false,
                 key: getUploadRowKey({file: "/path/to/file1", positionIndex: undefined, channelId: 1}),
+                notes: undefined,
                 numberSiblings: 2,
                 positionIndexes: [],
                 scenes: [],
@@ -954,8 +1042,8 @@ describe("Upload selectors", () => {
                 subImageNames: [],
                 treeDepth: 1,
                 wellIds: [],
-                wellLabels: "",
-                workflows: "",
+                wellLabels: [],
+                workflows: [],
             });
         });
         it("does not throw error for annotations that don't exist on the template", () => {
@@ -968,6 +1056,7 @@ describe("Upload selectors", () => {
                         ...mockAuditInfo,
                         annotations: [mockFavoriteColorAnnotation],
                         name: "foo",
+                        notes: [],
                         templateId: 1,
                         version: 1,
                     },
@@ -977,6 +1066,7 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         favoriteColor: "Red",
                         file,
+                        notes: [],
                         somethingUnexpected: "Hello World",
                         wellIds: [],
                     },
@@ -996,6 +1086,7 @@ describe("Upload selectors", () => {
                         age: undefined,
                         barcode: "abcd",
                         file,
+                        notes: [],
                         shouldBeInArchive: true,
                         shouldBeInLocal: true,
                         wellIds: [],
@@ -1006,6 +1097,7 @@ describe("Upload selectors", () => {
                 age: false,
                 barcode: true,
                 file: true,
+                notes: false,
                 shouldBeInArchive: true,
                 shouldBeInLocal: true,
                 wellIds: false,
@@ -1021,18 +1113,21 @@ describe("Upload selectors", () => {
                         age: undefined,
                         barcode: "abcd",
                         file,
+                        notes: [],
                         wellIds: [],
                     },
                     [getUploadRowKey({file, positionIndex: 1})]: {
                         age: undefined,
                         barcode: "abcd",
                         file,
+                        notes: [],
                         wellIds: [1],
                     },
                     [getUploadRowKey({file, positionIndex: 1, channelId: 1})]: {
                         age: 19,
                         barcode: "abcd",
                         file,
+                        notes: [],
                         wellIds: [],
                     },
                 }),
@@ -1041,6 +1136,7 @@ describe("Upload selectors", () => {
                 age: true,
                 barcode: true,
                 file: true,
+                notes: false,
                 wellIds: true,
                 wellLabels: true,
             });
@@ -1050,21 +1146,12 @@ describe("Upload selectors", () => {
     describe("getUploadKeyToAnnotationErrorMap", () => {
         const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
         let goodUploadRow: UploadMetadataRow;
-        const updateTemplateAnnotation = (annotation: TemplateAnnotation, canHaveManyValues: boolean) => {
-            const annotations = without(mockTemplateWithManyValues.annotations, annotation);
-            annotations.push({...annotation, canHaveManyValues });
-            return {...mockTemplateWithManyValues, annotations };
-        };
-        const getValidations = (annotationToTest: TemplateAnnotation, canHaveManyValues: boolean, value: any) => {
-            let template = mockTemplateWithManyValues;
-            if (annotationToTest.canHaveManyValues !== canHaveManyValues) {
-                template = updateTemplateAnnotation(annotationToTest, canHaveManyValues);
-            }
+        const getValidations = (annotationToTest: TemplateAnnotation, value: any) => {
             return getUploadKeyToAnnotationErrorMap({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
                     ...mockTemplateStateBranch,
-                    appliedTemplate: template,
+                    appliedTemplate: mockTemplateWithManyValues,
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
@@ -1081,12 +1168,11 @@ describe("Upload selectors", () => {
                 "Birth Date": [new Date()],
                 "Cas9": ["spCas9"],
                 "Clone Number Garbage": [1, 2, 3],
-                "Dropdown": undefined,
+                "Dropdown": [],
                 "Qc": [false],
                 "barcode": "",
                 "file": "/path/to/file3",
-                "notes": undefined,
-                "templateId": 8,
+                "notes": [],
                 "wellIds": [],
                 "workflows": [
                     "R&DExp",
@@ -1107,133 +1193,70 @@ describe("Upload selectors", () => {
             });
             expect(result).to.deep.equal({});
         });
-        it("sets error if a multi-value annotation is not an array", () => {
-            const result = getValidations(mockTextAnnotation, true, "BAD, BAD, BAD");
+        it("sets error if an annotation value is not an array", () => {
+            const result = getValidations(mockTextAnnotation, "BAD, BAD, BAD");
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockTextAnnotation.name]: "Invalid format, expected list",
                 },
             });
         });
-        it("sets error if a multi-value lookup annotation contains a value that is not an annotation option",
+        it("sets error if a lookup annotation contains a value that is not an annotation option",
             () => {
-            const result = getValidations(mockLookupAnnotation, true, ["BAD"]);
+            const result = getValidations(mockLookupAnnotation, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockLookupAnnotation.name]: "BAD did not match any of the expected values: spCas9, Not Recorded",
                 },
             });
         });
-        it("sets error if single-value lookup annotation contains a value that is not an annotation option",
+        it("sets error if a dropdown annotation contains a value that is not a dropdown option",
             () => {
-            const result = getValidations(mockLookupAnnotation, false, "BAD");
-            expect(result).to.deep.equal({
-                [uploadRowKey]: {
-                    [mockLookupAnnotation.name]: "BAD did not match any of the expected values: spCas9, Not Recorded",
-                },
-            });
-        });
-        it("sets error if a multi-value dropdown annotation contains a value that is not a dropdown option",
-            () => {
-            const result = getValidations(mockDropdownAnnotation, true, ["BAD"]);
+            const result = getValidations(mockDropdownAnnotation, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockDropdownAnnotation.name]: "BAD did not match any of the expected values: A, B, C, D",
                 },
             });
         });
-        it("sets error if a single value dropdown annotation contains a value that is not an annotation option",
-            () => {
-            const result = getValidations(mockDropdownAnnotation, false, ["BAD"]);
-            expect(result).to.deep.equal({
-                [uploadRowKey]: {
-                    [mockDropdownAnnotation.name]: "BAD did not match any of the expected values: A, B, C, D",
-                },
-            });
-        });
-        it("sets error if a multi-value boolean annotation contains a value that is not a boolean", () => {
-            const result = getValidations(mockBooleanAnnotation, true, ["BAD"]);
+        it("sets error if a boolean annotation contains a value that is not a boolean", () => {
+            const result = getValidations(mockBooleanAnnotation, ["BAD"]);
             expect(result).to.deep.equal({
                 [uploadRowKey]: {
                     [mockBooleanAnnotation.name]: "BAD did not match expected type: YesNo",
                 },
             });
         });
-        it("sets error if a single-value boolean annotation contains a value that is not a boolean",
+        it("sets error if a text annotation contains a value that is not text",
             () => {
-            const result = getValidations(mockBooleanAnnotation, false, 1);
-            expect(result).to.deep.equal({
-                [uploadRowKey]: {
-                    [mockBooleanAnnotation.name]: "1 did not match expected type: YesNo",
-                },
-            });
-        });
-        it("sets error if a multi-value text annotation contains a value that is not text",
-            () => {
-                const result = getValidations(mockTextAnnotation, true, [1]);
+                const result = getValidations(mockTextAnnotation, [1]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockTextAnnotation.name]: "1 did not match expected type: Text",
                     },
                 });
             });
-        it("sets error if a single-value text annotation contains a value that is not text",
+        it("sets error if a number annotation contains a value that is not number",
             () => {
-                const result = getValidations(mockTextAnnotation, false, 1);
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockTextAnnotation.name]: "1 did not match expected type: Text",
-                    },
-                });
-            });
-        it("sets error if a multi-value number annotation contains a value that is not number",
-            () => {
-                const result = getValidations(mockNumberAnnotation, true, ["BAD"]);
+                const result = getValidations(mockNumberAnnotation, ["BAD"]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockNumberAnnotation.name]: "BAD did not match expected type: Number",
                     },
                 });
             });
-        it("sets error if a single-value number annotation contains a value that is not number",
+        it("sets error if a date annotation contains a value that is not date",
             () => {
-                const result = getValidations(mockNumberAnnotation, false, "BAD");
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockNumberAnnotation.name]: "BAD did not match expected type: Number",
-                    },
-                });
-            });
-        it("sets error if a multi-value date annotation contains a value that is not date",
-            () => {
-                const result = getValidations(mockDateAnnotation, true, ["1-20"]);
+                const result = getValidations(mockDateAnnotation, ["1-20"]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockDateAnnotation.name]: "1-20 did not match expected type: Date or DateTime",
                     },
                 });
             });
-        it("sets error if a single-value date annotation contains a value that is not date",
+        it("sets error if a datetime annotation contains a value that is not datetime",
             () => {
-                const result = getValidations(mockDateAnnotation, false, "BAD");
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockDateAnnotation.name]: "BAD did not match expected type: Date or DateTime",
-                    },
-                });
-            });
-        it("sets error if a multi-value datetime annotation contains a value that is not datetime",
-            () => {
-                const result = getValidations(mockDateTimeAnnotation, true, ["BAD"]);
-                expect(result).to.deep.equal({
-                    [uploadRowKey]: {
-                        [mockDateTimeAnnotation.name]: "BAD did not match expected type: Date or DateTime",
-                    },
-                });
-            });
-        it("sets error if a single-value datetime annotation contains a value that is not datetime",
-            () => {
-                const result = getValidations(mockDateTimeAnnotation, false, "BAD");
+                const result = getValidations(mockDateTimeAnnotation, ["BAD"]);
                 expect(result).to.deep.equal({
                     [uploadRowKey]: {
                         [mockDateTimeAnnotation.name]: "BAD did not match expected type: Date or DateTime",
@@ -1292,6 +1315,7 @@ describe("Upload selectors", () => {
                         barcode: "1234",
                         file: "/path/to/file1",
                         key: getUploadRowKey({file: "/path/to/file"}),
+                        notes: [],
                         shouldBeInArchive: false,
                         shouldBeInLocal: false,
                         wellIds: [1],
@@ -1319,6 +1343,7 @@ describe("Upload selectors", () => {
                         barcode: "abc",
                         file: "foo",
                         key: getUploadRowKey({file: "foo"}),
+                        notes: [],
                         wellIds: [],
                     },
                 }),
@@ -1334,6 +1359,7 @@ describe("Upload selectors", () => {
                         "barcode": "abc",
                         "file": "foo",
                         "key": getUploadRowKey({file: "foo"}),
+                        "notes": [],
                         "wellIds": [],
                     },
                 }),
@@ -1351,6 +1377,7 @@ describe("Upload selectors", () => {
                         "barcode": "1234",
                         file,
                         key,
+                        "notes": [],
                         "wellIds": [1],
                     },
                 }),

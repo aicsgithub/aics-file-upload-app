@@ -1,4 +1,4 @@
-import { forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
+import { castArray, flatMap, forEach, includes, isEmpty, isNil, map, trim, uniq, values, without } from "lodash";
 import { isDate, isMoment } from "moment";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { createLogic } from "redux-logic";
@@ -29,7 +29,7 @@ import { AlertType, AsyncRequest } from "../feedback/types";
 import { startJobPoll, stopJobPoll, updateIncompleteJobIds } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
-import { getAnnotationTypes, getBooleanAnnotationTypeId, getCurrentUpload } from "../metadata/selectors";
+import { getAnnotationTypes, getCurrentUpload } from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -406,27 +406,19 @@ const updateSubImagesLogic = createLogic({
         const channelIds = channels.map((c: Channel) => c.channelId);
         const {subImageKey, subImages} = getSubImagesAndKey(positionIndexes, scenes, subImageNames);
         const update: Partial<UploadStateBranch> = {};
-        const workflows = splitTrimAndFilter(fileRow.workflows);
+        const { workflows } = fileRow;
 
         const uploads = getUpload(getState());
         const existingUploadsForFile: UploadMetadata[] = values(uploads).filter((u) => u.file === fileRow.file);
 
         const template = getAppliedTemplate(getState());
-        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
 
         if (!template) {
             next(setErrorAlert("Could not get applied template while attempting to update file sub images. Contact Software."));
             return;
         }
 
-        if (!booleanAnnotationTypeId) {
-            next(setErrorAlert(
-                "Could not get boolean annotation type id while attempting to update file sub images. Contact Software."
-            ));
-            return;
-        }
-
-        const additionalAnnotations = pivotAnnotations(template.annotations, booleanAnnotationTypeId);
+        const additionalAnnotations = pivotAnnotations(template.annotations);
 
         // If there are subimages for a file, remove the well associations from the file row
         if (!isEmpty(subImages)) {
@@ -446,7 +438,7 @@ const updateSubImagesLogic = createLogic({
                     channel,
                     file: fileRow.file,
                     key,
-                    notes: undefined,
+                    notes: [],
                     positionIndex: undefined,
                     scene: undefined,
                     subImageName: undefined,
@@ -469,7 +461,7 @@ const updateSubImagesLogic = createLogic({
                     channel: undefined,
                     file: fileRow.file,
                     key: subImageOnlyRowKey,
-                    notes: undefined,
+                    notes: [],
                     wellIds: [],
                     workflows,
                     [subImageKey]: subImageValue,
@@ -494,7 +486,7 @@ const updateSubImagesLogic = createLogic({
                         channel,
                         file: fileRow.file,
                         key,
-                        notes: undefined,
+                        notes: [],
                         wellIds: [],
                         workflows,
                         [subImageKey]: subImageValue,
@@ -527,31 +519,17 @@ const updateSubImagesLogic = createLogic({
     },
 });
 
-const parseStringArray = (rawValue?: string) => rawValue ? splitTrimAndFilter(rawValue) : undefined;
+const parseStringArray = (input: string[]): string[] => flatMap(input, splitTrimAndFilter);
 
-const parseNumberArray = (rawValue?: string) => {
-    if (!rawValue) {
-        return undefined;
-    }
-
-    // Remove anything that isn't a number, comma, or whitespace
-    rawValue = rawValue.replace(/[^0-9,\s]/g, "");
-    return rawValue.split(LIST_DELIMITER_SPLIT)
-        .map(parseNumber)
-        .filter((v: number) => !Number.isNaN(v));
-};
-
-// returns int if no decimals and float if not
-const parseNumber = (n: string) => {
-    const trimmed = trim(n);
-    let parsed = parseFloat(trimmed);
-
-    // convert to int if no decimals
-    if (parsed % 1 !== 0) {
-        parsed = parseInt(trimmed, 10);
-    }
-
-    return parsed;
+const parseNumberArray = (input: string[]): number[] => {
+    return input.reduce((filtered: number[], next: string) => {
+        return [
+            ...filtered,
+            ...`${next}`.split(LIST_DELIMITER_SPLIT)
+                .map((v) => Number(trim(v)))
+                .filter((v) => !Number.isNaN(v)),
+        ];
+    }, []);
 };
 
 // antd's DatePicker passes a moment object rather than Date so we convert back here
@@ -567,7 +545,6 @@ const convertDatePickerValueToDate = (d: any) => {
     }
 };
 
-const INVALID_NUMBER_INPUT_REGEX = /[^0-9,\s]/g;
 // Here we take care of custom inputs that handle arrays for strings and numbers.
 // If we can create a valid array from the text of the input, we'll transform it into an array
 // if not, we pass the value untouched to the reducer.
@@ -578,7 +555,6 @@ function formatUpload(
     annotationTypes: AnnotationType[]
 ) {
     const formattedUpload: Partial<UploadMetadata> = {};
-
     forEach(upload, (value: any, key: string) => {
         const annotation = template.annotations.find((a) => a.name === key);
 
@@ -587,28 +563,17 @@ function formatUpload(
                 .find((at) => at.annotationTypeId === annotation.annotationTypeId);
 
             if (annotationType) {
-                const { canHaveManyValues } = annotation;
                 const type = annotationType.name;
                 const endsWithComma = trim(value).endsWith(",");
 
-                // numbers are formatted in text Inputs so they'll be strings at this point
-                if (type === ColumnType.NUMBER && value && canHaveManyValues) {
-                    // Remove anything that isn't a number, comma, or whitespace
-                    value = value.replace(INVALID_NUMBER_INPUT_REGEX, "");
-                }
-
                 if (type === ColumnType.DATETIME || type === ColumnType.DATE) {
-                    if (canHaveManyValues) {
-                        value = (value || [])
-                            .map(convertDatePickerValueToDate)
-                            .filter((d: any) => !isNil(d));
-                    } else {
-                        value = convertDatePickerValueToDate(value);
-                    }
-                } else if (type === ColumnType.NUMBER && canHaveManyValues && !endsWithComma) {
-                    value = parseNumberArray(value);
-                } else if (type === ColumnType.TEXT && canHaveManyValues && !endsWithComma) {
-                    value = parseStringArray(value);
+                    value = (value ? castArray(value) : [])
+                        .map(convertDatePickerValueToDate)
+                        .filter((d: any) => !isNil(d));
+                } else if (type === ColumnType.NUMBER && !endsWithComma) {
+                    value = parseNumberArray(castArray(value).filter((v) => !isNil(v) && v !== ""));
+                } else if (type === ColumnType.TEXT && !endsWithComma) {
+                    value = parseStringArray(castArray(value).filter((v) => !isNil(v) && v !== ""));
                 }
             }
         }

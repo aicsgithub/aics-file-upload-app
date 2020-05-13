@@ -2,7 +2,7 @@ import { Button } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, includes, isEmpty, without } from "lodash";
+import { castArray, includes, isEmpty, isNil, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -29,8 +29,8 @@ import {
 } from "../../state/upload/types";
 import { onDrop } from "../../util";
 
-import BooleanFormatter from "../BooleanHandler/BooleanFormatter";
-import AddValuesModal from "./AddValuesModal";
+import BooleanFormatter from "../BooleanFormatter";
+import DatesEditor from "./DatesEditor";
 
 import CellWithContextMenu from "./CellWithContextMenu";
 import Editor from "./Editor";
@@ -39,7 +39,7 @@ import WellsEditor from "./WellsEditor";
 
 const styles = require("./style.pcss");
 
-const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DATETIME];
+const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.DATE, ColumnType.DATETIME];
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
@@ -115,7 +115,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                                 row,
                                 "wellLabels",
                                 value,
-                                <div className={styles.labels}>{row.wellLabels}</div>,
+                                undefined,
                                     true
                             )
                     );
@@ -228,22 +228,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             error = validationErrors[row.key][label];
         }
 
-        let inner = childElement;
-        if (!inner) {
-            if (Array.isArray(value)) {
-                inner = value.join(LIST_DELIMITER_JOIN);
-            } else {
-                inner = value;
-            }
-        }
-
         return (
             <CellWithContextMenu
                 className={classNames(styles.formatterContainer, className)}
                 error={error}
                 template={contextMenuItems}
             >
-                {inner}
+                {childElement || <div className={styles.cell}>{value.join(LIST_DELIMITER_JOIN)}</div>}
             </CellWithContextMenu>
         );
     }
@@ -277,12 +268,15 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             {
                 editable: true,
                 formatter: ({ row }: FormatterProps<UploadJobTableRow>) => (
-                    <div className={styles.formatterContainer} onDrop={this.onDrop(row)}>
-                            <NoteIcon
-                                handleError={this.handleError}
-                                notes={row.notes}
-                                saveNotes={this.saveNotesByRow(row)}
-                            />
+                    <div
+                        className={classNames(styles.formatterContainer, styles.noteIconContainer)}
+                        onDrop={this.onDrop(row)}
+                    >
+                        <NoteIcon
+                            handleError={this.handleError}
+                            notes={row.notes}
+                            saveNotes={this.saveNotesByRow(row)}
+                        />
                     </div>
                 ),
                 key: "notes",
@@ -315,25 +309,21 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             }
 
             const type = annotationType.name;
-            // When an annotation can have multiple values and it is a Boolean, Date, or Datetime, we need more space.
-            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type) &&
-                templateAnnotation.canHaveManyValues;
+            // When an annotation can have multiple values and it is a Date or Datetime, we need more space.
+            const formatterNeedsModal = includes(SPECIAL_CASES_FOR_MULTIPLE_VALUES, type);
             const column: UploadJobColumn = {
-                allowMultipleValues: templateAnnotation.canHaveManyValues,
                 cellClass:  styles.formatterContainer,
                 dropdownValues: annotationOptions,
-                editable: !formatterNeedsModal,
+                editable: true,
                 key: name,
                 name,
                 resizable: true,
                 type,
             };
 
-            if (!formatterNeedsModal) {
-                column.editor = Editor;
-            }
-            // The date selectors need a certain width to function, this helps the grid start off in an initially
-            // acceptable width for them
+            // dates are handled completely differently from other data types because right now the best
+            // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
+            column.editor = formatterNeedsModal ? DatesEditor : Editor;
             if (type === ColumnType.DATE) {
                 column.width = 170;
             } else if (type === ColumnType.DATETIME) {
@@ -341,39 +331,23 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             }
 
             // eventually we may want to allow undefined Booleans as well but for now, the default value is False
-            if (type === ColumnType.BOOLEAN && !formatterNeedsModal) {
+            if (type === ColumnType.BOOLEAN) {
                 column.formatter = BooleanFormatter;
             } else {
                 column.formatter = ({ row, value }: FormatterProps<UploadJobTableRow>) => {
-                    let childEl;
-                    if (formatterNeedsModal) {
-                        childEl = (
-                            <AddValuesModal
-                                annotationName={templateAnnotation.name}
-                                annotationType={type}
-                                onOk={this.saveByRow}
-                                row={row}
-                                values={value}
-                            />
-                        );
-                    } else if (templateAnnotation.canHaveManyValues && value) {
-                        childEl = castArray(value)
-                            .map((v: any) => {
-                                switch (type) {
-                                    case ColumnType.DATETIME:
-                                        return moment(v).format(DATETIME_FORMAT);
-                                    case ColumnType.DATE:
-                                        return moment(v).format(DATE_FORMAT);
-                                    default:
-                                        return v;
-                                }
-                            })
-                            .join(LIST_DELIMITER_JOIN);
-                    } else if (type === ColumnType.DATE && value) {
-                        childEl = moment(value).format(DATE_FORMAT);
-                    } else if (type === ColumnType.DATETIME && value) {
-                        childEl = moment(value).format(DATETIME_FORMAT);
-                    }
+                    const childEl = castArray(value)
+                        .map((v: any) => {
+                            switch (type) {
+                                case ColumnType.DATETIME:
+                                    return moment(v).format(DATETIME_FORMAT);
+                                case ColumnType.DATE:
+                                    return moment(v).format(DATE_FORMAT);
+                                default:
+                                    return v;
+                            }
+                        })
+                        .join(LIST_DELIMITER_JOIN);
+
                     return this.renderFormat(row, name, value, childEl, required);
                 };
             }
@@ -456,7 +430,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
 
     private saveByRow = (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => {
-        this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { [key]: value });
+        const values = !isNil(value) ? castArray(value) : [];
+        this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { [key]: values });
     }
 
     private handleError = (error: string) => {

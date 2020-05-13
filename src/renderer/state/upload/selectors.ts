@@ -22,7 +22,7 @@ import * as moment from "moment";
 import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
-import { LIST_DELIMITER_JOIN } from "../../constants";
+import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
 import {
     getBooleanAnnotationTypeId,
@@ -39,7 +39,7 @@ import { getAllPlates, getAllWells, getExpandedUploadJobRows } from "../selectio
 
 import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
-import { ColumnType, TemplateWithTypeNames } from "../template/types";
+import { ColumnType, TemplateAnnotationWithTypeName, TemplateWithTypeNames } from "../template/types";
 import { State } from "../types";
 import { getUploadRowKey, isChannelOnlyRow, isFileRow, isSubImageOnlyRow, isSubImageRow } from "./constants";
 import {
@@ -158,30 +158,8 @@ const convertToUploadJobRow = (
     scenes: number[] = [],
     subImageNames: string[] = []
 ): UploadJobTableRow => {
-    // convert arrays to strings
-    const formattedMetadata: UploadMetadataWithDisplayFields = {...metadata};
-    if (template) {
-        forEach(standardizeUploadMetadata(metadata), (value: any, key: string) => {
-            const templateAnnotation = template.annotations.find((a) => a.name === key);
-
-            if (templateAnnotation) {
-                const { type } = templateAnnotation;
-                // When a text or number annotation has supports multiple values, the editor will be
-                // an Input so we need to convert arrays to strings
-                const formatList = templateAnnotation && templateAnnotation.canHaveManyValues && Array.isArray(value) &&
-                    (type === ColumnType.TEXT || type === ColumnType.NUMBER);
-                if (formatList) {
-                    formattedMetadata[key] = value.join(LIST_DELIMITER_JOIN);
-                }
-            } else {
-                // tslint:disable-next-line
-                console.warn(`Found unexpected annotation on file metadata: ${key}.`);
-            }
-        });
-    }
-
     return {
-        ...formattedMetadata,
+        ...metadata,
         channelIds,
         group: hasSubRows,
         key: getUploadRowKey({
@@ -192,14 +170,15 @@ const convertToUploadJobRow = (
                 subImageName:  metadata.subImageName,
             }
         ),
+        notes: metadata.notes ? metadata.notes[0] : undefined,
         numberSiblings,
         positionIndexes,
         scenes,
         siblingIndex,
         subImageNames,
         treeDepth,
-        wellLabels: metadata.wellLabels ? metadata.wellLabels.sort().join(LIST_DELIMITER_JOIN) : "",
-        workflows: metadata.workflows ? metadata.workflows.join(LIST_DELIMITER_JOIN) : "",
+        wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
+        workflows: metadata.workflows || [],
     };
 };
 
@@ -284,9 +263,12 @@ export const getUploadSummaryRows = createSelector([
     getExpandedUploadJobRows,
     getFileToMetadataMap,
     getCompleteAppliedTemplate,
-], (uploads: DisplayUploadStateBranch, expandedRows: ExpandedRows,
+], (
+    uploads: DisplayUploadStateBranch,
+    expandedRows: ExpandedRows,
     metadataGroupedByFile: { [file: string]: UploadMetadataWithDisplayFields[] },
-    template?: TemplateWithTypeNames): UploadJobTableRow[] => {
+    template?: TemplateWithTypeNames
+): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
 
@@ -385,7 +367,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector([
         forEach(standardizeUploadMetadata(metadata), (value: any, annotationName: string) => {
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
             if (!isNil(value) && templateAnnotation) {
-                if (templateAnnotation.canHaveManyValues && !Array.isArray(value)) {
+                if (!Array.isArray(value)) {
                     annotationToErrorMap[annotationName] = "Invalid format, expected list";
                 } else {
                     value = castArray(value);
@@ -411,17 +393,26 @@ export const getUploadKeyToAnnotationErrorMap = createSelector([
                             }
                             break;
                         case numberAnnotationTypeId:
-                            invalidValues = value.filter((v: any) => typeof  v !== "number").join(", ");
-                            if (invalidValues) {
-                                annotationToErrorMap[annotationName] =
-                                    `${invalidValues} did not match expected type: Number`;
+                            if (value.length > 0 && `${value[0]}`.trim().endsWith(LIST_DELIMITER_SPLIT)) {
+                                annotationToErrorMap[annotationName] = "value cannot end with a comma";
+                            } else {
+                                invalidValues = value.filter((v: any) => typeof  v !== "number").join(", ");
+                                if (invalidValues) {
+                                    annotationToErrorMap[annotationName] =
+                                        `${invalidValues} did not match expected type: Number`;
+                                }
                             }
+
                             break;
                         case textAnnotationTypeId:
-                            invalidValues = value.filter((v: any) => typeof  v !== "string").join(", ");
-                            if (invalidValues) {
-                                annotationToErrorMap[annotationName] =
-                                    `${invalidValues} did not match expected type: Text`;
+                            if (value.length > 0 && `${value[0]}`.trim().endsWith(LIST_DELIMITER_SPLIT)) {
+                                annotationToErrorMap[annotationName] = "value cannot end with a comma";
+                            } else {
+                                invalidValues = value.filter((v: any) => typeof v !== "string").join(", ");
+                                if (invalidValues) {
+                                    annotationToErrorMap[annotationName] =
+                                        `${invalidValues} did not match expected type: Text`;
+                                }
                             }
                             break;
                         case dateTimeAnnotationTypeId:
@@ -504,16 +495,27 @@ const getAnnotations = (
     metadata: UploadMetadata[],
     appliedTemplate: TemplateWithTypeNames
 ): MMSAnnotationValueRequest[] => {
+    const annotationNameToAnnotationMap: {[name: string]: TemplateAnnotationWithTypeName} = appliedTemplate.annotations
+        .reduce((accum, annotation) => ({
+        ...accum,
+        [annotation.name]: annotation,
+    }), {});
     return flatMap(metadata, (metadatum: UploadMetadata) => {
         const customData = standardizeUploadMetadata(metadatum);
         const result: MMSAnnotationValueRequest[] = [];
         forEach(customData, (value: any, annotationName: string) => {
-            const addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
-            if (addAnnotation) {
-                annotationName = titleCase(annotationName);
-                const annotation = appliedTemplate.annotations
-                    .find((a) => a.name === annotationName);
-                if (annotation) {
+            annotationName = titleCase(annotationName);
+            const annotation = annotationNameToAnnotationMap[annotationName];
+            if (annotation) {
+                let addAnnotation = Array.isArray(value) ? !isEmpty(value) : !isNil(value);
+                if (annotation.type === ColumnType.BOOLEAN) {
+                    addAnnotation = annotation.type === ColumnType.BOOLEAN;
+                    if (isEmpty(value)) {
+                        value = [false];
+                    }
+                }
+
+                if (addAnnotation ) {
                     result.push({
                         annotationId: annotation.annotationId,
                         channelId: metadatum.channel ? metadatum.channel.channelId : undefined,
@@ -530,10 +532,10 @@ const getAnnotations = (
                             return v.toString();
                         }),
                     });
-                } else {
-                    // tslint:disable-next-line
-                    console.warn(`Found annotation named ${annotationName} that is not in template`);
                 }
+            } else {
+                // tslint:disable-next-line
+                console.warn(`Found annotation named ${annotationName} that is not in template`);
             }
         });
         return result;

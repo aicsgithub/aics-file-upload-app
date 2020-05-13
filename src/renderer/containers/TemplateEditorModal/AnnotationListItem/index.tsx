@@ -50,7 +50,6 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
             annotationId,
             annotationOptions,
             annotationTypeName,
-            canHaveManyValues,
             description,
             lookupTable,
             name,
@@ -60,10 +59,6 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
         tags.push({color: "green", text: annotationTypeName});
         tags.push({color: "red", text: required ? "Required" : "Optional"});
         tags.push({color: "purple", text: annotationId ? "Existing Annotation" : "New"});
-
-        if (canHaveManyValues) {
-            tags.push({color: "blue", text: "Multiple Values Allowed"});
-        }
 
         let metadata;
         if (lookupTable) {

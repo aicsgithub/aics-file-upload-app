@@ -14,7 +14,6 @@ const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
     annotationOptions: undefined,
     annotationTypeName: ColumnType.TEXT,
-    canHaveManyValues: false,
     description: undefined,
     lookupTable: undefined,
     name: undefined,
@@ -37,7 +36,6 @@ interface Props {
 
 interface AnnotationFormState {
     annotationOptions?: string[];
-    canHaveManyValues: boolean;
     annotationTypeName: string;
     description?: string;
     lookupTable?: string;
@@ -127,7 +125,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             className,
         } = this.props;
         const {
-            canHaveManyValues,
             annotationTypeName,
             description,
             name,
@@ -171,7 +168,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
                     </>
                 )}
                 <Checkbox checked={required} onChange={this.setRequired}>Required</Checkbox>
-                <Checkbox checked={canHaveManyValues} onChange={this.setCanHaveMany}>Allow Multiple Values</Checkbox>
                 <div className={styles.buttonContainer}>
                     {cancel && (
                         <Button className={styles.button} onClick={cancel}>Cancel</Button>
@@ -265,10 +261,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         this.setState({required: e.target.checked});
     }
 
-    private setCanHaveMany = (e: CheckboxChangeEvent) => {
-        this.setState({canHaveManyValues: e.target.checked});
-    }
-
     private setColumnType = (annotationTypeName: string) => {
         const columnTypeIsDropdown = annotationTypeName === ColumnType.DROPDOWN;
         this.setState({
@@ -283,7 +275,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
         const {
             annotationOptions,
             annotationTypeName,
-            canHaveManyValues,
             description,
             lookupTable,
             name,
@@ -303,7 +294,6 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             annotationOptions,
             annotationTypeId: annotationTypeSelected.annotationTypeId,
             annotationTypeName,
-            canHaveManyValues,
             description,
             index,
             lookupSchema: lookupSelected ? lookupSelected.schemaName : undefined,
