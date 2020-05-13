@@ -126,6 +126,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 input = (
                     <LookupSearch
                         defaultOpen={true}
+                        key={this.props.column.key}
                         mode={allowMultipleValues ? "multiple" : "default"}
                         lookupAnnotationName={this.props.column.key}
                         onBlur={this.props.onCommit}
