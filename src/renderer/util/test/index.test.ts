@@ -582,8 +582,8 @@ describe("General utilities", () => {
                     "Clone Number Garbage": [],
                     // this stays here because it is part of the template and does not get cleared out
                     "Favorite Color": "red",
-                    // This annotation got added and is initialized as false
-                    "Qc": [false],
+                    // This annotation got added
+                    "Qc": [],
                     "barcode": "1234",
                     "file": "/path/to/file1",
                     "key": getUploadRowKey({ file: "/path/to/file" }),

@@ -1,18 +1,18 @@
-import { DatePicker, Input, InputNumber, Select } from "antd";
+import { Input, Select } from "antd";
 import Logger from "js-logger";
-import * as moment from "moment";
+import { trim } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
-import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
+import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 
 import { ColumnType } from "../../../state/template/types";
-import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
+import { convertToArray } from "../../../util";
+import BooleanFormatter from "../../BooleanFormatter";
 
 const { Option } = Select;
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
-    allowMultipleValues?: boolean;
     dropdownValues?: string[];
     type?: ColumnType;
 }
@@ -35,22 +35,31 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
     public input = React.createRef<HTMLDivElement>();
 
-    constructor(props: EditorProps) {
+    public constructor(props: EditorProps) {
         super(props);
-        const { column, value } = props;
-        const isColumnBoolean = column.type === ColumnType.BOOLEAN;
+        let value: any[] | string = [...props.value];
+        switch (props.column.type) {
+            case ColumnType.TEXT:
+            case ColumnType.NUMBER:
+                value = convertToArray(value).join(LIST_DELIMITER_JOIN);
+                break;
+            case ColumnType.BOOLEAN:
+                if (value.length === 0) {
+                    value = [true];
+                } else {
+                    // For bools, we want to automatically toggle the value when the
+                    // user double clicks to edit it.
+                    value[0] = !value[0];
+                }
+                break;
+        }
         this.state = {
-            // For bools, we want to automatically toggle the value when the
-            // user double clicks to edit it.
-            value: isColumnBoolean ? !value : value,
+            value,
         };
     }
 
     public render() {
-        const {
-            column: { allowMultipleValues, dropdownValues, type },
-        } = this.props;
-
+        const { column: { dropdownValues, type } } = this.props;
         const { value } = this.state;
 
         let input;
@@ -61,7 +70,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         allowClear={true}
                         autoFocus={true}
                         defaultOpen={true}
-                        mode={allowMultipleValues ? "multiple" : "default"}
+                        mode="multiple"
                         onChange={this.handleOnChange}
                         style={{ width: "100%" }}
                         value={value}
@@ -74,28 +83,18 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 break;
             case ColumnType.BOOLEAN:
                 input = (
-                    <div onClick={() => this.handleOnChange(!value)}>
+                    <div onClick={() => this.handleOnChange([!value[0]])}>
                         <BooleanFormatter value={value} />
                     </div>
                 );
                 break;
             case ColumnType.NUMBER:
-                input = allowMultipleValues ?
-                    (
+                input = (
                         <Input
                             autoFocus={true}
                             onChange={this.handleInputOnChange}
                             style={{ width: "100%" }}
-                            value={value}
-                        />
-                    )
-                    :
-                    (
-                        <InputNumber
-                            autoFocus={true}
-                            onChange={this.handleOnChange}
-                            style={{ width: "100%" }}
-                            value={value}
+                            value={this.state.value}
                         />
                     );
                 break;
@@ -105,30 +104,16 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                         autoFocus={true}
                         onChange={this.handleInputOnChange}
                         style={{ width: "100%" }}
-                        value={value}
+                        value={this.state.value}
                     />
-                );
-                break;
-            case ColumnType.DATE:
-            case ColumnType.DATETIME:
-                input = allowMultipleValues ? null : (
-                  <DatePicker
-                    autoFocus={true}
-                    format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
-                    onChange={this.handleOnChange}
-                    value={value ? moment(value) : undefined}
-                    showTime={type === ColumnType.DATETIME}
-                    style={{ width: "100%" }}
-                  />
                 );
                 break;
             case ColumnType.LOOKUP:
                 input = (
                     <LookupSearch
                         defaultOpen={true}
-                        mode={allowMultipleValues ? "multiple" : "default"}
+                        mode="multiple"
                         lookupAnnotationName={this.props.column.key}
-                        onBlur={this.props.onCommit}
                         selectSearchValue={this.handleOnChange}
                         value={value}
                     />
@@ -147,17 +132,26 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     // Should return an object of key/value pairs to be merged back to the row
     public getValue = () => {
-        return { [this.props.column.key]: this.state.value };
+        const { value } = this.state;
+        const { column: { key, type } } = this.props;
+
+        if (type === ColumnType.TEXT || type === ColumnType.NUMBER) {
+            let formattedString = trim(value);
+            if (value.endsWith(LIST_DELIMITER_SPLIT)) {
+                formattedString = value.substring(0, value.length - 1);
+            }
+            return { [key]: formattedString };
+        }
+
+        return { [key]: value };
     }
 
     public getInputNode = (): Element | Text | null => {
         return this.input.current;
     }
 
-    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = e.target;
-        this.handleOnChange(value);
-    }
+    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+        this.setState({value: e.target.value})
 
     private handleOnChange = (value: any) => {
         this.setState({ value });

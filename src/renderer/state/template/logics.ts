@@ -83,7 +83,6 @@ const addExistingAnnotationLogic = createLogic({
                 annotationOptions,
                 annotationTypeId,
                 annotationTypeName: annotationType.name,
-                canHaveManyValues: false,
                 description,
                 index: oldAnnotations.length,
                 lookupSchema,

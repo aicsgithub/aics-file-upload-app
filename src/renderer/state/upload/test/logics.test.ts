@@ -266,7 +266,7 @@ describe("Upload logics", () => {
             });
             const expectedAction = setAppliedTemplate(mockMMSTemplate, {
                 [getUploadRowKey({file: "/path/to/file1"})]: {
-                    ["Favorite Color"]: undefined,
+                    ["Favorite Color"]: [],
                     barcode: "1234",
                     file: "/path/to/file1",
                     key: getUploadRowKey({file: "/path/to/file"}),
@@ -494,12 +494,12 @@ describe("Upload logics", () => {
             const filePositionMetadata = upload[getUploadRowKey({file, positionIndex: 0})];
             expect(filePositionMetadata).to.not.be.undefined;
             expect(filePositionMetadata).to.deep.equal({
-                "Favorite Color": undefined,
+                "Favorite Color": [],
                 "barcode": "1234",
                 "channel": undefined,
                 "file": "/path/to/file1",
                 "key": getUploadRowKey({file, positionIndex: 0}),
-                "notes": undefined,
+                "notes": [],
                 "positionIndex": 0,
                 "wellIds": [],
                 "workflows": [],
@@ -525,12 +525,12 @@ describe("Upload logics", () => {
             const filePositionMetadata = upload[getUploadRowKey({file, scene: 0})];
             expect(filePositionMetadata).to.not.be.undefined;
             expect(filePositionMetadata).to.deep.equal({
-                "Favorite Color": undefined,
+                "Favorite Color": [],
                 "barcode": "1234",
                 "channel": undefined,
                 "file": "/path/to/file1",
                 "key": getUploadRowKey({file, scene: 0}),
-                "notes": undefined,
+                "notes": [],
                 "scene": 0,
                 "wellIds": [],
                 "workflows": [],
@@ -630,10 +630,10 @@ describe("Upload logics", () => {
             expect(channelUpload).to.deep.equal({
                 barcode:  "1234",
                 channel: mockChannel,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, channelId: 1}),
-                notes: undefined,
+                notes: [],
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
@@ -662,10 +662,10 @@ describe("Upload logics", () => {
             expect(positionUpload).to.deep.equal({
                 barcode: "1234",
                 channel: undefined,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, positionIndex: 1}),
-                notes: undefined,
+                notes: [],
                 positionIndex: 1,
                 wellIds: [],
                 workflows: [],
@@ -692,10 +692,10 @@ describe("Upload logics", () => {
             expect(sceneUpload).to.deep.equal({
                 barcode: "1234",
                 channel: undefined,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, scene: 1}),
-                notes: undefined,
+                notes: [],
                 scene: 1,
                 wellIds: [],
                 workflows: [],
@@ -722,10 +722,10 @@ describe("Upload logics", () => {
             expect(subImageUpload).to.deep.equal({
                 barcode: "1234",
                 channel: undefined,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, subImageName: "foo"}),
-                notes: undefined,
+                notes: [],
                 subImageName: "foo",
                 wellIds: [],
                 workflows: [],
@@ -878,10 +878,10 @@ describe("Upload logics", () => {
             expect(positionUpload).to.deep.equal({
                 barcode: "1234",
                 channel: undefined,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, positionIndex: 1}),
-                notes: undefined,
+                notes: [],
                 positionIndex: 1,
                 wellIds: [],
                 workflows: [],
@@ -893,10 +893,10 @@ describe("Upload logics", () => {
             expect(positionAndChannelUpload).to.deep.equal({
                 barcode: "1234",
                 channel: mockChannel,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: positionAndChannelKey,
-                notes: undefined,
+                notes: [],
                 positionIndex: 1,
                 wellIds: [],
                 workflows: [],
@@ -923,10 +923,10 @@ describe("Upload logics", () => {
             expect(sceneUpload).to.deep.equal({
                 barcode: "1234",
                 channel: undefined,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, scene: 1}),
-                notes: undefined,
+                notes: [],
                 scene: 1,
                 wellIds: [],
                 workflows: [],
@@ -938,10 +938,10 @@ describe("Upload logics", () => {
             expect(sceneAndChannelUpload).to.deep.equal({
                 barcode: "1234",
                 channel: mockChannel,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: sceneAndChannelKey,
-                notes: undefined,
+                notes: [],
                 scene: 1,
                 wellIds: [],
                 workflows: [],
@@ -968,10 +968,10 @@ describe("Upload logics", () => {
             expect(positionUpload).to.deep.equal({
                 barcode: "1234",
                 channel: undefined,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: getUploadRowKey({file, subImageName: "foo"}),
-                notes: undefined,
+                notes: [],
                 subImageName: "foo",
                 wellIds: [],
                 workflows: [],
@@ -983,10 +983,10 @@ describe("Upload logics", () => {
             expect(positionAndChannelUpload).to.deep.equal({
                 barcode: "1234",
                 channel: mockChannel,
-                ["Favorite Color"]: undefined,
+                ["Favorite Color"]: [],
                 file: "/path/to/file1",
                 key: positionAndChannelKey,
-                notes: undefined,
+                notes: [],
                 subImageName: "foo",
                 wellIds: [],
                 workflows: [],
@@ -1106,7 +1106,7 @@ describe("Upload logics", () => {
                         "Birth Date": [],
                         "barcode": "",
                         "file": "/path/to/file3",
-                        "notes": undefined,
+                        "notes": [],
                         "shouldBeInArchive": true,
                         "shouldBeInLocal": true,
                         "templateId": 8,
@@ -1137,18 +1137,15 @@ describe("Upload logics", () => {
                     ...mockTemplateStateBranch,
                     appliedTemplate: {
                         ...mockTemplateWithManyValues,
-                        annotations: [{
-                            ...mockDateAnnotation,
-                            canHaveManyValues: false,
-                        }],
+                        annotations: [mockDateAnnotation],
                     },
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "Birth Date": undefined,
+                        "Birth Date": [],
                         "barcode": "",
                         "file": "/path/to/file3",
-                        "notes": undefined,
+                        "notes": [],
                         "shouldBeInArchive": true,
                         "shouldBeInLocal": true,
                         "templateId": 8,
@@ -1164,15 +1161,16 @@ describe("Upload logics", () => {
 
             // before
             const annotation = "Birth Date";
+            expect(getUpload(store.getState())[uploadRowKey][annotation]).to.be.empty;
 
             // apply
             store.dispatch(updateUpload(uploadRowKey, {[annotation]: moment()}));
 
             // after
             const upload = getUpload(store.getState());
-            expect(upload[uploadRowKey][annotation] instanceof Date).to.be.true;
+            expect(upload[uploadRowKey][annotation][0] instanceof Date).to.be.true;
         });
-        it("converts strings to arrays of strings if canHaveManyValues=true and type is TEXT", () => {
+        it("converts strings to arrays of strings if type is TEXT", () => {
             const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
@@ -1184,10 +1182,10 @@ describe("Upload logics", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "Another Garbage Text Annotation": undefined,
+                        "Another Garbage Text Annotation": [],
                         "barcode": "",
                         "file": "/path/to/file3",
-                        "notes": undefined,
+                        "notes": [],
                         "shouldBeInArchive": true,
                         "shouldBeInLocal": true,
                         "templateId": 8,
@@ -1203,6 +1201,7 @@ describe("Upload logics", () => {
 
             // before
             const annotation = "Another Garbage Text Annotation";
+            expect(getUpload(store.getState())[uploadRowKey][annotation]).to.be.empty;
 
             // apply
             store.dispatch(updateUpload(uploadRowKey, {[annotation]: "a,b,c"}));
@@ -1211,7 +1210,7 @@ describe("Upload logics", () => {
             const upload = getUpload(store.getState());
             expect(upload[uploadRowKey][annotation]).to.deep.equal(["a", "b", "c"]);
         });
-        it("converts strings to arrays of numbers if canHaveManyValues=true and type is NUMBER", () => {
+        it("converts strings to arrays of numbers if type is NUMBER", () => {
             const { store } = createMockReduxStore({
                 ...nonEmptyStateForInitiatingUpload,
                 template: getMockStateWithHistory({
@@ -1226,7 +1225,7 @@ describe("Upload logics", () => {
                         "Clone Number Garbage": undefined,
                         "barcode": "",
                         "file": "/path/to/file3",
-                        "notes": undefined,
+                        "notes": [],
                         "shouldBeInArchive": true,
                         "shouldBeInLocal": true,
                         "templateId": 8,
@@ -1250,9 +1249,127 @@ describe("Upload logics", () => {
             const upload = getUpload(store.getState());
             expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2, 3]);
         });
+        it("converts ['1, 2e3, 3.86, bad'] to [1, 2000, 3.86] if type is NUMBER", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockNumberAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Clone Number Garbage": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": [],
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Clone Number Garbage";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: "1, 2e3, 3.86, bad"}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([1, 2000, 3.86]);
+        });
+        it("converts '' to [] if type is NUMBER", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockNumberAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        "Clone Number Garbage": undefined,
+                        "barcode": "",
+                        "file": "/path/to/file3",
+                        "notes": [],
+                        "shouldBeInArchive": true,
+                        "shouldBeInLocal": true,
+                        "templateId": 8,
+                        "wellIds": [],
+                        "wellLabels": [],
+                        "workflows": [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = "Clone Number Garbage";
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: ""}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+        });
+
+        it ("converts '' to [] if type is TEXT", () => {
+            const { store } = createMockReduxStore({
+                ...nonEmptyStateForInitiatingUpload,
+                template: getMockStateWithHistory({
+                    ...mockTemplateStateBranch,
+                    appliedTemplate: {
+                        ...mockTemplateWithManyValues,
+                        annotations: [mockTextAnnotation],
+                    },
+                }),
+                upload: getMockStateWithHistory({
+                    [uploadRowKey]: {
+                        [mockTextAnnotation.name]: [],
+                        barcode: "",
+                        file: "/path/to/file3",
+                        notes: [],
+                        shouldBeInArchive: true,
+                        shouldBeInLocal: true,
+                        templateId: 8,
+                        wellIds: [],
+                        wellLabels: [],
+                        workflows: [
+                            "R&DExp",
+                            "Pipeline 4.1",
+                        ],
+                    },
+                }),
+            });
+
+            // before
+            const annotation = mockTextAnnotation.name;
+
+            // apply
+            store.dispatch(updateUpload(uploadRowKey, {[annotation]: ""}));
+
+            // after
+            const upload = getUpload(store.getState());
+            expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+        });
     });
 
-    describe('updateUploadRowsLogic', () => {
+    describe("updateUploadRowsLogic", () => {
         it("updates a single upload", () => {
             // arrange
             const uploadRowKey = getUploadRowKey({file: "/path/to/file1"});
@@ -1268,9 +1385,9 @@ describe("Upload logics", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey]: {
-                        "barcode": "",
-                        "file": "/path/to/file1",
-                        "wellIds": [],
+                        barcode: "",
+                        file: "/path/to/file1",
+                        wellIds: [],
                     },
                 }),
             });
@@ -1301,14 +1418,14 @@ describe("Upload logics", () => {
                 }),
                 upload: getMockStateWithHistory({
                     [uploadRowKey1]: {
-                        "barcode": "",
-                        "file": "/path/to/file1",
-                        "wellIds": [],
+                        barcode: "",
+                        file: "/path/to/file1",
+                        wellIds: [],
                     },
                     [uploadRowKey2]: {
-                        "barcode": "",
-                        "file": "/path/to/file2",
-                        "wellIds": [],
+                        barcode: "",
+                        file: "/path/to/file2",
+                        wellIds: [],
                     },
                 }),
             });
@@ -1354,16 +1471,15 @@ describe("Upload logics", () => {
                 }),
             });
 
-
             // act
             store.dispatch(updateUploadRows(
                 [uploadRowKey],
-                { 'Birth Date': moment() })
+                { "Birth Date": moment() })
             );
 
             // assert
             const upload = getUpload(store.getState());
-            expect(upload[uploadRowKey]['Birth Date']).to.be.a('Date');
+            expect(upload[uploadRowKey]["Birth Date"][0]).to.be.a("Date");
         });
     });
 

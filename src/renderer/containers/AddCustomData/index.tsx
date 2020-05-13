@@ -35,7 +35,9 @@ import {
     ToggleExpandedUploadJobRowAction,
     Well,
 } from "../../state/selection/types";
-import { getTemplateId } from "../../state/setting/selectors";
+import { updateSettings } from "../../state/setting/actions";
+import { getShowUploadHint, getTemplateId } from "../../state/setting/selectors";
+import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { AnnotationType, Template } from "../../state/template/types";
 import { State } from "../../state/types";
@@ -91,8 +93,10 @@ interface Props {
     savedTemplateId?: number;
     selectedBarcode?: string;
     setAlert: ActionCreator<SetAlertAction>;
+    showUploadHint: boolean;
     templates: LabkeyTemplate[];
     toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
+    updateSettings: ActionCreator<UpdateSettingsAction>;
     updateSubImages: ActionCreator<UpdateSubImagesAction>;
     updateUpload: ActionCreator<UpdateUploadAction>;
     updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
@@ -134,6 +138,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canUndo,
             className,
             loading,
+            showUploadHint,
             uploadError,
             uploadInProgress,
             uploadRowKeyToAnnotationErrorMap,
@@ -178,7 +183,17 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                         type="error"
                     />
                 )}
-                {appliedTemplate && this.renderPlateInfo()}
+                {!loading && appliedTemplate && showUploadHint && (
+                    <Alert
+                        afterClose={this.hideHint}
+                        className={styles.alert}
+                        closable={true}
+                        message="Hint: You can add multiple values for Text and Number annotations using commas!"
+                        showIcon={true}
+                        type="info"
+                    />
+                )}
+                {!loading && appliedTemplate && this.renderPlateInfo()}
                 {!loading && appliedTemplate && (
                     <CustomDataGrid
                         allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
@@ -264,6 +279,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     private redo = (): void => {
         this.props.jumpToUpload(1);
     }
+
+    private hideHint = () => this.props.updateSettings({ showUploadHint: false });
 }
 
 function mapStateToProps(state: State) {
@@ -280,6 +297,7 @@ function mapStateToProps(state: State) {
         loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
         savedTemplateId: getTemplateId(state),
         selectedBarcode: getSelectedBarcode(state),
+        showUploadHint: getShowUploadHint(state),
         templates: getTemplates(state),
         uploadError: getUploadError(state),
         uploadInProgress: getUploadInProgress(state),
@@ -298,6 +316,7 @@ const dispatchToPropsMap = {
     removeUploads,
     setAlert,
     toggleRowExpanded: toggleExpandedUploadJobRow,
+    updateSettings,
     updateSubImages,
     updateUpload,
     updateUploadRows,

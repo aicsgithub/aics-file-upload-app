@@ -20,7 +20,7 @@ export interface UploadRowId {
 // Metadata associated with a file
 export interface UploadMetadata extends UploadRowId {
     barcode: string;
-    notes?: string;
+    notes?: string[]; // only one note expected but we treat this like other custom annotations
     shouldBeInArchive?: boolean;
     shouldBeInLocal?: boolean;
     templateId?: number;
@@ -112,10 +112,10 @@ export interface UploadJobTableRow extends UploadRowId {
     wellIds?: number[];
 
     // human readable identifier of well, such as "A1"
-    wellLabels?: string;
+    wellLabels: string[];
 
     // all workflows associated with this file model
-    workflows?: string;
+    workflows: string[];
 }
 
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {

@@ -24,7 +24,6 @@ export interface AnnotationDraft {
     annotationOptions?: string[];
     annotationTypeId: number;
     annotationTypeName: string;
-    canHaveManyValues: boolean;
     description?: string;
     index: number;
     name?: string;
@@ -132,7 +131,6 @@ export interface TemplateAnnotation extends Audited {
     annotationId: number;
     annotationOptions?: string[];
     annotationTypeId: number;
-    canHaveManyValues: boolean;
     description: string;
     lookupSchema?: string;
     lookupTable?: string;
