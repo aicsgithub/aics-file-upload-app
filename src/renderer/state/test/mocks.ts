@@ -3,6 +3,7 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import { LabkeyChannel, LabkeyImagingSession, LabKeyPlateBarcodePrefix } from "../../util/labkey-client/types";
 import { JobFilter, JobStateBranch } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
@@ -56,7 +57,7 @@ export const mockWellAnnotation: Annotation = {
     annotationTypeId: 3,
     description: "Well associated with this file",
     exposeToFileUploadApp: true,
-    name: "Well",
+    name: WELL_ANNOTATION_NAME,
 };
 
 export const mockWorkflowAnnotation: Annotation = {
@@ -65,7 +66,7 @@ export const mockWorkflowAnnotation: Annotation = {
     annotationTypeId: 3,
     description: "Workflow associated with this file",
     exposeToFileUploadApp: true,
-    name: "Workflow",
+    name: WORKFLOW_ANNOTATION_NAME,
 };
 
 export const mockNotesAnnotation: Annotation = {
@@ -74,7 +75,7 @@ export const mockNotesAnnotation: Annotation = {
     annotationTypeId: 1,
     description: "Other information",
     exposeToFileUploadApp: true,
-    name: "Notes",
+    name: NOTES_ANNOTATION_NAME,
 };
 
 const mockUnusableStructureAnnotation: Annotation = {

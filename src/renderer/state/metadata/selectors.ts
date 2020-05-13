@@ -1,5 +1,6 @@
 import { uniq, uniqBy } from "lodash";
 import { createSelector } from "reselect";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../../constants";
 
 import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
 import { titleCase } from "../../util";
@@ -134,9 +135,9 @@ const getAnnotation = (annotationName: string) => createSelector([
     return  annotations.find((a) => a.name === annotationName);
 });
 
-export const getNotesAnnotation = getAnnotation("Notes");
-export const getWellAnnotation = getAnnotation("Well");
-export const getWorkflowAnnotation = getAnnotation("Workflow");
+export const getNotesAnnotation = getAnnotation(NOTES_ANNOTATION_NAME);
+export const getWellAnnotation = getAnnotation(WELL_ANNOTATION_NAME);
+export const getWorkflowAnnotation = getAnnotation(WORKFLOW_ANNOTATION_NAME);
 
 export const getAnnotationsWithAnnotationOptions = createSelector([
     getAnnotations,
