@@ -1,5 +1,5 @@
 export interface LimsUrl {
-    limsHost: string;
-    limsPort: string;
-    limsProtocol: string;
+  limsHost: string;
+  limsPort: string;
+  limsProtocol: string;
 }

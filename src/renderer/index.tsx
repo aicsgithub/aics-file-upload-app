@@ -15,21 +15,22 @@ import { setSwitchEnvEnabled } from "./state/route/logics";
 
 const appContainer = document.getElementById(APP_ID);
 render(
-    <Provider store={createReduxStore()}>
-        <App />
-    </Provider>,
-    appContainer);
+  <Provider store={createReduxStore()}>
+    <App />
+  </Provider>,
+  appContainer
+);
 
 // Prevent default behavior from div containing app and let app handle file drop
 if (appContainer) {
-    const returnFalse = () => false;
-    appContainer.ondragover = returnFalse;
-    appContainer.ondragleave = returnFalse;
-    appContainer.ondragend = returnFalse;
-    appContainer.ondrop = returnFalse;
+  const returnFalse = () => false;
+  appContainer.ondragover = returnFalse;
+  appContainer.ondragleave = returnFalse;
+  appContainer.ondragend = returnFalse;
+  appContainer.ondrop = returnFalse;
 }
 
 const menu = remote.Menu.getApplicationMenu();
 if (menu) {
-    setSwitchEnvEnabled(menu, true, Logger);
+  setSwitchEnvEnabled(menu, true, Logger);
 }

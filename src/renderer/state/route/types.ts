@@ -1,43 +1,43 @@
 export interface RouteStateBranch {
-    page: Page;
-    view: Page;
+  page: Page;
+  view: Page;
 }
 
 export interface AppPageConfig {
-    container: JSX.Element;
+  container: JSX.Element;
 }
 
 export interface CloseUploadTabAction {
-    type: string;
+  type: string;
 }
 
 export interface GoBackAction {
-    type: string;
+  type: string;
 }
 
 export interface NextPageAction {
-    type: string;
+  type: string;
 }
 
 export enum Page {
-    DragAndDrop = "DragAndDrop",
-    SearchFiles = "SearchFiles",
-    SelectUploadType = "SelectUploadType",
-    AssociateFiles = "AssociateFiles",
-    SelectStorageLocation = "SelectStorageIntent",
-    AddCustomData = "AddCustomData",
-    UploadSummary = "UploadSummary",
+  DragAndDrop = "DragAndDrop",
+  SearchFiles = "SearchFiles",
+  SelectUploadType = "SelectUploadType",
+  AssociateFiles = "AssociateFiles",
+  SelectStorageLocation = "SelectStorageIntent",
+  AddCustomData = "AddCustomData",
+  UploadSummary = "UploadSummary",
 }
 
 export interface SelectPageAction {
-    payload: {
-        currentPage: Page;
-        nextPage: Page;
-    };
-    type: string;
+  payload: {
+    currentPage: Page;
+    nextPage: Page;
+  };
+  type: string;
 }
 
 export interface SelectViewAction {
-    payload: string;
-    type: string;
+  payload: string;
+  type: string;
 }
