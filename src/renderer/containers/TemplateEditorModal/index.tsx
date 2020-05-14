@@ -10,6 +10,7 @@ import { ActionCreator } from "redux";
 import { OPEN_TEMPLATE_EDITOR, SCHEMA_SYNONYM } from "../../../shared/constants";
 
 import FormControl from "../../components/FormControl";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import { closeModal } from "../../state/feedback/actions";
 import { getRequestsInProgressContains, getTemplateEditorVisible } from "../../state/feedback/selectors";
 import { AsyncRequest, CloseModalAction, OpenTemplateEditorAction } from "../../state/feedback/types";
@@ -156,7 +157,7 @@ class TemplateEditorModal extends React.Component<Props, TemplateEditorModalStat
         } = this.props;
         const { annotationNameSearch, showInfoAlert } = this.state;
         const appliedAnnotationNames = template.annotations.map((a) => a.name)
-            .concat("Workflow", "Well", "Notes");
+            .concat(WORKFLOW_ANNOTATION_NAME, WELL_ANNOTATION_NAME, NOTES_ANNOTATION_NAME);
         const filteredAnnotations = allAnnotations.filter((a) => !includes(appliedAnnotationNames, a.name));
 
         if (loadingTemplate) {

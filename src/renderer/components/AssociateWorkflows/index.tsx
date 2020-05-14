@@ -1,7 +1,9 @@
-import { Select, Tabs } from "antd";
+import { Tabs } from "antd";
 import * as React from "react";
 import { ActionCreator } from "redux";
 
+import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
+import LookupSearch from "../../containers/LookupSearch";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWorkflowsAction, Workflow } from "../../state/selection/types";
 import {
@@ -14,8 +16,6 @@ import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";
 
 const styles = require("./style.pcss");
-
-const { Option } = Select;
 
 interface Props {
     associateFilesAndWorkflows: ActionCreator<AssociateFilesAndWorkflowsAction>;
@@ -49,11 +49,10 @@ class AssociateWorkflows extends React.Component<Props, {}> {
             selectedFiles,
             selectedWorkflows,
             undo,
-            workflowOptions,
         } = this.props;
 
-        const workflowNames = selectedWorkflows.map((workflow: Workflow) => workflow.name).sort().join(", ");
-        const associationsTitle = `Selected Workflows: ${workflowNames}`;
+        const selectedWorkflowNames: string[] = selectedWorkflows.map((workflow: Workflow) => workflow.name);
+        const associationsTitle = `Selected Workflows: ${selectedWorkflowNames.sort().join()}`;
 
         return (
             <FormPage
@@ -93,21 +92,16 @@ class AssociateWorkflows extends React.Component<Props, {}> {
                         </Tabs.TabPane>
                     ))}
                 </SelectedAssociationsCard>
-                    <div className={styles.workflowSelector}>
+                    <div className={styles.workflowSelectorContainer}>
                         <p className={styles.workflowLabel}>Workflows</p>
-                        <Select
-                            allowClear={true}
-                            autoFocus={true}
-                            onChange={this.selectWorkflows}
+                        <LookupSearch
+                            className={styles.selector}
+                            lookupAnnotationName={WORKFLOW_ANNOTATION_NAME}
+                            mode="multiple"
                             placeholder="Select Workflows"
-                            mode="tags"
-                            style={{ width: "100%" }}
-                            value={selectedWorkflows.map((workflow) => workflow.name)}
-                        >
-                            {workflowOptions.map((workflow: Workflow) => (
-                                <Option key={workflow.name} value={workflow.name}>{workflow.name}</Option>
-                            ))}
-                        </Select>
+                            selectSearchValue={this.selectWorkflows}
+                            value={selectedWorkflowNames}
+                        />
                     </div>
             </FormPage>
         );

@@ -192,7 +192,7 @@ const requestOptionsForLookupLogic = createLogic({
         let lookup: Lookup | undefined;
 
         const annotation: Annotation | undefined = annotations
-            .find(({ name }) => name === lookupAnnotationName);
+            .find(({ name }) => name.toLowerCase() === lookupAnnotationName.toLowerCase());
         if (annotation) {
             const annotationLookup: AnnotationLookup | undefined = annotationLookups
                 .find((al) => al.annotationId === annotation.annotationId);

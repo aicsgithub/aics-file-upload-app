@@ -112,6 +112,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 input = (
                     <LookupSearch
                         defaultOpen={true}
+                        key={this.props.column.key}
                         mode="multiple"
                         lookupAnnotationName={this.props.column.key}
                         selectSearchValue={this.handleOnChange}
