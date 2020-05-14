@@ -145,8 +145,8 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     public getInputNode = (): Element | Text | null => {
         const { column: { type } } = this.props;
-        return type === ColumnType.TEXT || type === ColumnType.NUMBER ?
-            this.input.current!.input : this.divRef.current;
+        return (type === ColumnType.TEXT || type === ColumnType.NUMBER)  && this.input.current ?
+            this.input.current.input : this.divRef.current;
     }
 
     private handleOnChange = (value: any) => {
