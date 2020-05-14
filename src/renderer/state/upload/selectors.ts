@@ -368,11 +368,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector([
             const templateAnnotation = template.annotations.find((a) => a.name === annotationName);
             if (!isNil(value) && templateAnnotation) {
                 if (!Array.isArray(value)) {
-                    let error = "Invalid format, expected list";
-                    if (typeof value === "string" && value.endsWith(LIST_DELIMITER_SPLIT)) {
-                        error = "Invalid format: value ends with comma";
-                    }
-                    annotationToErrorMap[annotationName] = error;
+                    annotationToErrorMap[annotationName] = "Invalid format, expected list";
                 } else {
                     value = castArray(value);
                     let invalidValues;
