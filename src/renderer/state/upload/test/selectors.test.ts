@@ -1201,6 +1201,14 @@ describe("Upload selectors", () => {
                 },
             });
         });
+        it("sets error if an annotation value ends with comma", () => {
+            const result = getValidations(mockTextAnnotation, "BAD,");
+            expect(result).to.deep.equal({
+                [uploadRowKey]: {
+                    [mockTextAnnotation.name]: "Invalid format: value ends with comma",
+                },
+            });
+        });
         it("sets error if a lookup annotation contains a value that is not an annotation option",
             () => {
             const result = getValidations(mockLookupAnnotation, ["BAD"]);
