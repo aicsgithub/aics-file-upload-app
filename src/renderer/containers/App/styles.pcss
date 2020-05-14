@@ -32,13 +32,11 @@
 
   & .folder-tree {
     flex: 0 0 350px;
-    box-shadow: var(--box-shadow)
   }
 
   & .main-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--main-content-padding);
   }
 }
 
@@ -52,7 +50,7 @@
 
   & >:global(.ant-tabs-content) {
     position: absolute;
-    top: 60px;
+    top: 49px;
     bottom: 0;
     left: 0;
     right: 0;
@@ -60,8 +58,11 @@
 
   & .tab-content {
     height: 100%;
-    padding: 1em;
     user-select: auto;
+
+    &:not(.upload-tab) {
+      padding: 1em;
+    }
   }
 }
 

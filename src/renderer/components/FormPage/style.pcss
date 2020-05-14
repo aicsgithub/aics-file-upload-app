@@ -27,7 +27,13 @@
 }
 
 .progress-bar {
-  padding-bottom: var(--tab-pane-padding);
+  padding: var(--tab-pane-padding);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--app-foreground-color);
+
+  & :global(.ant-steps-item-title) {
+    font-size: var(--small);
+  }
 }
 
 .content {
@@ -37,6 +43,8 @@
   width: 100%;
   height: 100%;
   overflow: auto;
+  padding: 1em;
+  background-color: var(--upload-tab-background-color);
 }
 
 .header {
@@ -45,9 +53,12 @@
 
 .buttons {
   flex: 0 0 auto;
-  padding: var(--tab-pane-padding) var(--tab-pane-padding) 0 var(--tab-pane-padding);
+  padding: var(--tab-pane-padding);
   display: flex;
   justify-content: center;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--app-foreground-color);
 }
 
 .back-button {
