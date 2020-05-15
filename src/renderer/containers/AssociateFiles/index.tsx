@@ -1,13 +1,10 @@
-import { AicsGridCell } from "@aics/aics-react-labkey";
 import * as React from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { connect, ConnectedProps } from "react-redux";
 
 import AssociateWells from "../../components/AssociateWells";
 import AssociateWorkflows from "../../components/AssociateWorkflows";
 import { getWorkflowOptions } from "../../state/metadata/selectors";
 import { goBack, goForward } from "../../state/route/actions";
-import { GoBackAction, NextPageAction } from "../../state/route/types";
 import { selectWells, selectWorkflows } from "../../state/selection/actions";
 import {
   getSelectedFiles,
@@ -17,12 +14,6 @@ import {
   getSelectedWorkflows,
   getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
-import {
-  SelectWellsAction,
-  SelectWorkflowsAction,
-  Well,
-  Workflow,
-} from "../../state/selection/types";
 import { getAssociateByWorkflow } from "../../state/setting/selectors";
 import { State } from "../../state/types";
 import {
@@ -37,45 +28,49 @@ import {
   getCanUndoUpload,
 } from "../../state/upload/selectors";
 import {
-  AssociateFilesAndWellsAction,
-  AssociateFilesAndWorkflowsAction,
-  JumpToUploadAction,
-  UndoFileWellAssociationAction,
-  UndoFileWorkflowAssociationAction,
-} from "../../state/upload/types";
-import {
   getMutualFilesForWells,
   getMutualFilesForWorkflows,
   getWellsWithAssociations,
   getWorkflowsWithAssociations,
 } from "./selectors";
 
-interface AssociateFilesProps {
-  associateWorkflows: boolean;
-  associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
-  associateFilesAndWorkflows: ActionCreator<AssociateFilesAndWorkflowsAction>;
-  canRedo: boolean;
-  canUndo: boolean;
-  className?: string;
-  mutualFilesForWells: string[];
-  mutualFilesForWorkflows: string[];
-  goBack: ActionCreator<GoBackAction>;
-  goForward: ActionCreator<NextPageAction>;
-  selectedFiles: string[];
-  selectedWellLabels: string[];
-  selectedWells: AicsGridCell[];
-  selectedWellsData: Well[];
-  selectedWorkflows: Workflow[];
-  selectWells: ActionCreator<SelectWellsAction>;
-  selectWorkflows: ActionCreator<SelectWorkflowsAction>;
-  wells?: Well[][];
-  wellsWithAssociations: number[];
-  workflowsWithAssociations: string[];
-  workflowOptions: Workflow[];
-  jumpToUpload: ActionCreator<JumpToUploadAction>;
-  undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
-  undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
+function mapStateToProps(state: State) {
+  return {
+    associateWorkflows: getAssociateByWorkflow(state),
+    canRedo: getCanRedoUpload(state),
+    canUndo: getCanUndoUpload(state),
+    mutualFilesForWells: getMutualFilesForWells(state),
+    mutualFilesForWorkflows: getMutualFilesForWorkflows(state),
+    selectedFiles: getSelectedFiles(state),
+    selectedWellLabels: getSelectedWellLabels(state),
+    selectedWells: getSelectedWells(state),
+    selectedWellsData: getSelectedWellsWithData(state),
+    selectedWorkflows: getSelectedWorkflows(state),
+    wells: getWellsWithUnitsAndModified(state),
+    wellsWithAssociations: getWellsWithAssociations(state),
+    workflowOptions: getWorkflowOptions(state),
+    workflowsWithAssociations: getWorkflowsWithAssociations(state),
+  };
 }
+
+const dispatchToPropsMap = {
+  associateFilesAndWells,
+  associateFilesAndWorkflows,
+  getWorkflowOptions,
+  goBack,
+  goForward,
+  jumpToUpload,
+  selectWells,
+  selectWorkflows,
+  undoFileWellAssociation,
+  undoFileWorkflowAssociation,
+};
+
+const connector = connect(mapStateToProps, dispatchToPropsMap);
+
+type AssociateFilesProps = ConnectedProps<typeof connector> & {
+  className?: string;
+};
 
 class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
   public render() {
@@ -132,36 +127,4 @@ class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
   };
 }
 
-function mapStateToProps(state: State) {
-  return {
-    associateWorkflows: getAssociateByWorkflow(state),
-    canRedo: getCanRedoUpload(state),
-    canUndo: getCanUndoUpload(state),
-    mutualFilesForWells: getMutualFilesForWells(state),
-    mutualFilesForWorkflows: getMutualFilesForWorkflows(state),
-    selectedFiles: getSelectedFiles(state),
-    selectedWellLabels: getSelectedWellLabels(state),
-    selectedWells: getSelectedWells(state),
-    selectedWellsData: getSelectedWellsWithData(state),
-    selectedWorkflows: getSelectedWorkflows(state),
-    wells: getWellsWithUnitsAndModified(state),
-    wellsWithAssociations: getWellsWithAssociations(state),
-    workflowOptions: getWorkflowOptions(state),
-    workflowsWithAssociations: getWorkflowsWithAssociations(state),
-  };
-}
-
-const dispatchToPropsMap = {
-  associateFilesAndWells,
-  associateFilesAndWorkflows,
-  getWorkflowOptions,
-  goBack,
-  goForward,
-  jumpToUpload,
-  selectWells,
-  selectWorkflows,
-  undoFileWellAssociation,
-  undoFileWorkflowAssociation,
-};
-
-export default connect(mapStateToProps, dispatchToPropsMap)(AssociateFiles);
+export default connector(AssociateFiles);
