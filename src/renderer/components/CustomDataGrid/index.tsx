@@ -12,11 +12,7 @@ import NoteIcon from "../../components/NoteIcon";
 import { DATE_FORMAT, DATETIME_FORMAT, LIST_DELIMITER_JOIN } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
-import {
-    ExpandedRows,
-    ToggleExpandedUploadJobRowAction,
-    Well,
-} from "../../state/selection/types";
+import { ExpandedRows, ToggleExpandedUploadJobRowAction, Well } from "../../state/selection/types";
 import { AnnotationType, ColumnType, Template, TemplateAnnotation } from "../../state/template/types";
 import { getUploadRowKey, getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
 import {
@@ -30,9 +26,9 @@ import {
 import { onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanFormatter";
-import DatesEditor from "./DatesEditor";
 
 import CellWithContextMenu from "./CellWithContextMenu";
+import DatesEditor from "./DatesEditor";
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import WellsEditor from "./WellsEditor";
