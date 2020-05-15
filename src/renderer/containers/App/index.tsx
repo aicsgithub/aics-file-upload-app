@@ -1,5 +1,6 @@
 import "@aics/aics-react-labkey/dist/styles.css";
 import { message, notification, Tabs } from "antd";
+import * as classNames from "classnames";
 import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -313,7 +314,7 @@ class App extends React.Component<AppProps, {}> {
                             </TabPane>
                             {page !== Page.UploadSummary && (
                                 <TabPane
-                                    className={styles.tabContent}
+                                    className={classNames(styles.uploadTab, styles.tabContent)}
                                     tab={uploadTabName || "Current Upload"}
                                     key={page}
                                     closable={true}
