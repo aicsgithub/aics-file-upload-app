@@ -36,6 +36,7 @@ import WellsEditor from "./WellsEditor";
 const styles = require("./style.pcss");
 
 const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [ColumnType.DATE, ColumnType.DATETIME];
+const DEFAULT_COLUMN_WIDTH = 170;
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
@@ -120,6 +121,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 name: "Wells",
                 resizable: true,
                 sortable: true,
+                width: DEFAULT_COLUMN_WIDTH,
             },
         ];
     }
@@ -131,6 +133,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             key: "workflows",
             name: "Workflows",
             resizable: true,
+            width: DEFAULT_COLUMN_WIDTH,
         },
     ];
 
@@ -320,10 +323,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             // dates are handled completely differently from other data types because right now the best
             // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
             column.editor = formatterNeedsModal ? DatesEditor : Editor;
-            if (type === ColumnType.DATE) {
-                column.width = 170;
-            } else if (type === ColumnType.DATETIME) {
+
+            if (type === ColumnType.DATETIME) {
                 column.width = 250;
+            } else if (type === ColumnType.BOOLEAN) {
+                column.width = 100;
+            } else {
+                column.width = DEFAULT_COLUMN_WIDTH;
             }
 
             // eventually we may want to allow undefined Booleans as well but for now, the default value is False
