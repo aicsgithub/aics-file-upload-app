@@ -29,11 +29,20 @@ interface OwnProps {
     defaultOpen?: boolean;
     getDisplayFromOption?: (option: any) => string;
     lookupAnnotationName: keyof MetadataStateBranch;
-    mode?: "multiple" | "default";
     onBlur?: () => void;
     placeholder?: string;
-    selectSearchValue: (searchValue?: string) => void;
+}
+
+interface DefaultModeProps {
+    mode?: "default";
+    selectSearchValue: (value?: string) => void;
     value?: string;
+}
+
+interface MultipleModeProps {
+    mode: "multiple";
+    selectSearchValue: (value: string[]) => void;
+    value: string[];
 }
 
 // props passed from parent that override State or Dispatch props
@@ -49,7 +58,7 @@ interface DispatchProps {
     retrieveOptions: ActionCreator<GetOptionsForLookupAction>;
 }
 
-type Props = StateProps & OwnProps & OwnPropsOverrides & DispatchProps;
+type Props = StateProps & OwnProps & OwnPropsOverrides & DispatchProps & (DefaultModeProps | MultipleModeProps);
 
 /**
  * This component is a dropdown for labkey tables that are considered to be "Lookups".
@@ -67,13 +76,6 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     public componentDidMount(): void {
         const { isLargeLookup } = this.props;
         if (!isLargeLookup) {
-            this.retrieveOptions();
-        }
-    }
-
-    public componentDidUpdate(prevProps: Props): void {
-        const { isLargeLookup, lookupAnnotationName } = this.props;
-        if (!isLargeLookup && prevProps.lookupAnnotationName !== lookupAnnotationName) {
             this.retrieveOptions();
         }
     }
@@ -111,11 +113,18 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
                 mode={mode}
                 notFoundContent={notFoundContent}
                 onBlur={onBlur}
+                // @ts-ignore: lisah cannot seem to make this component happy even
+                // if I extend its props in this component rather than overriding value and onChange
+                // The issue is related to wanting to support a generic value that can be a string or string[]
+                // and wanting onChange to take in either a string or string[]. I think this is called
+                // "type narrowing in discriminated unions":
+                // https://stackoverflow.com/questions/50870423/discriminated-union-of-generic-type
                 onChange={selectSearchValue}
                 onSearch={this.onSearch}
                 placeholder={placeholder}
                 showSearch={true}
                 suffixIcon={isLargeLookup ? <Icon type="search"/> : undefined}
+                // @ts-ignore
                 value={value}
             >
                 {(options || []).map((option) => {
@@ -171,7 +180,6 @@ function mapStateToProps(state: State, {
     optionsLoadingOverride,
     placeholder,
     retrieveOptionsOverride,
-    selectSearchValue,
 }: OwnProps & OwnPropsOverrides) {
     return {
         className,
@@ -184,7 +192,6 @@ function mapStateToProps(state: State, {
             getRequestsInProgressContains(state, AsyncRequest.GET_OPTIONS_FOR_LOOKUP),
         placeholder,
         retrieveOptionsOverride,
-        selectSearchValue,
     };
 }
 

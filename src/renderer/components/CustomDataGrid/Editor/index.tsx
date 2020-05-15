@@ -33,7 +33,8 @@ interface EditorState {
  */
 class Editor extends editors.EditorBase<EditorProps, EditorState> {
     // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
-    public input = React.createRef<HTMLDivElement>();
+    public divRef = React.createRef<HTMLDivElement>();
+    public input = React.createRef<Input>();
 
     public constructor(props: EditorProps) {
         super(props);
@@ -61,7 +62,6 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     public render() {
         const { column: { dropdownValues, type } } = this.props;
         const { value } = this.state;
-
         let input;
         switch (type) {
             case ColumnType.DROPDOWN:
@@ -89,29 +89,26 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 );
                 break;
             case ColumnType.NUMBER:
-                input = (
+                return (
                         <Input
-                            autoFocus={true}
-                            onChange={this.handleInputOnChange}
-                            style={{ width: "100%" }}
-                            value={this.state.value}
+                            ref={this.input}
+                            defaultValue={this.state.value}
+                            onBlur={this.props.onCommit}
                         />
                     );
-                break;
             case ColumnType.TEXT:
-                input = (
+                return (
                     <Input
-                        autoFocus={true}
-                        onChange={this.handleInputOnChange}
-                        style={{ width: "100%" }}
-                        value={this.state.value}
+                        ref={this.input}
+                        defaultValue={this.state.value}
+                        onBlur={this.props.onCommit}
                     />
                 );
-                break;
             case ColumnType.LOOKUP:
                 input = (
                     <LookupSearch
                         defaultOpen={true}
+                        key={this.props.column.key}
                         mode="multiple"
                         lookupAnnotationName={this.props.column.key}
                         selectSearchValue={this.handleOnChange}
@@ -124,7 +121,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
                 input = "ERROR";
         }
         return (
-            <div ref={this.input}>
+            <div ref={this.divRef}>
                 {input}
             </div>
         );
@@ -132,10 +129,11 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
     // Should return an object of key/value pairs to be merged back to the row
     public getValue = () => {
-        const { value } = this.state;
+        let { value } = this.state;
         const { column: { key, type } } = this.props;
 
         if (type === ColumnType.TEXT || type === ColumnType.NUMBER) {
+            value = this.input.current!.input.value;
             let formattedString = trim(value);
             if (value.endsWith(LIST_DELIMITER_SPLIT)) {
                 formattedString = value.substring(0, value.length - 1);
@@ -147,11 +145,10 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
     }
 
     public getInputNode = (): Element | Text | null => {
-        return this.input.current;
+        const { column: { type } } = this.props;
+        return (type === ColumnType.TEXT || type === ColumnType.NUMBER)  && this.input.current ?
+            this.input.current.input : this.divRef.current;
     }
-
-    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-        this.setState({value: e.target.value})
 
     private handleOnChange = (value: any) => {
         this.setState({ value });

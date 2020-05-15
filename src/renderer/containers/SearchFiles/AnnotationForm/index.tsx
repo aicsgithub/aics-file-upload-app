@@ -61,6 +61,7 @@ const AnnotationForm: React.FunctionComponent<AnnotationFormProps> = ({
                 {(annotationIsLookup) ? (
                     <LookupSearch
                         defaultOpen={true}
+                        key={annotation}
                         lookupAnnotationName={annotation}
                         placeholder="Select search value"
                         selectSearchValue={selectSearchValue}
