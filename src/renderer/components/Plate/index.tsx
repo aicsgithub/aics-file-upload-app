@@ -12,58 +12,52 @@ const DEFAULT_WELL_COLOR = "rgb(226, 228, 227)"; // For empty wells
 const WELL_WIDTH = "60px";
 
 interface PlateProps {
-    className?: string;
-    onWellClick: (cells: AicsGridCell[]) => void;
-    selectedWells: AicsGridCell[];
-    wells: Well[][];
-    wellsWithAssociations: number[];
+  className?: string;
+  onWellClick: (cells: AicsGridCell[]) => void;
+  selectedWells: AicsGridCell[];
+  wells: Well[][];
+  wellsWithAssociations: number[];
 }
 
 /**
  * A readonly view of a plate saved through the Plate UI
  */
 class Plate extends React.Component<PlateProps, {}> {
-    public static getWellDisplayText(cellData: Well): JSX.Element {
-        return <WellComponent well={cellData}/>;
+  public static getWellDisplayText = (cellData: Well): JSX.Element => (
+    <WellComponent well={cellData} />
+  );
+
+  constructor(props: PlateProps) {
+    super(props);
+  }
+
+  public wellColorSelector = (cellData: Well): string => {
+    if (includes(this.props.wellsWithAssociations, cellData.wellId)) {
+      return ASSOCIATED_WELL_COLOR;
     }
 
-    constructor(props: PlateProps) {
-        super(props);
-        this.wellColorSelector = this.wellColorSelector.bind(this);
-    }
+    return cellData.modified ? MODIFIED_WELL_COLOR : DEFAULT_WELL_COLOR;
+  };
 
-    public wellColorSelector(cellData: Well): string {
-        if (includes(this.props.wellsWithAssociations, cellData.wellId)) {
-            return ASSOCIATED_WELL_COLOR;
-        }
+  public render() {
+    const { className, selectedWells, wells, onWellClick } = this.props;
 
-        return cellData.modified ? MODIFIED_WELL_COLOR : DEFAULT_WELL_COLOR;
-    }
-
-    public render() {
-        const {
-            className,
-            selectedWells,
-            wells,
-            onWellClick,
-        } = this.props;
-
-        return (
-            <div className={className}>
-                <AicsGrid
-                    selectMode="multi"
-                    cellHeight={WELL_WIDTH}
-                    cellWidth={WELL_WIDTH}
-                    fontSize="14px"
-                    selectedCells={selectedWells}
-                    displayBackground={this.wellColorSelector}
-                    displayText={Plate.getWellDisplayText}
-                    cells={wells}
-                    onSelectedCellsChanged={onWellClick}
-                />
-            </div>
-        );
-    }
+    return (
+      <div className={className}>
+        <AicsGrid
+          selectMode="multi"
+          cellHeight={WELL_WIDTH}
+          cellWidth={WELL_WIDTH}
+          fontSize="14px"
+          selectedCells={selectedWells}
+          displayBackground={this.wellColorSelector}
+          displayText={Plate.getWellDisplayText}
+          cells={wells}
+          onSelectedCellsChanged={onWellClick}
+        />
+      </div>
+    );
+  }
 }
 
 export default Plate;

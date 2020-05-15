@@ -44,6 +44,12 @@ the upload app to copy files to this directory on the remote.
 ./gradlew lint
 ```
 
+## Prettier
+This repository is configured to automatically format code with Prettier upon
+committing it. If you would like configure you IDE or editor to run Prettier
+before committing, you can find instructions
+[here](https://prettier.io/docs/en/editors.html).
+
 ## Packaging and Publishing
 
 We are packaging the app for Windows, Linux, and Mac platforms using electron-builder on Travis CI.

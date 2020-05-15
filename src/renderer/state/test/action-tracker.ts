@@ -6,12 +6,12 @@ import { AnyAction } from "redux";
  * Documented below.
  */
 export interface Actions {
-    list: AnyAction[];
-    includes(search: AnyAction): boolean;
-    includesInOrder(search: AnyAction[]): boolean;
-    includesMatch(search: AnyAction): boolean;
-    includesMatchesInOrder(search: AnyAction[]): boolean;
-    reset(): void;
+  list: AnyAction[];
+  includes(search: AnyAction): boolean;
+  includesInOrder(search: AnyAction[]): boolean;
+  includesMatch(search: AnyAction): boolean;
+  includesMatchesInOrder(search: AnyAction[]): boolean;
+  reset(): void;
 }
 
 /**
@@ -43,123 +43,125 @@ export interface Actions {
  *
  */
 export default class ActionTracker {
-    private _trackedActions: AnyAction[] = [];
+  private _trackedActions: AnyAction[] = [];
 
-    // allow anonymous class
-    // tslint:disable-next-line
-    private _actions: Actions = new (class {
-        constructor(private superThis: ActionTracker) {
-            this.superThis = superThis;
-        }
-
-        /**
-         * Get list of actions that have passed through Redux middleware stack.
-         */
-        public get list() {
-            return [...this.superThis._trackedActions];
-        }
-
-        /**
-         * Answers the question: "Has this action been put in the queue to run against the Redux store?"
-         *
-         * Example:
-         * // given actions.list === [ { type: "FOO", payload: 1234 } ]
-         * > expect(actions.includes([{ type: "FOO", payload: 1234 }]).to.equal(true);
-         */
-        public includes(search: AnyAction): boolean {
-            return this._includes(search, isEqual);
-        }
-
-        /**
-         * Answers the question: "Have these actions, in the provided order, been put in the queue to run against the
-         * Redux store?"
-         *
-         * Example:
-         * // given actions.list === [ { type: "FOO", payload: 1234 }, { type: "BAR", payload: ["blah"] } ]
-         * > expect(actions.includesInOrder([{ type: "FOO", payload: 1234 }, { type: "BAR", payload: ["blah"] }])
-         * .to.equal(true);
-         */
-        public includesInOrder(search: AnyAction[]): boolean {
-            return this._includesInOrder(search, isEqual);
-        }
-
-        /**
-         * Answers the question: "Has an action that _looks like this_ been put in the queue to run against the Redux
-         * store?"
-         *
-         * Example:
-         * // given actions.list === [ { type: "FOO", payload: [ [Object], [Object], [Object] ] } ]
-         * > expect(actions.includesMatch([ { type: "FOO" } ]).to.equal(true);
-         */
-        public includesMatch(search: AnyAction): boolean {
-            return this._includes(search, isMatch);
-        }
-
-        /**
-         * Answers the question: "Have actions that _look like these_, in the provided order, been put in the queue to
-         * run against the Redux store?"
-         *
-         * Example:
-         * // given actions.list === [ { type: "FOO", payload: 1234 }, { type: "BAR", payload: ["blah"] } ]
-         * > expect(actions.includesMatchesInOrder([{ type: "FOO" }, { type: "BAR" }]).to.equal(true);
-         */
-        public includesMatchesInOrder(search: AnyAction[]): boolean {
-            return this._includesInOrder(search, isMatch);
-        }
-
-        /**
-         * Reset cache of actions that have passed through Redux middleware stack.
-         */
-        public reset(): void {
-            this.superThis._trackedActions = [];
-        }
-
-        private _includes(
-            search: AnyAction,
-            comparator: (object: any, source: any) => boolean
-        ): boolean {
-            return this.superThis._trackedActions.some((action: AnyAction) =>
-                comparator(action, search)
-            );
-        }
-
-        private _includesInOrder(
-            search: AnyAction[],
-            comparator: (object: any, source: any) => boolean
-        ): boolean {
-            const indexOfFirstToFind = this.superThis._trackedActions.findIndex(
-                (action: AnyAction) => comparator(action, search[0])
-            );
-            const indexOfLastToFind = indexOfFirstToFind + search.length - 1;
-
-            // first action in search list is not found or tracked actions list is too small to account for all actions
-            // in search list
-            if (
-                indexOfFirstToFind === -1 ||
-                indexOfLastToFind > this.superThis._trackedActions.length - 1
-            ) {
-                return false;
-            }
-
-            // starting from `indexOfFirstToFind` and ending at `indexOfLastToFind`, assert that each tracked action
-            // has a corresponding action in the search list at the same index position
-            return this.superThis._trackedActions
-                .slice(indexOfFirstToFind, indexOfLastToFind + 1) // slice is exclusive of end index
-                .every((action: AnyAction, index: number) => comparator(action, search[index]));
-        }
-    })(this);
-
-    /**
-     * Expose internal class intended to be passed along to test code.
-     */
-    public get actions(): Actions {
-        return this._actions;
+  // allow anonymous class
+  // tslint:disable-next-line
+  private _actions: Actions = new (class {
+    constructor(private superThis: ActionTracker) {
+      this.superThis = superThis;
     }
 
     /**
-     * Track a Redux action. Intended to be called only by Redux middleware.
+     * Get list of actions that have passed through Redux middleware stack.
      */
-    public track(...actions: AnyAction[]): void {
-        this._trackedActions.push(...actions);
+    public get list() {
+      return [...this.superThis._trackedActions];
     }
+
+    /**
+     * Answers the question: "Has this action been put in the queue to run against the Redux store?"
+     *
+     * Example:
+     * // given actions.list === [ { type: "FOO", payload: 1234 } ]
+     * > expect(actions.includes([{ type: "FOO", payload: 1234 }]).to.equal(true);
+     */
+    public includes(search: AnyAction): boolean {
+      return this._includes(search, isEqual);
+    }
+
+    /**
+     * Answers the question: "Have these actions, in the provided order, been put in the queue to run against the
+     * Redux store?"
+     *
+     * Example:
+     * // given actions.list === [ { type: "FOO", payload: 1234 }, { type: "BAR", payload: ["blah"] } ]
+     * > expect(actions.includesInOrder([{ type: "FOO", payload: 1234 }, { type: "BAR", payload: ["blah"] }])
+     * .to.equal(true);
+     */
+    public includesInOrder(search: AnyAction[]): boolean {
+      return this._includesInOrder(search, isEqual);
+    }
+
+    /**
+     * Answers the question: "Has an action that _looks like this_ been put in the queue to run against the Redux
+     * store?"
+     *
+     * Example:
+     * // given actions.list === [ { type: "FOO", payload: [ [Object], [Object], [Object] ] } ]
+     * > expect(actions.includesMatch([ { type: "FOO" } ]).to.equal(true);
+     */
+    public includesMatch(search: AnyAction): boolean {
+      return this._includes(search, isMatch);
+    }
+
+    /**
+     * Answers the question: "Have actions that _look like these_, in the provided order, been put in the queue to
+     * run against the Redux store?"
+     *
+     * Example:
+     * // given actions.list === [ { type: "FOO", payload: 1234 }, { type: "BAR", payload: ["blah"] } ]
+     * > expect(actions.includesMatchesInOrder([{ type: "FOO" }, { type: "BAR" }]).to.equal(true);
+     */
+    public includesMatchesInOrder(search: AnyAction[]): boolean {
+      return this._includesInOrder(search, isMatch);
+    }
+
+    /**
+     * Reset cache of actions that have passed through Redux middleware stack.
+     */
+    public reset(): void {
+      this.superThis._trackedActions = [];
+    }
+
+    private _includes(
+      search: AnyAction,
+      comparator: (object: any, source: any) => boolean
+    ): boolean {
+      return this.superThis._trackedActions.some((action: AnyAction) =>
+        comparator(action, search)
+      );
+    }
+
+    private _includesInOrder(
+      search: AnyAction[],
+      comparator: (object: any, source: any) => boolean
+    ): boolean {
+      const indexOfFirstToFind = this.superThis._trackedActions.findIndex(
+        (action: AnyAction) => comparator(action, search[0])
+      );
+      const indexOfLastToFind = indexOfFirstToFind + search.length - 1;
+
+      // first action in search list is not found or tracked actions list is too small to account for all actions
+      // in search list
+      if (
+        indexOfFirstToFind === -1 ||
+        indexOfLastToFind > this.superThis._trackedActions.length - 1
+      ) {
+        return false;
+      }
+
+      // starting from `indexOfFirstToFind` and ending at `indexOfLastToFind`, assert that each tracked action
+      // has a corresponding action in the search list at the same index position
+      return this.superThis._trackedActions
+        .slice(indexOfFirstToFind, indexOfLastToFind + 1) // slice is exclusive of end index
+        .every((action: AnyAction, index: number) =>
+          comparator(action, search[index])
+        );
+    }
+  })(this);
+
+  /**
+   * Expose internal class intended to be passed along to test code.
+   */
+  public get actions(): Actions {
+    return this._actions;
+  }
+
+  /**
+   * Track a Redux action. Intended to be called only by Redux middleware.
+   */
+  public track(...actions: AnyAction[]): void {
+    this._trackedActions.push(...actions);
+  }
 }

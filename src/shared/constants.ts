@@ -31,9 +31,11 @@ export const OPEN_OPEN_TEMPLATE_MODAL = "OPEN_OPEN_TEMPLATE_MODAL";
 export const OPEN_SETTINGS_EDITOR = "OPEN_SETTINGS_MODAL";
 
 // User settings
-export const LIMS_HOST = process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
+export const LIMS_HOST =
+  process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
 export const LIMS_PORT = process.env.ELECTRON_WEBPACK_APP_LIMS_PORT || "8080";
-export const LIMS_PROTOCOL = process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "http";
+export const LIMS_PROTOCOL =
+  process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "http";
 
 // User setting storage
 export const USER_SETTINGS_KEY = "userSettings";
