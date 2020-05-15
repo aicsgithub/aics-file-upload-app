@@ -21,7 +21,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  font-size: 18px;
+  font-size: 14px;
   font-family: 'Nunito', sans-serif;
   overflow: hidden;
 }
@@ -77,3 +77,10 @@
   max-height: calc(24px * 5);
   overflow: hidden;
 }
+
+@media (min-width: var(--large-device-width)) {
+  .container {
+    font-size: 18px;
+  }
+}
+
