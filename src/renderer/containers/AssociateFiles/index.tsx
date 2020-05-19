@@ -28,8 +28,8 @@ import {
   getCanUndoUpload,
 } from "../../state/upload/selectors";
 import {
-  getMutualFilesForWells,
-  getMutualFilesForWorkflows,
+  getMutualUploadsForWells,
+  getMutualUploadsForWorkflows,
   getWellsWithAssociations,
   getWorkflowsWithAssociations,
 } from "./selectors";
@@ -39,8 +39,8 @@ function mapStateToProps(state: State) {
     associateWorkflows: getAssociateByWorkflow(state),
     canRedo: getCanRedoUpload(state),
     canUndo: getCanUndoUpload(state),
-    mutualFilesForWells: getMutualFilesForWells(state),
-    mutualFilesForWorkflows: getMutualFilesForWorkflows(state),
+    mutualUploadsForWells: getMutualUploadsForWells(state),
+    mutualUploadsForWorkflows: getMutualUploadsForWorkflows(state),
     selectedFiles: getSelectedFiles(state),
     selectedWellLabels: getSelectedWellLabels(state),
     selectedWells: getSelectedWells(state),
@@ -81,7 +81,7 @@ class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
           canRedo={this.props.canRedo}
           canUndo={this.props.canUndo}
           className={this.props.className}
-          mutualFiles={this.props.mutualFilesForWorkflows}
+          mutualUploads={this.props.mutualUploadsForWorkflows}
           goBack={this.props.goBack}
           goForward={this.props.goForward}
           redo={this.redo}
@@ -101,7 +101,7 @@ class AssociateFiles extends React.Component<AssociateFilesProps, {}> {
         canRedo={this.props.canRedo}
         canUndo={this.props.canUndo}
         className={this.props.className}
-        mutualFilesForWells={this.props.mutualFilesForWells}
+        mutualUploadsForWells={this.props.mutualUploadsForWells}
         goBack={this.props.goBack}
         goForward={this.props.goForward}
         redo={this.redo}

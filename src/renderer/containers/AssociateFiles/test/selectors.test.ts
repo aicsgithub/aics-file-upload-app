@@ -9,14 +9,14 @@ import {
   mockWells,
 } from "../../../state/test/mocks";
 import {
-  getMutualFilesForWells,
-  getMutualFilesForWorkflows,
+  getMutualUploadsForWells,
+  getMutualUploadsForWorkflows,
 } from "../selectors";
 
 describe("AssociateFiles selectors", () => {
-  describe("getMutualFilesForWells", () => {
-    it("returns file paths that are shared by the selected wells", () => {
-      const arr = getMutualFilesForWells({
+  describe("getMutualUploadsForWells", () => {
+    it("returns uploads that are shared by the selected wells", () => {
+      const result = getMutualUploadsForWells({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
@@ -24,12 +24,12 @@ describe("AssociateFiles selectors", () => {
           wells: mockWells,
         }),
       });
-      expect(arr[0]).to.equal("/path/to/file3");
-      expect(arr.length).to.equal(1);
+      expect(result[0].file).to.equal("/path/to/file3");
+      expect(result.length).to.equal(1);
     });
 
     it("returns an empty array if no selected wells", () => {
-      const arr = getMutualFilesForWells({
+      const arr = getMutualUploadsForWells({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
@@ -39,8 +39,8 @@ describe("AssociateFiles selectors", () => {
       expect(arr).to.be.empty;
     });
 
-    it("returns an empty array if no mutual files", () => {
-      const arr = getMutualFilesForWells({
+    it("returns an empty array if no mutual uploads", () => {
+      const arr = getMutualUploadsForWells({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
@@ -50,9 +50,22 @@ describe("AssociateFiles selectors", () => {
       expect(arr).to.be.empty;
     });
   });
-  describe("getMutualFilesForWorkflows", () => {
-    it("returns an empty array if no mutual files", () => {
-      const arr = getMutualFilesForWorkflows({
+  describe("getMutualUploadsForWorkflows", () => {
+    it("returns uploads that are shared by the selected workflows", () => {
+      const result = getMutualUploadsForWorkflows({
+        ...mockState,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          selectedWorkflows: mockSelectedWorkflows.slice(0, 1),
+        }),
+      });
+      expect(result[0].file).to.equal("/path/to/file1");
+      expect(result[1].file).to.equal("/path/to/file2");
+      expect(result.length).to.equal(2);
+    });
+
+    it("returns an empty array if no mutual uploads", () => {
+      const arr = getMutualUploadsForWorkflows({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
@@ -63,7 +76,7 @@ describe("AssociateFiles selectors", () => {
     });
 
     it("returns an empty array if no selected workflows", () => {
-      const arr = getMutualFilesForWorkflows({
+      const arr = getMutualUploadsForWorkflows({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,

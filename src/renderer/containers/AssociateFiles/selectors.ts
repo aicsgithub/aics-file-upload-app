@@ -1,4 +1,4 @@
-import { difference, flatMap, isEmpty, reduce } from "lodash";
+import { difference, flatMap, isEmpty } from "lodash";
 import { createSelector } from "reselect";
 
 import {
@@ -23,36 +23,24 @@ export const getWorkflowsWithAssociations = createSelector(
   }
 );
 
-export const getMutualFilesForWells = createSelector(
+export const getMutualUploadsForWells = createSelector(
   [getSelectedWellsWithData, getUpload],
-  (selectedWellsData: Well[], upload: UploadStateBranch): string[] => {
+  (selectedWellsData: Well[], upload: UploadStateBranch): UploadMetadata[] => {
     if (isEmpty(selectedWellsData)) {
       return [];
     }
 
     const selectedWellIds = selectedWellsData.map((well: Well) => well.wellId);
 
-    return reduce(
-      upload,
-      (files: string[], metadata: UploadMetadata) => {
-        const filepath = metadata.file;
-        const allWellsFound = isEmpty(
-          difference(selectedWellIds, metadata.wellIds)
-        );
-        const accum = [...files];
-        if (allWellsFound) {
-          accum.push(filepath);
-        }
-        return accum;
-      },
-      []
+    return Object.values(upload).filter((metadata) =>
+      isEmpty(difference(selectedWellIds, metadata.wellIds))
     );
   }
 );
 
-export const getMutualFilesForWorkflows = createSelector(
+export const getMutualUploadsForWorkflows = createSelector(
   [getSelectedWorkflows, getUpload],
-  (workflows: Workflow[], upload: UploadStateBranch): string[] => {
+  (workflows: Workflow[], upload: UploadStateBranch): UploadMetadata[] => {
     if (isEmpty(workflows)) {
       return [];
     }
@@ -61,22 +49,10 @@ export const getMutualFilesForWorkflows = createSelector(
       (workflow: Workflow) => workflow.name
     );
 
-    return reduce(
-      upload,
-      (files: string[], metadata: UploadMetadata) => {
-        if (!metadata.workflows) {
-          return files;
-        }
-        const allWorkflowsFound = isEmpty(
-          difference(selectedWorkflowNames, metadata.workflows)
-        );
-        const accum = [...files];
-        if (allWorkflowsFound) {
-          accum.push(metadata.file);
-        }
-        return accum;
-      },
-      []
+    return Object.values(upload).filter(
+      (metadata) =>
+        metadata.workflows &&
+        isEmpty(difference(selectedWorkflowNames, metadata.workflows))
     );
   }
 );
