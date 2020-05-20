@@ -1,8 +1,7 @@
 import { Card } from "antd";
 import classNames from "classnames";
 import * as React from "react";
-import LookupSearch from "../../../containers/LookupSearch";
-import { BarcodeSelectorOption } from "../../../containers/SelectUploadType";
+import BarcodeSearch from "../../../containers/BarcodeSearch";
 
 import LabeledInput from "../../LabeledInput";
 import SelectedForm from "../SelectedForm";
@@ -11,16 +10,13 @@ const styles = require("./styles.pcss");
 
 interface Props {
   barcode?: string;
-  barcodeSearchResults: BarcodeSelectorOption[];
   isSelected: boolean;
-  loadingBarcodes: boolean;
-  onBarcodeChange: (option?: string) => void;
-  onBarcodeInput: (input?: string) => void;
+  onBarcodeChange: (
+    imagingSessionIds: Array<number | null>,
+    option?: string
+  ) => void;
   onCancel: () => void;
 }
-
-const getDisplayFromPlateResult = (result: BarcodeSelectorOption) =>
-  result.barcode;
 
 /*
     This card is for showing and gathering relevant information for the "Enter Barcode" path to uploading.
@@ -28,11 +24,8 @@ const getDisplayFromPlateResult = (result: BarcodeSelectorOption) =>
  */
 const EnterBarcodeCard: React.FunctionComponent<Props> = ({
   barcode,
-  barcodeSearchResults,
   isSelected,
-  loadingBarcodes,
   onBarcodeChange,
-  onBarcodeInput,
   onCancel,
 }: Props) => {
   return (
@@ -52,18 +45,7 @@ const EnterBarcodeCard: React.FunctionComponent<Props> = ({
         </>
       ) : (
         <LabeledInput label="Plate Barcode">
-          <LookupSearch
-            className={styles.selector}
-            getDisplayFromOption={getDisplayFromPlateResult}
-            lookupAnnotationName={"barcodeSearchResults"}
-            mode="default"
-            optionsLoadingOverride={loadingBarcodes}
-            optionsOverride={barcodeSearchResults}
-            placeholder="Type to search"
-            retrieveOptionsOverride={onBarcodeInput}
-            selectSearchValue={onBarcodeChange}
-            value={barcode}
-          />
+          <BarcodeSearch onBarcodeChange={onBarcodeChange} barcode={barcode} />
         </LabeledInput>
       )}
     </Card>

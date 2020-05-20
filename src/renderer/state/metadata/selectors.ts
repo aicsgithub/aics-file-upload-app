@@ -5,8 +5,8 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { BarcodeSelectorOption } from "../../containers/BarcodeSearch";
 
-import { BarcodeSelectorOption } from "../../containers/SelectUploadType";
 import { titleCase } from "../../util";
 import { LabkeyPlateResponse } from "../../util/labkey-client/types";
 

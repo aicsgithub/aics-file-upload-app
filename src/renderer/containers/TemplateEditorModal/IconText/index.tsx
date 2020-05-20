@@ -1,4 +1,5 @@
 import { Icon } from "antd";
+import * as classNames from "classnames";
 import * as React from "react";
 
 const styles = require("./styles.pcss");
@@ -8,6 +9,7 @@ interface Props {
   icon: string;
   onClick?: () => void;
   text: string;
+  textClassName?: string;
 }
 
 const IconText: React.FunctionComponent<Props> = ({
@@ -15,10 +17,11 @@ const IconText: React.FunctionComponent<Props> = ({
   icon,
   onClick,
   text,
+  textClassName,
 }: Props) => (
-  <div onClick={onClick} className={className}>
-    <Icon type={icon} />
-    <span className={styles.text}>{text}</span>
+  <div onClick={onClick} className={classNames(className, styles.container)}>
+    <Icon type={icon} className={styles.icon} />
+    <span className={classNames(styles.text, textClassName)}>{text}</span>
   </div>
 );
 

@@ -1,5 +1,4 @@
-import { Alert, Button, Spin } from "antd";
-import classNames from "classnames";
+import { Alert, Spin } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -7,17 +6,14 @@ import { ActionCreator } from "redux";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
+import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
 import {
   getRequestsInProgressContains,
   getUploadError,
 } from "../../state/feedback/selectors";
-import {
-  AsyncRequest,
-  OpenTemplateEditorAction,
-  SetAlertAction,
-} from "../../state/feedback/types";
+import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import { getUploadInProgress } from "../../state/job/selectors";
 import {
   getAnnotationTypes,
@@ -29,7 +25,7 @@ import { Channel } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction, Page } from "../../state/route/types";
 import {
-  openTemplateEditor,
+  selectBarcode,
   toggleExpandedUploadJobRow,
 } from "../../state/selection/actions";
 import {
@@ -79,6 +75,7 @@ import {
   UploadJobTableRow,
 } from "../../state/upload/types";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
+import BarcodeSearch from "../BarcodeSearch";
 
 const styles = require("./style.pcss");
 
@@ -98,9 +95,9 @@ interface Props {
   initiateUpload: ActionCreator<InitiateUploadAction>;
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
-  openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
+  selectBarcode: typeof selectBarcode;
   selectedBarcode?: string;
   setAlert: ActionCreator<SetAlertAction>;
   showUploadHint: boolean;
@@ -206,7 +203,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             type="info"
           />
         )}
-        {!loading && appliedTemplate && this.renderPlateInfo()}
         {!loading && appliedTemplate && (
           <CustomDataGrid
             allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
@@ -233,61 +229,38 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   }
 
-  private renderPlateInfo = () => {
-    const { selectedBarcode } = this.props;
-    if (!selectedBarcode) {
-      return null;
-    }
-
-    return (
-      <div className={styles.plateInfo}>
-        <div>Plate Barcode: {selectedBarcode}</div>
-      </div>
-    );
-  };
-
   private renderButtons = () => {
-    const { appliedTemplate } = this.props;
+    const { appliedTemplate, selectedBarcode } = this.props;
 
     return (
-      <div className={styles.buttonRow}>
-        <div className={styles.schemaSelector}>
-          <p
-            className={styles.schemaSelectorLabel}
-          >{`Select -or- Create ${SCHEMA_SYNONYM}`}</p>
+      <div className={styles.selectors}>
+        <LabeledInput
+          className={styles.schemaSelector}
+          label={`Select a ${SCHEMA_SYNONYM}`}
+        >
           <TemplateSearch
+            allowCreate={true}
             className={styles.schemaSelector}
             value={appliedTemplate ? appliedTemplate.templateId : undefined}
             onSelect={this.props.applyTemplate}
           />
-        </div>
-        <Button
-          icon="plus-circle"
-          className={classNames(
-            styles.templateButton,
-            styles.createTemplateButton
-          )}
-          onClick={this.openTemplateEditor}
-        >
-          Create {SCHEMA_SYNONYM}
-        </Button>
-        <Button
-          icon="edit"
-          disabled={!appliedTemplate}
-          className={styles.templateButton}
-          onClick={this.openTemplateEditorWithId(
-            appliedTemplate && appliedTemplate.templateId
-          )}
-        >
-          Edit {SCHEMA_SYNONYM}
-        </Button>
+        </LabeledInput>
+        {selectedBarcode && (
+          <LabeledInput label="Plate Barcode" className={styles.barcode}>
+            <BarcodeSearch
+              barcode={selectedBarcode}
+              disabled={true} // TODO remove in FUA-5
+              onBarcodeChange={(imagingSessionIds, barcode) => {
+                if (barcode) {
+                  this.props.selectBarcode(barcode, imagingSessionIds);
+                }
+              }}
+            />
+          </LabeledInput>
+        )}
       </div>
     );
   };
-
-  private openTemplateEditor = () => this.props.openSchemaCreator();
-  private openTemplateEditorWithId = (id: number | undefined) => () =>
-    this.props.openSchemaCreator(id);
 
   private upload = (): void => {
     this.props.initiateUpload();
@@ -333,8 +306,8 @@ const dispatchToPropsMap = {
   goBack,
   initiateUpload,
   jumpToUpload,
-  openSchemaCreator: openTemplateEditor,
   removeUploads,
+  selectBarcode,
   setAlert,
   toggleRowExpanded: toggleExpandedUploadJobRow,
   updateSettings,

@@ -47,13 +47,9 @@ import {
   SelectWorkflowPathAction,
 } from "../../state/selection/types";
 import { State } from "../../state/types";
+import { BarcodeSelectorOption } from "../BarcodeSearch";
 
 const styles = require("./style.pcss");
-
-export interface BarcodeSelectorOption {
-  barcode: string;
-  imagingSessionIds: Array<number | null>;
-}
 
 // The different upload paths a user may take
 enum Path {
@@ -115,13 +111,7 @@ class SelectUploadType extends React.Component<
   }
 
   public render() {
-    const {
-      barcodePrefixes,
-      barcodeSearchResults,
-      className,
-      loadingBarcodes,
-      saveInProgress,
-    } = this.props;
+    const { barcodePrefixes, className, saveInProgress } = this.props;
     const { barcode, barcodePrefixId } = this.state;
     return (
       <FormPage
@@ -138,10 +128,7 @@ class SelectUploadType extends React.Component<
           <Col xl={8} lg={12}>
             <EnterBarcodeCard
               barcode={barcode}
-              barcodeSearchResults={barcodeSearchResults}
-              loadingBarcodes={loadingBarcodes}
               onBarcodeChange={this.onBarcodeChange}
-              onBarcodeInput={this.props.getBarcodeSearchResults}
               isSelected={this.state.path === Path.EnterBarcode}
               onCancel={this.resetAndReplaceState}
             />
@@ -167,14 +154,12 @@ class SelectUploadType extends React.Component<
     );
   }
 
-  private onBarcodeChange = (value?: string): void => {
+  private onBarcodeChange = (
+    imagingSessionIds: Array<number | null>,
+    value?: string
+  ): void => {
     let replacementState;
     if (value) {
-      const matchingResult = this.props.barcodeSearchResults.filter(
-        (r: BarcodeSelectorOption) => r.barcode === value
-      );
-      const imagingSessionIds =
-        matchingResult.length > 0 ? matchingResult[0].imagingSessionIds : [];
       replacementState = {
         barcode: value,
         imagingSessionIds,

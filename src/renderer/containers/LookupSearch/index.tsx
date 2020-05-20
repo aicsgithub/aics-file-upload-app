@@ -30,6 +30,7 @@ interface StateProps {
 interface OwnProps {
   className?: string;
   defaultOpen?: boolean;
+  disabled?: boolean;
   getDisplayFromOption?: (option: any) => string;
   lookupAnnotationName: keyof MetadataStateBranch;
   onBlur?: () => void;
@@ -93,6 +94,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     const {
       className,
       defaultOpen,
+      disabled,
       isLargeLookup,
       lookupAnnotationName,
       mode,
@@ -122,6 +124,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
         )}
         defaultActiveFirstOption={false}
         defaultOpen={defaultOpen}
+        disabled={disabled}
         loading={optionsLoading}
         mode={mode}
         notFoundContent={notFoundContent}
@@ -196,6 +199,7 @@ function mapStateToProps(
     className,
     clearOptionsOverride,
     defaultOpen,
+    disabled,
     lookupAnnotationName,
     optionsOverride,
     optionsLoadingOverride,
@@ -207,6 +211,7 @@ function mapStateToProps(
     className,
     clearOptionsOverride,
     defaultOpen,
+    disabled,
     isLargeLookup: LARGE_LOOKUPS.includes(
       `${lookupAnnotationName}`.toLowerCase()
     ),
