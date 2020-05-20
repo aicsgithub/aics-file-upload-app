@@ -178,30 +178,26 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     return (
       <>
         <div className={styles.buttonRow}>
-          <div className={styles.deleteButton}>
-            <Button
-              onClick={this.removeSelectedRows}
-              disabled={isEmpty(selectedRows)}
-            >
-              Remove Selected
-            </Button>
-          </div>
-          <div className={styles.undoRedoButtons}>
-            <Button
-              className={styles.undoButton}
-              onClick={undo}
-              disabled={!canUndo}
-            >
-              Undo
-            </Button>
-            <Button
-              className={styles.redoButton}
-              onClick={redo}
-              disabled={!canRedo}
-            >
-              Redo
-            </Button>
-          </div>
+          <Button
+            className={styles.undoButton}
+            onClick={undo}
+            disabled={!canUndo}
+            icon="undo"
+            type="link"
+          />
+          <Button
+            className={styles.redoButton}
+            onClick={redo}
+            disabled={!canRedo}
+            icon="redo"
+            type="link"
+          />
+          <Button
+            onClick={this.removeSelectedRows}
+            disabled={isEmpty(selectedRows)}
+            icon="delete"
+            type="link"
+          />
         </div>
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (
@@ -240,7 +236,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private renderFormat = (
     row: UploadJobTableRow,
     label: string,
-    value: any,
+    value: any = [],
     childElement?: React.ReactNode | React.ReactNodeArray,
     required?: boolean,
     className?: string,
@@ -257,6 +253,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       error = `${label} is required`;
     } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
       error = validationErrors[row.key][label];
+    }
+
+    if (!value.join) {
+      console.log(label, value, typeof value, row);
+      console.log(row);
     }
 
     return (
