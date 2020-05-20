@@ -19,9 +19,17 @@ class WellComponent extends React.Component<WellProps, {}> {
 
   public render() {
     const { className } = this.props;
-
+    let title = "";
+    const { well } = this.props;
+    const cellPopulation: CellPopulation | undefined = first(
+        well.cellPopulations
+    );
+    if (cellPopulation?.wellCellPopulation)  {
+      const { wellCellPopulation: { cellLineName, clone, passage} } = cellPopulation;
+        title = `${cellLineName || ""}, Clone ${clone || "N/A"}, Passage ${passage || "N/A"}`;
+    }
     return (
-      <div className={classNames(styles.container, className)}>
+      <div className={classNames(styles.container, className)} title={title}>
         {this.getWellText()}
       </div>
     );
