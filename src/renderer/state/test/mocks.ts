@@ -208,6 +208,7 @@ export const mockWellUpload: UploadStateBranch = {
     shouldBeInArchive: true,
     shouldBeInLocal: true,
     wellIds: [1],
+    workflows: ["name1"],
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
     barcode: "1235",
@@ -216,6 +217,7 @@ export const mockWellUpload: UploadStateBranch = {
     shouldBeInArchive: false,
     shouldBeInLocal: true,
     wellIds: [2],
+    workflows: ["name1", "name2"],
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
     barcode: "1236",
@@ -224,6 +226,7 @@ export const mockWellUpload: UploadStateBranch = {
     shouldBeInArchive: true,
     shouldBeInLocal: false,
     wellIds: [1, 2, 3],
+    workflows: ["name3"],
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
     barcode: "1236",
