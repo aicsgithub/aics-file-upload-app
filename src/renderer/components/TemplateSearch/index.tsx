@@ -58,11 +58,11 @@ function TemplateSearch(props: TemplateSearchProps) {
           {menu}
           {allowCreate && (
             <>
-              <Divider style={{ margin: "4px 0" }} />
+              <Divider style={styles.divider} />
               <div
                 className={styles.createTemplate}
                 /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
-                 *  we can change this to onClick after upgrading antd to latest in FUA-6
+                 * I am hoping that we can change this to onClick after we upgrade antd to the latest version in FUA-6
                  * */
                 onMouseDown={() => {
                   setOpen(false);
