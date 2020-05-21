@@ -69,7 +69,7 @@ const BarcodeSearch: React.FunctionComponent<BarcodeSearchProps> = ({
     className={className}
     disabled={disabled}
     getDisplayFromOption={(result: BarcodeSelectorOption) => result.barcode}
-    lookupAnnotationName={"barcodeSearchResults"}
+    lookupAnnotationName="barcodeSearchResults"
     mode="default"
     optionsLoadingOverride={loading}
     optionsOverride={barcodeSearchResults}

@@ -9,7 +9,7 @@ import WellComponent from "../Well";
 const ASSOCIATED_WELL_COLOR = "rgb(156, 204, 132)"; // For wells that are associated with at least one file
 const MODIFIED_WELL_COLOR = "rgb(221, 216, 241)"; // For non-empty wells that have not been associated with a file
 const DEFAULT_WELL_COLOR = "rgb(226, 228, 227)"; // For empty wells
-const WELL_WIDTH = "50px";
+const WELL_WIDTH = "60px";
 
 interface PlateProps {
   className?: string;
