@@ -20,12 +20,14 @@ import {
   UploadFile,
 } from "../../state/selection/types";
 import {
+  undoFileWellAssociation,
+  undoFileWorkflowAssociation,
+} from "../../state/upload/actions";
+import {
   FileTag,
   FileTagType,
   RemoveFileFromArchiveAction,
   RemoveFileFromIsilonAction,
-  UndoFileWellAssociationAction,
-  UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
 import DragAndDrop from "../DragAndDrop";
 import Resizable from "../Resizable";
@@ -52,8 +54,8 @@ interface FolderTreeProps {
   selectedKeys: string[];
   setAlert: ActionCreator<SetAlertAction>;
   toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
-  undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
-  undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
+  undoFileWellAssociation: typeof undoFileWellAssociation;
+  undoFileWorkflowAssociation: typeof undoFileWorkflowAssociation;
 }
 
 interface FolderTreeState {
@@ -261,24 +263,20 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
   };
 
   private removeTag = (tag: FileTag, fullpath: string) => (): void => {
-    switch (tag.type) {
-      case FileTagType.WELL:
-        this.props.undoFileWellAssociation({ file: fullpath }, true, [
-          tag.wellId,
-        ]);
-        break;
-      case FileTagType.WORKFLOW:
-        this.props.undoFileWorkflowAssociation({ file: fullpath }, true, [
-          tag.workflow,
-        ]);
-        break;
-      case FileTagType.STORAGE:
-        if (tag.title.toLowerCase() === "archive") {
-          this.props.removeFileFromArchive(fullpath);
-        } else {
-          this.props.removeFileFromIsilon(fullpath);
-        }
-        break;
+    // If the tag type is well or workflow, `wellId` or `workflow` should be
+    // present. We check below to make sure.
+    if (tag.type == FileTagType.WELL && tag.wellId) {
+      this.props.undoFileWellAssociation({ file: fullpath }, true, [
+        tag.wellId,
+      ]);
+    } else if (tag.type == FileTagType.WORKFLOW && tag.workflow) {
+      this.props.undoFileWorkflowAssociation(fullpath, [tag.workflow]);
+    } else if (tag.type == FileTagType.STORAGE) {
+      if (tag.title.toLowerCase() === "archive") {
+        this.props.removeFileFromArchive(fullpath);
+      } else {
+        this.props.removeFileFromIsilon(fullpath);
+      }
     }
   };
 

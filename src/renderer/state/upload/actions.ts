@@ -122,13 +122,13 @@ export function associateFilesAndWorkflows(
 
 export function undoFileWorkflowAssociation(
   fullPath: string,
-  workflows: Workflow[]
+  workflowNames: string[]
 ): UndoFileWorkflowAssociationAction {
   return {
     autoSave: true,
     payload: {
       fullPath,
-      workflows,
+      workflowNames,
     },
     type: UNDO_FILE_WORKFLOW_ASSOCIATION,
   };

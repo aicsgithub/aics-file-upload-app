@@ -87,7 +87,7 @@ export const getUploadRowKey = ({
   channelId,
   scene,
   subImageName,
-}: UploadRowId) => {
+}: UploadRowId): string => {
   let key = file;
   if (!isNil(positionIndex)) {
     key += `positionIndex:${positionIndex}`;
