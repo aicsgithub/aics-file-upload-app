@@ -2,7 +2,7 @@ import { Divider, Icon, Select } from "antd";
 import * as classNames from "classnames";
 import { sortBy } from "lodash";
 import { ReactNode } from "react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
@@ -35,6 +35,7 @@ function TemplateSearch(props: TemplateSearchProps) {
   useEffect(() => {
     props.requestTemplates();
   }, []);
+  const [open, setOpen] = useState<boolean>(false);
 
   const {
     allowCreate,
@@ -63,7 +64,10 @@ function TemplateSearch(props: TemplateSearchProps) {
                 /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
                  *  we can change this to onClick after upgrading antd to latest in FUA-6
                  * */
-                onMouseDown={() => props.openTemplateEditor()}
+                onMouseDown={() => {
+                  setOpen(false);
+                  props.openTemplateEditor();
+                }}
               >
                 <Icon className={styles.icon} type="plus-circle" />
                 <span className={styles.text}>Create {SCHEMA_SYNONYM}</span>
@@ -73,7 +77,9 @@ function TemplateSearch(props: TemplateSearchProps) {
         </div>
       )}
       loading={loading && !templates}
+      onDropdownVisibleChange={(visible: boolean) => setOpen(visible)}
       onSelect={onSelect}
+      open={open}
       placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
       showSearch={true}
       value={value}
