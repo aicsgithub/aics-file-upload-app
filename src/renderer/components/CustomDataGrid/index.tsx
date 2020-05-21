@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
@@ -178,26 +178,32 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     return (
       <>
         <div className={styles.buttonRow}>
-          <Button
-            className={styles.undoButton}
-            onClick={undo}
-            disabled={!canUndo}
-            icon="undo"
-            type="link"
-          />
-          <Button
-            className={styles.redoButton}
-            onClick={redo}
-            disabled={!canRedo}
-            icon="redo"
-            type="link"
-          />
-          <Button
-            onClick={this.removeSelectedRows}
-            disabled={isEmpty(selectedRows)}
-            icon="delete"
-            type="link"
-          />
+          <Tooltip title="Undo" mouseLeaveDelay={0}>
+            <Button
+              className={styles.undoButton}
+              onClick={undo}
+              disabled={!canUndo}
+              icon="undo"
+              type="link"
+            />
+          </Tooltip>
+          <Tooltip title="Redo" mouseLeaveDelay={0}>
+            <Button
+              className={styles.redoButton}
+              onClick={redo}
+              disabled={!canRedo}
+              icon="redo"
+              type="link"
+            />
+          </Tooltip>
+          <Tooltip title="Delete Selected Row" mouseLeaveDelay={0}>
+            <Button
+              onClick={this.removeSelectedRows}
+              disabled={isEmpty(selectedRows)}
+              icon="delete"
+              type="link"
+            />
+          </Tooltip>
         </div>
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (
@@ -236,7 +242,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private renderFormat = (
     row: UploadJobTableRow,
     label: string,
-    value: any = [],
+    value: any,
     childElement?: React.ReactNode | React.ReactNodeArray,
     required?: boolean,
     className?: string,
@@ -253,11 +259,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       error = `${label} is required`;
     } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
       error = validationErrors[row.key][label];
-    }
-
-    if (!value.join) {
-      console.log(label, value, typeof value, row);
-      console.log(row);
     }
 
     return (
