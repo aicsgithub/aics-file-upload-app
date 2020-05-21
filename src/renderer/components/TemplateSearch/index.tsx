@@ -2,7 +2,7 @@ import { Divider, Icon, Select } from "antd";
 import * as classNames from "classnames";
 import { sortBy } from "lodash";
 import { ReactNode } from "react";
-import * as React from "react";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
@@ -31,68 +31,62 @@ interface TemplateSearchProps {
   value?: number;
 }
 
-class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
-  public componentDidMount(): void {
-    this.props.requestTemplates();
-  }
+function TemplateSearch(props: TemplateSearchProps) {
+  useEffect(() => {
+    props.requestTemplates();
+  }, []);
 
-  public render() {
-    const {
-      allowCreate,
-      className,
-      defaultOpen,
-      loading,
-      onSelect,
-      templates,
-      value,
-    } = this.props;
-    const sortedTemplates = sortBy(templates, ["Name", "Version"]);
-    return (
-      <Select
-        autoFocus={true}
-        className={classNames(styles.container, className)}
-        defaultOpen={defaultOpen}
-        disabled={loading && !templates}
-        dropdownRender={(menu: ReactNode | undefined) => (
-          <div>
-            {menu}
-            {allowCreate && (
-              <>
-                <Divider style={{ margin: "4px 0" }} />
-                <div
-                  className={styles.createTemplate}
-                  /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
-                   *  we can change this to onClick after upgrading antd to latest in FUA-6
-                   * */
-                  onMouseDown={() => this.props.openTemplateEditor()}
-                >
-                  <Icon className={styles.icon} type="plus-circle" />
-                  <span className={styles.text}>Create {SCHEMA_SYNONYM}</span>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-        loading={loading && !templates}
-        onSelect={onSelect}
-        placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
-        showSearch={true}
-        value={value}
-      >
-        {sortedTemplates.map(
-          ({
-            Name: name,
-            TemplateId: id,
-            Version: version,
-          }: LabkeyTemplate) => (
-            <Select.Option key={`${name}${version}`} value={id}>
-              {name} (Version {version})
-            </Select.Option>
-          )
-        )}
-      </Select>
-    );
-  }
+  const {
+    allowCreate,
+    className,
+    defaultOpen,
+    loading,
+    onSelect,
+    templates,
+    value,
+  } = props;
+  const sortedTemplates = sortBy(templates, ["Name", "Version"]);
+  return (
+    <Select
+      autoFocus={true}
+      className={classNames(styles.container, className)}
+      defaultOpen={defaultOpen}
+      disabled={loading && !templates}
+      dropdownRender={(menu: ReactNode | undefined) => (
+        <div>
+          {menu}
+          {allowCreate && (
+            <>
+              <Divider style={{ margin: "4px 0" }} />
+              <div
+                className={styles.createTemplate}
+                /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
+                 *  we can change this to onClick after upgrading antd to latest in FUA-6
+                 * */
+                onMouseDown={() => props.openTemplateEditor()}
+              >
+                <Icon className={styles.icon} type="plus-circle" />
+                <span className={styles.text}>Create {SCHEMA_SYNONYM}</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      loading={loading && !templates}
+      onSelect={onSelect}
+      placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
+      showSearch={true}
+      value={value}
+    >
+      {sortedTemplates.map(
+        ({ Name: name, TemplateId: id, Version: version }: LabkeyTemplate) => (
+          <Select.Option key={`${name}${version}`} value={id}>
+            {name} (Version {version})
+          </Select.Option>
+        )
+      )}
+    </Select>
+  );
 }
 
 function mapStateToProps(state: State) {
