@@ -22,11 +22,15 @@ class WellComponent extends React.Component<WellProps, {}> {
     let title = "";
     const { well } = this.props;
     const cellPopulation: CellPopulation | undefined = first(
-        well.cellPopulations
+      well.cellPopulations
     );
-    if (cellPopulation?.wellCellPopulation)  {
-      const { wellCellPopulation: { cellLineName, clone, passage} } = cellPopulation;
-        title = `${cellLineName || ""}, Clone ${clone || "N/A"}, Passage ${passage || "N/A"}`;
+    if (cellPopulation?.wellCellPopulation) {
+      const {
+        wellCellPopulation: { cellLineName, clone, passage },
+      } = cellPopulation;
+      title = `${cellLineName || ""}, Clone ${clone || "N/A"}, Passage ${
+        passage || "N/A"
+      }`;
     }
     return (
       <div className={classNames(styles.container, className)} title={title}>
