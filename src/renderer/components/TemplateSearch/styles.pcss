@@ -11,6 +11,23 @@
     }
 }
 
-.create-template-text {
-    font-size: 1em;
+.create-template {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 0.5em 1em;
+
+    &:hover {
+        cursor: pointer;
+        color: var(--brand-primary);
+    }
+
+    & .icon {
+        flex: 0 0 auto;
+    }
+
+    & .text {
+        flex: 1;
+        margin-left: 1em;
+    }
 }

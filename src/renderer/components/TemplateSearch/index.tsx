@@ -1,4 +1,4 @@
-import { Divider, Select } from "antd";
+import { Divider, Icon, Select } from "antd";
 import * as classNames from "classnames";
 import { sortBy } from "lodash";
 import { ReactNode } from "react";
@@ -7,7 +7,6 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
-import IconText from "../../containers/TemplateEditorModal/IconText";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
@@ -48,20 +47,6 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
       value,
     } = this.props;
     const sortedTemplates = sortBy(templates, ["Name", "Version"]);
-    const options = sortedTemplates.map(
-      ({ Name: name, TemplateId: id, Version: version }: LabkeyTemplate) => (
-        <Select.Option key={`${name}${version}`} value={id}>
-          {name} (Version {version})
-        </Select.Option>
-      )
-    );
-    if (allowCreate) {
-      options.push(
-        <Select.Option key="create" value={undefined}>
-          <IconText icon="plus-circle" text="Create Template" />
-        </Select.Option>
-      );
-    }
     return (
       <Select
         autoFocus={true}
@@ -74,13 +59,16 @@ class TemplateSearch extends React.Component<TemplateSearchProps, {}> {
             {allowCreate && (
               <>
                 <Divider style={{ margin: "4px 0" }} />
-                <IconText
-                  className={styles.iconText}
-                  icon="plus-circle"
-                  onClick={() => this.props.openTemplateEditor()}
-                  text="Create Template"
-                  textClassName={styles.createTemplateText}
-                />
+                <div
+                  className={styles.createTemplate}
+                  /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
+                   *  we can change this to onClick after upgrading antd to latest in FUA-6
+                   * */
+                  onMouseDown={() => this.props.openTemplateEditor()}
+                >
+                  <Icon className={styles.icon} type="plus-circle" />
+                  <span className={styles.text}>Create {SCHEMA_SYNONYM}</span>
+                </div>
               </>
             )}
           </div>
