@@ -1,8 +1,9 @@
 import { Button, Card, Tabs } from "antd";
 import * as React from "react";
 
-import FileAssociations from "./FileAssociations/index";
 import { UploadMetadata } from "../../state/upload/types";
+
+import FileAssociations from "./FileAssociations/index";
 
 const styles = require("./style.pcss");
 

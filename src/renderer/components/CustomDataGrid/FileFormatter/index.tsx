@@ -1,13 +1,13 @@
+import { basename } from "path";
+
 import { Alert, Icon, Modal, Radio, Select, Tooltip } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { isEmpty, isNil, uniq } from "lodash";
-import { basename } from "path";
 import { ReactNode } from "react";
 import * as React from "react";
 
 import { Channel } from "../../../state/metadata/types";
 import { UploadJobTableRow } from "../../../state/upload/types";
-
 import LabeledInput from "../../LabeledInput";
 import PrinterFormatInput from "../../PrinterFormatInput";
 import { FormatterProps } from "../index";

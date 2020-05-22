@@ -1,5 +1,6 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
+
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
@@ -14,7 +15,6 @@ import {
 import { CLOSE_UPLOAD_TAB, SELECT_PAGE } from "../route/constants";
 import { CloseUploadTabAction, Page, SelectPageAction } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
-
 import {
   SelectBarcodeAction,
   SelectionStateBranch,

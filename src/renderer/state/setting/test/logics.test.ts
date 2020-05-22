@@ -21,7 +21,6 @@ import {
   mockState,
   mockUnit,
 } from "../../test/mocks";
-
 import { gatherSettings, updateSettings } from "../actions";
 import settingsLogics from "../logics";
 import { getLimsHost, getMetadataColumns, getTemplateId } from "../selectors";

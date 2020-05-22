@@ -1,9 +1,9 @@
 import { Button, Icon } from "antd";
 import * as classNames from "classnames";
 import { OpenDialogOptions, remote } from "electron";
+import { isEmpty } from "lodash";
 import * as React from "react";
 
-import { isEmpty } from "lodash";
 import { DragAndDropFileList } from "../../state/selection/types";
 
 const styles = require("../../components/DragAndDrop/style.pcss");

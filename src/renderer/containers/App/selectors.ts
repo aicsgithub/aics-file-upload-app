@@ -1,5 +1,6 @@
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
+
 import {
   getCurrentUpload,
   getImagingSessions,
@@ -10,7 +11,6 @@ import { Page } from "../../state/route/types";
 import { getAllPlates, getAllWells } from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { getUploadDraftKey, isFileRow } from "../../state/upload/constants";
-
 import {
   getUpload,
   getWellLabelAndImagingSessionName,

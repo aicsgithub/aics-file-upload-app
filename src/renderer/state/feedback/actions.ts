@@ -1,4 +1,5 @@
 import { AnyAction } from "redux";
+
 import {
   ADD_EVENT,
   ADD_REQUEST_IN_PROGRESS,
@@ -17,7 +18,6 @@ import {
   STOP_LOADING,
   TOGGLE_FOLDER_TREE,
 } from "./constants";
-
 import {
   AddEventAction,
   AddRequestInProgressAction,

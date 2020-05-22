@@ -6,15 +6,14 @@ import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import LookupSearch from "../../containers/LookupSearch";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { undoFileWorkflowAssociation } from "../../state/upload/actions";
 import {
   AssociateFilesAndWorkflowsAction,
   UploadMetadata,
 } from "../../state/upload/types";
-
 import FormPage from "../FormPage";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";
-import { undoFileWorkflowAssociation } from "../../state/upload/actions";
 
 const styles = require("./style.pcss");
 

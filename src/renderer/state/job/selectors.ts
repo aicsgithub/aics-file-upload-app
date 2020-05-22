@@ -2,10 +2,9 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { isEmpty, orderBy } from "lodash";
 import * as moment from "moment";
 import { createSelector } from "reselect";
+
 import { DATETIME_FORMAT } from "../../constants";
-
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { AsyncRequest } from "../feedback/types";

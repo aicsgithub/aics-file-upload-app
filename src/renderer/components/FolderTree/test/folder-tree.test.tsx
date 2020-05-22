@@ -1,7 +1,8 @@
+import { resolve } from "path";
+
 import { Tree } from "antd";
 import { expect } from "chai";
 import { shallow } from "enzyme";
-import { resolve } from "path";
 import * as React from "react";
 import * as sinon from "sinon";
 

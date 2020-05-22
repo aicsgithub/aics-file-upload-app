@@ -1,3 +1,5 @@
+import { userInfo } from "os";
+
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
@@ -5,7 +7,6 @@ import Store from "electron-store";
 import * as Logger from "js-logger";
 import { forEach, isNil } from "lodash";
 import * as moment from "moment";
-import { userInfo } from "os";
 import {
   AnyAction,
   applyMiddleware,
@@ -24,6 +25,10 @@ import { getCurrentUploadKey } from "../containers/App/selectors";
 import LabkeyClient from "../util/labkey-client";
 import MMSClient from "../util/mms-client";
 
+import { addEvent } from "./feedback/actions";
+import { AlertType } from "./feedback/types";
+import { State } from "./types";
+
 import {
   enableBatching,
   feedback,
@@ -35,9 +40,6 @@ import {
   template,
   upload,
 } from "./";
-import { addEvent } from "./feedback/actions";
-import { AlertType } from "./feedback/types";
-import { State } from "./types";
 
 const storage = new Store();
 

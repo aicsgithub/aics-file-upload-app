@@ -4,7 +4,6 @@ import { createSelector } from "reselect";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { getWellLabel } from "../../util";
-
 import {
   getAnnotations,
   getImagingSessions,
@@ -14,6 +13,7 @@ import {
 import { ImagingSession, Unit } from "../metadata/types";
 import { Annotation } from "../template/types";
 import { State } from "../types";
+
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,

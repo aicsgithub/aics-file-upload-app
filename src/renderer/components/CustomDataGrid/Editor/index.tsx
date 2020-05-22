@@ -3,9 +3,9 @@ import Logger from "js-logger";
 import { trim } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
+
 import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
-
 import { ColumnType } from "../../../state/template/types";
 import { convertToArray } from "../../../util";
 import BooleanFormatter from "../../BooleanFormatter";
