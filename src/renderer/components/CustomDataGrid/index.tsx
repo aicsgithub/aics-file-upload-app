@@ -39,7 +39,7 @@ import {
   UploadJobTableRow,
   UploadMetadata,
 } from "../../state/upload/types";
-import { onDrop } from "../../util";
+import { convertToArray, onDrop } from "../../util";
 
 import BooleanFormatter from "../BooleanFormatter";
 
@@ -175,7 +175,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
-    console.log(sortedRows);
 
     return (
       <>
@@ -248,6 +247,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     className?: string,
     contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>
   ): React.ReactElement => {
+    value = convertToArray(value);
     // If a required field is not filled out, show error for that first.
     // If filled out but there is additional issues like misformatted lists (e.g. "a, b, c,")
     // then show a error related to that.
@@ -259,10 +259,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       error = `${label} is required`;
     } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
       error = validationErrors[row.key][label];
-    }
-
-    if (!value.join) {
-      console.log(label, value, typeof value);
     }
 
     return (
@@ -394,7 +390,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             row,
             value,
           }: FormatterProps<UploadJobTableRow>) => {
-            const childEl = castArray(value)
+            const childEl = convertToArray(value)
               .map((v: any) => {
                 switch (type) {
                   case ColumnType.DATETIME:

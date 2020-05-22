@@ -178,7 +178,7 @@ export const titleCase = (name?: string) => {
  * @param value value to convert to an array
  */
 export const convertToArray = (value?: any): any[] =>
-  !isNil(value) ? castArray(value) : [];
+  !isNil(value) && value !== "" ? castArray(value) : [];
 
 /**
  * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters
