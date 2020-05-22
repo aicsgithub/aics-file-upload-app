@@ -24,7 +24,7 @@ interface TemplateSearchProps {
   className?: string;
   defaultOpen?: boolean;
   loading?: boolean;
-  onSelect: (selectedTemplateId: number) => void;
+  onSelect: (selectedTemplateId?: number) => void;
   openTemplateEditor: typeof openTemplateEditor;
   requestTemplates: ActionCreator<GetTemplatesAction>;
   templates: LabkeyTemplate[];
@@ -36,6 +36,9 @@ function TemplateSearch(props: TemplateSearchProps) {
     props.requestTemplates();
   }, []);
   const [open, setOpen] = useState<boolean>(false);
+  const [elClicked, setElClicked] = useState<EventTarget | undefined>(
+    undefined
+  );
 
   const {
     allowCreate,
@@ -58,15 +61,21 @@ function TemplateSearch(props: TemplateSearchProps) {
           {menu}
           {allowCreate && (
             <>
-              <Divider style={styles.divider} />
+              <Divider className={styles.divider} />
               <div
                 className={styles.createTemplate}
                 /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
                  * I am hoping that we can change this to onClick after we upgrade antd to the latest version in FUA-6
                  * */
-                onMouseDown={() => {
-                  setOpen(false);
-                  props.openTemplateEditor();
+                onMouseDown={(e) =>
+                  setElClicked(e.target === null ? undefined : e.target)
+                }
+                onMouseUp={(e) => {
+                  if (elClicked === e.target) {
+                    setOpen(false);
+                    setElClicked(undefined);
+                    props.openTemplateEditor();
+                  }
                 }}
               >
                 <Icon className={styles.icon} type="plus-circle" />
@@ -77,8 +86,15 @@ function TemplateSearch(props: TemplateSearchProps) {
         </div>
       )}
       loading={loading && !templates}
-      onDropdownVisibleChange={(visible: boolean) => setOpen(visible)}
-      onSelect={onSelect}
+      onDropdownVisibleChange={(visible: boolean) => {
+        if (!elClicked) {
+          setOpen(visible);
+        }
+      }}
+      onSelect={() => {
+        onSelect();
+        setOpen(false);
+      }}
       open={open}
       placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
       showSearch={true}
