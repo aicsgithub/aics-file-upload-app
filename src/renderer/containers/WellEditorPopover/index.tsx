@@ -21,7 +21,7 @@ import {
 } from "../../state/upload/types";
 
 import ImagingSessionSelector from "../ImagingSessionSelector";
-import PlateContainer from "../PlateContainer";
+import Plate from "../PlateContainer";
 
 const styles = require("./styles.pcss");
 
@@ -45,7 +45,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
     const { className, rowData } = this.props;
 
     return (
-      <div>
+      <div className={styles.container}>
         <div className={classNames(className, styles.row)}>
           <ImagingSessionSelector className={styles.imagingSessionSelector} />
           <div className={styles.btns}>
@@ -65,7 +65,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
             </Button>
           </div>
         </div>
-        <PlateContainer rowData={rowData} />
+        <Plate rowData={rowData} className={styles.plate} />
       </div>
     );
   }
