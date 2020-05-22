@@ -44,6 +44,12 @@ the upload app to copy files to this directory on the remote.
 ./gradlew lint
 ```
 
+## Prettier
+This repository is configured to automatically format code with Prettier upon
+committing it. If you would like configure you IDE or editor to run Prettier
+before committing, you can find instructions
+[here](https://prettier.io/docs/en/editors.html).
+
 ## Packaging and Publishing
 
 We are packaging the app for Windows, Linux, and Mac platforms using electron-builder on Travis CI.
@@ -79,7 +85,7 @@ git push origin 1.0.5-snapshot
 ```
  
 For official versions of the app, first revert the version back to the pre-snapshot version in package.json (on master).
-Then update VERSION_NOTES.md and update the version using the following commands:
+Then update VERSION_NOTES.md and update the version using the following commands: 
 
 ```bash
 git add .

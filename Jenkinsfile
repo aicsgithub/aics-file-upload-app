@@ -52,7 +52,7 @@ pipeline {
             }
             steps {
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
-                sh "git push && git push --tags"
+                sh "git push -u origin master && git push --tags"
             }
         }
     }

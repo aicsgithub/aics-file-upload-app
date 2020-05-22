@@ -10,67 +10,70 @@ import { OPEN_OPEN_TEMPLATE_MODAL } from "../../../shared/constants";
 import TemplateSearch from "../../components/TemplateSearch";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getOpenTemplateModalVisible } from "../../state/feedback/selectors";
-import { CloseModalAction, OpenModalAction, OpenTemplateEditorAction } from "../../state/feedback/types";
 import {
-    openTemplateEditor
-} from "../../state/selection/actions";
+  CloseModalAction,
+  OpenModalAction,
+  OpenTemplateEditorAction,
+} from "../../state/feedback/types";
+import { openTemplateEditor } from "../../state/selection/actions";
 
-import {
-    State,
-} from "../../state/types";
+import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
 interface Props {
-    className?: string;
-    closeModal: ActionCreator<CloseModalAction>;
-    openModal: ActionCreator<OpenModalAction>;
-    openTemplateEditor: (templateId?: number) => OpenTemplateEditorAction;
-    visible: boolean;
+  className?: string;
+  closeModal: ActionCreator<CloseModalAction>;
+  openModal: ActionCreator<OpenModalAction>;
+  openTemplateEditor: (templateId?: number) => OpenTemplateEditorAction;
+  visible: boolean;
 }
 
 class OpenTemplateModal extends React.Component<Props, {}> {
-    public componentDidMount(): void {
-        ipcRenderer.on(OPEN_OPEN_TEMPLATE_MODAL, this.openModal);
-    }
+  public componentDidMount(): void {
+    ipcRenderer.on(OPEN_OPEN_TEMPLATE_MODAL, this.openModal);
+  }
 
-    public componentWillUnmount(): void {
-        ipcRenderer.removeListener(OPEN_OPEN_TEMPLATE_MODAL, this.openModal);
-    }
+  public componentWillUnmount(): void {
+    ipcRenderer.removeListener(OPEN_OPEN_TEMPLATE_MODAL, this.openModal);
+  }
 
-    public render() {
-        const { className, visible } = this.props;
-        return (
-            <Modal
-                className={classNames(styles.container, className)}
-                onCancel={this.closeModal}
-                title="Open Template"
-                visible={visible}
-            >
-                <TemplateSearch className={styles.search} onSelect={this.openTemplateEditor}/>
-            </Modal>
-        );
-    }
+  public render() {
+    const { className, visible } = this.props;
+    return (
+      <Modal
+        className={classNames(styles.container, className)}
+        onCancel={this.closeModal}
+        title="Open Template"
+        visible={visible}
+      >
+        <TemplateSearch
+          className={styles.search}
+          onSelect={this.openTemplateEditor}
+        />
+      </Modal>
+    );
+  }
 
-    private openTemplateEditor = (templateId: number): void => {
-        this.props.openTemplateEditor(templateId);
-        this.closeModal();
-    }
+  private openTemplateEditor = (templateId: number): void => {
+    this.props.openTemplateEditor(templateId);
+    this.closeModal();
+  };
 
-    private closeModal = () => this.props.closeModal("openTemplate");
-    private openModal = () => this.props.openModal("openTemplate");
+  private closeModal = () => this.props.closeModal("openTemplate");
+  private openModal = () => this.props.openModal("openTemplate");
 }
 
 function mapStateToProps(state: State) {
-    return {
-        visible: getOpenTemplateModalVisible(state),
-    };
+  return {
+    visible: getOpenTemplateModalVisible(state),
+  };
 }
 
 const dispatchToPropsMap = {
-    closeModal,
-    openModal,
-    openTemplateEditor,
+  closeModal,
+  openModal,
+  openTemplateEditor,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(OpenTemplateModal);

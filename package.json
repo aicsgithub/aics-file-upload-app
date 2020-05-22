@@ -1,6 +1,6 @@
 {
   "name": "file-upload-app",
-  "version": "1.0.36",
+  "version": "1.0.41",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
@@ -27,7 +27,8 @@
     "compile-prod": "cross-env ELECTRON_WEBPACK_APP_LIMS_HOST=\"aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 NODE_ENV=production yarn compile",
     "dist": "electron-builder -p always",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "repository": {
     "type": "git",
@@ -52,6 +53,7 @@
     "axios": "0.19.0",
     "chai-as-promised": "^7.1.1",
     "core-js": "2.6.5",
+    "electron-devtools-installer": "^3.0.0",
     "electron-store": "3.2.0",
     "electron-updater": "4.2.2",
     "humps": "2.0.1",
@@ -76,6 +78,7 @@
     "@types/chai": "4.1.7",
     "@types/chai-as-promised": "^7.1.2",
     "@types/classnames": "2.2.7",
+    "@types/electron-devtools-installer": "^2.2.0",
     "@types/electron-json-storage": "4.0.0",
     "@types/enzyme": "3.9.0",
     "@types/humps": "1.1.2",
@@ -89,6 +92,8 @@
     "@types/react-redux": "7.1.5",
     "@types/semver": "6.0.0",
     "@types/sinon": "7.0.10",
+    "@typescript-eslint/eslint-plugin": "^2.32.0",
+    "@typescript-eslint/parser": "^2.32.0",
     "chai": "4.2.0",
     "classnames": "2.2.6",
     "cross-env": "5.2.0",
@@ -99,21 +104,34 @@
     "electron-webpack-ts": "3.1.1",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.11.2",
+    "eslint": "^7.0.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-react": "^7.19.0",
+    "eslint-plugin-react-hooks": "^4.0.0",
+    "husky": ">=4",
     "less": "3.9.0",
     "less-loader": "4.1.0",
+    "lint-staged": ">=10",
     "mock-css-modules": "1.0.0",
     "postcss-import": "12.0.1",
     "postcss-loader": "3.0.0",
     "postcss-preset-env": "6.6.0",
+    "prettier": "2.0.5",
     "react-redux": "7.1.1",
     "redux": "4.0.4",
     "redux-logic": "2.1.1",
     "sinon": "7.2.7",
     "style-loader": "0.23.1",
-    "tslint": "5.20.1",
-    "tslint-no-unused-expression-chai": "0.1.4",
-    "tslint-react": "3.6.0",
     "typescript": "3.7.2",
     "webpack": "4.28.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": "eslint --cache --fix"
   }
 }

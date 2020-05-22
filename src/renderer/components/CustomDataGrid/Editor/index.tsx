@@ -1,28 +1,28 @@
-import { DatePicker, Input, InputNumber, Select } from "antd";
+import { Input, Select } from "antd";
 import Logger from "js-logger";
-import { castArray, isNil } from "lodash";
-import * as moment from "moment";
+import { trim } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
+import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 import { ColumnType } from "../../../state/template/types";
-import { UploadJobTableRow, UploadMetadata } from "../../../state/upload/types";
-import BooleanFormatter from "../../BooleanHandler/BooleanFormatter";
+import { convertToArray } from "../../../util";
+import BooleanFormatter from "../../BooleanFormatter";
 
 const { Option } = Select;
 
 interface EditorColumn extends AdazzleReactDataGrid.ExcelColumn {
-    allowMultipleValues?: boolean;
-    dropdownValues?: string[];
-    onChange?: (value: any, key: keyof UploadMetadata, row: UploadJobTableRow) => void;
-    type?: ColumnType;
+  dropdownValues?: string[];
+  type?: ColumnType;
 }
 
 interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
-    column: EditorColumn;
-    width?: string;
+  column: EditorColumn;
+}
+
+interface EditorState {
+  value: any;
 }
 
 /*
@@ -31,140 +31,136 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
     Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
     additionally, the element you return must contain an Input element
  */
-class Editor extends editors.EditorBase<EditorProps, {}> {
-    // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
-    public input = React.createRef<HTMLDivElement>();
+class Editor extends editors.EditorBase<EditorProps, EditorState> {
+  // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
+  public divRef = React.createRef<HTMLDivElement>();
+  public input = React.createRef<Input>();
 
-    public render() {
-        const { column: { allowMultipleValues, dropdownValues, type }, value: rawValue } = this.props;
-
-        console.log(`${this.props.column.key}`, rawValue);
-        let value: any;
-        if (allowMultipleValues) {
-            console.log("allow multiple");
-            value = isNil(rawValue) ? [] : castArray(rawValue);
-        } else if (Array.isArray(rawValue)) {
-            console.log("dont allow multiple");
-            value = rawValue.length > 0 ? rawValue[0] : undefined;
-            if (type === ColumnType.BOOLEAN && isNil(value)) {
-                value = false;
-            }
+  public constructor(props: EditorProps) {
+    super(props);
+    let value: any[] | string = [...props.value];
+    switch (props.column.type) {
+      case ColumnType.TEXT:
+      case ColumnType.NUMBER:
+        value = convertToArray(value).join(LIST_DELIMITER_JOIN);
+        break;
+      case ColumnType.BOOLEAN:
+        if (value.length === 0) {
+          value = [true];
+        } else {
+          // For bools, we want to automatically toggle the value when the
+          // user double clicks to edit it.
+          value[0] = !value[0];
         }
+        break;
+    }
+    this.state = {
+      value,
+    };
+  }
 
-        let input;
-        switch (type) {
-            case ColumnType.DROPDOWN:
-                input = (
-                    <Select
-                        allowClear={true}
-                        autoFocus={true}
-                        defaultOpen={true}
-                        mode={allowMultipleValues ? "multiple" : "default"}
-                        onChange={this.handleOnChange}
-                        style={{ width: "100%" }}
-                        value={value}
-                    >
-                        {dropdownValues && dropdownValues.map((dropdownValue: string) => (
-                            <Option key={dropdownValue}>{dropdownValue}</Option>
-                        ))}
-                    </Select>
-                );
-                break;
-            case ColumnType.BOOLEAN:
-                input = (
-                    <BooleanFormatter
-                        saveValue={this.handleOnChange}
-                        value={value}
-                    />
-                );
-                break;
-            case ColumnType.NUMBER:
-                input = allowMultipleValues ?
-                    (
-                        <Input
-                            autoFocus={true}
-                            onChange={this.handleInputOnChange}
-                            style={{ width: "100%" }}
-                            value={value}
-                        />
-                    )
-                    :
-                    (
-                        <InputNumber
-                            autoFocus={true}
-                            onChange={this.handleOnChange}
-                            style={{ width: "100%" }}
-                            value={value}
-                        />
-                    );
-                break;
-            case ColumnType.TEXT:
-                input = (
-                    <Input
-                        autoFocus={true}
-                        onChange={this.handleInputOnChange}
-                        style={{ width: "100%" }}
-                        value={value}
-                    />
-                );
-                break;
-            case ColumnType.DATE:
-            case ColumnType.DATETIME:
-                input = allowMultipleValues ? null : (
-                  <DatePicker
-                    autoFocus={true}
-                    format={type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT}
-                    onChange={this.handleOnChange}
-                    value={value ? moment(value) : undefined}
-                    showTime={type === ColumnType.DATETIME}
-                    style={{ width: "100%" }}
-                  />
-                );
-                break;
-            case ColumnType.LOOKUP:
-                input = (
-                    <LookupSearch
-                        defaultOpen={true}
-                        mode={allowMultipleValues ? "multiple" : "default"}
-                        lookupAnnotationName={this.props.column.key}
-                        onBlur={this.props.onCommit}
-                        selectSearchValue={this.handleOnChange}
-                        value={value}
-                    />
-                );
-                break;
-            default:
-                Logger.error("Invalid column type supplied");
-                input = "ERROR";
-        }
-        return (
-            <div ref={this.input}>
-                {input}
-            </div>
+  public render() {
+    const {
+      column: { dropdownValues, type },
+    } = this.props;
+    const { value } = this.state;
+    let input;
+    switch (type) {
+      case ColumnType.DROPDOWN:
+        input = (
+          <Select
+            allowClear={true}
+            autoFocus={true}
+            defaultOpen={true}
+            mode="multiple"
+            onChange={this.handleOnChange}
+            style={{ width: "100%" }}
+            value={value}
+          >
+            {dropdownValues &&
+              dropdownValues.map((dropdownValue: string) => (
+                <Option key={dropdownValue}>{dropdownValue}</Option>
+              ))}
+          </Select>
         );
+        break;
+      case ColumnType.BOOLEAN:
+        input = (
+          <div onClick={() => this.handleOnChange([!value[0]])}>
+            <BooleanFormatter value={value} />
+          </div>
+        );
+        break;
+      case ColumnType.NUMBER:
+        return (
+          <Input
+            ref={this.input}
+            defaultValue={this.state.value}
+            onBlur={this.props.onCommit}
+          />
+        );
+      case ColumnType.TEXT:
+        return (
+          <Input
+            ref={this.input}
+            defaultValue={this.state.value}
+            onBlur={this.props.onCommit}
+          />
+        );
+      case ColumnType.LOOKUP:
+        input = (
+          <LookupSearch
+            defaultOpen={true}
+            key={this.props.column.key}
+            mode="multiple"
+            lookupAnnotationName={this.props.column.key}
+            selectSearchValue={this.handleOnChange}
+            value={value}
+          />
+        );
+        break;
+      default:
+        Logger.error("Invalid column type supplied");
+        input = "ERROR";
+    }
+    return <div ref={this.divRef}>{input}</div>;
+  }
+
+  // Should return an object of key/value pairs to be merged back to the row
+  public getValue = () => {
+    let { value } = this.state;
+    const {
+      column: { key, type },
+    } = this.props;
+
+    if (
+      (type === ColumnType.TEXT || type === ColumnType.NUMBER) &&
+      this.input.current
+    ) {
+      value = this.input.current.input.value;
+      let formattedString = trim(value);
+      if (value.endsWith(LIST_DELIMITER_SPLIT)) {
+        formattedString = value.substring(0, value.length - 1);
+      }
+      return { [key]: formattedString };
     }
 
-    // Should return an object of key/value pairs to be merged back to the row
-    public getValue = () => {
-        return { [this.props.column.key]: this.props.value };
-    }
+    return { [key]: value };
+  };
 
-    public getInputNode = (): Element | Text | null => {
-        return this.input.current;
-    }
+  public getInputNode = (): Element | Text | null => {
+    const {
+      column: { type },
+    } = this.props;
+    return (type === ColumnType.TEXT || type === ColumnType.NUMBER) &&
+      this.input.current
+      ? this.input.current.input
+      : this.divRef.current;
+  };
 
-    private handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = e.target;
-        this.handleOnChange(value);
-    }
-
-    private handleOnChange = (value: any) => {
-        const { column: { key, onChange }, rowData } = this.props;
-
-        if (onChange) {
-            onChange(value, key, rowData);
-        }
-    }
+  private handleOnChange = (value: any) => {
+    this.setState({ value });
+  };
 }
 
 export default Editor;

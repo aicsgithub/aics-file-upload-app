@@ -12,39 +12,36 @@ const styles = require("./style.pcss");
 export const NULL_TEXT = "None";
 
 interface WellInfoProps {
-    className?: string;
-    well?: Well;
+  className?: string;
+  well?: Well;
 }
 
 class WellInfo extends React.Component<WellInfoProps, []> {
-    constructor(props: WellInfoProps) {
-        super(props);
+  constructor(props: WellInfoProps) {
+    super(props);
+  }
+
+  public render() {
+    const { className, well } = this.props;
+
+    if (!well) {
+      return (
+        <div className={classNames(styles.container, styles.empty, className)}>
+          <Empty />
+        </div>
+      );
     }
 
-    public render() {
-        const {
-            className,
-            well,
-        } = this.props;
+    const { cellPopulations, solutions } = well;
 
-        if (!well) {
-            return (
-                <div className={classNames(styles.container, styles.empty, className)}>
-                    <Empty/>
-                </div>
-            );
-        }
-
-        const { cellPopulations, solutions } = well;
-
-        return (
-            <div className={classNames(styles.container, className)}>
-                <CellPopulations cellPopulations={cellPopulations}/>
-                {!isEmpty(solutions) && <Divider />}
-                <Solutions solutions={solutions}/>
-            </div>
-        );
-    }
+    return (
+      <div className={classNames(styles.container, className)}>
+        <CellPopulations cellPopulations={cellPopulations} />
+        {!isEmpty(solutions) && <Divider />}
+        <Solutions solutions={solutions} />
+      </div>
+    );
+  }
 }
 
 export default WellInfo;

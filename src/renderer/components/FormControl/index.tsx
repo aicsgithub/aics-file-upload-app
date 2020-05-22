@@ -6,10 +6,10 @@ import * as React from "react";
 const styles = require("./styles.pcss");
 
 interface Props {
-    children?: ReactNode | ReactNodeArray;
-    className?: string;
-    error?: string;
-    label?: string;
+  children?: ReactNode | ReactNodeArray;
+  className?: string;
+  error?: string;
+  label?: string;
 }
 
 /**
@@ -20,20 +20,29 @@ interface Props {
  * @param label label for form control
  * @constructor
  */
-const FormControl: React.FunctionComponent<Props> = ({children, className, error, label}: Props) => (
-    <div className={classNames(styles.container, {[styles.error]: error}, className)}>
-        {label && <div className={styles.label}>{label}</div>}
-        <div
-            className={styles.body}
-        >
-            <div className={styles.form}>
-                {children}
-            </div>
-            {error && <Tooltip title={error} className={styles.errorIcon} >
-                <Icon type="close-circle" theme="filled" />
-            </Tooltip>}
-        </div>
+const FormControl: React.FunctionComponent<Props> = ({
+  children,
+  className,
+  error,
+  label,
+}: Props) => (
+  <div
+    className={classNames(
+      styles.container,
+      { [styles.error]: error },
+      className
+    )}
+  >
+    {label && <div className={styles.label}>{label}</div>}
+    <div className={styles.body}>
+      <div className={styles.form}>{children}</div>
+      {error && (
+        <Tooltip title={error} className={styles.errorIcon}>
+          <Icon type="close-circle" theme="filled" />
+        </Tooltip>
+      )}
     </div>
+  </div>
 );
 
 export default FormControl;

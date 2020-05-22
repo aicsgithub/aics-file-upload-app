@@ -21,7 +21,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  font-size: 18px;
+  font-size: 14px;
   font-family: 'Nunito', sans-serif;
   overflow: hidden;
 }
@@ -32,13 +32,11 @@
 
   & .folder-tree {
     flex: 0 0 350px;
-    box-shadow: var(--box-shadow)
   }
 
   & .main-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--main-content-padding);
   }
 }
 
@@ -52,7 +50,7 @@
 
   & >:global(.ant-tabs-content) {
     position: absolute;
-    top: 60px;
+    top: 49px;
     bottom: 0;
     left: 0;
     right: 0;
@@ -60,13 +58,29 @@
 
   & .tab-content {
     height: 100%;
-    padding: 1em;
     user-select: auto;
+
+    &:not(.upload-tab) {
+      padding: 1em;
+    }
   }
 }
 
 .status-bar {
-  flex: 0 0 auto;
+  flex: 0 0 1rem;
   width: 100%;
   border-top: 1px solid var(--border-color);
 }
+
+:global(.ant-message-custom-content) {
+  line-height: 24px;
+  max-height: calc(24px * 5);
+  overflow: hidden;
+}
+
+@media (min-width: var(--large-device-width)) {
+  .container {
+    font-size: 18px;
+  }
+}
+

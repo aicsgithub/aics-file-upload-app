@@ -7,14 +7,17 @@ import { ActionCreator } from "redux";
 
 import { getSelectedWellIds } from "../../state/selection/selectors";
 import { State } from "../../state/types";
-import { associateFilesAndWells, undoFileWellAssociation } from "../../state/upload/actions";
+import {
+  associateFilesAndWells,
+  undoFileWellAssociation,
+} from "../../state/upload/actions";
 import { getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
 import { getUpload } from "../../state/upload/selectors";
 import {
-    AssociateFilesAndWellsAction,
-    UndoFileWellAssociationAction,
-    UploadJobTableRow,
-    UploadStateBranch,
+  AssociateFilesAndWellsAction,
+  UndoFileWellAssociationAction,
+  UploadJobTableRow,
+  UploadStateBranch,
 } from "../../state/upload/types";
 
 import ImagingSessionSelector from "../ImagingSessionSelector";
@@ -23,12 +26,12 @@ import PlateContainer from "../PlateContainer";
 const styles = require("./styles.pcss");
 
 interface Props {
-    associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
-    className?: string;
-    rowData: UploadJobTableRow;
-    selectedWellIds: number[];
-    undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
-    upload: UploadStateBranch;
+  associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
+  className?: string;
+  rowData: UploadJobTableRow;
+  selectedWellIds: number[];
+  undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
+  upload: UploadStateBranch;
 }
 
 /**
@@ -38,86 +41,85 @@ interface Props {
  * bypassing this lifecycle.
  */
 class WellEditorPopover extends React.Component<Props, {}> {
-    public render() {
-        const {className, rowData} = this.props;
+  public render() {
+    const { className, rowData } = this.props;
 
-        return (
-            <div>
-                <div className={classNames(className, styles.row)}>
-                    <ImagingSessionSelector className={styles.imagingSessionSelector}/>
-                    <div className={styles.btns}>
-                        <Button
-                            onClick={this.associateWithRow}
-                            type="primary"
-                            className={styles.associateBtn}
-                            disabled={this.associateBtnDisabled()}
-                        >
-                            Associate
-                        </Button>
-                        <Button
-                            onClick={this.undoAssociation}
-                            disabled={this.removeAssociationsBtnDisabled()}
-                        >
-                            Remove Association
-                        </Button>
-                    </div>
-                </div>
-                <PlateContainer rowData={rowData}/>
-            </div>
-        );
-    }
+    return (
+      <div>
+        <div className={classNames(className, styles.row)}>
+          <ImagingSessionSelector className={styles.imagingSessionSelector} />
+          <div className={styles.btns}>
+            <Button
+              onClick={this.associateWithRow}
+              type="primary"
+              className={styles.associateBtn}
+              disabled={this.associateBtnDisabled()}
+            >
+              Associate
+            </Button>
+            <Button
+              onClick={this.undoAssociation}
+              disabled={this.removeAssociationsBtnDisabled()}
+            >
+              Remove Association
+            </Button>
+          </div>
+        </div>
+        <PlateContainer rowData={rowData} />
+      </div>
+    );
+  }
 
-    private associateWithRow = (): void => {
-        const { rowData } = this.props;
-        this.props.associateFilesAndWells([rowData]);
-    }
+  private associateWithRow = (): void => {
+    const { rowData } = this.props;
+    this.props.associateFilesAndWells([rowData]);
+  };
 
-    private undoAssociation = (): void => {
-        const { rowData }  = this.props;
-        this.props.undoFileWellAssociation(rowData, false);
-    }
+  private undoAssociation = (): void => {
+    const { rowData } = this.props;
+    this.props.undoFileWellAssociation(rowData, false);
+  };
 
-    // disable if no wells selected or if none of the wells selected have been associated with
-    // the row yet
-    private removeAssociationsBtnDisabled = (): boolean => {
-        const {
-            rowData,
-            selectedWellIds,
-            upload,
-        } = this.props;
-        if (isEmpty(selectedWellIds)) {
-            return true;
-        }
-        const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
-        return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === 0;
+  // disable if no wells selected or if none of the wells selected have been associated with
+  // the row yet
+  private removeAssociationsBtnDisabled = (): boolean => {
+    const { rowData, selectedWellIds, upload } = this.props;
+    if (isEmpty(selectedWellIds)) {
+      return true;
     }
+    const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
+    return (
+      !uploadRow ||
+      intersection(selectedWellIds, uploadRow.wellIds).length === 0
+    );
+  };
 
-    // disable if no wells selected or if all of the wells have already been associated with
-    // the row
-    private associateBtnDisabled = (): boolean => {
-        const {
-            rowData,
-            selectedWellIds,
-            upload,
-        } = this.props;
-        if (isEmpty(selectedWellIds)) {
-            return true;
-        }
-        const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
-        return !uploadRow || intersection(selectedWellIds, uploadRow.wellIds).length === selectedWellIds.length;
+  // disable if no wells selected or if all of the wells have already been associated with
+  // the row
+  private associateBtnDisabled = (): boolean => {
+    const { rowData, selectedWellIds, upload } = this.props;
+    if (isEmpty(selectedWellIds)) {
+      return true;
     }
+    const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
+    return (
+      !uploadRow ||
+      intersection(selectedWellIds, uploadRow.wellIds).length ===
+        selectedWellIds.length
+    );
+  };
 }
 
 function mapStateToProps(state: State) {
-    return {
-        selectedWellIds: getSelectedWellIds(state),
-        upload: getUpload(state),
-    };
+  return {
+    selectedWellIds: getSelectedWellIds(state),
+    upload: getUpload(state),
+  };
 }
 
 const dispatchToPropsMap = {
-    associateFilesAndWells,
-    undoFileWellAssociation,
+  associateFilesAndWells,
+  undoFileWellAssociation,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(WellEditorPopover);

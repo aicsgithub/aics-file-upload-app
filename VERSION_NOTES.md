@@ -1,5 +1,33 @@
 # Version Notes
 
+## 1.0.38 - 1.0.41 
+- No visible changes
+
+## 1.0.37 (5/16/20)
+- Feature: make main window full screen
+- Bugfix: improve upload job polling
+- Bugfix: limit alert and status bar heights
+- Feature: collapse folder tree on pages not needed
+- Feature: header and footer restyling
+
+
+## 1.0.36 (4/29/20)
+- Task: rename annotation types
+
+## 1.0.35 (4/27/20)
+- Bugfix: gather username from settings
+
+## 1.0.34 (4/24/20)
+- Feature: move upload job actions to upload table to make them easier to find
+
+## 1.0.33 (4/3/20)
+- Bugfix: don't show upload job poll error alerts
+- Feature: enable users to change username in settings
+- Feature: enable saving upload drafts and resuming later
+
+## 1.0.32 (3/11/20)
+- Feature: support scenes and sub images identified by name
+
 ## 1.0.31 (4/3/20)
 - Feature: Allow users to set which username to use for requests
 - Feature: Open and Save upload drafts
