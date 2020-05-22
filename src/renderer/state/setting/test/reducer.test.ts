@@ -1,8 +1,8 @@
 import { expect } from "chai";
+
 import { setPlate } from "../../selection/actions";
 import { mockPlate, mockState, mockWells } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
-
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 

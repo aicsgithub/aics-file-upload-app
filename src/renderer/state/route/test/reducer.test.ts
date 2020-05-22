@@ -1,14 +1,12 @@
 import { expect } from "chai";
-import { selectPage } from "../actions";
-
-import reducer from "../reducer";
 
 import {
   mockSelection,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
-
+import { selectPage } from "../actions";
+import reducer from "../reducer";
 import { Page, RouteStateBranch } from "../types";
 
 describe("route reducer", () => {

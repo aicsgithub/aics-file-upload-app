@@ -12,7 +12,6 @@ import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { GetTemplatesAction } from "../../state/metadata/types";
 import { State } from "../../state/types";
-
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 const styles = require("./styles.pcss");

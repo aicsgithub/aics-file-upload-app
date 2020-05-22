@@ -1,9 +1,8 @@
 import { Divider } from "antd";
 import * as React from "react";
 
-import { CellPopulation } from "../../../../state/selection/types";
-
 import { NULL_TEXT } from "..";
+import { CellPopulation } from "../../../../state/selection/types";
 import KeyValueDisplay from "../../KeyValueDisplay";
 
 const styles = require("../style.pcss");

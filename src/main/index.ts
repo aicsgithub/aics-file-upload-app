@@ -1,10 +1,11 @@
+import * as path from "path";
+import { format as formatUrl } from "url";
+
 import { app, BrowserWindow, Event, ipcMain } from "electron";
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import { autoUpdater } from "electron-updater";
-import * as path from "path";
-import { format as formatUrl } from "url";
 
 import {
   LIMS_PROTOCOL,

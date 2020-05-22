@@ -6,16 +6,15 @@ import { ActionCreator } from "redux";
 import ImagingSessionSelector from "../../containers/ImagingSessionSelector";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWellsAction, Well } from "../../state/selection/types";
+import { undoFileWellAssociation } from "../../state/upload/actions";
 import {
   AssociateFilesAndWellsAction,
   UploadMetadata,
 } from "../../state/upload/types";
-
 import FormPage from "../FormPage";
 import Plate from "../Plate";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import WellInfo from "../SelectedAssociationsCard/WellInfo";
-import { undoFileWellAssociation } from "../../state/upload/actions";
 
 const styles = require("./style.pcss");
 

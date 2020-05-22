@@ -1,13 +1,13 @@
+import { basename } from "path";
+
 import { Alert, Empty, Table } from "antd";
 import { ColumnProps } from "antd/es/table";
 import { isEmpty, uniq } from "lodash";
-import { basename } from "path";
 import * as React from "react";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { SearchResultRow } from "../../state/metadata/types";
 import { titleCase } from "../../util";
-
 import JobOverviewDisplay from "../JobOverviewDisplay";
 
 const styles = require("./styles.pcss");

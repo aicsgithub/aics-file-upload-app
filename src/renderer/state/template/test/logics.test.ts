@@ -14,7 +14,6 @@ import {
   mockLookups,
   mockState,
 } from "../../test/mocks";
-
 import {
   addExistingAnnotation,
   removeAnnotations,

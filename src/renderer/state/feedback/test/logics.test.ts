@@ -12,7 +12,6 @@ import {
   createMockReduxStore,
   mmsClient,
 } from "../../test/configure-mock-store";
-
 import {
   getMockStateWithHistory,
   mockFavoriteColorAnnotation,
@@ -22,7 +21,6 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
-
 import { closeModal, removeRequestFromInProgress } from "../actions";
 import { getTemplateEditorVisible } from "../selectors";
 import { AsyncRequest } from "../types";

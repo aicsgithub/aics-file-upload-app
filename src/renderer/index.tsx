@@ -3,7 +3,6 @@ import "core-js/es6/promise";
 import "core-js/es6/set";
 import { remote } from "electron";
 import * as Logger from "js-logger";
-
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";

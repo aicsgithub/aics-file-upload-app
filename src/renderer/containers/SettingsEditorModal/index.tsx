@@ -9,7 +9,6 @@ import { ActionCreator } from "redux";
 
 import { OPEN_SETTINGS_EDITOR } from "../../../shared/constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
-
 import { getSettingsEditorVisible } from "../../state/feedback/selectors";
 import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import {

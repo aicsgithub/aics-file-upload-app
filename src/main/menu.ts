@@ -1,4 +1,5 @@
 import electron, { dialog, Menu, shell } from "electron";
+
 import {
   OPEN_OPEN_TEMPLATE_MODAL,
   OPEN_OPEN_UPLOAD_MODAL,

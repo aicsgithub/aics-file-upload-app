@@ -8,7 +8,6 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { OPEN_OPEN_UPLOAD_MODAL } from "../../../shared/constants";
-
 import { LONG_DATETIME_FORMAT } from "../../constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getOpenUploadModalVisible } from "../../state/feedback/selectors";

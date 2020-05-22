@@ -9,7 +9,6 @@ import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
-
 import {
   addEvent,
   setAlert,
@@ -18,7 +17,6 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { getLoggedInUser } from "../setting/selectors";
-
 import {
   LocalStorage,
   Logger,

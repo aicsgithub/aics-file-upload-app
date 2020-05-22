@@ -1,9 +1,11 @@
-import { Menu, MenuItem } from "electron";
 import { existsSync } from "fs";
-import { isEmpty, isNil } from "lodash";
 import { platform } from "os";
+
+import { Menu, MenuItem } from "electron";
+import { isEmpty, isNil } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+
 import {
   getCurrentUploadKey,
   getCurrentUploadName,
@@ -14,7 +16,6 @@ import {
   openSetMountPointNotification,
   setDeferredAction,
 } from "../feedback/actions";
-
 import { updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,

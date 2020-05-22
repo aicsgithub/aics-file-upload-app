@@ -3,8 +3,7 @@ import { clamp, includes } from "lodash";
 import React, { useRef } from "react";
 
 import { Well } from "../../state/selection/types";
-import { useContainerDimensions } from "../../util/stateful-logic";
-
+import { useContainerDimensions } from "../../util/hooks";
 import WellComponent from "../Well";
 
 const ASSOCIATED_WELL_COLOR = "rgb(156, 204, 132)"; // For wells that are associated with at least one file

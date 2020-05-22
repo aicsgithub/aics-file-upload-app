@@ -19,7 +19,6 @@ import {
   UploadJobTableRow,
   UploadStateBranch,
 } from "../../state/upload/types";
-
 import ImagingSessionSelector from "../ImagingSessionSelector";
 import Plate from "../PlateContainer";
 

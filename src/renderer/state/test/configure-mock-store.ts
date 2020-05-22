@@ -11,9 +11,6 @@ import { createLogicMiddleware, LogicMiddleware } from "redux-logic";
 import { Logic } from "redux-logic/definitions/logic";
 import { SinonStub, stub } from "sinon";
 
-import LabkeyClient from "../../util/labkey-client";
-import MMSClient from "../../util/mms-client";
-
 import {
   enableBatching,
   feedback,
@@ -25,7 +22,10 @@ import {
   template,
   upload,
 } from "../";
+import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 import { State } from "../types";
+
 import { Actions, default as ActionTracker } from "./action-tracker";
 import { getMockStateWithHistory } from "./mocks";
 

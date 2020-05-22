@@ -11,7 +11,6 @@ import {
   OPEN_TEMPLATE_EDITOR,
   SCHEMA_SYNONYM,
 } from "../../../shared/constants";
-
 import FormControl from "../../components/FormControl";
 import {
   NOTES_ANNOTATION_NAME,

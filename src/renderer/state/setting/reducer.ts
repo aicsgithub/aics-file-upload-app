@@ -1,4 +1,5 @@
 import { userInfo } from "os";
+
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
@@ -8,6 +9,7 @@ import { TypeToDescriptionMap } from "../types";
 import { APPLY_TEMPLATE, REPLACE_UPLOAD } from "../upload/constants";
 import { ApplyTemplateAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
+
 import {
   ASSOCIATE_BY_WORKFLOW,
   GATHER_SETTINGS,

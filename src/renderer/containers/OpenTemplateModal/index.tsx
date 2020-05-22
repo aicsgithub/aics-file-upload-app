@@ -6,7 +6,6 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { OPEN_OPEN_TEMPLATE_MODAL } from "../../../shared/constants";
-
 import TemplateSearch from "../../components/TemplateSearch";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getOpenTemplateModalVisible } from "../../state/feedback/selectors";
@@ -16,7 +15,6 @@ import {
   OpenTemplateEditorAction,
 } from "../../state/feedback/types";
 import { openTemplateEditor } from "../../state/selection/actions";
-
 import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
