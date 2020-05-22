@@ -3,17 +3,14 @@ import * as classNames from "classnames";
 import { sortBy } from "lodash";
 import { ReactNode } from "react";
 import React, { useEffect, useState } from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
-import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
-import { GetTemplatesAction } from "../../state/metadata/types";
 import { openTemplateEditor } from "../../state/selection/actions";
-import { State } from "../../state/types";
 
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 
@@ -23,32 +20,24 @@ interface TemplateSearchProps {
   allowCreate?: boolean;
   className?: string;
   defaultOpen?: boolean;
-  loading?: boolean;
-  onSelect: (selectedTemplateId?: number) => void;
-  openTemplateEditor: typeof openTemplateEditor;
-  requestTemplates: ActionCreator<GetTemplatesAction>;
-  templates: LabkeyTemplate[];
+  onSelect: (selectedTemplateId: number) => void;
   value?: number;
 }
 
-function TemplateSearch(props: TemplateSearchProps) {
+export default function TemplateSearch(props: TemplateSearchProps) {
+  const requestsInProgress = useSelector(getRequestsInProgress);
+  const loading = requestsInProgress.includes(AsyncRequest.GET_TEMPLATES);
+  const templates = useSelector(getTemplates);
+  const dispatch = useDispatch();
   useEffect(() => {
-    props.requestTemplates();
+    dispatch(requestTemplates());
   }, []);
   const [open, setOpen] = useState<boolean>(false);
   const [elClicked, setElClicked] = useState<EventTarget | undefined>(
     undefined
   );
 
-  const {
-    allowCreate,
-    className,
-    defaultOpen,
-    loading,
-    onSelect,
-    templates,
-    value,
-  } = props;
+  const { allowCreate, className, defaultOpen, onSelect, value } = props;
   const sortedTemplates = sortBy(templates, ["Name", "Version"]);
   return (
     <Select
@@ -74,7 +63,7 @@ function TemplateSearch(props: TemplateSearchProps) {
                   if (elClicked === e.target) {
                     setOpen(false);
                     setElClicked(undefined);
-                    props.openTemplateEditor();
+                    dispatch(openTemplateEditor());
                   }
                 }}
               >
@@ -91,8 +80,8 @@ function TemplateSearch(props: TemplateSearchProps) {
           setOpen(visible);
         }
       }}
-      onSelect={() => {
-        onSelect();
+      onSelect={(templateId: number) => {
+        onSelect(templateId);
         setOpen(false);
       }}
       open={open}
@@ -110,17 +99,3 @@ function TemplateSearch(props: TemplateSearchProps) {
     </Select>
   );
 }
-
-function mapStateToProps(state: State) {
-  return {
-    loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
-    templates: getTemplates(state),
-  };
-}
-
-const dispatchToPropsMap = {
-  openTemplateEditor,
-  requestTemplates,
-};
-
-export default connect(mapStateToProps, dispatchToPropsMap)(TemplateSearch);
