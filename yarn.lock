@@ -24,10 +24,10 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-3.0.0.tgz#c66003933092796adeb1e24f5f36903ff009571e"
-  integrity sha512-Qe1caCkJJpWZoZmp863FiCZh0dHq5GxQXDShxGKl2fEaufHa5W4x1TfLNXqxlZc8HU01FAEkK2SPxx/8pnB2iw==
+"@aics/aicsfiles@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-3.0.1.tgz#0ab1c4578dbcdb41f9199163159de29a6f3c3945"
+  integrity sha512-GMeEtzDwGvqSBkYN4mxa/7FFT9eipQ1h9QJY+3Zv2s4ViGibaVG+4Fc7BB/KhutbNRwAtXBWFjMLb16+6bYwLg==
   dependencies:
     "@aics/job-status-client" "1.1.1"
     "@babel/polyfill" "^7.4.4"
@@ -4071,7 +4071,7 @@ eslint-module-utils@^2.4.1:
     debug "^2.6.9"
     pkg-dir "^2.0.0"
 
-eslint-plugin-import@^2.20.2:
+eslint-plugin-import@2.20.2:
   version "2.20.2"
   resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.20.2.tgz#91fc3807ce08be4837141272c8b99073906e588d"
   integrity sha512-FObidqpXrR8OnCh4iNsxy+WACztJLXAHBO5hK79T1Hc77PgQZkyDGA5Ag9xAvRpglvLNxhH/zSmZ70/pZ31dHg==
