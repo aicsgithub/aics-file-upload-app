@@ -51,6 +51,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
           <div className={styles.btns}>
             <Button
               onClick={this.associateWithRow}
+              size="small"
               type="primary"
               className={styles.associateBtn}
               disabled={this.associateBtnDisabled()}
@@ -60,12 +61,15 @@ class WellEditorPopover extends React.Component<Props, {}> {
             <Button
               onClick={this.undoAssociation}
               disabled={this.removeAssociationsBtnDisabled()}
+              size="small"
             >
               Remove Association
             </Button>
           </div>
         </div>
-        <Plate rowData={rowData} className={styles.plate} />
+        <div className={styles.plateContainer}>
+          <Plate rowData={rowData} className={styles.plate} />
+        </div>
       </div>
     );
   }
