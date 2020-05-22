@@ -265,13 +265,13 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
   private removeTag = (tag: FileTag, fullpath: string) => (): void => {
     // If the tag type is well or workflow, `wellId` or `workflow` should be
     // present. We check below to make sure.
-    if (tag.type == FileTagType.WELL && tag.wellId) {
+    if (tag.type === FileTagType.WELL && tag.wellId) {
       this.props.undoFileWellAssociation({ file: fullpath }, true, [
         tag.wellId,
       ]);
-    } else if (tag.type == FileTagType.WORKFLOW && tag.workflow) {
+    } else if (tag.type === FileTagType.WORKFLOW && tag.workflow) {
       this.props.undoFileWorkflowAssociation(fullpath, [tag.workflow]);
-    } else if (tag.type == FileTagType.STORAGE) {
+    } else if (tag.type === FileTagType.STORAGE) {
       if (tag.title.toLowerCase() === "archive") {
         this.props.removeFileFromArchive(fullpath);
       } else {
