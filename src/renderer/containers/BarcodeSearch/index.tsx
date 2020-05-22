@@ -1,5 +1,6 @@
 import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
+
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { AsyncRequest } from "../../state/feedback/types";
 import { requestBarcodeSearchResults } from "../../state/metadata/actions";
