@@ -1,5 +1,6 @@
-import { map } from "lodash";
 import { basename } from "path";
+
+import { map } from "lodash";
 import { createLogic } from "redux-logic";
 
 import {
@@ -20,6 +21,7 @@ import {
   ReduxLogicTransformDependencies,
 } from "../types";
 import { batchActions } from "../util";
+
 import { updateSettings } from "./actions";
 import { GATHER_SETTINGS, SET_MOUNT_POINT, UPDATE_SETTINGS } from "./constants";
 import {

@@ -1,8 +1,8 @@
 import { Card } from "antd";
 import classNames from "classnames";
 import * as React from "react";
-import BarcodeSearch from "../../../containers/BarcodeSearch";
 
+import BarcodeSearch from "../../../containers/BarcodeSearch";
 import LabeledInput from "../../LabeledInput";
 import SelectedForm from "../SelectedForm";
 

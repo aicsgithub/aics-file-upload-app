@@ -1,6 +1,8 @@
 import { Button, Card, Tabs } from "antd";
 import * as React from "react";
 
+import { UploadMetadata } from "../../state/upload/types";
+
 import FileAssociations from "./FileAssociations/index";
 
 const styles = require("./style.pcss");
@@ -9,9 +11,9 @@ interface SelectedAssociationsProps {
   children: React.ReactNode | React.ReactNodeArray;
   className?: string;
   selectedFilesCount: number;
-  files: string[];
+  uploads: UploadMetadata[];
   associate: () => void;
-  undoAssociation: (file: string) => void;
+  undoAssociation: (upload: UploadMetadata) => void;
   undoLastAssociation: () => void;
   redo: () => void;
   canAssociate: boolean;
@@ -32,7 +34,7 @@ class SelectedAssociationsCard extends React.Component<
       canUndoLastAssociation,
       children,
       className,
-      files,
+      uploads,
       redo,
       selectedFilesCount,
       title,
@@ -65,7 +67,7 @@ class SelectedAssociationsCard extends React.Component<
               className={styles.tabPane}
               associate={associate}
               canAssociate={canAssociate}
-              files={files}
+              uploads={uploads}
               selectedFilesCount={selectedFilesCount}
               undoAssociation={undoAssociation}
             />

@@ -6,11 +6,11 @@ import { ActionCreator } from "redux";
 import ImagingSessionSelector from "../../containers/ImagingSessionSelector";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWellsAction, Well } from "../../state/selection/types";
+import { undoFileWellAssociation } from "../../state/upload/actions";
 import {
   AssociateFilesAndWellsAction,
-  UndoFileWellAssociationAction,
+  UploadMetadata,
 } from "../../state/upload/types";
-
 import FormPage from "../FormPage";
 import Plate from "../Plate";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
@@ -25,7 +25,7 @@ interface AssociateWellsProps {
   className?: string;
   goBack: ActionCreator<GoBackAction>;
   goForward: ActionCreator<NextPageAction>;
-  mutualFilesForWells: string[];
+  mutualUploadsForWells: UploadMetadata[];
   redo: () => void;
   selectedFiles: string[];
   selectedWellLabels: string[];
@@ -35,7 +35,7 @@ interface AssociateWellsProps {
   undo: () => void;
   wells?: Well[][];
   wellsWithAssociations: number[]; // wells with Associations will be displayed as green
-  undoAssociation: ActionCreator<UndoFileWellAssociationAction>;
+  undoAssociation: typeof undoFileWellAssociation;
 }
 
 /**
@@ -50,7 +50,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
       canUndo,
       goBack,
       goForward,
-      mutualFilesForWells,
+      mutualUploadsForWells,
       redo,
       selectedFiles,
       selectedWellsData,
@@ -77,7 +77,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
       >
         <SelectedAssociationsCard
           className={styles.wellInfo}
-          files={mutualFilesForWells}
+          uploads={mutualUploadsForWells}
           selectedFilesCount={selectedFiles.length}
           associate={this.associate}
           canAssociate={this.canAssociate()}

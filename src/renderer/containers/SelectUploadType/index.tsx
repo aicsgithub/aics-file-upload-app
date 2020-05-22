@@ -7,7 +7,6 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { PLATE_CREATED } from "../../../shared/constants";
-
 import FormPage from "../../components/FormPage";
 import CreateBarcodeCard from "../../components/SelectPath/CreateBarcodeCard";
 import EnterBarcodeCard from "../../components/SelectPath/EnterBarcodeCard";

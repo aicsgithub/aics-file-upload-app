@@ -22,7 +22,6 @@ import { mockSelectedWorkflows, mockState } from "../../test/mocks";
 import { Logger } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getCurrentUploadIndex } from "../../upload/selectors";
-
 import { closeUploadTab, goBack, selectPage } from "../actions";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";

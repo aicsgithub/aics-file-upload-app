@@ -10,7 +10,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: ["./tsconfig.json"],
   },
-  plugins: ["@typescript-eslint"],
+  plugins: ["@typescript-eslint", "import"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
@@ -33,5 +33,13 @@ module.exports = {
     "@typescript-eslint/explicit-function-return-type": "off",
     "react/prop-types": "off",
     "@typescript-eslint/no-unused-vars": "error",
+    "import/order": ["error", {
+      "alphabetize": {
+        order: "asc",
+        caseInsensitive: true
+      },
+      "newlines-between": "always",
+      "groups": ["builtin", "external", "parent", "sibling", "index"],
+    }],
   },
 };

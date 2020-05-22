@@ -1,13 +1,13 @@
+import { dirname, resolve } from "path";
+
 import { AxiosError } from "axios";
 import { expect } from "chai";
 import { isEmpty } from "lodash";
-import { dirname, resolve } from "path";
 import { StateWithHistory } from "redux-undo";
 import * as sinon from "sinon";
 import { createSandbox, stub } from "sinon";
 
 import selections from "../";
-
 import { feedback } from "../../";
 import {
   SERVICE_IS_DOWN_MESSAGE,

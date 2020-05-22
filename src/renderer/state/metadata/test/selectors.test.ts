@@ -1,4 +1,5 @@
 import { expect } from "chai";
+
 import { ColumnType } from "../../template/types";
 import {
   mockAuditInfo,

@@ -1,4 +1,5 @@
 import { UploadStateBranch } from "../upload/types";
+
 import {
   ADD_ANNOTATION,
   CLEAR_TEMPLATE_DRAFT,

@@ -3,7 +3,6 @@ import { includes } from "lodash";
 import * as React from "react";
 
 import { Well } from "../../state/selection/types";
-
 import WellComponent from "../Well";
 
 const ASSOCIATED_WELL_COLOR = "rgb(156, 204, 132)"; // For wells that are associated with at least one file

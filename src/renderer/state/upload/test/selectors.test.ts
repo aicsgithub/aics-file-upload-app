@@ -4,8 +4,8 @@ import {
 } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { forEach, orderBy } from "lodash";
-import { TemplateAnnotation } from "../../template/types";
 
+import { TemplateAnnotation } from "../../template/types";
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
@@ -32,7 +32,6 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
-
 import {
   getCanGoForwardFromSelectStorageLocationPage,
   getFileToAnnotationHasValueMap,
@@ -707,7 +706,7 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         wellIds: [1],
         wellLabels: ["A1"],
-        workflows: [],
+        workflows: ["name1"],
       });
       expect(rows).to.deep.include({
         barcode: "1235",
@@ -726,7 +725,7 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         wellIds: [2],
         wellLabels: ["A2"],
-        workflows: [],
+        workflows: ["name1", "name2"],
       });
       expect(rows).to.deep.include({
         barcode: "1236",
@@ -745,7 +744,7 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         wellIds: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
-        workflows: [],
+        workflows: ["name3"],
       });
     });
     it("does not show scene row if file row not expanded", () => {

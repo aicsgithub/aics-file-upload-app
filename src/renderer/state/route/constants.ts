@@ -1,4 +1,5 @@
 import { makeConstant } from "../util";
+
 import { Page } from "./types";
 
 const BRANCH_NAME = "route";

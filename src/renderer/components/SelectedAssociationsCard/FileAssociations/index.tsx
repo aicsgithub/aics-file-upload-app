@@ -3,15 +3,17 @@ import * as classNames from "classnames";
 import { isEmpty } from "lodash";
 import * as React from "react";
 
+import { UploadMetadata } from "../../../state/upload/types";
+
 const styles = require("./style.pcss");
 
 interface WellFileAssociationsProps {
   className?: string;
   associate: () => void;
   canAssociate: boolean;
-  files: string[];
+  uploads: UploadMetadata[];
   selectedFilesCount: number;
-  undoAssociation: (file: string) => void;
+  undoAssociation: (upload: UploadMetadata) => void;
 }
 
 class FileAssociations extends React.Component<WellFileAssociationsProps, {}> {
@@ -48,33 +50,27 @@ class FileAssociations extends React.Component<WellFileAssociationsProps, {}> {
   }
 
   private renderFiles() {
-    const { files } = this.props;
-    if (isEmpty(files)) {
+    const { uploads } = this.props;
+    if (isEmpty(uploads)) {
       return <Empty description="No Files" />;
     }
 
-    return files.map(this.renderFileRow, this);
-  }
-
-  private renderFileRow = (file: string) => (
-    <div className={styles.fileRow} key={file}>
-      <div className={styles.fileName}>
-        <Icon type="file" className={styles.fileIcon} />
-        {file}
+    return uploads.map((upload) => (
+      <div className={styles.fileRow} key={upload.file}>
+        <div className={styles.fileName}>
+          <Icon type="file" className={styles.fileIcon} />
+          {upload.file}
+        </div>
+        <div className={styles.deleteButton}>
+          <Button
+            type="danger"
+            shape="circle"
+            icon="delete"
+            onClick={() => this.props.undoAssociation(upload)}
+          />
+        </div>
       </div>
-      <div className={styles.deleteButton}>
-        <Button
-          type="danger"
-          shape="circle"
-          icon="delete"
-          onClick={this.undoAssociation(file)}
-        />
-      </div>
-    </div>
-  );
-
-  private undoAssociation(file: string) {
-    return () => this.props.undoAssociation(file);
+    ));
   }
 }
 

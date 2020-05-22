@@ -4,7 +4,6 @@ import * as React from "react";
 import LabeledInput from "../../../components/LabeledInput";
 import { Annotation } from "../../../state/template/types";
 import LookupSearch from "../../LookupSearch";
-
 import SearchButton from "../SearchButton";
 
 const styles = require("./styles.pcss");

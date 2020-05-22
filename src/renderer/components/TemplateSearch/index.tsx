@@ -11,7 +11,6 @@ import { AsyncRequest } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { openTemplateEditor } from "../../state/selection/actions";
-
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 const styles = require("./styles.pcss");

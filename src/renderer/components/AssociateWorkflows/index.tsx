@@ -6,11 +6,11 @@ import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import LookupSearch from "../../containers/LookupSearch";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { undoFileWorkflowAssociation } from "../../state/upload/actions";
 import {
   AssociateFilesAndWorkflowsAction,
-  UndoFileWorkflowAssociationAction,
+  UploadMetadata,
 } from "../../state/upload/types";
-
 import FormPage from "../FormPage";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";
@@ -24,13 +24,13 @@ interface Props {
   className?: string;
   goBack: ActionCreator<GoBackAction>;
   goForward: ActionCreator<NextPageAction>;
-  mutualFiles: string[];
+  mutualUploads: UploadMetadata[];
   redo: () => void;
   selectedFiles: string[];
   selectedWorkflows: Workflow[];
   selectWorkflows: ActionCreator<SelectWorkflowsAction>;
   undo: () => void;
-  undoAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
+  undoAssociation: typeof undoFileWorkflowAssociation;
   workflowOptions: Workflow[];
   workflowsWithAssociations: string[];
 }
@@ -44,7 +44,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
       canRedo,
       canUndo,
       className,
-      mutualFiles,
+      mutualUploads,
       redo,
       selectedFiles,
       selectedWorkflows,
@@ -69,7 +69,7 @@ class AssociateWorkflows extends React.Component<Props, {}> {
         page={Page.AssociateFiles}
       >
         <SelectedAssociationsCard
-          files={mutualFiles}
+          uploads={mutualUploads}
           selectedFilesCount={selectedFiles.length}
           associate={this.associate}
           canAssociate={this.canAssociate()}
@@ -120,8 +120,8 @@ class AssociateWorkflows extends React.Component<Props, {}> {
     this.props.selectWorkflows(workflows);
   };
 
-  private undoAssociation = (file: string): void => {
-    this.props.undoAssociation(file, this.props.selectedWorkflows);
+  private undoAssociation = (upload: UploadMetadata): void => {
+    this.props.undoAssociation(upload.file, this.props.selectedWorkflows);
   };
 
   // If we have workflows & files selected then allow the user to Associate them

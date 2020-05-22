@@ -39,7 +39,6 @@ import {
   retrieveOptionsForLookup,
   searchFileMetadata,
 } from "../actions";
-
 import {
   getAnnotationLookups,
   getAnnotationOptions,

@@ -40,7 +40,6 @@ import {
   UploadMetadata,
 } from "../../state/upload/types";
 import { onDrop } from "../../util";
-
 import BooleanFormatter from "../BooleanFormatter";
 
 import CellWithContextMenu from "./CellWithContextMenu";

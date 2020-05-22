@@ -5,7 +5,6 @@ import {
   receiveFileMetadata,
   requestFileMetadataForJob,
 } from "../../metadata/actions";
-
 import { closeUploadTab, selectPage } from "../../route/actions";
 import { Page } from "../../route/types";
 import {
@@ -35,7 +34,6 @@ import {
   retryUploadFailed,
   retryUploadSucceeded,
 } from "../../upload/actions";
-
 import {
   addEvent,
   addRequestToInProgress,
@@ -55,7 +53,6 @@ import {
   stopLoading,
   toggleFolderTree,
 } from "../actions";
-
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import { AlertType, AsyncRequest, FeedbackStateBranch } from "../types";

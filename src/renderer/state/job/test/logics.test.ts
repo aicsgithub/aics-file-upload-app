@@ -1,10 +1,9 @@
 import { expect } from "chai";
 import { createSandbox, stub } from "sinon";
-import { JOB_STORAGE_KEY } from "../../../../shared/constants";
 
+import { JOB_STORAGE_KEY } from "../../../../shared/constants";
 import { ADD_EVENT, SET_ALERT } from "../../feedback/constants";
 import { AlertType } from "../../feedback/types";
-
 import { logger } from "../../test/configure-mock-store";
 import {
   mockSuccessfulAddMetadataJob,
