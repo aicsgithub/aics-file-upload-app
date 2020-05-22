@@ -41,5 +41,6 @@ module.exports = {
       "newlines-between": "always",
       "groups": ["builtin", "external", "parent", "sibling", "index"],
     }],
+    "eqeqeq": ["error", "always"],
   },
 };

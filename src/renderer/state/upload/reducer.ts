@@ -150,12 +150,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       }
       const workflows = without(
         currentWorkflows,
-        ...action.payload.workflows.map((w) => w.name)
+        ...action.payload.workflowNames
       );
       if (!workflows.length) {
-        const stateWithoutFile = { ...state };
-        delete stateWithoutFile[key];
-        return stateWithoutFile;
+        return omit(state, key);
       }
       return {
         ...state,

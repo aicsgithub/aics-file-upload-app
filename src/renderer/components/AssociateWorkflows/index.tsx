@@ -73,7 +73,9 @@ class AssociateWorkflows extends React.Component<Props, {}> {
           selectedFilesCount={selectedFiles.length}
           associate={this.associate}
           canAssociate={this.canAssociate()}
-          undoAssociation={this.undoAssociation}
+          undoAssociation={(upload) =>
+            this.props.undoAssociation(upload.file, selectedWorkflowNames)
+          }
           undoLastAssociation={undo}
           redo={redo}
           canRedo={canRedo}
@@ -118,10 +120,6 @@ class AssociateWorkflows extends React.Component<Props, {}> {
       names.includes(workflow.name)
     );
     this.props.selectWorkflows(workflows);
-  };
-
-  private undoAssociation = (upload: UploadMetadata): void => {
-    this.props.undoAssociation(upload.file, this.props.selectedWorkflows);
   };
 
   // If we have workflows & files selected then allow the user to Associate them

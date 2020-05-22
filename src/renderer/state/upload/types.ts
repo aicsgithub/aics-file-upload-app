@@ -146,7 +146,7 @@ export interface UndoFileWellAssociationAction extends AutoSaveAction {
 export interface UndoFileWorkflowAssociationAction extends AutoSaveAction {
   payload: {
     fullPath: string;
-    workflows: Workflow[];
+    workflowNames: string[];
   };
   type: string;
 }
