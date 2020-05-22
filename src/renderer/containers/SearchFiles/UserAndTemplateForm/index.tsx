@@ -4,7 +4,6 @@ import * as React from "react";
 import LabeledInput from "../../../components/LabeledInput";
 import TemplateSearch from "../../../components/TemplateSearch";
 import { LabkeyUser } from "../../../util/labkey-client/types";
-
 import SearchButton from "../SearchButton";
 
 const styles = require("./styles.pcss");

@@ -2,6 +2,7 @@ import { Button, Empty, Icon } from "antd";
 import * as classNames from "classnames";
 import { isEmpty } from "lodash";
 import * as React from "react";
+
 import { UploadMetadata } from "../../../state/upload/types";
 
 const styles = require("./style.pcss");

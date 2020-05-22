@@ -2,7 +2,6 @@ import { get, includes } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { getSetAppliedTemplateAction } from "../../util";
-
 import {
   addRequestToInProgress,
   closeModal,
@@ -28,6 +27,7 @@ import {
 } from "../types";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
+
 import { updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";

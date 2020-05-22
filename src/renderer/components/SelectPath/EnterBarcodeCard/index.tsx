@@ -1,9 +1,9 @@
 import { Card } from "antd";
 import classNames from "classnames";
 import * as React from "react";
+
 import LookupSearch from "../../../containers/LookupSearch";
 import { BarcodeSelectorOption } from "../../../containers/SelectUploadType";
-
 import LabeledInput from "../../LabeledInput";
 import SelectedForm from "../SelectedForm";
 

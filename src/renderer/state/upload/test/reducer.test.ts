@@ -2,7 +2,6 @@ import { expect } from "chai";
 
 import { closeUploadTab } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
-
 import { replaceUpload, updateUpload } from "../actions";
 import reducer from "../reducer";
 import { UploadStateBranch } from "../types";

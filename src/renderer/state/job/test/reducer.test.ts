@@ -1,4 +1,5 @@
 import { expect } from "chai";
+
 import {
   mockFailedCopyJob,
   mockFailedUploadJob,
@@ -17,7 +18,6 @@ import {
   stopJobPoll,
   updateIncompleteJobIds,
 } from "../actions";
-
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import { JobFilter } from "../types";

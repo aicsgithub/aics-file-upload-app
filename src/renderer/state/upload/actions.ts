@@ -4,7 +4,6 @@ import {
 } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { CurrentUpload } from "../metadata/types";
-
 import { Workflow } from "../selection/types";
 import { State } from "../types";
 

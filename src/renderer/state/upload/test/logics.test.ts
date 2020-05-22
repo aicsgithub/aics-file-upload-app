@@ -3,9 +3,9 @@ import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
 import { createSandbox, SinonFakeTimers, stub, useFakeTimers } from "sinon";
+
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { LONG_DATETIME_FORMAT } from "../../../constants";
-
 import {
   getAlert,
   getOpenUploadModalVisible,

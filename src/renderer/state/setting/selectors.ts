@@ -1,7 +1,7 @@
 import { difference } from "lodash";
 import { createSelector } from "reselect";
-import { UNIMPORTANT_COLUMNS } from "../metadata/constants";
 
+import { UNIMPORTANT_COLUMNS } from "../metadata/constants";
 import { State } from "../types";
 
 export const getAssociateByWorkflow = (state: State) =>

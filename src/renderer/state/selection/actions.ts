@@ -1,6 +1,7 @@
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { OpenTemplateEditorAction } from "../feedback/types";
+
 import {
   ADD_STAGE_FILES,
   CLEAR_SELECTION_HISTORY,

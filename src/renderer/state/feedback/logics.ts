@@ -1,11 +1,11 @@
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+
 import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 import { getAnnotationTypes } from "../metadata/selectors";
 import { updateTemplateDraft } from "../template/actions";
 import { Template, TemplateAnnotation } from "../template/types";
-
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,

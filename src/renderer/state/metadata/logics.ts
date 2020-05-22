@@ -1,17 +1,17 @@
+import fs from "fs";
+
 import { FileManagementSystem } from "@aics/aicsfiles";
 import {
   FileToFileMetadata,
   ImageModelMetadata,
 } from "@aics/aicsfiles/type-declarations/types";
 import { ipcRenderer } from "electron";
-import fs from "fs";
 import { isEmpty, sortBy, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { getWithRetry, retrieveFileMetadata } from "../../util";
-
 import {
   addRequestToInProgress,
   removeRequestFromInProgress,
@@ -21,7 +21,6 @@ import {
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import { Annotation, AnnotationLookup, Lookup } from "../template/types";
-
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -32,6 +31,7 @@ import {
 } from "../types";
 import { DRAFT_KEY } from "../upload/constants";
 import { batchActions } from "../util";
+
 import { receiveFileMetadata, receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,

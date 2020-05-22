@@ -4,6 +4,7 @@ import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
+
 import { SELECT_PAGE, SELECT_VIEW } from "./constants";
 import { getPage } from "./selectors";
 import {

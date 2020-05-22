@@ -13,6 +13,7 @@ import {
   RetryUploadSucceededAction,
 } from "../upload/types";
 import { makeReducer } from "../util";
+
 import {
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,

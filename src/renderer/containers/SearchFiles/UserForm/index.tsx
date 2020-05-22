@@ -3,7 +3,6 @@ import * as React from "react";
 
 import LabeledInput from "../../../components/LabeledInput";
 import { LabkeyUser } from "../../../util/labkey-client/types";
-
 import SearchButton from "../SearchButton";
 
 const styles = require("./styles.pcss");

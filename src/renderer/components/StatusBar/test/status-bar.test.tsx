@@ -8,7 +8,6 @@ import StatusBar, {
   SECONDS_IN_A_MINUTE,
   SECONDS_IN_AN_HOUR,
 } from "../";
-
 import { AlertType, AppEvent } from "../../../state/feedback/types";
 
 describe("<StatusBar/>", () => {
