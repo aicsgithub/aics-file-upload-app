@@ -394,7 +394,6 @@ export const retrieveFileMetadata = async (
   fms: FileManagementSystem,
   transformDates = true
 ): Promise<ImageModelMetadata[]> => {
-  fileIds = ["345da69bbd1348799bbaaa4139cbd96c"];
   const resolvedPromises: FileMetadata[] = await Promise.all(
     fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
   );
