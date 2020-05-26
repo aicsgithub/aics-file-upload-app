@@ -15,11 +15,7 @@ import {
   getRequestsInProgressContains,
   getUploadError,
 } from "../../state/feedback/selectors";
-import {
-  AsyncRequest,
-  OpenTemplateEditorAction,
-  SetAlertAction,
-} from "../../state/feedback/types";
+import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
 import { getUploadInProgress } from "../../state/job/selectors";
 import {
   getAnnotationTypes,
@@ -107,7 +103,6 @@ interface Props {
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
   loadingFileMetadata: boolean;
-  openSchemaCreator: ActionCreator<OpenTemplateEditorAction>;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
   selectBarcode: typeof selectBarcode;
