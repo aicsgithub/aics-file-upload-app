@@ -1,5 +1,6 @@
 import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { AxiosRequestConfig } from "axios";
+import { decamelizeKeys } from "humps";
 
 import { GetPlateResponse, WellResponse } from "../../state/selection/types";
 import { Template } from "../../state/template/types";
@@ -78,13 +79,12 @@ export default class MMSClient extends BaseServiceClient {
     return response.data[0];
   }
 
-  // TODO: change the request type and implementation once the PUT endpoint is created
   public async editFileMetadata(
     fileId: string,
     request: AicsFilesUploadMetadata
   ): Promise<void> {
-    await this.deleteFileMetadata(fileId, false);
-    await this.createFileMetadata(fileId, request);
+    const url = `1.0/filemetadata/${fileId}`;
+    await this.httpClient.put(url, decamelizeKeys(request), this.config);
   }
 
   public async deleteFileMetadata(
@@ -93,15 +93,6 @@ export default class MMSClient extends BaseServiceClient {
   ): Promise<void> {
     const url = `/1.0/filemetadata/${fileId}`;
     await this.httpClient.delete(url, { deleteFile }, this.config);
-  }
-
-  public async createFileMetadata(
-    fileId: string,
-    request: AicsFilesUploadMetadata
-  ): Promise<void> {
-    const url = `/1.0/filemetadata/${fileId}`;
-    const response = await this.httpClient.post(url, request, this.config);
-    return response.data[0];
   }
 
   protected get baseURL(): string {
