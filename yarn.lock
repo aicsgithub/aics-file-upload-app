@@ -24,16 +24,17 @@
     react-loaders "^3.0.1"
     react-select "^1.2.1"
 
-"@aics/aicsfiles@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-3.0.1.tgz#0ab1c4578dbcdb41f9199163159de29a6f3c3945"
-  integrity sha512-GMeEtzDwGvqSBkYN4mxa/7FFT9eipQ1h9QJY+3Zv2s4ViGibaVG+4Fc7BB/KhutbNRwAtXBWFjMLb16+6bYwLg==
+"@aics/aicsfiles@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@aics/aicsfiles/-/aicsfiles-3.0.2.tgz#e2231baea55b524a0d5a0a3b0f5ada01e0267976"
+  integrity sha512-cBUBRVOOTl9MMnIyqTHJ/RcnaQThda3q6cYam8+32M64lFYbUjMpQYtBO1q9UOHXsDeUc/keM3UuijZ9l8ximg==
   dependencies:
     "@aics/job-status-client" "1.1.1"
     "@babel/polyfill" "^7.4.4"
     axios "^0.19.0"
     humps "^2.0.1"
     lodash "^4.17.11"
+    rimraf "^3.0.2"
     uuid "^3.3.2"
 
 "@aics/job-status-client@1.1.1", "@aics/job-status-client@^1.1.1":
@@ -4074,7 +4075,7 @@ eslint-module-utils@^2.4.1:
     debug "^2.6.9"
     pkg-dir "^2.0.0"
 
-eslint-plugin-import@2.20.2:
+eslint-plugin-import@^2.20.2:
   version "2.20.2"
   resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.20.2.tgz#91fc3807ce08be4837141272c8b99073906e588d"
   integrity sha512-FObidqpXrR8OnCh4iNsxy+WACztJLXAHBO5hK79T1Hc77PgQZkyDGA5Ag9xAvRpglvLNxhH/zSmZ70/pZ31dHg==
