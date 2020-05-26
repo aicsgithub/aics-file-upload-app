@@ -1,8 +1,8 @@
 # Version Notes
-## 1.0.42
+## 1.0.43
 - Bugfix: fix runtime issue
 
-## 1.0.41
+## 1.0.42
 - BROKEN version
 
 ## 1.0.38 - 1.0.41 
