@@ -1,3 +1,7 @@
+import { constants, promises, stat as fsStat, Stats } from "fs";
+import { resolve as resolvePath } from "path";
+import { promisify } from "util";
+
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { FileManagementSystem } from "@aics/aicsfiles";
 import {
@@ -5,7 +9,6 @@ import {
   FileToFileMetadata,
   ImageModelMetadata,
 } from "@aics/aicsfiles/type-declarations/types";
-import { constants, promises, stat as fsStat, Stats } from "fs";
 import {
   castArray,
   difference,
@@ -16,9 +19,7 @@ import {
   trim,
   uniq,
 } from "lodash";
-import { resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
-import { promisify } from "util";
 
 import { LIST_DELIMITER_SPLIT } from "../constants";
 import { API_WAIT_TIME_SECONDS } from "../state/constants";

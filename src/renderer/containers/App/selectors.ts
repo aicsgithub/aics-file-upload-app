@@ -1,6 +1,7 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
+
 import {
   getCurrentUpload,
   getImagingSessions,
@@ -15,7 +16,6 @@ import {
 } from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { getUploadDraftKey, isFileRow } from "../../state/upload/constants";
-
 import {
   getUpload,
   getWellLabelAndImagingSessionName,

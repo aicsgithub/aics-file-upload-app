@@ -3,13 +3,13 @@ import { expect } from "chai";
 import { omit } from "lodash";
 import { ActionCreator } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
+
 import {
   getAlert,
   getRequestsInProgressContains,
   getUploadError,
 } from "../../feedback/selectors";
 import { AlertType, AsyncRequest } from "../../feedback/types";
-
 import {
   getFileMetadataForJob,
   getSelectionHistory,
@@ -49,7 +49,6 @@ import {
   getCurrentUploadIndex,
   getUpload,
 } from "../../upload/selectors";
-
 import {
   closeUploadTab,
   goBack,

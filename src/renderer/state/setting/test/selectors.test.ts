@@ -1,7 +1,6 @@
 import { expect } from "chai";
 
 import { mockState } from "../../test/mocks";
-
 import { getLimsUrl } from "../selectors";
 
 describe("Settings selectors", () => {

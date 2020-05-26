@@ -1,5 +1,6 @@
-import { AicsGridCell } from "@aics/aics-react-labkey";
 import { basename, dirname } from "path";
+
+import { AicsGridCell } from "@aics/aics-react-labkey";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -9,7 +10,6 @@ import {
   getUploadFilePromise,
   mergeChildPaths,
 } from "../../util";
-
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { AlertType } from "../feedback/types";
 import { selectPage } from "../route/actions";

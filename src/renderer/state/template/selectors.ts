@@ -1,6 +1,6 @@
 import { isEmpty, trim, uniqBy } from "lodash";
-
 import { createSelector } from "reselect";
+
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 import {
   getAnnotationTypes,
@@ -10,6 +10,7 @@ import {
   getWorkflowAnnotation,
 } from "../metadata/selectors";
 import { State } from "../types";
+
 import {
   Annotation,
   AnnotationDraft,

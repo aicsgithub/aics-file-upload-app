@@ -1,6 +1,8 @@
-const tsImportPluginFactory = require("ts-import-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
+
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const tsImportPluginFactory = require("ts-import-plugin");
+
 const getCssLoaders = require("./css-loaders");
 
 const isDevelopment = process.env.NODE_ENV !== "production";

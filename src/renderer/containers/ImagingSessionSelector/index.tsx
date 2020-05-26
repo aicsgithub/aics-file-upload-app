@@ -60,7 +60,7 @@ class ImagingSessionSelector extends React.Component<
   }
 
   private getImagingSessionName = (id?: number | null) => {
-    if (id == null) {
+    if (id === null) {
       return "None";
     }
 

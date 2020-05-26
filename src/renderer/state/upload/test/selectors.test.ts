@@ -4,8 +4,8 @@ import {
 } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { forEach, orderBy } from "lodash";
-import { TemplateAnnotation } from "../../template/types";
 
+import { TemplateAnnotation } from "../../template/types";
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
@@ -33,7 +33,6 @@ import {
 } from "../../test/mocks";
 import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
-
 import {
   getCanGoForwardFromSelectStorageLocationPage,
   getFileIdsToDelete,

@@ -1,5 +1,7 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
+
 import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
   RECEIVE_JOBS,

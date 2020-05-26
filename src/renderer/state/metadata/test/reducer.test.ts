@@ -1,8 +1,8 @@
 import { expect } from "chai";
+
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import { mockState, mockSuccessfulUploadJob } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
-
 import { setCurrentUpload } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";

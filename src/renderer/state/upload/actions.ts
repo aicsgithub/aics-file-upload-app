@@ -4,7 +4,6 @@ import {
 } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { CurrentUpload } from "../metadata/types";
-
 import { Workflow } from "../selection/types";
 import { State } from "../types";
 
@@ -125,13 +124,13 @@ export function associateFilesAndWorkflows(
 
 export function undoFileWorkflowAssociation(
   fullPath: string,
-  workflows: Workflow[]
+  workflowNames: string[]
 ): UndoFileWorkflowAssociationAction {
   return {
     autoSave: true,
     payload: {
       fullPath,
-      workflows,
+      workflowNames,
     },
     type: UNDO_FILE_WORKFLOW_ASSOCIATION,
   };

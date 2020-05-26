@@ -1,7 +1,7 @@
 import { get, isNil } from "lodash";
 import * as moment from "moment";
-import { LONG_DATETIME_FORMAT } from "../../constants";
 
+import { LONG_DATETIME_FORMAT } from "../../constants";
 import { makeConstant } from "../util";
 
 import { UploadJobTableRow, UploadMetadata, UploadRowId } from "./types";
@@ -91,7 +91,7 @@ export const getUploadRowKey = ({
   channelId,
   scene,
   subImageName,
-}: UploadRowId) => {
+}: UploadRowId): string => {
   let key = file;
   if (!isNil(positionIndex)) {
     key += `positionIndex:${positionIndex}`;

@@ -1,13 +1,14 @@
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
+
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
-
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
+
 import {
   CLEAR_TEMPLATE_DRAFT,
   CLEAR_TEMPLATE_HISTORY,
@@ -18,7 +19,6 @@ import {
   UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import { getAppliedTemplate } from "./selectors";
-
 import {
   ClearTemplateDraftAction,
   SetAppliedTemplateAction,

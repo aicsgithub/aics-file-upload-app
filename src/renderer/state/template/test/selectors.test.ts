@@ -12,7 +12,6 @@ import {
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-
 import {
   getCompleteAppliedTemplate,
   getTemplateDraftErrors,

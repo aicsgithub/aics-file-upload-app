@@ -57,7 +57,6 @@ import {
   stopLoading,
   toggleFolderTree,
 } from "../actions";
-
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import { AlertType, AsyncRequest, FeedbackStateBranch } from "../types";

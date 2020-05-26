@@ -1,7 +1,8 @@
+import os from "os";
+
 import { Alert, Button, Divider, List, Modal, Row } from "antd";
 import { shell } from "electron";
 import { forOwn, isNil } from "lodash";
-import os from "os";
 import * as React from "react";
 
 import { setAlert } from "../../state/feedback/actions";

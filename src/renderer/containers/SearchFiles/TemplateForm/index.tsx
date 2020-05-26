@@ -3,7 +3,6 @@ import * as React from "react";
 
 import LabeledInput from "../../../components/LabeledInput";
 import TemplateSearch from "../../../components/TemplateSearch";
-
 import SearchButton from "../SearchButton";
 
 interface TemplateFormProps {

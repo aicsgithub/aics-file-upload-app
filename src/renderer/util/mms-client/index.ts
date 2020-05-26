@@ -1,10 +1,11 @@
 import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { AxiosRequestConfig } from "axios";
+
 import { GetPlateResponse, WellResponse } from "../../state/selection/types";
 import { Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
-
 import BaseServiceClient from "../base-service-client";
+
 import { SaveTemplateRequest } from "./types";
 
 export default class MMSClient extends BaseServiceClient {

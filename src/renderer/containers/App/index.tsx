@@ -11,7 +11,6 @@ import {
   SAVE_UPLOAD,
   SWITCH_ENVIRONMENT,
 } from "../../../shared/constants";
-
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
@@ -94,20 +93,19 @@ import {
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
-
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
 import OpenUploadModal from "../OpenUploadModal";
 import SaveUploadDraftModal from "../SaveUploadDraftModal";
+import SearchFiles from "../SearchFiles";
 import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
-import SearchFiles from "../SearchFiles";
 import { getFileToTags, getUploadTabName } from "./selectors";
 
 const styles = require("./styles.pcss");

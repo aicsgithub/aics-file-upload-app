@@ -1,11 +1,11 @@
 import { expect } from "chai";
+
 import { closeUploadTab } from "../../route/actions";
 import {
   getMockStateWithHistory,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
-
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import { getAppliedTemplate } from "../selectors";

@@ -1,14 +1,15 @@
 import { omit, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
+
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
-
 import { TypeToDescriptionMap } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
+
 import {
   ASSOCIATE_FILES_AND_WELLS,
   ASSOCIATE_FILES_AND_WORKFLOWS,
@@ -149,12 +150,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       }
       const workflows = without(
         currentWorkflows,
-        ...action.payload.workflows.map((w) => w.name)
+        ...action.payload.workflowNames
       );
       if (!workflows.length) {
-        const stateWithoutFile = { ...state };
-        delete stateWithoutFile[key];
-        return stateWithoutFile;
+        return omit(state, key);
       }
       return {
         ...state,

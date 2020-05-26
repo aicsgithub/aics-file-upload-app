@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
@@ -40,7 +40,6 @@ import {
   UploadMetadata,
 } from "../../state/upload/types";
 import { convertToArray, onDrop } from "../../util";
-
 import BooleanFormatter from "../BooleanFormatter";
 
 import CellWithContextMenu from "./CellWithContextMenu";
@@ -179,30 +178,32 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     return (
       <>
         <div className={styles.buttonRow}>
-          <div className={styles.deleteButton}>
-            <Button
-              onClick={this.removeSelectedRows}
-              disabled={isEmpty(selectedRows)}
-            >
-              Remove Selected
-            </Button>
-          </div>
-          <div className={styles.undoRedoButtons}>
+          <Tooltip title="Undo" mouseLeaveDelay={0}>
             <Button
               className={styles.undoButton}
               onClick={undo}
               disabled={!canUndo}
-            >
-              Undo
-            </Button>
+              icon="undo"
+              type="link"
+            />
+          </Tooltip>
+          <Tooltip title="Redo" mouseLeaveDelay={0}>
             <Button
               className={styles.redoButton}
               onClick={redo}
               disabled={!canRedo}
-            >
-              Redo
-            </Button>
-          </div>
+              icon="redo"
+              type="link"
+            />
+          </Tooltip>
+          <Tooltip title="Delete Selected Row" mouseLeaveDelay={0}>
+            <Button
+              onClick={this.removeSelectedRows}
+              disabled={isEmpty(selectedRows)}
+              icon="delete"
+              type="link"
+            />
+          </Tooltip>
         </div>
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (

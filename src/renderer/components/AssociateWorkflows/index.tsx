@@ -6,15 +6,14 @@ import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import LookupSearch from "../../containers/LookupSearch";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
 import { SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { undoFileWorkflowAssociation } from "../../state/upload/actions";
 import {
   AssociateFilesAndWorkflowsAction,
   UploadMetadata,
 } from "../../state/upload/types";
-
 import FormPage from "../FormPage";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";
-import { undoFileWorkflowAssociation } from "../../state/upload/actions";
 
 const styles = require("./style.pcss");
 
@@ -74,7 +73,9 @@ class AssociateWorkflows extends React.Component<Props, {}> {
           selectedFilesCount={selectedFiles.length}
           associate={this.associate}
           canAssociate={this.canAssociate()}
-          undoAssociation={this.undoAssociation}
+          undoAssociation={(upload) =>
+            this.props.undoAssociation(upload.file, selectedWorkflowNames)
+          }
           undoLastAssociation={undo}
           redo={redo}
           canRedo={canRedo}
@@ -119,10 +120,6 @@ class AssociateWorkflows extends React.Component<Props, {}> {
       names.includes(workflow.name)
     );
     this.props.selectWorkflows(workflows);
-  };
-
-  private undoAssociation = (upload: UploadMetadata): void => {
-    this.props.undoAssociation(upload.file, this.props.selectedWorkflows);
   };
 
   // If we have workflows & files selected then allow the user to Associate them

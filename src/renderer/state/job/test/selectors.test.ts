@@ -4,7 +4,6 @@ import * as moment from "moment";
 import { DATETIME_FORMAT } from "../../../constants";
 import { getCurrentUploadName } from "../../../containers/App/selectors";
 import { AsyncRequest } from "../../feedback/types";
-
 import {
   getMockStateWithHistory,
   mockFailedAddMetadataJob,
@@ -18,7 +17,6 @@ import {
   mockWorkingUploadJob,
   nonEmptyJobStateBranch,
 } from "../../test/mocks";
-
 import {
   getCurrentJobName,
   getIsSafeToExit,

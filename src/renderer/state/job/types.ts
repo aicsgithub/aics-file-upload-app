@@ -1,4 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+
 import { WriteToStoreAction } from "../types";
 
 export interface JobStateBranch {

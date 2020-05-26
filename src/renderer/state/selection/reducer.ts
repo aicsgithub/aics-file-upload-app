@@ -1,7 +1,9 @@
-import { castArray } from "lodash";
 import { userInfo } from "os";
+
+import { castArray } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
+
 import { RESET_HISTORY } from "../metadata/constants";
 import {
   CLOSE_UPLOAD_TAB,
@@ -11,7 +13,6 @@ import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
 } from "../route/types";
-
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";

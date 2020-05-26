@@ -1,4 +1,5 @@
 import { expect } from "chai";
+
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
 import {
   getMockStateWithHistory,
@@ -11,7 +12,6 @@ import {
 import { State } from "../../types";
 import { replaceUpload } from "../../upload/actions";
 import { setPlate } from "../actions";
-
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import {

@@ -1,4 +1,5 @@
 import { AnyAction } from "redux";
+
 import {
   CLOSE_UPLOAD_TAB,
   OPEN_EDIT_FILE_METADATA_TAB,
@@ -7,7 +8,6 @@ import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
 } from "../route/types";
-
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";

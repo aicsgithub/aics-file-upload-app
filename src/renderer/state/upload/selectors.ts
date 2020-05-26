@@ -1,3 +1,5 @@
+import { basename, extname } from "path";
+
 import {
   UploadMetadata as AicsFilesUploadMetadata,
   Uploads,
@@ -23,7 +25,6 @@ import {
 } from "lodash";
 import { isDate } from "moment";
 import * as moment from "moment";
-import { basename, extname } from "path";
 import { createSelector } from "reselect";
 
 import { LIST_DELIMITER_SPLIT } from "../../constants";
@@ -45,7 +46,6 @@ import {
   getExpandedUploadJobRows,
   getSelectedJob,
 } from "../selection/selectors";
-
 import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
@@ -54,6 +54,7 @@ import {
   TemplateWithTypeNames,
 } from "../template/types";
 import { State } from "../types";
+
 import {
   getUploadRowKey,
   isChannelOnlyRow,

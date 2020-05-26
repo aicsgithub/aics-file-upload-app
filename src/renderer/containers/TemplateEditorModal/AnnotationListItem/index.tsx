@@ -1,7 +1,7 @@
 import { List, Popover, Tag } from "antd";
 import * as React from "react";
-import { LIST_DELIMITER_JOIN } from "../../../constants";
 
+import { LIST_DELIMITER_JOIN } from "../../../constants";
 import {
   Annotation,
   AnnotationDraft,

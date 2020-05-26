@@ -1,5 +1,4 @@
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-
 import { Channel, CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
 import { AutoSaveAction, State, WriteToStoreAction } from "../types";
@@ -147,7 +146,7 @@ export interface UndoFileWellAssociationAction extends AutoSaveAction {
 export interface UndoFileWorkflowAssociationAction extends AutoSaveAction {
   payload: {
     fullPath: string;
-    workflows: Workflow[];
+    workflowNames: string[];
   };
   type: string;
 }

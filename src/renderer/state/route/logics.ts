@@ -1,10 +1,12 @@
+import { existsSync } from "fs";
+import { platform } from "os";
+
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Menu, MenuItem } from "electron";
-import { existsSync } from "fs";
 import { castArray, difference, isEmpty, isNil } from "lodash";
-import { platform } from "os";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+
 import {
   getCurrentUploadKey,
   getCurrentUploadName,
@@ -25,7 +27,6 @@ import {
   setUploadError,
 } from "../feedback/actions";
 import { AsyncRequest, ModalName } from "../feedback/types";
-
 import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,

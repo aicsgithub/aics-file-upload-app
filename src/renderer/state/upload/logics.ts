@@ -1,3 +1,5 @@
+import { basename, dirname, resolve as resolvePath } from "path";
+
 import {
   castArray,
   flatMap,
@@ -12,12 +14,10 @@ import {
   without,
 } from "lodash";
 import { isDate, isMoment } from "moment";
-import { basename, dirname, resolve as resolvePath } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
-
 import { LIST_DELIMITER_SPLIT } from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
