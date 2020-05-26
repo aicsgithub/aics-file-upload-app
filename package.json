@@ -46,7 +46,7 @@
   "license": "ISC",
   "dependencies": {
     "@aics/aics-react-labkey": "^4.1.6",
-    "@aics/aicsfiles": "^3.0.0",
+    "@aics/aicsfiles": "^3.0.1",
     "@aics/job-status-client": "^1.1.1",
     "@ant-design/icons": "~1.1.0",
     "antd": "3.26.0",
