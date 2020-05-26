@@ -972,11 +972,11 @@ const submitFileMetadataUpdateLogic = createLogic({
         )
       );
     } catch (e) {
-      console.log(e);
+      const message = e?.response?.data?.error || e.message;
       dispatch(
         batchActions([
           ...actions,
-          setErrorAlert("Could not edit files: " + e.message),
+          setErrorAlert("Could not edit files: " + message),
         ])
       );
       done();
