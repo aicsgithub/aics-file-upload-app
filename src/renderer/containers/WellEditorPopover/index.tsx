@@ -20,7 +20,7 @@ import {
   UploadStateBranch,
 } from "../../state/upload/types";
 import ImagingSessionSelector from "../ImagingSessionSelector";
-import PlateContainer from "../PlateContainer";
+import Plate from "../PlateContainer";
 
 const styles = require("./styles.pcss");
 
@@ -44,12 +44,13 @@ class WellEditorPopover extends React.Component<Props, {}> {
     const { className, rowData } = this.props;
 
     return (
-      <div>
+      <div className={styles.container}>
         <div className={classNames(className, styles.row)}>
           <ImagingSessionSelector className={styles.imagingSessionSelector} />
           <div className={styles.btns}>
             <Button
               onClick={this.associateWithRow}
+              size="small"
               type="primary"
               className={styles.associateBtn}
               disabled={this.associateBtnDisabled()}
@@ -59,12 +60,15 @@ class WellEditorPopover extends React.Component<Props, {}> {
             <Button
               onClick={this.undoAssociation}
               disabled={this.removeAssociationsBtnDisabled()}
+              size="small"
             >
               Remove Association
             </Button>
           </div>
         </div>
-        <PlateContainer rowData={rowData} />
+        <div className={styles.plateContainer}>
+          <Plate rowData={rowData} className={styles.plate} />
+        </div>
       </div>
     );
   }

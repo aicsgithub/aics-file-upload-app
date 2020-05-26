@@ -101,6 +101,7 @@ class AssociateWells extends React.Component<AssociateWellsProps, {}> {
         <ImagingSessionSelector />
         {wells ? (
           <Plate
+            className={styles.plate}
             wells={wells}
             onWellClick={this.props.selectWells}
             selectedWells={selectedWells}
