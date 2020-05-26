@@ -185,7 +185,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         onSave={this.submit}
         saveButtonDisabled={validationErrors.length > 0}
         saveInProgress={uploadInProgress || updateInProgress}
-        saveButtonName="Upload"
+        saveButtonName={selectedJob ? "Update" : "Upload"}
         showProgressBar={!selectedJob}
         onBack={this.props.goBack}
         page={Page.AddCustomData}
