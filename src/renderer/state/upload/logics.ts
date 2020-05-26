@@ -107,6 +107,7 @@ import {
 import {
   getCanSaveUploadDraft,
   getCreateFileMetadataRequests,
+  getFileIdsToDelete,
   getUpload,
   getUploadPayload,
 } from "./selectors";
@@ -922,7 +923,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     const actions: AnyAction[] = [
       removeRequestFromInProgress(AsyncRequest.UPDATE_FILE_METADATA),
     ];
-    const fileIdsToDelete: string[] = []; // todo reset to this: getFileIdsToDelete(getState());
+    const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
 
     // We delete files in series so that we can ignore the files that have already been deleted
     for (const fileId of fileIdsToDelete) {
