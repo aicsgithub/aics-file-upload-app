@@ -1,5 +1,5 @@
 # Version Notes
-## 1.0.43
+## 1.0.43 (5/26/20)
 - Bugfix: fix runtime issue
 
 ## 1.0.42
