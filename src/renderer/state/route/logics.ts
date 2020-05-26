@@ -500,65 +500,67 @@ const openEditFileMetadataTabLogic = createLogic({
     }
 
     const actions: AnyAction[] = [];
-    actions.push(receiveFileMetadata(fileMetadataForJob));
+    console.log("original", fileMetadataForJob);
+    if (fileMetadataForJob && fileMetadataForJob[0]) {
+      actions.push(receiveFileMetadata(fileMetadataForJob));
 
-    // if we have a well, we can get the barcode and other plate info. This will be necessary
-    // to display the well editor
-    const wellAnnotationName = getWellAnnotation(getState())?.name || "Well";
-    let wellIds: any = fileMetadataForJob[0][wellAnnotationName];
-    if (wellIds) {
-      wellIds = castArray(wellIds).map((w: string | number) =>
-        parseInt(w + "", 10)
-      );
-      // assume all wells have same barcode
-      const wellId = wellIds[0];
-      try {
-        // we want to find the barcode associated with any well id found in this upload
-        const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
-          wellId
+      // if we have a well, we can get the barcode and other plate info. This will be necessary
+      // to display the well editor
+      const wellAnnotationName = getWellAnnotation(getState())?.name || "Well";
+      let wellIds: any = fileMetadataForJob[0][wellAnnotationName];
+      if (wellIds) {
+        wellIds = castArray(wellIds).map((w: string | number) =>
+          parseInt(w + "", 10)
         );
-        const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
-          barcode
-        );
-        const setPlateAction = await getSetPlateAction(
-          barcode,
-          imagingSessionIds,
+        // assume all wells have same barcode
+        const wellId = wellIds[0];
+        try {
+          // we want to find the barcode associated with any well id found in this upload
+          const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
+            wellId
+          );
+          const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
+            barcode
+          );
+          const setPlateAction = await getSetPlateAction(
+            barcode,
+            imagingSessionIds,
+            mmsClient,
+            dispatch
+          );
+          actions.push(
+            selectBarcode(barcode, imagingSessionIds),
+            setPlateAction
+          );
+        } catch (e) {
+          const error = `Could not get plate information from upload: ${e.message}`;
+          logger.error(error);
+          dispatch(
+            batchActions([
+              removeRequestFromInProgress(
+                AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+              ),
+              setUploadError(action.payload.jobId, error),
+            ])
+          );
+          done();
+          return;
+        }
+      } else {
+        actions.push(associateByWorkflow(true));
+      }
+
+      // Currently we only allow applying one template at a time
+      if (fileMetadataForJob[0].templateId) {
+        const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+          fileMetadataForJob[0].templateId,
+          getState,
           mmsClient,
           dispatch
         );
-        actions.push(selectBarcode(barcode, imagingSessionIds), setPlateAction);
-      } catch (e) {
-        const error = `Could not get plate information from upload: ${e.message}`;
-        logger.error(error);
-        dispatch(
-          batchActions([
-            removeRequestFromInProgress(
-              AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
-            ),
-            setUploadError(action.payload.jobId, error),
-          ])
-        );
-        done();
-        return;
+        actions.push(setAppliedTemplateAction);
       }
-    } else {
-      actions.push(associateByWorkflow(true));
     }
-
-    // Currently we only allow applying one template at a time
-    if (fileMetadataForJob[0]?.templateId) {
-      const setAppliedTemplateAction = await getSetAppliedTemplateAction(
-        fileMetadataForJob[0]?.templateId,
-        getState,
-        mmsClient,
-        dispatch
-      );
-      actions.push(setAppliedTemplateAction);
-    }
-
-    const newUpload = convertImageModelMetadataToUploadStateBranch(
-      fileMetadataForJob
-    );
 
     if (modalToOpen) {
       actions.push(
@@ -570,7 +572,11 @@ const openEditFileMetadataTabLogic = createLogic({
           ])
         )
       );
-    } else {
+    } else if (fileMetadataForJob) {
+      const newUpload = convertImageModelMetadataToUploadStateBranch(
+        fileMetadataForJob
+      );
+      console.log("newUpload", newUpload);
       actions.push(updateUploads(newUpload, true));
     }
 
