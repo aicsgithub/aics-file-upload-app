@@ -41,6 +41,8 @@ import {
   CANCEL_UPLOAD,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
+  EDIT_FILE_METADATA_FAILED,
+  EDIT_FILE_METADATA_SUCCEEDED,
   INITIATE_UPLOAD,
   RETRY_UPLOAD,
   RETRY_UPLOAD_FAILED,
@@ -52,6 +54,8 @@ import {
   CancelUploadAction,
   CancelUploadFailedAction,
   CancelUploadSucceededAction,
+  EditFileMetadataFailedAction,
+  EditFileMetadataSucceededAction,
   InitiateUploadAction,
   RetryUploadAction,
   RetryUploadFailedAction,
@@ -555,10 +559,32 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === SUBMIT_FILE_METADATA_UPDATE,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
-      requestsInProgress: uniq([
-        ...state.requestsInProgress,
-        AsyncRequest.UPDATE_FILE_METADATA,
-      ]),
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.UPDATE_FILE_METADATA
+      ),
+    }),
+  },
+  [EDIT_FILE_METADATA_FAILED]: {
+    accepts: (action: AnyAction): action is EditFileMetadataFailedAction =>
+      action.type === EDIT_FILE_METADATA_FAILED,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.UPDATE_FILE_METADATA
+      ),
+    }),
+  },
+  [EDIT_FILE_METADATA_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is EditFileMetadataSucceededAction =>
+      action.type === EDIT_FILE_METADATA_SUCCEEDED,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.UPDATE_FILE_METADATA
+      ),
     }),
   },
 };

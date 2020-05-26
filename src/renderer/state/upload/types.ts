@@ -287,6 +287,14 @@ export interface SubmitFileMetadataUpdateAction {
   type: string;
 }
 
+export interface EditFileMetadataSucceededAction {
+  type: string;
+}
+
+export interface EditFileMetadataFailedAction {
+  type: string;
+}
+
 export enum FileTagType {
   WELL = "well",
   WORKFLOW = "workflow",

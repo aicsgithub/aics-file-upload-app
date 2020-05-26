@@ -18,6 +18,8 @@ import {
   CLEAR_UPLOAD_DRAFT,
   CLEAR_UPLOAD_HISTORY,
   DELETE_UPLOADS,
+  EDIT_FILE_METADATA_FAILED,
+  EDIT_FILE_METADATA_SUCCEEDED,
   INITIATE_UPLOAD,
   JUMP_TO_PAST_UPLOAD,
   JUMP_TO_UPLOAD,
@@ -49,6 +51,8 @@ import {
   ClearUploadAction,
   ClearUploadDraftAction,
   ClearUploadHistoryAction,
+  EditFileMetadataFailedAction,
+  EditFileMetadataSucceededAction,
   FilepathToBoolean,
   InitiateUploadAction,
   JumpToPastUploadAction,
@@ -391,5 +395,17 @@ export function clearUploadDraft(): ClearUploadDraftAction {
 export function submitFileMetadataUpdate(): SubmitFileMetadataUpdateAction {
   return {
     type: SUBMIT_FILE_METADATA_UPDATE,
+  };
+}
+
+export function editFileMetadataSucceeded(): EditFileMetadataSucceededAction {
+  return {
+    type: EDIT_FILE_METADATA_SUCCEEDED,
+  };
+}
+
+export function editFileMetadataFailed(): EditFileMetadataFailedAction {
+  return {
+    type: EDIT_FILE_METADATA_FAILED,
   };
 }
