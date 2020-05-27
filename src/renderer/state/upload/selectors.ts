@@ -34,8 +34,12 @@ import {
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
   getTextAnnotationTypeId,
+  getUploadHistory,
 } from "../metadata/selectors";
 import { ImagingSession } from "../metadata/types";
+import { pageOrder } from "../route/constants";
+import { getPage } from "../route/selectors";
+import { Page } from "../route/types";
 import {
   getAllPlates,
   getAllWells,
@@ -89,8 +93,17 @@ export const getCanRedoUpload = createSelector(
 );
 
 export const getCanUndoUpload = createSelector(
-  [getUploadPast],
-  (past: UploadStateBranch[]) => {
+  [getUploadPast, getPage, getCurrentUploadIndex, getUploadHistory],
+  (past, page, currentUploadIndex, uploadHistory) => {
+    if (page === Page.AddCustomData) {
+      const prevIndex = currentUploadIndex - 1;
+      const prevPage = pageOrder[pageOrder.indexOf(Page.AddCustomData) - 1];
+      // When on the "AddCustomData" page, only allow undoing if the previous
+      // action is not from the previous page. We do not want to allow undoing
+      // of actions not from the current page.
+      return prevIndex !== uploadHistory[prevPage];
+    }
+
     return !isEmpty(past);
   }
 );
