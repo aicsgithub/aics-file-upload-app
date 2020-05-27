@@ -788,7 +788,7 @@ export const getUploadPayload = createSelector(
               templateId: template.templateId,
             },
             file: {
-              fileId: metadata[0]?.fileId,
+              ...(metadata[0]?.fileId && { fileId: metadata[0]?.fileId }),
               fileType:
                 extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
                 FileType.OTHER,

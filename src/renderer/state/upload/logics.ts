@@ -14,7 +14,6 @@ import {
   without,
 } from "lodash";
 import { isDate, isMoment } from "moment";
-import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
@@ -36,7 +35,6 @@ import {
   setAlert,
   setDeferredAction,
   setErrorAlert,
-  setSuccessAlert,
   setUploadError,
 } from "../feedback/actions";
 import { AlertType, AsyncRequest } from "../feedback/types";
@@ -53,6 +51,7 @@ import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
+import { Page } from "../route/types";
 import { deselectFiles, stageFiles } from "../selection/actions";
 import {
   getSelectedBarcode,
@@ -78,6 +77,8 @@ import {
   cancelUploadFailed,
   cancelUploadSucceeded,
   clearUploadDraft,
+  editFileMetadataFailed,
+  editFileMetadataSucceeded,
   removeUploads,
   replaceUpload,
   retryUploadFailed,
@@ -916,13 +917,16 @@ const openUploadLogic = createLogic({
 
 const submitFileMetadataUpdateLogic = createLogic({
   process: async (
-    { getState, jssClient, mmsClient }: ReduxLogicProcessDependencies,
+    {
+      getApplicationMenu,
+      getState,
+      jssClient,
+      logger,
+      mmsClient,
+    }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const actions: AnyAction[] = [
-      removeRequestFromInProgress(AsyncRequest.UPDATE_FILE_METADATA),
-    ];
     const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
 
     // We delete files in series so that we can ignore the files that have already been deleted
@@ -933,10 +937,9 @@ const submitFileMetadataUpdateLogic = createLogic({
         // ignoring not found to keep this idempotent
         if (e.status !== HTTP_STATUS.NOT_FOUND) {
           dispatch(
-            batchActions([
-              ...actions,
-              setErrorAlert(`Could not delete file ${fileId}: ${e.message}`),
-            ])
+            editFileMetadataFailed(
+              `Could not delete file ${fileId}: ${e.message}`
+            )
           );
           done();
         }
@@ -953,12 +956,13 @@ const submitFileMetadataUpdateLogic = createLogic({
         );
       } catch (e) {
         dispatch(
-          batchActions([
-            ...actions,
-            setErrorAlert(`Could not update upload with deleted fileIds`),
-          ])
+          editFileMetadataFailed(
+            `Could not update upload with deleted fileIds: ${e.message}`
+          )
         );
       }
+    } else {
+      // todo
     }
 
     // This method currently deletes file metadata and then re-creates the file metadata since we
@@ -974,20 +978,20 @@ const submitFileMetadataUpdateLogic = createLogic({
       );
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
-      dispatch(
-        batchActions([
-          ...actions,
-          setErrorAlert("Could not edit files: " + message),
-        ])
-      );
+      dispatch(editFileMetadataFailed("Could not edit files: " + message));
       done();
       return;
     }
 
     dispatch(
       batchActions([
-        ...actions,
-        setSuccessAlert("File metadata updates successful!"),
+        editFileMetadataSucceeded(),
+        ...getSelectPageActions(
+          logger,
+          getState(),
+          getApplicationMenu,
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        ),
       ])
     );
     done();

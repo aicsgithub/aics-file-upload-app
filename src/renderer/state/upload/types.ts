@@ -292,6 +292,7 @@ export interface EditFileMetadataSucceededAction {
 }
 
 export interface EditFileMetadataFailedAction {
+  payload: string;
   type: string;
 }
 

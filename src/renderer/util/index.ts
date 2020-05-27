@@ -418,14 +418,17 @@ export const retrieveFileMetadata = async (
  * @param {() => State} getState
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
+ * @param upload optional Upload override to apply template annotations to
  * @returns {Promise<SetAppliedTemplateAction>}
  */
 export const getSetAppliedTemplateAction = async (
   templateId: number,
   getState: () => State,
   mmsClient: MMSClient,
-  dispatch: ReduxLogicNextCb
+  dispatch: ReduxLogicNextCb,
+  upload?: UploadStateBranch
 ): Promise<SetAppliedTemplateAction> => {
+  upload = upload || getUpload(getState());
   const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
   if (!booleanAnnotationTypeId) {
     throw new Error("Could not get boolean annotation type. Contact Software");
@@ -449,7 +452,7 @@ export const getSetAppliedTemplateAction = async (
   );
   const additionalAnnotations = pivotAnnotations(annotations);
   const uploads: UploadStateBranch = {};
-  forEach(getUpload(getState()), (metadata: UploadMetadata, key: string) => {
+  forEach(upload, (metadata: UploadMetadata, key: string) => {
     annotationsToExclude.forEach(
       (annotation: string) => delete metadata[annotation]
     );

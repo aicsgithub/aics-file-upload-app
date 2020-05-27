@@ -568,8 +568,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
   [EDIT_FILE_METADATA_FAILED]: {
     accepts: (action: AnyAction): action is EditFileMetadataFailedAction =>
       action.type === EDIT_FILE_METADATA_FAILED,
-    perform: (state: FeedbackStateBranch) => ({
+    perform: (
+      state: FeedbackStateBranch,
+      action: EditFileMetadataFailedAction
+    ) => ({
       ...state,
+      alert: getErrorAlert(action.payload),
       requestsInProgress: removeRequestFromInProgress(
         state,
         AsyncRequest.UPDATE_FILE_METADATA
@@ -581,6 +585,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === EDIT_FILE_METADATA_SUCCEEDED,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
+      alert: getSuccessAlert("File metadata updated successfully!"),
       requestsInProgress: removeRequestFromInProgress(
         state,
         AsyncRequest.UPDATE_FILE_METADATA

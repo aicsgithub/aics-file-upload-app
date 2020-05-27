@@ -33,10 +33,13 @@ import {
   cancelUpload,
   cancelUploadFailed,
   cancelUploadSucceeded,
+  editFileMetadataFailed,
+  editFileMetadataSucceeded,
   initiateUpload,
   retryUpload,
   retryUploadFailed,
   retryUploadSucceeded,
+  submitFileMetadataUpdate,
 } from "../../upload/actions";
 import {
   addEvent,
@@ -522,6 +525,44 @@ describe("feedback reducer", () => {
         selectPage(Page.AddCustomData, Page.UploadSummary)
       );
       expect(result.folderTreeOpen).to.be.false;
+    });
+  });
+  describe("submitFileMetadataUpdate", () => {
+    it("adds AsyncRequest.UPDATE_FILE_METADATA to requestsInProgress", () => {
+      const result = reducer(initialState, submitFileMetadataUpdate());
+      expect(
+        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+      ).to.be.true;
+    });
+  });
+  describe("editFileMetadataFailed", () => {
+    it("sets error alert", () => {
+      const result = reducer(initialState, editFileMetadataFailed("foo"));
+      expect(result.alert).to.deep.equal({
+        message: "foo",
+        type: AlertType.ERROR,
+      });
+    });
+    it("removes UPDATE_FILE_METADATA from requestsInProgress", () => {
+      const result = reducer(initialState, editFileMetadataFailed("foo"));
+      expect(
+        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+      ).to.be.false;
+    });
+  });
+  describe("editFileMetadataSucceeded", () => {
+    it("sets success alert", () => {
+      const result = reducer(initialState, editFileMetadataSucceeded());
+      expect(result.alert).to.deep.equal({
+        message: "File metadata updated successfully!",
+        type: AlertType.SUCCESS,
+      });
+    });
+    it("removes UPDATE_FILE_METADATA from requestsInProgress", () => {
+      const result = reducer(initialState, editFileMetadataSucceeded());
+      expect(
+        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+      ).to.be.false;
     });
   });
 });

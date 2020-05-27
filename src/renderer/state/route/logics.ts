@@ -430,8 +430,8 @@ const convertImageModelMetadataToUploadStateBranch = (
           channel,
           file,
           notes,
-          wellIds,
-          workflows,
+          ...(wellIds?.length && { wellIds }),
+          ...(workflows?.length && { workflows }),
         },
       };
     },
@@ -501,6 +501,9 @@ const openEditFileMetadataTabLogic = createLogic({
 
     const actions: AnyAction[] = [];
     console.log("original", fileMetadataForJob);
+    const newUpload = convertImageModelMetadataToUploadStateBranch(
+      fileMetadataForJob
+    );
     if (fileMetadataForJob && fileMetadataForJob[0]) {
       actions.push(receiveFileMetadata(fileMetadataForJob));
 
@@ -556,7 +559,8 @@ const openEditFileMetadataTabLogic = createLogic({
           fileMetadataForJob[0].templateId,
           getState,
           mmsClient,
-          dispatch
+          dispatch,
+          newUpload
         );
         actions.push(setAppliedTemplateAction);
       }
@@ -573,10 +577,6 @@ const openEditFileMetadataTabLogic = createLogic({
         )
       );
     } else if (fileMetadataForJob) {
-      const newUpload = convertImageModelMetadataToUploadStateBranch(
-        fileMetadataForJob
-      );
-      console.log("newUpload", newUpload);
       actions.push(updateUploads(newUpload, true));
     }
 

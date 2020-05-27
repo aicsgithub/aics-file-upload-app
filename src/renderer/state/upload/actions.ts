@@ -404,8 +404,11 @@ export function editFileMetadataSucceeded(): EditFileMetadataSucceededAction {
   };
 }
 
-export function editFileMetadataFailed(): EditFileMetadataFailedAction {
+export function editFileMetadataFailed(
+  message: string
+): EditFileMetadataFailedAction {
   return {
+    payload: message,
     type: EDIT_FILE_METADATA_FAILED,
   };
 }

@@ -122,9 +122,9 @@ describe("General utilities", () => {
       const result = convertToArray(null);
       expect(result).to.deep.equal([]);
     });
-    it("returns an array length=1 given empty string", () => {
+    it("returns an empty array given empty string", () => {
       const result = convertToArray("");
-      expect(result).to.deep.equal([""]);
+      expect(result).to.deep.equal([]);
     });
     it("returns an array length=1 array given 0", () => {
       const result = convertToArray(0);

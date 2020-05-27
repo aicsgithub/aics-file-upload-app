@@ -30,6 +30,7 @@ import {
   dialog,
   fms,
   labkeyClient,
+  mmsClient,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -37,6 +38,8 @@ import {
   mockAnnotationOptions,
   mockAnnotations,
   mockAnnotationTypes,
+  mockAuditInfo,
+  mockMMSTemplate,
   mockSelectedWorkflows,
   mockState,
   mockSuccessfulUploadJob,
@@ -458,8 +461,65 @@ describe("Route logics", () => {
       },
     ];
 
-    let mockStateWithMetadata: State;
+    const stubMethods = ({
+      getCustomMetadataForFile,
+      transformFileMetadataIntoTable,
+      getPlateBarcodeAndAllImagingSessionIdsFromWellId,
+      getImagingSessionIdsForBarcode,
+      getPlate,
+      getTemplate,
+    }: {
+      getCustomMetadataForFile?: SinonStub;
+      transformFileMetadataIntoTable?: SinonStub;
+      getPlateBarcodeAndAllImagingSessionIdsFromWellId?: SinonStub;
+      getImagingSessionIdsForBarcode?: SinonStub;
+      getPlate?: SinonStub;
+      getTemplate?: SinonStub;
+    }) => {
+      sandbox.replace(
+        fms,
+        "getCustomMetadataForFile",
+        getCustomMetadataForFile || stub().resolves([])
+      );
+      sandbox.replace(
+        fms,
+        "transformFileMetadataIntoTable",
+        transformFileMetadataIntoTable || stub().resolves(fileMetadata)
+      );
+      sandbox.replace(
+        labkeyClient,
+        "getPlateBarcodeAndAllImagingSessionIdsFromWellId",
+        getPlateBarcodeAndAllImagingSessionIdsFromWellId ||
+          stub().resolves("abc")
+      );
+      sandbox.replace(
+        labkeyClient,
+        "getImagingSessionIdsForBarcode",
+        getImagingSessionIdsForBarcode || stub().resolves([null, 1])
+      );
+      sandbox.replace(
+        mmsClient,
+        "getPlate",
+        getPlate ||
+          stub().resolves({
+            ...mockAuditInfo,
+            barcode: "123456",
+            comments: "",
+            imagingSessionId: undefined,
+            plateGeometryId: 1,
+            plateId: 1,
+            plateStatusId: 1,
+            seededOn: "2018-02-14 23:03:52",
+          })
+      );
+      sandbox.replace(
+        mmsClient,
+        "getTemplate",
+        getTemplate || stub().resolves(mockMMSTemplate)
+      );
+    };
 
+    let mockStateWithMetadata: State;
     beforeEach(() => {
       mockStateWithMetadata = {
         ...mockState,
@@ -492,6 +552,7 @@ describe("Route logics", () => {
     });
 
     it("sets error alert if job passed in does not have fileId information", async () => {
+      stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -518,6 +579,7 @@ describe("Route logics", () => {
       expect(alert?.message).to.equal("No fileIds found in selected Job.");
     });
     it("sets error alert if job passed is not succeeded", async () => {
+      stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -543,6 +605,7 @@ describe("Route logics", () => {
       );
     });
     it("sets error alert if all files for the job have since been deleted", async () => {
+      stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -567,24 +630,9 @@ describe("Route logics", () => {
       });
     });
     it("handles case where upload tab is not open yet", async () => {
+      stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
-      );
-      sandbox.replace(fms, "getCustomMetadataForFile", stub().resolves([]));
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        stub().resolves(fileMetadata)
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getPlateBarcodeAndAllImagingSessionIdsFromWellId",
-        stub().resolves("abc")
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getImagingSessionIdsForBarcode",
-        stub().resolves([])
       );
 
       let state = store.getState();
@@ -605,26 +653,19 @@ describe("Route logics", () => {
         [getUploadRowKey({ file: "/localFilePath" })]: {
           ...fileMetadata[0],
           barcode: undefined, // TODO
+          channel: undefined,
           file: "/localFilePath",
+          notes: undefined,
           wellIds: [100],
         },
       });
       expect(getAppliedTemplateId(state)).to.not.be.undefined;
     });
     it("sets uploadError given not OK response when getting file metadata", async () => {
+      stubMethods({
+        transformFileMetadataIntoTable: stub().rejects("error!"),
+      });
       const { logicMiddleware, store } = createMockReduxStore(mockState);
-      const getCustomMetadataForFileStub = stub().resolves({});
-      const transformFileMetadataIntoTableStub = stub().rejects("error!");
-      sandbox.replace(
-        fms,
-        "getCustomMetadataForFile",
-        getCustomMetadataForFileStub
-      );
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        transformFileMetadataIntoTableStub
-      );
 
       expect(getUploadError(store.getState())).to.be.undefined;
 
@@ -640,18 +681,16 @@ describe("Route logics", () => {
       ).to.be.false;
     });
     it("does not dispatch setPlate action file metadata does not contain well annotation", async () => {
+      stubMethods({
+        transformFileMetadataIntoTable: stub().resolves([
+          {
+            ...omit(fileMetadata, ["Well"]),
+            Workflow: ["Pipeline 5"],
+          },
+        ]),
+      });
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
-      );
-      const transformResult = {
-        ...omit(fileMetadata, ["Well"]),
-        Workflow: ["Pipeline 5"],
-      };
-      sandbox.replace(fms, "getCustomMetadataForFile", stub().resolves([]));
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        stub().resolves(transformResult)
       );
 
       store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
@@ -662,22 +701,6 @@ describe("Route logics", () => {
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
-      );
-      sandbox.replace(fms, "getCustomMetadataForFile", stub().resolves([]));
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        stub().resolves(fileMetadata)
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getPlateBarcodeAndAllImagingSessionIdsFromWellId",
-        stub().resolves("abc")
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getImagingSessionIdsForBarcode",
-        stub().rejects(new Error("Not Authorized"))
       );
 
       store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));

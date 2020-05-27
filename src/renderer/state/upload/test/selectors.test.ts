@@ -163,7 +163,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["false"],
               },
             ],
