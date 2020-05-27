@@ -23,7 +23,7 @@ export interface UploadMetadata extends UploadRowId {
   shouldBeInArchive?: boolean;
   shouldBeInLocal?: boolean;
   templateId?: number;
-  wellIds: number[];
+  wellIds?: number[];
   workflows?: string[];
   [genericKey: string]: any;
 }

@@ -1,4 +1,9 @@
 # Version Notes
+## 1.0.43 (5/26/20)
+- Bugfix: fix runtime issue
+
+## 1.0.42
+- BROKEN version
 
 ## 1.0.38 - 1.0.41 
 - No visible changes
