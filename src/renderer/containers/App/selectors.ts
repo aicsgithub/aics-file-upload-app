@@ -1,7 +1,10 @@
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
 
-import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import {
   getCurrentUpload,
   getImagingSessions,
@@ -42,7 +45,7 @@ export const getFileToTags = createSelector(
           metadata,
           (m) => m[WORKFLOW_ANNOTATION_NAME] || []
         );
-        const wellIds = flatMap(metadata, (m) => m.wellIds || []);
+        const wellIds = flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || []);
         const wellTags: Array<{ label: string; wellId: number }> = [];
         wellIds.forEach((wellId: number) => {
           const label = getWellLabelAndImagingSessionName(

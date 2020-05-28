@@ -207,7 +207,7 @@ export const mockWellUpload: UploadStateBranch = {
     key: getUploadRowKey({ file: "/path/to/file" }),
     shouldBeInArchive: true,
     shouldBeInLocal: true,
-    wellIds: [1],
+    [WELL_ANNOTATION_NAME]: [1],
     [WORKFLOW_ANNOTATION_NAME]: ["name1"],
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
@@ -216,7 +216,7 @@ export const mockWellUpload: UploadStateBranch = {
     key: getUploadRowKey({ file: "/path/to/file2" }),
     shouldBeInArchive: false,
     shouldBeInLocal: true,
-    wellIds: [2],
+    [WELL_ANNOTATION_NAME]: [2],
     [WORKFLOW_ANNOTATION_NAME]: ["name1", "name2"],
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
@@ -225,7 +225,7 @@ export const mockWellUpload: UploadStateBranch = {
     key: getUploadRowKey({ file: "/path/to/file3" }),
     shouldBeInArchive: true,
     shouldBeInLocal: false,
-    wellIds: [1, 2, 3],
+    [WELL_ANNOTATION_NAME]: [1, 2, 3],
     [WORKFLOW_ANNOTATION_NAME]: ["name3"],
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
@@ -233,7 +233,7 @@ export const mockWellUpload: UploadStateBranch = {
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 }),
     positionIndex: 1,
-    wellIds: [1, 2],
+    [WELL_ANNOTATION_NAME]: [1, 2],
   },
 };
 

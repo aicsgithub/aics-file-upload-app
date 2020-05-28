@@ -5,6 +5,10 @@ import {
 import { expect } from "chai";
 import { forEach, orderBy } from "lodash";
 
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../../constants";
 import { TemplateAnnotation } from "../../template/types";
 import {
   getMockStateWithHistory,
@@ -117,7 +121,7 @@ describe("Upload selectors", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: false,
             unexpectedAnnotation: ["Hello World"],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -147,7 +151,7 @@ describe("Upload selectors", () => {
             plateId: 4,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       };
@@ -191,7 +195,7 @@ describe("Upload selectors", () => {
             plateId: 4,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           "/path/to.dot/image.tiffscene:1channel:1": {
             barcode: "452",
@@ -201,7 +205,7 @@ describe("Upload selectors", () => {
             notes: ["Seeing some interesting things here!"],
             plateId: 4,
             positionIndex: 1,
-            wellIds: [6],
+            [WELL_ANNOTATION_NAME]: [6],
           },
           "/path/to/image.czi": {
             barcode: "567",
@@ -211,7 +215,7 @@ describe("Upload selectors", () => {
             plateId: 4,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
           "/path/to/image.ome.tiff": {
             barcode: "123",
@@ -221,7 +225,7 @@ describe("Upload selectors", () => {
             plateId: 2,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [2],
+            [WELL_ANNOTATION_NAME]: [2],
           },
           "/path/to/image.png": {
             barcode: "345",
@@ -231,7 +235,7 @@ describe("Upload selectors", () => {
             plateId: 5,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [3],
+            [WELL_ANNOTATION_NAME]: [3],
           },
           "/path/to/image.tiff": {
             barcode: "234",
@@ -241,7 +245,7 @@ describe("Upload selectors", () => {
             plateId: 3,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [4],
+            [WELL_ANNOTATION_NAME]: [4],
           },
           "/path/to/multi-well.txt": {
             barcode: "456",
@@ -251,7 +255,7 @@ describe("Upload selectors", () => {
             plateId: 7,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [5, 6, 7],
+            [WELL_ANNOTATION_NAME]: [5, 6, 7],
           },
           "/path/to/no-extension": {
             barcode: "888",
@@ -261,7 +265,7 @@ describe("Upload selectors", () => {
             plateId: 7,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [7],
+            [WELL_ANNOTATION_NAME]: [7],
           },
           "/path/to/not-image.csv": {
             barcode: "578",
@@ -271,7 +275,7 @@ describe("Upload selectors", () => {
             plateId: 7,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [8],
+            [WELL_ANNOTATION_NAME]: [8],
           },
           "/path/to/not-image.txt": {
             barcode: "456",
@@ -281,7 +285,7 @@ describe("Upload selectors", () => {
             plateId: 7,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [5],
+            [WELL_ANNOTATION_NAME]: [5],
           },
         }),
       };
@@ -704,9 +708,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [1],
+        [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
-        workflows: ["name1"],
+        [WORKFLOW_ANNOTATION_NAME]: ["name1"],
       });
       expect(rows).to.deep.include({
         barcode: "1235",
@@ -723,9 +727,9 @@ describe("Upload selectors", () => {
         siblingIndex: 1,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [2],
+        [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        workflows: ["name1", "name2"],
+        [WORKFLOW_ANNOTATION_NAME]: ["name1", "name2"],
       });
       expect(rows).to.deep.include({
         barcode: "1236",
@@ -742,9 +746,9 @@ describe("Upload selectors", () => {
         siblingIndex: 2,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [1, 2, 3],
+        [WELL_ANNOTATION_NAME]: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
-        workflows: ["name3"],
+        [WORKFLOW_ANNOTATION_NAME]: ["name3"],
       });
     });
     it("does not show scene row if file row not expanded", () => {
@@ -755,14 +759,14 @@ describe("Upload selectors", () => {
             barcode: "1234",
             file: "/path/to/file1",
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1235",
             file: "/path/to/file1",
             notes: [],
             positionIndex: 1,
-            wellIds: [2],
+            [WELL_ANNOTATION_NAME]: [2],
           },
         }),
       });
@@ -780,9 +784,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("shows scene row if file row is expanded", () => {
@@ -799,14 +803,14 @@ describe("Upload selectors", () => {
             barcode: "1234",
             file: "/path/to/file1",
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1234",
             file: "/path/to/file1",
             notes: [],
             positionIndex: 1,
-            wellIds: [2],
+            [WELL_ANNOTATION_NAME]: [2],
           },
         }),
       });
@@ -824,9 +828,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -842,9 +846,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 1,
-        wellIds: [2],
+        [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
@@ -857,7 +861,7 @@ describe("Upload selectors", () => {
             key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
             notes: [],
             positionIndex: 1,
-            wellIds: [2],
+            [WELL_ANNOTATION_NAME]: [2],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -874,7 +878,7 @@ describe("Upload selectors", () => {
             }),
             notes: [],
             positionIndex: undefined,
-            wellIds: [2],
+            [WELL_ANNOTATION_NAME]: [2],
           },
         }),
       });
@@ -898,9 +902,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [2],
+        [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows[1]).to.deep.equal({
         barcode: "1234",
@@ -916,9 +920,9 @@ describe("Upload selectors", () => {
         siblingIndex: 1,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [2],
+        [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("handles files with channels", () => {
@@ -935,7 +939,7 @@ describe("Upload selectors", () => {
             barcode: "1234",
             file: "/path/to/file1",
             notes: undefined,
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -947,7 +951,7 @@ describe("Upload selectors", () => {
             file: "/path/to/file1",
             notes: undefined,
             positionIndex: undefined,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -965,9 +969,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [1],
+        [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -988,9 +992,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 1,
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("handles files with scenes and channels", () => {
@@ -1011,14 +1015,14 @@ describe("Upload selectors", () => {
             barcode: "1234",
             file: "/path/to/file1",
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1234",
             file: "/path/to/file1",
             notes: [],
             positionIndex: 1,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -1030,7 +1034,7 @@ describe("Upload selectors", () => {
             file: "/path/to/file1",
             notes: [],
             positionIndex: 1,
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
           [getUploadRowKey({
             file: "/path/to/file1",
@@ -1041,7 +1045,7 @@ describe("Upload selectors", () => {
             channel: mockChannel,
             file: "/path/to/file1",
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1059,9 +1063,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1077,9 +1081,9 @@ describe("Upload selectors", () => {
         siblingIndex: 1,
         subImageNames: [],
         treeDepth: 1,
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1100,9 +1104,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 2,
-        wellIds: [1],
+        [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1122,9 +1126,9 @@ describe("Upload selectors", () => {
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 1,
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        workflows: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("does not throw error for annotations that don't exist on the template", () => {
@@ -1150,7 +1154,7 @@ describe("Upload selectors", () => {
               file,
               notes: [],
               somethingUnexpected: "Hello World",
-              wellIds: [],
+              [WELL_ANNOTATION_NAME]: [],
             },
           }),
         });
@@ -1171,7 +1175,7 @@ describe("Upload selectors", () => {
             notes: [],
             shouldBeInArchive: true,
             shouldBeInLocal: true,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1182,7 +1186,7 @@ describe("Upload selectors", () => {
         notes: false,
         shouldBeInArchive: true,
         shouldBeInLocal: true,
-        wellIds: false,
+        [WELL_ANNOTATION_NAME]: false,
         wellLabels: false,
       });
     });
@@ -1196,21 +1200,21 @@ describe("Upload selectors", () => {
             barcode: "abcd",
             file,
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           [getUploadRowKey({ file, positionIndex: 1 })]: {
             age: undefined,
             barcode: "abcd",
             file,
             notes: [],
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
           [getUploadRowKey({ file, positionIndex: 1, channelId: 1 })]: {
             age: 19,
             barcode: "abcd",
             file,
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1219,7 +1223,7 @@ describe("Upload selectors", () => {
         barcode: true,
         file: true,
         notes: false,
-        wellIds: true,
+        [WELL_ANNOTATION_NAME]: true,
         wellLabels: true,
       });
     });
@@ -1258,8 +1262,8 @@ describe("Upload selectors", () => {
         barcode: "",
         file: "/path/to/file3",
         notes: [],
-        wellIds: [],
-        workflows: ["R&DExp", "Pipeline 4.1"],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
       };
     });
     it("returns empty object if no validation errors", () => {
@@ -1404,7 +1408,7 @@ describe("Upload selectors", () => {
             notes: [],
             shouldBeInArchive: false,
             shouldBeInLocal: false,
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
         }),
       });
@@ -1434,7 +1438,7 @@ describe("Upload selectors", () => {
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1452,7 +1456,7 @@ describe("Upload selectors", () => {
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1474,7 +1478,7 @@ describe("Upload selectors", () => {
             file,
             key,
             notes: [],
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
         }),
       });

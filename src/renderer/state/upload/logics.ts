@@ -19,6 +19,7 @@ import { createLogic } from "redux-logic";
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import {
   LIST_DELIMITER_SPLIT,
+  WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
@@ -535,7 +536,7 @@ const updateSubImagesLogic = createLogic({
     if (!isEmpty(subImages)) {
       update[fileRow.key] = {
         ...uploads[fileRow.key],
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
       };
     }
 
@@ -557,7 +558,7 @@ const updateSubImagesLogic = createLogic({
           positionIndex: undefined,
           scene: undefined,
           subImageName: undefined,
-          wellIds: [],
+          [WELL_ANNOTATION_NAME]: [],
           [WORKFLOW_ANNOTATION_NAME]: workflows,
           ...additionalAnnotations,
         };
@@ -580,7 +581,7 @@ const updateSubImagesLogic = createLogic({
           file: fileRow.file,
           key: subImageOnlyRowKey,
           notes: [],
-          wellIds: [],
+          [WELL_ANNOTATION_NAME]: [],
           [WORKFLOW_ANNOTATION_NAME]: workflows,
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
@@ -607,7 +608,7 @@ const updateSubImagesLogic = createLogic({
             file: fileRow.file,
             key,
             notes: [],
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             [WORKFLOW_ANNOTATION_NAME]: workflows,
             [subImageKey]: subImageValue,
             ...additionalAnnotations,

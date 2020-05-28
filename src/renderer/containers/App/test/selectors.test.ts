@@ -2,7 +2,10 @@ import { expect } from "chai";
 import { get } from "lodash";
 import * as moment from "moment";
 
-import { WORKFLOW_ANNOTATION_NAME } from "../../../constants";
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../../constants";
 import { Page } from "../../../state/route/types";
 import {
   getMockStateWithHistory,
@@ -55,12 +58,12 @@ describe("App selectors", () => {
           [filePath1]: {
             barcode: "test_barcode",
             file: filePath1,
-            wellIds: [1, 3],
+            [WELL_ANNOTATION_NAME]: [1, 3],
           },
           [filePath2]: {
             barcode: "test_barcode",
             file: filePath2,
-            wellIds: [4],
+            [WELL_ANNOTATION_NAME]: [4],
           },
         }),
       };
@@ -74,13 +77,13 @@ describe("App selectors", () => {
           [filePath1]: {
             barcode: "test_barcode",
             file: filePath1,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             [WORKFLOW_ANNOTATION_NAME]: ["work3", "work4"],
           },
           [filePath2]: {
             barcode: "test_barcode",
             file: filePath2,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             [WORKFLOW_ANNOTATION_NAME]: ["work2"],
           },
         }),
@@ -128,7 +131,7 @@ describe("App selectors", () => {
           [filePath1]: {
             barcode: "test_barcode",
             file: filePath1,
-            wellIds: [10],
+            [WELL_ANNOTATION_NAME]: [10],
           },
         }),
       });
@@ -235,14 +238,14 @@ describe("App selectors", () => {
             file: filePath1,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [1, 3],
+            [WELL_ANNOTATION_NAME]: [1, 3],
           },
           [filePath2]: {
             barcode: "test_barcode",
             file: filePath2,
             shouldBeInArchive: false,
             shouldBeInLocal: true,
-            wellIds: [4],
+            [WELL_ANNOTATION_NAME]: [4],
           },
         }),
       });
@@ -273,14 +276,14 @@ describe("App selectors", () => {
             file: filePath1,
             shouldBeInArchive: true,
             shouldBeInLocal: false,
-            wellIds: [1, 3],
+            [WELL_ANNOTATION_NAME]: [1, 3],
           },
           [filePath2]: {
             barcode: "test_barcode",
             file: filePath2,
             shouldBeInArchive: false,
             shouldBeInLocal: true,
-            wellIds: [4],
+            [WELL_ANNOTATION_NAME]: [4],
           },
         }),
       });

@@ -164,7 +164,7 @@ export const getSaveTemplateRequest = createSelector(
   }
 );
 
-// includes annotation info for required fields - wellIds, workflow
+// includes annotation info for required fields - well, workflow
 // and fills out annotation type name
 export const getCompleteAppliedTemplate = createSelector(
   [
@@ -212,9 +212,6 @@ export const getCompleteAppliedTemplate = createSelector(
         }),
         {
           ...well,
-          // Renaming because it the annotation name doesn't match the property in UploadMetadata
-          // In the future we should think about renaming the property
-          name: "Well Ids",
           required: false,
           type: ColumnType.LOOKUP,
         },

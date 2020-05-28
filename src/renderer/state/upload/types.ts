@@ -1,4 +1,7 @@
-import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
@@ -24,7 +27,7 @@ export interface UploadMetadata extends UploadRowId {
   shouldBeInArchive?: boolean;
   shouldBeInLocal?: boolean;
   templateId?: number;
-  wellIds?: number[];
+  [WELL_ANNOTATION_NAME]?: number[];
   [WORKFLOW_ANNOTATION_NAME]?: string[];
   [genericKey: string]: any;
 }
@@ -109,7 +112,7 @@ export interface UploadJobTableRow extends UploadRowId {
   treeDepth?: number;
 
   // all wellIds associated with this file model
-  wellIds?: number[];
+  [WELL_ANNOTATION_NAME]?: number[];
 
   // human readable identifier of well, such as "A1"
   wellLabels: string[];

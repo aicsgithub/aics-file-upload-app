@@ -1,7 +1,10 @@
 import { difference, flatMap, isEmpty } from "lodash";
 import { createSelector } from "reselect";
 
-import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import {
   getSelectedWellsWithData,
   getSelectedWorkflows,
@@ -13,7 +16,10 @@ import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 export const getWellsWithAssociations = createSelector(
   [getUpload],
   (upload: UploadStateBranch): number[] => {
-    return flatMap(upload, ({ wellIds }: UploadMetadata) => wellIds || []);
+    return flatMap(
+      upload,
+      (m: UploadMetadata) => m[WELL_ANNOTATION_NAME] || []
+    );
   }
 );
 
@@ -37,7 +43,7 @@ export const getMutualUploadsForWells = createSelector(
     const selectedWellIds = selectedWellsData.map((well: Well) => well.wellId);
 
     return Object.values(upload).filter((metadata) =>
-      isEmpty(difference(selectedWellIds, metadata.wellIds || []))
+      isEmpty(difference(selectedWellIds, metadata[WELL_ANNOTATION_NAME] || []))
     );
   }
 );

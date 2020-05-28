@@ -1,6 +1,9 @@
 import { expect } from "chai";
 
-import { WORKFLOW_ANNOTATION_NAME } from "../../../constants";
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../../constants";
 import { closeUploadTab } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import {
@@ -19,13 +22,13 @@ describe("upload reducer", () => {
       foo: {
         barcode: "1234",
         file: "/path",
-        wellIds: [1, 2],
+        [WELL_ANNOTATION_NAME]: [1, 2],
       },
       bar: {
         barcode: "1235",
         file: "/path2",
-        wellIds: [1, 2],
-        workflows: ["workflow 1", "workflow 2"],
+        [WELL_ANNOTATION_NAME]: [1, 2],
+        [WORKFLOW_ANNOTATION_NAME]: ["workflow 1", "workflow 2"],
       },
     };
   });
@@ -53,7 +56,7 @@ describe("upload reducer", () => {
     it("does not change anything if key doesn't exist on upload", () => {
       const result = reducer(
         getMockStateWithHistory({}),
-        updateUpload("foo", { wellIds: [1, 2] })
+        updateUpload("foo", { [WELL_ANNOTATION_NAME]: [1, 2] })
       );
       const { present } = result;
       expect(present).to.be.empty;
@@ -61,10 +64,10 @@ describe("upload reducer", () => {
     it("updates upload at key specified", () => {
       const result = reducer(
         getMockStateWithHistory(uploads),
-        updateUpload("foo", { wellIds: [3] })
+        updateUpload("foo", { [WELL_ANNOTATION_NAME]: [3] })
       );
       const { present } = result;
-      expect(present.foo.wellIds).to.deep.equal([3]);
+      expect(present.foo[WELL_ANNOTATION_NAME]).to.deep.equal([3]);
     });
   });
   describe("replaceUpload", () => {
@@ -72,7 +75,7 @@ describe("upload reducer", () => {
       const uploadPartial = {
         barcode: "5678",
         file: "/path2",
-        wellIds: [9],
+        [WELL_ANNOTATION_NAME]: [9],
       };
       const draft = {
         metadata: {

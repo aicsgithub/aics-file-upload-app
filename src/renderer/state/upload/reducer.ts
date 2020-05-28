@@ -2,7 +2,10 @@ import { omit, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
-import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
+import {
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
@@ -73,9 +76,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
             positionIndex: id.positionIndex,
             scene: id.scene,
             subImageName: id.subImageName,
-            wellIds: accum[key]?.wellIds
-              ? uniq([...accum[key]?.wellIds, ...wellIds])
-              : wellIds,
+            [WELL_ANNOTATION_NAME]:
+              accum[key] && accum[key][WELL_ANNOTATION_NAME]
+                ? uniq([
+                    ...(accum[key][WELL_ANNOTATION_NAME] || []),
+                    ...wellIds,
+                  ])
+                : wellIds,
           },
         };
       }, nextState);
@@ -126,7 +133,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
     ) => {
       const { deleteUpload, rowId, wellIds: wellIdsToRemove } = action.payload;
       const key = getUploadRowKey(rowId);
-      const wellIds = without(state[key].wellIds, ...wellIdsToRemove);
+      if (!state[key]) {
+        return state;
+      }
+      const wellIds = without(
+        state[key][WELL_ANNOTATION_NAME] || [],
+        ...wellIdsToRemove
+      );
       if (!wellIds.length && deleteUpload) {
         const stateWithoutFile = { ...state };
         delete stateWithoutFile[key];
@@ -136,7 +149,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         ...state,
         [key]: {
           ...state[key],
-          wellIds,
+          [WELL_ANNOTATION_NAME]: wellIds,
         },
       };
     },
@@ -149,10 +162,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action: UndoFileWorkflowAssociationAction
     ) => {
       const key = getUploadRowKey({ file: action.payload.fullPath });
-      const currentWorkflows = state[key][WORKFLOW_ANNOTATION_NAME];
-      if (!currentWorkflows) {
+      if (!state[key]) {
         return state;
       }
+      const currentWorkflows = state[key][WORKFLOW_ANNOTATION_NAME] || [];
       const workflows = without(
         currentWorkflows,
         ...action.payload.workflowNames
@@ -164,7 +177,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
         ...state,
         [key]: {
           ...state[key],
-          workflows,
+          [WORKFLOW_ANNOTATION_NAME]: workflows,
         },
       };
     },

@@ -5,7 +5,11 @@ import * as moment from "moment";
 import { createSandbox, SinonFakeTimers, stub, useFakeTimers } from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
-import { LONG_DATETIME_FORMAT } from "../../../constants";
+import {
+  LONG_DATETIME_FORMAT,
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../../constants";
 import {
   getAlert,
   getOpenUploadModalVisible,
@@ -79,9 +83,9 @@ describe("Upload logics", () => {
       expect(getSelectedFiles(state)).to.be.empty;
       const upload = getUpload(store.getState());
       const selectedBarcode = getSelectedBarcode(state);
-      expect(get(upload, [file1, "wellIds", 0])).to.equal(wellId);
+      expect(get(upload, [file1, WELL_ANNOTATION_NAME, 0])).to.equal(wellId);
       expect(get(upload, [file1, "barcode"])).to.equal(selectedBarcode);
-      expect(get(upload, [file2, "wellIds", 0])).to.equal(wellId);
+      expect(get(upload, [file2, WELL_ANNOTATION_NAME, 0])).to.equal(wellId);
       expect(get(upload, [file2, "barcode"])).to.equal(selectedBarcode);
     });
 
@@ -183,7 +187,9 @@ describe("Upload logics", () => {
       const upload = getUpload(store.getState());
       const selectedBarcode = getSelectedBarcode(state);
       const uploadRowKey = getUploadRowKey({ file: file1, positionIndex: 1 });
-      expect(get(upload, [uploadRowKey, "wellIds", 0])).to.equal(wellId);
+      expect(get(upload, [uploadRowKey, WELL_ANNOTATION_NAME, 0])).to.equal(
+        wellId
+      );
       expect(get(upload, [uploadRowKey, "barcode"])).to.equal(selectedBarcode);
     });
   });
@@ -196,7 +202,7 @@ describe("Upload logics", () => {
       let uploadRow = getUpload(store.getState())[
         getUploadRowKey({ file: "/path/to/file1" })
       ];
-      expect(uploadRow.wellIds).to.not.be.empty;
+      expect(uploadRow[WELL_ANNOTATION_NAME]).to.not.be.empty;
 
       // apply
       store.dispatch(undoFileWellAssociation({ file: "/path/to/file1" }));
@@ -215,7 +221,7 @@ describe("Upload logics", () => {
       let uploadRow = getUpload(store.getState())[
         getUploadRowKey({ file: "/path/to/file1" })
       ];
-      expect(uploadRow.wellIds).to.not.be.empty;
+      expect(uploadRow[WELL_ANNOTATION_NAME]).to.not.be.empty;
 
       // apply
       store.dispatch(
@@ -227,7 +233,7 @@ describe("Upload logics", () => {
         getUploadRowKey({ file: "/path/to/file1" })
       ];
       expect(uploadRow).to.not.be.undefined;
-      expect(uploadRow.wellIds).to.be.empty;
+      expect(uploadRow[WELL_ANNOTATION_NAME]).to.be.empty;
     });
 
     it("removes well associations from row matching file and positionIndex", () => {
@@ -237,7 +243,7 @@ describe("Upload logics", () => {
       let uploadRow = getUpload(store.getState())[
         getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })
       ];
-      expect(uploadRow.wellIds?.length).to.equal(2);
+      expect(uploadRow[WELL_ANNOTATION_NAME]?.length).to.equal(2);
 
       // apply
       store.dispatch(
@@ -252,7 +258,8 @@ describe("Upload logics", () => {
         getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })
       ];
       expect(uploadRow).to.not.be.undefined;
-      expect(uploadRow.wellIds?.length).to.equal(1);
+      console.log(uploadRow);
+      expect(uploadRow[WELL_ANNOTATION_NAME]?.length).to.equal(1);
     });
 
     it("sets error alert if no wells selected", () => {
@@ -297,7 +304,7 @@ describe("Upload logics", () => {
             key: getUploadRowKey({ file: "/path/to/file" }),
             shouldBeInArchive: true,
             shouldBeInLocal: true,
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
         }),
       });
@@ -309,7 +316,7 @@ describe("Upload logics", () => {
           key: getUploadRowKey({ file: "/path/to/file" }),
           shouldBeInArchive: true,
           shouldBeInLocal: true,
-          wellIds: [1],
+          [WELL_ANNOTATION_NAME]: [1],
         },
       });
 
@@ -531,7 +538,7 @@ describe("Upload logics", () => {
             key: fileRowKey,
             shouldBeInArchive: true,
             shouldBeInLocal: true,
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
         }),
       };
@@ -568,8 +575,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, positionIndex: 0 }),
         notes: [],
         positionIndex: 0,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -599,8 +606,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, scene: 0 }),
         notes: [],
         scene: 0,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -609,7 +616,8 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
+        .empty;
 
       if (fileRow) {
         // apply
@@ -618,7 +626,8 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
+        .empty;
     });
 
     it("removes well associations from the file row if adding a position index", () => {
@@ -626,7 +635,8 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
+        .empty;
 
       if (fileRow) {
         // apply
@@ -635,7 +645,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.be.empty;
     });
 
     it("removes well associations from file row if adding a scene", () => {
@@ -643,7 +653,8 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
+        .empty;
 
       if (fileRow) {
         // apply
@@ -652,7 +663,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.be.empty;
     });
 
     it("removes well associations from file row if adding a sub image name", () => {
@@ -660,7 +671,8 @@ describe("Upload logics", () => {
 
       // before
       let state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.not.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.not.be
+        .empty;
 
       if (fileRow) {
         // apply
@@ -669,7 +681,7 @@ describe("Upload logics", () => {
 
       // after
       state = store.getState();
-      expect(getUpload(state)[fileRowKey].wellIds).to.be.empty;
+      expect(getUpload(state)[fileRowKey][WELL_ANNOTATION_NAME]).to.be.empty;
     });
 
     it("adds 1 sub row to file if only channel provided", () => {
@@ -707,8 +719,8 @@ describe("Upload logics", () => {
         positionIndex: undefined,
         scene: undefined,
         subImageName: undefined,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -739,8 +751,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, positionIndex: 1 }),
         notes: [],
         positionIndex: 1,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -769,8 +781,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, scene: 1 }),
         notes: [],
         scene: 1,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -801,8 +813,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, subImageName: "foo" }),
         notes: [],
         subImageName: "foo",
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -980,8 +992,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, positionIndex: 1 }),
         notes: [],
         positionIndex: 1,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
 
       const positionAndChannelKey = getUploadRowKey({
@@ -999,8 +1011,8 @@ describe("Upload logics", () => {
         key: positionAndChannelKey,
         notes: [],
         positionIndex: 1,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1031,8 +1043,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, scene: 1 }),
         notes: [],
         scene: 1,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
 
       const sceneAndChannelKey = getUploadRowKey({
@@ -1050,8 +1062,8 @@ describe("Upload logics", () => {
         key: sceneAndChannelKey,
         notes: [],
         scene: 1,
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1086,8 +1098,8 @@ describe("Upload logics", () => {
         key: getUploadRowKey({ file, subImageName: "foo" }),
         notes: [],
         subImageName: "foo",
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
 
       const positionAndChannelKey = getUploadRowKey({
@@ -1105,8 +1117,8 @@ describe("Upload logics", () => {
         key: positionAndChannelKey,
         notes: [],
         subImageName: "foo",
-        wellIds: [],
-        workflows: [],
+        [WELL_ANNOTATION_NAME]: [],
+        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1132,33 +1144,33 @@ describe("Upload logics", () => {
               channelIds: [1],
               file: "/path/to/file1",
               positionIndexes: [1, 2],
-              wellIds: [],
+              [WELL_ANNOTATION_NAME]: [],
             },
             [position1Key]: {
               barcode: "1234",
               file: "/path/to/file1",
               positionIndex: 1,
-              wellIds: [1],
+              [WELL_ANNOTATION_NAME]: [1],
             },
             [position1Channel1Key]: {
               barcode: "1234",
               channel: mockChannel,
               file: "/path/to/file1",
               positionIndex: 1,
-              wellIds: [],
+              [WELL_ANNOTATION_NAME]: [],
             },
             [position2Key]: {
               barcode: "1234",
               file: "/path/to/file1",
               positionIndex: 2,
-              wellIds: [2],
+              [WELL_ANNOTATION_NAME]: [2],
             },
             [position2Channel1Key]: {
               barcode: "1234",
               channel: mockChannel,
               file: "/path/to/file1",
               positionIndex: 2,
-              wellIds: [],
+              [WELL_ANNOTATION_NAME]: [],
             },
           }),
         },
@@ -1259,9 +1271,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1295,9 +1307,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1332,9 +1344,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1369,9 +1381,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1405,9 +1417,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1443,9 +1455,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1480,9 +1492,9 @@ describe("Upload logics", () => {
             shouldBeInArchive: true,
             shouldBeInLocal: true,
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            workflows: ["R&DExp", "Pipeline 4.1"],
+            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1517,7 +1529,7 @@ describe("Upload logics", () => {
           [uploadRowKey]: {
             barcode: "",
             file: "/path/to/file1",
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1550,12 +1562,12 @@ describe("Upload logics", () => {
           [uploadRowKey1]: {
             barcode: "",
             file: "/path/to/file1",
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
           [uploadRowKey2]: {
             barcode: "",
             file: "/path/to/file2",
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
@@ -1597,7 +1609,7 @@ describe("Upload logics", () => {
             barcode: "",
             file: "/path/to/file1",
             templateId: 8,
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
