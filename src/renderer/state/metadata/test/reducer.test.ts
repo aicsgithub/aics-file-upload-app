@@ -46,6 +46,16 @@ describe("metadata reducer", () => {
       );
       expect(result.currentUpload).to.be.undefined;
     });
+    it("clears originalUpload", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          originalUpload: {},
+        },
+        closeUploadTab()
+      );
+      expect(result.originalUpload).to.be.undefined;
+    });
   });
   describe("openEditFileMetadataTab", () => {
     it("clears currentUpload", () => {

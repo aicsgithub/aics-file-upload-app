@@ -164,6 +164,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: MetadataStateBranch) => ({
       ...state,
       currentUpload: undefined,
+      originalUpload: undefined,
     }),
   },
   [RECEIVE_FILE_METADATA]: {
