@@ -13,7 +13,7 @@ import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 export const getWellsWithAssociations = createSelector(
   [getUpload],
   (upload: UploadStateBranch): number[] => {
-    return flatMap(upload, ({ wellIds }: UploadMetadata) => wellIds);
+    return flatMap(upload, ({ wellIds }: UploadMetadata) => wellIds || []);
   }
 );
 
@@ -37,7 +37,7 @@ export const getMutualUploadsForWells = createSelector(
     const selectedWellIds = selectedWellsData.map((well: Well) => well.wellId);
 
     return Object.values(upload).filter((metadata) =>
-      isEmpty(difference(selectedWellIds, metadata.wellIds))
+      isEmpty(difference(selectedWellIds, metadata.wellIds || []))
     );
   }
 );

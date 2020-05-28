@@ -237,7 +237,7 @@ describe("Upload logics", () => {
       let uploadRow = getUpload(store.getState())[
         getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })
       ];
-      expect(uploadRow.wellIds.length).to.equal(2);
+      expect(uploadRow.wellIds?.length).to.equal(2);
 
       // apply
       store.dispatch(
@@ -252,7 +252,7 @@ describe("Upload logics", () => {
         getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })
       ];
       expect(uploadRow).to.not.be.undefined;
-      expect(uploadRow.wellIds.length).to.equal(1);
+      expect(uploadRow.wellIds?.length).to.equal(1);
     });
 
     it("sets error alert if no wells selected", () => {

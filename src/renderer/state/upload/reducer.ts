@@ -73,8 +73,8 @@ const actionToConfigMap: TypeToDescriptionMap = {
             positionIndex: id.positionIndex,
             scene: id.scene,
             subImageName: id.subImageName,
-            wellIds: accum[key]
-              ? uniq([...accum[key].wellIds, ...wellIds])
+            wellIds: accum[key]?.wellIds
+              ? uniq([...accum[key]?.wellIds, ...wellIds])
               : wellIds,
           },
         };
