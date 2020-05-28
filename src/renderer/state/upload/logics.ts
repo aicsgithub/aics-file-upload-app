@@ -17,7 +17,12 @@ import { isDate, isMoment } from "moment";
 import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
-import { LIST_DELIMITER_SPLIT } from "../../constants";
+import {
+  LIST_DELIMITER_SPLIT,
+  NOTES_ANNOTATION_NAME,
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
@@ -516,7 +521,7 @@ const updateSubImagesLogic = createLogic({
       subImageNames
     );
     const update: Partial<UploadStateBranch> = {};
-    const { workflows } = fileRow;
+    const workflows = fileRow[WORKFLOW_ANNOTATION_NAME];
 
     const uploads = getUpload(getState());
     const existingUploadsForFile: UploadMetadata[] = values(uploads).filter(
@@ -540,7 +545,7 @@ const updateSubImagesLogic = createLogic({
     if (!isEmpty(subImages)) {
       update[fileRow.key] = {
         ...uploads[fileRow.key],
-        wellIds: [],
+        [WELL_ANNOTATION_NAME]: [],
       };
     }
 
@@ -558,12 +563,12 @@ const updateSubImagesLogic = createLogic({
           channel,
           file: fileRow.file,
           key,
-          notes: [],
+          [NOTES_ANNOTATION_NAME]: [],
           positionIndex: undefined,
           scene: undefined,
           subImageName: undefined,
-          wellIds: [],
-          workflows,
+          [WELL_ANNOTATION_NAME]: [],
+          [WORKFLOW_ANNOTATION_NAME]: workflows,
           ...additionalAnnotations,
         };
       });
@@ -584,9 +589,9 @@ const updateSubImagesLogic = createLogic({
           channel: undefined,
           file: fileRow.file,
           key: subImageOnlyRowKey,
-          notes: [],
-          wellIds: [],
-          workflows,
+          [NOTES_ANNOTATION_NAME]: [],
+          [WELL_ANNOTATION_NAME]: [],
+          [WORKFLOW_ANNOTATION_NAME]: workflows,
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
         };
@@ -611,9 +616,9 @@ const updateSubImagesLogic = createLogic({
             channel,
             file: fileRow.file,
             key,
-            notes: [],
-            wellIds: [],
-            workflows,
+            [NOTES_ANNOTATION_NAME]: [],
+            [WELL_ANNOTATION_NAME]: [],
+            [WORKFLOW_ANNOTATION_NAME]: workflows,
             [subImageKey]: subImageValue,
             ...additionalAnnotations,
           };

@@ -28,7 +28,12 @@ import { isDate } from "moment";
 import * as moment from "moment";
 import { createSelector } from "reselect";
 
-import { LIST_DELIMITER_SPLIT } from "../../constants";
+import {
+  LIST_DELIMITER_SPLIT,
+  NOTES_ANNOTATION_NAME,
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
@@ -79,14 +84,6 @@ export const getUpload = (state: State) => state.upload.present;
 export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
-
-export const getAppliedTemplateId = createSelector(
-  [getUpload],
-  (uploads: UploadStateBranch): number | undefined =>
-    Object.keys(uploads).length
-      ? uploads[Object.keys(uploads)[0]].templateId
-      : undefined
-);
 
 export const getCanRedoUpload = createSelector(
   [getUploadFuture],
@@ -169,7 +166,7 @@ export const getUploadWithCalculatedData = createSelector(
         metadata: UploadMetadata,
         key: string
       ) => {
-        const { wellIds } = metadata;
+        const wellIds = metadata[WELL_ANNOTATION_NAME];
         const wellLabels = (wellIds || []).map((wellId: number) =>
           getWellLabelAndImagingSessionName(
             wellId,
@@ -214,7 +211,9 @@ const convertToUploadJobRow = (
       scene: metadata.scene,
       subImageName: metadata.subImageName,
     }),
-    notes: metadata.notes ? metadata.notes[0] : undefined,
+    [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME]
+      ? metadata[NOTES_ANNOTATION_NAME][0]
+      : undefined,
     numberSiblings,
     positionIndexes,
     scenes,
@@ -222,7 +221,7 @@ const convertToUploadJobRow = (
     subImageNames,
     treeDepth,
     wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
-    workflows: metadata.workflows || [],
+    [WORKFLOW_ANNOTATION_NAME]: metadata[WORKFLOW_ANNOTATION_NAME] || [],
   };
 };
 
@@ -634,8 +633,8 @@ export const getUploadValidationErrors = createSelector(
         (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
           const fileName = basename(file);
           if (
-            !annotationHasValueMap.wellIds &&
-            !annotationHasValueMap.workflows
+            !annotationHasValueMap[WELL_ANNOTATION_NAME] &&
+            !annotationHasValueMap[WORKFLOW_ANNOTATION_NAME]
           ) {
             errors.push(
               `${fileName} must have either a well or workflow association`
@@ -766,11 +765,11 @@ export const getUploadPayload = createSelector(
         // to support the current way of storing metadata in bob the blob, we continue to include
         // wellIds and workflows in the microscopy block. Since a file may have 1 or more scenes and channels
         // per file, we set these values to a uniq list of all of the values found across each "dimension"
-        const wellIds = uniq(flatMap(metadata, (m) => m.wellIds)).filter(
-          (w) => !!w
-        );
+        const wellIds = uniq(
+          flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || [])
+        ).filter((w) => !!w);
         const workflows = uniq(
-          flatMap(metadata, (m) => m.workflows || [])
+          flatMap(metadata, (m) => m[WORKFLOW_ANNOTATION_NAME] || [])
         ).filter((w) => !!w);
         const fileRows = metadata.filter(isFileRow);
         const shouldBeInArchive =

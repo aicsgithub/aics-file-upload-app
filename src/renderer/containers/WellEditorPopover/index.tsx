@@ -5,6 +5,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import { getSelectedWellIds } from "../../state/selection/selectors";
 import { State } from "../../state/types";
 import {
@@ -107,8 +108,8 @@ class WellEditorPopover extends React.Component<Props, {}> {
     const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
     return (
       !uploadRow ||
-      intersection(selectedWellIds, uploadRow.wellIds || []).length ===
-        selectedWellIds.length
+      intersection(selectedWellIds, uploadRow[WELL_ANNOTATION_NAME] || [])
+        .length === selectedWellIds.length
     );
   };
 }

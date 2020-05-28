@@ -9,6 +9,7 @@ import { createSandbox, stub } from "sinon";
 
 import selections from "../";
 import { feedback } from "../../";
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import {
   SERVICE_IS_DOWN_MESSAGE,
   SERVICE_MIGHT_BE_DOWN_MESSAGE,
@@ -652,7 +653,7 @@ describe("Selection logics", () => {
           [getUploadRowKey({ file: "/path/test.txt" })]: {
             barcode: "abc",
             file: "/path/test.txt",
-            wellIds: [],
+            [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });

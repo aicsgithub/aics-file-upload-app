@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as moment from "moment";
 
-import { DATETIME_FORMAT } from "../../../constants";
+import { DATETIME_FORMAT, WELL_ANNOTATION_NAME } from "../../../constants";
 import { getCurrentUploadName } from "../../../containers/App/selectors";
 import { AsyncRequest } from "../../feedback/types";
 import {
@@ -201,7 +201,7 @@ describe("Job selectors", () => {
           foo: {
             barcode: "1234",
             file: "/path",
-            wellIds: [1, 2],
+            [WELL_ANNOTATION_NAME]: [1, 2],
           },
         }),
       });
@@ -214,12 +214,12 @@ describe("Job selectors", () => {
           bar: {
             barcode: "1234",
             file: "bar",
-            wellIds: [1, 2],
+            [WELL_ANNOTATION_NAME]: [1, 2],
           },
           foo: {
             barcode: "1234",
             file: "foo",
-            wellIds: [1, 2],
+            [WELL_ANNOTATION_NAME]: [1, 2],
           },
         }),
       });
@@ -276,7 +276,7 @@ describe("Job selectors", () => {
           foo: {
             barcode: "1234",
             file: "foo",
-            wellIds: [1],
+            [WELL_ANNOTATION_NAME]: [1],
           },
         }),
       });
