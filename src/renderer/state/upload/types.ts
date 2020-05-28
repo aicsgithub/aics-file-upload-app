@@ -1,4 +1,5 @@
 import {
+  NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
@@ -91,7 +92,7 @@ export interface UploadJobTableRow extends UploadRowId {
   key: string;
 
   // notes associated with the file
-  notes?: string;
+  [NOTES_ANNOTATION_NAME]?: string;
 
   // react-data-grid property needed for nested rows. identifies how many rows exist at this level of the tree.
   numberSiblings: number;

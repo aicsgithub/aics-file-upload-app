@@ -13,6 +13,7 @@ import {
   DATE_FORMAT,
   DATETIME_FORMAT,
   LIST_DELIMITER_JOIN,
+  NOTES_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
@@ -316,13 +317,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           >
             <NoteIcon
               handleError={this.handleError}
-              notes={row.notes}
+              notes={row[NOTES_ANNOTATION_NAME]}
               saveNotes={this.saveNotesByRow(row)}
             />
           </div>
         ),
-        key: "notes",
-        name: "Notes",
+        key: NOTES_ANNOTATION_NAME,
+        name: NOTES_ANNOTATION_NAME,
         width: 80,
       },
     ];
@@ -500,7 +501,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private saveNotesByRow = (
     row: UploadJobTableRow
   ): ((notes: string | undefined) => void) => {
-    return (notes: string | undefined) => this.saveByRow(notes, "notes", row);
+    return (notes: string | undefined) =>
+      this.saveByRow(notes, NOTES_ANNOTATION_NAME, row);
   };
 
   private saveByRow = (

@@ -19,6 +19,7 @@ import { createLogic } from "redux-logic";
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import {
   LIST_DELIMITER_SPLIT,
+  NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
@@ -554,7 +555,7 @@ const updateSubImagesLogic = createLogic({
           channel,
           file: fileRow.file,
           key,
-          notes: [],
+          [NOTES_ANNOTATION_NAME]: [],
           positionIndex: undefined,
           scene: undefined,
           subImageName: undefined,
@@ -580,7 +581,7 @@ const updateSubImagesLogic = createLogic({
           channel: undefined,
           file: fileRow.file,
           key: subImageOnlyRowKey,
-          notes: [],
+          [NOTES_ANNOTATION_NAME]: [],
           [WELL_ANNOTATION_NAME]: [],
           [WORKFLOW_ANNOTATION_NAME]: workflows,
           [subImageKey]: subImageValue,
@@ -607,7 +608,7 @@ const updateSubImagesLogic = createLogic({
             channel,
             file: fileRow.file,
             key,
-            notes: [],
+            [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
             [WORKFLOW_ANNOTATION_NAME]: workflows,
             [subImageKey]: subImageValue,

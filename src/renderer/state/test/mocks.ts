@@ -351,7 +351,7 @@ export const mockTemplateWithManyValues: Template = {
       annotationTypeId: 1,
       description:
         "Additional information that doesn't align well with other annotations",
-      name: "Notes",
+      name: NOTES_ANNOTATION_NAME,
       required: true,
     },
   ],

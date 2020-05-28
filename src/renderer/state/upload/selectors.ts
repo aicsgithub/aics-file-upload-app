@@ -25,6 +25,7 @@ import { createSelector } from "reselect";
 
 import {
   LIST_DELIMITER_SPLIT,
+  NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
@@ -203,7 +204,9 @@ const convertToUploadJobRow = (
       scene: metadata.scene,
       subImageName: metadata.subImageName,
     }),
-    notes: metadata.notes ? metadata.notes[0] : undefined,
+    [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME]
+      ? metadata[NOTES_ANNOTATION_NAME][0]
+      : undefined,
     numberSiblings,
     positionIndexes,
     scenes,
