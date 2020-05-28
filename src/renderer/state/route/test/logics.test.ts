@@ -4,12 +4,9 @@ import { omit } from "lodash";
 import { ActionCreator } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
 
-import {
-  getAlert,
-  getRequestsInProgressContains,
-  getUploadError,
-} from "../../feedback/selectors";
-import { AlertType, AsyncRequest } from "../../feedback/types";
+import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { getAlert } from "../../feedback/selectors";
+import { AlertType } from "../../feedback/types";
 import {
   getFileMetadataForJob,
   getSelectionHistory,
@@ -56,6 +53,7 @@ import {
   closeUploadTab,
   goBack,
   openEditFileMetadataTab,
+  openEditFileMetadataTabFailed,
   selectPage,
 } from "../actions";
 import { setSwitchEnvEnabled } from "../logics";
@@ -448,7 +446,7 @@ describe("Route logics", () => {
   describe("openEditFileMetadataTabLogic", () => {
     const fileMetadata: ImageModelMetadata[] = [
       {
-        Well: [100],
+        [WELL_ANNOTATION_NAME]: [100],
         fileId: "abc123",
         fileSize: 100,
         fileType: "image",
@@ -655,30 +653,36 @@ describe("Route logics", () => {
           barcode: undefined, // TODO
           channel: undefined,
           file: "/localFilePath",
-          notes: undefined,
-          wellIds: [100],
         },
       });
       expect(getAppliedTemplateId(state)).to.not.be.undefined;
     });
-    it("sets uploadError given not OK response when getting file metadata", async () => {
+    it("dispatches openEditFileMetadataTabFailed given not OK response when getting file metadata", async () => {
       stubMethods({
-        transformFileMetadataIntoTable: stub().rejects("error!"),
+        transformFileMetadataIntoTable: stub().rejects(new Error("error!")),
       });
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockState
+      );
 
-      expect(getUploadError(store.getState())).to.be.undefined;
+      expect(
+        actions.includesMatch(
+          openEditFileMetadataTabFailed(
+            "Could not retrieve file metadata for fileIds=cat, dog: error!"
+          )
+        )
+      ).to.be.false;
 
       store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
-      expect(getUploadError(store.getState())).to.not.be.undefined;
       expect(
-        getRequestsInProgressContains(
-          store.getState(),
-          AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        actions.includesMatch(
+          openEditFileMetadataTabFailed(
+            "Could not retrieve file metadata for fileIds=cat, dog: error!"
+          )
         )
-      ).to.be.false;
+      ).to.be.true;
     });
     it("does not dispatch setPlate action file metadata does not contain well annotation", async () => {
       stubMethods({
@@ -699,20 +703,30 @@ describe("Route logics", () => {
       expect(getSelectedPlate(store.getState())).to.be.undefined;
     });
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(
+      stubMethods({
+        getPlate: stub().rejects(new Error("foo")),
+      });
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
+      expect(
+        actions.includesMatch(
+          openEditFileMetadataTabFailed(
+            "Could not get plate information from upload: foo"
+          )
+        )
+      ).to.be.false;
 
       store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
-      expect(getUploadError(store.getState())).to.not.be.undefined;
       expect(
-        getRequestsInProgressContains(
-          store.getState(),
-          AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        actions.includesMatch(
+          openEditFileMetadataTabFailed(
+            "Could not get plate information from upload: foo"
+          )
         )
-      ).to.be.false;
+      ).to.be.true;
     });
   });
 });
