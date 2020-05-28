@@ -417,12 +417,6 @@ const convertImageModelMetadataToUploadStateBranch = (
         scene,
         subImageName,
       });
-      const well: string | number | undefined = curr.Well;
-      const wellIds: number[] = well
-        ? castArray(well).map((w: string | number) => parseInt(`${w}`, 10))
-        : [];
-      const workflows = curr.Workflow;
-      const notes = curr.Notes;
       const channel =
         curr.channel && curr.channelId
           ? { name: curr.channel, channelId: curr.channelId }
@@ -434,9 +428,6 @@ const convertImageModelMetadataToUploadStateBranch = (
           barcode: curr.barcode ? `${curr.barcode}` : undefined,
           channel,
           file,
-          notes,
-          ...(wellIds?.length && { wellIds }),
-          ...(workflows?.length && { workflows }),
         },
       };
     },
