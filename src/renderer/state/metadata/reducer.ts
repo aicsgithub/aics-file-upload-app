@@ -3,10 +3,12 @@ import { AnyAction } from "redux";
 import {
   CLOSE_UPLOAD_TAB,
   OPEN_EDIT_FILE_METADATA_TAB,
+  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
 } from "../route/constants";
 import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
+  OpenEditFileMetadataTabSucceededAction,
 } from "../route/types";
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
@@ -183,6 +185,19 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: MetadataStateBranch) => ({
       ...state,
       currentUpload: undefined,
+    }),
+  },
+  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
+    accepts: (
+      action: AnyAction
+    ): action is OpenEditFileMetadataTabSucceededAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+    perform: (
+      state: MetadataStateBranch,
+      { payload: { originalUpload } }: OpenEditFileMetadataTabSucceededAction
+    ) => ({
+      ...state,
+      originalUpload,
     }),
   },
 };

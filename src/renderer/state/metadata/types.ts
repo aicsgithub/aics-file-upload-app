@@ -13,6 +13,7 @@ import {
   AnnotationType,
   Lookup,
 } from "../template/types";
+import { UploadStateBranch } from "../upload/types";
 
 export interface MetadataStateBranch {
   annotations: Annotation[];
@@ -30,6 +31,8 @@ export interface MetadataStateBranch {
   fileMetadataSearchResults?: SearchResultRow[];
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
+  // for tracking whether an upload has changed when updating the upload
+  originalUpload?: UploadStateBranch;
   templates: LabkeyTemplate[];
   users: LabkeyUser[];
   units: Unit[];

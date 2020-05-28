@@ -7,6 +7,7 @@ import { castArray, difference, isEmpty, isNil } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import {
   getCurrentUploadKey,
   getCurrentUploadName,
@@ -21,10 +22,8 @@ import {
 import {
   openModal,
   openSetMountPointNotification,
-  removeRequestFromInProgress,
   setDeferredAction,
   setErrorAlert,
-  setUploadError,
 } from "../feedback/actions";
 import { AsyncRequest, ModalName } from "../feedback/types";
 import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
@@ -71,7 +70,13 @@ import {
 import { UploadMetadata, UploadStateBranch } from "../upload/types";
 import { batchActions } from "../util";
 
-import { closeUploadTab, selectPage, selectView } from "./actions";
+import {
+  closeUploadTab,
+  openEditFileMetadataTabFailed,
+  openEditFileMetadataTabSucceeded,
+  selectPage,
+  selectView,
+} from "./actions";
 import {
   CLOSE_UPLOAD_TAB,
   findNextPage,
@@ -442,7 +447,6 @@ const convertImageModelMetadataToUploadStateBranch = (
 const openEditFileMetadataTabLogic = createLogic({
   process: async (
     {
-      action,
       ctx,
       fms,
       getState,
@@ -487,29 +491,23 @@ const openEditFileMetadataTabLogic = createLogic({
         ", "
       )}: ${e.message}`;
       logger.error(error);
-      dispatch(
-        batchActions([
-          removeRequestFromInProgress(
-            AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
-          ),
-          setUploadError(action.payload.jobId, error),
-        ])
-      );
+      dispatch(openEditFileMetadataTabFailed(error));
       done();
       return;
     }
 
     const actions: AnyAction[] = [];
-    console.log("original", fileMetadataForJob);
     const newUpload = convertImageModelMetadataToUploadStateBranch(
       fileMetadataForJob
     );
     if (fileMetadataForJob && fileMetadataForJob[0]) {
+      // todo is this necessary?
       actions.push(receiveFileMetadata(fileMetadataForJob));
 
       // if we have a well, we can get the barcode and other plate info. This will be necessary
       // to display the well editor
-      const wellAnnotationName = getWellAnnotation(getState())?.name || "Well";
+      const wellAnnotationName =
+        getWellAnnotation(getState())?.name || WELL_ANNOTATION_NAME;
       let wellIds: any = fileMetadataForJob[0][wellAnnotationName];
       if (wellIds) {
         wellIds = castArray(wellIds).map((w: string | number) =>
@@ -538,14 +536,7 @@ const openEditFileMetadataTabLogic = createLogic({
         } catch (e) {
           const error = `Could not get plate information from upload: ${e.message}`;
           logger.error(error);
-          dispatch(
-            batchActions([
-              removeRequestFromInProgress(
-                AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
-              ),
-              setUploadError(action.payload.jobId, error),
-            ])
-          );
+          dispatch(openEditFileMetadataTabFailed(error));
           done();
           return;
         }
@@ -580,7 +571,9 @@ const openEditFileMetadataTabLogic = createLogic({
       actions.push(updateUploads(newUpload, true));
     }
 
-    dispatch(batchActions(actions));
+    dispatch(
+      batchActions([...actions, openEditFileMetadataTabSucceeded(newUpload)])
+    );
     done();
   },
   type: OPEN_EDIT_FILE_METADATA_TAB,

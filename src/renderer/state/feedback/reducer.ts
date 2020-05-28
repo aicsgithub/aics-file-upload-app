@@ -15,11 +15,15 @@ import {
 import {
   CLOSE_UPLOAD_TAB,
   OPEN_EDIT_FILE_METADATA_TAB,
+  OPEN_EDIT_FILE_METADATA_TAB_FAILED,
+  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
   SELECT_PAGE,
 } from "../route/constants";
 import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
+  OpenEditFileMetadataTabFailedAction,
+  OpenEditFileMetadataTabSucceededAction,
   Page,
   SelectPageAction,
 } from "../route/types";
@@ -589,6 +593,36 @@ const actionToConfigMap: TypeToDescriptionMap = {
       requestsInProgress: removeRequestFromInProgress(
         state,
         AsyncRequest.UPDATE_FILE_METADATA
+      ),
+    }),
+  },
+  [OPEN_EDIT_FILE_METADATA_TAB_FAILED]: {
+    accepts: (
+      action: AnyAction
+    ): action is OpenEditFileMetadataTabFailedAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: OpenEditFileMetadataTabFailedAction
+    ) => ({
+      ...state,
+      alert: getErrorAlert(action.payload),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+      ),
+    }),
+  },
+  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
+    accepts: (
+      action: AnyAction
+    ): action is OpenEditFileMetadataTabSucceededAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
       ),
     }),
   },

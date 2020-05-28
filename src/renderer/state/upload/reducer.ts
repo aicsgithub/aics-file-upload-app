@@ -263,12 +263,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (
       state: UploadStateBranch,
       { payload: { uploads } }: SetAppliedTemplateAction
-    ) => {
-      console.log("test", uploads);
-      return {
-        ...uploads,
-      };
-    },
+    ) => ({
+      ...uploads,
+    }),
   },
 };
 

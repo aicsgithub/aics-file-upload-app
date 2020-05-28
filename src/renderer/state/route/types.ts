@@ -1,5 +1,7 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
+import { UploadStateBranch } from "../upload/types";
+
 export interface RouteStateBranch {
   page: Page;
   view: Page;
@@ -46,5 +48,17 @@ export interface SelectViewAction {
 
 export interface OpenEditFileMetadataTabAction {
   payload: JSSJob; // upload job associated with file metadata
+  type: string;
+}
+
+export interface OpenEditFileMetadataTabFailedAction {
+  payload: string;
+  type: string;
+}
+
+export interface OpenEditFileMetadataTabSucceededAction {
+  payload: {
+    originalUpload: UploadStateBranch;
+  };
   type: string;
 }

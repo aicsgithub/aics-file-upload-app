@@ -13,6 +13,7 @@ import {
   groupBy,
   isArray,
   isEmpty,
+  isEqual,
   isNil,
   keys,
   omit,
@@ -37,6 +38,7 @@ import {
   getImagingSessions,
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
+  getOriginalUpload,
   getTextAnnotationTypeId,
 } from "../metadata/selectors";
 import { ImagingSession } from "../metadata/types";
@@ -912,5 +914,21 @@ export const getCreateFileMetadataRequests = createSelector(
       });
     });
     return result;
+  }
+);
+
+export const getCanSubmitUpload = createSelector(
+  [getUploadValidationErrors, getUpload, getOriginalUpload],
+  (
+    validationErrors: string[],
+    upload: UploadStateBranch,
+    originalUpload?: UploadStateBranch
+  ): boolean => {
+    // this is only defined if editing uploaded file metadata
+    if (!originalUpload) {
+      return !!validationErrors.length;
+    }
+
+    return validationErrors.length === 0 && !isEqual(upload, originalUpload);
   }
 );

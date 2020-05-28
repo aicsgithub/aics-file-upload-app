@@ -63,6 +63,7 @@ import {
 } from "../../state/upload/actions";
 import {
   getCanRedoUpload,
+  getCanSubmitUpload,
   getCanUndoUpload,
   getFileToAnnotationHasValueMap,
   getUploadKeyToAnnotationErrorMap,
@@ -93,6 +94,7 @@ interface Props {
   associateByWorkflow: boolean;
   booleanAnnotationTypeId?: number;
   canRedo: boolean;
+  canSubmit: boolean;
   canUndo: boolean;
   channels: Channel[];
   className?: string;
@@ -157,6 +159,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       appliedTemplate,
       associateByWorkflow,
       canRedo,
+      canSubmit,
       canUndo,
       className,
       loading,
@@ -178,7 +181,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         formTitle="ADD ADDITIONAL DATA"
         formPrompt="Review and add information to the files below and click Upload to submit the job."
         onSave={this.submit}
-        saveButtonDisabled={validationErrors.length > 0}
+        saveButtonDisabled={!canSubmit}
         saveInProgress={uploadInProgress || updateInProgress}
         saveButtonName={selectedJob ? "Update" : "Upload"}
         showProgressBar={!selectedJob}
@@ -310,6 +313,7 @@ function mapStateToProps(state: State) {
     associateByWorkflow: getAssociateByWorkflow(state),
     booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
     canRedo: getCanRedoUpload(state),
+    canSubmit: getCanSubmitUpload(state),
     canUndo: getCanUndoUpload(state),
     channels: getChannels(state),
     expandedRows: getExpandedUploadJobRows(state),
