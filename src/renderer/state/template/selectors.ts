@@ -220,9 +220,6 @@ export const getCompleteAppliedTemplate = createSelector(
         },
         {
           ...workflow,
-          // Renaming because it the annotation name doesn't match the property in UploadMetadata
-          // In the future we should think about renaming the property
-          name: "Workflows",
           required: false,
           type: ColumnType.LOOKUP,
         },

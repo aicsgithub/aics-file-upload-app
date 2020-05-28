@@ -17,7 +17,10 @@ import { isDate, isMoment } from "moment";
 import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
-import { LIST_DELIMITER_SPLIT } from "../../constants";
+import {
+  LIST_DELIMITER_SPLIT,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
@@ -508,7 +511,7 @@ const updateSubImagesLogic = createLogic({
       subImageNames
     );
     const update: Partial<UploadStateBranch> = {};
-    const { workflows } = fileRow;
+    const workflows = fileRow[WORKFLOW_ANNOTATION_NAME];
 
     const uploads = getUpload(getState());
     const existingUploadsForFile: UploadMetadata[] = values(uploads).filter(
@@ -555,7 +558,7 @@ const updateSubImagesLogic = createLogic({
           scene: undefined,
           subImageName: undefined,
           wellIds: [],
-          workflows,
+          [WORKFLOW_ANNOTATION_NAME]: workflows,
           ...additionalAnnotations,
         };
       });
@@ -578,7 +581,7 @@ const updateSubImagesLogic = createLogic({
           key: subImageOnlyRowKey,
           notes: [],
           wellIds: [],
-          workflows,
+          [WORKFLOW_ANNOTATION_NAME]: workflows,
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
         };
@@ -605,7 +608,7 @@ const updateSubImagesLogic = createLogic({
             key,
             notes: [],
             wellIds: [],
-            workflows,
+            [WORKFLOW_ANNOTATION_NAME]: workflows,
             [subImageKey]: subImageValue,
             ...additionalAnnotations,
           };

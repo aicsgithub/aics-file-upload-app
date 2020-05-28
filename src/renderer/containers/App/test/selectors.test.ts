@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { get } from "lodash";
 import * as moment from "moment";
 
+import { WORKFLOW_ANNOTATION_NAME } from "../../../constants";
 import { Page } from "../../../state/route/types";
 import {
   getMockStateWithHistory,
@@ -74,13 +75,13 @@ describe("App selectors", () => {
             barcode: "test_barcode",
             file: filePath1,
             wellIds: [],
-            workflows: ["work3", "work4"],
+            [WORKFLOW_ANNOTATION_NAME]: ["work3", "work4"],
           },
           [filePath2]: {
             barcode: "test_barcode",
             file: filePath2,
             wellIds: [],
-            workflows: ["work2"],
+            [WORKFLOW_ANNOTATION_NAME]: ["work2"],
           },
         }),
       };

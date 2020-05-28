@@ -1,3 +1,4 @@
+import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
@@ -24,7 +25,7 @@ export interface UploadMetadata extends UploadRowId {
   shouldBeInLocal?: boolean;
   templateId?: number;
   wellIds: number[];
-  workflows?: string[];
+  [WORKFLOW_ANNOTATION_NAME]?: string[];
   [genericKey: string]: any;
 }
 
@@ -114,7 +115,7 @@ export interface UploadJobTableRow extends UploadRowId {
   wellLabels: string[];
 
   // all workflows associated with this file model
-  workflows: string[];
+  [WORKFLOW_ANNOTATION_NAME]: string[];
 }
 
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {

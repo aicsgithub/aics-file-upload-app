@@ -1,6 +1,7 @@
 import { difference, flatMap, isEmpty } from "lodash";
 import { createSelector } from "reselect";
 
+import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import {
   getSelectedWellsWithData,
   getSelectedWorkflows,
@@ -19,7 +20,10 @@ export const getWellsWithAssociations = createSelector(
 export const getWorkflowsWithAssociations = createSelector(
   [getUpload],
   (upload: UploadStateBranch): string[] => {
-    return flatMap(upload, ({ workflows }: UploadMetadata) => workflows || []);
+    return flatMap(
+      upload,
+      (m: UploadMetadata) => m[WORKFLOW_ANNOTATION_NAME] || []
+    );
   }
 );
 
@@ -51,8 +55,13 @@ export const getMutualUploadsForWorkflows = createSelector(
 
     return Object.values(upload).filter(
       (metadata) =>
-        metadata.workflows &&
-        isEmpty(difference(selectedWorkflowNames, metadata.workflows))
+        metadata[WORKFLOW_ANNOTATION_NAME] &&
+        isEmpty(
+          difference(
+            selectedWorkflowNames,
+            metadata[WORKFLOW_ANNOTATION_NAME] || []
+          )
+        )
     );
   }
 );

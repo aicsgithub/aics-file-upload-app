@@ -13,6 +13,7 @@ import {
   DATE_FORMAT,
   DATETIME_FORMAT,
   LIST_DELIMITER_JOIN,
+  WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { AlertType, SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
@@ -147,12 +148,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
   private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
     {
+      cellClass: styles.formatterContainer,
+      editable: true,
+      editor: Editor,
       formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
-        this.renderFormat(row, "workflows", value),
-      key: "workflows",
-      name: "Workflows",
+        this.renderFormat(row, WORKFLOW_ANNOTATION_NAME, value),
+      key: WORKFLOW_ANNOTATION_NAME,
+      name: WORKFLOW_ANNOTATION_NAME,
       resizable: true,
       width: DEFAULT_COLUMN_WIDTH,
+      type: ColumnType.LOOKUP,
     },
   ];
 

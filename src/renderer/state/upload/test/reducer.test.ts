@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { WORKFLOW_ANNOTATION_NAME } from "../../../constants";
 import { closeUploadTab } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import {
@@ -35,7 +36,9 @@ describe("upload reducer", () => {
         undoFileWorkflowAssociation("bar", ["workflow 1"])
       );
       const { present } = result;
-      expect(present.bar.workflows).to.deep.equal(["workflow 2"]);
+      expect(present.bar[WORKFLOW_ANNOTATION_NAME]).to.deep.equal([
+        "workflow 2",
+      ]);
     });
     it("undoes all workflows and removes upload", () => {
       const result = reducer(

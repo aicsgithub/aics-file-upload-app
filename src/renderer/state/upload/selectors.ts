@@ -23,7 +23,10 @@ import { isDate } from "moment";
 import * as moment from "moment";
 import { createSelector } from "reselect";
 
-import { LIST_DELIMITER_SPLIT } from "../../constants";
+import {
+  LIST_DELIMITER_SPLIT,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
@@ -215,7 +218,7 @@ const convertToUploadJobRow = (
     subImageNames,
     treeDepth,
     wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
-    workflows: metadata.workflows || [],
+    [WORKFLOW_ANNOTATION_NAME]: metadata[WORKFLOW_ANNOTATION_NAME] || [],
   };
 };
 
@@ -626,7 +629,7 @@ export const getUploadValidationErrors = createSelector(
           const fileName = basename(file);
           if (
             !annotationHasValueMap.wellIds &&
-            !annotationHasValueMap.workflows
+            !annotationHasValueMap[WORKFLOW_ANNOTATION_NAME]
           ) {
             errors.push(
               `${fileName} must have either a well or workflow association`
@@ -762,7 +765,7 @@ export const getUploadPayload = createSelector(
           (w) => !!w
         );
         const workflows = uniq(
-          flatMap(metadata, (m) => m.workflows || [])
+          flatMap(metadata, (m) => m[WORKFLOW_ANNOTATION_NAME] || [])
         ).filter((w) => !!w);
         const fileRows = metadata.filter(isFileRow);
         const shouldBeInArchive =

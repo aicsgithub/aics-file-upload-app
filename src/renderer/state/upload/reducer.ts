@@ -2,6 +2,7 @@ import { omit, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
+import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
@@ -99,9 +100,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
           [key]: {
             ...accum[key],
             file,
-            workflows: accum[key]?.workflows
-              ? uniq([...accum[key]?.workflows, ...workflowNames])
-              : workflowNames,
+            [WORKFLOW_ANNOTATION_NAME]:
+              accum[key] && accum[key][WORKFLOW_ANNOTATION_NAME]
+                ? uniq([
+                    ...(accum[key][WORKFLOW_ANNOTATION_NAME] || []),
+                    ...workflowNames,
+                  ])
+                : workflowNames,
           },
         };
       }, nextState);
@@ -144,7 +149,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action: UndoFileWorkflowAssociationAction
     ) => {
       const key = getUploadRowKey({ file: action.payload.fullPath });
-      const currentWorkflows = state[key].workflows;
+      const currentWorkflows = state[key][WORKFLOW_ANNOTATION_NAME];
       if (!currentWorkflows) {
         return state;
       }
