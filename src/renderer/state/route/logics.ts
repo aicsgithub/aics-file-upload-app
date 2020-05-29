@@ -561,7 +561,7 @@ const openEditFileMetadataTabLogic = createLogic({
     }
 
     let updateUploadsAction: AnyAction = updateUploads({}, true);
-    const actions: AnyAction[] = [];
+    let actions: AnyAction[] = [];
     const newUpload = convertImageModelMetadataToUploadStateBranch(
       fileMetadataForJob
     );
@@ -612,16 +612,17 @@ const openEditFileMetadataTabLogic = createLogic({
     }
 
     if (modalToOpen) {
-      actions.push(
+      actions = [
         openModal(modalToOpen),
         setDeferredAction(
           batchActions([
+            ...actions,
             selectPage(getPage(state), Page.AddCustomData),
             selectView(Page.AddCustomData),
             updateUploadsAction,
           ])
-        )
-      );
+        ),
+      ];
     } else {
       actions.push(updateUploadsAction);
     }
