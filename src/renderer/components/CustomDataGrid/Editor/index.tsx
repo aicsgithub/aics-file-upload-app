@@ -1,4 +1,4 @@
-import { Input, Select } from "antd";
+import { Input, Select, Radio } from "antd";
 import Logger from "js-logger";
 import { trim } from "lodash";
 import * as React from "react";
@@ -8,7 +8,8 @@ import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 import { ColumnType } from "../../../state/template/types";
 import { convertToArray } from "../../../util";
-import BooleanFormatter from "../../BooleanFormatter";
+
+const styles = require("./styles.pcss");
 
 const { Option } = Select;
 
@@ -22,7 +23,7 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
 }
 
 interface EditorState {
-  value: any;
+  value: any[] | string;
 }
 
 /*
@@ -44,19 +45,8 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
       case ColumnType.NUMBER:
         value = convertToArray(value).join(LIST_DELIMITER_JOIN);
         break;
-      case ColumnType.BOOLEAN:
-        if (value.length === 0) {
-          value = [true];
-        } else {
-          // For bools, we want to automatically toggle the value when the
-          // user double clicks to edit it.
-          value[0] = !value[0];
-        }
-        break;
     }
-    this.state = {
-      value,
-    };
+    this.state = { value };
   }
 
   public render() {
@@ -86,9 +76,18 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         break;
       case ColumnType.BOOLEAN:
         input = (
-          <div onClick={() => this.handleOnChange([!value[0]])}>
-            <BooleanFormatter value={value} />
-          </div>
+          <Radio.Group
+            value={value[0]}
+            onChange={() => this.handleOnChange([!value[0]])}
+            className={styles.booleanEditorContainer}
+          >
+            <Radio.Button value={true} className={styles.booleanEditorBtnYes}>
+              Yes
+            </Radio.Button>
+            <Radio.Button value={false} className={styles.booleanEditorBtnNo}>
+              No
+            </Radio.Button>
+          </Radio.Group>
         );
         break;
       case ColumnType.NUMBER:
@@ -158,7 +157,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
       : this.divRef.current;
   };
 
-  private handleOnChange = (value: any) => {
+  private handleOnChange = (value: any[] | string) => {
     this.setState({ value });
   };
 }
