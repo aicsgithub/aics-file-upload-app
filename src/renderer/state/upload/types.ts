@@ -220,7 +220,7 @@ export interface CancelUploadFailedAction {
 export interface UpdateUploadsAction extends AutoSaveAction {
   payload: {
     clearAll: boolean;
-    upload: Partial<UploadMetadata>;
+    uploads: Partial<UploadMetadata>;
   };
   type: string;
 }

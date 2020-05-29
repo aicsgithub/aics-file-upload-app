@@ -3,7 +3,7 @@ import { platform } from "os";
 
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, isEmpty, isNil } from "lodash";
+import { castArray, difference, isEmpty, isEqual, isNil } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -19,6 +19,8 @@ import {
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
 } from "../../util";
+import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 import {
   openModal,
   openSetMountPointNotification,
@@ -28,6 +30,7 @@ import {
 import { AsyncRequest, ModalName } from "../feedback/types";
 import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
 import {
+  getOriginalUpload,
   getSelectionHistory,
   getTemplateHistory,
   getUploadHistory,
@@ -65,6 +68,7 @@ import { getUploadRowKey } from "../upload/constants";
 import {
   getCanSaveUploadDraft,
   getCurrentUploadIndex,
+  getUpload,
   getUploadFiles,
 } from "../upload/selectors";
 import { UploadMetadata, UploadStateBranch } from "../upload/types";
@@ -357,8 +361,35 @@ const closeUploadTabLogic = createLogic({
 
     const draftName: string | undefined = getCurrentUploadName(getState());
     const draftKey: string | undefined = getCurrentUploadKey(getState());
-    // automatically save if user has chosen to save this draft
-    if (draftName && draftKey) {
+
+    // if an originalUpload exists, this upload has been uploaded before and user was editing
+    if (getOriginalUpload(getState())) {
+      if (isEqual(getOriginalUpload(getState()), getUpload(getState()))) {
+        next(nextAction);
+      } else {
+        dialog.showMessageBox(
+          {
+            buttons: ["Cancel", "Continue"],
+            cancelId: 0,
+            defaultId: 1,
+            message: "You have unsaved changes, continuing will discard them",
+            title: "Warning",
+            type: "question",
+          },
+          (buttonIndex: number) => {
+            if (buttonIndex === 1) {
+              // Discard Draft
+              next(nextAction);
+            } else {
+              // Cancel
+              reject(clearUploadDraft());
+            }
+          }
+        );
+      }
+
+      // automatically save if user has chosen to save this draft
+    } else if (draftName && draftKey) {
       saveUploadDraftToLocalStorage(storage, draftName, draftKey, getState());
       next(nextAction);
     } else if (getCanSaveUploadDraft(getState())) {
@@ -435,6 +466,63 @@ const convertImageModelMetadataToUploadStateBranch = (
   );
 };
 
+/**
+ * Ensures upload tab is opened. If already open, we need to allow the user to save their upload before continuing.
+ * In this case, it returns the modalName to open before closing the current tab.
+ * @param state
+ * @param dispatch
+ */
+const openUploadTab = (
+  state: State,
+  dispatch: ReduxLogicNextCb
+): ModalName | undefined => {
+  const currentUploadName = getCurrentUploadName(state);
+
+  if (currentUploadName) {
+    return "saveExistingUploadDraft";
+  } else if (getCanSaveUploadDraft(state)) {
+    return "saveUploadDraft";
+  } else {
+    dispatch(
+      batchActions([
+        selectPage(getPage(state), Page.AddCustomData),
+        selectView(Page.AddCustomData),
+      ])
+    );
+    return undefined;
+  }
+};
+
+const getPlateRelatedActions = async (
+  wellIds: number[],
+  labkeyClient: LabkeyClient,
+  mmsClient: MMSClient,
+  dispatch: ReduxLogicNextCb
+) => {
+  const actions: AnyAction[] = [];
+  wellIds = castArray(wellIds).map((w: string | number) =>
+    parseInt(w + "", 10)
+  );
+  // assume all wells have same barcode
+  const wellId = wellIds[0];
+  // we want to find the barcode associated with any well id found in this upload
+  const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
+    wellId
+  );
+  const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
+    barcode
+  );
+  const setPlateAction = await getSetPlateAction(
+    barcode,
+    imagingSessionIds,
+    mmsClient,
+    dispatch
+  );
+  actions.push(selectBarcode(barcode, imagingSessionIds), setPlateAction);
+
+  return actions;
+};
+
 const openEditFileMetadataTabLogic = createLogic({
   process: async (
     {
@@ -448,23 +536,8 @@ const openEditFileMetadataTabLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    // First we need to make sure the upload tab is open. If it is, we need to allow
-    // the user to save their upload before continuing
     const state = getState();
-    const currentUploadName = getCurrentUploadName(state);
-    let modalToOpen: ModalName | undefined;
-    if (currentUploadName) {
-      modalToOpen = "saveExistingUploadDraft";
-    } else if (getCanSaveUploadDraft(state)) {
-      modalToOpen = "saveUploadDraft";
-    } else {
-      dispatch(
-        batchActions([
-          selectPage(getPage(state), Page.AddCustomData),
-          selectView(Page.AddCustomData),
-        ])
-      );
-    }
+    const modalToOpen: ModalName | undefined = openUploadTab(state, dispatch);
 
     // Second, we fetch the file metadata for the fileIds acquired in the validate phase
     const { fileIds } = ctx;
@@ -487,6 +560,7 @@ const openEditFileMetadataTabLogic = createLogic({
       return;
     }
 
+    let updateUploadsAction: AnyAction = updateUploads({}, true);
     const actions: AnyAction[] = [];
     const newUpload = convertImageModelMetadataToUploadStateBranch(
       fileMetadataForJob
@@ -504,26 +578,14 @@ const openEditFileMetadataTabLogic = createLogic({
         wellIds = castArray(wellIds).map((w: string | number) =>
           parseInt(w + "", 10)
         );
-        // assume all wells have same barcode
-        const wellId = wellIds[0];
         try {
-          // we want to find the barcode associated with any well id found in this upload
-          const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
-            wellId
-          );
-          const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
-            barcode
-          );
-          const setPlateAction = await getSetPlateAction(
-            barcode,
-            imagingSessionIds,
+          const plateRelatedActions = await getPlateRelatedActions(
+            wellIds,
+            labkeyClient,
             mmsClient,
             dispatch
           );
-          actions.push(
-            selectBarcode(barcode, imagingSessionIds),
-            setPlateAction
-          );
+          actions.push(...plateRelatedActions);
         } catch (e) {
           const error = `Could not get plate information from upload: ${e.message}`;
           logger.error(error);
@@ -537,14 +599,15 @@ const openEditFileMetadataTabLogic = createLogic({
 
       // Currently we only allow applying one template at a time
       if (fileMetadataForJob[0].templateId) {
-        const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+        updateUploadsAction = await getSetAppliedTemplateAction(
           fileMetadataForJob[0].templateId,
           getState,
           mmsClient,
           dispatch,
           newUpload
         );
-        actions.push(setAppliedTemplateAction);
+      } else {
+        updateUploadsAction = updateUploads(newUpload, true);
       }
     }
 
@@ -555,15 +618,19 @@ const openEditFileMetadataTabLogic = createLogic({
           batchActions([
             selectPage(getPage(state), Page.AddCustomData),
             selectView(Page.AddCustomData),
+            updateUploadsAction,
           ])
         )
       );
-    } else if (fileMetadataForJob) {
-      actions.push(updateUploads(newUpload, true));
+    } else {
+      actions.push(updateUploadsAction);
     }
 
     dispatch(
-      batchActions([...actions, openEditFileMetadataTabSucceeded(newUpload)])
+      batchActions([
+        ...actions,
+        openEditFileMetadataTabSucceeded(updateUploadsAction.payload.uploads),
+      ])
     );
     done();
   },

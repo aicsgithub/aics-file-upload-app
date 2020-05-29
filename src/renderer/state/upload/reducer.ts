@@ -229,7 +229,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === UPDATE_UPLOADS,
     perform: (
       state: UploadStateBranch,
-      { payload: { clearAll, upload: replacement } }: UpdateUploadsAction
+      { payload: { clearAll, uploads: replacement } }: UpdateUploadsAction
     ) => (clearAll ? { ...replacement } : { ...state, ...replacement }),
   },
   [REMOVE_FILE_FROM_ARCHIVE]: {

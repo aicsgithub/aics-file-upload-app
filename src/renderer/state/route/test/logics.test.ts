@@ -360,10 +360,11 @@ describe("Route logics", () => {
     startPage: Page,
     expectedEndPage: Page,
     action: ActionCreator<any>,
-    respondOKToDialog = true
+    respondOKToDialog = true,
+    state: State = mockState
   ) => {
     const { logicMiddleware, store } = createMockReduxStore({
-      ...mockState,
+      ...state,
       route: {
         page: startPage,
         view: startPage,
@@ -376,12 +377,14 @@ describe("Route logics", () => {
 
     expect(getPage(store.getState())).to.equal(startPage);
     expect(getView(store.getState())).to.equal(startPage);
+    expect(showMessageBoxStub.called).to.be.false;
 
     store.dispatch(action());
 
     await logicMiddleware.whenComplete();
     expect(getPage(store.getState())).to.equal(expectedEndPage);
     expect(getView(store.getState())).to.equal(expectedEndPage);
+    expect(showMessageBoxStub.called).to.be.true;
   };
 
   describe("goBackLogic", () => {
@@ -440,6 +443,70 @@ describe("Route logics", () => {
         Page.AssociateFiles,
         closeUploadTab,
         false
+      );
+    });
+    it("does not open dialog given that the user is looking at a previous upload but hasn't made any changes", async () => {
+      const originalUpload = {
+        "123432asdlfk": {
+          file: "/test",
+          fileId: "123432asdlfk",
+          Workflow: ["Pipeline 4"],
+        },
+      };
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          originalUpload,
+        },
+        route: {
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
+        },
+        upload: getMockStateWithHistory(originalUpload),
+      });
+      const showMessageBoxStub = stub();
+      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+
+      expect(showMessageBoxStub.called).to.be.false;
+
+      store.dispatch(closeUploadTab());
+      await logicMiddleware.whenComplete();
+
+      expect(showMessageBoxStub.called).to.be.false;
+    });
+    it("shows dialog given user has made edits to a previous upload and goes to UploadSummary page given user cicks Continue from dialog", async () => {
+      const originalUpload = {
+        "123432asdlfk": {
+          file: "/test",
+          fileId: "123432asdlfk",
+          Workflow: ["Pipeline 4"],
+        },
+      };
+      const state = {
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          originalUpload,
+        },
+        route: {
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
+        },
+        upload: getMockStateWithHistory({
+          "123432asdlfk": {
+            file: "/test",
+            fileId: "123432asdlfk",
+            Workflow: ["Pipeline 5"],
+          },
+        }),
+      };
+      await runShowMessageBoxTest(
+        Page.AddCustomData,
+        Page.UploadSummary,
+        closeUploadTab,
+        true,
+        state
       );
     });
   });

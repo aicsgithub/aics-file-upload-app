@@ -279,14 +279,14 @@ export function retryUploadFailed(
 }
 
 export function updateUploads(
-  upload: Partial<UploadMetadata>,
+  uploads: Partial<UploadMetadata>,
   clearAll = false
 ): UpdateUploadsAction {
   return {
     autoSave: true,
     payload: {
       clearAll,
-      upload,
+      uploads,
     },
     type: UPDATE_UPLOADS,
   };
