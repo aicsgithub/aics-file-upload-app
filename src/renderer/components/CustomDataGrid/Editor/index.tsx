@@ -27,24 +27,27 @@ interface EditorState {
 }
 
 /*
-    This is the editor for the UploadJobGrid, the purpose of this is to dynamically determine the editor based on
-    which `type` the Editor is supplied and use that to render an appropriate form.
-    Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
-    additionally, the element you return must contain an Input element
+    This is the editor for the UploadJobGrid, the purpose of this is to
+    dynamically determine the editor based on which `type` the Editor is
+    supplied and use that to render an appropriate form. Note that the field
+    `input` and the methods `getValue` & `getInputNode` are required and used by
+    the React-Data-Grid additionally, the element you return must contain an
+    Input element.
  */
 class Editor extends editors.EditorBase<EditorProps, EditorState> {
-  // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
+  // This ref is here so that the DataGrid doesn't throw a fit, normally it
+  // would use this to .focus() the input
   public divRef = React.createRef<HTMLDivElement>();
   public input = React.createRef<Input>();
 
   public constructor(props: EditorProps) {
     super(props);
     let value: any[] | string = [...props.value];
-    switch (props.column.type) {
-      case ColumnType.TEXT:
-      case ColumnType.NUMBER:
-        value = convertToArray(value).join(LIST_DELIMITER_JOIN);
-        break;
+    if (
+      props.column.type === ColumnType.TEXT ||
+      props.column.type === ColumnType.NUMBER
+    ) {
+      value = convertToArray(value).join(LIST_DELIMITER_JOIN);
     }
     this.state = { value };
   }
