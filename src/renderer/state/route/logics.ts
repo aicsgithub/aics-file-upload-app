@@ -67,15 +67,11 @@ import {
 import { getPage } from "./selectors";
 import { Page, SelectPageAction } from "./types";
 
-interface MenuItemWithSubMenu extends MenuItem {
-  submenu?: Menu;
-}
-
 // have to cast here because Electron's typings for MenuItem is incomplete
-const getFileMenu = (menu: Menu): MenuItemWithSubMenu | undefined =>
+const getFileMenu = (menu: Menu): MenuItem | undefined =>
   menu.items.find(
     (menuItem: MenuItem) => menuItem.label.toLowerCase() === "file"
-  ) as MenuItemWithSubMenu | undefined;
+  );
 
 export const setSwitchEnvEnabled = (
   menu: Menu,
