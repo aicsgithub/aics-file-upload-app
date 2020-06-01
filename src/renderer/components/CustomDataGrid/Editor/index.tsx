@@ -1,4 +1,4 @@
-import { Input, Select } from "antd";
+import { Input, Select, Radio } from "antd";
 import Logger from "js-logger";
 import { trim } from "lodash";
 import * as React from "react";
@@ -8,7 +8,8 @@ import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
 import { ColumnType } from "../../../state/template/types";
 import { convertToArray } from "../../../util";
-import BooleanFormatter from "../../BooleanFormatter";
+
+const styles = require("./styles.pcss");
 
 const { Option } = Select;
 
@@ -22,41 +23,33 @@ interface EditorProps extends AdazzleReactDataGrid.EditorBaseProps {
 }
 
 interface EditorState {
-  value: any;
+  value: any[] | string;
 }
 
 /*
-    This is the editor for the UploadJobGrid, the purpose of this is to dynamically determine the editor based on
-    which `type` the Editor is supplied and use that to render an appropriate form.
-    Note that the field `input` and the methods `getValue` & `getInputNode` are required and used by the React-Data-Grid
-    additionally, the element you return must contain an Input element
+    This is the editor for the UploadJobGrid, the purpose of this is to
+    dynamically determine the editor based on which `type` the Editor is
+    supplied and use that to render an appropriate form. Note that the field
+    `input` and the methods `getValue` & `getInputNode` are required and used by
+    the React-Data-Grid additionally, the element you return must contain an
+    Input element.
  */
 class Editor extends editors.EditorBase<EditorProps, EditorState> {
-  // This ref is here so that the DataGrid doesn't throw a fit, normally it would use this to .focus() the input
+  // This ref is here so that the DataGrid doesn't throw a fit, normally it
+  // would use this to .focus() the input
   public divRef = React.createRef<HTMLDivElement>();
   public input = React.createRef<Input>();
 
   public constructor(props: EditorProps) {
     super(props);
     let value: any[] | string = [...props.value];
-    switch (props.column.type) {
-      case ColumnType.TEXT:
-      case ColumnType.NUMBER:
-        value = convertToArray(value).join(LIST_DELIMITER_JOIN);
-        break;
-      case ColumnType.BOOLEAN:
-        if (value.length === 0) {
-          value = [true];
-        } else {
-          // For bools, we want to automatically toggle the value when the
-          // user double clicks to edit it.
-          value[0] = !value[0];
-        }
-        break;
+    if (
+      props.column.type === ColumnType.TEXT ||
+      props.column.type === ColumnType.NUMBER
+    ) {
+      value = convertToArray(value).join(LIST_DELIMITER_JOIN);
     }
-    this.state = {
-      value,
-    };
+    this.state = { value };
   }
 
   public render() {
@@ -86,9 +79,18 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         break;
       case ColumnType.BOOLEAN:
         input = (
-          <div onClick={() => this.handleOnChange([!value[0]])}>
-            <BooleanFormatter value={value} />
-          </div>
+          <Radio.Group
+            value={value[0]}
+            onChange={() => this.handleOnChange([!value[0]])}
+            className={styles.booleanEditorContainer}
+          >
+            <Radio.Button value={true} className={styles.booleanEditorBtnYes}>
+              Yes
+            </Radio.Button>
+            <Radio.Button value={false} className={styles.booleanEditorBtnNo}>
+              No
+            </Radio.Button>
+          </Radio.Group>
         );
         break;
       case ColumnType.NUMBER:
@@ -158,7 +160,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
       : this.divRef.current;
   };
 
-  private handleOnChange = (value: any) => {
+  private handleOnChange = (value: any[] | string) => {
     this.setState({ value });
   };
 }
