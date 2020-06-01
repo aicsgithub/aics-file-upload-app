@@ -93,7 +93,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
     const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
     return (
       !uploadRow ||
-      intersection(selectedWellIds, uploadRow.wellIds).length === 0
+      intersection(selectedWellIds, uploadRow.wellIds || []).length === 0
     );
   };
 
@@ -107,7 +107,7 @@ class WellEditorPopover extends React.Component<Props, {}> {
     const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
     return (
       !uploadRow ||
-      intersection(selectedWellIds, uploadRow.wellIds).length ===
+      intersection(selectedWellIds, uploadRow.wellIds || []).length ===
         selectedWellIds.length
     );
   };
