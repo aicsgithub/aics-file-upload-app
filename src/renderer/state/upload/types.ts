@@ -1,3 +1,8 @@
+import {
+  NOTES_ANNOTATION_NAME,
+  WELL_ANNOTATION_NAME,
+  WORKFLOW_ANNOTATION_NAME,
+} from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
@@ -23,8 +28,8 @@ export interface UploadMetadata extends UploadRowId {
   shouldBeInArchive?: boolean;
   shouldBeInLocal?: boolean;
   templateId?: number;
-  wellIds?: number[];
-  workflows?: string[];
+  [WELL_ANNOTATION_NAME]?: number[];
+  [WORKFLOW_ANNOTATION_NAME]?: string[];
   [genericKey: string]: any;
 }
 
@@ -87,7 +92,7 @@ export interface UploadJobTableRow extends UploadRowId {
   key: string;
 
   // notes associated with the file
-  notes?: string;
+  [NOTES_ANNOTATION_NAME]?: string;
 
   // react-data-grid property needed for nested rows. identifies how many rows exist at this level of the tree.
   numberSiblings: number;
@@ -108,13 +113,13 @@ export interface UploadJobTableRow extends UploadRowId {
   treeDepth?: number;
 
   // all wellIds associated with this file model
-  wellIds?: number[];
+  [WELL_ANNOTATION_NAME]?: number[];
 
   // human readable identifier of well, such as "A1"
   wellLabels: string[];
 
   // all workflows associated with this file model
-  workflows: string[];
+  [WORKFLOW_ANNOTATION_NAME]: string[];
 }
 
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {

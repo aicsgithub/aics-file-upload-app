@@ -207,8 +207,8 @@ export const mockWellUpload: UploadStateBranch = {
     key: getUploadRowKey({ file: "/path/to/file" }),
     shouldBeInArchive: true,
     shouldBeInLocal: true,
-    wellIds: [1],
-    workflows: ["name1"],
+    [WELL_ANNOTATION_NAME]: [1],
+    [WORKFLOW_ANNOTATION_NAME]: ["name1"],
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
     barcode: "1235",
@@ -216,8 +216,8 @@ export const mockWellUpload: UploadStateBranch = {
     key: getUploadRowKey({ file: "/path/to/file2" }),
     shouldBeInArchive: false,
     shouldBeInLocal: true,
-    wellIds: [2],
-    workflows: ["name1", "name2"],
+    [WELL_ANNOTATION_NAME]: [2],
+    [WORKFLOW_ANNOTATION_NAME]: ["name1", "name2"],
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
     barcode: "1236",
@@ -225,15 +225,15 @@ export const mockWellUpload: UploadStateBranch = {
     key: getUploadRowKey({ file: "/path/to/file3" }),
     shouldBeInArchive: true,
     shouldBeInLocal: false,
-    wellIds: [1, 2, 3],
-    workflows: ["name3"],
+    [WELL_ANNOTATION_NAME]: [1, 2, 3],
+    [WORKFLOW_ANNOTATION_NAME]: ["name3"],
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
     barcode: "1236",
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 }),
     positionIndex: 1,
-    wellIds: [1, 2],
+    [WELL_ANNOTATION_NAME]: [1, 2],
   },
 };
 
@@ -342,7 +342,7 @@ export const mockTemplateWithManyValues: Template = {
       annotationTypeId: 6,
       description:
         "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH)",
-      name: "Workflows",
+      name: WORKFLOW_ANNOTATION_NAME,
       required: false,
     },
     {
@@ -351,7 +351,7 @@ export const mockTemplateWithManyValues: Template = {
       annotationTypeId: 1,
       description:
         "Additional information that doesn't align well with other annotations",
-      name: "Notes",
+      name: NOTES_ANNOTATION_NAME,
       required: true,
     },
   ],

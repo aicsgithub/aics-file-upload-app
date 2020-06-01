@@ -1,6 +1,7 @@
 import { connect } from "react-redux";
 
 import Plate from "../../components/Plate";
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import { selectWells } from "../../state/selection/actions";
 import {
   getSelectedWells,
@@ -21,7 +22,7 @@ function mapStateToProps(state: State, { rowData }: Props) {
   return {
     selectedWells: getSelectedWells(state),
     wells: getWellsWithUnitsAndModified(state),
-    wellsWithAssociations: metadata.wellIds || [],
+    wellsWithAssociations: metadata[WELL_ANNOTATION_NAME] || [],
   };
 }
 
