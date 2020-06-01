@@ -21,7 +21,7 @@ function mapStateToProps(state: State, { rowData }: Props) {
   return {
     selectedWells: getSelectedWells(state),
     wells: getWellsWithUnitsAndModified(state),
-    wellsWithAssociations: metadata ? metadata.wellIds : [],
+    wellsWithAssociations: metadata.wellIds || [],
   };
 }
 
