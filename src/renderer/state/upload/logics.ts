@@ -50,7 +50,11 @@ import {
 } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
-import { getAnnotationTypes, getCurrentUpload } from "../metadata/selectors";
+import {
+  getAnnotationTypes,
+  getBooleanAnnotationTypeId,
+  getCurrentUpload,
+} from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -531,7 +535,18 @@ const updateSubImagesLogic = createLogic({
       return;
     }
 
-    const additionalAnnotations = pivotAnnotations(template.annotations);
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!booleanAnnotationTypeId) {
+      next(
+        setErrorAlert("Could not get boolean annotation type. Contact Software")
+      );
+      return;
+    }
+
+    const additionalAnnotations = pivotAnnotations(
+      template.annotations,
+      booleanAnnotationTypeId
+    );
 
     // If there are subimages for a file, remove the well associations from the file row
     if (!isEmpty(subImages)) {

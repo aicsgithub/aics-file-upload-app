@@ -10,6 +10,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { Page } from "../../route/types";
 import { TemplateAnnotation } from "../../template/types";
 import {
   getMockStateWithHistory,
@@ -39,6 +40,7 @@ import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanGoForwardFromSelectStorageLocationPage,
+  getCanUndoUpload,
   getFileToAnnotationHasValueMap,
   getFileToArchive,
   getFileToStoreOnIsilon,
@@ -85,6 +87,70 @@ const standardizeUploads = (uploads: Uploads): Uploads => {
 };
 
 describe("Upload selectors", () => {
+  describe("getCanUndoUpload", () => {
+    it("should return false if the past is empty and not on AddCustomData page", () => {
+      expect(getCanUndoUpload(mockState)).to.equal(false);
+    });
+
+    it("should return false if on AddCustomData page and previous action is from the previous page", () => {
+      const state: State = {
+        ...mockState,
+        route: {
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
+        },
+        metadata: {
+          ...mockState.metadata,
+          history: {
+            selection: {},
+            template: {},
+            upload: {
+              [Page.DragAndDrop]: 0,
+              [Page.SelectUploadType]: 0,
+              [Page.AssociateFiles]: 1,
+              [Page.SelectStorageLocation]: 2,
+            },
+          },
+        },
+        upload: {
+          ...mockState.upload,
+          index: 3,
+        },
+      };
+
+      expect(getCanUndoUpload(state)).to.equal(false);
+    });
+
+    it("should return true if on AddCustomData page and previous action is not from the previous page", () => {
+      const state = {
+        ...mockState,
+        route: {
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
+        },
+        metadata: {
+          ...mockState.metadata,
+          history: {
+            selection: {},
+            template: {},
+            upload: {
+              [Page.DragAndDrop]: 0,
+              [Page.SelectUploadType]: 0,
+              [Page.AssociateFiles]: 1,
+              [Page.SelectStorageLocation]: 2,
+            },
+          },
+        },
+        upload: {
+          ...mockState.upload,
+          index: 4,
+        },
+      };
+
+      expect(getCanUndoUpload(state)).to.equal(true);
+    });
+  });
+
   describe("getUploadWithCalculatedData", () => {
     it("adds wellLabels to the uploads", () => {
       const result = getUploadWithCalculatedData(
