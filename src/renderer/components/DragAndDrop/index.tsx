@@ -69,22 +69,20 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   }
 
   // Opens native file explorer
-  private onBrowse = (): void => {
+  private onBrowse = async (): Promise<void> => {
     const { onOpen } = this.props;
     if (!onOpen) {
       throw new Error(
         "Browsing for a file is not configured. Contact Software"
       );
     }
-    remote.dialog.showOpenDialog(
-      this.props.openDialogOptions,
-      (filenames?: string[]) => {
-        // If cancel is clicked, this callback gets called and filenames is undefined
-        if (filenames && !isEmpty(filenames)) {
-          onOpen(filenames);
-        }
-      }
+    const { filePaths: filenames } = await remote.dialog.showOpenDialog(
+      this.props.openDialogOptions
     );
+    // If cancel is clicked, this callback gets called and filenames is undefined
+    if (filenames && !isEmpty(filenames)) {
+      onOpen(filenames);
+    }
   };
 
   private onDragEnter = (e: React.DragEvent<HTMLDivElement>): void => {

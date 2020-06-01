@@ -178,7 +178,7 @@ const gatherSettingsLogic = createLogic({
 });
 
 const setMountPointLogic = createLogic({
-  process: (
+  process: async (
     { dialog, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
@@ -187,75 +187,67 @@ const setMountPointLogic = createLogic({
       dispatch(closeSetMountPointNotification());
     }
 
-    dialog.showOpenDialog(
-      {
-        properties: ["openDirectory"],
-        title: "Browse to the folder that is mounted to /allen/aics",
-      },
-      (folders?: string[]) => {
-        if (folders && folders.length) {
-          const folder = basename(folders[0]);
-          if (folder !== "aics") {
-            dispatch(
-              setAlert({
-                message: 'Folder selected was not named "aics"',
-                type: AlertType.ERROR,
-              })
-            );
-          } else {
-            dispatch(updateSettings({ mountPoint: folders[0] }));
-            dispatch(
-              setAlert({
-                message: "Successfully set the allen mount point",
-                type: AlertType.SUCCESS,
-              })
-            );
-          }
-        }
-        done();
+    const { filePaths: folders } = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+      title: "Browse to the folder that is mounted to /allen/aics",
+    });
+    if (folders?.length) {
+      const folder = basename(folders[0]);
+      if (folder !== "aics") {
+        dispatch(
+          setAlert({
+            message: 'Folder selected was not named "aics"',
+            type: AlertType.ERROR,
+          })
+        );
+      } else {
+        dispatch(updateSettings({ mountPoint: folders[0] }));
+        dispatch(
+          setAlert({
+            message: "Successfully set the allen mount point",
+            type: AlertType.SUCCESS,
+          })
+        );
       }
-    );
+    }
+    done();
   },
   type: SET_MOUNT_POINT,
 });
 
 const switchEnvironmentLogic = createLogic({
-  process: (
+  process: async (
     { dialog }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dialog.showMessageBox(
-      {
-        buttons: ["Cancel", "Local", "Staging", "Production"],
-        cancelId: 0,
-        message: "Switch environment?",
-        type: "question",
-      },
-      (response: number) => {
-        if (response > 0) {
-          const urlMap: { [index: number]: LimsUrl } = {
-            1: {
-              limsHost: "localhost",
-              limsPort: "8080",
-              limsProtocol: "http",
-            },
-            2: {
-              limsHost: "stg-aics.corp.alleninstitute.org",
-              limsPort: "80",
-              limsProtocol: "http",
-            },
-            3: {
-              limsHost: "aics.corp.alleninstitute.org",
-              limsPort: "80",
-              limsProtocol: "http",
-            },
-          };
-          dispatch(updateSettings(urlMap[response]));
-        }
-        done();
-      }
-    );
+    const { response: buttonIndex } = await dialog.showMessageBox({
+      buttons: ["Cancel", "Local", "Staging", "Production"],
+      cancelId: 0,
+      message: "Switch environment?",
+      type: "question",
+    });
+    if (buttonIndex > 0) {
+      const urlMap: { [index: number]: LimsUrl } = {
+        1: {
+          limsHost: "localhost",
+          limsPort: "8080",
+          limsProtocol: "http",
+        },
+        2: {
+          limsHost: "stg-aics.corp.alleninstitute.org",
+          limsPort: "80",
+          limsProtocol: "http",
+        },
+        3: {
+          limsHost: "aics.corp.alleninstitute.org",
+          limsPort: "80",
+          limsProtocol: "http",
+        },
+      };
+      dispatch(updateSettings(urlMap[buttonIndex]));
+    }
+    done();
   },
   type: SWITCH_ENVIRONMENT,
 });

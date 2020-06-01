@@ -5,8 +5,6 @@ import { shell } from "electron";
 import { forOwn, isNil } from "lodash";
 import * as React from "react";
 
-import { setAlert } from "../../state/feedback/actions";
-import { AlertType } from "../../state/feedback/types";
 import {
   MAIN_FILE_COLUMNS,
   UNIMPORTANT_COLUMNS,
@@ -79,14 +77,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
   const onBrowseToFile = () => {
     const filePath = fileMetadata.localFilePath as string;
     const downloadPath = getLocalFilePath(filePath);
-    if (!shell.showItemInFolder(downloadPath)) {
-      setAlert({
-        message:
-          "Failed to browse to file, contact software or browse to file path " +
-          "using local files path shown in metadata",
-        type: AlertType.ERROR,
-      });
-    }
+    shell.showItemInFolder(downloadPath);
   };
   return (
     <Modal

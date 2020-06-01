@@ -370,7 +370,7 @@ const cancelUploadLogic = createLogic({
     done();
   },
   type: CANCEL_UPLOAD,
-  validate: (
+  validate: async (
     { action, dialog }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
@@ -384,24 +384,20 @@ const cancelUploadLogic = createLogic({
         })
       );
     } else {
-      dialog.showMessageBox(
-        {
-          buttons: ["Cancel", "Yes"],
-          cancelId: 0,
-          defaultId: 1,
-          message:
-            "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
-          title: "Danger!",
-          type: "warning",
-        },
-        (response: number) => {
-          if (response === 1) {
-            next(action);
-          } else {
-            reject({ type: "ignore" });
-          }
-        }
-      );
+      const { response: buttonIndex } = await dialog.showMessageBox({
+        buttons: ["Cancel", "Yes"],
+        cancelId: 0,
+        defaultId: 1,
+        message:
+          "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
+        title: "Danger!",
+        type: "warning",
+      });
+      if (buttonIndex === 1) {
+        next(action);
+      } else {
+        reject({ type: "ignore" });
+      }
     }
   },
 });

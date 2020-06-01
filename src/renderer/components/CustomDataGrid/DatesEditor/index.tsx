@@ -1,7 +1,7 @@
 import { Button, DatePicker, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
 import { isEmpty, without } from "lodash";
-import * as moment from "moment";
+import moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
 

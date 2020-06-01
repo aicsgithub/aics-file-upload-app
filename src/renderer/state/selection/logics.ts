@@ -252,7 +252,7 @@ const selectWellsLogic = createLogic({
 
 const clearStagedFilesLogic = createLogic({
   type: CLEAR_STAGED_FILES,
-  validate: (
+  validate: async (
     { action, dialog, getState }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
@@ -262,27 +262,23 @@ const clearStagedFilesLogic = createLogic({
     if (Object.keys(uploads).length) {
       const barcode = getSelectedBarcode(getState());
       const associationType = barcode ? "well" : "workflow";
-      dialog.showMessageBox(
-        {
-          buttons: ["Cancel", "Clear All Files And Associations"],
-          cancelId: 0,
-          defaultId: 1,
-          message: `You have files with ${associationType} associations. How would you like to proceed?`,
-          title: "Warning",
-          type: "warning",
-        },
-        (buttonIndex: number) => {
-          if (buttonIndex === 0) {
-            // cancel
-            // The types for redux-logic expect an action to be passed to the reject callback.
-            // Since we don't want to do anything, we're sending a dummy action
-            reject({ type: "ignore" });
-          } else {
-            // clear everything
-            next(batchActions([action, clearUpload(), deselectFiles()]));
-          }
-        }
-      );
+      const { response: buttonIndex } = await dialog.showMessageBox({
+        buttons: ["Cancel", "Clear All Files And Associations"],
+        cancelId: 0,
+        defaultId: 1,
+        message: `You have files with ${associationType} associations. How would you like to proceed?`,
+        title: "Warning",
+        type: "warning",
+      });
+      if (buttonIndex === 0) {
+        // cancel
+        // The types for redux-logic expect an action to be passed to the reject callback.
+        // Since we don't want to do anything, we're sending a dummy action
+        reject({ type: "ignore" });
+      } else {
+        // clear everything
+        next(batchActions([action, clearUpload(), deselectFiles()]));
+      }
     }
   },
 });

@@ -186,13 +186,14 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
   }
 
   // Opens native file explorer
-  private onBrowse = () => {
-    remote.dialog.showOpenDialog(openDialogOptions, (filenames?: string[]) => {
-      // If cancel is clicked, this callback gets called and filenames is undefined
-      if (filenames && !isEmpty(filenames)) {
-        this.props.loadFilesFromOpenDialogAction(filenames);
-      }
-    });
+  private onBrowse = async () => {
+    const { filePaths: filenames } = await remote.dialog.showOpenDialog(
+      openDialogOptions
+    );
+    // If cancel is clicked, this callback gets called and filenames is undefined
+    if (filenames && !isEmpty(filenames)) {
+      this.props.loadFilesFromOpenDialogAction(filenames);
+    }
   };
 
   private renderFolderTree = () => {
