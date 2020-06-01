@@ -332,16 +332,13 @@ describe("Route logics", () => {
     const response = respondOKToDialog ? 1 : 0;
     const showMessageBoxStub = stub().resolves({ response });
     sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-    const { logicMiddleware, store } = createMockReduxStore(
-      {
-        ...mockState,
-        route: {
-          page: startPage,
-          view: startPage,
-        },
+    const { logicMiddleware, store } = createMockReduxStore({
+      ...mockState,
+      route: {
+        page: startPage,
+        view: startPage,
       },
-      { ...mockReduxLogicDeps, dialog }
-    );
+    });
 
     expect(getPage(store.getState())).to.equal(startPage);
     expect(getView(store.getState())).to.equal(startPage);
