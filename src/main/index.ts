@@ -5,7 +5,6 @@ import { app, BrowserWindow, Event, ipcMain } from "electron";
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
-import { autoUpdater } from "electron-updater";
 
 import {
   LIMS_PROTOCOL,
@@ -15,6 +14,8 @@ import {
 } from "../shared/constants";
 
 import { setMenu } from "./menu";
+
+const { autoUpdater } = require("electron-updater");
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
