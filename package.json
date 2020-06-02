@@ -1,6 +1,6 @@
 {
   "name": "file-upload-app",
-  "version": "1.0.44-snapshot6",
+  "version": "1.0.44-snapshot7",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
@@ -85,7 +85,7 @@
     "@types/jsdom": "12.2.3",
     "@types/lodash": "4.14.123",
     "@types/mocha": "5.2.6",
-    "@types/node": "12.0.12",
+    "@types/node": "^14.0.9",
     "@types/react": "16.9.2",
     "@types/react-data-grid": "4.0.5",
     "@types/react-dom": "16.9.0",
