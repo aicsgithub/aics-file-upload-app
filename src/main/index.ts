@@ -25,6 +25,11 @@ function createMainWindow() {
   const window = new BrowserWindow({
     height: 750,
     webPreferences: {
+      // We use the remote module in the renderer process so added this property
+      // to disable the warning about this feature getting turned off in the future
+      enableRemoteModule: true,
+      // Allows us to load LabKey which uses jQuery which does not play well with NodeJS:
+      // https://www.electronjs.org/docs/faq#i-can-not-use-jqueryrequirejsmeteorangularjs-in-electron
       nodeIntegration: true,
       // Disables same-origin policy and allows us to query Labkey
       webSecurity: false,
@@ -72,6 +77,9 @@ function createMainWindow() {
 
   return window;
 }
+
+// This is a temporary fix for this issue: https://github.com/electron/electron/issues/23664
+app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 
 // quit application when all windows are closed
 app.on("window-all-closed", () => {

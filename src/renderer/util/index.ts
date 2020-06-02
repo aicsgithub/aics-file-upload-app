@@ -157,11 +157,15 @@ export const canUserRead = async (filePath: string): Promise<boolean> => {
 };
 
 // every annotation will be stored in an array, regardless of whether it can have multiple values or not
-export const pivotAnnotations = (annotations: TemplateAnnotation[]) => {
+export const pivotAnnotations = (
+  annotations: TemplateAnnotation[],
+  booleanAnnotationTypeId: number
+) => {
   return annotations.reduce(
     (accum: any, a: TemplateAnnotation) => ({
       ...accum,
-      [a.name]: [],
+      // Default to `false` for boolean values
+      [a.name]: a.annotationTypeId === booleanAnnotationTypeId ? [false] : [],
     }),
     {}
   );
@@ -450,7 +454,10 @@ export const getSetAppliedTemplateAction = async (
     previousTemplateAnnotationNames,
     annotations.map((a) => a.name)
   );
-  const additionalAnnotations = pivotAnnotations(annotations);
+  const additionalAnnotations = pivotAnnotations(
+    annotations,
+    booleanAnnotationTypeId
+  );
   const uploads: UploadStateBranch = {};
   forEach(upload, (metadata: UploadMetadata, key: string) => {
     annotationsToExclude.forEach(

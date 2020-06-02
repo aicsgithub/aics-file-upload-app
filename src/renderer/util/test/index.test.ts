@@ -642,7 +642,7 @@ describe("General utilities", () => {
             // this stays here because it is part of the template and does not get cleared out
             "Favorite Color": "red",
             // This annotation got added
-            Qc: [],
+            Qc: [false],
             barcode: "1234",
             file: "/path/to/file1",
             key: getUploadRowKey({ file: "/path/to/file" }),

@@ -26,6 +26,7 @@ import {
   getSelectedFiles,
 } from "../../selection/selectors";
 import { setAppliedTemplate } from "../../template/actions";
+import { ColumnType } from "../../template/types";
 import {
   createMockReduxStore,
   fms,
@@ -35,6 +36,7 @@ import {
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
+  mockAnnotationTypes,
   mockDateAnnotation,
   mockMMSTemplate,
   mockNumberAnnotation,
@@ -1247,6 +1249,27 @@ describe("Upload logics", () => {
       });
       expect(fooRowKey).to.not.be.undefined;
       expect(fooChannel1RowKey).to.not.be.undefined;
+    });
+
+    it("sets alert if boolean annotation type cannot be found", () => {
+      const state: State = {
+        ...oneFileUploadMockState,
+        metadata: {
+          ...oneFileUploadMockState.metadata,
+          annotationTypes: mockAnnotationTypes.filter(
+            (type) => type.name !== ColumnType.BOOLEAN
+          ),
+        },
+      };
+      const { store } = createMockReduxStore(state);
+
+      if (fileRow) {
+        store.dispatch(updateSubImages(fileRow, {}));
+      }
+
+      expect(getAlert(store.getState())?.message).to.equal(
+        "Could not get boolean annotation type. Contact Software"
+      );
     });
   });
 

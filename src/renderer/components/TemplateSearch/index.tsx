@@ -31,7 +31,7 @@ export default function TemplateSearch(props: TemplateSearchProps) {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(requestTemplates());
-  }, []);
+  }, [dispatch]);
   const [open, setOpen] = useState<boolean>(false);
   const [elClicked, setElClicked] = useState<EventTarget | undefined>(
     undefined

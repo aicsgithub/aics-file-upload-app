@@ -204,19 +204,19 @@ class App extends React.Component<AppProps, {}> {
         "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
         " will need to be manually cancelled. Are you sure?";
       if (this.props.copyInProgress) {
-        remote.dialog.showMessageBox(
-          {
+        remote.dialog
+          .showMessageBox({
             buttons: ["Cancel", "Close Anyways"],
             message: warning,
             title: "Danger!",
             type: "warning",
-          },
-          (response: number) => {
-            if (response === 1) {
+          })
+          .then((value: Electron.MessageBoxReturnValue) => {
+            // value.response corresponds to button index
+            if (value.response === 1) {
               remote.app.exit();
             }
-          }
-        );
+          });
       } else {
         remote.app.exit();
       }

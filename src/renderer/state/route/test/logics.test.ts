@@ -363,6 +363,9 @@ describe("Route logics", () => {
     respondOKToDialog = true,
     state: State = mockState
   ) => {
+    const response = respondOKToDialog ? 1 : 0;
+    const showMessageBoxStub = stub().resolves({ response });
+    sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
     const { logicMiddleware, store } = createMockReduxStore({
       ...state,
       route: {
@@ -370,10 +373,6 @@ describe("Route logics", () => {
         view: startPage,
       },
     });
-
-    const dialogResult = respondOKToDialog ? 1 : 0;
-    const showMessageBoxStub = stub().callsArgWith(1, dialogResult);
-    sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
 
     expect(getPage(store.getState())).to.equal(startPage);
     expect(getView(store.getState())).to.equal(startPage);

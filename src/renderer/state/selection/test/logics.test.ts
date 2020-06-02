@@ -657,7 +657,7 @@ describe("Selection logics", () => {
           },
         }),
       });
-      const showMessageBoxStub = stub().callsArgWith(1, 0);
+      const showMessageBoxStub = stub().resolves({ response: 0 });
       sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
 
       expect(getSelectedFiles(store.getState())).to.not.be.empty;
@@ -682,7 +682,7 @@ describe("Selection logics", () => {
         }),
       });
 
-      const showMessageBoxStub = stub().callsArgWith(1, 1);
+      const showMessageBoxStub = stub().resolves({ response: 1 });
       sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
 
       expect(getSelectedFiles(store.getState())).to.not.be.empty;

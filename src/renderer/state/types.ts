@@ -49,13 +49,11 @@ export interface ReduxLogicExtraDependencies {
   ctx?: any;
   dialog: {
     showOpenDialog(
-      options: OpenDialogOptions,
-      callback?: (filePaths?: string[], bookmarks?: string[]) => void
-    ): string[] | undefined;
+      options: OpenDialogOptions
+    ): Promise<Electron.OpenDialogReturnValue>;
     showMessageBox(
-      options: MessageBoxOptions,
-      callback?: (response: number, checkboxChecked: boolean) => void
-    ): number;
+      options: MessageBoxOptions
+    ): Promise<Electron.MessageBoxReturnValue>;
   };
   fms: FileManagementSystem;
   getApplicationMenu: () => Menu | null;

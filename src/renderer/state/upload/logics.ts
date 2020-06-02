@@ -50,7 +50,11 @@ import {
 } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import { setCurrentUpload } from "../metadata/actions";
-import { getAnnotationTypes, getCurrentUpload } from "../metadata/selectors";
+import {
+  getAnnotationTypes,
+  getBooleanAnnotationTypeId,
+  getCurrentUpload,
+} from "../metadata/selectors";
 import { Channel, CurrentUpload } from "../metadata/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -379,7 +383,7 @@ const cancelUploadLogic = createLogic({
     done();
   },
   type: CANCEL_UPLOAD,
-  validate: (
+  validate: async (
     { action, dialog }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
@@ -393,24 +397,20 @@ const cancelUploadLogic = createLogic({
         })
       );
     } else {
-      dialog.showMessageBox(
-        {
-          buttons: ["Cancel", "Yes"],
-          cancelId: 0,
-          defaultId: 1,
-          message:
-            "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
-          title: "Danger!",
-          type: "warning",
-        },
-        (response: number) => {
-          if (response === 1) {
-            next(action);
-          } else {
-            reject({ type: "ignore" });
-          }
-        }
-      );
+      const { response: buttonIndex } = await dialog.showMessageBox({
+        buttons: ["Cancel", "Yes"],
+        cancelId: 0,
+        defaultId: 1,
+        message:
+          "If you stop this upload, you'll have to start the upload process for these files from the beginning again.",
+        title: "Danger!",
+        type: "warning",
+      });
+      if (buttonIndex === 1) {
+        next(action);
+      } else {
+        reject({ type: "ignore" });
+      }
     }
   },
 });
@@ -539,7 +539,18 @@ const updateSubImagesLogic = createLogic({
       return;
     }
 
-    const additionalAnnotations = pivotAnnotations(template.annotations);
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!booleanAnnotationTypeId) {
+      next(
+        setErrorAlert("Could not get boolean annotation type. Contact Software")
+      );
+      return;
+    }
+
+    const additionalAnnotations = pivotAnnotations(
+      template.annotations,
+      booleanAnnotationTypeId
+    );
 
     // If there are subimages for a file, remove the well associations from the file row
     if (!isEmpty(subImages)) {
