@@ -67,15 +67,11 @@ import {
 import { getPage } from "./selectors";
 import { Page, SelectPageAction } from "./types";
 
-interface MenuItemWithSubMenu extends MenuItem {
-  submenu?: Menu;
-}
-
 // have to cast here because Electron's typings for MenuItem is incomplete
-const getFileMenu = (menu: Menu): MenuItemWithSubMenu | undefined =>
+const getFileMenu = (menu: Menu): MenuItem | undefined =>
   menu.items.find(
     (menuItem: MenuItem) => menuItem.label.toLowerCase() === "file"
-  ) as MenuItemWithSubMenu | undefined;
+  );
 
 export const setSwitchEnvEnabled = (
   menu: Menu,
@@ -226,7 +222,7 @@ const selectPageLogic = createLogic({
 
 const goBackLogic = createLogic({
   type: GO_BACK,
-  validate: (
+  validate: async (
     { dialog, getState }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
@@ -236,24 +232,22 @@ const goBackLogic = createLogic({
     const nextPage = findNextPage(currentPage, -1);
 
     if (nextPage) {
-      dialog.showMessageBox(
-        {
-          buttons: ["Cancel", "Yes"],
-          cancelId: 0,
-          defaultId: 1,
-          message: "Changes will be lost if you go back. Are you sure?",
-          title: "Warning",
-          type: "warning",
-        },
-        (buttonIndex: number) => {
-          // index of button clicked
-          if (buttonIndex === 1) {
-            next(selectPage(currentPage, nextPage));
-          } else {
-            reject({ type: "ignore" });
-          }
-        }
-      );
+      const {
+        response: buttonIndex,
+      }: Electron.MessageBoxReturnValue = await dialog.showMessageBox({
+        buttons: ["Cancel", "Yes"],
+        cancelId: 0,
+        defaultId: 1,
+        message: "Changes will be lost if you go back. Are you sure?",
+        title: "Warning",
+        type: "warning",
+      });
+      // index of button clicked
+      if (buttonIndex === 1) {
+        next(selectPage(currentPage, nextPage));
+      } else {
+        reject({ type: "ignore" });
+      }
     } else {
       reject({ type: "ignore" });
     }
@@ -302,7 +296,7 @@ const saveUploadDraftToLocalStorage = (
 
 const closeUploadTabLogic = createLogic({
   type: CLOSE_UPLOAD_TAB,
-  validate: (
+  validate: async (
     {
       action,
       dialog,
@@ -340,34 +334,31 @@ const closeUploadTabLogic = createLogic({
       saveUploadDraftToLocalStorage(storage, draftName, draftKey, getState());
       next(nextAction);
     } else if (getCanSaveUploadDraft(getState())) {
-      dialog.showMessageBox(
-        {
-          buttons: ["Cancel", "Discard", "Save Upload Draft"],
-          cancelId: 0,
-          defaultId: 2,
-          message: "Your draft will be discarded unless you save it.",
-          title: "Warning",
-          type: "question",
-        },
-        (buttonIndex: number) => {
-          if (buttonIndex === 1) {
-            // Discard Draft
-            next(nextAction);
-          } else if (buttonIndex === 2) {
-            // Save Upload Draft
-            next(
-              batchActions([
-                openModal("saveUploadDraft"),
-                // close tab after Saving
-                setDeferredAction(nextAction),
-              ])
-            );
-          } else {
-            // Cancel
-            reject(clearUploadDraft());
-          }
-        }
-      );
+      const { response: buttonIndex } = await dialog.showMessageBox({
+        buttons: ["Cancel", "Discard", "Save Upload Draft"],
+        cancelId: 0,
+        defaultId: 2,
+        message: "Your draft will be discarded unless you save it.",
+        title: "Warning",
+        type: "question",
+      });
+
+      if (buttonIndex === 1) {
+        // Discard Draft
+        next(nextAction);
+      } else if (buttonIndex === 2) {
+        // Save Upload Draft
+        next(
+          batchActions([
+            openModal("saveUploadDraft"),
+            // close tab after Saving
+            setDeferredAction(nextAction),
+          ])
+        );
+      } else {
+        // Cancel
+        reject(clearUploadDraft());
+      }
     } else {
       next(nextAction);
     }
