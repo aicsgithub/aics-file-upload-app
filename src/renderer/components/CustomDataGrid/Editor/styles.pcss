@@ -1,0 +1,34 @@
+.boolean-editor-container {
+    height: 100%;
+    width: 100%;
+}
+
+.boolean-editor-btn-yes, .boolean-editor-btn-no {
+    height: 100%;
+    width: 50%;
+    text-align: center;
+}
+
+.boolean-editor-btn-yes {
+    &:global(.ant-radio-button-wrapper-checked) {
+        color: limegreen !important;
+        border-color: limegreen !important;
+        box-shadow: -1px 0 0 0 limegreen !important;
+    }
+
+    &:global(.ant-radio-button-wrapper):hover {
+        color: limegreen !important;
+    }
+}
+
+.boolean-editor-btn-no {
+    &:global(.ant-radio-button-wrapper-checked) {
+        color: red !important;
+        border-color: red !important;
+        box-shadow: -1px 0 0 0 red !important;
+    }
+
+    &:global(.ant-radio-button-wrapper):hover {
+        color: red !important;
+    }
+}
