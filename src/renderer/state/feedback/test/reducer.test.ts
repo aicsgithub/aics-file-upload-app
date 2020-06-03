@@ -43,6 +43,7 @@ import {
   closeModal,
   closeSetMountPointNotification,
   openModal,
+  openSaveUploadDraftModal,
   openSetMountPointNotification,
   removeRequestFromInProgress,
   setAlert,
@@ -201,6 +202,17 @@ describe("feedback reducer", () => {
         closeModal("openTemplate")
       );
       expect(result.visibleModals).to.be.empty;
+    });
+    it("if modalName is saveUploadDraft, clears saveUploadDraftOnOk", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          saveUploadDraftOnOk: () => setErrorAlert("foo"),
+          visibleModals: ["saveUploadDraft"],
+        },
+        closeModal("saveUploadDraft")
+      );
+      expect(result.saveUploadDraftOnOk).to.be.undefined;
     });
   });
   describe("openTemplateEditor", () => {
@@ -492,6 +504,16 @@ describe("feedback reducer", () => {
         selectPage(Page.AddCustomData, Page.UploadSummary)
       );
       expect(result.folderTreeOpen).to.be.false;
+    });
+  });
+  describe("openSaveUploadDraftModal", () => {
+    it("adds saveUploadDraft to visibleModals ands sets saveUploadDraftOnOk", () => {
+      const result = reducer(
+        initialState,
+        openSaveUploadDraftModal((draftName) => setErrorAlert(draftName))
+      );
+      expect(result.visibleModals.includes("saveUploadDraft")).to.be.true;
+      expect(result.saveUploadDraftOnOk).to.not.be.undefined;
     });
   });
 });
