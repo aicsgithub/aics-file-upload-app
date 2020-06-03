@@ -7,6 +7,7 @@ export interface FeedbackStateBranch {
   folderTreeOpen: boolean;
   isLoading: boolean;
   requestsInProgress: string[];
+  saveUploadDraftOnOk?: (draftName: string) => AnyAction;
   setMountPointNotificationVisible: boolean;
   uploadError?: string;
   visibleModals: ModalName[];
@@ -138,5 +139,11 @@ export interface ClearUploadErrorAction {
 }
 
 export interface ToggleFolderTreeAction {
+  type: string;
+}
+
+export interface OpenSaveUploadDraftModalAction {
+  // represents deferredAction to dispatch after the modal is closed
+  payload?: (draftName: string) => AnyAction;
   type: string;
 }

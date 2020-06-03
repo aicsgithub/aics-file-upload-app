@@ -1,7 +1,9 @@
 import { expect } from "chai";
-import { ActionCreator } from "redux";
+import { ActionCreator, AnyAction, Store } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
 
+import { OPEN_SAVE_UPLOAD_DRAFT_MODAL } from "../../feedback/constants";
+import { getSaveUploadDraftOnOk } from "../../feedback/selectors";
 import {
   getSelectionHistory,
   getTemplateHistory,
@@ -13,6 +15,7 @@ import {
   selectWorkflows,
 } from "../../selection/actions";
 import { getCurrentSelectionIndex } from "../../selection/selectors";
+import { Actions } from "../../test/action-tracker";
 import {
   createMockReduxStore,
   dialog,
@@ -20,7 +23,10 @@ import {
 } from "../../test/configure-mock-store";
 import { mockSelectedWorkflows, mockState } from "../../test/mocks";
 import { Logger } from "../../types";
-import { associateFilesAndWorkflows } from "../../upload/actions";
+import {
+  associateFilesAndWorkflows,
+  clearUploadDraft,
+} from "../../upload/actions";
 import { getCurrentUploadIndex } from "../../upload/selectors";
 import { closeUploadTab, goBack, selectPage } from "../actions";
 import { setSwitchEnvEnabled } from "../logics";
@@ -320,19 +326,18 @@ describe("Route logics", () => {
    * @param startPage the page we start on
    * @param expectedEndPage the page we expect to end at,
    * @param action action creator to dispatch
-   * @param respondOKToDialog whether or not the user says OK to the dialog asking them if it's okay to lose their
+   * @param buttonIdToClick index of button to simulate click in dialog
    * changes and go back
    */
   const runShowMessageBoxTest = async (
     startPage: Page,
     expectedEndPage: Page,
     action: ActionCreator<any>,
-    respondOKToDialog = true
-  ) => {
-    const response = respondOKToDialog ? 1 : 0;
-    const showMessageBoxStub = stub().resolves({ response });
+    buttonIdToClick: number
+  ): Promise<{ actions: Actions; store: Store }> => {
+    const showMessageBoxStub = stub().resolves({ response: buttonIdToClick });
     sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-    const { logicMiddleware, store } = createMockReduxStore({
+    const { actions, logicMiddleware, store } = createMockReduxStore({
       ...mockState,
       route: {
         page: startPage,
@@ -348,6 +353,7 @@ describe("Route logics", () => {
     await logicMiddleware.whenComplete();
     expect(getPage(store.getState())).to.equal(expectedEndPage);
     expect(getView(store.getState())).to.equal(expectedEndPage);
+    return { actions, store };
   };
 
   describe("goBackLogic", () => {
@@ -355,58 +361,88 @@ describe("Route logics", () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
         Page.SelectStorageLocation,
-        goBack
+        goBack,
+        1
       );
     });
     it("goes to AssociateFiles page if going back from SelectStorageLocation page", async () => {
       await runShowMessageBoxTest(
         Page.SelectStorageLocation,
         Page.AssociateFiles,
-        goBack
+        goBack,
+        1
       );
     });
     it("goes to SelectUploadType page if going back from AssociateFiles page", async () => {
       await runShowMessageBoxTest(
         Page.AssociateFiles,
         Page.SelectUploadType,
-        goBack
+        goBack,
+        1
       );
     });
     it("goes to DragAndDrop page if going back from SelectUploadType page", async () => {
       await runShowMessageBoxTest(
         Page.SelectUploadType,
         Page.DragAndDrop,
-        goBack
+        goBack,
+        1
       );
     });
     it("goes to UploadSummary page if going back from DragAndDrop page", async () => {
-      await runShowMessageBoxTest(Page.DragAndDrop, Page.UploadSummary, goBack);
+      await runShowMessageBoxTest(
+        Page.DragAndDrop,
+        Page.UploadSummary,
+        goBack,
+        1
+      );
     });
     it("does not change pages if user cancels the action through the dialog", async () => {
       await runShowMessageBoxTest(
         Page.SelectUploadType,
         Page.SelectUploadType,
         goBack,
-        false
+        0
       );
     });
   });
 
   describe("closeUploadTabLogic", () => {
-    it("goes to UploadSummary page given Yes from dialog", async () => {
-      await runShowMessageBoxTest(
+    it("goes to UploadSummary page given 'Discard' clicked", async () => {
+      const { actions } = await runShowMessageBoxTest(
         Page.AssociateFiles,
         Page.UploadSummary,
-        closeUploadTab
+        closeUploadTab,
+        1
       );
+      expect(
+        !!actions.list.find(
+          (a: AnyAction) => a.type === OPEN_SAVE_UPLOAD_DRAFT_MODAL
+        )
+      ).to.be.false;
     });
-    it("stays on current page given Cancel from dialog", async () => {
-      await runShowMessageBoxTest(
+    it("stays on current page given 'Save Upload Draft' clicked", async () => {
+      const { actions, store } = await runShowMessageBoxTest(
         Page.AssociateFiles,
         Page.AssociateFiles,
         closeUploadTab,
-        false
+        2
       );
+      expect(
+        !!actions.list.find(
+          (a: AnyAction) => a.type === OPEN_SAVE_UPLOAD_DRAFT_MODAL
+        )
+      ).to.be.true;
+      expect(getSaveUploadDraftOnOk(store.getState())).to.not.be.undefined;
+    });
+    it("stays on current page given 'Cancel' clicked from dialog", async () => {
+      const { actions } = await runShowMessageBoxTest(
+        Page.AssociateFiles,
+        Page.AssociateFiles,
+        closeUploadTab,
+        0
+      );
+      expect(actions.includesMatch(clearUploadDraft())).to.be.true;
     });
   });
 });

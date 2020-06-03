@@ -9,6 +9,7 @@ import {
   CLOSE_MODAL,
   CLOSE_SET_MOUNT_POINT_NOTIFICATION,
   OPEN_MODAL,
+  OPEN_SAVE_UPLOAD_DRAFT_MODAL,
   OPEN_SET_MOUNT_POINT_NOTIFICATION,
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
@@ -31,6 +32,7 @@ import {
   CloseSetMountPointNotificationAction,
   ModalName,
   OpenModalAction,
+  OpenSaveUploadDraftModalAction,
   OpenSetMountPointNotificationAction,
   RemoveRequestInProgressAction,
   SetAlertAction,
@@ -189,5 +191,19 @@ export function clearUploadError(): ClearUploadErrorAction {
 export function toggleFolderTree(): ToggleFolderTreeAction {
   return {
     type: TOGGLE_FOLDER_TREE,
+  };
+}
+
+/**
+ * Opens SaveUploadDraft modal and sets action creator for
+ * action that gets dispatched when the user saves a draft
+ * @param onOk
+ */
+export function openSaveUploadDraftModal(
+  onOk?: (draftName: string) => AnyAction
+): OpenSaveUploadDraftModalAction {
+  return {
+    payload: onOk,
+    type: OPEN_SAVE_UPLOAD_DRAFT_MODAL,
   };
 }

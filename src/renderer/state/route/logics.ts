@@ -12,9 +12,8 @@ import {
 } from "../../containers/App/selectors";
 import { makePosixPathCompatibleWithPlatform } from "../../util";
 import {
-  openModal,
+  openSaveUploadDraftModal,
   openSetMountPointNotification,
-  setDeferredAction,
 } from "../feedback/actions";
 import { updatePageHistory } from "../metadata/actions";
 import {
@@ -348,13 +347,7 @@ const closeUploadTabLogic = createLogic({
         next(nextAction);
       } else if (buttonIndex === 2) {
         // Save Upload Draft
-        next(
-          batchActions([
-            openModal("saveUploadDraft"),
-            // close tab after Saving
-            setDeferredAction(nextAction),
-          ])
-        );
+        next(openSaveUploadDraftModal(() => nextAction));
       } else {
         // Cancel
         reject(clearUploadDraft());
