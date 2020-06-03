@@ -306,7 +306,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       },
       ...innerColumns,
       {
-        editable: true,
         formatter: ({ row }: FormatterProps<UploadJobTableRow>) => (
           <div
             className={classNames(
