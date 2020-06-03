@@ -94,7 +94,8 @@ class WellEditorPopover extends React.Component<Props, {}> {
     const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
     return (
       !uploadRow ||
-      intersection(selectedWellIds, uploadRow.wellIds || []).length === 0
+      intersection(selectedWellIds, uploadRow[WELL_ANNOTATION_NAME] || [])
+        .length === 0
     );
   };
 
