@@ -147,8 +147,10 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
           type="form"
         />
         {/* New line formatting might be important for viewing, so preserve it in view */}
-        {this.state.notes.split("\n").map((line) => (
-          <p key={line}>{line}</p>
+        {this.state.notes.split("\n").map((line, i) => (
+          // Using an index as a key is not recommended, but it is safe in this
+          // case
+          <p key={i}>{line}</p>
         ))}
       </>
     );

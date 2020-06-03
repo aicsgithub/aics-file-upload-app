@@ -77,6 +77,7 @@ import {
   CLOSE_MODAL,
   CLOSE_SET_MOUNT_POINT_NOTIFICATION,
   OPEN_MODAL,
+  OPEN_SAVE_UPLOAD_DRAFT_MODAL,
   OPEN_SET_MOUNT_POINT_NOTIFICATION,
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
@@ -98,6 +99,7 @@ import {
   CloseSetMountPointNotificationAction,
   FeedbackStateBranch,
   OpenModalAction,
+  OpenSaveUploadDraftModalAction,
   OpenSetMountPointNotificationAction,
   OpenTemplateEditorAction,
   RemoveRequestInProgressAction,
@@ -263,6 +265,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === CLOSE_MODAL,
     perform: (state: FeedbackStateBranch, action: CloseModalAction) => ({
       ...state,
+      saveUploadDraftOnOk:
+        action.payload === "saveUploadDraft"
+          ? undefined
+          : state.saveUploadDraftOnOk,
       visibleModals: without(state.visibleModals, action.payload),
     }),
   },
@@ -557,6 +563,18 @@ const actionToConfigMap: TypeToDescriptionMap = {
         folderTreeOpen: pagesToShowFolderTree.includes(nextPage),
       };
     },
+  },
+  [OPEN_SAVE_UPLOAD_DRAFT_MODAL]: {
+    accepts: (action: AnyAction): action is OpenSaveUploadDraftModalAction =>
+      action.type === OPEN_SAVE_UPLOAD_DRAFT_MODAL,
+    perform: (
+      state: FeedbackStateBranch,
+      action: OpenSaveUploadDraftModalAction
+    ) => ({
+      ...state,
+      saveUploadDraftOnOk: action.payload,
+      visibleModals: uniq([...state.visibleModals, "saveUploadDraft"]),
+    }),
   },
   [SUBMIT_FILE_METADATA_UPDATE]: {
     accepts: (action: AnyAction): action is SubmitFileMetadataUpdateAction =>

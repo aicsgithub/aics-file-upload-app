@@ -2,6 +2,7 @@ import { StartUploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
+import { AnyAction } from "redux";
 import { createSandbox, SinonFakeTimers, stub, useFakeTimers } from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
@@ -11,6 +12,8 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { setErrorAlert } from "../../feedback/actions";
+import { CLOSE_MODAL, SET_ALERT } from "../../feedback/constants";
 import {
   getAlert,
   getOpenUploadModalVisible,
@@ -1725,9 +1728,18 @@ describe("Upload logics", () => {
         expect(alert.message).to.equal("Draft name cannot be empty");
       }
     });
-    it("sets current upload and writes to storage", async () => {
+    it("closes saveUploadDraft modal and dispatches custom action if set and writes to storage", async () => {
       const { actions, store, logicMiddleware } = createMockReduxStore(
-        mockState
+        {
+          ...mockState,
+          feedback: {
+            ...mockState.feedback,
+            saveUploadDraftOnOk: () => setErrorAlert("foo"),
+          },
+        },
+        undefined,
+        undefined,
+        false
       );
 
       // before
@@ -1740,10 +1752,13 @@ describe("Upload logics", () => {
       await logicMiddleware.whenComplete();
 
       // after
-      const currentUpload = getCurrentUpload(store.getState());
-      expect(getCurrentUpload(store.getState())).to.not.be.undefined;
-      expect(currentUpload?.name).to.equal("test");
       expect(actions.list.length).to.equal(1);
+      expect(
+        actions.list[0].payload.find((a: AnyAction) => a.type === CLOSE_MODAL)
+      ).to.not.be.undefined;
+      expect(
+        actions.list[0].payload.find((a: AnyAction) => a.type === SET_ALERT)
+      ).to.not.be.undefined;
       expect(actions.list[0].writeToStore).to.be.true;
       expect(actions.list[0].updates).to.deep.equal({
         [`draft.test-${moment(now).format(LONG_DATETIME_FORMAT)}`]: {
@@ -1759,35 +1774,31 @@ describe("Upload logics", () => {
     });
     it("uses current upload name if no draft name argument and only updates modified date", async () => {
       const oldDate = new Date(2020, 1, 11);
-      const { actions, store, logicMiddleware } = createMockReduxStore({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          currentUpload: {
-            created: oldDate,
-            modified: oldDate,
-            name: "test",
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        {
+          ...mockState,
+          metadata: {
+            ...mockState.metadata,
+            currentUpload: {
+              created: oldDate,
+              modified: oldDate,
+              name: "test",
+            },
           },
         },
-      });
+        undefined,
+        undefined,
+        false
+      );
 
       const now = new Date();
       const state = store.getState();
-
-      // before
-      expect(getCurrentUpload(store.getState())?.modified).to.equal(oldDate);
-      expect(getCurrentUpload(store.getState())?.created).to.equal(oldDate);
 
       // apply
       store.dispatch(saveUploadDraft());
       await logicMiddleware.whenComplete();
 
       // after
-      expect(getCurrentUpload(store.getState())?.modified).to.deep.equal(now);
-      expect(getCurrentUpload(store.getState())?.created).to.deep.equal(
-        oldDate
-      );
-
       expect(actions.list.length).to.equal(1);
       expect(actions.list[0].writeToStore).to.be.true;
       expect(actions.list[0].updates).to.deep.equal({

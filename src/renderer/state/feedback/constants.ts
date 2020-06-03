@@ -42,3 +42,7 @@ export const TOGGLE_FOLDER_TREE = makeConstant(
   BRANCH_NAME,
   "toggle-folder-tree"
 );
+export const OPEN_SAVE_UPLOAD_DRAFT_MODAL = makeConstant(
+  BRANCH_NAME,
+  "open-save-upload-draft-modal"
+);

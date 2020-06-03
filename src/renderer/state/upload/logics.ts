@@ -14,6 +14,7 @@ import {
   without,
 } from "lodash";
 import { isDate, isMoment } from "moment";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
@@ -42,6 +43,7 @@ import {
   setErrorAlert,
   setUploadError,
 } from "../feedback/actions";
+import { getSaveUploadDraftOnOk } from "../feedback/selectors";
 import { AlertType, AsyncRequest } from "../feedback/types";
 import {
   startJobPoll,
@@ -49,7 +51,6 @@ import {
   updateIncompleteJobIds,
 } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
-import { setCurrentUpload } from "../metadata/actions";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -867,13 +868,18 @@ const saveUploadDraftLogic = createLogic({
       name: draftName,
     };
 
+    const actions: AnyAction[] = [closeModal("saveUploadDraft")];
+    const onOk = getSaveUploadDraftOnOk(getState());
+    if (onOk) {
+      actions.push(onOk(draftName));
+    }
     next({
       updates: {
         [draftKey]: { metadata, state: getState() },
         ...clearUploadDraft().updates,
       },
       writeToStore: true,
-      ...setCurrentUpload(metadata),
+      ...batchActions(actions),
     });
   },
 });

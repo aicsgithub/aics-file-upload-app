@@ -16,7 +16,7 @@ import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import {
   clearAlert,
-  openModal,
+  openSaveUploadDraftModal,
   setAlert,
   toggleFolderTree,
 } from "../../state/feedback/actions";
@@ -32,12 +32,14 @@ import {
   AppAlert,
   AppEvent,
   ClearAlertAction,
-  OpenModalAction,
   SetAlertAction,
   ToggleFolderTreeAction,
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
-import { requestMetadata } from "../../state/metadata/actions";
+import {
+  requestMetadata,
+  setCurrentUpload,
+} from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
@@ -128,7 +130,7 @@ interface AppProps {
   limsUrl: string;
   loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
   openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
-  openModal: ActionCreator<OpenModalAction>;
+  openSaveUploadDraftModal: typeof openSaveUploadDraftModal;
   loading: boolean;
   recentEvent?: AppEvent;
   removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
@@ -221,6 +223,7 @@ class App extends React.Component<AppProps, {}> {
         remote.app.exit();
       }
     });
+    // File > Save
     ipcRenderer.on(SAVE_UPLOAD, () => {
       // If the upload tab already has a name, this means the user has saved a draft already
       // so we don't need to ask them for a name again and we can just update the draft saved
@@ -228,7 +231,14 @@ class App extends React.Component<AppProps, {}> {
         this.props.saveUploadDraft();
         // If the upload tab doesn't have a name, open a modal that asks them to name the draft to save
       } else {
-        this.props.openModal("saveUploadDraft");
+        this.props.openSaveUploadDraftModal((draftName: string) => {
+          const now = new Date();
+          return setCurrentUpload({
+            created: now,
+            modified: now,
+            name: draftName,
+          });
+        });
       }
     });
   }
@@ -421,7 +431,7 @@ const dispatchToPropsMap = {
   getFilesInFolder: selection.actions.getFilesInFolder,
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
-  openModal,
+  openSaveUploadDraftModal,
   removeFileFromArchive,
   removeFileFromIsilon,
   requestMetadata,

@@ -95,7 +95,6 @@ class SaveUploadDraftModal extends React.Component<
 
   private save = () => {
     this.props.saveUploadDraft(this.state.name);
-    this.closeModal();
   };
 }
 

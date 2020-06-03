@@ -23,6 +23,7 @@ import LabkeyClient from "../../util/labkey-client";
 import MMSClient from "../../util/mms-client";
 import {
   openModal,
+  openSaveUploadDraftModal,
   openSetMountPointNotification,
   setDeferredAction,
   setErrorAlert,
@@ -361,25 +362,21 @@ const closeUploadTabLogic = createLogic({
       if (isEqual(getOriginalUpload(getState()), getUpload(getState()))) {
         next(nextAction);
       } else {
-        dialog.showMessageBox(
-          {
-            buttons: ["Cancel", "Continue"],
-            cancelId: 0,
-            defaultId: 1,
-            message: "You have unsaved changes, continuing will discard them",
-            title: "Warning",
-            type: "question",
-          },
-          (buttonIndex: number) => {
-            if (buttonIndex === 1) {
-              // Discard Draft
-              next(nextAction);
-            } else {
-              // Cancel
-              reject(clearUploadDraft());
-            }
-          }
-        );
+        const { response: buttonIndex } = await dialog.showMessageBox({
+          buttons: ["Cancel", "Continue"],
+          cancelId: 0,
+          defaultId: 1,
+          message: "You have unsaved changes, continuing will discard them",
+          title: "Warning",
+          type: "question",
+        });
+        if (buttonIndex === 1) {
+          // Discard Draft
+          next(nextAction);
+        } else {
+          // Cancel
+          reject(clearUploadDraft());
+        }
       }
 
       // automatically save if user has chosen to save this draft
@@ -401,13 +398,7 @@ const closeUploadTabLogic = createLogic({
         next(nextAction);
       } else if (buttonIndex === 2) {
         // Save Upload Draft
-        next(
-          batchActions([
-            openModal("saveUploadDraft"),
-            // close tab after Saving
-            setDeferredAction(nextAction),
-          ])
-        );
+        next(openSaveUploadDraftModal(() => nextAction));
       } else {
         // Cancel
         reject(clearUploadDraft());
