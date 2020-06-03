@@ -372,24 +372,20 @@ class SearchFiles extends React.Component<Props, SearchFilesState> {
     }
   };
 
-  private exportCSV = () => {
-    remote.dialog.showSaveDialog(
-      {
-        buttonLabel: "Save",
-        defaultPath: "FileMetadata.csv",
-        filters: [{ name: "CSV files", extensions: ["csv"] }],
-        title: "Save File Metadata as CSV",
-      },
-      (fileName?: string) => {
-        if (fileName) {
-          let actualFileName = fileName;
-          if (actualFileName.length < 4 || !actualFileName.endsWith(".csv")) {
-            actualFileName += ".csv";
-          }
-          this.props.exportFileMetadataCSV(actualFileName);
-        }
+  private exportCSV = async () => {
+    const { filePath } = await remote.dialog.showSaveDialog({
+      buttonLabel: "Save",
+      defaultPath: "FileMetadata.csv",
+      filters: [{ name: "CSV files", extensions: ["csv"] }],
+      title: "Save File Metadata as CSV",
+    });
+    if (filePath) {
+      let actualFileName = filePath;
+      if (actualFileName.length < 4 || !actualFileName.endsWith(".csv")) {
+        actualFileName += ".csv";
       }
-    );
+      this.props.exportFileMetadataCSV(actualFileName);
+    }
   };
 }
 
