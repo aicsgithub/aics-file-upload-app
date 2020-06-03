@@ -26,7 +26,7 @@ function createMainWindow() {
     height: 750,
     webPreferences: {
       // We use the remote module in the renderer process so added this property
-      // to disable the warning about this feature getting turned off in the future
+      // to disable the warning how this property will be required in the future to use the remote module
       enableRemoteModule: true,
       // Allows us to load LabKey which uses jQuery which does not play well with NodeJS:
       // https://www.electronjs.org/docs/faq#i-can-not-use-jqueryrequirejsmeteorangularjs-in-electron
