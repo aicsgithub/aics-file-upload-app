@@ -375,7 +375,7 @@ const closeUploadTabLogic = createLogic({
           next(nextAction);
         } else {
           // Cancel
-          reject(clearUploadDraft());
+          reject({ type: "ignore" });
         }
       }
 
@@ -401,7 +401,7 @@ const closeUploadTabLogic = createLogic({
         next(openSaveUploadDraftModal(() => nextAction));
       } else {
         // Cancel
-        reject(clearUploadDraft());
+        reject({ type: "ignore" });
       }
     } else {
       next(nextAction);
