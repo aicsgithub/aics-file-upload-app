@@ -45,16 +45,18 @@ export interface LocalStorage {
   set: (key: string, value: any) => void;
 }
 
+export interface Dialog {
+  showOpenDialog(
+    options: OpenDialogOptions
+  ): Promise<Electron.OpenDialogReturnValue>;
+  showMessageBox(
+    options: MessageBoxOptions
+  ): Promise<Electron.MessageBoxReturnValue>;
+}
+
 export interface ReduxLogicExtraDependencies {
   ctx?: any;
-  dialog: {
-    showOpenDialog(
-      options: OpenDialogOptions
-    ): Promise<Electron.OpenDialogReturnValue>;
-    showMessageBox(
-      options: MessageBoxOptions
-    ): Promise<Electron.MessageBoxReturnValue>;
-  };
+  dialog: Dialog;
   fms: FileManagementSystem;
   getApplicationMenu: () => Menu | null;
   ipcRenderer: {
