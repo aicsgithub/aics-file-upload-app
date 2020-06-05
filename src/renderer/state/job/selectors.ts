@@ -1,3 +1,5 @@
+import { basename } from "path";
+
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
@@ -68,7 +70,12 @@ export const getCurrentJobName = createSelector(
     if (isEmpty(upload)) {
       return undefined;
     }
-    return currentUploadFilePath || fileNames;
+
+    if (currentUploadFilePath) {
+      return basename(currentUploadFilePath, ".json");
+    }
+
+    return fileNames;
   }
 );
 

@@ -78,21 +78,14 @@ describe("upload reducer", () => {
         [WELL_ANNOTATION_NAME]: [9],
       };
       const draft = {
-        metadata: {
-          created: new Date(),
-          modified: new Date(),
-          name: "test",
-        },
-        state: {
-          ...mockState,
-          upload: getMockStateWithHistory({
-            bar: uploadPartial,
-          }),
-        },
+        ...mockState,
+        upload: getMockStateWithHistory({
+          bar: uploadPartial,
+        }),
       };
       const result = reducer(
         getMockStateWithHistory(uploads),
-        replaceUpload(draft)
+        replaceUpload("/path/file.json", draft)
       );
       const { present } = result;
       expect(present.foo).to.be.undefined;

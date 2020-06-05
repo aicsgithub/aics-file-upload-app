@@ -13,17 +13,9 @@ import { getAppliedTemplate } from "../selectors";
 describe("template reducer", () => {
   describe("replaceUpload", () => {
     it("sets appliedTemplate", () => {
-      const replacement = {
-        metadata: {
-          created: new Date(),
-          modified: new Date(),
-          name: "test",
-        },
-        state: nonEmptyStateForInitiatingUpload,
-      };
       const result = reducer(
         getMockStateWithHistory(initialState),
-        replaceUpload(replacement)
+        replaceUpload("/path/file.json", nonEmptyStateForInitiatingUpload)
       );
       expect(result.present.appliedTemplate).to.equal(
         getAppliedTemplate(nonEmptyStateForInitiatingUpload)
