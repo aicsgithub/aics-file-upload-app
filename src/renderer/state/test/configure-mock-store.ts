@@ -38,6 +38,7 @@ export interface LocalStorageStub {
 }
 
 export interface ReduxLogicDependencies {
+  deleteFile: SinonStub;
   dialog: {
     showMessageBox: SinonStub;
     showOpenDialog: SinonStub;
@@ -57,7 +58,9 @@ export interface ReduxLogicDependencies {
     warn: SinonStub;
   };
   mmsClient: MMSClient;
+  readFile: SinonStub;
   storage: LocalStorageStub;
+  writeFile: SinonStub;
 }
 
 const host = "localhost";
@@ -112,6 +115,7 @@ export const getApplicationMenu = stub().returns({
 export const dialog = {
   showMessageBox: stub(),
   showOpenDialog: stub(),
+  showSaveDialog: stub(),
 };
 
 export const logger = {
@@ -122,6 +126,7 @@ export const logger = {
 };
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
+  deleteFile: stub(),
   dialog,
   fms,
   getApplicationMenu,
@@ -133,7 +138,9 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
   labkeyClient,
   logger,
   mmsClient,
+  readFile: stub(),
   storage,
+  writeFile: stub(),
 };
 
 const reducers = {

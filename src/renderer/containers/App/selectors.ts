@@ -5,16 +5,13 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import {
-  getCurrentUpload,
-  getImagingSessions,
-} from "../../state/metadata/selectors";
-import { CurrentUpload, ImagingSession } from "../../state/metadata/types";
+import { getImagingSessions } from "../../state/metadata/selectors";
+import { ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
 import { getAllPlates, getAllWells } from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
-import { getUploadDraftKey, isFileRow } from "../../state/upload/constants";
+import { isFileRow } from "../../state/upload/constants";
 import {
   getUpload,
   getWellLabelAndImagingSessionName,
@@ -103,20 +100,4 @@ export const getFileToTags = createSelector(
     );
     return result;
   }
-);
-
-export const getCurrentUploadName = createSelector(
-  [getCurrentUpload],
-  (currentUpload?: CurrentUpload): string | undefined => currentUpload?.name
-);
-
-// reasoning for this is so that job names also match draft keys.
-// If we just used draft name, we can't ensure that jobs are unique. If we include
-// the created datetime, we can be sure that the job name is unique.
-export const getCurrentUploadKey = createSelector(
-  [getCurrentUpload],
-  (currentUpload?: CurrentUpload) =>
-    currentUpload
-      ? getUploadDraftKey(currentUpload.name, currentUpload.created)
-      : undefined
 );

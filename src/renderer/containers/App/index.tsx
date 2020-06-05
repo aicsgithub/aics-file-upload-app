@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import {
+  OPEN_UPLOAD_DRAFT,
   SAFELY_CLOSE_WINDOW,
   SAVE_UPLOAD,
   SWITCH_ENVIRONMENT,
@@ -16,7 +17,6 @@ import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import {
   clearAlert,
-  openModal,
   setAlert,
   toggleFolderTree,
 } from "../../state/feedback/actions";
@@ -32,13 +32,12 @@ import {
   AppAlert,
   AppEvent,
   ClearAlertAction,
-  OpenModalAction,
   SetAlertAction,
   ToggleFolderTreeAction,
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { RequestMetadataAction } from "../../state/metadata/types";
+import { getCurrentUploadFilePath } from "../../state/metadata/selectors";
 import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
 import {
@@ -59,8 +58,6 @@ import {
 import {
   ClearStagedFilesAction,
   GetFilesInFolderAction,
-  LoadFilesFromDragAndDropAction,
-  LoadFilesFromOpenDialogAction,
   SelectFileAction,
   UploadFile,
 } from "../../state/selection/types";
@@ -72,13 +69,13 @@ import {
 } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
-  GatherSettingsAction,
   SetMountPointAction,
   SwitchEnvironmentAction,
   UpdateSettingsAction,
 } from "../../state/setting/types";
 import { State } from "../../state/types";
 import {
+  openUploadDraft,
   removeFileFromArchive,
   removeFileFromIsilon,
   saveUploadDraft,
@@ -87,9 +84,6 @@ import {
 } from "../../state/upload/actions";
 import {
   FileTag,
-  RemoveFileFromArchiveAction,
-  RemoveFileFromIsilonAction,
-  SaveUploadDraftAction,
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
@@ -97,8 +91,6 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
-import OpenUploadModal from "../OpenUploadModal";
-import SaveUploadDraftModal from "../SaveUploadDraftModal";
 import SearchFiles from "../SearchFiles";
 import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
@@ -106,7 +98,7 @@ import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
-import { getCurrentUploadName, getFileToTags } from "./selectors";
+import { getFileToTags } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -123,18 +115,18 @@ interface AppProps {
   fileToTags: Map<string, FileTag[]>;
   files: UploadFile[];
   folderTreeOpen: boolean;
-  gatherSettings: ActionCreator<GatherSettingsAction>;
+  gatherSettings: typeof gatherSettings;
   getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
   limsUrl: string;
-  loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
-  openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
-  openModal: ActionCreator<OpenModalAction>;
+  loadFilesFromDragAndDrop: typeof loadFilesFromDragAndDrop;
+  openFilesFromDialog: typeof openFilesFromDialog;
+  openUploadDraft: typeof openUploadDraft;
   loading: boolean;
   recentEvent?: AppEvent;
-  removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
-  removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
-  requestMetadata: ActionCreator<RequestMetadataAction>;
-  saveUploadDraft: ActionCreator<SaveUploadDraftAction>;
+  removeFileFromArchive: typeof removeFileFromArchive;
+  removeFileFromIsilon: typeof removeFileFromIsilon;
+  requestMetadata: typeof requestMetadata;
+  saveUploadDraft: typeof saveUploadDraft;
   selectFile: ActionCreator<SelectFileAction>;
   selectedFiles: string[];
   setAlert: ActionCreator<SetAlertAction>;
@@ -221,16 +213,8 @@ class App extends React.Component<AppProps, {}> {
         remote.app.exit();
       }
     });
-    ipcRenderer.on(SAVE_UPLOAD, () => {
-      // If the upload tab already has a name, this means the user has saved a draft already
-      // so we don't need to ask them for a name again and we can just update the draft saved
-      if (this.props.uploadTabName) {
-        this.props.saveUploadDraft();
-        // If the upload tab doesn't have a name, open a modal that asks them to name the draft to save
-      } else {
-        this.props.openModal("saveUploadDraft");
-      }
-    });
+    ipcRenderer.on(SAVE_UPLOAD, () => this.props.saveUploadDraft(true));
+    ipcRenderer.on(OPEN_UPLOAD_DRAFT, this.props.openUploadDraft);
   }
 
   public componentDidUpdate(prevProps: AppProps) {
@@ -375,8 +359,6 @@ class App extends React.Component<AppProps, {}> {
         <TemplateEditorModal />
         <OpenTemplateModal />
         <SettingsEditorModal />
-        <SaveUploadDraftModal />
-        <OpenUploadModal />
       </div>
     );
   }
@@ -408,7 +390,7 @@ function mapStateToProps(state: State) {
     setMountPointNotificationVisible: getSetMountPointNotificationVisible(
       state
     ),
-    uploadTabName: getCurrentUploadName(state),
+    uploadTabName: getCurrentUploadFilePath(state),
     view: getView(state),
   };
 }
@@ -421,7 +403,7 @@ const dispatchToPropsMap = {
   getFilesInFolder: selection.actions.getFilesInFolder,
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
-  openModal,
+  openUploadDraft,
   removeFileFromArchive,
   removeFileFromIsilon,
   requestMetadata,

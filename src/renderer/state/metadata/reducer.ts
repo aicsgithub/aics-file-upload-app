@@ -3,31 +3,30 @@ import { AnyAction } from "redux";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
 import { TypeToDescriptionMap } from "../types";
-import { REPLACE_UPLOAD } from "../upload/constants";
-import { ReplaceUploadAction } from "../upload/types";
+import { REPLACE_UPLOAD, SAVE_UPLOAD_DRAFT_SUCCESS } from "../upload/constants";
+import {
+  ReplaceUploadAction,
+  SaveUploadDraftSuccessAction,
+} from "../upload/types";
 import { makeReducer } from "../util";
 
 import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
-  GATHER_UPLOAD_DRAFTS,
   RECEIVE_FILE_METADATA,
   RECEIVE_METADATA,
   RESET_HISTORY,
   SEARCH_FILE_METADATA,
-  SET_CURRENT_UPLOAD,
   UPDATE_PAGE_HISTORY,
 } from "./constants";
 import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
-  GatherUploadDraftsAction,
   MetadataStateBranch,
   ReceiveFileMetadataAction,
   ReceiveMetadataAction,
   ResetHistoryAction,
   SearchFileMetadataAction,
-  SetCurrentUploadAction,
   UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -48,7 +47,6 @@ export const initialState: MetadataStateBranch = {
   lookups: [],
   templates: [],
   units: [],
-  uploadDrafts: [],
   users: [],
   workflowOptions: [],
 };
@@ -123,31 +121,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
       fileMetadataForJob: undefined,
     }),
   },
-  [GATHER_UPLOAD_DRAFTS]: {
-    accepts: (action: AnyAction): action is GatherUploadDraftsAction =>
-      action.type === GATHER_UPLOAD_DRAFTS,
-    perform: (
-      state: MetadataStateBranch,
-      action: GatherUploadDraftsAction
-    ) => ({
-      ...state,
-      uploadDrafts: action.payload || {},
-    }),
-  },
   [REPLACE_UPLOAD]: {
     accepts: (action: AnyAction): action is ReplaceUploadAction =>
       action.type === REPLACE_UPLOAD,
     perform: (state: MetadataStateBranch, action: ReplaceUploadAction) => ({
       ...state,
-      currentUpload: action.payload.metadata,
-    }),
-  },
-  [SET_CURRENT_UPLOAD]: {
-    accepts: (action: AnyAction): action is SetCurrentUploadAction =>
-      action.type === SET_CURRENT_UPLOAD,
-    perform: (state: MetadataStateBranch, action: SetCurrentUploadAction) => ({
-      ...state,
-      currentUpload: action.payload,
+      currentUploadFilePath: action.payload.filePath,
     }),
   },
   [CLOSE_UPLOAD_TAB]: {
@@ -155,7 +134,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === CLOSE_UPLOAD_TAB,
     perform: (state: MetadataStateBranch) => ({
       ...state,
-      currentUpload: undefined,
+      currentUploadFilePath: undefined,
     }),
   },
   [RECEIVE_FILE_METADATA]: {
@@ -167,6 +146,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
     ) => ({
       ...state,
       fileMetadataForJob: action.payload,
+    }),
+  },
+  [SAVE_UPLOAD_DRAFT_SUCCESS]: {
+    accepts: (action: AnyAction): action is SaveUploadDraftSuccessAction =>
+      action.type === SAVE_UPLOAD_DRAFT_SUCCESS,
+    perform: (
+      state: MetadataStateBranch,
+      action: SaveUploadDraftSuccessAction
+    ) => ({
+      ...state,
+      currentUploadFilePath: action.payload,
     }),
   },
 };

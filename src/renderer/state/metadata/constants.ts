@@ -44,14 +44,6 @@ export const UPDATE_PAGE_HISTORY = makeConstant(
   BRANCH_NAME,
   "update-page-history"
 );
-export const GATHER_UPLOAD_DRAFTS = makeConstant(
-  BRANCH_NAME,
-  "gather-upload-draft-names"
-);
-export const SET_CURRENT_UPLOAD = makeConstant(
-  BRANCH_NAME,
-  "set-current-upload"
-);
 export const RECEIVE_FILE_METADATA = makeConstant(
   BRANCH_NAME,
   "receive-file-metadata"

@@ -19,7 +19,7 @@ export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 export const OPEN_TEMPLATE_EDITOR = "OPEN_TEMPLATE_EDITOR";
 
 // emitted by main process when user selects File > Open > Upload Draft
-export const OPEN_OPEN_UPLOAD_MODAL = "OPEN_OPEN_UPLOAD_MODAL";
+export const OPEN_UPLOAD_DRAFT = "OPEN_UPLOAD_DRAFT";
 
 // emitted by main process when user selects File > Save Upload Draft
 export const SAVE_UPLOAD = "SAVE_UPLOAD";

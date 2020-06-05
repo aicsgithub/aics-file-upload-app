@@ -6,19 +6,12 @@ import { createSandbox, SinonFakeTimers, stub, useFakeTimers } from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import {
-  LONG_DATETIME_FORMAT,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
-import {
-  getAlert,
-  getOpenUploadModalVisible,
-  getSaveUploadDraftModalVisible,
-  getUploadError,
-} from "../../feedback/selectors";
+import { getAlert, getUploadError } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
-import { getCurrentUpload } from "../../metadata/selectors";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
 import {
@@ -32,7 +25,6 @@ import {
   fms,
   mmsClient,
   mockReduxLogicDeps,
-  storage,
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
@@ -40,7 +32,6 @@ import {
   mockDateAnnotation,
   mockMMSTemplate,
   mockNumberAnnotation,
-  mockState,
   mockTemplateStateBranch,
   mockTemplateWithManyValues,
   mockTextAnnotation,
@@ -51,8 +42,6 @@ import {
   applyTemplate,
   associateFilesAndWells,
   initiateUpload,
-  openUploadDraft,
-  saveUploadDraft,
   undoFileWellAssociation,
   updateFilesToArchive,
   updateFilesToStoreOnIsilon,
@@ -1685,210 +1674,180 @@ describe("Upload logics", () => {
       expect(getFileToArchive(store.getState())["/path/to/file1"]).to.be.false;
     });
   });
-  describe("saveUploadDraftLogic", () => {
-    it("sets error alert if upload is empty", async () => {
-      const { store, logicMiddleware } = createMockReduxStore({
-        ...mockState,
-        upload: getMockStateWithHistory({}),
-      });
-
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
-      store.dispatch(saveUploadDraft("test"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      const alert = getAlert(store.getState());
-      expect(alert).to.not.be.undefined;
-      if (alert) {
-        expect(alert.type).to.equal(AlertType.ERROR);
-        expect(alert.message).to.equal("Nothing to save");
-      }
-    });
-    it("sets error alert if a draftName cannot be resolved", async () => {
-      const { store, logicMiddleware } = createMockReduxStore(mockState);
-
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
-      store.dispatch(saveUploadDraft(" "));
-      await logicMiddleware.whenComplete();
-
-      // after
-      const alert = getAlert(store.getState());
-      expect(alert).to.not.be.undefined;
-      if (alert) {
-        expect(alert.type).to.equal(AlertType.ERROR);
-        expect(alert.message).to.equal("Draft name cannot be empty");
-      }
-    });
-    it("sets current upload and writes to storage", async () => {
-      const { actions, store, logicMiddleware } = createMockReduxStore(
-        mockState
-      );
-
-      // before
-      expect(getCurrentUpload(store.getState())).to.be.undefined;
-
-      // apply
-      const now = new Date();
-      const state = store.getState();
-      store.dispatch(saveUploadDraft("test"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      const currentUpload = getCurrentUpload(store.getState());
-      expect(getCurrentUpload(store.getState())).to.not.be.undefined;
-      expect(currentUpload?.name).to.equal("test");
-      expect(actions.list.length).to.equal(1);
-      expect(actions.list[0].writeToStore).to.be.true;
-      expect(actions.list[0].updates).to.deep.equal({
-        [`draft.test-${moment(now).format(LONG_DATETIME_FORMAT)}`]: {
-          metadata: {
-            created: now,
-            modified: now,
-            name: "test",
-          },
-          state,
-        },
-        upload: undefined, // this clears out the current upload draft
-      });
-    });
-    it("uses current upload name if no draft name argument and only updates modified date", async () => {
-      const oldDate = new Date(2020, 1, 11);
-      const { actions, store, logicMiddleware } = createMockReduxStore({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          currentUpload: {
-            created: oldDate,
-            modified: oldDate,
-            name: "test",
-          },
-        },
-      });
-
-      const now = new Date();
-      const state = store.getState();
-
-      // before
-      expect(getCurrentUpload(store.getState())?.modified).to.equal(oldDate);
-      expect(getCurrentUpload(store.getState())?.created).to.equal(oldDate);
-
-      // apply
-      store.dispatch(saveUploadDraft());
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(getCurrentUpload(store.getState())?.modified).to.deep.equal(now);
-      expect(getCurrentUpload(store.getState())?.created).to.deep.equal(
-        oldDate
-      );
-
-      expect(actions.list.length).to.equal(1);
-      expect(actions.list[0].writeToStore).to.be.true;
-      expect(actions.list[0].updates).to.deep.equal({
-        [`draft.test-${moment(oldDate).format(LONG_DATETIME_FORMAT)}`]: {
-          metadata: {
-            created: oldDate,
-            modified: now,
-            name: "test",
-          },
-          state,
-        },
-        upload: undefined, // this clears out the current upload draft
-      });
-    });
-  });
-  describe("openUploadLogic", () => {
-    const sandbox = createSandbox();
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
-    it("sets error alert if local storage does not contain draft", async () => {
-      const storageGetStub = stub().returns(undefined);
-      sandbox.replace(storage, "get", storageGetStub);
-      const { store, logicMiddleware } = createMockReduxStore(mockState);
-
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
-      store.dispatch(openUploadDraft("test"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      const alert = getAlert(store.getState());
-      expect(alert).to.not.be.undefined;
-      if (alert) {
-        expect(alert.type).to.equal(AlertType.ERROR);
-        expect(alert.message).to.equal("Could not find draft named test");
-      }
-    });
-    it("opens saveUploadDraft modal if a user is currently working on an upload", async () => {
-      const storageGetStub = stub().returns({
-        metadata: {
-          created: new Date(),
-          modified: new Date(),
-          name: "test",
-        },
-        state: mockState,
-      });
-      sandbox.replace(storage, "get", storageGetStub);
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        feedback: {
-          ...mockState.feedback,
-          visibleModals: ["openUpload"],
-        },
-      });
-
-      // before
-      expect(getOpenUploadModalVisible(store.getState())).to.be.true;
-      expect(getSaveUploadDraftModalVisible(store.getState())).to.be.false;
-
-      // apply
-      store.dispatch(openUploadDraft("test"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(getOpenUploadModalVisible(store.getState())).to.be.false;
-      expect(getSaveUploadDraftModalVisible(store.getState())).to.be.true;
-    });
-    it("closes openUpload modal if nothing to save", async () => {
-      const storageGetStub = stub().returns({
-        metadata: {
-          created: new Date(),
-          modified: new Date(),
-          name: "test",
-        },
-        state: mockState,
-      });
-      sandbox.replace(storage, "get", storageGetStub);
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        feedback: {
-          ...mockState.feedback,
-          visibleModals: ["openUpload"],
-        },
-        upload: getMockStateWithHistory({}),
-      });
-
-      // before
-      expect(getOpenUploadModalVisible(store.getState())).to.be.true;
-
-      // apply
-      store.dispatch(openUploadDraft("test"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(getOpenUploadModalVisible(store.getState())).to.be.false;
-      expect(getSaveUploadDraftModalVisible(store.getState())).to.be.false;
-    });
-  });
+  // describe("saveUploadDraftLogic", () => {
+  //   it("sets error alert if upload is empty", async () => {
+  //     const { store, logicMiddleware } = createMockReduxStore({
+  //       ...mockState,
+  //       upload: getMockStateWithHistory({}),
+  //     });
+  //
+  //     // before
+  //     expect(getAlert(store.getState())).to.be.undefined;
+  //
+  //     // apply
+  //     store.dispatch(saveUploadDraft("test"));
+  //     await logicMiddleware.whenComplete();
+  //
+  //     // after
+  //     const alert = getAlert(store.getState());
+  //     expect(alert).to.not.be.undefined;
+  //     if (alert) {
+  //       expect(alert.type).to.equal(AlertType.ERROR);
+  //       expect(alert.message).to.equal("Nothing to save");
+  //     }
+  //   });
+  //   it("sets error alert if a draftName cannot be resolved", async () => {
+  //     const { store, logicMiddleware } = createMockReduxStore(mockState);
+  //
+  //     // before
+  //     expect(getAlert(store.getState())).to.be.undefined;
+  //
+  //     // apply
+  //     store.dispatch(saveUploadDraft(" "));
+  //     await logicMiddleware.whenComplete();
+  //
+  //     // after
+  //     const alert = getAlert(store.getState());
+  //     expect(alert).to.not.be.undefined;
+  //     if (alert) {
+  //       expect(alert.type).to.equal(AlertType.ERROR);
+  //       expect(alert.message).to.equal("Draft name cannot be empty");
+  //     }
+  //   });
+  //   it("sets current upload and writes to storage", async () => {
+  //     const { actions, store, logicMiddleware } = createMockReduxStore(
+  //       mockState
+  //     );
+  //
+  //     // before
+  //     expect(getCurrentUpload(store.getState())).to.be.undefined;
+  //
+  //     // apply
+  //     const now = new Date();
+  //     const state = store.getState();
+  //     store.dispatch(saveUploadDraft("test"));
+  //     await logicMiddleware.whenComplete();
+  //
+  //     // after
+  //     const currentUpload = getCurrentUpload(store.getState());
+  //     expect(getCurrentUpload(store.getState())).to.not.be.undefined;
+  //     expect(currentUpload?.name).to.equal("test");
+  //     expect(actions.list.length).to.equal(1);
+  //     expect(actions.list[0].writeToStore).to.be.true;
+  //     expect(actions.list[0].updates).to.deep.equal({
+  //       [`draft.test-${moment(now).format(LONG_DATETIME_FORMAT)}`]: {
+  //         metadata: {
+  //           created: now,
+  //           modified: now,
+  //           name: "test",
+  //         },
+  //         state,
+  //       },
+  //       upload: undefined, // this clears out the current upload draft
+  //     });
+  //   });
+  //   it("uses current upload name if no draft name argument and only updates modified date", async () => {
+  //     const oldDate = new Date(2020, 1, 11);
+  //     const { actions, store, logicMiddleware } = createMockReduxStore({
+  //       ...mockState,
+  //       metadata: {
+  //         ...mockState.metadata,
+  //         currentUpload: {
+  //           created: oldDate,
+  //           modified: oldDate,
+  //           name: "test",
+  //         },
+  //       },
+  //     });
+  //
+  //     const now = new Date();
+  //     const state = store.getState();
+  //
+  //     // before
+  //     expect(getCurrentUpload(store.getState())?.modified).to.equal(oldDate);
+  //     expect(getCurrentUpload(store.getState())?.created).to.equal(oldDate);
+  //
+  //     // apply
+  //     store.dispatch(saveUploadDraft());
+  //     await logicMiddleware.whenComplete();
+  //
+  //     // after
+  //     expect(getCurrentUpload(store.getState())?.modified).to.deep.equal(now);
+  //     expect(getCurrentUpload(store.getState())?.created).to.deep.equal(
+  //       oldDate
+  //     );
+  //
+  //     expect(actions.list.length).to.equal(1);
+  //     expect(actions.list[0].writeToStore).to.be.true;
+  //     expect(actions.list[0].updates).to.deep.equal({
+  //       [`draft.test-${moment(oldDate).format(LONG_DATETIME_FORMAT)}`]: {
+  //         metadata: {
+  //           created: oldDate,
+  //           modified: now,
+  //           name: "test",
+  //         },
+  //         state,
+  //       },
+  //       upload: undefined, // this clears out the current upload draft
+  //     });
+  //   });
+  // });
+  // describe("openUploadLogic", () => {
+  //   const sandbox = createSandbox();
+  //
+  //   afterEach(() => {
+  //     sandbox.restore();
+  //   });
+  //
+  //   it("sets error alert if local storage does not contain draft", async () => {
+  //     const storageGetStub = stub().returns(undefined);
+  //     sandbox.replace(storage, "get", storageGetStub);
+  //     const { store, logicMiddleware } = createMockReduxStore(mockState);
+  //
+  //     // before
+  //     expect(getAlert(store.getState())).to.be.undefined;
+  //
+  //     // apply
+  //     store.dispatch(openUploadDraft("test"));
+  //     await logicMiddleware.whenComplete();
+  //
+  //     // after
+  //     const alert = getAlert(store.getState());
+  //     expect(alert).to.not.be.undefined;
+  //     if (alert) {
+  //       expect(alert.type).to.equal(AlertType.ERROR);
+  //       expect(alert.message).to.equal("Could not find draft named test");
+  //     }
+  //   });
+  //   it("opens saveUploadDraft modal if a user is currently working on an upload", async () => {
+  //     const storageGetStub = stub().returns({
+  //       metadata: {
+  //         created: new Date(),
+  //         modified: new Date(),
+  //         name: "test",
+  //       },
+  //       state: mockState,
+  //     });
+  //     sandbox.replace(storage, "get", storageGetStub);
+  //     const { logicMiddleware, store } = createMockReduxStore({
+  //       ...mockState,
+  //       feedback: {
+  //         ...mockState.feedback,
+  //         visibleModals: ["openUpload"],
+  //       },
+  //     });
+  //
+  //     // before
+  //     expect(getOpenUploadModalVisible(store.getState())).to.be.true;
+  //     expect(getSaveUploadDraftModalVisible(store.getState())).to.be.false;
+  //
+  //     // apply
+  //     store.dispatch(openUploadDraft("test"));
+  //     await logicMiddleware.whenComplete();
+  //
+  //     // after
+  //     expect(getOpenUploadModalVisible(store.getState())).to.be.false;
+  //     expect(getSaveUploadDraftModalVisible(store.getState())).to.be.true;
+  //   });
+  // });
 });
