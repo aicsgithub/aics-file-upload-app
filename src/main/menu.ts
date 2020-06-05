@@ -2,7 +2,7 @@ import electron, { dialog, Menu, shell } from "electron";
 
 import {
   OPEN_OPEN_TEMPLATE_MODAL,
-  OPEN_UPLOAD_DRAFT,
+  OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   OPEN_SETTINGS_EDITOR,
   OPEN_TEMPLATE_EDITOR,
   SAVE_UPLOAD,
@@ -58,7 +58,8 @@ export const setMenu = (webContents: WebContents) => {
           label: "Open",
           submenu: [
             {
-              click: () => webContents.send(OPEN_UPLOAD_DRAFT),
+              click: () =>
+                webContents.send(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED),
               label: "Upload Draft",
             },
             {

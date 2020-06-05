@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import {
-  OPEN_UPLOAD_DRAFT,
+  OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SAFELY_CLOSE_WINDOW,
   SAVE_UPLOAD,
   SWITCH_ENVIRONMENT,
@@ -214,7 +214,10 @@ class App extends React.Component<AppProps, {}> {
       }
     });
     ipcRenderer.on(SAVE_UPLOAD, () => this.props.saveUploadDraft(true));
-    ipcRenderer.on(OPEN_UPLOAD_DRAFT, this.props.openUploadDraft);
+    ipcRenderer.on(
+      OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
+      this.props.openUploadDraft
+    );
   }
 
   public componentDidUpdate(prevProps: AppProps) {
