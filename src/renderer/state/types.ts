@@ -74,6 +74,9 @@ export type ReduxLogicProcessDependencies = Process.DepObj<
   ReduxLogicExtraDependencies,
   undefined
 >;
+export type ReduxLogicProcessDependenciesWithAction<
+  Action extends AnyAction
+> = Process.DepObj<State, Action, ReduxLogicExtraDependencies>;
 export type ReduxLogicTransformDependencies = DepObj<
   State,
   AnyAction,
