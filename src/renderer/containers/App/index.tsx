@@ -37,7 +37,6 @@ import {
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { getCurrentUploadFilePath } from "../../state/metadata/selectors";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
@@ -103,7 +102,7 @@ import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
-import { getFileToTags } from "./selectors";
+import { getFileToTags, getUploadTabName } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -144,7 +143,7 @@ interface AppProps {
   undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
   undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
   updateSettings: ActionCreator<UpdateSettingsAction>;
-  uploadTabName?: string;
+  uploadTabName: string;
   view: Page;
 }
 
@@ -354,7 +353,7 @@ class App extends React.Component<AppProps, {}> {
               {page !== Page.UploadSummary && (
                 <TabPane
                   className={classNames(styles.uploadTab, styles.tabContent)}
-                  tab={uploadTabName || "Current Upload"}
+                  tab={uploadTabName}
                   key={page}
                   closable={true}
                 >
@@ -403,7 +402,7 @@ function mapStateToProps(state: State) {
     setMountPointNotificationVisible: getSetMountPointNotificationVisible(
       state
     ),
-    uploadTabName: getCurrentUploadFilePath(state),
+    uploadTabName: getUploadTabName(state),
     view: getView(state),
   };
 }

@@ -1,3 +1,5 @@
+import { basename } from "path";
+
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
 
@@ -5,7 +7,10 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { getImagingSessions } from "../../state/metadata/selectors";
+import {
+  getCurrentUploadFilePath,
+  getImagingSessions,
+} from "../../state/metadata/selectors";
 import { ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
@@ -99,5 +104,15 @@ export const getFileToTags = createSelector(
       }
     );
     return result;
+  }
+);
+
+export const getUploadTabName = createSelector(
+  [getCurrentUploadFilePath],
+  (filePath?: string): string => {
+    if (filePath) {
+      return basename(filePath, ".json");
+    }
+    return "Current Upload";
   }
 );
