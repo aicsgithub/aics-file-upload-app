@@ -38,6 +38,7 @@ import {
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { getCurrentUploadFilePath } from "../../state/metadata/selectors";
+import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
 import {
@@ -58,6 +59,8 @@ import {
 import {
   ClearStagedFilesAction,
   GetFilesInFolderAction,
+  LoadFilesFromDragAndDropAction,
+  LoadFilesFromOpenDialogAction,
   SelectFileAction,
   UploadFile,
 } from "../../state/selection/types";
@@ -69,6 +72,7 @@ import {
 } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
 import {
+  GatherSettingsAction,
   SetMountPointAction,
   SwitchEnvironmentAction,
   UpdateSettingsAction,
@@ -84,6 +88,7 @@ import {
 } from "../../state/upload/actions";
 import {
   FileTag,
+  RemoveFileFromArchiveAction,
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
@@ -115,17 +120,17 @@ interface AppProps {
   fileToTags: Map<string, FileTag[]>;
   files: UploadFile[];
   folderTreeOpen: boolean;
-  gatherSettings: typeof gatherSettings;
+  gatherSettings: ActionCreator<GatherSettingsAction>;
   getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
   limsUrl: string;
-  loadFilesFromDragAndDrop: typeof loadFilesFromDragAndDrop;
-  openFilesFromDialog: typeof openFilesFromDialog;
+  loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
+  openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
   openUploadDraft: typeof openUploadDraft;
   loading: boolean;
   recentEvent?: AppEvent;
-  removeFileFromArchive: typeof removeFileFromArchive;
-  removeFileFromIsilon: typeof removeFileFromIsilon;
-  requestMetadata: typeof requestMetadata;
+  removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
+  removeFileFromIsilon: ActionCreator<RemoveFileFromArchiveAction>;
+  requestMetadata: ActionCreator<RequestMetadataAction>;
   saveUploadDraft: typeof saveUploadDraft;
   selectFile: ActionCreator<SelectFileAction>;
   selectedFiles: string[];
