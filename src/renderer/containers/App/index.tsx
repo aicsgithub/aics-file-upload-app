@@ -9,8 +9,8 @@ import { ActionCreator } from "redux";
 import {
   OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SAFELY_CLOSE_WINDOW,
-  SAVE_UPLOAD,
-  SWITCH_ENVIRONMENT,
+  SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
+  SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../../../shared/constants";
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
@@ -195,7 +195,10 @@ class App extends React.Component<AppProps, {}> {
   public componentDidMount() {
     this.props.requestMetadata();
     this.props.gatherSettings();
-    ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
+    ipcRenderer.on(
+      SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
+      this.props.switchEnvironment
+    );
     ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
       const warning =
         "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
@@ -218,7 +221,9 @@ class App extends React.Component<AppProps, {}> {
         remote.app.exit();
       }
     });
-    ipcRenderer.on(SAVE_UPLOAD, () => this.props.saveUploadDraft(true));
+    ipcRenderer.on(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
+      this.props.saveUploadDraft(true)
+    );
     ipcRenderer.on(
       OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
       this.props.openUploadDraft
@@ -272,9 +277,9 @@ class App extends React.Component<AppProps, {}> {
   }
 
   public componentWillUnmount(): void {
-    ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT);
+    ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED);
     ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
-    ipcRenderer.removeAllListeners(SAVE_UPLOAD);
+    ipcRenderer.removeAllListeners(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
   }
 
   public render() {

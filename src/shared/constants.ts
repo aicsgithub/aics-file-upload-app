@@ -10,20 +10,23 @@ export const OPEN_CREATE_PLATE_STANDALONE = "OPEN_CREATE_PLATE";
 export const PLATE_CREATED = "PLATE-CREATED";
 
 // emitted by main process when user selects File > Switch Environment
-export const SWITCH_ENVIRONMENT = "SWITCH_ENVIRONMENT";
+export const SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED =
+  "SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED";
 
 // emitted by main process when user tries to exit the app
 export const SAFELY_CLOSE_WINDOW = "SAFELY_CLOSE_WINDOW";
 
 // emitted by main process when user selects File > New > Template
-export const OPEN_TEMPLATE_EDITOR = "OPEN_TEMPLATE_EDITOR";
+export const OPEN_TEMPLATE_MENU_ITEM_CLICKED =
+  "OPEN_TEMPLATE_MENU_ITEM_CLICKED";
 
 // emitted by main process when user selects File > Open > Upload Draft
 export const OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED =
   "OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED";
 
 // emitted by main process when user selects File > Save Upload Draft
-export const SAVE_UPLOAD = "SAVE_UPLOAD";
+export const SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED =
+  "SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED";
 
 // emitted by main process when user selects File > Open > Template
 export const OPEN_OPEN_TEMPLATE_MODAL = "OPEN_OPEN_TEMPLATE_MODAL";
