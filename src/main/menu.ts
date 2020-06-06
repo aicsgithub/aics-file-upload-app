@@ -58,6 +58,7 @@ export const setMenu = (webContents: WebContents) => {
           label: "Open",
           submenu: [
             {
+              accelerator: "CommandOrControl+O",
               click: () =>
                 webContents.send(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED),
               label: "Upload Draft",
@@ -70,11 +71,14 @@ export const setMenu = (webContents: WebContents) => {
         },
         { type: "separator" },
         {
+          accelerator: "CommandOrControl+S",
           click: () => webContents.send(SAVE_UPLOAD),
           label: "Save",
         },
         { type: "separator" },
         {
+          accelerator:
+            process.platform === "darwin" ? "Command+," : "Ctrl+Alt+S",
           click: () => webContents.send(OPEN_SETTINGS_EDITOR),
           label: "Settings",
         },
