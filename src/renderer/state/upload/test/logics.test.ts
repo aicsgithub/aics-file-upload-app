@@ -250,7 +250,6 @@ describe("Upload logics", () => {
         getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })
       ];
       expect(uploadRow).to.not.be.undefined;
-      console.log(uploadRow);
       expect(uploadRow[WELL_ANNOTATION_NAME]?.length).to.equal(1);
     });
 
