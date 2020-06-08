@@ -49,7 +49,6 @@ import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
-  getCurrentUploadFilePath,
 } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
 import { selectPage } from "../route/actions";
@@ -223,7 +222,6 @@ const initiateUploadLogic = createLogic({
   process: async (
     {
       ctx,
-      deleteFile,
       fms,
       getApplicationMenu,
       getState,
@@ -281,11 +279,6 @@ const initiateUploadLogic = createLogic({
       const updates: { [key: string]: any } = {
         [INCOMPLETE_JOB_IDS_KEY]: updatedIncompleteJobIds,
       };
-
-      const currentUploadFilePath = getCurrentUploadFilePath(getState());
-      if (currentUploadFilePath) {
-        await deleteFile(currentUploadFilePath);
-      }
 
       dispatch({
         ...batchActions(actions),

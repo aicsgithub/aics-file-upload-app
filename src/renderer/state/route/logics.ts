@@ -159,9 +159,9 @@ export const handleGoingToNextPageForNewUpload = (
       selectPage(getPage(state), nextPage)
     ),
     clearUploadDraft(),
-    clearUploadDraft(),
     clearUploadHistory(),
     clearSelectionHistory(),
+    clearTemplateHistory(),
   ];
 };
 

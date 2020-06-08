@@ -1,8 +1,4 @@
-import {
-  readFile as fsReadFile,
-  unlink as fsUnlink,
-  writeFile as fsWriteFile,
-} from "fs";
+import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
 import { userInfo } from "os";
 import { promisify } from "util";
 
@@ -48,7 +44,6 @@ import {
 } from "./";
 
 const readFile = promisify(fsReadFile);
-const deleteFile = promisify(fsUnlink);
 const writeFile = promisify(fsWriteFile);
 
 const storage = new Store();
@@ -78,7 +73,6 @@ const logics = [
 const username: string = userInfo().username;
 
 export const reduxLogicDependencies = {
-  deleteFile,
   dialog: remote.dialog,
   fms: new FileManagementSystem({
     host: LIMS_HOST,

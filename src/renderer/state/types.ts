@@ -48,7 +48,6 @@ export interface LocalStorage {
 
 export interface ReduxLogicExtraDependencies {
   ctx?: any;
-  deleteFile: (filePath: string) => Promise<void>;
   dialog: {
     showOpenDialog(
       options: OpenDialogOptions

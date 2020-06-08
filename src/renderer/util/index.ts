@@ -470,21 +470,9 @@ export const getSetAppliedTemplateAction = async (
   return setAppliedTemplate(template, uploads);
 };
 
-const saveDraftToFile = async (
-  filePath: string,
-  writeFile: (filePath: string, content: string) => Promise<void>,
-  getState: () => State
-): Promise<void> => {
-  try {
-    await writeFile(filePath, JSON.stringify(getState()));
-  } catch (e) {
-    throw new Error("Error while saving file: " + e.message);
-  }
-};
-
-const CANCEL_BUTTON_INDEX = 0;
-const DISCARD_BUTTON_INDEX = 1;
-const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
+export const CANCEL_BUTTON_INDEX = 0;
+export const DISCARD_BUTTON_INDEX = 1;
+export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
 /**
  * Helper function for logics that need to ensure that user has a chance
  * to save their upload before the upload potentially gets updated.
@@ -509,7 +497,7 @@ export const ensureDraftGetsSaved = async (
   // if currentUploadFilePath is set, user is working on a upload draft that
   // they have saved before. Now we just need to save to that file.
   if (currentUploadFilePath) {
-    await saveDraftToFile(currentUploadFilePath, writeFile, getState);
+    await writeFile(currentUploadFilePath, JSON.stringify(getState()));
     return { cancelled: false, filePath: currentUploadFilePath };
   } else if (getCanSaveUploadDraft(getState())) {
     // figure out if user wants to save their draft before we replace it
@@ -540,7 +528,7 @@ export const ensureDraftGetsSaved = async (
           filters: [{ name: "JSON", extensions: ["json"] }],
         });
         if (filePath) {
-          await saveDraftToFile(filePath, writeFile, getState);
+          await writeFile(filePath, JSON.stringify(getState()));
         }
 
         return {
