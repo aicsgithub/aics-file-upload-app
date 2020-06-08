@@ -485,6 +485,17 @@ const saveDraftToFile = async (
 const CANCEL_BUTTON_INDEX = 0;
 const DISCARD_BUTTON_INDEX = 1;
 const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
+/**
+ * Helper function for logics that need to ensure that user has a chance
+ * to save their upload before the upload potentially gets updated.
+ * Examples include: close upload tab, editing an upload, opening an upload, saving an upload.
+ * @param deps redux logic transform dependencies
+ * @param skipWarningDialog whether or not to warn users that if they don't save, their draft will be discarded.
+ * This won't be necessary if the user explicitly saves the draft (i.e. File > Save)
+ * Returns promise of object { cancelled: boolean, filePath?: string } where cancelled indicates whether
+ * to continue with this action (if cancelled is true - logics should reject) and filePath represents
+ * the file that user chose to save their draft to - this will be undefined if the user cancels saving.
+ */
 export const ensureDraftGetsSaved = async (
   deps: ReduxLogicTransformDependencies,
   skipWarningDialog = false
