@@ -210,7 +210,7 @@ export const getSelectPageActions = (
       const historyForThisStateBranch = history.getHistory(state);
 
       if (nextPageOrder === 0 && currentPageOrder === pageOrder.length - 1) {
-        actions.push(history.jumpToPast(0), history.clearHistory());
+        actions.push(history.clearHistory(), history.jumpToPast(0));
       } else if (
         historyForThisStateBranch &&
         !isNil(historyForThisStateBranch[nextPage])
