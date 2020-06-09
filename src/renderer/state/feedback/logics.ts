@@ -1,7 +1,7 @@
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 import { getAnnotationTypes } from "../metadata/selectors";
 import { updateTemplateDraft } from "../template/actions";
@@ -69,7 +69,7 @@ const openTemplateEditorLogic = createLogic({
     dispatch(batchActions(actions));
     done();
   },
-  type: OPEN_TEMPLATE_EDITOR,
+  type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
 });
 
 const closeModalLogic = createLogic({

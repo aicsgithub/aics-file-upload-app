@@ -7,6 +7,7 @@ import { createSandbox, spy, stub, useFakeTimers } from "sinon";
 import {
   alphaOrderComparator,
   convertToArray,
+  ensureDraftGetsSaved,
   getSetAppliedTemplateAction,
   getSetPlateAction,
   getWithRetry,
@@ -31,7 +32,12 @@ import {
 } from "../../state/selection/types";
 import { setAppliedTemplate } from "../../state/template/actions";
 import { SetAppliedTemplateAction } from "../../state/template/types";
-import { fms, mmsClient } from "../../state/test/configure-mock-store";
+import {
+  dialog,
+  fms,
+  mmsClient,
+  mockReduxLogicDeps,
+} from "../../state/test/configure-mock-store";
 import {
   getMockStateWithHistory,
   mockAuditInfo,
@@ -39,13 +45,22 @@ import {
   mockFavoriteColorAnnotation,
   mockMMSTemplate,
   mockNumberAnnotation,
+  mockState,
   nonEmptyStateForInitiatingUpload,
 } from "../../state/test/mocks";
-import { HTTP_STATUS, State } from "../../state/types";
+import {
+  HTTP_STATUS,
+  ReduxLogicTransformDependencies,
+  State,
+} from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
+  const sandbox = createSandbox();
+  afterEach(() => {
+    sandbox.restore();
+  });
   describe("getWellLabel", () => {
     it("should display A1 given {row: 0, col: 0}", () => {
       const wellLabel = getWellLabel({ row: 0, col: 0 });
@@ -463,7 +478,6 @@ describe("General utilities", () => {
     });
   });
   describe("getSetPlateAction", () => {
-    const sandbox = createSandbox();
     const barcode = "123456";
     const mockEmptyWell: Well = {
       cellPopulations: [],
@@ -483,9 +497,6 @@ describe("General utilities", () => {
       plateStatusId: 1,
       seededOn: "2018-02-14 23:03:52",
     };
-    afterEach(() => {
-      sandbox.restore();
-    });
     it("creates a map of imagingSessionIds to plate and well info", async () => {
       const mockGetPlateResponse1: GetPlateResponse = {
         plate: mockPlate,
@@ -522,10 +533,6 @@ describe("General utilities", () => {
     });
   });
   describe("retrieveFileMetadata", () => {
-    const sandbox = createSandbox();
-    afterEach(() => {
-      sandbox.restore();
-    });
     it("returns result of fms.transformFileMetadataIntoTable", async () => {
       const expected: ImageModelMetadata[] = [
         {
@@ -556,7 +563,6 @@ describe("General utilities", () => {
     });
   });
   describe("getSetAppliedTemplateAction", () => {
-    const sandbox = createSandbox();
     let mockStateWithUploads: State;
     const key = getUploadRowKey({ file: "/path/to/file1" });
     const template = {
@@ -594,10 +600,6 @@ describe("General utilities", () => {
           },
         }),
       };
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     it("throws error if no boolean type set", () => {
@@ -652,6 +654,126 @@ describe("General utilities", () => {
           },
         })
       );
+    });
+  });
+  describe("ensureDraftGetsSaved", () => {
+    const runTest = async (
+      state: State,
+      skipWarningDialog: boolean,
+      showMessageBoxResponse?: number,
+      saveFilePath?: string
+    ) => {
+      const writeFileStub = stub();
+      const showMessageBoxStub = stub().resolves({
+        response: showMessageBoxResponse,
+      });
+      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+      const showSaveDialogStub = stub().resolves({ filePath: saveFilePath });
+      sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
+      const deps = ({
+        ...mockReduxLogicDeps,
+        getState: () => state,
+        writeFile: writeFileStub,
+      } as any) as ReduxLogicTransformDependencies;
+
+      const result = await ensureDraftGetsSaved(deps, skipWarningDialog);
+      return { result, showMessageBoxStub, showSaveDialogStub, writeFileStub };
+    };
+    it("automatically saves draft if user is working on a draft that has previously been saved", async () => {
+      const state = {
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          currentUploadFilePath: "/foo",
+        },
+      };
+      const {
+        showMessageBoxStub,
+        showSaveDialogStub,
+        writeFileStub,
+      } = await runTest(state, false);
+      expect(writeFileStub.called).to.be.true;
+      expect(showMessageBoxStub.called).to.be.false;
+      expect(showSaveDialogStub.called).to.be.false;
+    });
+    it("shows warning dialog if skipWarningDialog is false", async () => {
+      const { showMessageBoxStub } = await runTest(mockState, false);
+      expect(showMessageBoxStub.called).to.be.true;
+    });
+    it("does not show warning dialog if skipWarningDialog is true and opens save dialog", async () => {
+      const { showMessageBoxStub, showSaveDialogStub } = await runTest(
+        mockState,
+        true
+      );
+      expect(showMessageBoxStub.called).to.be.false;
+      expect(showSaveDialogStub.called).to.be.true;
+    });
+    it("returns { cancelled: false, filePath: undefined } if user chooses to discard draft", async () => {
+      const { result, showMessageBoxStub, showSaveDialogStub } = await runTest(
+        mockState,
+        false,
+        1 // discard button index
+      );
+      expect(showMessageBoxStub.called).to.be.true;
+      expect(showSaveDialogStub.called).to.be.false;
+      expect(result).to.deep.equal({
+        cancelled: false,
+        filePath: undefined,
+      });
+    });
+    it("shows saveDialog and returns { cancelled: false, filePath } with filePath chosen by user", async () => {
+      const filePath = "/foo";
+      const {
+        result,
+        showMessageBoxStub,
+        showSaveDialogStub,
+        writeFileStub,
+      } = await runTest(
+        mockState,
+        false,
+        2, // save button index
+        filePath
+      );
+      expect(showMessageBoxStub.called).to.be.true;
+      expect(showSaveDialogStub.called).to.be.true;
+      expect(writeFileStub.called).to.be.true;
+      expect(result).to.deep.equal({
+        cancelled: false,
+        filePath,
+      });
+    });
+    it("shows saveDialog and returns { cancelled: false, filePath: undefined } if user decides to cancel saving draft", async () => {
+      const {
+        result,
+        showMessageBoxStub,
+        showSaveDialogStub,
+        writeFileStub,
+      } = await runTest(
+        mockState,
+        false,
+        2, // save button index
+        undefined
+      );
+      expect(showMessageBoxStub.called).to.be.true;
+      expect(showSaveDialogStub.called).to.be.true;
+      expect(writeFileStub.called).to.be.false;
+      expect(result).to.deep.equal({
+        cancelled: false,
+        filePath: undefined,
+      });
+    });
+    it("returns { cancelled: true, filePath: undefined } if user clicks Cancel in warning dialog", async () => {
+      const { result, showMessageBoxStub, showSaveDialogStub } = await runTest(
+        mockState,
+        false,
+        0 // cancel button index
+      );
+      expect(showMessageBoxStub.called).to.be.true;
+      expect(showSaveDialogStub.called).to.be.false;
+      expect(result).to.deep.equal({
+        cancelled: true,
+        filePath: undefined,
+      });
     });
   });
 });

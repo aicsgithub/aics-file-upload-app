@@ -3,7 +3,6 @@ import {
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { CurrentUpload } from "../metadata/types";
 import { Workflow } from "../selection/types";
 import { State } from "../types";
 
@@ -32,6 +31,7 @@ import {
   RETRY_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT,
   SUBMIT_FILE_METADATA_UPDATE,
+  SAVE_UPLOAD_DRAFT_SUCCESS,
   UNDO_FILE_WELL_ASSOCIATION,
   UNDO_FILE_WORKFLOW_ASSOCIATION,
   UPDATE_FILES_TO_ARCHIVE,
@@ -66,6 +66,7 @@ import {
   RetryUploadFailedAction,
   RetryUploadSucceededAction,
   SaveUploadDraftAction,
+  SaveUploadDraftSuccessAction,
   SubmitFileMetadataUpdateAction,
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
@@ -356,28 +357,32 @@ export function clearUpload(): ClearUploadAction {
   };
 }
 
-// If draftName is provided, create a new draft with this name to storage
-// If not, get current upload that is open and save it to storage
-export function saveUploadDraft(draftName?: string): SaveUploadDraftAction {
+// This will automatically save the draft if metadata.currentUploadFilePath is set
+// And if not, it will open a save dialog.
+// If saveFilePathToStore is true, after the user saves the data to a file, the filePath
+// Will get set on metadata.currentUploadFilePath
+export function saveUploadDraft(
+  saveFilePathToStore = false
+): SaveUploadDraftAction {
   return {
-    payload: draftName,
+    payload: saveFilePathToStore,
     type: SAVE_UPLOAD_DRAFT,
   };
 }
 
-export function openUploadDraft(draftName: string): OpenUploadDraftAction {
+// This opens a native open dialog, allowing users to select a upload draft from their file system
+export function openUploadDraft(): OpenUploadDraftAction {
   return {
-    payload: draftName,
     type: OPEN_UPLOAD_DRAFT,
   };
 }
 
-export function replaceUpload(upload: {
-  metadata: CurrentUpload;
-  state: State;
-}): ReplaceUploadAction {
+export function replaceUpload(
+  filePath: string,
+  replacementState: State
+): ReplaceUploadAction {
   return {
-    payload: upload,
+    payload: { filePath, replacementState },
     type: REPLACE_UPLOAD,
   };
 }
@@ -385,6 +390,19 @@ export function replaceUpload(upload: {
 export function clearUploadDraft(): ClearUploadDraftAction {
   return {
     type: CLEAR_UPLOAD_DRAFT,
+    updates: {
+      [TEMP_UPLOAD_STORAGE_KEY]: undefined,
+    },
+    writeToStore: true,
+  };
+}
+
+export function saveUploadDraftSuccess(
+  filePath?: string
+): SaveUploadDraftSuccessAction {
+  return {
+    payload: filePath,
+    type: SAVE_UPLOAD_DRAFT_SUCCESS,
     updates: {
       [TEMP_UPLOAD_STORAGE_KEY]: undefined,
     },

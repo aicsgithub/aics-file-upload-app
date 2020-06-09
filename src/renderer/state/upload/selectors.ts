@@ -891,9 +891,12 @@ export const getCanGoForwardFromSelectStorageLocationPage = createSelector(
 );
 
 export const getCanSaveUploadDraft = createSelector(
-  [getUpload],
-  (upload: UploadStateBranch) => {
-    return !isEmpty(upload);
+  [getUpload, getOriginalUpload],
+  (upload: UploadStateBranch, originalUpload?: UploadStateBranch) => {
+    if (!originalUpload) {
+      return !isEmpty(upload);
+    }
+    return !isEqual(originalUpload, upload);
   }
 );
 

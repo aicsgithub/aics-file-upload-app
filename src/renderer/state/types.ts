@@ -18,6 +18,7 @@ import { TemplateStateBranch } from "./template/types";
 import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
+import SaveDialogOptions = Electron.SaveDialogOptions;
 
 export interface ActionDescription {
   accepts: (action: AnyAction) => boolean;
@@ -52,6 +53,9 @@ export interface Dialog {
   showMessageBox(
     options: MessageBoxOptions
   ): Promise<Electron.MessageBoxReturnValue>;
+  showSaveDialog(
+    options: SaveDialogOptions
+  ): Promise<Electron.SaveDialogReturnValue>;
 }
 
 export interface ReduxLogicExtraDependencies {
@@ -67,7 +71,9 @@ export interface ReduxLogicExtraDependencies {
   labkeyClient: LabkeyClient;
   logger: Logger;
   mmsClient: MMSClient;
+  readFile: (filePath: string, encoding?: string) => Promise<string | Buffer>;
   storage: LocalStorage;
+  writeFile: (filePath: string, content: string | Buffer) => Promise<void>;
 }
 
 export type ReduxLogicProcessDependencies = Process.DepObj<

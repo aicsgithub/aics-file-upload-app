@@ -1,4 +1,6 @@
+import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
 import { userInfo } from "os";
+import { promisify } from "util";
 
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
@@ -21,12 +23,12 @@ import {
   LIMS_PROTOCOL,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../shared/constants";
-import { getCurrentUploadKey } from "../containers/App/selectors";
 import LabkeyClient from "../util/labkey-client";
 import MMSClient from "../util/mms-client";
 
 import { addEvent } from "./feedback/actions";
 import { AlertType } from "./feedback/types";
+import { getCurrentUploadFilePath } from "./metadata/selectors";
 import { State } from "./types";
 
 import {
@@ -40,6 +42,9 @@ import {
   template,
   upload,
 } from "./";
+
+const readFile = promisify(fsReadFile);
+const writeFile = promisify(fsWriteFile);
 
 const storage = new Store();
 
@@ -97,16 +102,32 @@ export const reduxLogicDependencies = {
     protocol: LIMS_PROTOCOL,
     username,
   }),
+  readFile,
   storage,
+  writeFile,
 };
 
-const autoSaver = (store: any) => (next: any) => (action: AnyAction) => {
+const autoSaver = (store: any) => (next: any) => async (action: AnyAction) => {
   let result = next(action);
   if (action.autoSave) {
     const nextState = store.getState();
-    const currentDraftKey =
-      getCurrentUploadKey(store.getState()) || TEMP_UPLOAD_STORAGE_KEY;
-    storage.set(currentDraftKey, nextState);
+    const currentUploadFilePath = getCurrentUploadFilePath(nextState);
+    if (currentUploadFilePath) {
+      try {
+        await writeFile(currentUploadFilePath, JSON.stringify(nextState));
+      } catch (e) {
+        return next(
+          addEvent(
+            `Failed to autosave file: ${e.message}`,
+            AlertType.ERROR,
+            new Date()
+          )
+        );
+      }
+    } else {
+      storage.set(TEMP_UPLOAD_STORAGE_KEY, nextState);
+    }
+
     result = next(
       addEvent(
         `Your draft was saved at ${moment().format("h:mm a")}`,

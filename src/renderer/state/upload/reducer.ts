@@ -265,9 +265,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === REPLACE_UPLOAD,
     perform: (
       state: UploadStateBranch,
-      { payload: { state: savedState } }: ReplaceUploadAction
+      { payload: { replacementState } }: ReplaceUploadAction
     ) => ({
-      ...getUpload(savedState),
+      ...getUpload(replacementState),
     }),
   },
   [CLOSE_UPLOAD_TAB]: {

@@ -233,16 +233,16 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === REPLACE_UPLOAD,
     perform: (
       state: SelectionStateBranch,
-      { payload: { state: savedState } }: ReplaceUploadAction
+      { payload: { replacementState } }: ReplaceUploadAction
     ) => ({
       ...state,
       ...uploadTabSelectionInitialState,
-      barcode: getSelectedBarcode(savedState),
-      expandedUploadJobRows: getExpandedUploadJobRows(savedState),
-      imagingSessionId: getSelectedImagingSessionId(savedState),
-      imagingSessionIds: getSelectedImagingSessionIds(savedState),
-      plate: getSelectedPlates(savedState),
-      wells: getWells(savedState),
+      barcode: getSelectedBarcode(replacementState),
+      expandedUploadJobRows: getExpandedUploadJobRows(replacementState),
+      imagingSessionId: getSelectedImagingSessionId(replacementState),
+      imagingSessionIds: getSelectedImagingSessionIds(replacementState),
+      plate: getSelectedPlates(replacementState),
+      wells: getWells(replacementState),
     }),
   },
   [CLOSE_UPLOAD_TAB]: {

@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { get } from "lodash";
-import * as moment from "moment";
 
 import {
   WELL_ANNOTATION_NAME,
@@ -15,27 +14,7 @@ import {
   mockWells,
 } from "../../../state/test/mocks";
 import { State } from "../../../state/types";
-import { DRAFT_KEY } from "../../../state/upload/constants";
-import {
-  getCurrentUploadKey,
-  getCurrentUploadName,
-  getFileToTags,
-  getUploadTabName,
-} from "../selectors";
-
-const CREATED = "Mar 24, 2020 3:14 PM";
-const UPLOAD_NAME = "foo";
-const stateWithCurrentUpload = Object.freeze({
-  ...mockState,
-  metadata: {
-    ...mockState.metadata,
-    currentUpload: {
-      created: moment(CREATED, "lll").toDate(),
-      modified: new Date(),
-      name: UPLOAD_NAME,
-    },
-  },
-});
+import { getFileToTags, getUploadTabName } from "../selectors";
 
 describe("App selectors", () => {
   describe("getFileToTags", () => {
@@ -299,32 +278,18 @@ describe("App selectors", () => {
       expect(get(file2Tags, [1, "closable"])).to.be.false;
     });
   });
-  describe("getCurrentUploadName", () => {
-    it("returns current upload name if there is a current upload", () => {
-      const name = getCurrentUploadName(stateWithCurrentUpload);
-      expect(name).to.equal(UPLOAD_NAME);
-    });
-    it("returns undefined if there is not a current upload", () => {
-      const name = getCurrentUploadName(mockState);
-      expect(name).to.be.undefined;
-    });
-  });
-  describe("getCurrentUploadKey", () => {
-    it("returns concatenation of name and created date", () => {
-      const key = getCurrentUploadKey(stateWithCurrentUpload);
-      expect(key).to.equal(`${DRAFT_KEY}.${UPLOAD_NAME}-${CREATED}`);
-    });
-    it("returns undefined if there is not a current upload", () => {
-      const key = getCurrentUploadKey(mockState);
-      expect(key).to.be.undefined;
-    });
-  });
   describe("getUploadTabName", () => {
     it("returns upload name if an upload draft is open", () => {
-      const name = getUploadTabName(stateWithCurrentUpload);
-      expect(name).to.equal(getCurrentUploadName(stateWithCurrentUpload));
+      const name = getUploadTabName({
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          currentUploadFilePath: "/test/foo.json",
+        },
+      });
+      expect(name).to.equal("foo");
     });
-    it("returns 'Edit Job: [JobName]' if job is selected", () => {
+    it("returns job name if job is selected", () => {
       const name = getUploadTabName({
         ...mockState,
         selection: getMockStateWithHistory({
@@ -332,7 +297,7 @@ describe("App selectors", () => {
           job: mockSuccessfulUploadJob,
         }),
       });
-      expect(name).to.equal(`Edit Job: ${mockSuccessfulUploadJob.jobName}`);
+      expect(name).to.equal(mockSuccessfulUploadJob.jobName);
     });
     it("returns 'Current Upload' if user is working on a new upload", () => {
       const name = getUploadTabName(mockState);

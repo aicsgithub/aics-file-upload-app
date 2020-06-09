@@ -1,8 +1,6 @@
 import { expect } from "chai";
-import * as moment from "moment";
 
-import { DATETIME_FORMAT, WELL_ANNOTATION_NAME } from "../../../constants";
-import { getCurrentUploadName } from "../../../containers/App/selectors";
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { AsyncRequest } from "../../feedback/types";
 import {
   getMockStateWithHistory,
@@ -179,23 +177,18 @@ describe("Job selectors", () => {
 
   describe("getCurrentJobName", () => {
     it("returns undefined if upload is empty", () => {
-      const name = getCurrentUploadName({
+      const name = getCurrentJobName({
         ...mockState,
         upload: getMockStateWithHistory({}),
       });
       expect(name).to.be.undefined;
     });
-    it("returns name of current upload if already saved", () => {
-      const now = new Date();
+    it("returns name of current upload filepath if already saved", () => {
       const name = getCurrentJobName({
         ...mockState,
         metadata: {
           ...mockState.metadata,
-          currentUpload: {
-            created: now,
-            modified: now,
-            name: "test",
-          },
+          currentUploadFilePath: "/foo/bar/lisas-first-upload.json",
         },
         upload: getMockStateWithHistory({
           foo: {
@@ -205,7 +198,7 @@ describe("Job selectors", () => {
           },
         }),
       });
-      expect(name).to.equal(`test ${moment(now).format(DATETIME_FORMAT)}`);
+      expect(name).to.equal(`lisas-first-upload`);
     });
     it("returns names of files and created date if not saved", () => {
       const name = getCurrentJobName({
@@ -235,8 +228,7 @@ describe("Job selectors", () => {
       expect(inProgress).to.be.false;
     });
     it("returns true if requestsInProgress contains INITIATE_UPLOAD-currentUploadName", () => {
-      const now = new Date();
-      const currentJobName = `foo ${moment(now).format(DATETIME_FORMAT)}`;
+      const currentJobName = `foo`;
       const inProgress = getUploadInProgress({
         ...mockState,
         feedback: {
@@ -247,17 +239,12 @@ describe("Job selectors", () => {
         },
         metadata: {
           ...mockState.metadata,
-          currentUpload: {
-            created: now,
-            modified: now,
-            name: "foo",
-          },
+          currentUploadFilePath: "/path/foo.json",
         },
       });
       expect(inProgress).to.be.true;
     });
     it("returns false if requestsInProgress contains request belonging to a different upload", () => {
-      const now = new Date();
       const inProgress = getUploadInProgress({
         ...mockState,
         feedback: {
@@ -266,11 +253,7 @@ describe("Job selectors", () => {
         },
         metadata: {
           ...mockState.metadata,
-          currentUpload: {
-            created: now,
-            modified: now,
-            name: "foo",
-          },
+          currentUploadFilePath: "/path/foo.json",
         },
         upload: getMockStateWithHistory({
           foo: {

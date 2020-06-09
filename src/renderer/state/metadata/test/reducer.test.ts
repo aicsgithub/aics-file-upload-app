@@ -1,46 +1,87 @@
 import { expect } from "chai";
 
 import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
+import { Page } from "../../route/types";
 import { mockState, mockSuccessfulUploadJob } from "../../test/mocks";
-import { replaceUpload } from "../../upload/actions";
-import { setCurrentUpload } from "../actions";
+import { replaceUpload, saveUploadDraftSuccess } from "../../upload/actions";
+import {
+  clearFileMetadataForJob,
+  clearOptionsForLookup,
+  receiveFileMetadata,
+  receiveMetadata,
+  resetHistory,
+  searchFileMetadata,
+  updatePageHistory,
+} from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
-import { CurrentUpload } from "../types";
 
 describe("metadata reducer", () => {
-  let currentUpload: CurrentUpload;
-  beforeEach(() => {
-    currentUpload = {
-      created: new Date(),
-      modified: new Date(),
-      name: "foo",
-    };
-  });
-  describe("replaceUpload", () => {
-    it("sets currentUpload", () => {
+  const filePath = "/foo/bar/test.json";
+  describe("clearOptionsForLookup", () => {
+    it("sets options to an empty array", () => {
       const result = reducer(
-        initialState,
-        replaceUpload({
-          metadata: currentUpload,
-          state: mockState,
-        })
+        { ...initialState, "Cell Lines": [{}, {}] },
+        clearOptionsForLookup("Cell Lines")
       );
-      expect(result.currentUpload).to.not.be.undefined;
+      expect(result["Cell Lines"]).to.be.empty;
     });
   });
-  describe("setCurrentUpload", () => {
-    it("sets currentUpload", () => {
-      const result = reducer(initialState, setCurrentUpload(currentUpload));
-      expect(result.currentUpload).to.not.be.undefined;
+  describe("receiveMetadata", () => {
+    it("adds metadata from payload", () => {
+      const result = reducer(initialState, receiveMetadata({ color: "red" }));
+      expect(result.color).to.equal("red");
+    });
+  });
+  describe("resetHistory", () => {
+    it("resets selection, template, and upload history", () => {
+      const result = reducer(initialState, resetHistory());
+      expect(result.history).to.deep.equal({
+        selection: {},
+        template: {},
+        upload: {},
+      });
+    });
+  });
+  describe("searchFileMetadata", () => {
+    it("clears previous search results", () => {
+      const result = reducer(initialState, searchFileMetadata({}));
+      expect(result.fileMetadataSearchResults).to.be.undefined;
+      expect(result.fileMetadataSearchResultsAsTable).to.be.undefined;
+    });
+  });
+  describe("updatePageHistory", () => {
+    it("updates page history", () => {
+      const result = reducer(
+        initialState,
+        updatePageHistory(Page.DragAndDrop, 1, 2, 3)
+      );
+      expect(result.history.selection[Page.DragAndDrop]).to.equal(1);
+      expect(result.history.upload[Page.DragAndDrop]).to.equal(2);
+      expect(result.history.template[Page.DragAndDrop]).to.equal(3);
+    });
+  });
+  describe("clearFileMetadataForJob", () => {
+    it("clears fileMetadataForJob", () => {
+      const result = reducer(
+        { ...initialState, fileMetadataForJob: [{}] },
+        clearFileMetadataForJob()
+      );
+      expect(result.fileMetadataForJob).to.be.undefined;
+    });
+  });
+  describe("replaceUpload", () => {
+    it("sets currentUploadFilePath", () => {
+      const result = reducer(initialState, replaceUpload(filePath, mockState));
+      expect(result.currentUploadFilePath).to.not.be.undefined;
     });
   });
   describe("closeUploadTab", () => {
-    it("clears currentUpload", () => {
+    it("clears currentUploadFilePath", () => {
       const result = reducer(
         {
           ...initialState,
-          currentUpload,
+          currentUploadFilePath: filePath,
         },
         closeUploadTab()
       );
@@ -58,15 +99,27 @@ describe("metadata reducer", () => {
     });
   });
   describe("openEditFileMetadataTab", () => {
-    it("clears currentUpload", () => {
+    it("clears currentUploadFilePath", () => {
       const result = reducer(
         {
           ...initialState,
-          currentUpload,
+          currentUploadFilePath: "/foo.json",
         },
         openEditFileMetadataTab(mockSuccessfulUploadJob)
       );
-      expect(result.currentUpload).to.be.undefined;
+      expect(result.currentUploadFilePath).to.be.undefined;
+    });
+  });
+  describe("receiveFileMetadata", () => {
+    it("sets fileMetadataForJob", () => {
+      const result = reducer(initialState, receiveFileMetadata([]));
+      expect(result.fileMetadataForJob).to.not.be.undefined;
+    });
+  });
+  describe("saveUploadDraftSuccess", () => {
+    it("sets currentUploadFilePath", () => {
+      const result = reducer(initialState, saveUploadDraftSuccess("/path"));
+      expect(result.currentUploadFilePath).to.not.be.undefined;
     });
   });
 });

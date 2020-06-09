@@ -4,7 +4,7 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Channel, CurrentUpload } from "../metadata/types";
+import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
 import { AutoSaveAction, State, WriteToStoreAction } from "../types";
 
@@ -267,19 +267,19 @@ export interface ClearUploadAction extends AutoSaveAction {
 }
 
 export interface SaveUploadDraftAction {
-  payload?: string;
+  // represents whether to set uploadDraftFilePath after success
+  payload: boolean;
   type: string;
 }
 
 export interface OpenUploadDraftAction {
-  payload: string;
   type: string;
 }
 
 export interface ReplaceUploadAction {
   payload: {
-    state: State;
-    metadata: CurrentUpload;
+    filePath: string;
+    replacementState: State;
   };
   type: string;
 }
@@ -298,6 +298,13 @@ export interface EditFileMetadataSucceededAction {
 
 export interface EditFileMetadataFailedAction {
   payload: string;
+  type: string;
+}
+
+export interface SaveUploadDraftSuccessAction extends WriteToStoreAction {
+  // this is the file path of the draft that was saved. It is undefined if we do not want to set this value on
+  // the store - for example when closing the upload tab we may save the draft but we want this value to be undefined.
+  payload?: string;
   type: string;
 }
 

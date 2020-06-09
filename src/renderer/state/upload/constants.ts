@@ -52,6 +52,10 @@ export const REMOVE_FILE_FROM_ISILON = makeConstant(
   "remove-file-from-isilon"
 );
 export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
+export const SAVE_UPLOAD_DRAFT_SUCCESS = makeConstant(
+  BRANCH_NAME,
+  "save-upload-draft-success"
+);
 export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
   BRANCH_NAME,
   "submit-file-metadata-update"

@@ -3,41 +3,33 @@ import { platform } from "os";
 
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, isEmpty, isEqual, isNil } from "lodash";
+import { castArray, difference, isEmpty, isNil } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import {
-  getCurrentUploadKey,
-  getCurrentUploadName,
-} from "../../containers/App/selectors";
-import {
   getSetAppliedTemplateAction,
   getSetPlateAction,
   getWithRetry,
+  ensureDraftGetsSaved,
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
 } from "../../util";
 import LabkeyClient from "../../util/labkey-client";
 import MMSClient from "../../util/mms-client";
 import {
-  openModal,
-  openSaveUploadDraftModal,
   openSetMountPointNotification,
-  setDeferredAction,
   setErrorAlert,
 } from "../feedback/actions";
-import { AsyncRequest, ModalName } from "../feedback/types";
-import { receiveFileMetadata, updatePageHistory } from "../metadata/actions";
+import { AsyncRequest } from "../feedback/types";
+import { updatePageHistory } from "../metadata/actions";
 import {
-  getOriginalUpload,
   getSelectionHistory,
   getTemplateHistory,
   getUploadHistory,
   getWellAnnotation,
 } from "../metadata/selectors";
-import { CurrentUpload } from "../metadata/types";
 import {
   clearSelectionHistory,
   jumpToPastSelection,
@@ -49,7 +41,6 @@ import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
-  LocalStorage,
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -66,12 +57,7 @@ import {
   updateUploads,
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
-import {
-  getCanSaveUploadDraft,
-  getCurrentUploadIndex,
-  getUpload,
-  getUploadFiles,
-} from "../upload/selectors";
+import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { UploadMetadata, UploadStateBranch } from "../upload/types";
 import { batchActions } from "../util";
 
@@ -80,7 +66,6 @@ import {
   openEditFileMetadataTabFailed,
   openEditFileMetadataTabSucceeded,
   selectPage,
-  selectView,
 } from "./actions";
 import {
   CLOSE_UPLOAD_TAB,
@@ -143,17 +128,15 @@ const pagesToAllowSwitchingEnvironments = [
   Page.UploadSummary,
   Page.DragAndDrop,
 ];
-export const getSelectPageActions = (
+
+export const handleGoingToNextPage = (
   logger: Logger,
   state: State,
   getApplicationMenu: () => Menu | null,
-  action: SelectPageAction
+  selectPageAction: SelectPageAction
 ) => {
-  const {
-    payload: { currentPage, nextPage },
-  } = action;
-  const actions: AnyAction[] = [action];
-  if (nextPage === Page.DragAndDrop) {
+  const actions: AnyAction[] = [selectPageAction];
+  if (selectPageAction.payload.nextPage === Page.DragAndDrop) {
     const isMountedAsExpected = existsSync(
       makePosixPathCompatibleWithPlatform("/allen/aics", platform())
     );
@@ -163,17 +146,63 @@ export const getSelectPageActions = (
     }
   }
 
-  const nextPageOrder: number = pageOrder.indexOf(nextPage);
-  const currentPageOrder: number = pageOrder.indexOf(currentPage);
-
   const menu = getApplicationMenu();
   if (menu) {
     setSwitchEnvEnabled(
       menu,
-      pagesToAllowSwitchingEnvironments.includes(nextPage),
+      pagesToAllowSwitchingEnvironments.includes(
+        selectPageAction.payload.nextPage
+      ),
       logger
     );
   }
+
+  return actions;
+};
+
+// Returns common actions needed because we share the upload tab between upload drafts for now
+// Some of these actions cannot be done in the reducer because they are handled by a higher-order reducer
+// from redux-undo.
+// Also handles disabling the Switch Environment menu item and showing a notification
+// depending on the next page.
+export const handleGoingToNextPageForNewUpload = (
+  logger: Logger,
+  state: State,
+  getApplicationMenu: () => Menu | null,
+  nextPage: Page
+): AnyAction[] => {
+  return [
+    ...handleGoingToNextPage(
+      logger,
+      state,
+      getApplicationMenu,
+      selectPage(getPage(state), nextPage)
+    ),
+    clearUploadDraft(),
+    clearUploadHistory(),
+    clearSelectionHistory(),
+    clearTemplateHistory(),
+  ];
+};
+
+export const getSelectPageActions = (
+  logger: Logger,
+  state: State,
+  getApplicationMenu: () => Menu | null,
+  action: SelectPageAction
+) => {
+  const {
+    payload: { currentPage, nextPage },
+  } = action;
+  const actions: AnyAction[] = handleGoingToNextPage(
+    logger,
+    state,
+    getApplicationMenu,
+    action
+  );
+
+  const nextPageOrder: number = pageOrder.indexOf(nextPage);
+  const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
   // going back - rewind selections, uploads & template to the state they were at when user was on previous page
   if (nextPageOrder < currentPageOrder) {
@@ -299,48 +328,32 @@ const goForwardLogic = createLogic({
   },
 });
 
-const saveUploadDraftToLocalStorage = (
-  storage: LocalStorage,
-  draftName: string,
-  draftKey: string,
-  state: State
-): CurrentUpload => {
-  const now = new Date();
-  const metadata: CurrentUpload = {
-    created: now,
-    modified: now,
-    name: draftName,
-  };
-  const draft = storage.get(draftKey);
-  if (draft) {
-    metadata.created = draft.metadata.created;
-  }
-
-  storage.set(draftKey, { metadata, state });
-
-  return metadata;
-};
-
 const closeUploadTabLogic = createLogic({
   type: CLOSE_UPLOAD_TAB,
   validate: async (
-    {
-      action,
-      dialog,
-      getApplicationMenu,
-      getState,
-      logger,
-      storage,
-    }: ReduxLogicTransformDependencies,
+    deps: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
+    const { action, getApplicationMenu, getState, logger } = deps;
+    try {
+      const { cancelled } = await ensureDraftGetsSaved(deps);
+
+      if (cancelled) {
+        // prevent action from getting to reducer
+        reject({ type: "ignore" });
+      }
+    } catch (e) {
+      reject(setErrorAlert(e.message));
+      return;
+    }
+
     const currentPage = getPage(getState());
     const selectPageAction: SelectPageAction = selectPage(
       currentPage,
       Page.UploadSummary
     );
-    const nextAction = {
+    next({
       // we want to write to local storage but also keep this as a batched action
       ...clearUploadDraft(),
       ...batchActions([
@@ -352,60 +365,7 @@ const closeUploadTabLogic = createLogic({
           selectPageAction
         ),
       ]),
-    };
-
-    const draftName: string | undefined = getCurrentUploadName(getState());
-    const draftKey: string | undefined = getCurrentUploadKey(getState());
-
-    // if an originalUpload exists, this upload has been uploaded before and user was editing
-    if (getOriginalUpload(getState())) {
-      if (isEqual(getOriginalUpload(getState()), getUpload(getState()))) {
-        next(nextAction);
-      } else {
-        const { response: buttonIndex } = await dialog.showMessageBox({
-          buttons: ["Cancel", "Continue"],
-          cancelId: 0,
-          defaultId: 1,
-          message: "You have unsaved changes, continuing will discard them",
-          title: "Warning",
-          type: "question",
-        });
-        if (buttonIndex === 1) {
-          // Discard Draft
-          next(nextAction);
-        } else {
-          // Cancel
-          reject({ type: "ignore" });
-        }
-      }
-
-      // automatically save if user has chosen to save this draft
-    } else if (draftName && draftKey) {
-      saveUploadDraftToLocalStorage(storage, draftName, draftKey, getState());
-      next(nextAction);
-    } else if (getCanSaveUploadDraft(getState())) {
-      const { response: buttonIndex } = await dialog.showMessageBox({
-        buttons: ["Cancel", "Discard", "Save Upload Draft"],
-        cancelId: 0,
-        defaultId: 2,
-        message: "Your draft will be discarded unless you save it.",
-        title: "Warning",
-        type: "question",
-      });
-
-      if (buttonIndex === 1) {
-        // Discard Draft
-        next(nextAction);
-      } else if (buttonIndex === 2) {
-        // Save Upload Draft
-        next(openSaveUploadDraftModal(() => nextAction));
-      } else {
-        // Cancel
-        reject({ type: "ignore" });
-      }
-    } else {
-      next(nextAction);
-    }
+    });
   },
 });
 
@@ -448,33 +408,6 @@ const convertImageModelMetadataToUploadStateBranch = (
   );
 };
 
-/**
- * Ensures upload tab is opened. If already open, we need to allow the user to save their upload before continuing.
- * In this case, it returns the modalName to open before closing the current tab.
- * @param state
- * @param dispatch
- */
-const openUploadTab = (
-  state: State,
-  dispatch: ReduxLogicNextCb
-): ModalName | undefined => {
-  const currentUploadName = getCurrentUploadName(state);
-
-  if (currentUploadName) {
-    return "saveExistingUploadDraft";
-  } else if (getCanSaveUploadDraft(state)) {
-    return "saveUploadDraft";
-  } else {
-    dispatch(
-      batchActions([
-        selectPage(getPage(state), Page.AddCustomData),
-        selectView(Page.AddCustomData),
-      ])
-    );
-    return undefined;
-  }
-};
-
 const getPlateRelatedActions = async (
   wellIds: number[],
   labkeyClient: LabkeyClient,
@@ -510,6 +443,7 @@ const openEditFileMetadataTabLogic = createLogic({
     {
       ctx,
       fms,
+      getApplicationMenu,
       getState,
       labkeyClient,
       logger,
@@ -519,7 +453,17 @@ const openEditFileMetadataTabLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const state = getState();
-    const modalToOpen: ModalName | undefined = openUploadTab(state, dispatch);
+    // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
+    dispatch(
+      batchActions(
+        handleGoingToNextPageForNewUpload(
+          logger,
+          state,
+          getApplicationMenu,
+          Page.AddCustomData
+        )
+      )
+    );
 
     // Second, we fetch the file metadata for the fileIds acquired in the validate phase
     const { fileIds } = ctx;
@@ -543,14 +487,11 @@ const openEditFileMetadataTabLogic = createLogic({
     }
 
     let updateUploadsAction: AnyAction = updateUploads({}, true);
-    let actions: AnyAction[] = [];
+    const actions: AnyAction[] = [];
     const newUpload = convertImageModelMetadataToUploadStateBranch(
       fileMetadataForJob
     );
     if (fileMetadataForJob && fileMetadataForJob[0]) {
-      // todo is this necessary?
-      actions.push(receiveFileMetadata(fileMetadataForJob));
-
       // if we have a well, we can get the barcode and other plate info. This will be necessary
       // to display the well editor
       const wellAnnotationName =
@@ -593,36 +534,33 @@ const openEditFileMetadataTabLogic = createLogic({
       }
     }
 
-    if (modalToOpen) {
-      actions = [
-        openModal(modalToOpen),
-        setDeferredAction(
-          batchActions([
-            ...actions,
-            selectPage(getPage(state), Page.AddCustomData),
-            selectView(Page.AddCustomData),
-            updateUploadsAction,
-          ])
-        ),
-      ];
-    } else {
-      actions.push(updateUploadsAction);
-    }
-
     dispatch(
       batchActions([
         ...actions,
+        updateUploadsAction,
         openEditFileMetadataTabSucceeded(updateUploadsAction.payload.uploads),
       ])
     );
     done();
   },
   type: OPEN_EDIT_FILE_METADATA_TAB,
-  validate: (
-    { action, ctx, logger }: ReduxLogicTransformDependencies,
+  validate: async (
+    deps: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
+    const { action, ctx, logger } = deps;
+    try {
+      const { cancelled } = await ensureDraftGetsSaved(deps);
+      if (cancelled) {
+        reject({ type: "ignore" });
+        return;
+      }
+    } catch (e) {
+      reject(setErrorAlert(e.message));
+      return;
+    }
+
     // Validate the job passed in as the action payload
     const { payload: job } = action;
     if (job.status !== "SUCCEEDED") {

@@ -24,9 +24,8 @@ export interface MetadataStateBranch {
   barcodePrefixes: BarcodePrefix[];
   barcodeSearchResults: LabkeyPlateResponse[];
   channels: Channel[];
-  // this represents some metadata about the upload that is in the Upload Wizard Tab. If it is not named yet,
-  // this will be undefined. If the tab is not open, it will also be undefined
-  currentUpload?: CurrentUpload;
+  // this represents the filepath to an upload draft that has been saved is currently opened in the upload wizard
+  currentUploadFilePath?: string;
   fileMetadataForJob?: SearchResultRow[];
   fileMetadataSearchResults?: SearchResultRow[];
   imagingSessions: ImagingSession[];
@@ -36,7 +35,6 @@ export interface MetadataStateBranch {
   templates: LabkeyTemplate[];
   users: LabkeyUser[];
   units: Unit[];
-  uploadDrafts: CurrentUpload[];
   // Gets updated every time app changes pages.
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
   history: {
@@ -48,13 +46,6 @@ export interface MetadataStateBranch {
 
   // expected type is string[] but typescript index signatures won't allow explicit typing like this in this case
   [lookupName: string]: any;
-}
-
-export interface CurrentUpload {
-  created: Date;
-  modified: Date;
-  jobId?: string;
-  name: string;
 }
 
 export interface BarcodePrefix {
@@ -190,15 +181,5 @@ export interface SearchFileMetadataAction {
 
 export interface ExportFileMetadataAction {
   payload: string;
-  type: string;
-}
-
-export interface GatherUploadDraftsAction {
-  payload: string[];
-  type: string;
-}
-
-export interface SetCurrentUploadAction {
-  payload: CurrentUpload;
   type: string;
 }

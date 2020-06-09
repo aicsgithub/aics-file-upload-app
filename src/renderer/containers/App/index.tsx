@@ -7,16 +7,16 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import {
+  OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SAFELY_CLOSE_WINDOW,
-  SAVE_UPLOAD,
-  SWITCH_ENVIRONMENT,
+  SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
+  SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../../../shared/constants";
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { selection } from "../../state";
 import {
   clearAlert,
-  openSaveUploadDraftModal,
   setAlert,
   toggleFolderTree,
 } from "../../state/feedback/actions";
@@ -36,10 +36,7 @@ import {
   ToggleFolderTreeAction,
 } from "../../state/feedback/types";
 import { getIsSafeToExit } from "../../state/job/selectors";
-import {
-  requestMetadata,
-  setCurrentUpload,
-} from "../../state/metadata/actions";
+import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
@@ -81,6 +78,7 @@ import {
 } from "../../state/setting/types";
 import { State } from "../../state/types";
 import {
+  openUploadDraft,
   removeFileFromArchive,
   removeFileFromIsilon,
   saveUploadDraft,
@@ -90,8 +88,6 @@ import {
 import {
   FileTag,
   RemoveFileFromArchiveAction,
-  RemoveFileFromIsilonAction,
-  SaveUploadDraftAction,
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
 } from "../../state/upload/types";
@@ -99,8 +95,6 @@ import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import OpenTemplateModal from "../OpenTemplateModal";
-import OpenUploadModal from "../OpenUploadModal";
-import SaveUploadDraftModal from "../SaveUploadDraftModal";
 import SearchFiles from "../SearchFiles";
 import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
@@ -130,13 +124,13 @@ interface AppProps {
   limsUrl: string;
   loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
   openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
-  openSaveUploadDraftModal: typeof openSaveUploadDraftModal;
+  openUploadDraft: typeof openUploadDraft;
   loading: boolean;
   recentEvent?: AppEvent;
   removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
-  removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
+  removeFileFromIsilon: ActionCreator<RemoveFileFromArchiveAction>;
   requestMetadata: ActionCreator<RequestMetadataAction>;
-  saveUploadDraft: ActionCreator<SaveUploadDraftAction>;
+  saveUploadDraft: typeof saveUploadDraft;
   selectFile: ActionCreator<SelectFileAction>;
   selectedFiles: string[];
   setAlert: ActionCreator<SetAlertAction>;
@@ -200,7 +194,10 @@ class App extends React.Component<AppProps, {}> {
   public componentDidMount() {
     this.props.requestMetadata();
     this.props.gatherSettings();
-    ipcRenderer.on(SWITCH_ENVIRONMENT, this.props.switchEnvironment);
+    ipcRenderer.on(
+      SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
+      this.props.switchEnvironment
+    );
     ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
       const warning =
         "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
@@ -223,24 +220,13 @@ class App extends React.Component<AppProps, {}> {
         remote.app.exit();
       }
     });
-    // File > Save
-    ipcRenderer.on(SAVE_UPLOAD, () => {
-      // If the upload tab already has a name, this means the user has saved a draft already
-      // so we don't need to ask them for a name again and we can just update the draft saved
-      if (this.props.uploadTabName) {
-        this.props.saveUploadDraft();
-        // If the upload tab doesn't have a name, open a modal that asks them to name the draft to save
-      } else {
-        this.props.openSaveUploadDraftModal((draftName: string) => {
-          const now = new Date();
-          return setCurrentUpload({
-            created: now,
-            modified: now,
-            name: draftName,
-          });
-        });
-      }
-    });
+    ipcRenderer.on(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
+      this.props.saveUploadDraft(true)
+    );
+    ipcRenderer.on(
+      OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
+      this.props.openUploadDraft
+    );
   }
 
   public componentDidUpdate(prevProps: AppProps) {
@@ -290,9 +276,9 @@ class App extends React.Component<AppProps, {}> {
   }
 
   public componentWillUnmount(): void {
-    ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT);
+    ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED);
     ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
-    ipcRenderer.removeAllListeners(SAVE_UPLOAD);
+    ipcRenderer.removeAllListeners(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
   }
 
   public render() {
@@ -385,8 +371,6 @@ class App extends React.Component<AppProps, {}> {
         <TemplateEditorModal />
         <OpenTemplateModal />
         <SettingsEditorModal />
-        <SaveUploadDraftModal />
-        <OpenUploadModal />
       </div>
     );
   }
@@ -431,7 +415,7 @@ const dispatchToPropsMap = {
   getFilesInFolder: selection.actions.getFilesInFolder,
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
-  openSaveUploadDraftModal,
+  openUploadDraft,
   removeFileFromArchive,
   removeFileFromIsilon,
   requestMetadata,

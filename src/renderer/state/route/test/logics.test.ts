@@ -1,12 +1,15 @@
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { omit } from "lodash";
-import { ActionCreator, AnyAction, Store } from "redux";
+import { ActionCreator, Store } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { OPEN_SAVE_UPLOAD_DRAFT_MODAL } from "../../feedback/constants";
-import { getAlert, getSaveUploadDraftOnOk } from "../../feedback/selectors";
+import {
+  CANCEL_BUTTON_INDEX,
+  SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+} from "../../../util";
+import { getAlert } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
 import {
   getFileMetadataForJob,
@@ -23,6 +26,7 @@ import {
   getCurrentSelectionIndex,
   getSelectedPlate,
 } from "../../selection/selectors";
+import { getAssociateByWorkflow } from "../../setting/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
   createMockReduxStore,
@@ -42,12 +46,10 @@ import {
   mockSelectedWorkflows,
   mockState,
   mockSuccessfulUploadJob,
+  nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { Logger, State } from "../../types";
-import {
-  associateFilesAndWorkflows,
-  clearUploadDraft,
-} from "../../upload/actions";
+import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
 import {
   getAppliedTemplateId,
@@ -61,6 +63,10 @@ import {
   openEditFileMetadataTabFailed,
   selectPage,
 } from "../actions";
+import {
+  OPEN_EDIT_FILE_METADATA_TAB_FAILED,
+  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+} from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
 import { Page } from "../types";
@@ -358,17 +364,24 @@ describe("Route logics", () => {
    * @param startPage the page we start on
    * @param expectedEndPage the page we expect to end at,
    * @param action action creator to dispatch
-   * @param buttonIdToClick index of button to simulate click in dialog
+   * @param messageBoxResponse button index to simulate user click
    * changes and go back
+   * @param state
    */
   const runShowMessageBoxTest = async (
     startPage: Page,
     expectedEndPage: Page,
     action: ActionCreator<any>,
-    buttonIdToClick: number,
+    messageBoxResponse = 1,
     state: State = mockState
-  ): Promise<{ actions: Actions; store: Store }> => {
-    const showMessageBoxStub = stub().resolves({ response: buttonIdToClick });
+  ): Promise<{
+    actions: Actions;
+    showMessageBoxStub: SinonStub;
+    store: Store;
+  }> => {
+    const showMessageBoxStub = stub().resolves({
+      response: messageBoxResponse,
+    });
     sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
     const { actions, logicMiddleware, store } = createMockReduxStore({
       ...state,
@@ -388,7 +401,7 @@ describe("Route logics", () => {
     expect(getPage(store.getState())).to.equal(expectedEndPage);
     expect(getView(store.getState())).to.equal(expectedEndPage);
     expect(showMessageBoxStub.called).to.be.true;
-    return { actions, store };
+    return { actions, showMessageBoxStub, store };
   };
 
   describe("goBackLogic", () => {
@@ -443,104 +456,26 @@ describe("Route logics", () => {
   });
 
   describe("closeUploadTabLogic", () => {
-    it("goes to UploadSummary page given 'Discard' clicked", async () => {
-      const { actions } = await runShowMessageBoxTest(
+    it("goes to UploadSummary page given user clicks Save Upload Draft from dialog", async () => {
+      const showSaveDialogStub = stub().resolves({
+        cancelled: false,
+        filePath: "/bar",
+      });
+      sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
+      await runShowMessageBoxTest(
         Page.AssociateFiles,
         Page.UploadSummary,
         closeUploadTab,
-        1
-      );
-      expect(
-        !!actions.list.find(
-          (a: AnyAction) => a.type === OPEN_SAVE_UPLOAD_DRAFT_MODAL
-        )
-      ).to.be.false;
-    });
-    it("stays on current page given 'Save Upload Draft' clicked", async () => {
-      const { actions, store } = await runShowMessageBoxTest(
-        Page.AssociateFiles,
-        Page.AssociateFiles,
-        closeUploadTab,
         2
       );
-      expect(
-        !!actions.list.find(
-          (a: AnyAction) => a.type === OPEN_SAVE_UPLOAD_DRAFT_MODAL
-        )
-      ).to.be.true;
-      expect(getSaveUploadDraftOnOk(store.getState())).to.not.be.undefined;
+      expect(showSaveDialogStub.called).to.be.true;
     });
     it("stays on current page given 'Cancel' clicked from dialog", async () => {
-      const { actions } = await runShowMessageBoxTest(
+      await runShowMessageBoxTest(
         Page.AssociateFiles,
         Page.AssociateFiles,
         closeUploadTab,
         0
-      );
-      expect(actions.includesMatch(clearUploadDraft())).to.be.true;
-    });
-    it("does not open dialog given that the user is looking at a previous upload but hasn't made any changes", async () => {
-      const originalUpload = {
-        "123432asdlfk": {
-          file: "/test",
-          fileId: "123432asdlfk",
-          Workflow: ["Pipeline 4"],
-        },
-      };
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          originalUpload,
-        },
-        route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
-        },
-        upload: getMockStateWithHistory(originalUpload),
-      });
-      const showMessageBoxStub = stub();
-      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-
-      expect(showMessageBoxStub.called).to.be.false;
-
-      store.dispatch(closeUploadTab());
-      await logicMiddleware.whenComplete();
-
-      expect(showMessageBoxStub.called).to.be.false;
-    });
-    it("shows dialog given user has made edits to a previous upload and goes to UploadSummary page given user cicks Continue from dialog", async () => {
-      const originalUpload = {
-        "123432asdlfk": {
-          file: "/test",
-          fileId: "123432asdlfk",
-          Workflow: ["Pipeline 4"],
-        },
-      };
-      const state = {
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          originalUpload,
-        },
-        route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
-        },
-        upload: getMockStateWithHistory({
-          "123432asdlfk": {
-            file: "/test",
-            fileId: "123432asdlfk",
-            Workflow: ["Pipeline 5"],
-          },
-        }),
-      };
-      await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.UploadSummary,
-        closeUploadTab,
-        true,
-        state
       );
     });
   });
@@ -561,6 +496,9 @@ describe("Route logics", () => {
     ];
 
     const stubMethods = ({
+      showMessageBox,
+      showSaveDialog,
+      writeFile,
       getCustomMetadataForFile,
       transformFileMetadataIntoTable,
       getPlateBarcodeAndAllImagingSessionIdsFromWellId,
@@ -568,6 +506,9 @@ describe("Route logics", () => {
       getPlate,
       getTemplate,
     }: {
+      showMessageBox?: SinonStub;
+      showSaveDialog?: SinonStub;
+      writeFile?: SinonStub;
       getCustomMetadataForFile?: SinonStub;
       transformFileMetadataIntoTable?: SinonStub;
       getPlateBarcodeAndAllImagingSessionIdsFromWellId?: SinonStub;
@@ -575,6 +516,22 @@ describe("Route logics", () => {
       getPlate?: SinonStub;
       getTemplate?: SinonStub;
     }) => {
+      sandbox.replace(
+        dialog,
+        "showMessageBox",
+        showMessageBox || stub().resolves({ response: 1 }) // discard draft by default
+      );
+      sandbox.replace(
+        dialog,
+        "showSaveDialog",
+        showSaveDialog ||
+          stub().resolves({ cancelled: false, filePath: "/test" })
+      );
+      sandbox.replace(
+        mockReduxLogicDeps,
+        "writeFile",
+        writeFile || stub().resolves()
+      );
       sandbox.replace(
         fms,
         "getCustomMetadataForFile",
@@ -649,44 +606,77 @@ describe("Route logics", () => {
         upload: getMockStateWithHistory({}),
       };
     });
-
-    it("sets error alert if job passed in does not have fileId information", async () => {
-      stubMethods({});
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
+    it("doesn't do anything if user cancels action when asked to save current draft", async () => {
+      stubMethods({
+        showMessageBox: stub().resolves({ response: CANCEL_BUTTON_INDEX }),
+      });
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
       );
 
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
-      store.dispatch(
-        openEditFileMetadataTab({
-          ...mockSuccessfulUploadJob,
-          serviceFields: {
-            ...mockSuccessfulUploadJob.serviceFields,
-            result: undefined,
-          },
-        })
-      );
+      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
-      // after
-      const alert = getAlert(store.getState());
-      expect(alert).to.not.be.undefined;
-      expect(alert?.type).to.equal(AlertType.ERROR);
-      expect(alert?.message).to.equal("No fileIds found in selected Job.");
+      expect(actions.includesMatch({ type: "ignore" })).to.be.true;
+      expect(
+        actions.list.find(
+          (a) => a.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED
+        )
+      ).to.be.undefined;
+      expect(
+        actions.list.find((a) => a.type === OPEN_EDIT_FILE_METADATA_TAB_FAILED)
+      ).to.be.undefined;
+    });
+    it("shows save dialog if user has another draft open", async () => {
+      const showSaveDialog = stub().resolves({
+        cancelled: false,
+        filePath: "/foo",
+      });
+      stubMethods({
+        showMessageBox: stub().resolves({
+          response: SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+        }),
+        showSaveDialog,
+      });
+      const { logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+
+      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      await logicMiddleware.whenComplete();
+
+      expect(showSaveDialog.called).to.be.true;
+    });
+    it("shows save dialog if user is editing another upload", async () => {
+      const showSaveDialog = stub().resolves({
+        cancelled: false,
+        filePath: "/foo",
+      });
+      stubMethods({
+        showMessageBox: stub().resolves({
+          response: SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+        }),
+        showSaveDialog,
+      });
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...nonEmptyStateForInitiatingUpload.selection.present,
+          job: { ...mockSuccessfulUploadJob, jobId: "anotherjobid" },
+        }),
+      });
+
+      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      await logicMiddleware.whenComplete();
+
+      expect(showSaveDialog.called).to.be.true;
     });
     it("sets error alert if job passed is not succeeded", async () => {
       stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
+        nonEmptyStateForInitiatingUpload
       );
 
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
       store.dispatch(
         openEditFileMetadataTab({
           ...mockSuccessfulUploadJob,
@@ -703,8 +693,30 @@ describe("Route logics", () => {
         "Cannot update file metadata because upload has not succeeded"
       );
     });
+    it("sets error alert if something fails while showing the warning dialog", async () => {
+      const showMessageBox = stub().resolves({
+        response: SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+      });
+      const writeFile = stub().rejects(new Error("foo"));
+      stubMethods({ showMessageBox, writeFile });
+      const { logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+
+      // before
+      expect(getAlert(store.getState())).to.be.undefined;
+
+      // apply
+      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      await logicMiddleware.whenComplete();
+
+      // after
+      const alert = getAlert(store.getState());
+      expect(alert).to.not.be.undefined;
+      expect(alert?.type).to.equal(AlertType.ERROR);
+      expect(alert?.message).to.equal("Could not save draft: foo");
+    });
     it("sets error alert if all files for the job have since been deleted", async () => {
-      stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -747,11 +759,11 @@ describe("Route logics", () => {
       state = store.getState();
       expect(getPage(state)).to.equal(Page.AddCustomData);
       expect(getView(state)).to.equal(Page.AddCustomData);
-      expect(getFileMetadataForJob(state)).to.equal(fileMetadata);
       expect(getUpload(state)).to.deep.equal({
         [getUploadRowKey({ file: "/localFilePath" })]: {
           ...fileMetadata[0],
-          barcode: undefined, // TODO
+          "Favorite Color": [],
+          barcode: undefined,
           channel: undefined,
           file: "/localFilePath",
         },
@@ -766,14 +778,6 @@ describe("Route logics", () => {
         mockState
       );
 
-      expect(
-        actions.includesMatch(
-          openEditFileMetadataTabFailed(
-            "Could not retrieve file metadata for fileIds=cat, dog: error!"
-          )
-        )
-      ).to.be.false;
-
       store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
 
@@ -785,7 +789,7 @@ describe("Route logics", () => {
         )
       ).to.be.true;
     });
-    it("does not dispatch setPlate action file metadata does not contain well annotation", async () => {
+    it("does not dispatch setPlate action if file metadata does not contain well annotation", async () => {
       stubMethods({
         transformFileMetadataIntoTable: stub().resolves([
           {
@@ -802,6 +806,7 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(getSelectedPlate(store.getState())).to.be.undefined;
+      expect(getAssociateByWorkflow(store.getState())).to.be.true;
     });
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
       stubMethods({

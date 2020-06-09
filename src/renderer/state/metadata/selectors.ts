@@ -20,7 +20,7 @@ import {
 import { State } from "../types";
 
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
-import { CurrentUpload, SearchResultRow, SearchResultsHeader } from "./types";
+import { SearchResultRow, SearchResultsHeader } from "./types";
 
 // BASIC SELECTORS
 export const getMetadata = (state: State) => state.metadata;
@@ -53,8 +53,8 @@ export const getFileMetadataSearchResults = (state: State) =>
 export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) =>
   state.metadata.fileMetadataForJob;
-export const getUploadDrafts = (state: State) => state.metadata.uploadDrafts;
-export const getCurrentUpload = (state: State) => state.metadata.currentUpload;
+export const getCurrentUploadFilePath = (state: State) =>
+  state.metadata.currentUploadFilePath;
 export const getOriginalUpload = (state: State) =>
   state.metadata.originalUpload;
 
@@ -201,12 +201,5 @@ export const getAnnotationsWithAnnotationOptions = createSelector(
         annotationOptions: options.length ? options : undefined,
       };
     });
-  }
-);
-
-export const getUploadDraftNames = createSelector(
-  [getUploadDrafts],
-  (drafts: CurrentUpload[]) => {
-    return drafts.map((d) => d.name);
   }
 );

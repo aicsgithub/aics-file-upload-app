@@ -48,17 +48,9 @@ describe("selection reducer", () => {
   });
   describe("replaceUpload", () => {
     it("replaces upload tab specific selections", () => {
-      const draft = {
-        metadata: {
-          created: new Date(),
-          modified: new Date(),
-          name: "test",
-        },
-        state: nonEmptySelectionsState,
-      };
       const result = reducer(
         getMockStateWithHistory(mockSelection),
-        replaceUpload(draft)
+        replaceUpload("/path/file.json", nonEmptySelectionsState)
       );
       const { present } = result;
       expect(present.barcode).to.equal(

@@ -1,4 +1,5 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { MetadataStateBranch } from "../metadata/types";
 import { Audited, AutoSaveAction } from "../types";
