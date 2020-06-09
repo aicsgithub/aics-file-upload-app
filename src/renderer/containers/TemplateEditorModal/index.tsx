@@ -30,6 +30,8 @@ import {
   getLookups,
 } from "../../state/metadata/selectors";
 import { openTemplateEditor } from "../../state/selection/actions";
+import { updateSettings } from "../../state/setting/actions";
+import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
   addExistingAnnotation,
   removeAnnotations,
@@ -67,6 +69,7 @@ const mapStateToProps = (state: State) => ({
   tables: getLookups(state),
   template: getTemplateDraft(state),
   visible: getTemplateEditorVisible(state),
+  showTemplateHint: getShowTemplateHint(state),
 });
 
 const dispatchToPropsMap = {
@@ -77,6 +80,7 @@ const dispatchToPropsMap = {
   removeAnnotations,
   saveTemplate,
   updateTemplateDraft,
+  updateSettings,
 };
 
 const connector = connect(mapStateToProps, dispatchToPropsMap);
@@ -88,7 +92,6 @@ type Props = ConnectedProps<typeof connector> & {
 interface TemplateEditorModalState {
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
-  showInfoAlert: boolean;
 }
 
 class TemplateEditorModal extends React.Component<
@@ -98,7 +101,8 @@ class TemplateEditorModal extends React.Component<
   constructor(props: Props) {
     super(props);
     this.state = {
-      showInfoAlert: true,
+      annotationNameSearch: undefined,
+      selectedAnnotation: undefined,
     };
   }
 
@@ -150,7 +154,8 @@ class TemplateEditorModal extends React.Component<
     this.props.openModal(templateId);
   private closeModal = () => this.props.closeModal("templateEditor");
 
-  private closeAlert = () => this.setState({ showInfoAlert: false });
+  private closeAlert = () =>
+    this.props.updateSettings({ showTemplateHint: false });
 
   private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
     this.props.updateTemplateDraft({ name: e.target.value });
@@ -165,8 +170,9 @@ class TemplateEditorModal extends React.Component<
       loadingTemplate,
       tables,
       template,
+      showTemplateHint,
     } = this.props;
-    const { annotationNameSearch, showInfoAlert } = this.state;
+    const { annotationNameSearch } = this.state;
     const appliedAnnotationNames = template.annotations
       .map((a) => a.name)
       .concat(
@@ -189,7 +195,7 @@ class TemplateEditorModal extends React.Component<
 
     return (
       <>
-        {!isEditing && showInfoAlert && (
+        {!isEditing && showTemplateHint && (
           <Alert
             afterClose={this.closeAlert}
             className={styles.alert}
