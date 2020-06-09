@@ -120,5 +120,16 @@ describe("Feedback logics", () => {
       expect(actions.includesMatch(expectedUpdateTemplateDraftAction)).to.be
         .true;
     });
+
+    it("dispatches getTemplate without a templateId", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+      const action = openTemplateEditor();
+      store.dispatch(action);
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([action]);
+    });
   });
 });
