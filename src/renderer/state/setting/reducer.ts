@@ -63,10 +63,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === REPLACE_UPLOAD,
     perform: (
       state: SettingStateBranch,
-      { payload: { state: savedState } }: ReplaceUploadAction
+      { payload: { replacementState } }: ReplaceUploadAction
     ) => ({
       ...state,
-      associateByWorkflow: getAssociateByWorkflow(savedState),
+      associateByWorkflow: getAssociateByWorkflow(replacementState),
     }),
   },
   [APPLY_TEMPLATE]: {

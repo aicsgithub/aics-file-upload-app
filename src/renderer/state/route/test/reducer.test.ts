@@ -4,6 +4,7 @@ import {
   mockSelection,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
+import { State } from "../../types";
 import { replaceUpload } from "../../upload/actions";
 import { selectPage } from "../actions";
 import reducer from "../reducer";
@@ -30,22 +31,18 @@ describe("route reducer", () => {
   });
   describe("replaceUpload", () => {
     it("sets page and view", () => {
-      const replacement = {
-        metadata: {
-          created: new Date(),
-          modified: new Date(),
-          name: "test",
-        },
-        state: {
-          ...nonEmptyStateForInitiatingUpload,
-          route: {
-            ...nonEmptyStateForInitiatingUpload.route,
-            page: Page.AddCustomData,
-            view: Page.AddCustomData,
-          },
+      const replacement: State = {
+        ...nonEmptyStateForInitiatingUpload,
+        route: {
+          ...nonEmptyStateForInitiatingUpload.route,
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
         },
       };
-      const result = reducer(route, replaceUpload(replacement));
+      const result = reducer(
+        route,
+        replaceUpload("/some/file.json", replacement)
+      );
       expect(result.page).to.equal(Page.AddCustomData);
       expect(result.page).to.equal(Page.AddCustomData);
     });

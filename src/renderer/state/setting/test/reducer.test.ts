@@ -14,18 +14,11 @@ describe("setting reducer", () => {
           ...initialState,
           associateByWorkflow: true,
         },
-        replaceUpload({
-          metadata: {
-            created: new Date(),
-            modified: new Date(),
-            name: "test",
-          },
-          state: {
-            ...mockState,
-            setting: {
-              ...mockState.setting,
-              associateByWorkflow: false,
-            },
+        replaceUpload("/path/file.json", {
+          ...mockState,
+          setting: {
+            ...mockState.setting,
+            associateByWorkflow: false,
           },
         })
       );

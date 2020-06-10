@@ -2,12 +2,12 @@ import electron, { dialog, Menu, shell } from "electron";
 
 import {
   OPEN_OPEN_TEMPLATE_MODAL,
-  OPEN_OPEN_UPLOAD_MODAL,
+  OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   OPEN_SETTINGS_EDITOR,
-  OPEN_TEMPLATE_EDITOR,
-  SAVE_UPLOAD,
+  OPEN_TEMPLATE_MENU_ITEM_CLICKED,
+  SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SCHEMA_SYNONYM,
-  SWITCH_ENVIRONMENT,
+  SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../shared/constants";
 import BrowserWindow = Electron.BrowserWindow;
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
@@ -49,7 +49,7 @@ export const setMenu = (webContents: WebContents) => {
           label: "New",
           submenu: [
             {
-              click: () => webContents.send(OPEN_TEMPLATE_EDITOR),
+              click: () => webContents.send(OPEN_TEMPLATE_MENU_ITEM_CLICKED),
               label: SCHEMA_SYNONYM,
             },
           ],
@@ -58,7 +58,9 @@ export const setMenu = (webContents: WebContents) => {
           label: "Open",
           submenu: [
             {
-              click: () => webContents.send(OPEN_OPEN_UPLOAD_MODAL),
+              accelerator: "CommandOrControl+O",
+              click: () =>
+                webContents.send(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED),
               label: "Upload Draft",
             },
             {
@@ -69,17 +71,20 @@ export const setMenu = (webContents: WebContents) => {
         },
         { type: "separator" },
         {
-          click: () => webContents.send(SAVE_UPLOAD),
+          accelerator: "CommandOrControl+S",
+          click: () => webContents.send(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED),
           label: "Save",
         },
         { type: "separator" },
         {
+          accelerator:
+            process.platform === "darwin" ? "Command+," : "Ctrl+Alt+S",
           click: () => webContents.send(OPEN_SETTINGS_EDITOR),
           label: "Settings",
         },
         { type: "separator" },
         {
-          click: () => webContents.send(SWITCH_ENVIRONMENT),
+          click: () => webContents.send(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED),
           enabled: true,
           label: "Switch environment",
         },

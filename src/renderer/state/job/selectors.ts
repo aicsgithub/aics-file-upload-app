@@ -1,15 +1,14 @@
+import { basename } from "path";
+
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { isEmpty, orderBy } from "lodash";
-import * as moment from "moment";
 import { createSelector } from "reselect";
 
-import { DATETIME_FORMAT } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { AsyncRequest } from "../feedback/types";
-import { getCurrentUpload } from "../metadata/selectors";
-import { CurrentUpload } from "../metadata/types";
+import { getCurrentUploadFilePath } from "../metadata/selectors";
 import { State } from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
@@ -62,21 +61,21 @@ export const getIsSafeToExit = createSelector(
 );
 
 export const getCurrentJobName = createSelector(
-  [getUpload, getUploadFileNames, getCurrentUpload],
+  [getUpload, getUploadFileNames, getCurrentUploadFilePath],
   (
     upload: UploadStateBranch,
     fileNames: string,
-    currentUpload?: CurrentUpload
+    currentUploadFilePath?: string
   ): string | undefined => {
     if (isEmpty(upload)) {
       return undefined;
     }
-    const created = currentUpload
-      ? moment(currentUpload.created).format(DATETIME_FORMAT)
-      : moment().format(DATETIME_FORMAT);
-    return currentUpload
-      ? `${currentUpload.name} ${created}`
-      : `${fileNames} ${created}`;
+
+    if (currentUploadFilePath) {
+      return basename(currentUploadFilePath, ".json");
+    }
+
+    return fileNames;
   }
 );
 

@@ -30,7 +30,10 @@ import {
   setSuccessAlert,
 } from "../state/feedback/actions";
 import { AlertType, AsyncRequest } from "../state/feedback/types";
-import { getBooleanAnnotationTypeId } from "../state/metadata/selectors";
+import {
+  getBooleanAnnotationTypeId,
+  getCurrentUploadFilePath,
+} from "../state/metadata/selectors";
 import { setPlate } from "../state/selection/actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
@@ -49,8 +52,13 @@ import {
   Template,
   TemplateAnnotation,
 } from "../state/template/types";
-import { HTTP_STATUS, ReduxLogicNextCb, State } from "../state/types";
-import { getUpload } from "../state/upload/selectors";
+import {
+  HTTP_STATUS,
+  ReduxLogicNextCb,
+  ReduxLogicTransformDependencies,
+  State,
+} from "../state/types";
+import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
 import { UploadMetadata, UploadStateBranch } from "../state/upload/types";
 import { batchActions } from "../state/util";
 
@@ -460,4 +468,85 @@ export const getSetAppliedTemplateAction = async (
     };
   });
   return setAppliedTemplate(template, uploads);
+};
+
+export const CANCEL_BUTTON_INDEX = 0;
+export const DISCARD_BUTTON_INDEX = 1;
+export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
+/**
+ * Helper function for logics that need to ensure that user has a chance
+ * to save their upload before the upload potentially gets updated.
+ * Examples include: close upload tab, editing an upload, opening an upload, saving an upload.
+ * @param deps redux logic transform dependencies
+ * @param skipWarningDialog whether or not to warn users that if they don't save, their draft will be discarded.
+ * This won't be necessary if the user explicitly saves the draft (i.e. File > Save)
+ * Returns promise of object { cancelled: boolean, filePath?: string } where cancelled indicates whether
+ * to continue with this action (if cancelled is true - logics should reject) and filePath represents
+ * the file that user chose to save their draft to - this will be undefined if the user cancels saving.
+ */
+export const ensureDraftGetsSaved = async (
+  deps: ReduxLogicTransformDependencies,
+  skipWarningDialog = false
+): Promise<{
+  cancelled: boolean; // User decides they want to continue working on the current upload draft
+  filePath?: string; // Where user saved the upload draft
+}> => {
+  const { dialog, getState, writeFile } = deps;
+
+  const currentUploadFilePath = getCurrentUploadFilePath(getState());
+  // if currentUploadFilePath is set, user is working on a upload draft that
+  // they have saved before. Now we just need to save to that file.
+  if (currentUploadFilePath) {
+    await writeFile(currentUploadFilePath, JSON.stringify(getState()));
+    return { cancelled: false, filePath: currentUploadFilePath };
+  } else if (getCanSaveUploadDraft(getState())) {
+    // figure out if user wants to save their draft before we replace it
+    let buttonIndex = SAVE_UPLOAD_DRAFT_BUTTON_INDEX;
+    if (!skipWarningDialog) {
+      const { response } = await dialog.showMessageBox({
+        buttons: ["Cancel", "Discard", "Save Upload Draft"],
+        cancelId: CANCEL_BUTTON_INDEX,
+        defaultId: SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
+        message: "Your draft will be discarded unless you save it.",
+        title: "Warning",
+        type: "question",
+      });
+      buttonIndex = response;
+    }
+
+    if (buttonIndex === DISCARD_BUTTON_INDEX) {
+      // Discard Draft but continue doing what it was we were doing
+      return {
+        cancelled: false,
+        filePath: undefined,
+      };
+    } else if (buttonIndex === SAVE_UPLOAD_DRAFT_BUTTON_INDEX) {
+      try {
+        // Save Upload Draft
+        const { filePath } = await dialog.showSaveDialog({
+          title: "Save Upload Draft",
+          filters: [{ name: "JSON", extensions: ["json"] }],
+        });
+        if (filePath) {
+          await writeFile(filePath, JSON.stringify(getState()));
+        }
+
+        return {
+          cancelled: false,
+          filePath,
+        };
+      } catch (e) {
+        throw new Error(`Could not save draft: ${e.message}`);
+      }
+    } else {
+      return {
+        cancelled: true,
+        filePath: undefined,
+      };
+    }
+  }
+  return {
+    cancelled: false,
+    filePath: undefined,
+  };
 };

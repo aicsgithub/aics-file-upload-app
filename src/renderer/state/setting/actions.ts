@@ -1,4 +1,4 @@
-import { SWITCH_ENVIRONMENT } from "../../../shared/constants";
+import { SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED } from "../../../shared/constants";
 
 import {
   ASSOCIATE_BY_WORKFLOW,
@@ -48,6 +48,6 @@ export function setMountPoint(): SetMountPointAction {
 
 export function switchEnvironment(): SwitchEnvironmentAction {
   return {
-    type: SWITCH_ENVIRONMENT,
+    type: SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
   };
 }

@@ -70,10 +70,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === REPLACE_UPLOAD,
     perform: (
       state: TemplateStateBranch,
-      { payload: { state: savedState } }: ReplaceUploadAction
+      { payload: { replacementState } }: ReplaceUploadAction
     ) => ({
       ...state,
-      appliedTemplate: getAppliedTemplate(savedState),
+      appliedTemplate: getAppliedTemplate(replacementState),
     }),
   },
   [CLOSE_UPLOAD_TAB]: {

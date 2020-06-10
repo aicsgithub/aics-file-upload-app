@@ -21,7 +21,6 @@ import {
   getNumberOfFiles,
   getSearchResultsHeader,
   getUniqueBarcodeSearchResults,
-  getUploadDraftNames,
   getWellAnnotation,
   getWorkflowAnnotation,
 } from "../selectors";
@@ -271,26 +270,6 @@ describe("Metadata selectors", () => {
         },
       });
       expect(result).to.equal(2);
-    });
-  });
-
-  describe("getUploadDraftNames", () => {
-    it("returns draft names", () => {
-      const draftNames = getUploadDraftNames({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          uploadDrafts: [
-            {
-              created: new Date(),
-              modified: new Date(),
-              name: "foo",
-            },
-          ],
-        },
-      });
-      expect(draftNames.length).to.equal(1);
-      expect(draftNames[0]).to.equal("foo");
     });
   });
 });

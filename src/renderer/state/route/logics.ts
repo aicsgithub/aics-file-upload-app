@@ -7,14 +7,12 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import {
-  getCurrentUploadKey,
-  getCurrentUploadName,
-} from "../../containers/App/selectors";
-import { makePosixPathCompatibleWithPlatform } from "../../util";
+  ensureDraftGetsSaved,
+  makePosixPathCompatibleWithPlatform,
+} from "../../util";
 import {
-  openModal,
   openSetMountPointNotification,
-  setDeferredAction,
+  setErrorAlert,
 } from "../feedback/actions";
 import { updatePageHistory } from "../metadata/actions";
 import {
@@ -22,7 +20,6 @@ import {
   getTemplateHistory,
   getUploadHistory,
 } from "../metadata/selectors";
-import { CurrentUpload } from "../metadata/types";
 import {
   clearSelectionHistory,
   jumpToPastSelection,
@@ -32,7 +29,6 @@ import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
-  LocalStorage,
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -48,11 +44,7 @@ import {
   updateUpload,
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
-import {
-  getCanSaveUploadDraft,
-  getCurrentUploadIndex,
-  getUploadFiles,
-} from "../upload/selectors";
+import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { closeUploadTab, selectPage } from "./actions";
@@ -116,17 +108,15 @@ const pagesToAllowSwitchingEnvironments = [
   Page.UploadSummary,
   Page.DragAndDrop,
 ];
-export const getSelectPageActions = (
+
+export const handleGoingToNextPage = (
   logger: Logger,
   state: State,
   getApplicationMenu: () => Menu | null,
-  action: SelectPageAction
+  selectPageAction: SelectPageAction
 ) => {
-  const {
-    payload: { currentPage, nextPage },
-  } = action;
-  const actions: AnyAction[] = [action];
-  if (nextPage === Page.DragAndDrop) {
+  const actions: AnyAction[] = [selectPageAction];
+  if (selectPageAction.payload.nextPage === Page.DragAndDrop) {
     const isMountedAsExpected = existsSync(
       makePosixPathCompatibleWithPlatform("/allen/aics", platform())
     );
@@ -136,17 +126,63 @@ export const getSelectPageActions = (
     }
   }
 
-  const nextPageOrder: number = pageOrder.indexOf(nextPage);
-  const currentPageOrder: number = pageOrder.indexOf(currentPage);
-
   const menu = getApplicationMenu();
   if (menu) {
     setSwitchEnvEnabled(
       menu,
-      pagesToAllowSwitchingEnvironments.includes(nextPage),
+      pagesToAllowSwitchingEnvironments.includes(
+        selectPageAction.payload.nextPage
+      ),
       logger
     );
   }
+
+  return actions;
+};
+
+// Returns common actions needed because we share the upload tab between upload drafts for now
+// Some of these actions cannot be done in the reducer because they are handled by a higher-order reducer
+// from redux-undo.
+// Also handles disabling the Switch Environment menu item and showing a notification
+// depending on the next page.
+export const handleGoingToNextPageForNewUpload = (
+  logger: Logger,
+  state: State,
+  getApplicationMenu: () => Menu | null,
+  nextPage: Page
+): AnyAction[] => {
+  return [
+    ...handleGoingToNextPage(
+      logger,
+      state,
+      getApplicationMenu,
+      selectPage(getPage(state), nextPage)
+    ),
+    clearUploadDraft(),
+    clearUploadHistory(),
+    clearSelectionHistory(),
+    clearTemplateHistory(),
+  ];
+};
+
+export const getSelectPageActions = (
+  logger: Logger,
+  state: State,
+  getApplicationMenu: () => Menu | null,
+  action: SelectPageAction
+) => {
+  const {
+    payload: { currentPage, nextPage },
+  } = action;
+  const actions: AnyAction[] = handleGoingToNextPage(
+    logger,
+    state,
+    getApplicationMenu,
+    action
+  );
+
+  const nextPageOrder: number = pageOrder.indexOf(nextPage);
+  const currentPageOrder: number = pageOrder.indexOf(currentPage);
 
   // going back - rewind selections, uploads & template to the state they were at when user was on previous page
   if (nextPageOrder < currentPageOrder) {
@@ -272,48 +308,32 @@ const goForwardLogic = createLogic({
   },
 });
 
-const saveUploadDraftToLocalStorage = (
-  storage: LocalStorage,
-  draftName: string,
-  draftKey: string,
-  state: State
-): CurrentUpload => {
-  const now = new Date();
-  const metadata: CurrentUpload = {
-    created: now,
-    modified: now,
-    name: draftName,
-  };
-  const draft = storage.get(draftKey);
-  if (draft) {
-    metadata.created = draft.metadata.created;
-  }
-
-  storage.set(draftKey, { metadata, state });
-
-  return metadata;
-};
-
 const closeUploadTabLogic = createLogic({
   type: CLOSE_UPLOAD_TAB,
   validate: async (
-    {
-      action,
-      dialog,
-      getApplicationMenu,
-      getState,
-      logger,
-      storage,
-    }: ReduxLogicTransformDependencies,
+    deps: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
+    const { action, getApplicationMenu, getState, logger } = deps;
+    try {
+      const { cancelled } = await ensureDraftGetsSaved(deps);
+
+      if (cancelled) {
+        // prevent action from getting to reducer
+        reject({ type: "ignore" });
+      }
+    } catch (e) {
+      reject(setErrorAlert(e.message));
+      return;
+    }
+
     const currentPage = getPage(getState());
     const selectPageAction: SelectPageAction = selectPage(
       currentPage,
       Page.UploadSummary
     );
-    const nextAction = {
+    next({
       // we want to write to local storage but also keep this as a batched action
       ...clearUploadDraft(),
       ...batchActions([
@@ -325,43 +345,7 @@ const closeUploadTabLogic = createLogic({
           selectPageAction
         ),
       ]),
-    };
-
-    const draftName: string | undefined = getCurrentUploadName(getState());
-    const draftKey: string | undefined = getCurrentUploadKey(getState());
-    // automatically save if user has chosen to save this draft
-    if (draftName && draftKey) {
-      saveUploadDraftToLocalStorage(storage, draftName, draftKey, getState());
-      next(nextAction);
-    } else if (getCanSaveUploadDraft(getState())) {
-      const { response: buttonIndex } = await dialog.showMessageBox({
-        buttons: ["Cancel", "Discard", "Save Upload Draft"],
-        cancelId: 0,
-        defaultId: 2,
-        message: "Your draft will be discarded unless you save it.",
-        title: "Warning",
-        type: "question",
-      });
-
-      if (buttonIndex === 1) {
-        // Discard Draft
-        next(nextAction);
-      } else if (buttonIndex === 2) {
-        // Save Upload Draft
-        next(
-          batchActions([
-            openModal("saveUploadDraft"),
-            // close tab after Saving
-            setDeferredAction(nextAction),
-          ])
-        );
-      } else {
-        // Cancel
-        reject(clearUploadDraft());
-      }
-    } else {
-      next(nextAction);
-    }
+    });
   },
 });
 
