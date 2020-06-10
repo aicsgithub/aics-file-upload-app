@@ -10,6 +10,7 @@ import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -20,53 +21,60 @@ import {
 } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
-import { AsyncRequest } from "./types";
+import { AsyncRequest, OpenTemplateEditorAction } from "./types";
 
 const openTemplateEditorLogic = createLogic({
   process: async (
-    { action, getState, mmsClient }: ReduxLogicProcessDependencies,
+    {
+      action,
+      getState,
+      mmsClient,
+    }: ReduxLogicProcessDependenciesWithAction<OpenTemplateEditorAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const annotationTypes = getAnnotationTypes(getState());
-    const actions: AnyAction[] = [
-      removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-    ];
-    try {
-      const template: Template = await getWithRetry(
-        () => mmsClient.getTemplate(action.payload),
-        AsyncRequest.GET_TEMPLATE,
-        dispatch,
-        "MMS",
-        "Could not retrieve template"
-      );
-      const { annotations, ...etc } = template;
-      actions.push(
-        updateTemplateDraft({
-          ...etc,
-          annotations: annotations.map(
-            (a: TemplateAnnotation, index: number) => {
-              const type = annotationTypes.find(
-                (t) => t.annotationTypeId === a.annotationTypeId
-              );
-              if (!type) {
-                throw new Error(`Could not find matching type for annotation named ${a.name},
+    if (typeof action.payload === "number") {
+      const templateId = action.payload;
+      const annotationTypes = getAnnotationTypes(getState());
+      const actions: AnyAction[] = [
+        removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
+      ];
+      try {
+        const template: Template = await getWithRetry(
+          () => mmsClient.getTemplate(templateId),
+          AsyncRequest.GET_TEMPLATE,
+          dispatch,
+          "MMS",
+          "Could not retrieve template"
+        );
+        const { annotations, ...etc } = template;
+        actions.push(
+          updateTemplateDraft({
+            ...etc,
+            annotations: annotations.map(
+              (a: TemplateAnnotation, index: number) => {
+                const type = annotationTypes.find(
+                  (t) => t.annotationTypeId === a.annotationTypeId
+                );
+                if (!type) {
+                  throw new Error(`Could not find matching type for annotation named ${a.name},
                          annotationTypeId: ${a.annotationTypeId}`);
+                }
+                return {
+                  ...a,
+                  annotationTypeName: type.name,
+                  index,
+                };
               }
-              return {
-                ...a,
-                annotationTypeName: type.name,
-                index,
-              };
-            }
-          ),
-        })
-      );
-    } catch (e) {
-      actions.push(setErrorAlert("Could not retrieve template"));
-    }
+            ),
+          })
+        );
+      } catch (e) {
+        actions.push(setErrorAlert("Could not retrieve template"));
+      }
 
-    dispatch(batchActions(actions));
+      dispatch(batchActions(actions));
+    }
     done();
   },
   type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
