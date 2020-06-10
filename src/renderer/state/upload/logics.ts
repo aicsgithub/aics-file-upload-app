@@ -112,7 +112,7 @@ import {
   UPDATE_UPLOAD_ROWS,
 } from "./constants";
 import {
-  getCreateFileMetadataRequests,
+  getEditFileMetadataRequests,
   getFileIdsToDelete,
   getUpload,
   getUploadPayload,
@@ -944,6 +944,7 @@ const openUploadLogic = createLogic({
 const submitFileMetadataUpdateLogic = createLogic({
   process: async (
     {
+      ctx,
       getApplicationMenu,
       getState,
       jssClient,
@@ -961,44 +962,40 @@ const submitFileMetadataUpdateLogic = createLogic({
         await mmsClient.deleteFileMetadata(fileId, true);
       } catch (e) {
         // ignoring not found to keep this idempotent
-        if (e.status !== HTTP_STATUS.NOT_FOUND) {
+        if (e?.status !== HTTP_STATUS.NOT_FOUND) {
           dispatch(
             editFileMetadataFailed(
-              `Could not delete file ${fileId}: ${e.message}`
+              `Could not delete file ${fileId}: ${
+                e?.response?.data?.error || e.message
+              }`
             )
           );
           done();
+          return;
         }
       }
     }
 
-    const selectedJob = getSelectedJob(getState());
-    if (selectedJob) {
-      try {
-        await jssClient.updateJob(
-          selectedJob.jobId,
-          { serviceFields: { deletedFileIds: fileIdsToDelete } },
-          true
-        );
-      } catch (e) {
-        dispatch(
-          editFileMetadataFailed(
-            `Could not update upload with deleted fileIds: ${e.message}`
-          )
-        );
-      }
-    } else {
-      // todo
+    try {
+      await jssClient.updateJob(
+        ctx.selectedJobId,
+        { serviceFields: { deletedFileIds: fileIdsToDelete } },
+        true
+      );
+    } catch (e) {
+      dispatch(
+        editFileMetadataFailed(
+          `Could not update upload with deleted fileIds: ${
+            e?.response?.data?.error || e.message
+          }`
+        )
+      );
     }
 
-    // This method currently deletes file metadata and then re-creates the file metadata since we
-    // do not have a PUT endpoint yet.
-    const createFileMetadataRequests = getCreateFileMetadataRequests(
-      getState()
-    );
+    const editFileMetadataRequests = getEditFileMetadataRequests(getState());
     try {
       await Promise.all(
-        createFileMetadataRequests.map(({ fileId, request }) =>
+        editFileMetadataRequests.map(({ fileId, request }) =>
           mmsClient.editFileMetadata(fileId, request)
         )
       );
@@ -1024,14 +1021,21 @@ const submitFileMetadataUpdateLogic = createLogic({
   },
   type: SUBMIT_FILE_METADATA_UPDATE,
   validate: (
-    { action, getState }: ReduxLogicTransformDependencies,
+    { action, ctx, getState }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
     const selectedJob = getSelectedJob(getState());
     if (!selectedJob) {
       reject(setErrorAlert("Nothing found to update"));
+      return;
     }
+    if (!getAppliedTemplate(getState())) {
+      reject(
+        setErrorAlert("Cannot submit update: no template has been applied.")
+      );
+    }
+    ctx.selectedJobId = selectedJob.jobId;
     next(action);
   },
 });
