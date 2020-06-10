@@ -1,4 +1,4 @@
-import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { OpenTemplateEditorAction } from "../feedback/types";
 
@@ -169,7 +169,7 @@ export function openTemplateEditor(
 ): OpenTemplateEditorAction {
   return {
     payload: templateId,
-    type: OPEN_TEMPLATE_EDITOR,
+    type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
   };
 }
 

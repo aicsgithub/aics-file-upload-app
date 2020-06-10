@@ -4,7 +4,7 @@ import { map } from "lodash";
 import { createLogic } from "redux-logic";
 
 import {
-  SWITCH_ENVIRONMENT,
+  SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
@@ -249,7 +249,7 @@ const switchEnvironmentLogic = createLogic({
     }
     done();
   },
-  type: SWITCH_ENVIRONMENT,
+  type: SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 });
 
 export default [

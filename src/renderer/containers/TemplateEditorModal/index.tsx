@@ -8,7 +8,7 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import {
-  OPEN_TEMPLATE_EDITOR,
+  OPEN_TEMPLATE_MENU_ITEM_CLICKED,
   SCHEMA_SYNONYM,
 } from "../../../shared/constants";
 import FormControl from "../../components/FormControl";
@@ -106,7 +106,7 @@ class TemplateEditorModal extends React.Component<
   }
 
   public componentDidMount(): void {
-    ipcRenderer.on(OPEN_TEMPLATE_EDITOR, this.openModal);
+    ipcRenderer.on(OPEN_TEMPLATE_MENU_ITEM_CLICKED, this.openModal);
 
     this.props.getAnnotations();
   }
@@ -122,7 +122,7 @@ class TemplateEditorModal extends React.Component<
   }
 
   public componentWillUnmount(): void {
-    ipcRenderer.removeListener(OPEN_TEMPLATE_EDITOR, this.openModal);
+    ipcRenderer.removeListener(OPEN_TEMPLATE_MENU_ITEM_CLICKED, this.openModal);
   }
 
   public render() {

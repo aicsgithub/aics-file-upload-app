@@ -1,7 +1,7 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
-import { OPEN_TEMPLATE_EDITOR } from "../../../shared/constants";
+import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
 import {
@@ -247,9 +247,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
       visibleModals: without(state.visibleModals, action.payload),
     }),
   },
-  [OPEN_TEMPLATE_EDITOR]: {
+  [OPEN_TEMPLATE_MENU_ITEM_CLICKED]: {
     accepts: (action: AnyAction): action is OpenTemplateEditorAction =>
-      action.type === OPEN_TEMPLATE_EDITOR,
+      action.type === OPEN_TEMPLATE_MENU_ITEM_CLICKED,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       deferredAction: clearTemplateDraft(),

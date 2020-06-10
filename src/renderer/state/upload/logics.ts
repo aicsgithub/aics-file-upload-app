@@ -23,9 +23,9 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { getCurrentUploadName } from "../../containers/App/selectors";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
+  ensureDraftGetsSaved,
   getSetAppliedTemplateAction,
   getUploadFilePromise,
   mergeChildPaths,
@@ -34,11 +34,8 @@ import {
 } from "../../util";
 import {
   clearUploadError,
-  closeModal,
-  openModal,
   removeRequestFromInProgress,
   setAlert,
-  setDeferredAction,
   setErrorAlert,
   setUploadError,
 } from "../feedback/actions";
@@ -49,16 +46,17 @@ import {
   updateIncompleteJobIds,
 } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
-import { setCurrentUpload } from "../metadata/actions";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
-  getCurrentUpload,
 } from "../metadata/selectors";
-import { Channel, CurrentUpload } from "../metadata/types";
+import { Channel } from "../metadata/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
-import { getSelectPageActions } from "../route/logics";
+import {
+  getSelectPageActions,
+  handleGoingToNextPageForNewUpload,
+} from "../route/logics";
 import { getPage } from "../route/selectors";
 import { deselectFiles, stageFiles } from "../selection/actions";
 import {
@@ -82,11 +80,11 @@ import { batchActions } from "../util";
 import {
   cancelUploadFailed,
   cancelUploadSucceeded,
-  clearUploadDraft,
   removeUploads,
   replaceUpload,
   retryUploadFailed,
   retryUploadSucceeded,
+  saveUploadDraftSuccess,
   updateUpload,
   updateUploads,
 } from "./actions";
@@ -94,7 +92,6 @@ import {
   APPLY_TEMPLATE,
   ASSOCIATE_FILES_AND_WELLS,
   CANCEL_UPLOAD,
-  getUploadDraftKey,
   getUploadRowKey,
   INITIATE_UPLOAD,
   isSubImageOnlyRow,
@@ -108,12 +105,10 @@ import {
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
 } from "./constants";
+import { getUpload, getUploadPayload } from "./selectors";
 import {
-  getCanSaveUploadDraft,
-  getUpload,
-  getUploadPayload,
-} from "./selectors";
-import {
+  OpenUploadDraftAction,
+  SaveUploadDraftAction,
   UpdateUploadRowsAction,
   UploadMetadata,
   UploadRowId,
@@ -281,20 +276,9 @@ const initiateUploadLogic = createLogic({
         );
       }
 
-      let updates: { [key: string]: any } = {
+      const updates: { [key: string]: any } = {
         [INCOMPLETE_JOB_IDS_KEY]: updatedIncompleteJobIds,
       };
-      const currentUpload = getCurrentUpload(getState());
-      if (currentUpload) {
-        // clear out upload draft so it doesn't get re-submitted on accident
-        updates = {
-          ...updates,
-          [getUploadDraftKey(
-            currentUpload.name,
-            currentUpload.created
-          )]: undefined,
-        };
-      }
 
       dispatch({
         ...batchActions(actions),
@@ -831,53 +815,53 @@ const updateFilesToStoreInArchiveLogic = createLogic({
 // a draft that was saved previously
 const saveUploadDraftLogic = createLogic({
   type: SAVE_UPLOAD_DRAFT,
-  validate: (
-    { action, getState }: ReduxLogicTransformDependencies,
+  validate: async (
+    deps: ReduxLogicTransformDependenciesWithAction<SaveUploadDraftAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const upload = getUpload(getState());
-    if (isEmpty(upload)) {
-      reject(setErrorAlert("Nothing to save"));
+    const { action } = deps;
+    try {
+      const { cancelled, filePath } = await ensureDraftGetsSaved(deps, true);
+      if (cancelled || !filePath) {
+        // don't let this action get to the reducer
+        reject({ type: "ignore" });
+        return;
+      }
+      const currentUploadFilePath = action.payload ? filePath : undefined;
+      next(saveUploadDraftSuccess(currentUploadFilePath));
+    } catch (e) {
+      reject(setErrorAlert(e.message));
       return;
     }
-
-    const draftName = trim(action.payload) || getCurrentUploadName(getState());
-    if (!draftName) {
-      reject(setErrorAlert("Draft name cannot be empty"));
-      return;
-    }
-
-    const currentUpload = getCurrentUpload(getState()); // this is populated if the draft was saved previously
-    const now = new Date();
-    const created = currentUpload ? currentUpload.created : now;
-    const draftKey: string | undefined = getUploadDraftKey(draftName, created);
-
-    const metadata: CurrentUpload = {
-      created,
-      modified: now,
-      name: draftName,
-    };
-
-    next({
-      updates: {
-        [draftKey]: { metadata, state: getState() },
-        ...clearUploadDraft().updates,
-      },
-      writeToStore: true,
-      ...setCurrentUpload(metadata),
-    });
   },
 });
 
 const openUploadLogic = createLogic({
   process: async (
-    { ctx }: ReduxLogicProcessDependencies,
+    {
+      ctx,
+      getApplicationMenu,
+      getState,
+      logger,
+    }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
+    dispatch(
+      batchActions([
+        replaceUpload(ctx.filePath, ctx.draft),
+        ...handleGoingToNextPageForNewUpload(
+          logger,
+          getState(),
+          getApplicationMenu,
+          getPage(ctx.draft)
+        ),
+      ])
+    );
+
     const { draft } = ctx;
-    const topLevelFilesToLoadAgain = getStagedFiles(draft.state).map((f) =>
+    const topLevelFilesToLoadAgain = getStagedFiles(draft).map((f) =>
       resolvePath(f.path, f.name)
     );
     const filesToLoad: string[] = mergeChildPaths(topLevelFilesToLoadAgain);
@@ -896,29 +880,45 @@ const openUploadLogic = createLogic({
     done();
   },
   type: OPEN_UPLOAD_DRAFT,
-  validate: (
-    { action, ctx, getState, storage }: ReduxLogicTransformDependencies,
+  validate: async (
+    deps: ReduxLogicTransformDependenciesWithAction<OpenUploadDraftAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const draft = storage.get(action.payload);
-    ctx.draft = draft;
-    if (!draft) {
-      reject(setErrorAlert(`Could not find draft named ${action.payload}`));
+    const { action, ctx, dialog, readFile } = deps;
+    try {
+      const { cancelled } = await ensureDraftGetsSaved(deps);
+      if (cancelled) {
+        reject({ type: "ignore" });
+        return;
+      }
+    } catch (e) {
+      reject(setErrorAlert(e.message));
       return;
     }
 
-    const nextAction = replaceUpload(draft); // also close modal
-    if (getCanSaveUploadDraft(getState())) {
-      next(
-        batchActions([
-          openModal("saveUploadDraft"),
-          closeModal("openUpload"),
-          setDeferredAction(nextAction),
-        ])
-      );
-    } else {
-      next(batchActions([nextAction, closeModal("openUpload")]));
+    try {
+      const { filePaths } = await dialog.showOpenDialog({
+        filters: [{ name: "JSON", extensions: ["json"] }],
+        properties: ["openFile"],
+      });
+      if (filePaths && filePaths[0]) {
+        ctx.filePath = filePaths[0];
+      } else {
+        // user cancelled
+        reject({ type: "ignore" });
+        return;
+      }
+    } catch (e) {
+      reject(setErrorAlert(`Could not open file: ${e.message}`));
+    }
+
+    try {
+      ctx.draft = JSON.parse((await readFile(ctx.filePath, "utf8")) as string);
+      next(action);
+    } catch (e) {
+      reject(setErrorAlert(`Could not open draft: ${e.message}`));
+      return;
     }
   },
 });

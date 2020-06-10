@@ -24,12 +24,6 @@ export const getSetMountPointNotificationVisible = (state: State) =>
   state.feedback.setMountPointNotificationVisible;
 export const getSettingsEditorVisible = (state: State) =>
   !!state.feedback.visibleModals.find((m: ModalName) => m === "settings");
-export const getSaveUploadDraftModalVisible = (state: State) =>
-  !!state.feedback.visibleModals.find(
-    (m: ModalName) => m === "saveUploadDraft"
-  );
-export const getOpenUploadModalVisible = (state: State) =>
-  !!state.feedback.visibleModals.find((m: ModalName) => m === "openUpload");
 export const getTemplateEditorVisible = (state: State) =>
   !!state.feedback.visibleModals.find((m: ModalName) => m === "templateEditor");
 export const getOpenTemplateModalVisible = (state: State) =>

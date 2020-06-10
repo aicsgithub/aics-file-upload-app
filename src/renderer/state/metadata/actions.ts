@@ -3,7 +3,6 @@ import {
   CLEAR_OPTIONS_FOR_LOOKUP,
   CREATE_BARCODE,
   EXPORT_FILE_METADATA,
-  GATHER_UPLOAD_DRAFTS,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
@@ -14,7 +13,6 @@ import {
   REQUEST_METADATA,
   RESET_HISTORY,
   SEARCH_FILE_METADATA,
-  SET_CURRENT_UPLOAD,
   UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
@@ -23,9 +21,7 @@ import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
-  CurrentUpload,
   ExportFileMetadataAction,
-  GatherUploadDraftsAction,
   GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
@@ -39,7 +35,6 @@ import {
   SearchConfig,
   SearchFileMetadataAction,
   SearchResultRow,
-  SetCurrentUploadAction,
   UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -177,21 +172,5 @@ export function exportFileMetadataCSV(
   return {
     payload: fileName,
     type: EXPORT_FILE_METADATA,
-  };
-}
-
-export function gatherUploadDrafts(): GatherUploadDraftsAction {
-  return {
-    payload: [],
-    type: GATHER_UPLOAD_DRAFTS,
-  };
-}
-
-export function setCurrentUpload(
-  currentUpload: CurrentUpload
-): SetCurrentUploadAction {
-  return {
-    payload: currentUpload,
-    type: SET_CURRENT_UPLOAD,
   };
 }
