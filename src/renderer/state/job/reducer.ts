@@ -36,7 +36,7 @@ export const initialState: JobStateBranch = {
   copyJobs: [],
   inProgressUploadJobs: [],
   incompleteJobIds: [],
-  jobFilter: JobFilter.Successful,
+  jobFilter: JobFilter.InProgress,
   polling: false,
   uploadJobs: [],
 };

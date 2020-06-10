@@ -157,8 +157,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       fileMetadataForJob: action.payload,
     }),
   },
-  // todo: in the future this shouldn't happen but it is necessary bc we are sharing the upload tab
-  // todo: JIRA ticket
+  // this is necessary because we are sharing the upload tab
   [OPEN_EDIT_FILE_METADATA_TAB]: {
     accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
       action.type === OPEN_EDIT_FILE_METADATA_TAB,

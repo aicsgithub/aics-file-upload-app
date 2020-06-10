@@ -8,6 +8,8 @@ import {
 import {
   closeUploadTab,
   openEditFileMetadataTab,
+  openEditFileMetadataTabFailed,
+  openEditFileMetadataTabSucceeded,
   selectPage,
 } from "../../route/actions";
 import { Page } from "../../route/types";
@@ -27,6 +29,7 @@ import {
   mockPlate,
   mockSuccessfulUploadJob,
   mockWells,
+  mockWellUpload,
 } from "../../test/mocks";
 import {
   applyTemplate,
@@ -295,7 +298,7 @@ describe("feedback reducer", () => {
     it("adds request in progress for REQUEST_FILE_METADATA_FOR_JOB", () => {
       const result = reducer(
         initialState,
-        openEditFileMetadataTab(mockSuccessfulUploadJob)
+        requestFileMetadataForJob(["jobId"])
       );
       expect(
         result.requestsInProgress.includes(
@@ -563,6 +566,42 @@ describe("feedback reducer", () => {
       expect(
         result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
       ).to.be.false;
+    });
+  });
+  describe("openEditMetadataTabFailed", () => {
+    it("sets alert and removes REQUEST_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB],
+        },
+        openEditFileMetadataTabFailed("foo")
+      );
+      expect(
+        result.requestsInProgress.includes(
+          AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        )
+      ).to.be.false;
+      expect(result.alert).to.deep.equal({
+        message: "foo",
+        type: AlertType.ERROR,
+      });
+    });
+    describe("openEditMetadataTabSucceeded", () => {
+      it("removes REQUEST_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
+        const result = reducer(
+          {
+            ...initialState,
+            requestsInProgress: [AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB],
+          },
+          openEditFileMetadataTabSucceeded(mockWellUpload)
+        );
+        expect(
+          result.requestsInProgress.includes(
+            AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+          )
+        ).to.be.false;
+      });
     });
   });
 });

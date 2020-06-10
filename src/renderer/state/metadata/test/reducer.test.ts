@@ -1,8 +1,16 @@
 import { expect } from "chai";
 
-import { closeUploadTab, openEditFileMetadataTab } from "../../route/actions";
+import {
+  closeUploadTab,
+  openEditFileMetadataTab,
+  openEditFileMetadataTabSucceeded,
+} from "../../route/actions";
 import { Page } from "../../route/types";
-import { mockState, mockSuccessfulUploadJob } from "../../test/mocks";
+import {
+  mockState,
+  mockSuccessfulUploadJob,
+  mockWellUpload,
+} from "../../test/mocks";
 import { replaceUpload, saveUploadDraftSuccess } from "../../upload/actions";
 import {
   clearFileMetadataForJob,
@@ -108,6 +116,15 @@ describe("metadata reducer", () => {
         openEditFileMetadataTab(mockSuccessfulUploadJob)
       );
       expect(result.currentUploadFilePath).to.be.undefined;
+    });
+  });
+  describe("openEditFileMetadataTabSucceeded", () => {
+    it("sets originalUpload", () => {
+      const result = reducer(
+        initialState,
+        openEditFileMetadataTabSucceeded(mockWellUpload)
+      );
+      expect(result.originalUpload).to.equal(mockWellUpload);
     });
   });
   describe("receiveFileMetadata", () => {

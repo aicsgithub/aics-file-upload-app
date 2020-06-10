@@ -921,7 +921,7 @@ export const getFileIdsToDelete = createSelector(
   }
 );
 
-export const getCreateFileMetadataRequests = createSelector(
+export const getEditFileMetadataRequests = createSelector(
   [getUploadPayload],
   (
     uploads: Uploads
