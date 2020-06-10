@@ -218,7 +218,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               enableCellSelect={true}
               enableDragAndDrop={true}
               getSubRowDetails={this.getSubRowDetails}
-              minHeight={550}
+              minHeight={sortedRows.length * 35 + 60}
               onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
               onGridSort={this.determineSort}
               rowGetter={rowGetter}
