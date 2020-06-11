@@ -80,10 +80,10 @@ export function setAppliedTemplate(
 }
 
 export function updateTemplateDraft(
-  draft: TemplateDraft
+  draftUpdates: Partial<TemplateDraft>
 ): UpdateTemplateDraftAction {
   return {
-    payload: draft,
+    payload: draftUpdates,
     type: UPDATE_TEMPLATE_DRAFT,
   };
 }

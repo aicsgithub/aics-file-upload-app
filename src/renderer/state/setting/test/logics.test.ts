@@ -23,7 +23,13 @@ import {
 } from "../../test/mocks";
 import { gatherSettings, updateSettings } from "../actions";
 import settingsLogics from "../logics";
-import { getLimsHost, getMetadataColumns, getTemplateId } from "../selectors";
+import {
+  getLimsHost,
+  getMetadataColumns,
+  getShowTemplateHint,
+  getShowUploadHint,
+  getTemplateId,
+} from "../selectors";
 import { SettingStateBranch } from "../types";
 
 describe("Setting logics", () => {
@@ -170,12 +176,7 @@ describe("Setting logics", () => {
     });
 
     it("sets template id in settings", () => {
-      const { store } = createMockReduxStore({
-        ...mockState,
-        setting: {
-          ...mockState.setting,
-        },
-      });
+      const { store } = createMockReduxStore(mockState);
 
       expect(getTemplateId(store.getState())).to.be.undefined;
 
@@ -185,6 +186,26 @@ describe("Setting logics", () => {
     });
 
     it("sets metadata columns in settings", () => {
+      const { store } = createMockReduxStore(mockState);
+
+      expect(getMetadataColumns(store.getState())).to.be.empty;
+
+      store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
+
+      expect(getMetadataColumns(store.getState())).to.deep.equal(["a", "b"]);
+    });
+
+    it("sets whether to show the upload hint in settings", () => {
+      const { store } = createMockReduxStore(mockState);
+
+      expect(getShowUploadHint(store.getState())).to.be.true;
+
+      store.dispatch(updateSettings({ showUploadHint: false }));
+
+      expect(getShowUploadHint(store.getState())).to.be.false;
+    });
+
+    it("sets whether to show the template hint in settings", () => {
       const { store } = createMockReduxStore({
         ...mockState,
         setting: {
@@ -192,11 +213,11 @@ describe("Setting logics", () => {
         },
       });
 
-      expect(getMetadataColumns(store.getState())).to.be.empty;
+      expect(getShowTemplateHint(store.getState())).to.be.true;
 
-      store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
+      store.dispatch(updateSettings({ showTemplateHint: false }));
 
-      expect(getMetadataColumns(store.getState())).to.deep.equal(["a", "b"]);
+      expect(getShowTemplateHint(store.getState())).to.be.false;
     });
 
     const testActionsDispatched = async (

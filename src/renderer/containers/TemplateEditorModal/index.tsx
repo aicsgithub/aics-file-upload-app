@@ -4,8 +4,7 @@ import { ipcRenderer } from "electron";
 import { includes, trim } from "lodash";
 import * as React from "react";
 import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { connect, ConnectedProps } from "react-redux";
 
 import {
   OPEN_TEMPLATE_MENU_ITEM_CLICKED,
@@ -22,11 +21,7 @@ import {
   getRequestsInProgressContains,
   getTemplateEditorVisible,
 } from "../../state/feedback/selectors";
-import {
-  AsyncRequest,
-  CloseModalAction,
-  OpenTemplateEditorAction,
-} from "../../state/feedback/types";
+import { AsyncRequest } from "../../state/feedback/types";
 import { requestAnnotations } from "../../state/metadata/actions";
 import {
   getAnnotationsWithAnnotationOptions,
@@ -34,8 +29,9 @@ import {
   getForbiddenAnnotationNames,
   getLookups,
 } from "../../state/metadata/selectors";
-import { GetAnnotationsAction } from "../../state/metadata/types";
 import { openTemplateEditor } from "../../state/selection/actions";
+import { updateSettings } from "../../state/setting/actions";
+import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
   addExistingAnnotation,
   removeAnnotations,
@@ -46,18 +42,7 @@ import {
   getTemplateDraft,
   getTemplateDraftErrors,
 } from "../../state/template/selectors";
-import {
-  AddExistingAnnotationAction,
-  Annotation,
-  AnnotationDraft,
-  AnnotationType,
-  AnnotationWithOptions,
-  Lookup,
-  RemoveAnnotationsAction,
-  SaveTemplateAction,
-  TemplateDraft,
-  UpdateTemplateDraftAction,
-} from "../../state/template/types";
+import { Annotation, AnnotationDraft } from "../../state/template/types";
 import { State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
@@ -68,30 +53,45 @@ const COLUMN_TEMPLATE_DESCRIPTION = `A ${SCHEMA_SYNONYM} defines a group of anno
 When applied to a batch of files to upload, the annotations associated with that template
 will be added as additional columns to fill out for each file. They can be shared and discovered by anyone.`;
 
-interface Props {
-  addAnnotation: ActionCreator<AddExistingAnnotationAction>;
-  allAnnotations: AnnotationWithOptions[];
-  annotationTypes: AnnotationType[];
+const mapStateToProps = (state: State) => ({
+  allAnnotations: getAnnotationsWithAnnotationOptions(state),
+  annotationTypes: getAnnotationTypes(state),
+  errors: getTemplateDraftErrors(state),
+  forbiddenAnnotationNames: getForbiddenAnnotationNames(state),
+  loadingTemplate: getRequestsInProgressContains(
+    state,
+    AsyncRequest.GET_TEMPLATE
+  ),
+  saveInProgress: getRequestsInProgressContains(
+    state,
+    AsyncRequest.SAVE_TEMPLATE
+  ),
+  tables: getLookups(state),
+  template: getTemplateDraft(state),
+  visible: getTemplateEditorVisible(state),
+  showTemplateHint: getShowTemplateHint(state),
+});
+
+const dispatchToPropsMap = {
+  addAnnotation: addExistingAnnotation,
+  closeModal,
+  getAnnotations: requestAnnotations,
+  openModal: openTemplateEditor,
+  removeAnnotations,
+  saveTemplate,
+  updateTemplateDraft,
+  updateSettings,
+};
+
+const connector = connect(mapStateToProps, dispatchToPropsMap);
+
+type Props = ConnectedProps<typeof connector> & {
   className?: string;
-  closeModal: ActionCreator<CloseModalAction>;
-  errors: string[];
-  forbiddenAnnotationNames: Set<string>;
-  getAnnotations: ActionCreator<GetAnnotationsAction>;
-  loadingTemplate: boolean;
-  openModal: ActionCreator<OpenTemplateEditorAction>;
-  removeAnnotations: ActionCreator<RemoveAnnotationsAction>;
-  saveInProgress: boolean;
-  saveTemplate: ActionCreator<SaveTemplateAction>;
-  tables: Lookup[];
-  template: TemplateDraft;
-  updateTemplateDraft: ActionCreator<UpdateTemplateDraftAction>;
-  visible: boolean;
-}
+};
 
 interface TemplateEditorModalState {
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
-  showInfoAlert: boolean;
 }
 
 class TemplateEditorModal extends React.Component<
@@ -101,7 +101,8 @@ class TemplateEditorModal extends React.Component<
   constructor(props: Props) {
     super(props);
     this.state = {
-      showInfoAlert: true,
+      annotationNameSearch: undefined,
+      selectedAnnotation: undefined,
     };
   }
 
@@ -138,7 +139,7 @@ class TemplateEditorModal extends React.Component<
         className={className}
         title={title}
         visible={visible}
-        onOk={this.saveAndClose}
+        onOk={this.props.saveTemplate}
         onCancel={this.closeModal}
         okText="Save"
         okButtonProps={{ disabled: errors.length > 0, loading: saveInProgress }}
@@ -153,12 +154,11 @@ class TemplateEditorModal extends React.Component<
     this.props.openModal(templateId);
   private closeModal = () => this.props.closeModal("templateEditor");
 
-  private closeAlert = () => this.setState({ showInfoAlert: false });
+  private closeAlert = () =>
+    this.props.updateSettings({ showTemplateHint: false });
 
   private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
-    this.props.updateTemplateDraft({
-      name: e.target.value,
-    });
+    this.props.updateTemplateDraft({ name: e.target.value });
   };
 
   private renderBody = (isEditing: boolean): ReactNode | ReactNodeArray => {
@@ -170,8 +170,9 @@ class TemplateEditorModal extends React.Component<
       loadingTemplate,
       tables,
       template,
+      showTemplateHint,
     } = this.props;
-    const { annotationNameSearch, showInfoAlert } = this.state;
+    const { annotationNameSearch } = this.state;
     const appliedAnnotationNames = template.annotations
       .map((a) => a.name)
       .concat(
@@ -194,7 +195,7 @@ class TemplateEditorModal extends React.Component<
 
     return (
       <>
-        {!isEditing && showInfoAlert && (
+        {!isEditing && showTemplateHint && (
           <Alert
             afterClose={this.closeAlert}
             className={styles.alert}
@@ -326,12 +327,6 @@ class TemplateEditorModal extends React.Component<
     this.setState({ selectedAnnotation: undefined });
   };
 
-  private saveAndClose = () => {
-    const { template } = this.props;
-    const templateId = template ? template.templateId : undefined;
-    this.props.saveTemplate(templateId);
-  };
-
   private removeAnnotation = (annotation: AnnotationDraft) => () => {
     this.props.removeAnnotations([annotation.index]);
   };
@@ -342,20 +337,7 @@ class TemplateEditorModal extends React.Component<
       (a: Annotation) => a.name === existingAnnotationName
     );
     if (annotation) {
-      const {
-        annotationId,
-        annotationOptions,
-        annotationTypeId,
-        description,
-        name,
-      } = annotation;
-      this.props.addAnnotation({
-        annotationId,
-        annotationOptions,
-        annotationTypeId,
-        description,
-        name,
-      });
+      this.props.addAnnotation(annotation);
       this.setState({ annotationNameSearch: undefined });
     }
   };
@@ -367,36 +349,4 @@ class TemplateEditorModal extends React.Component<
   };
 }
 
-function mapStateToProps(state: State) {
-  return {
-    allAnnotations: getAnnotationsWithAnnotationOptions(state),
-    annotationTypes: getAnnotationTypes(state),
-    errors: getTemplateDraftErrors(state),
-    forbiddenAnnotationNames: getForbiddenAnnotationNames(state),
-    loadingTemplate: getRequestsInProgressContains(
-      state,
-      AsyncRequest.GET_TEMPLATE
-    ),
-    saveInProgress: getRequestsInProgressContains(
-      state,
-      AsyncRequest.SAVE_TEMPLATE
-    ),
-    tables: getLookups(state),
-    template: getTemplateDraft(state),
-    visible: getTemplateEditorVisible(state),
-  };
-}
-
-const dispatchToPropsMap = {
-  addAnnotation: addExistingAnnotation,
-  closeModal,
-  getAnnotations: requestAnnotations,
-  openModal: openTemplateEditor,
-  removeAnnotations,
-  saveTemplate,
-  updateTemplateDraft,
-};
-export default connect(
-  mapStateToProps,
-  dispatchToPropsMap
-)(TemplateEditorModal);
+export default connector(TemplateEditorModal);
