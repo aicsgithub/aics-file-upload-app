@@ -356,7 +356,7 @@ describe("Upload selectors", () => {
           },
         }),
       };
-      const expected = {
+      const expected: Uploads = {
         "/path/to.dot/image.tiff": {
           customMetadata: {
             annotations: [
@@ -371,7 +371,7 @@ describe("Upload selectors", () => {
               },
               {
                 annotationId: mockFavoriteColorAnnotation.annotationId,
-                channelId: mockChannel.channelId,
+                channelId: mockChannel.name,
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
@@ -380,7 +380,7 @@ describe("Upload selectors", () => {
               },
               {
                 annotationId: mockWellAnnotation.annotationId,
-                channelId: mockChannel.channelId,
+                channelId: mockChannel.name,
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
@@ -389,7 +389,7 @@ describe("Upload selectors", () => {
               },
               {
                 annotationId: mockNotesAnnotation.annotationId,
-                channelId: mockChannel.channelId,
+                channelId: mockChannel.name,
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,

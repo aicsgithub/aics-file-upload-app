@@ -32,6 +32,7 @@ import {
 import { getWellLabel, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
+  getChannels,
   getDateAnnotationTypeId,
   getDateTimeAnnotationTypeId,
   getDropdownAnnotationTypeId,
@@ -41,7 +42,7 @@ import {
   getTextAnnotationTypeId,
   getUploadHistory,
 } from "../metadata/selectors";
-import { ImagingSession } from "../metadata/types";
+import { ImagingSession, Channel } from "../metadata/types";
 import { pageOrder } from "../route/constants";
 import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
@@ -688,7 +689,8 @@ export const getUploadValidationErrors = createSelector(
 // the userData relates to the same file but differs for subimage/channel combinations
 const getAnnotations = (
   metadata: UploadMetadata[],
-  appliedTemplate: TemplateWithTypeNames
+  appliedTemplate: TemplateWithTypeNames,
+  channels?: Channel[]
 ): MMSAnnotationValueRequest[] => {
   const annotationNameToAnnotationMap: {
     [name: string]: TemplateAnnotationWithTypeName;
@@ -700,6 +702,10 @@ const getAnnotations = (
     {}
   );
   return flatMap(metadata, (metadatum: UploadMetadata) => {
+    if (metadatum.channelId && !channels) {
+      throw new Error("Channels are not defined");
+    }
+
     const customData = standardizeUploadMetadata(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
@@ -719,9 +725,11 @@ const getAnnotations = (
         if (addAnnotation) {
           result.push({
             annotationId: annotation.annotationId,
-            channelId: metadatum.channel
-              ? metadatum.channel.channelId
-              : undefined,
+            // channelId in the request does not refer to a primary key
+            // but rather a "channel identifier". Programmatic uploads will look into a file's metadata and
+            // identify a channel by an index (not PK!) whereas users of the upload app will more likely
+            // know the channel name than the index.
+            channelId: metadatum?.channel?.name,
             positionIndex: metadatum.positionIndex,
             scene: metadatum.scene,
             subImageName: metadatum.subImageName,
@@ -764,8 +772,12 @@ const extensionToFileTypeMap: { [index: string]: FileType } = {
 };
 
 export const getUploadPayload = createSelector(
-  [getUpload, getCompleteAppliedTemplate],
-  (uploads: UploadStateBranch, template?: TemplateWithTypeNames): Uploads => {
+  [getUpload, getCompleteAppliedTemplate, getChannels],
+  (
+    uploads: UploadStateBranch,
+    template?: TemplateWithTypeNames,
+    channels?: Channel[]
+  ): Uploads => {
     if (!template) {
       throw new Error("Template has not been applied");
     }
@@ -797,7 +809,7 @@ export const getUploadPayload = createSelector(
           ...result,
           [fullPath]: {
             customMetadata: {
-              annotations: getAnnotations(metadata, template),
+              annotations: getAnnotations(metadata, template, channels),
               templateId: template.templateId,
             },
             file: {

@@ -43,7 +43,7 @@ export interface UploadMetadataWithDisplayFields extends UploadMetadata {
 
 export interface MMSAnnotationValueRequest {
   annotationId: number;
-  channelId?: number;
+  channelId?: string; // channel name or channel index (not primary key)
   positionIndex?: number;
   scene?: number;
   subImageName?: string;
