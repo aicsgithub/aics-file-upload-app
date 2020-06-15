@@ -4,6 +4,8 @@ import { UploadStateBranch } from "../upload/types";
 export interface TemplateStateBranch {
   appliedTemplate?: Template;
   draft: TemplateDraft;
+  original?: Template;
+  originalTemplateHasBeenUsed?: boolean;
 }
 
 export interface AddExistingAnnotationAction {
@@ -160,5 +162,19 @@ export interface TemplateWithTypeNames extends Audited {
 
 export interface UpdateTemplateDraftAction {
   payload: Partial<TemplateDraft>;
+  type: string;
+}
+
+export interface StartTemplateDraftAction {
+  payload: {
+    draft: TemplateDraft;
+    original: Template;
+    originalTemplateHasBeenUsed: boolean;
+  };
+  type: string;
+}
+
+export interface StartTemplateDraftFailedAction {
+  payload: string;
   type: string;
 }

@@ -314,6 +314,16 @@ export default class LabkeyClient extends BaseServiceClient {
     }));
   }
 
+  public async getTemplateHasBeenUsed(templateId: number): Promise<boolean> {
+    const query = LabkeyClient.getSelectRowsURL(
+      LK_UPLOADER_SCHEMA,
+      "FileTemplateJunction",
+      [`query.TemplateId~eq=${templateId}`]
+    );
+    const response = await this.httpClient.get(query);
+    return response.rows.length > 0;
+  }
+
   protected get baseURL(): string {
     return `${this.protocol}://${this.host}:${this.port}/labkey`;
   }

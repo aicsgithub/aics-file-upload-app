@@ -1,24 +1,21 @@
-import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 import { getAnnotationTypes } from "../metadata/selectors";
-import { updateTemplateDraft } from "../template/actions";
-import { Template, TemplateAnnotation } from "../template/types";
+import {
+  startTemplateDraft,
+  startTemplateDraftFailed,
+} from "../template/actions";
+import { TemplateAnnotation } from "../template/types";
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
 } from "../types";
-import { batchActions } from "../util";
 
-import {
-  clearDeferredAction,
-  removeRequestFromInProgress,
-  setErrorAlert,
-} from "./actions";
+import { clearDeferredAction } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
 import { AsyncRequest, OpenTemplateEditorAction } from "./types";
@@ -28,52 +25,63 @@ const openTemplateEditorLogic = createLogic({
     {
       action,
       getState,
+      labkeyClient,
       mmsClient,
     }: ReduxLogicProcessDependenciesWithAction<OpenTemplateEditorAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    if (typeof action.payload === "number") {
-      const templateId = action.payload;
+    const templateId = action.payload;
+    if (typeof templateId === "number") {
       const annotationTypes = getAnnotationTypes(getState());
-      const actions: AnyAction[] = [
-        removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-      ];
       try {
-        const template: Template = await getWithRetry(
-          () => mmsClient.getTemplate(templateId),
+        const [template, hasBeenUsed] = await getWithRetry(
+          () => {
+            return Promise.all([
+              mmsClient.getTemplate(templateId),
+              labkeyClient.getTemplateHasBeenUsed(templateId),
+            ]);
+          },
           AsyncRequest.GET_TEMPLATE,
           dispatch,
           "MMS",
           "Could not retrieve template"
         );
         const { annotations, ...etc } = template;
-        actions.push(
-          updateTemplateDraft({
-            ...etc,
-            annotations: annotations.map(
-              (a: TemplateAnnotation, index: number) => {
-                const type = annotationTypes.find(
-                  (t) => t.annotationTypeId === a.annotationTypeId
-                );
-                if (!type) {
-                  throw new Error(`Could not find matching type for annotation named ${a.name},
-                         annotationTypeId: ${a.annotationTypeId}`);
+        dispatch(
+          startTemplateDraft(
+            template,
+            {
+              ...etc,
+              annotations: annotations.map(
+                (a: TemplateAnnotation, index: number) => {
+                  const type = annotationTypes.find(
+                    (t) => t.annotationTypeId === a.annotationTypeId
+                  );
+                  if (!type) {
+                    throw new Error(`Could not find matching type for annotation named ${a.name},
+                       annotationTypeId: ${a.annotationTypeId}`);
+                  }
+                  return {
+                    ...a,
+                    annotationTypeName: type.name,
+                    index,
+                  };
                 }
-                return {
-                  ...a,
-                  annotationTypeName: type.name,
-                  index,
-                };
-              }
-            ),
-          })
+              ),
+            },
+            !!hasBeenUsed
+          )
         );
       } catch (e) {
-        actions.push(setErrorAlert("Could not retrieve template"));
+        dispatch(
+          startTemplateDraftFailed(
+            "Could not retrieve template: " + e?.response?.data?.error ||
+              e.message
+          )
+        );
+        return;
       }
-
-      dispatch(batchActions(actions));
     }
     done();
   },

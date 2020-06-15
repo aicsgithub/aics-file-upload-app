@@ -1,4 +1,4 @@
-import { isEmpty, trim, uniqBy } from "lodash";
+import { difference, intersection, isEmpty, trim, uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { LabkeyTemplate } from "../../util/labkey-client/types";
@@ -17,6 +17,7 @@ import {
   AnnotationType,
   ColumnType,
   Template,
+  TemplateAnnotation,
   TemplateDraft,
   TemplateWithTypeNames,
 } from "./types";
@@ -30,6 +31,10 @@ export const getTemplateDraftName = (state: State) =>
 export const getTemplateDraftAnnotations = (state: State) =>
   state.template.present.draft.annotations;
 export const getTemplatePast = (state: State) => state.template.past;
+export const getOriginalTemplate = (state: State) =>
+  state.template.present.original;
+export const getOriginalTemplateHasBeenUsed = (state: State) =>
+  state.template.present.originalTemplateHasBeenUsed;
 
 export const getTemplateDraftErrors = createSelector(
   [
@@ -227,5 +232,65 @@ export const getCompleteAppliedTemplate = createSelector(
         },
       ],
     };
+  }
+);
+
+export const getWarnAboutTemplateVersionMessage = createSelector(
+  [getTemplateDraft, getOriginalTemplate, getOriginalTemplateHasBeenUsed],
+  (
+    draft?: TemplateDraft,
+    original?: Template,
+    originalTemplateHasBeenUsed?: boolean
+  ): string | undefined => {
+    if (
+      !draft ||
+      !original ||
+      !originalTemplateHasBeenUsed ||
+      !draft.templateId
+    ) {
+      return undefined;
+    }
+
+    const originalAnnotationNames: string[] = [];
+    const draftAnnotationNames: string[] = [];
+    const originalAnnotationsThatWereOptional: string[] = [];
+    const draftAnnotationsThatAreRequired: string[] = [];
+    original.annotations.forEach((a: TemplateAnnotation) => {
+      originalAnnotationNames.push(a.name);
+      if (!a.required) {
+        originalAnnotationsThatWereOptional.push(a.name);
+      }
+    });
+    draft.annotations.forEach((a: AnnotationDraft) => {
+      if (a.name) {
+        draftAnnotationNames.push(a.name);
+        if (a.required) {
+          draftAnnotationsThatAreRequired.push(a.name);
+        }
+      }
+    });
+
+    const addedAnnotations = difference(
+      draftAnnotationNames,
+      originalAnnotationNames
+    );
+    const removedAnnotations = difference(
+      originalAnnotationNames,
+      draftAnnotationNames
+    );
+    if (addedAnnotations.length || removedAnnotations.length) {
+      return "Adding or removing annotations will version your template";
+    }
+
+    if (
+      intersection(
+        originalAnnotationsThatWereOptional,
+        draftAnnotationsThatAreRequired
+      )
+    ) {
+      return "Changing an annotation to be required will version your template";
+    }
+
+    return undefined;
   }
 );
