@@ -47,7 +47,6 @@ export interface MMSAnnotationValueRequest {
   positionIndex?: number;
   scene?: number;
   subImageName?: string;
-  timePointId?: number;
   values: string[];
 }
 

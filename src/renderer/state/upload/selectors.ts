@@ -733,7 +733,6 @@ const getAnnotations = (
             positionIndex: metadatum.positionIndex,
             scene: metadatum.scene,
             subImageName: metadatum.subImageName,
-            timePointId: undefined,
             values: castArray(value).map((v) => {
               if (annotation.type === ColumnType.DATETIME) {
                 return moment(v).format("YYYY-MM-DD HH:mm:ss");
