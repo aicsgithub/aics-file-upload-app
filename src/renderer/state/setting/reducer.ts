@@ -30,6 +30,7 @@ export const initialState: SettingStateBranch = {
   limsProtocol: LIMS_PROTOCOL,
   metadataColumns: [],
   showUploadHint: true,
+  showTemplateHint: true,
   username: userInfo().username,
 };
 

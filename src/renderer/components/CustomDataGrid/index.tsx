@@ -57,6 +57,8 @@ const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [
   ColumnType.DATETIME,
 ];
 const DEFAULT_COLUMN_WIDTH = 170;
+const GRID_ROW_HEIGHT = 35;
+const GRID_BOTTOM_PADDING = 60;
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
@@ -219,7 +221,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               enableCellSelect={true}
               enableDragAndDrop={true}
               getSubRowDetails={this.getSubRowDetails}
-              minHeight={550}
+              minHeight={
+                sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
+              }
               onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
               onGridSort={this.determineSort}
               rowGetter={rowGetter}

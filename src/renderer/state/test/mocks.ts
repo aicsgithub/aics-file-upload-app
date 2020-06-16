@@ -417,6 +417,7 @@ export const mockState: State = {
     limsProtocol: "http",
     metadataColumns: [],
     showUploadHint: true,
+    showTemplateHint: true,
     username: "foo",
   },
   template: getMockStateWithHistory(mockTemplateStateBranch),
