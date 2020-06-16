@@ -6,6 +6,7 @@ export interface SettingStateBranch extends LimsUrl {
   mountPoint?: string;
   // if true show hints on how to use the grid to enter data
   showUploadHint: boolean;
+  showTemplateHint: boolean;
   templateId?: number;
   username: string;
 }

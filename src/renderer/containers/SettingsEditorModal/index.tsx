@@ -4,13 +4,11 @@ import { ipcRenderer } from "electron";
 import { trim } from "lodash";
 import * as React from "react";
 import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { connect, ConnectedProps } from "react-redux";
 
 import { OPEN_SETTINGS_EDITOR } from "../../../shared/constants";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getSettingsEditorVisible } from "../../state/feedback/selectors";
-import { CloseModalAction, OpenModalAction } from "../../state/feedback/types";
 import {
   setMountPoint,
   switchEnvironment,
@@ -21,31 +19,46 @@ import {
   getLimsUrl,
   getLoggedInUser,
   getMountPoint,
+  getShowTemplateHint,
   getShowUploadHint,
 } from "../../state/setting/selectors";
-import { UpdateSettingsAction } from "../../state/setting/types";
 import { State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
-interface Props {
-  className?: string;
-  closeModal: ActionCreator<CloseModalAction>;
-  limsUrl: string;
-  limsHost: string;
-  mountPoint?: string;
-  openModal: ActionCreator<OpenModalAction>;
-  setMountPoint: () => void;
-  showUploadHint: boolean;
-  updateSettings: ActionCreator<UpdateSettingsAction>;
-  username: string;
-  visible: boolean;
+function mapStateToProps(state: State) {
+  const visible = getSettingsEditorVisible(state);
+  return {
+    key: visible,
+    limsHost: getLimsHost(state),
+    limsUrl: getLimsUrl(state),
+    mountPoint: getMountPoint(state),
+    showUploadHint: getShowUploadHint(state),
+    showTemplateHint: getShowTemplateHint(state),
+    username: getLoggedInUser(state),
+    visible,
+  };
 }
+
+const dispatchToPropsMap = {
+  closeModal,
+  openModal,
+  setMountPoint,
+  switchEnvironment,
+  updateSettings,
+};
+
+const connector = connect(mapStateToProps, dispatchToPropsMap);
+
+type Props = ConnectedProps<typeof connector> & {
+  className?: string;
+};
 
 interface SettingsEditorState {
   environment: Environment;
   limsUrl: string;
   showUploadHint: boolean;
+  showTemplateHint: boolean;
   username: string;
 }
 
@@ -72,6 +85,7 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
       environment,
       limsUrl: props.limsUrl,
       showUploadHint: props.showUploadHint,
+      showTemplateHint: props.showTemplateHint,
       username: props.username,
     };
   }
@@ -111,7 +125,13 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
   private renderBody = (): ReactNode | ReactNodeArray => {
     const { mountPoint } = this.props;
 
-    const { environment, limsUrl, showUploadHint, username } = this.state;
+    const {
+      environment,
+      limsUrl,
+      showUploadHint,
+      showTemplateHint,
+      username,
+    } = this.state;
     const errors = this.getErrors();
 
     return (
@@ -168,7 +188,23 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
           <Checkbox
             className={styles.value}
             checked={showUploadHint}
-            onChange={this.toggleShowHints}
+            onChange={() =>
+              this.setState((prev) => ({
+                showUploadHint: !prev.showUploadHint,
+              }))
+            }
+          />
+        </div>
+        <div className={styles.row}>
+          <div className={styles.key}>Show Template Hints</div>
+          <Checkbox
+            className={styles.value}
+            checked={showTemplateHint}
+            onChange={() =>
+              this.setState((prev) => ({
+                showTemplateHint: !prev.showTemplateHint,
+              }))
+            }
           />
         </div>
       </>
@@ -215,13 +251,14 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
     return errors;
   };
   private save = () => {
-    const { showUploadHint, username } = this.state;
+    const { showUploadHint, showTemplateHint, username } = this.state;
     const trimmedUsername = trim(username);
     const url = this.getURL();
     this.props.updateSettings({
       limsHost: url.hostname,
       limsPort: url.port || "80",
       showUploadHint,
+      showTemplateHint,
       username: trimmedUsername,
     });
     this.closeModal();
@@ -239,32 +276,6 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
     const completeLimsUrl = url.startsWith("http") ? url : `http://${url}`;
     return new URL(completeLimsUrl);
   };
-
-  private toggleShowHints = () =>
-    this.setState({ showUploadHint: !this.state.showUploadHint });
 }
 
-function mapStateToProps(state: State) {
-  const visible = getSettingsEditorVisible(state);
-  return {
-    key: visible,
-    limsHost: getLimsHost(state),
-    limsUrl: getLimsUrl(state),
-    mountPoint: getMountPoint(state),
-    showUploadHint: getShowUploadHint(state),
-    username: getLoggedInUser(state),
-    visible,
-  };
-}
-
-const dispatchToPropsMap = {
-  closeModal,
-  openModal,
-  setMountPoint,
-  switchEnvironment,
-  updateSettings,
-};
-export default connect(
-  mapStateToProps,
-  dispatchToPropsMap
-)(SettingsEditorModal);
+export default connector(SettingsEditorModal);
