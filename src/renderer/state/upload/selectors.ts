@@ -35,6 +35,7 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
+import { getRequestsInProgress } from "../feedback/selectors";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
@@ -507,6 +508,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
   ): { [key: string]: { [annotation: string]: string } } => {
+    console.log(template);
     if (!template) {
       return {};
     }
@@ -549,6 +551,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                   invalidValues = value
                     .filter((v: any) => typeof v !== "boolean")
                     .join(", ");
+                  console.log(annotationName, templateAnnotation);
                   if (invalidValues) {
                     annotationToErrorMap[
                       annotationName
@@ -941,17 +944,24 @@ export const getEditFileMetadataRequests = createSelector(
 );
 
 export const getCanSubmitUpload = createSelector(
-  [getUploadValidationErrors, getUpload, getOriginalUpload],
+  [
+    getUploadValidationErrors,
+    getRequestsInProgress,
+    getUpload,
+    getOriginalUpload,
+  ],
   (
     validationErrors: string[],
+    requestsInProgress: string[],
     upload: UploadStateBranch,
     originalUpload?: UploadStateBranch
   ): boolean => {
-    // this is only defined if editing uploaded file metadata
-    if (!originalUpload) {
-      return !!validationErrors.length;
-    }
-
-    return validationErrors.length === 0 && !isEqual(upload, originalUpload);
+    console.log(validationErrors);
+    const noValidationErrorsOrRequestsInProgress =
+      validationErrors.length === 0 && requestsInProgress.length === 0;
+    return originalUpload
+      ? noValidationErrorsOrRequestsInProgress &&
+          !isEqual(upload, originalUpload)
+      : noValidationErrorsOrRequestsInProgress;
   }
 );

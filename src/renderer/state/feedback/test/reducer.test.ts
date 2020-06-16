@@ -533,9 +533,9 @@ describe("feedback reducer", () => {
   describe("submitFileMetadataUpdate", () => {
     it("adds AsyncRequest.UPDATE_FILE_METADATA to requestsInProgress", () => {
       const result = reducer(initialState, submitFileMetadataUpdate());
-      expect(
-        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
-      ).to.be.true;
+      expect(result.requestsInProgress).to.include(
+        AsyncRequest.UPDATE_FILE_METADATA
+      );
     });
   });
   describe("editFileMetadataFailed", () => {

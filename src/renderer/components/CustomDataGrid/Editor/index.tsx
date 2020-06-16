@@ -42,7 +42,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
   public constructor(props: EditorProps) {
     super(props);
-    let value: any[] | string = props.value ? [...props.value] : [];
+    let value: any[] | string = [...(props.value ?? [])];
     if (
       props.column.type === ColumnType.TEXT ||
       props.column.type === ColumnType.NUMBER
