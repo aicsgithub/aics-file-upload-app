@@ -22,6 +22,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
+  CHANNEL_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
@@ -529,10 +530,14 @@ const updateSubImagesLogic = createLogic({
     );
 
     // If there are subimages for a file, remove the well associations from the file row
+    // Also add channels as an annotation
     if (!isEmpty(subImages)) {
       update[fileRow.key] = {
         ...uploads[fileRow.key],
         [WELL_ANNOTATION_NAME]: [],
+        ...(channels.length && {
+          [CHANNEL_ANNOTATION_NAME]: channels.map((c: Channel) => c.name),
+        }),
       };
     }
 
