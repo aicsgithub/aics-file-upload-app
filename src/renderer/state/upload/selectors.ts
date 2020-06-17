@@ -1,6 +1,10 @@
 import { basename, extname } from "path";
 
-import { Uploads } from "@aics/aicsfiles/type-declarations/types";
+import {
+  UploadMetadata as AicsFilesUploadMetadata,
+  Uploads,
+} from "@aics/aicsfiles/type-declarations/types";
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
   castArray,
   difference,
@@ -9,6 +13,7 @@ import {
   groupBy,
   isArray,
   isEmpty,
+  isEqual,
   isNil,
   keys,
   omit,
@@ -30,6 +35,7 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { getWellLabel, titleCase } from "../../util";
+import { getRequestsInProgress } from "../feedback/selectors";
 import {
   getBooleanAnnotationTypeId,
   getChannels,
@@ -39,6 +45,7 @@ import {
   getImagingSessions,
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
+  getOriginalUpload,
   getTextAnnotationTypeId,
   getUploadHistory,
 } from "../metadata/selectors";
@@ -50,6 +57,7 @@ import {
   getAllPlates,
   getAllWells,
   getExpandedUploadJobRows,
+  getSelectedJob,
 } from "../selection/selectors";
 import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
@@ -501,6 +509,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
   ): { [key: string]: { [annotation: string]: string } } => {
+    console.log(template);
     if (!template) {
       return {};
     }
@@ -543,6 +552,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                   invalidValues = value
                     .filter((v: any) => typeof v !== "boolean")
                     .join(", ");
+                  console.log(annotationName, templateAnnotation);
                   if (invalidValues) {
                     annotationToErrorMap[
                       annotationName
@@ -627,12 +637,14 @@ export const getUploadValidationErrors = createSelector(
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
+    getSelectedJob,
   ],
   (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
     validationErrorsMap: { [key: string]: { [annotation: string]: string } },
-    template?: TemplateWithTypeNames
+    template?: TemplateWithTypeNames,
+    selectedJob?: JSSJob
   ): string[] => {
     const errors: string[] = [];
     if (!template) {
@@ -672,7 +684,7 @@ export const getUploadValidationErrors = createSelector(
         }
       );
     }
-    if (!rows.length) {
+    if (!rows.length && !selectedJob) {
       errors.push("No files to upload");
     }
 
@@ -804,14 +816,16 @@ export const getUploadPayload = createSelector(
           fileRows.length && !isNil(fileRows[0].shouldBeInLocal)
             ? fileRows[0].shouldBeInLocal
             : true;
+        const fileKey = metadata[0]?.fileId || fullPath;
         result = {
           ...result,
-          [fullPath]: {
+          [fileKey]: {
             customMetadata: {
               annotations: getAnnotations(metadata, template, channels),
               templateId: template.templateId,
             },
             file: {
+              ...(metadata[0]?.fileId && { fileId: metadata[0]?.fileId }),
               fileType:
                 extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
                 FileType.OTHER,
@@ -892,8 +906,74 @@ export const getCanGoForwardFromSelectStorageLocationPage = createSelector(
 );
 
 export const getCanSaveUploadDraft = createSelector(
+  [getUpload, getOriginalUpload],
+  (upload: UploadStateBranch, originalUpload?: UploadStateBranch) => {
+    if (!originalUpload) {
+      return !isEmpty(upload);
+    }
+    return !isEqual(originalUpload, upload);
+  }
+);
+
+export const getFileIdsFromUploads = createSelector(
   [getUpload],
   (upload: UploadStateBranch) => {
-    return !isEmpty(upload);
+    return values(upload).map((u) => u.fileId);
+  }
+);
+
+// returns files that were on the selected job that are no longer there
+export const getFileIdsToDelete = createSelector(
+  [getFileIdsFromUploads, getSelectedJob],
+  (uploadFileIds: string[], selectedJob?: JSSJob): string[] => {
+    if (!selectedJob) {
+      return [];
+    }
+    const selectedJobFileIds: string[] = selectedJob.serviceFields.result.map(
+      ({ fileId }: UploadMetadata) => fileId
+    );
+    return difference(selectedJobFileIds, uploadFileIds);
+  }
+);
+
+export const getEditFileMetadataRequests = createSelector(
+  [getUploadPayload],
+  (
+    uploads: Uploads
+  ): Array<{ fileId: string; request: AicsFilesUploadMetadata }> => {
+    const result: Array<{
+      fileId: string;
+      request: AicsFilesUploadMetadata;
+    }> = [];
+    forEach(uploads, (request: AicsFilesUploadMetadata, fileId: string) => {
+      result.push({
+        fileId,
+        request,
+      });
+    });
+    return result;
+  }
+);
+
+export const getCanSubmitUpload = createSelector(
+  [
+    getUploadValidationErrors,
+    getRequestsInProgress,
+    getUpload,
+    getOriginalUpload,
+  ],
+  (
+    validationErrors: string[],
+    requestsInProgress: string[],
+    upload: UploadStateBranch,
+    originalUpload?: UploadStateBranch
+  ): boolean => {
+    console.log(validationErrors);
+    const noValidationErrorsOrRequestsInProgress =
+      validationErrors.length === 0 && requestsInProgress.length === 0;
+    return originalUpload
+      ? noValidationErrorsOrRequestsInProgress &&
+          !isEqual(upload, originalUpload)
+      : noValidationErrorsOrRequestsInProgress;
   }
 );

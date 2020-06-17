@@ -10,10 +10,11 @@ import {
   getMockStateWithHistory,
   mockSelection,
   mockState,
+  mockSuccessfulUploadJob,
   mockWells,
 } from "../../../state/test/mocks";
 import { State } from "../../../state/types";
-import { getFileToTags } from "../selectors";
+import { getFileToTags, getUploadTabName } from "../selectors";
 
 describe("App selectors", () => {
   describe("getFileToTags", () => {
@@ -275,6 +276,32 @@ describe("App selectors", () => {
       const file2Tags = map.get(filePath2) || [];
       expect(get(file2Tags, [1, "title"])).to.equal("Isilon");
       expect(get(file2Tags, [1, "closable"])).to.be.false;
+    });
+  });
+  describe("getUploadTabName", () => {
+    it("returns upload name if an upload draft is open", () => {
+      const name = getUploadTabName({
+        ...mockState,
+        metadata: {
+          ...mockState.metadata,
+          currentUploadFilePath: "/test/foo.json",
+        },
+      });
+      expect(name).to.equal("foo");
+    });
+    it("returns job name if job is selected", () => {
+      const name = getUploadTabName({
+        ...mockState,
+        selection: getMockStateWithHistory({
+          ...mockState.selection.present,
+          job: mockSuccessfulUploadJob,
+        }),
+      });
+      expect(name).to.equal(mockSuccessfulUploadJob.jobName);
+    });
+    it("returns 'Current Upload' if user is working on a new upload", () => {
+      const name = getUploadTabName(mockState);
+      expect(name).to.equal("Current Upload");
     });
   });
 });

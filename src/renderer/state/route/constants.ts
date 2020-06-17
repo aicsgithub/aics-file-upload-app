@@ -7,6 +7,18 @@ const BRANCH_NAME = "route";
 export const CLOSE_UPLOAD_TAB = makeConstant(BRANCH_NAME, "close-upload-tab");
 export const GO_BACK = makeConstant(BRANCH_NAME, "go-back");
 export const GO_FORWARD = makeConstant(BRANCH_NAME, "go-forward");
+export const OPEN_EDIT_FILE_METADATA_TAB = makeConstant(
+  BRANCH_NAME,
+  "open-edit-file-metadata-tab"
+);
+export const OPEN_EDIT_FILE_METADATA_TAB_FAILED = makeConstant(
+  BRANCH_NAME,
+  "open-edit-file-metadata-tab-failed"
+);
+export const OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED = makeConstant(
+  BRANCH_NAME,
+  "open-edit-file-metadata-tab-succeeded"
+);
 export const SELECT_PAGE = makeConstant(BRANCH_NAME, "select-page");
 export const SELECT_VIEW = makeConstant(BRANCH_NAME, "select-view");
 

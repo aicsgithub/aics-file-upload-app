@@ -1,7 +1,15 @@
 import { AnyAction } from "redux";
 
-import { CLOSE_UPLOAD_TAB } from "../route/constants";
-import { CloseUploadTabAction } from "../route/types";
+import {
+  CLOSE_UPLOAD_TAB,
+  OPEN_EDIT_FILE_METADATA_TAB,
+  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+} from "../route/constants";
+import {
+  CloseUploadTabAction,
+  OpenEditFileMetadataTabAction,
+  OpenEditFileMetadataTabSucceededAction,
+} from "../route/types";
 import { TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD, SAVE_UPLOAD_DRAFT_SUCCESS } from "../upload/constants";
 import {
@@ -135,6 +143,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: MetadataStateBranch) => ({
       ...state,
       currentUploadFilePath: undefined,
+      originalUpload: undefined,
     }),
   },
   [RECEIVE_FILE_METADATA]: {
@@ -146,6 +155,28 @@ const actionToConfigMap: TypeToDescriptionMap = {
     ) => ({
       ...state,
       fileMetadataForJob: action.payload,
+    }),
+  },
+  // this is necessary because we are sharing the upload tab
+  [OPEN_EDIT_FILE_METADATA_TAB]: {
+    accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB,
+    perform: (state: MetadataStateBranch) => ({
+      ...state,
+      currentUploadFilePath: undefined,
+    }),
+  },
+  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
+    accepts: (
+      action: AnyAction
+    ): action is OpenEditFileMetadataTabSucceededAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+    perform: (
+      state: MetadataStateBranch,
+      { payload: { originalUpload } }: OpenEditFileMetadataTabSucceededAction
+    ) => ({
+      ...state,
+      originalUpload,
     }),
   },
   [SAVE_UPLOAD_DRAFT_SUCCESS]: {

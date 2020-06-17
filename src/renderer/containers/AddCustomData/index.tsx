@@ -1,3 +1,4 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Alert, Spin } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -6,6 +7,7 @@ import { ActionCreator } from "redux";
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
+import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
 import { setAlert } from "../../state/feedback/actions";
@@ -31,6 +33,7 @@ import {
 import {
   getExpandedUploadJobRows,
   getSelectedBarcode,
+  getSelectedJob,
   getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
@@ -40,6 +43,7 @@ import {
 } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
 import {
+  getAssociateByWorkflow,
   getShowUploadHint,
   getTemplateId,
 } from "../../state/setting/selectors";
@@ -52,12 +56,14 @@ import {
   initiateUpload,
   jumpToUpload,
   removeUploads,
+  submitFileMetadataUpdate,
   updateSubImages,
   updateUpload,
   updateUploadRows,
 } from "../../state/upload/actions";
 import {
   getCanRedoUpload,
+  getCanSubmitUpload,
   getCanUndoUpload,
   getFileToAnnotationHasValueMap,
   getUploadKeyToAnnotationErrorMap,
@@ -69,6 +75,7 @@ import {
   InitiateUploadAction,
   JumpToUploadAction,
   RemoveUploadsAction,
+  SubmitFileMetadataUpdateAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
@@ -84,8 +91,10 @@ interface Props {
   annotationTypes: AnnotationType[];
   appliedTemplate?: Template;
   applyTemplate: ActionCreator<ApplyTemplateAction>;
+  associateByWorkflow: boolean;
   booleanAnnotationTypeId?: number;
   canRedo: boolean;
+  canSubmit: boolean;
   canUndo: boolean;
   channels: Channel[];
   className?: string;
@@ -95,14 +104,18 @@ interface Props {
   initiateUpload: ActionCreator<InitiateUploadAction>;
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
+  loadingFileMetadata: boolean;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
   selectBarcode: typeof selectBarcode;
   selectedBarcode?: string;
+  selectedJob?: JSSJob;
   setAlert: ActionCreator<SetAlertAction>;
   showUploadHint: boolean;
+  submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
   templates: LabkeyTemplate[];
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
+  updateInProgress: boolean;
   updateSettings: ActionCreator<UpdateSettingsAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
   updateUpload: ActionCreator<UpdateUploadAction>;
@@ -144,10 +157,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     const {
       annotationTypes,
       appliedTemplate,
+      associateByWorkflow,
       canRedo,
+      canSubmit,
       canUndo,
       className,
       loading,
+      loadingFileMetadata,
+      selectedJob,
+      updateInProgress,
       showUploadHint,
       uploadError,
       uploadInProgress,
@@ -155,26 +173,30 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       uploads,
       validationErrors,
     } = this.props;
+    const showLoading = loading || loadingFileMetadata;
     return (
       <FormPage
+        backButtonDisabled={!!selectedJob}
         className={className}
         formTitle="ADD ADDITIONAL DATA"
         formPrompt="Review and add information to the files below and click Upload to submit the job."
-        onSave={this.upload}
-        saveButtonDisabled={validationErrors.length > 0}
-        saveInProgress={uploadInProgress}
-        saveButtonName="Upload"
+        onSave={this.submit}
+        saveButtonDisabled={!canSubmit}
+        saveInProgress={uploadInProgress || updateInProgress}
+        saveButtonName={selectedJob ? "Update" : "Upload"}
+        showProgressBar={!selectedJob}
         onBack={this.props.goBack}
         page={Page.AddCustomData}
       >
-        {this.renderButtons()}
-        {loading && !appliedTemplate && (
+        {selectedJob && <JobOverviewDisplay job={selectedJob} />}
+        {!loadingFileMetadata && this.renderButtons()}
+        {showLoading && (
           <div className={styles.spinContainer}>
-            <div className={styles.spinText}>Getting template details...</div>
+            <div className={styles.spinText}>Loading...</div>
             <Spin />
           </div>
         )}
-        {uploadError && (
+        {!showLoading && uploadError && (
           <Alert
             className={styles.alert}
             message="Upload Failed"
@@ -193,7 +215,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             type="error"
           />
         )}
-        {!loading && appliedTemplate && showUploadHint && (
+        {!showLoading && appliedTemplate && showUploadHint && (
           <Alert
             afterClose={this.hideHint}
             className={styles.alert}
@@ -203,10 +225,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             type="info"
           />
         )}
-        {!loading && appliedTemplate && (
+        {!showLoading && appliedTemplate && (
           <CustomDataGrid
             allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
             annotationTypes={annotationTypes}
+            associateByWorkflow={associateByWorkflow}
             canRedo={canRedo}
             canUndo={canUndo}
             channels={this.props.channels}
@@ -230,7 +253,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   }
 
   private renderButtons = () => {
-    const { appliedTemplate, selectedBarcode } = this.props;
+    const { appliedTemplate, loading, selectedBarcode } = this.props;
 
     return (
       <div className={styles.selectors}>
@@ -241,6 +264,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <TemplateSearch
             allowCreate={true}
             className={styles.schemaSelector}
+            disabled={loading}
             value={appliedTemplate ? appliedTemplate.templateId : undefined}
             onSelect={this.props.applyTemplate}
           />
@@ -262,8 +286,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   };
 
-  private upload = (): void => {
-    this.props.initiateUpload();
+  private submit = (): void => {
+    if (this.props.selectedJob) {
+      this.props.submitFileMetadataUpdate();
+    } else {
+      this.props.initiateUpload();
+    }
   };
 
   private undo = (): void => {
@@ -282,17 +310,28 @@ function mapStateToProps(state: State) {
     allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
     annotationTypes: getAnnotationTypes(state),
     appliedTemplate: getAppliedTemplate(state),
+    associateByWorkflow: getAssociateByWorkflow(state),
     booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
     canRedo: getCanRedoUpload(state),
+    canSubmit: getCanSubmitUpload(state),
     canUndo: getCanUndoUpload(state),
     channels: getChannels(state),
     expandedRows: getExpandedUploadJobRows(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
     loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
+    loadingFileMetadata: getRequestsInProgressContains(
+      state,
+      AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+    ),
     savedTemplateId: getTemplateId(state),
     selectedBarcode: getSelectedBarcode(state),
+    selectedJob: getSelectedJob(state),
     showUploadHint: getShowUploadHint(state),
     templates: getTemplates(state),
+    updateInProgress: getRequestsInProgressContains(
+      state,
+      AsyncRequest.UPDATE_FILE_METADATA
+    ),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
     uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),
@@ -309,6 +348,7 @@ const dispatchToPropsMap = {
   removeUploads,
   selectBarcode,
   setAlert,
+  submitFileMetadataUpdate,
   toggleRowExpanded: toggleExpandedUploadJobRow,
   updateSettings,
   updateSubImages,

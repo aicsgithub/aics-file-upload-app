@@ -2,6 +2,7 @@ import { get, includes } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { getSetAppliedTemplateAction } from "../../util";
+import { SaveTemplateRequest } from "../../util/mms-client/types";
 import {
   addRequestToInProgress,
   closeModal,
@@ -31,7 +32,7 @@ import { batchActions } from "../util";
 import { updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";
-import { AnnotationDraft, SaveTemplateRequest } from "./types";
+import { AnnotationDraft } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (

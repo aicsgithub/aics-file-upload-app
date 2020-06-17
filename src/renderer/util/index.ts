@@ -191,7 +191,7 @@ export const titleCase = (name?: string) => {
  * @param value value to convert to an array
  */
 export const convertToArray = (value?: any): any[] =>
-  !isNil(value) ? castArray(value) : [];
+  !isNil(value) && value !== "" ? castArray(value) : [];
 
 /**
  * Splits a string on the list delimiter, trims beginning and trailing whitespace, and filters
@@ -397,11 +397,14 @@ export const getSetPlateAction = async (
  * Helper for logics that need to retrieve file metadata
  * @param {string[]} fileIds
  * @param {FileManagementSystem} fms
+ * @param {boolean} transformDates whether to convert annotation values for date annotations to dates or
+ * leave them as strings
  * @returns {AnyAction} actions to dispatch
  */
 export const retrieveFileMetadata = async (
   fileIds: string[],
-  fms: FileManagementSystem
+  fms: FileManagementSystem,
+  transformDates = true
 ): Promise<ImageModelMetadata[]> => {
   const resolvedPromises: FileMetadata[] = await Promise.all(
     fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
@@ -414,7 +417,10 @@ export const retrieveFileMetadata = async (
     }),
     {}
   );
-  return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
+  return await fms.transformFileMetadataIntoTable(
+    fileMetadataForFileIds,
+    transformDates
+  );
 };
 
 /***
@@ -424,14 +430,17 @@ export const retrieveFileMetadata = async (
  * @param {() => State} getState
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
+ * @param upload optional Upload override to apply template annotations to
  * @returns {Promise<SetAppliedTemplateAction>}
  */
 export const getSetAppliedTemplateAction = async (
   templateId: number,
   getState: () => State,
   mmsClient: MMSClient,
-  dispatch: ReduxLogicNextCb
+  dispatch: ReduxLogicNextCb,
+  upload?: UploadStateBranch
 ): Promise<SetAppliedTemplateAction> => {
+  upload = upload || getUpload(getState());
   const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
   if (!booleanAnnotationTypeId) {
     throw new Error("Could not get boolean annotation type. Contact Software");
@@ -458,7 +467,7 @@ export const getSetAppliedTemplateAction = async (
     booleanAnnotationTypeId
   );
   const uploads: UploadStateBranch = {};
-  forEach(getUpload(getState()), (metadata: UploadMetadata, key: string) => {
+  forEach(upload, (metadata: UploadMetadata, key: string) => {
     annotationsToExclude.forEach(
       (annotation: string) => delete metadata[annotation]
     );

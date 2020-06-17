@@ -10,6 +10,7 @@ import {
   replaceUpload,
   undoFileWorkflowAssociation,
   updateUpload,
+  updateUploads,
 } from "../actions";
 import reducer from "../reducer";
 import { UploadStateBranch } from "../types";
@@ -100,6 +101,22 @@ describe("upload reducer", () => {
       );
       const { present } = result;
       expect(present).to.be.empty;
+    });
+  });
+  describe("updateUploads", () => {
+    it("replaces entire upload if payload.clearAll is true", () => {
+      const result = reducer(
+        getMockStateWithHistory(uploads),
+        updateUploads({ someKey: { file: "/path/test.txt" } }, true)
+      );
+      expect(result.present.foo).to.be.undefined;
+    });
+    it("does not override parts of upload not covered in payload.replacement if payload.clearAll is false", () => {
+      const result = reducer(
+        getMockStateWithHistory(uploads),
+        updateUploads({ someKey: { file: "/path/test.txt" } }, false)
+      );
+      expect(result.present.foo).to.not.be.undefined;
     });
   });
 });
