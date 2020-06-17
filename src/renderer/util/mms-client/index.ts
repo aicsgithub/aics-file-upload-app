@@ -1,9 +1,13 @@
+import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { AxiosRequestConfig } from "axios";
+import { decamelizeKeys } from "humps";
 
 import { GetPlateResponse, WellResponse } from "../../state/selection/types";
-import { SaveTemplateRequest, Template } from "../../state/template/types";
+import { Template } from "../../state/template/types";
 import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
+
+import { SaveTemplateRequest } from "./types";
 
 export default class MMSClient extends BaseServiceClient {
   public username: string;
@@ -73,6 +77,22 @@ export default class MMSClient extends BaseServiceClient {
     const url = `/1.0/template/${templateId}`;
     const response = await this.httpClient.put(url, request, this.config);
     return response.data[0];
+  }
+
+  public async editFileMetadata(
+    fileId: string,
+    request: AicsFilesUploadMetadata
+  ): Promise<void> {
+    const url = `1.0/filemetadata/${fileId}`;
+    await this.httpClient.put(url, decamelizeKeys(request), this.config);
+  }
+
+  public async deleteFileMetadata(
+    fileId: string,
+    deleteFile: boolean
+  ): Promise<void> {
+    const url = `/1.0/filemetadata/${fileId}`;
+    await this.httpClient.delete(url, { deleteFile }, this.config);
   }
 
   protected get baseURL(): string {

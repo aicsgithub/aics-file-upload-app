@@ -12,8 +12,21 @@ import {
   ReceiveFileMetadataAction,
   RequestFileMetadataForJobAction,
 } from "../metadata/types";
-import { CLOSE_UPLOAD_TAB, SELECT_PAGE } from "../route/constants";
-import { CloseUploadTabAction, Page, SelectPageAction } from "../route/types";
+import {
+  CLOSE_UPLOAD_TAB,
+  OPEN_EDIT_FILE_METADATA_TAB,
+  OPEN_EDIT_FILE_METADATA_TAB_FAILED,
+  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  SELECT_PAGE,
+} from "../route/constants";
+import {
+  CloseUploadTabAction,
+  OpenEditFileMetadataTabAction,
+  OpenEditFileMetadataTabFailedAction,
+  OpenEditFileMetadataTabSucceededAction,
+  Page,
+  SelectPageAction,
+} from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import {
   SelectBarcodeAction,
@@ -32,20 +45,26 @@ import {
   CANCEL_UPLOAD,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
+  EDIT_FILE_METADATA_FAILED,
+  EDIT_FILE_METADATA_SUCCEEDED,
   INITIATE_UPLOAD,
   RETRY_UPLOAD,
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
+  SUBMIT_FILE_METADATA_UPDATE,
 } from "../upload/constants";
 import {
   ApplyTemplateAction,
   CancelUploadAction,
   CancelUploadFailedAction,
   CancelUploadSucceededAction,
+  EditFileMetadataFailedAction,
+  EditFileMetadataSucceededAction,
   InitiateUploadAction,
   RetryUploadAction,
   RetryUploadFailedAction,
   RetryUploadSucceededAction,
+  SubmitFileMetadataUpdateAction,
 } from "../upload/types";
 import { makeReducer } from "../util";
 
@@ -324,6 +343,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ),
     }),
   },
+  [OPEN_EDIT_FILE_METADATA_TAB]: {
+    accepts: (action: AnyAction): action is OpenEditFileMetadataTabAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: uniq([
+        ...state.requestsInProgress,
+        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
+      ]),
+    }),
+  },
   [REQUEST_FILE_METADATA_FOR_JOB]: {
     accepts: (action: AnyAction): action is RequestFileMetadataForJobAction =>
       action.type === REQUEST_FILE_METADATA_FOR_JOB,
@@ -527,6 +557,74 @@ const actionToConfigMap: TypeToDescriptionMap = {
         folderTreeOpen: pagesToShowFolderTree.includes(nextPage),
       };
     },
+  },
+  [SUBMIT_FILE_METADATA_UPDATE]: {
+    accepts: (action: AnyAction): action is SubmitFileMetadataUpdateAction =>
+      action.type === SUBMIT_FILE_METADATA_UPDATE,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.UPDATE_FILE_METADATA
+      ),
+    }),
+  },
+  [EDIT_FILE_METADATA_FAILED]: {
+    accepts: (action: AnyAction): action is EditFileMetadataFailedAction =>
+      action.type === EDIT_FILE_METADATA_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: EditFileMetadataFailedAction
+    ) => ({
+      ...state,
+      alert: getErrorAlert(action.payload),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.UPDATE_FILE_METADATA
+      ),
+    }),
+  },
+  [EDIT_FILE_METADATA_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is EditFileMetadataSucceededAction =>
+      action.type === EDIT_FILE_METADATA_SUCCEEDED,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      alert: getSuccessAlert("File metadata updated successfully!"),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.UPDATE_FILE_METADATA
+      ),
+    }),
+  },
+  [OPEN_EDIT_FILE_METADATA_TAB_FAILED]: {
+    accepts: (
+      action: AnyAction
+    ): action is OpenEditFileMetadataTabFailedAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: OpenEditFileMetadataTabFailedAction
+    ) => ({
+      ...state,
+      alert: getErrorAlert(action.payload),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+      ),
+    }),
+  },
+  [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
+    accepts: (
+      action: AnyAction
+    ): action is OpenEditFileMetadataTabSucceededAction =>
+      action.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+      ),
+    }),
   },
 };
 

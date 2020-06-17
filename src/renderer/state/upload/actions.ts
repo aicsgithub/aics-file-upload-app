@@ -17,6 +17,8 @@ import {
   CLEAR_UPLOAD_DRAFT,
   CLEAR_UPLOAD_HISTORY,
   DELETE_UPLOADS,
+  EDIT_FILE_METADATA_FAILED,
+  EDIT_FILE_METADATA_SUCCEEDED,
   INITIATE_UPLOAD,
   JUMP_TO_PAST_UPLOAD,
   JUMP_TO_UPLOAD,
@@ -28,6 +30,7 @@ import {
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT,
+  SUBMIT_FILE_METADATA_UPDATE,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   UNDO_FILE_WELL_ASSOCIATION,
   UNDO_FILE_WORKFLOW_ASSOCIATION,
@@ -48,6 +51,8 @@ import {
   ClearUploadAction,
   ClearUploadDraftAction,
   ClearUploadHistoryAction,
+  EditFileMetadataFailedAction,
+  EditFileMetadataSucceededAction,
   FilepathToBoolean,
   InitiateUploadAction,
   JumpToPastUploadAction,
@@ -62,6 +67,7 @@ import {
   RetryUploadSucceededAction,
   SaveUploadDraftAction,
   SaveUploadDraftSuccessAction,
+  SubmitFileMetadataUpdateAction,
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
   UpdateFilesToArchive,
@@ -274,11 +280,15 @@ export function retryUploadFailed(
 }
 
 export function updateUploads(
-  upload: Partial<UploadMetadata>
+  uploads: Partial<UploadMetadata>,
+  clearAll = false
 ): UpdateUploadsAction {
   return {
     autoSave: true,
-    payload: upload,
+    payload: {
+      clearAll,
+      uploads,
+    },
     type: UPDATE_UPLOADS,
   };
 }
@@ -397,5 +407,26 @@ export function saveUploadDraftSuccess(
       [TEMP_UPLOAD_STORAGE_KEY]: undefined,
     },
     writeToStore: true,
+  };
+}
+
+export function submitFileMetadataUpdate(): SubmitFileMetadataUpdateAction {
+  return {
+    type: SUBMIT_FILE_METADATA_UPDATE,
+  };
+}
+
+export function editFileMetadataSucceeded(): EditFileMetadataSucceededAction {
+  return {
+    type: EDIT_FILE_METADATA_SUCCEEDED,
+  };
+}
+
+export function editFileMetadataFailed(
+  message: string
+): EditFileMetadataFailedAction {
+  return {
+    payload: message,
+    type: EDIT_FILE_METADATA_FAILED,
   };
 }

@@ -1,5 +1,6 @@
 import { basename } from "path";
 
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
 
@@ -14,7 +15,11 @@ import {
 import { ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
-import { getAllPlates, getAllWells } from "../../state/selection/selectors";
+import {
+  getAllPlates,
+  getAllWells,
+  getSelectedJob,
+} from "../../state/selection/selectors";
 import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { isFileRow } from "../../state/upload/constants";
 import {
@@ -108,11 +113,16 @@ export const getFileToTags = createSelector(
 );
 
 export const getUploadTabName = createSelector(
-  [getCurrentUploadFilePath],
-  (filePath?: string): string => {
+  [getCurrentUploadFilePath, getSelectedJob],
+  (filePath?: string, selectedJob?: JSSJob): string => {
     if (filePath) {
       return basename(filePath, ".json");
     }
+
+    if (selectedJob) {
+      return selectedJob.jobName || selectedJob.jobId;
+    }
+
     return "Current Upload";
   }
 );

@@ -64,9 +64,14 @@ import {
   SearchResultRow,
   SearchResultsHeader,
 } from "../../state/metadata/types";
-import { selectPage, selectView } from "../../state/route/actions";
+import {
+  openEditFileMetadataTab,
+  selectPage,
+  selectView,
+} from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import {
+  OpenEditFileMetadataTabAction,
   Page,
   SelectPageAction,
   SelectViewAction,
@@ -113,6 +118,7 @@ interface Props {
   loading: boolean;
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
+  openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
   page: Page;
   requestFileMetadataForJob: ActionCreator<RequestFileMetadataForJobAction>;
   requestingJobs: boolean;
@@ -205,6 +211,11 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             <a className={styles.action} onClick={this.viewJob(row)}>
               View
             </a>
+            {row.status === "SUCCEEDED" && (
+              <a className={styles.action} onClick={this.editJob(row)}>
+                Edit
+              </a>
+            )}
             {row.status === FAILED_STATUS && (
               <a
                 className={classNames(styles.action, {
@@ -433,6 +444,10 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
   private cancelJob = (row: UploadSummaryTableRow) => () =>
     this.props.cancelUpload(row);
 
+  private editJob = (row: UploadSummaryTableRow) => () => {
+    this.props.openEditFileMetadataTab(row);
+  };
+
   private closeModal = () => {
     this.props.clearFileMetadataForJob();
     this.setState({ selectedJobId: undefined, selectedRowInJob: undefined });
@@ -463,6 +478,7 @@ const dispatchToPropsMap = {
   cancelUpload,
   clearFileMetadataForJob,
   gatherIncompleteJobIds,
+  openEditFileMetadataTab,
   requestFileMetadataForJob,
   retrieveJobs,
   retryUpload,

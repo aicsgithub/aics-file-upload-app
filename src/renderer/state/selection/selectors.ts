@@ -47,6 +47,7 @@ export const getSelectedImagingSessionIds = (state: State) =>
   state.selection.present.imagingSessionIds;
 export const getExpandedUploadJobRows = (state: State) =>
   state.selection.present.expandedUploadJobRows;
+export const getSelectedJob = (state: State) => state.selection.present.job;
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";

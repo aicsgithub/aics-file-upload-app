@@ -2,7 +2,14 @@ import { StartUploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
-import { createSandbox, SinonFakeTimers, stub, useFakeTimers } from "sinon";
+import {
+  createSandbox,
+  match,
+  SinonFakeTimers,
+  SinonStub,
+  stub,
+  useFakeTimers,
+} from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import {
@@ -14,6 +21,7 @@ import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert, getUploadError } from "../../feedback/selectors";
 import { AlertType } from "../../feedback/types";
+import { selectPage } from "../../route/actions";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
 import {
@@ -28,6 +36,7 @@ import {
   mmsClient,
   mockReduxLogicDeps,
   dialog,
+  jssClient,
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
@@ -36,20 +45,25 @@ import {
   mockMMSTemplate,
   mockNumberAnnotation,
   mockState,
+  mockSuccessfulUploadJob,
   mockTemplateStateBranch,
   mockTemplateWithManyValues,
   mockTextAnnotation,
+  mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
+import { HTTP_STATUS, State } from "../../types";
 import {
   applyTemplate,
   associateFilesAndWells,
+  editFileMetadataFailed,
+  editFileMetadataSucceeded,
   initiateUpload,
   openUploadDraft,
   replaceUpload,
   saveUploadDraft,
   saveUploadDraftSuccess,
+  submitFileMetadataUpdate,
   undoFileWellAssociation,
   updateFilesToArchive,
   updateFilesToStoreOnIsilon,
@@ -65,7 +79,11 @@ import {
   getUpload,
   getUploadSummaryRows,
 } from "../selectors";
-import { UpdateSubImagesPayload, UploadJobTableRow } from "../types";
+import {
+  UpdateSubImagesPayload,
+  UploadJobTableRow,
+  UploadMetadata,
+} from "../types";
 
 describe("Upload logics", () => {
   const sandbox = createSandbox();
@@ -1794,6 +1812,187 @@ describe("Upload logics", () => {
 
       expect(showOpenDialogStub.called).to.be.true;
       expect(actions.includesMatch(replaceUpload("/foo", mockState)));
+    });
+  });
+  describe("submitFileMetadataUpdateLogic", () => {
+    let mockStateForEditingMetadata: State | undefined;
+    let catUpload: UploadMetadata | undefined;
+    beforeEach(() => {
+      catUpload = {
+        ...mockWellUpload,
+        file: "some file",
+        fileId: "cat",
+      };
+      mockStateForEditingMetadata = {
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...mockState.selection.present,
+          job: mockSuccessfulUploadJob,
+        }),
+        upload: getMockStateWithHistory({
+          cat: catUpload,
+        }),
+      };
+    });
+
+    const stubMethods = (
+      deleteFileMetadataOverride?: SinonStub,
+      updateJobOverride?: SinonStub,
+      editFileMetadataOverride?: SinonStub
+    ): {
+      deleteFileMetadataStub: SinonStub;
+      updateJobStub: SinonStub;
+      editFileMetadataStub: SinonStub;
+    } => {
+      const deleteFileMetadataStub =
+        deleteFileMetadataOverride || stub().resolves();
+      const updateJobStub = updateJobOverride || stub().resolves();
+      const editFileMetadataStub =
+        editFileMetadataOverride || stub().resolves();
+      sandbox.replace(mmsClient, "deleteFileMetadata", deleteFileMetadataStub);
+      sandbox.replace(jssClient, "updateJob", updateJobStub);
+      sandbox.replace(mmsClient, "editFileMetadata", editFileMetadataStub);
+      return { deleteFileMetadataStub, updateJobStub, editFileMetadataStub };
+    };
+
+    it("sets error alert if no selectedJob", () => {
+      const { actions, store } = createMockReduxStore();
+      store.dispatch(submitFileMetadataUpdate());
+      expect(actions.includesMatch(setErrorAlert("Nothing found to update"))).to
+        .be.true;
+    });
+    it("sets error alert if no applied template", () => {
+      const { actions, store } = createMockReduxStore({
+        ...mockState,
+        template: getMockStateWithHistory({
+          ...mockState.template.present,
+          appliedTemplate: mockMMSTemplate,
+        }),
+      });
+      store.dispatch(submitFileMetadataUpdate());
+      expect(
+        actions.includesMatch(
+          setErrorAlert("Cannot submit update: no template has been applied")
+        )
+      );
+    });
+    it("deletes any file that is found on the selectedJob but not in uploads", async () => {
+      const {
+        deleteFileMetadataStub,
+        updateJobStub,
+        editFileMetadataStub,
+      } = stubMethods();
+
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      expect(deleteFileMetadataStub.calledWith("dog", true)).to.be.true;
+      expect(deleteFileMetadataStub.calledWith("cat", true)).to.be.false;
+      expect(
+        updateJobStub.calledWith(
+          mockSuccessfulUploadJob.jobId,
+          match({ serviceFields: { deletedFileIds: ["dog"] } })
+        )
+      ).to.be.true;
+      expect(editFileMetadataStub.calledWith("cat", match.object)).to.be.true;
+      expect(editFileMetadataStub.calledWith("dog", match.object)).to.be.false;
+      expect(actions.includesMatch(editFileMetadataSucceeded()));
+      expect(
+        actions.includesMatch(
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        )
+      );
+    });
+    it("ignores 404s when deleting files", async () => {
+      const deleteFileMetadataStub = stub().rejects({
+        status: HTTP_STATUS.NOT_FOUND,
+      });
+      const { updateJobStub, editFileMetadataStub } = stubMethods(
+        deleteFileMetadataStub
+      );
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      expect(deleteFileMetadataStub.called).to.be.true;
+      expect(updateJobStub.called).to.be.true;
+      expect(editFileMetadataStub.called).to.be.true;
+      expect(actions.includesMatch(editFileMetadataSucceeded()));
+    });
+    it("dispatches editFileMetadataFailed when deleting file fails (non-404)", async () => {
+      const deleteFileMetadataStub = stub().rejects({
+        response: {
+          data: {
+            error: "foo",
+          },
+          status: HTTP_STATUS.BAD_REQUEST,
+        },
+      });
+      const { updateJobStub, editFileMetadataStub } = stubMethods(
+        deleteFileMetadataStub
+      );
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      expect(deleteFileMetadataStub.called).to.be.true;
+      expect(updateJobStub.called).to.be.false;
+      expect(editFileMetadataStub.called).to.be.false;
+      expect(
+        actions.includesMatch(
+          editFileMetadataFailed("Could not delete file dog: foo")
+        )
+      );
+    });
+    it("dispatches editFileMetadataFailed when updating job fails", async () => {
+      const updateJobStub = stub().rejects(new Error("foo"));
+      stubMethods(undefined, updateJobStub);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          editFileMetadataFailed(
+            "Could not update upload with deleted fileIds: foo"
+          )
+        )
+      ).to.be.true;
+    });
+    it("dispatches editFileMetadataFailed when edit file metadata request fails", async () => {
+      const editFileMetadataStub = stub().rejects({
+        response: {
+          data: {
+            error: "foo",
+          },
+        },
+      });
+      stubMethods(undefined, undefined, editFileMetadataStub);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          editFileMetadataFailed("Could not edit files: foo")
+        )
+      );
     });
   });
 });

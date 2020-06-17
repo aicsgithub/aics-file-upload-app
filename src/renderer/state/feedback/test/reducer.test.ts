@@ -5,7 +5,13 @@ import {
   receiveFileMetadata,
   requestFileMetadataForJob,
 } from "../../metadata/actions";
-import { closeUploadTab, selectPage } from "../../route/actions";
+import {
+  closeUploadTab,
+  openEditFileMetadataTab,
+  openEditFileMetadataTabFailed,
+  openEditFileMetadataTabSucceeded,
+  selectPage,
+} from "../../route/actions";
 import { Page } from "../../route/types";
 import {
   openTemplateEditor,
@@ -23,16 +29,20 @@ import {
   mockPlate,
   mockSuccessfulUploadJob,
   mockWells,
+  mockWellUpload,
 } from "../../test/mocks";
 import {
   applyTemplate,
   cancelUpload,
   cancelUploadFailed,
   cancelUploadSucceeded,
+  editFileMetadataFailed,
+  editFileMetadataSucceeded,
   initiateUpload,
   retryUpload,
   retryUploadFailed,
   retryUploadSucceeded,
+  submitFileMetadataUpdate,
 } from "../../upload/actions";
 import {
   addEvent,
@@ -271,6 +281,32 @@ describe("feedback reducer", () => {
       expect(result.uploadError).to.be.undefined;
     });
   });
+  describe("openEditFileMetadataTab", () => {
+    it("adds request in progress for REQUEST_FILE_METADATA_FOR_JOB", () => {
+      const result = reducer(
+        initialState,
+        openEditFileMetadataTab(mockSuccessfulUploadJob)
+      );
+      expect(
+        result.requestsInProgress.includes(
+          AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        )
+      );
+    });
+  });
+  describe("requestFileMetadataForJob", () => {
+    it("adds request in progress for REQUEST_FILE_METADATA_FOR_JOB", () => {
+      const result = reducer(
+        initialState,
+        requestFileMetadataForJob(["jobId"])
+      );
+      expect(
+        result.requestsInProgress.includes(
+          AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        )
+      );
+    });
+  });
   describe("selectBarcode", () => {
     it("adds GET_PLATE from requestsInProgress", () => {
       const result = reducer(initialState, selectBarcode("foo"));
@@ -492,6 +528,80 @@ describe("feedback reducer", () => {
         selectPage(Page.AddCustomData, Page.UploadSummary)
       );
       expect(result.folderTreeOpen).to.be.false;
+    });
+  });
+  describe("submitFileMetadataUpdate", () => {
+    it("adds AsyncRequest.UPDATE_FILE_METADATA to requestsInProgress", () => {
+      const result = reducer(initialState, submitFileMetadataUpdate());
+      expect(result.requestsInProgress).to.include(
+        AsyncRequest.UPDATE_FILE_METADATA
+      );
+    });
+  });
+  describe("editFileMetadataFailed", () => {
+    it("sets error alert", () => {
+      const result = reducer(initialState, editFileMetadataFailed("foo"));
+      expect(result.alert).to.deep.equal({
+        message: "foo",
+        type: AlertType.ERROR,
+      });
+    });
+    it("removes UPDATE_FILE_METADATA from requestsInProgress", () => {
+      const result = reducer(initialState, editFileMetadataFailed("foo"));
+      expect(
+        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+      ).to.be.false;
+    });
+  });
+  describe("editFileMetadataSucceeded", () => {
+    it("sets success alert", () => {
+      const result = reducer(initialState, editFileMetadataSucceeded());
+      expect(result.alert).to.deep.equal({
+        message: "File metadata updated successfully!",
+        type: AlertType.SUCCESS,
+      });
+    });
+    it("removes UPDATE_FILE_METADATA from requestsInProgress", () => {
+      const result = reducer(initialState, editFileMetadataSucceeded());
+      expect(
+        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+      ).to.be.false;
+    });
+  });
+  describe("openEditMetadataTabFailed", () => {
+    it("sets alert and removes REQUEST_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB],
+        },
+        openEditFileMetadataTabFailed("foo")
+      );
+      expect(
+        result.requestsInProgress.includes(
+          AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        )
+      ).to.be.false;
+      expect(result.alert).to.deep.equal({
+        message: "foo",
+        type: AlertType.ERROR,
+      });
+    });
+    describe("openEditMetadataTabSucceeded", () => {
+      it("removes REQUEST_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
+        const result = reducer(
+          {
+            ...initialState,
+            requestsInProgress: [AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB],
+          },
+          openEditFileMetadataTabSucceeded(mockWellUpload)
+        );
+        expect(
+          result.requestsInProgress.includes(
+            AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+          )
+        ).to.be.false;
+      });
     });
   });
 });

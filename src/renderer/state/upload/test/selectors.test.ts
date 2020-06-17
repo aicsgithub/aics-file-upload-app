@@ -10,6 +10,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { AsyncRequest } from "../../feedback/types";
 import { Page } from "../../route/types";
 import { TemplateAnnotation } from "../../template/types";
 import {
@@ -28,11 +29,13 @@ import {
   mockNumberAnnotation,
   mockSelection,
   mockState,
+  mockSuccessfulUploadJob,
   mockTemplateStateBranch,
   mockTemplateStateBranchWithAppliedTemplate,
   mockTemplateWithManyValues,
   mockTextAnnotation,
   mockWellAnnotation,
+  mockWellUpload,
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
@@ -40,7 +43,9 @@ import { State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanGoForwardFromSelectStorageLocationPage,
+  getCanSubmitUpload,
   getCanUndoUpload,
+  getFileIdsToDelete,
   getFileToAnnotationHasValueMap,
   getFileToArchive,
   getFileToStoreOnIsilon,
@@ -232,7 +237,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["false"],
               },
             ],
@@ -356,7 +360,7 @@ describe("Upload selectors", () => {
           },
         }),
       };
-      const expected = {
+      const expected: Uploads = {
         "/path/to.dot/image.tiff": {
           customMetadata: {
             annotations: [
@@ -366,7 +370,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["blue"],
               },
               {
@@ -375,7 +378,6 @@ describe("Upload selectors", () => {
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["yellow"],
               },
               {
@@ -384,7 +386,6 @@ describe("Upload selectors", () => {
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["6"],
               },
               {
@@ -393,7 +394,6 @@ describe("Upload selectors", () => {
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["Seeing some interesting things here!"],
               },
             ],
@@ -418,7 +418,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["red"],
               },
               {
@@ -427,7 +426,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["1"],
               },
             ],
@@ -452,7 +450,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["green"],
               },
               {
@@ -461,7 +458,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["2"],
               },
             ],
@@ -486,7 +482,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["purple"],
               },
               {
@@ -495,7 +490,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["3"],
               },
             ],
@@ -520,7 +514,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["orange"],
               },
               {
@@ -529,7 +522,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["4"],
               },
             ],
@@ -554,7 +546,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["pink"],
               },
               {
@@ -563,7 +554,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["5", "6", "7"],
               },
             ],
@@ -588,7 +578,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["gold"],
               },
               {
@@ -597,7 +586,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["7"],
               },
             ],
@@ -622,7 +610,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["grey"],
               },
               {
@@ -631,7 +618,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["8"],
               },
             ],
@@ -656,7 +642,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["black"],
               },
               {
@@ -665,7 +650,6 @@ describe("Upload selectors", () => {
                 positionIndex: undefined,
                 scene: undefined,
                 subImageName: undefined,
-                timePointId: undefined,
                 values: ["5"],
               },
             ],
@@ -763,6 +747,7 @@ describe("Upload selectors", () => {
       expect(rows).to.deep.include({
         barcode: "1234",
         channelIds: [],
+        ["Favorite Color"]: ["Red"],
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({ file: "/path/to/file1" }),
@@ -782,6 +767,7 @@ describe("Upload selectors", () => {
       expect(rows).to.deep.include({
         barcode: "1235",
         channelIds: [],
+        ["Favorite Color"]: ["Red"],
         file: "/path/to/file2",
         group: false,
         key: getUploadRowKey({ file: "/path/to/file2" }),
@@ -801,6 +787,7 @@ describe("Upload selectors", () => {
       expect(rows).to.deep.include({
         barcode: "1236",
         channelIds: [],
+        ["Favorite Color"]: ["Red"],
         file: "/path/to/file3",
         group: true,
         key: getUploadRowKey({ file: "/path/to/file3" }),
@@ -1482,6 +1469,25 @@ describe("Upload selectors", () => {
       expect(result).to.be.false;
     });
   });
+  describe("getFileIdsToDelete", () => {
+    it("returns files that don't exist in uploads that exist on selectedJob", () => {
+      const fileIds = getFileIdsToDelete({
+        ...mockState,
+        selection: getMockStateWithHistory({
+          ...mockState.selection.present,
+          job: mockSuccessfulUploadJob,
+        }),
+        upload: getMockStateWithHistory({
+          someKey: {
+            file: "/path/to/file",
+            fileId: "cat",
+            wellIds: [],
+          },
+        }),
+      });
+      expect(fileIds).to.deep.equal(["dog"]);
+    });
+  });
 
   describe("getUploadValidationErrors", () => {
     it("adds error if template not applied", () => {
@@ -1489,12 +1495,23 @@ describe("Upload selectors", () => {
       expect(errors.includes("A template must be selected to submit an upload"))
         .to.be.true;
     });
-    it("adds error if no files to upload", () => {
+    it("adds error if no files to upload and no job selected", () => {
       const errors = getUploadValidationErrors({
         ...mockState,
         upload: getMockStateWithHistory({}),
       });
       expect(errors.includes("No files to upload")).to.be.true;
+    });
+    it("does not add error if no files to upload but a job is selected", () => {
+      const errors = getUploadValidationErrors({
+        ...mockState,
+        selection: getMockStateWithHistory({
+          ...mockState.selection.present,
+          job: mockSuccessfulUploadJob,
+        }),
+        upload: getMockStateWithHistory({}),
+      });
+      expect(errors.includes("No files to upload")).to.be.false;
     });
     it("adds error if a row does not have a well or workflow annotation", () => {
       const errors = getUploadValidationErrors({
@@ -1555,5 +1572,49 @@ describe("Upload selectors", () => {
         )
       ).to.be.true;
     });
+  });
+});
+
+describe("getCanSubmitUpload", () => {
+  it("returns true if working on new upload, no validation errors, and no requests in progress", () => {
+    const result = getCanSubmitUpload(nonEmptyStateForInitiatingUpload);
+    expect(result).to.be.true;
+  });
+  it("returns true if editing an upload and has made changes, no validation errors, and no requests in progress", () => {
+    const result = getCanSubmitUpload({
+      ...nonEmptyStateForInitiatingUpload,
+      metadata: {
+        ...nonEmptyStateForInitiatingUpload.metadata,
+        originalUpload: {},
+      },
+    });
+    expect(result).to.be.true;
+  });
+  it("returns false if there are validation errors", () => {
+    const result = getCanSubmitUpload({
+      ...nonEmptyStateForInitiatingUpload,
+      upload: getMockStateWithHistory({}),
+    });
+    expect(result).to.be.false;
+  });
+  it("returns false if there are requests in progress", () => {
+    const result = getCanSubmitUpload({
+      ...nonEmptyStateForInitiatingUpload,
+      feedback: {
+        ...nonEmptyStateForInitiatingUpload.feedback,
+        requestsInProgress: [AsyncRequest.GET_TEMPLATE],
+      },
+    });
+    expect(result).to.be.false;
+  });
+  it("returns false if editing an upload but have not made changes", () => {
+    const result = getCanSubmitUpload({
+      ...nonEmptyStateForInitiatingUpload,
+      metadata: {
+        ...nonEmptyStateForInitiatingUpload.metadata,
+        originalUpload: mockWellUpload,
+      },
+    });
+    expect(result).to.be.false;
   });
 });

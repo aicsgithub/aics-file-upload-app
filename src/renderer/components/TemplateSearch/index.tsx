@@ -19,6 +19,7 @@ interface TemplateSearchProps {
   allowCreate?: boolean;
   className?: string;
   defaultOpen?: boolean;
+  disabled?: boolean;
   onSelect: (selectedTemplateId: number) => void;
   value?: number;
 }
@@ -36,14 +37,21 @@ export default function TemplateSearch(props: TemplateSearchProps) {
     undefined
   );
 
-  const { allowCreate, className, defaultOpen, onSelect, value } = props;
+  const {
+    allowCreate,
+    className,
+    defaultOpen,
+    disabled,
+    onSelect,
+    value,
+  } = props;
   const sortedTemplates = sortBy(templates, ["Name", "Version"]);
   return (
     <Select
       autoFocus={true}
       className={classNames(styles.container, className)}
       defaultOpen={defaultOpen}
-      disabled={loading && !templates}
+      disabled={disabled || (loading && !templates)}
       dropdownRender={(menu: ReactNode | undefined) => (
         <div>
           {menu}

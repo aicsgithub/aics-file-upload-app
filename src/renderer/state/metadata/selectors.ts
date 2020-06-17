@@ -55,6 +55,8 @@ export const getFileMetadataForJob = (state: State) =>
   state.metadata.fileMetadataForJob;
 export const getCurrentUploadFilePath = (state: State) =>
   state.metadata.currentUploadFilePath;
+export const getOriginalUpload = (state: State) =>
+  state.metadata.originalUpload;
 
 // Some annotations are used purely for displaying data in the File Explorer, here we exclude those
 export const getAnnotations = createSelector(
