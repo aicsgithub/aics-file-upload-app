@@ -12,11 +12,7 @@ import {
   selectBarcode,
   setPlate,
 } from "../../selection/actions";
-import {
-  clearTemplateDraft,
-  saveTemplate,
-  setAppliedTemplate,
-} from "../../template/actions";
+import { saveTemplate, setAppliedTemplate } from "../../template/actions";
 import {
   mockFailedUploadJob,
   mockMMSTemplate,
@@ -207,10 +203,6 @@ describe("feedback reducer", () => {
     it("adds templateEditor to visibleModals", () => {
       const result = reducer(initialState, openTemplateEditor());
       expect(result.visibleModals.includes("templateEditor")).to.be.true;
-    });
-    it("sets clearTemplateDraft as the deferredAction", () => {
-      const result = reducer(initialState, openTemplateEditor());
-      expect(result.deferredAction).to.deep.equal(clearTemplateDraft());
     });
   });
   describe("setDeferredAction", () => {

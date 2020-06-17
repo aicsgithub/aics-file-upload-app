@@ -20,7 +20,6 @@ import {
   SelectionStateBranch,
   SetPlateAction,
 } from "../selection/types";
-import { clearTemplateDraft } from "../template/actions";
 import { SAVE_TEMPLATE, SET_APPLIED_TEMPLATE } from "../template/constants";
 import {
   SaveTemplateAction,
@@ -252,7 +251,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === OPEN_TEMPLATE_MENU_ITEM_CLICKED,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
-      deferredAction: clearTemplateDraft(),
       visibleModals: uniq([...state.visibleModals, "templateEditor"]),
     }),
   },

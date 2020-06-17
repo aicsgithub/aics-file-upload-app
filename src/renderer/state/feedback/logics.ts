@@ -4,7 +4,7 @@ import { createLogic } from "redux-logic";
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { getWithRetry } from "../../util";
 import { getAnnotationTypes } from "../metadata/selectors";
-import { updateTemplateDraft } from "../template/actions";
+import { clearTemplateDraft, updateTemplateDraft } from "../template/actions";
 import { Template, TemplateAnnotation } from "../template/types";
 import {
   ReduxLogicDoneCb,
@@ -82,7 +82,7 @@ const openTemplateEditorLogic = createLogic({
 
 const closeModalLogic = createLogic({
   process: (
-    { getState }: ReduxLogicProcessDependencies,
+    { action, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -91,6 +91,10 @@ const closeModalLogic = createLogic({
       dispatch(deferredAction);
     }
     dispatch(clearDeferredAction());
+    if (action.payload === "templateEditor") {
+      // Clear template draft any time the draft editor is closed
+      dispatch(clearTemplateDraft());
+    }
     done();
   },
   type: CLOSE_MODAL,
