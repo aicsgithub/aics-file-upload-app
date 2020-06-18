@@ -97,6 +97,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       if (payload === "templateEditor") {
         return {
           ...state,
+          draft: DEFAULT_TEMPLATE_DRAFT,
           original: undefined,
           originalTemplateHasBeenUsed: undefined,
         };

@@ -16,6 +16,8 @@ import {
   clearTemplateDraft,
   saveTemplate,
   setAppliedTemplate,
+  startTemplateDraft,
+  startTemplateDraftFailed,
 } from "../../template/actions";
 import {
   mockFailedUploadJob,
@@ -23,6 +25,7 @@ import {
   mockPlate,
   mockSuccessfulUploadJob,
   mockWells,
+  mockTemplateDraft,
 } from "../../test/mocks";
 import {
   applyTemplate,
@@ -211,6 +214,14 @@ describe("feedback reducer", () => {
     it("sets clearTemplateDraft as the deferredAction", () => {
       const result = reducer(initialState, openTemplateEditor());
       expect(result.deferredAction).to.deep.equal(clearTemplateDraft());
+    });
+    it("adds GET_TEMPLATE to requestsInProgress if payload is not falsy", () => {
+      const result = reducer(initialState, openTemplateEditor(1));
+      expect(result.requestsInProgress).includes(AsyncRequest.GET_TEMPLATE);
+    });
+    it("does not add GET_TEMPLATE to requestsInProgress if payload is not defined", () => {
+      const result = reducer(initialState, openTemplateEditor());
+      expect(result.requestsInProgress).not.includes(AsyncRequest.GET_TEMPLATE);
     });
   });
   describe("setDeferredAction", () => {
@@ -492,6 +503,30 @@ describe("feedback reducer", () => {
         selectPage(Page.AddCustomData, Page.UploadSummary)
       );
       expect(result.folderTreeOpen).to.be.false;
+    });
+  });
+  describe("startTemplateDraft", () => {
+    it("removes GET_TEMPLATE from requestsInProgress", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.GET_TEMPLATE],
+        },
+        startTemplateDraft(mockMMSTemplate, mockTemplateDraft, true)
+      );
+      expect(result.requestsInProgress).not.includes(AsyncRequest.GET_TEMPLATE);
+    });
+  });
+  describe("startTemplateDraftFailed", () => {
+    it("removes GET_TEMPLATE from requestsInProgress", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.GET_TEMPLATE],
+        },
+        startTemplateDraftFailed("error")
+      );
+      expect(result.requestsInProgress).not.includes(AsyncRequest.GET_TEMPLATE);
     });
   });
 });

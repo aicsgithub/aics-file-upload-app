@@ -36,12 +36,11 @@ const openTemplateEditorLogic = createLogic({
       const annotationTypes = getAnnotationTypes(getState());
       try {
         const [template, hasBeenUsed] = await getWithRetry(
-          () => {
-            return Promise.all([
+          () =>
+            Promise.all([
               mmsClient.getTemplate(templateId),
               labkeyClient.getTemplateHasBeenUsed(templateId),
-            ]);
-          },
+            ]),
           AsyncRequest.GET_TEMPLATE,
           dispatch,
           "MMS",
@@ -74,13 +73,10 @@ const openTemplateEditorLogic = createLogic({
           )
         );
       } catch (e) {
+        const error: string | undefined = e?.response?.data?.error || e.message;
         dispatch(
-          startTemplateDraftFailed(
-            "Could not retrieve template: " + e?.response?.data?.error ||
-              e.message
-          )
+          startTemplateDraftFailed("Could not retrieve template: " + error)
         );
-        return;
       }
     }
     done();

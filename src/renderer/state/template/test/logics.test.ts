@@ -16,6 +16,8 @@ import {
   mockLookups,
   mockMMSTemplate,
   mockState,
+  mockTemplateDraft,
+  nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
 import {
@@ -240,10 +242,44 @@ describe("Template Logics", () => {
       store.dispatch(saveTemplate());
       await logicMiddleware.whenComplete();
 
-      expect(showMessageBoxStub.called).to.be.false;
+      expect(showMessageBoxStub.called).to.be.true;
       expect(editTemplateStub.called).to.be.false;
     });
 
+    it("doesn't show warning dialog if user is creating a template", async () => {
+      const { showMessageBoxStub } = stubMethods();
+
+      const { logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+
+      expect(showMessageBoxStub.called).to.be.false;
+
+      store.dispatch(saveTemplate());
+      await logicMiddleware.whenComplete();
+
+      expect(showMessageBoxStub.called).to.be.false;
+    });
+    it("doesn't show warning dialog if changes won't cause versioning", async () => {
+      const { showMessageBoxStub } = stubMethods();
+
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        template: getMockStateWithHistory({
+          ...nonEmptyStateForInitiatingUpload.template.present,
+          draft: mockTemplateDraft,
+          original: mockMMSTemplate,
+          originalTemplateHasBeenUsed: false,
+        }),
+      });
+
+      expect(showMessageBoxStub.called).to.be.false;
+
+      store.dispatch(saveTemplate());
+      await logicMiddleware.whenComplete();
+
+      expect(showMessageBoxStub.called).to.be.false;
+    });
     it("calls editTemplate endpoint if draft has template id", async () => {
       const { editTemplateStub } = stubMethods();
       const { logicMiddleware, store } = createMockReduxStore(

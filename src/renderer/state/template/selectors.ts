@@ -238,16 +238,11 @@ export const getCompleteAppliedTemplate = createSelector(
 export const getWarnAboutTemplateVersionMessage = createSelector(
   [getTemplateDraft, getOriginalTemplate, getOriginalTemplateHasBeenUsed],
   (
-    draft?: TemplateDraft,
+    draft: TemplateDraft,
     original?: Template,
     originalTemplateHasBeenUsed?: boolean
   ): string | undefined => {
-    if (
-      !draft ||
-      !original ||
-      !originalTemplateHasBeenUsed ||
-      !draft.templateId
-    ) {
+    if (!original || !originalTemplateHasBeenUsed || !draft.templateId) {
       return undefined;
     }
 
