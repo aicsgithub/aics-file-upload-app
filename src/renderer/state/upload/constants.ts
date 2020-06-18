@@ -33,6 +33,14 @@ export const CLEAR_UPLOAD_DRAFT = makeConstant(
 );
 export const CLEAR_UPLOAD_HISTORY = makeConstant(BRANCH_NAME, "clear-history");
 export const DELETE_UPLOADS = makeConstant(BRANCH_NAME, "delete-uploads");
+export const EDIT_FILE_METADATA_FAILED = makeConstant(
+  BRANCH_NAME,
+  "edit-file-metadata-failed"
+);
+export const EDIT_FILE_METADATA_SUCCEEDED = makeConstant(
+  BRANCH_NAME,
+  "edit-file-metadata-succeeded"
+);
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");
 export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
 export const REMOVE_FILE_FROM_ARCHIVE = makeConstant(
@@ -47,6 +55,10 @@ export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
 export const SAVE_UPLOAD_DRAFT_SUCCESS = makeConstant(
   BRANCH_NAME,
   "save-upload-draft-success"
+);
+export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
+  BRANCH_NAME,
+  "submit-file-metadata-update"
 );
 export const UNDO_FILE_WELL_ASSOCIATION = makeConstant(
   BRANCH_NAME,

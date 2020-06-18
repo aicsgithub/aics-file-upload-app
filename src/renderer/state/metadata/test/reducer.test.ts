@@ -1,8 +1,16 @@
 import { expect } from "chai";
 
-import { closeUploadTab } from "../../route/actions";
+import {
+  closeUploadTab,
+  openEditFileMetadataTab,
+  openEditFileMetadataTabSucceeded,
+} from "../../route/actions";
 import { Page } from "../../route/types";
-import { mockState } from "../../test/mocks";
+import {
+  mockState,
+  mockSuccessfulUploadJob,
+  mockWellUpload,
+} from "../../test/mocks";
 import { replaceUpload, saveUploadDraftSuccess } from "../../upload/actions";
 import {
   clearFileMetadataForJob,
@@ -86,6 +94,37 @@ describe("metadata reducer", () => {
         closeUploadTab()
       );
       expect(result.currentUpload).to.be.undefined;
+    });
+    it("clears originalUpload", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          originalUpload: {},
+        },
+        closeUploadTab()
+      );
+      expect(result.originalUpload).to.be.undefined;
+    });
+  });
+  describe("openEditFileMetadataTab", () => {
+    it("clears currentUploadFilePath", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          currentUploadFilePath: "/foo.json",
+        },
+        openEditFileMetadataTab(mockSuccessfulUploadJob)
+      );
+      expect(result.currentUploadFilePath).to.be.undefined;
+    });
+  });
+  describe("openEditFileMetadataTabSucceeded", () => {
+    it("sets originalUpload", () => {
+      const result = reducer(
+        initialState,
+        openEditFileMetadataTabSucceeded(mockWellUpload)
+      );
+      expect(result.originalUpload).to.equal(mockWellUpload);
     });
   });
   describe("receiveFileMetadata", () => {

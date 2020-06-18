@@ -51,16 +51,18 @@ import {
   getBooleanAnnotationTypeId,
 } from "../metadata/selectors";
 import { Channel } from "../metadata/types";
-import { selectPage } from "../route/actions";
+import { openEditFileMetadataTab, selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import {
   getSelectPageActions,
   handleGoingToNextPageForNewUpload,
 } from "../route/logics";
 import { getPage } from "../route/selectors";
+import { Page } from "../route/types";
 import { deselectFiles, stageFiles } from "../selection/actions";
 import {
   getSelectedBarcode,
+  getSelectedJob,
   getSelectedWellIds,
   getStagedFiles,
 } from "../selection/selectors";
@@ -68,6 +70,7 @@ import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
 import { AnnotationType, ColumnType, Template } from "../template/types";
 import {
+  HTTP_STATUS,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -80,6 +83,8 @@ import { batchActions } from "../util";
 import {
   cancelUploadFailed,
   cancelUploadSucceeded,
+  editFileMetadataFailed,
+  editFileMetadataSucceeded,
   removeUploads,
   replaceUpload,
   retryUploadFailed,
@@ -98,6 +103,7 @@ import {
   OPEN_UPLOAD_DRAFT,
   RETRY_UPLOAD,
   SAVE_UPLOAD_DRAFT,
+  SUBMIT_FILE_METADATA_UPDATE,
   UNDO_FILE_WELL_ASSOCIATION,
   UPDATE_FILES_TO_ARCHIVE,
   UPDATE_FILES_TO_STORE_ON_ISILON,
@@ -105,7 +111,12 @@ import {
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
 } from "./constants";
-import { getUpload, getUploadPayload } from "./selectors";
+import {
+  getEditFileMetadataRequests,
+  getFileIdsToDelete,
+  getUpload,
+  getUploadPayload,
+} from "./selectors";
 import {
   OpenUploadDraftAction,
   SaveUploadDraftAction,
@@ -915,11 +926,117 @@ const openUploadLogic = createLogic({
 
     try {
       ctx.draft = JSON.parse((await readFile(ctx.filePath, "utf8")) as string);
-      next(action);
+      const selectedJob = getSelectedJob(ctx.draft);
+      if (selectedJob) {
+        // If a selectedJob exists on the draft, we know that the upload has been submitted before
+        // and we actually want to edit it. This will go through the openEditFileMetadataTab logics instead.
+        reject(openEditFileMetadataTab(selectedJob));
+      } else {
+        next(action);
+      }
     } catch (e) {
       reject(setErrorAlert(`Could not open draft: ${e.message}`));
       return;
     }
+  },
+});
+
+const submitFileMetadataUpdateLogic = createLogic({
+  process: async (
+    {
+      ctx,
+      getApplicationMenu,
+      getState,
+      jssClient,
+      logger,
+      mmsClient,
+    }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
+
+    // We delete files in series so that we can ignore the files that have already been deleted
+    for (const fileId of fileIdsToDelete) {
+      try {
+        await mmsClient.deleteFileMetadata(fileId, true);
+      } catch (e) {
+        // ignoring not found to keep this idempotent
+        if (e?.status !== HTTP_STATUS.NOT_FOUND) {
+          dispatch(
+            editFileMetadataFailed(
+              `Could not delete file ${fileId}: ${
+                e?.response?.data?.error || e.message
+              }`
+            )
+          );
+          done();
+          return;
+        }
+      }
+    }
+
+    try {
+      await jssClient.updateJob(
+        ctx.selectedJobId,
+        { serviceFields: { deletedFileIds: fileIdsToDelete } },
+        true
+      );
+    } catch (e) {
+      dispatch(
+        editFileMetadataFailed(
+          `Could not update upload with deleted fileIds: ${
+            e?.response?.data?.error || e.message
+          }`
+        )
+      );
+    }
+
+    const editFileMetadataRequests = getEditFileMetadataRequests(getState());
+    try {
+      await Promise.all(
+        editFileMetadataRequests.map(({ fileId, request }) =>
+          mmsClient.editFileMetadata(fileId, request)
+        )
+      );
+    } catch (e) {
+      const message = e?.response?.data?.error || e.message;
+      dispatch(editFileMetadataFailed("Could not edit files: " + message));
+      done();
+      return;
+    }
+
+    dispatch(
+      batchActions([
+        editFileMetadataSucceeded(),
+        ...getSelectPageActions(
+          logger,
+          getState(),
+          getApplicationMenu,
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        ),
+      ])
+    );
+    done();
+  },
+  type: SUBMIT_FILE_METADATA_UPDATE,
+  validate: (
+    { action, ctx, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
+  ) => {
+    const selectedJob = getSelectedJob(getState());
+    if (!selectedJob) {
+      reject(setErrorAlert("Nothing found to update"));
+      return;
+    }
+    if (!getAppliedTemplate(getState())) {
+      reject(
+        setErrorAlert("Cannot submit update: no template has been applied.")
+      );
+    }
+    ctx.selectedJobId = selectedJob.jobId;
+    next(action);
   },
 });
 
@@ -931,6 +1048,7 @@ export default [
   openUploadLogic,
   retryUploadLogic,
   saveUploadDraftLogic,
+  submitFileMetadataUpdateLogic,
   undoFileWellAssociationLogic,
   updateSubImagesLogic,
   updateUploadLogic,

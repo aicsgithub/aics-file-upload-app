@@ -67,6 +67,7 @@ export enum AsyncRequest {
   RETRY_UPLOAD = "RETRY_UPLOAD",
   SAVE_TEMPLATE = "SAVE_TEMPLATE",
   SEARCH_FILE_METADATA = "SEARCH_FILE_METADATA",
+  UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
 }
 
 export interface AddRequestInProgressAction {

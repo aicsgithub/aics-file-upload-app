@@ -41,7 +41,7 @@ import {
   UploadJobTableRow,
   UploadMetadata,
 } from "../../state/upload/types";
-import { onDrop } from "../../util";
+import { convertToArray, onDrop } from "../../util";
 import BooleanFormatter from "../BooleanFormatter";
 
 import CellWithContextMenu from "./CellWithContextMenu";
@@ -57,12 +57,15 @@ const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [
   ColumnType.DATETIME,
 ];
 const DEFAULT_COLUMN_WIDTH = 170;
+const GRID_ROW_HEIGHT = 35;
+const GRID_BOTTOM_PADDING = 60;
 type SortableColumns = "barcode" | "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
 interface Props {
   allWellsForSelectedPlate: Well[][];
   annotationTypes: AnnotationType[];
+  associateByWorkflow: boolean;
   canUndo: boolean;
   canRedo: boolean;
   channels: Channel[];
@@ -218,7 +221,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               enableCellSelect={true}
               enableDragAndDrop={true}
               getSubRowDetails={this.getSubRowDetails}
-              minHeight={550}
+              minHeight={
+                sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
+              }
               onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
               onGridSort={this.determineSort}
               rowGetter={rowGetter}
@@ -247,12 +252,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private renderFormat = (
     row: UploadJobTableRow,
     label: string,
-    value: any,
+    value: any = [],
     childElement?: React.ReactNode | React.ReactNodeArray,
     required?: boolean,
     className?: string,
     contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>
   ): React.ReactElement => {
+    value = convertToArray(value);
     // If a required field is not filled out, show error for that first.
     // If filled out but there is additional issues like misformatted lists (e.g. "a, b, c,")
     // then show a error related to that.
@@ -333,7 +339,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       return [];
     }
     let basicColumns;
-    if (this.props.uploads[0].barcode) {
+    if (!this.props.associateByWorkflow) {
       basicColumns = this.uploadColumns(this.wellUploadColumns);
     } else {
       basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
@@ -394,7 +400,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             row,
             value,
           }: FormatterProps<UploadJobTableRow>) => {
-            const childEl = castArray(value)
+            const childEl = convertToArray(value)
               .map((v: any) => {
                 switch (type) {
                   case ColumnType.DATETIME:

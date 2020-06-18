@@ -4,16 +4,18 @@ import { closeModal } from "../../feedback/actions";
 import { closeUploadTab } from "../../route/actions";
 import {
   getMockStateWithHistory,
+  mockAnnotationDraft,
   mockMMSTemplate,
   mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
-import { startTemplateDraft } from "../actions";
+import { startTemplateDraft, updateTemplateDraft } from "../actions";
 import { DEFAULT_TEMPLATE_DRAFT } from "../constants";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import { getAppliedTemplate } from "../selectors";
+import { TemplateStateBranch } from "../types";
 
 describe("template reducer", () => {
   describe("replaceUpload", () => {
@@ -34,6 +36,24 @@ describe("template reducer", () => {
         closeUploadTab()
       );
       expect(result.present.appliedTemplate).to.be.undefined;
+    });
+  });
+
+  describe("updateTemplateDraft", () => {
+    it("updates the draft name without overwriting the annotations", () => {
+      const annotations = [mockAnnotationDraft];
+      const state: TemplateStateBranch = {
+        ...initialState,
+        draft: { annotations },
+      };
+
+      const result = reducer(
+        getMockStateWithHistory(state),
+        updateTemplateDraft({ name: "My Draft" })
+      );
+
+      expect(result.present.draft.name).to.equal("My Draft");
+      expect(result.present.draft.annotations).to.deep.equal(annotations);
     });
   });
   describe("closeModal", () => {

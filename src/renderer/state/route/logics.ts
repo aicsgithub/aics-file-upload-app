@@ -1,30 +1,42 @@
 import { existsSync } from "fs";
 import { platform } from "os";
 
+import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Menu, MenuItem } from "electron";
-import { isEmpty, isNil } from "lodash";
+import { castArray, difference, isEmpty, isNil } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import {
+  getSetAppliedTemplateAction,
+  getSetPlateAction,
+  getWithRetry,
   ensureDraftGetsSaved,
   makePosixPathCompatibleWithPlatform,
+  retrieveFileMetadata,
 } from "../../util";
+import LabkeyClient from "../../util/labkey-client";
+import MMSClient from "../../util/mms-client";
 import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
+import { AsyncRequest } from "../feedback/types";
 import { updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,
   getTemplateHistory,
   getUploadHistory,
+  getWellAnnotation,
 } from "../metadata/selectors";
 import {
   clearSelectionHistory,
   jumpToPastSelection,
+  selectBarcode,
 } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
+import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
@@ -42,17 +54,25 @@ import {
   clearUploadHistory,
   jumpToPastUpload,
   updateUpload,
+  updateUploads,
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
 import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
+import { UploadMetadata, UploadStateBranch } from "../upload/types";
 import { batchActions } from "../util";
 
-import { closeUploadTab, selectPage } from "./actions";
+import {
+  closeUploadTab,
+  openEditFileMetadataTabFailed,
+  openEditFileMetadataTabSucceeded,
+  selectPage,
+} from "./actions";
 import {
   CLOSE_UPLOAD_TAB,
   findNextPage,
   GO_BACK,
   GO_FORWARD,
+  OPEN_EDIT_FILE_METADATA_TAB,
   pageOrder,
   SELECT_PAGE,
 } from "./constants";
@@ -190,7 +210,7 @@ export const getSelectPageActions = (
       const historyForThisStateBranch = history.getHistory(state);
 
       if (nextPageOrder === 0 && currentPageOrder === pageOrder.length - 1) {
-        actions.push(history.jumpToPast(0), history.clearHistory());
+        actions.push(history.clearHistory(), history.jumpToPast(0));
       } else if (
         historyForThisStateBranch &&
         !isNil(historyForThisStateBranch[nextPage])
@@ -349,9 +369,233 @@ const closeUploadTabLogic = createLogic({
   },
 });
 
+const convertImageModelMetadataToUploadStateBranch = (
+  metadata: ImageModelMetadata[]
+): UploadStateBranch => {
+  return metadata.reduce(
+    (accum: UploadStateBranch, curr: ImageModelMetadata) => {
+      const {
+        archiveFilePath,
+        channelId,
+        localFilePath,
+        positionIndex,
+        scene,
+        subImageName,
+      } = curr;
+      const file = localFilePath || archiveFilePath || "";
+      const key: string = getUploadRowKey({
+        channelId,
+        file,
+        positionIndex,
+        scene,
+        subImageName,
+      });
+      const channel =
+        curr.channel && curr.channelId
+          ? { name: curr.channel, channelId: curr.channelId }
+          : undefined;
+      return {
+        ...accum,
+        [key]: {
+          ...curr,
+          barcode: curr.barcode ? `${curr.barcode}` : undefined,
+          channel,
+          file,
+        },
+      };
+    },
+    {} as UploadStateBranch
+  );
+};
+
+const getPlateRelatedActions = async (
+  wellIds: number[],
+  labkeyClient: LabkeyClient,
+  mmsClient: MMSClient,
+  dispatch: ReduxLogicNextCb
+) => {
+  const actions: AnyAction[] = [];
+  wellIds = castArray(wellIds).map((w: string | number) =>
+    parseInt(w + "", 10)
+  );
+  // assume all wells have same barcode
+  const wellId = wellIds[0];
+  // we want to find the barcode associated with any well id found in this upload
+  const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
+    wellId
+  );
+  const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
+    barcode
+  );
+  const setPlateAction = await getSetPlateAction(
+    barcode,
+    imagingSessionIds,
+    mmsClient,
+    dispatch
+  );
+  actions.push(selectBarcode(barcode, imagingSessionIds), setPlateAction);
+
+  return actions;
+};
+
+const openEditFileMetadataTabLogic = createLogic({
+  process: async (
+    {
+      ctx,
+      fms,
+      getApplicationMenu,
+      getState,
+      labkeyClient,
+      logger,
+      mmsClient,
+    }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const state = getState();
+    // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
+    dispatch(
+      batchActions(
+        handleGoingToNextPageForNewUpload(
+          logger,
+          state,
+          getApplicationMenu,
+          Page.AddCustomData
+        )
+      )
+    );
+
+    // Second, we fetch the file metadata for the fileIds acquired in the validate phase
+    const { fileIds } = ctx;
+    let fileMetadataForJob: ImageModelMetadata[];
+    const request = () => retrieveFileMetadata(fileIds, fms);
+    try {
+      fileMetadataForJob = await getWithRetry(
+        request,
+        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
+        dispatch,
+        "MMS"
+      );
+    } catch (e) {
+      const error = `Could not retrieve file metadata for fileIds=${fileIds.join(
+        ", "
+      )}: ${e.message}`;
+      logger.error(error);
+      dispatch(openEditFileMetadataTabFailed(error));
+      done();
+      return;
+    }
+
+    let updateUploadsAction: AnyAction = updateUploads({}, true);
+    const actions: AnyAction[] = [];
+    const newUpload = convertImageModelMetadataToUploadStateBranch(
+      fileMetadataForJob
+    );
+    if (fileMetadataForJob && fileMetadataForJob[0]) {
+      // if we have a well, we can get the barcode and other plate info. This will be necessary
+      // to display the well editor
+      const wellAnnotationName =
+        getWellAnnotation(getState())?.name || WELL_ANNOTATION_NAME;
+      let wellIds: any = fileMetadataForJob[0][wellAnnotationName];
+      if (wellIds) {
+        wellIds = castArray(wellIds).map((w: string | number) =>
+          parseInt(w + "", 10)
+        );
+        try {
+          const plateRelatedActions = await getPlateRelatedActions(
+            wellIds,
+            labkeyClient,
+            mmsClient,
+            dispatch
+          );
+          actions.push(...plateRelatedActions);
+        } catch (e) {
+          const error = `Could not get plate information from upload: ${e.message}`;
+          logger.error(error);
+          dispatch(openEditFileMetadataTabFailed(error));
+          done();
+          return;
+        }
+      } else {
+        actions.push(associateByWorkflow(true));
+      }
+
+      // Currently we only allow applying one template at a time
+      if (fileMetadataForJob[0].templateId) {
+        updateUploadsAction = await getSetAppliedTemplateAction(
+          fileMetadataForJob[0].templateId,
+          getState,
+          mmsClient,
+          dispatch,
+          newUpload
+        );
+      } else {
+        updateUploadsAction = updateUploads(newUpload, true);
+      }
+    }
+
+    dispatch(
+      batchActions([
+        ...actions,
+        updateUploadsAction,
+        openEditFileMetadataTabSucceeded(updateUploadsAction.payload.uploads),
+      ])
+    );
+    done();
+  },
+  type: OPEN_EDIT_FILE_METADATA_TAB,
+  validate: async (
+    deps: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
+  ) => {
+    const { action, ctx, logger } = deps;
+    try {
+      const { cancelled } = await ensureDraftGetsSaved(deps);
+      if (cancelled) {
+        reject({ type: "ignore" });
+        return;
+      }
+    } catch (e) {
+      reject(setErrorAlert(e.message));
+      return;
+    }
+
+    // Validate the job passed in as the action payload
+    const { payload: job } = action;
+    if (job.status !== "SUCCEEDED") {
+      reject(
+        setErrorAlert(
+          "Cannot update file metadata because upload has not succeeded"
+        )
+      );
+    } else if (
+      Array.isArray(job?.serviceFields?.result) &&
+      !isEmpty(job?.serviceFields?.result)
+    ) {
+      const originalFileIds = job.serviceFields.result.map(
+        ({ fileId }: UploadMetadata) => fileId
+      );
+      const deletedFileIds = job.serviceFields.deletedFileIds
+        ? castArray(job.serviceFields.deletedFileIds)
+        : [];
+      ctx.fileIds = difference(originalFileIds, deletedFileIds);
+      if (isEmpty(ctx.fileIds)) {
+        reject(setErrorAlert("All files in this upload have been deleted!"));
+      } else {
+        next(action);
+      }
+    } else {
+      logger.error("No fileIds found in selected Job:", job);
+      reject(setErrorAlert("No fileIds found in selected Job."));
+    }
+  },
+});
+
 export default [
   closeUploadTabLogic,
   goBackLogic,
   goForwardLogic,
+  openEditFileMetadataTabLogic,
   selectPageLogic,
 ];

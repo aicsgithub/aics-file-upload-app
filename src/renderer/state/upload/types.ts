@@ -23,7 +23,7 @@ export interface UploadRowId {
 
 // Metadata associated with a file
 export interface UploadMetadata extends UploadRowId {
-  barcode: string;
+  barcode?: string;
   notes?: string[]; // only one note expected but we treat this like other custom annotations
   shouldBeInArchive?: boolean;
   shouldBeInLocal?: boolean;
@@ -77,7 +77,7 @@ export interface UploadJobTableRow extends UploadRowId {
   [key: string]: any;
 
   // plate barcode associated with well and file
-  barcode: string;
+  barcode?: string;
 
   // if this row keeps track of information for a channel, the channel should be present here
   channel?: Channel;
@@ -218,7 +218,10 @@ export interface CancelUploadFailedAction {
   type: string;
 }
 export interface UpdateUploadsAction extends AutoSaveAction {
-  payload: Partial<UploadMetadata>;
+  payload: {
+    clearAll: boolean;
+    uploads: Partial<UploadMetadata>;
+  };
   type: string;
 }
 
@@ -282,6 +285,19 @@ export interface ReplaceUploadAction {
 }
 
 export interface ClearUploadDraftAction extends WriteToStoreAction {
+  type: string;
+}
+
+export interface SubmitFileMetadataUpdateAction {
+  type: string;
+}
+
+export interface EditFileMetadataSucceededAction {
+  type: string;
+}
+
+export interface EditFileMetadataFailedAction {
+  payload: string;
   type: string;
 }
 

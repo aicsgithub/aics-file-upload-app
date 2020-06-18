@@ -46,19 +46,21 @@ export interface LocalStorage {
   set: (key: string, value: any) => void;
 }
 
+export interface Dialog {
+  showOpenDialog(
+    options: OpenDialogOptions
+  ): Promise<Electron.OpenDialogReturnValue>;
+  showMessageBox(
+    options: MessageBoxOptions
+  ): Promise<Electron.MessageBoxReturnValue>;
+  showSaveDialog(
+    options: SaveDialogOptions
+  ): Promise<Electron.SaveDialogReturnValue>;
+}
+
 export interface ReduxLogicExtraDependencies {
   ctx?: any;
-  dialog: {
-    showOpenDialog(
-      options: OpenDialogOptions
-    ): Promise<Electron.OpenDialogReturnValue>;
-    showMessageBox(
-      options: MessageBoxOptions
-    ): Promise<Electron.MessageBoxReturnValue>;
-    showSaveDialog(
-      options: SaveDialogOptions
-    ): Promise<Electron.SaveDialogReturnValue>;
-  };
+  dialog: Dialog;
   fms: FileManagementSystem;
   getApplicationMenu: () => Menu | null;
   ipcRenderer: {
@@ -149,5 +151,6 @@ export enum HTTP_STATUS {
   BAD_GATEWAY = 502,
   BAD_REQUEST = 400,
   INTERNAL_SERVER_ERROR = 500,
+  NOT_FOUND = 404,
   OK = 200,
 }

@@ -61,7 +61,7 @@ export const mockFavoriteColorAnnotation: TemplateAnnotation = {
 export const mockWellAnnotation: Annotation = {
   ...mockAuditInfo,
   annotationId: 2,
-  annotationTypeId: 3,
+  annotationTypeId: 6,
   description: "Well associated with this file",
   exposeToFileUploadApp: true,
   name: WELL_ANNOTATION_NAME,
@@ -70,7 +70,7 @@ export const mockWellAnnotation: Annotation = {
 export const mockWorkflowAnnotation: Annotation = {
   ...mockAuditInfo,
   annotationId: 4,
-  annotationTypeId: 3,
+  annotationTypeId: 6,
   description: "Workflow associated with this file",
   exposeToFileUploadApp: true,
   name: WORKFLOW_ANNOTATION_NAME,
@@ -203,6 +203,7 @@ export const mockSelection: SelectionStateBranch = {
 export const mockWellUpload: UploadStateBranch = {
   [getUploadRowKey({ file: "/path/to/file1" })]: {
     barcode: "1234",
+    ["Favorite Color"]: ["Red"],
     file: "/path/to/file1",
     key: getUploadRowKey({ file: "/path/to/file" }),
     shouldBeInArchive: true,
@@ -212,6 +213,7 @@ export const mockWellUpload: UploadStateBranch = {
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
     barcode: "1235",
+    ["Favorite Color"]: ["Red"],
     file: "/path/to/file2",
     key: getUploadRowKey({ file: "/path/to/file2" }),
     shouldBeInArchive: false,
@@ -221,6 +223,7 @@ export const mockWellUpload: UploadStateBranch = {
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
     barcode: "1236",
+    ["Favorite Color"]: ["Red"],
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3" }),
     shouldBeInArchive: true,
@@ -230,6 +233,7 @@ export const mockWellUpload: UploadStateBranch = {
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
     barcode: "1236",
+    ["Favorite Color"]: ["Red"],
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 }),
     positionIndex: 1,
@@ -413,6 +417,7 @@ export const mockState: State = {
     limsProtocol: "http",
     metadataColumns: [],
     showUploadHint: true,
+    showTemplateHint: true,
     username: "foo",
   },
   template: getMockStateWithHistory(mockTemplateStateBranch),
@@ -539,6 +544,8 @@ export const mockSuccessfulUploadJob: JSSJob = {
   modified: new Date(),
   serviceFields: {
     copyJobId: "copyJobId1",
+    result: [{ fileId: "cat" }, { fileId: "dog" }],
+    type: "upload",
   },
   status: "SUCCEEDED",
   user: "test_user",

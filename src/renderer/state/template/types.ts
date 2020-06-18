@@ -1,3 +1,4 @@
+import { CreateAnnotationRequest } from "../../util/mms-client/types";
 import { Audited, AutoSaveAction } from "../types";
 import { UploadStateBranch } from "../upload/types";
 
@@ -77,16 +78,12 @@ export interface ClearTemplateHistoryAction {
   type: string;
 }
 
-export interface CreateAnnotationRequest {
-  annotationOptions?: string[];
-  annotationTypeId: number;
-  canHaveManyValues: boolean;
-  description: string;
-  name: string;
-  lookupColumn?: string;
-  lookupSchema?: string;
-  lookupTable?: string;
-  required: boolean;
+export interface GetTemplateAction {
+  payload: {
+    addAnnotationsToUpload: boolean;
+    templateId: number;
+  };
+  type: string;
 }
 
 export interface JumpToPastTemplateAction {
@@ -109,11 +106,6 @@ export interface RemoveAnnotationsAction {
 
 export interface SaveTemplateAction {
   type: string;
-}
-
-export interface SaveTemplateRequest {
-  name: string;
-  annotations: AnnotationRequest[];
 }
 
 export interface SetAppliedTemplateAction extends AutoSaveAction {
