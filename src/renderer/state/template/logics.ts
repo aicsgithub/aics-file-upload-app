@@ -38,11 +38,7 @@ import {
   getTemplateDraft,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
-import {
-  AnnotationDraft,
-  SaveTemplateAction,
-  SaveTemplateRequest,
-} from "./types";
+import { AnnotationDraft, SaveTemplateAction } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
