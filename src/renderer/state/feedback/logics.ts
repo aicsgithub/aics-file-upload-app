@@ -69,7 +69,7 @@ const openTemplateEditorLogic = createLogic({
                 }
               ),
             },
-            !!hasBeenUsed
+            hasBeenUsed
           )
         );
       } catch (e) {
