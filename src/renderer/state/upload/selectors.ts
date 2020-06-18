@@ -29,6 +29,7 @@ import * as moment from "moment";
 import { createSelector } from "reselect";
 
 import {
+  CHANNEL_ANNOTATION_NAME,
   LIST_DELIMITER_SPLIT,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
@@ -38,7 +39,6 @@ import { getWellLabel, titleCase } from "../../util";
 import { getRequestsInProgress } from "../feedback/selectors";
 import {
   getBooleanAnnotationTypeId,
-  getChannels,
   getDateAnnotationTypeId,
   getDateTimeAnnotationTypeId,
   getDropdownAnnotationTypeId,
@@ -49,7 +49,7 @@ import {
   getTextAnnotationTypeId,
   getUploadHistory,
 } from "../metadata/selectors";
-import { ImagingSession, Channel } from "../metadata/types";
+import { ImagingSession } from "../metadata/types";
 import { pageOrder } from "../route/constants";
 import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
@@ -218,17 +218,17 @@ const convertToUploadJobRow = (
   treeDepth: number,
   template?: TemplateWithTypeNames,
   hasSubRows = false,
-  channelIds: number[] = [],
+  channelIds: string[] = [],
   positionIndexes: number[] = [],
   scenes: number[] = [],
   subImageNames: string[] = []
 ): UploadJobTableRow => {
   return {
     ...metadata,
-    channelIds,
+    [CHANNEL_ANNOTATION_NAME]: channelIds,
     group: hasSubRows,
     key: getUploadRowKey({
-      channelId: metadata.channel ? metadata.channel.channelId : undefined,
+      channelId: metadata.channelId,
       file: metadata.file,
       positionIndex: metadata.positionIndex,
       scene: metadata.scene,
@@ -411,8 +411,10 @@ export const getUploadSummaryRows = createSelector(
           const hasSubRows = channelRows.length + subImageRows.length > 0;
           const allChannelIds = uniq(
             allMetadataForFile
-              .filter((m: UploadMetadataWithDisplayFields) => !!m.channel)
-              .map((m: UploadMetadataWithDisplayFields) => m.channel.channelId)
+              .filter((m: UploadMetadataWithDisplayFields) => !!m.channelId)
+              .map(
+                (m: UploadMetadataWithDisplayFields) => m.channelId
+              ) as string[]
           );
           const allPositionIndexes: number[] = uniq(
             allMetadataForFile
@@ -509,7 +511,6 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
   ): { [key: string]: { [annotation: string]: string } } => {
-    console.log(template);
     if (!template) {
       return {};
     }
@@ -552,7 +553,6 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                   invalidValues = value
                     .filter((v: any) => typeof v !== "boolean")
                     .join(", ");
-                  console.log(annotationName, templateAnnotation);
                   if (invalidValues) {
                     annotationToErrorMap[
                       annotationName
@@ -701,8 +701,7 @@ export const getUploadValidationErrors = createSelector(
 // the userData relates to the same file but differs for subimage/channel combinations
 const getAnnotations = (
   metadata: UploadMetadata[],
-  appliedTemplate: TemplateWithTypeNames,
-  channels?: Channel[]
+  appliedTemplate: TemplateWithTypeNames
 ): MMSAnnotationValueRequest[] => {
   const annotationNameToAnnotationMap: {
     [name: string]: TemplateAnnotationWithTypeName;
@@ -714,10 +713,6 @@ const getAnnotations = (
     {}
   );
   return flatMap(metadata, (metadatum: UploadMetadata) => {
-    if (metadatum.channelId && !channels) {
-      throw new Error("Channels are not defined");
-    }
-
     const customData = standardizeUploadMetadata(metadatum);
     const result: MMSAnnotationValueRequest[] = [];
     forEach(customData, (value: any, annotationName: string) => {
@@ -737,11 +732,7 @@ const getAnnotations = (
         if (addAnnotation) {
           result.push({
             annotationId: annotation.annotationId,
-            // channelId in the request does not refer to a primary key
-            // but rather a "channel identifier". Programmatic uploads will look into a file's metadata and
-            // identify a channel by an index (not PK!) whereas users of the upload app will more likely
-            // know the channel name than the index.
-            channelId: metadatum?.channel?.name,
+            channelId: metadatum.channelId,
             positionIndex: metadatum.positionIndex,
             scene: metadatum.scene,
             subImageName: metadatum.subImageName,
@@ -783,12 +774,8 @@ const extensionToFileTypeMap: { [index: string]: FileType } = {
 };
 
 export const getUploadPayload = createSelector(
-  [getUpload, getCompleteAppliedTemplate, getChannels],
-  (
-    uploads: UploadStateBranch,
-    template?: TemplateWithTypeNames,
-    channels?: Channel[]
-  ): Uploads => {
+  [getUpload, getCompleteAppliedTemplate],
+  (uploads: UploadStateBranch, template?: TemplateWithTypeNames): Uploads => {
     if (!template) {
       throw new Error("Template has not been applied");
     }
@@ -821,7 +808,7 @@ export const getUploadPayload = createSelector(
           ...result,
           [fileKey]: {
             customMetadata: {
-              annotations: getAnnotations(metadata, template, channels),
+              annotations: getAnnotations(metadata, template),
               templateId: template.templateId,
             },
             file: {
@@ -968,7 +955,6 @@ export const getCanSubmitUpload = createSelector(
     upload: UploadStateBranch,
     originalUpload?: UploadStateBranch
   ): boolean => {
-    console.log(validationErrors);
     const noValidationErrorsOrRequestsInProgress =
       validationErrors.length === 0 && requestsInProgress.length === 0;
     return originalUpload

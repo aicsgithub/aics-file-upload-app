@@ -6,6 +6,7 @@ import { expect } from "chai";
 import { forEach, orderBy } from "lodash";
 
 import {
+  CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
@@ -69,8 +70,9 @@ const orderAnnotationValueRequests = (
   return orderBy(annotations, [
     "annotationId",
     "positionId",
+    "scene",
+    "subImageName",
     "channelId",
-    "timePointId",
   ]);
 };
 
@@ -270,7 +272,7 @@ describe("Upload selectors", () => {
           },
           "/path/to.dot/image.tiffscene:1channel:1": {
             barcode: "452",
-            channel: mockChannel,
+            channelId: "Raw 468 nm",
             ["Favorite Color"]: "yellow",
             file: "/path/to.dot/image.tiff",
             [NOTES_ANNOTATION_NAME]: ["Seeing some interesting things here!"],
@@ -374,7 +376,7 @@ describe("Upload selectors", () => {
               },
               {
                 annotationId: mockFavoriteColorAnnotation.annotationId,
-                channelId: mockChannel.name,
+                channelId: mockChannel.channelId,
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
@@ -382,7 +384,7 @@ describe("Upload selectors", () => {
               },
               {
                 annotationId: mockWellAnnotation.annotationId,
-                channelId: mockChannel.name,
+                channelId: mockChannel.channelId,
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
@@ -390,7 +392,7 @@ describe("Upload selectors", () => {
               },
               {
                 annotationId: mockNotesAnnotation.annotationId,
-                channelId: mockChannel.name,
+                channelId: mockChannel.channelId,
                 positionIndex: 1,
                 scene: undefined,
                 subImageName: undefined,
@@ -746,7 +748,7 @@ describe("Upload selectors", () => {
       expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file1",
         group: false,
@@ -766,7 +768,7 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1235",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file2",
         group: false,
@@ -786,7 +788,7 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1236",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file3",
         group: true,
@@ -827,7 +829,7 @@ describe("Upload selectors", () => {
       expect(rows.length).to.equal(1);
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: true,
         key: getUploadRowKey({ file: "/path/to/file1" }),
@@ -871,7 +873,7 @@ describe("Upload selectors", () => {
       expect(rows.length).to.equal(2);
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: true,
         key: getUploadRowKey({ file: "/path/to/file1" }),
@@ -888,7 +890,7 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
@@ -920,15 +922,15 @@ describe("Upload selectors", () => {
           [getUploadRowKey({
             file: "/path/to/file1",
             positionIndex: undefined,
-            channelId: 1,
+            channelId: "Raw 405nm",
           })]: {
             barcode: "1234",
-            channel: mockChannel,
+            channelId: "Raw 405nm",
             file: "/path/to/file1",
             key: getUploadRowKey({
               file: "/path/to/file1",
               positionIndex: undefined,
-              channelId: 1,
+              channelId: "Raw 405nm",
             }),
             [NOTES_ANNOTATION_NAME]: [],
             positionIndex: undefined,
@@ -939,14 +941,14 @@ describe("Upload selectors", () => {
       expect(rows.length).to.equal(2);
       expect(rows[0]).to.deep.equal({
         barcode: "1234",
-        channel: mockChannel,
-        channelIds: [],
+        channelId: "Raw 405nm",
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({
           file: "/path/to/file1",
           positionIndex: undefined,
-          channelId: 1,
+          channelId: "Raw 405nm",
         }),
         [NOTES_ANNOTATION_NAME]: undefined,
         numberSiblings: 2,
@@ -962,7 +964,7 @@ describe("Upload selectors", () => {
       });
       expect(rows[1]).to.deep.equal({
         barcode: "1234",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
@@ -991,6 +993,7 @@ describe("Upload selectors", () => {
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
+            [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
             file: "/path/to/file1",
             [NOTES_ANNOTATION_NAME]: undefined,
             [WELL_ANNOTATION_NAME]: [1],
@@ -998,10 +1001,10 @@ describe("Upload selectors", () => {
           [getUploadRowKey({
             file: "/path/to/file1",
             positionIndex: undefined,
-            channelId: 1,
+            channelId: "Raw 405nm",
           })]: {
             barcode: "1234",
-            channel: mockChannel,
+            channelId: "Raw 405nm",
             file: "/path/to/file1",
             [NOTES_ANNOTATION_NAME]: undefined,
             positionIndex: undefined,
@@ -1012,7 +1015,7 @@ describe("Upload selectors", () => {
       expect(rows.length).to.equal(2);
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [1],
+        [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
         file: "/path/to/file1",
         group: true,
         key: getUploadRowKey({ file: "/path/to/file1" }),
@@ -1029,14 +1032,14 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1234",
-        channel: mockChannel,
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
+        channelId: "Raw 405nm",
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({
           file: "/path/to/file1",
           positionIndex: undefined,
-          channelId: 1,
+          channelId: "Raw 405nm",
         }),
         [NOTES_ANNOTATION_NAME]: undefined,
         numberSiblings: 1,
@@ -1067,6 +1070,7 @@ describe("Upload selectors", () => {
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             barcode: "1234",
+            [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
             file: "/path/to/file1",
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
@@ -1081,10 +1085,10 @@ describe("Upload selectors", () => {
           [getUploadRowKey({
             file: "/path/to/file1",
             positionIndex: 1,
-            channelId: 1,
+            channelId: "Raw 405nm",
           })]: {
             barcode: "1234",
-            channel: mockChannel,
+            channelId: "Raw 405nm",
             file: "/path/to/file1",
             [NOTES_ANNOTATION_NAME]: [],
             positionIndex: 1,
@@ -1093,10 +1097,10 @@ describe("Upload selectors", () => {
           [getUploadRowKey({
             file: "/path/to/file1",
             positionIndex: undefined,
-            channelId: 1,
+            channelId: "Raw 405nm",
           })]: {
             barcode: "1234",
-            channel: mockChannel,
+            channelId: "Raw 405nm",
             file: "/path/to/file1",
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
@@ -1106,7 +1110,7 @@ describe("Upload selectors", () => {
       expect(rows.length).to.equal(4);
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [1],
+        [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
         file: "/path/to/file1",
         group: true,
         key: getUploadRowKey({ file: "/path/to/file1" }),
@@ -1123,7 +1127,7 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1234",
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: true,
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
@@ -1141,14 +1145,14 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1234",
-        channel: mockChannel,
-        channelIds: [],
+        [CHANNEL_ANNOTATION_NAME]: [],
+        channelId: "Raw 405nm",
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({
           file: "/path/to/file1",
           positionIndex: 1,
-          channelId: 1,
+          channelId: "Raw 405nm",
         }),
         [NOTES_ANNOTATION_NAME]: undefined,
         numberSiblings: 1,
@@ -1164,14 +1168,14 @@ describe("Upload selectors", () => {
       });
       expect(rows).to.deep.include({
         barcode: "1234",
-        channel: mockChannel,
-        channelIds: [],
+        channelId: "Raw 405nm",
+        [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
         group: false,
         key: getUploadRowKey({
           file: "/path/to/file1",
           positionIndex: undefined,
-          channelId: 1,
+          channelId: "Raw 405nm",
         }),
         [NOTES_ANNOTATION_NAME]: undefined,
         numberSiblings: 2,
@@ -1263,7 +1267,11 @@ describe("Upload selectors", () => {
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [1],
           },
-          [getUploadRowKey({ file, positionIndex: 1, channelId: 1 })]: {
+          [getUploadRowKey({
+            file,
+            positionIndex: 1,
+            channelId: "Raw 405 nm",
+          })]: {
             age: 19,
             barcode: "abcd",
             file,

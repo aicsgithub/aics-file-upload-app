@@ -18,7 +18,7 @@ interface Props extends FormatterProps<UploadJobTableRow> {
   addScenes: (
     files: string[],
     positionIndexes: number[],
-    channels: Channel[],
+    channelIds: string[],
     scenes: number[],
     subImageNames: string[]
   ) => void;
@@ -36,7 +36,7 @@ interface FileFormatterState {
   subImageNames: string[];
   subImageType: subImage;
   positionIndexes: string;
-  channels: Channel[];
+  channelIds: string[];
 }
 
 /**
@@ -44,17 +44,6 @@ interface FileFormatterState {
  * opens a modal to add scenes and channels to the file.
  */
 class FileFormatter extends React.Component<Props, FileFormatterState> {
-  private static convertChannels(
-    channelIds: number[] = [],
-    channelOptions: Channel[]
-  ): Channel[] {
-    return channelIds
-      .map((id: number) =>
-        channelOptions.find((o: Channel) => o.channelId === id)
-      )
-      .filter(Boolean) as Channel[];
-  }
-
   private static convertListToString(
     positionIndexes: Array<number | string> = []
   ): string {
@@ -83,19 +72,9 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     };
   }
 
-  public componentDidUpdate(
-    prevProps: Readonly<Props>,
-    prevState: Readonly<FileFormatterState>
-  ): void {
-    if (prevState.showModal !== this.state.showModal && this.state.showModal) {
-      this.setState(this.getInitialState());
-    }
-  }
-
   public render() {
     const { channelOptions, fileOptions, row, value } = this.props;
-    const { channels, files, errorMessage, showModal } = this.state;
-
+    const { channelIds, files, errorMessage, showModal } = this.state;
     let subImageValue;
     let subImageType;
     if (!isNil(row.positionIndex)) {
@@ -109,8 +88,8 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
       subImageType = "";
     }
 
-    if (row.channel) {
-      const channelName = row.channel.name;
+    if (row.channelId) {
+      const channelName = row.channelId;
       const content = isNil(subImageValue)
         ? `${channelName} (all positions)`
         : `${subImageType} ${subImageValue}, ${channelName}`;
@@ -198,11 +177,11 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
               onChange={this.selectChannel}
               placeholder="Select Channels"
               mode="tags"
-              value={channels.map((channel) => channel.name)}
+              value={channelIds}
             >
-              {channelOptions.map(({ name }: Channel) => (
-                <Select.Option key={name} value={name}>
-                  {name}
+              {channelOptions.map(({ channelId }: Channel) => (
+                <Select.Option key={channelId} value={channelId}>
+                  {channelId}
                 </Select.Option>
               ))}
             </Select>
@@ -283,7 +262,6 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
   private getInitialState = () => {
     const {
-      channelOptions,
       row: { channelIds, file, positionIndexes, scenes, subImageNames },
     } = this.props;
     let subImageType: subImage = "position";
@@ -293,7 +271,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
       subImageType = "name";
     }
     return {
-      channels: FileFormatter.convertChannels(channelIds, channelOptions),
+      channelIds,
       files: [file],
       positionIndexes: FileFormatter.convertListToString(positionIndexes),
       scenes: FileFormatter.convertListToString(scenes),
@@ -304,7 +282,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
   private addFilesScenesAndChannels = () => {
     const {
-      channels,
+      channelIds,
       files,
       positionIndexes,
       scenes,
@@ -313,7 +291,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     this.props.addScenes(
       files,
       PrinterFormatInput.extractValues(positionIndexes) || [],
-      channels,
+      channelIds,
       PrinterFormatInput.extractValues(scenes) || [],
       subImageNames
     );
@@ -331,11 +309,8 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
     this.setState({ files: uniq([file, ...files]) });
   };
 
-  private selectChannel = (names: string[]) => {
-    const channels = this.props.channelOptions.filter((channel) =>
-      names.includes(channel.name)
-    );
-    this.setState({ channels });
+  private selectChannel = (channelIds: string[]) => {
+    this.setState({ channelIds });
   };
 
   private selectSubImageType = (e: RadioChangeEvent) =>
@@ -367,7 +342,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
   };
 
   private getOkButtonDisabled = (): boolean => {
-    const { channels, positionIndexes, scenes, subImageNames } = this.state;
+    const { channelIds, positionIndexes, scenes, subImageNames } = this.state;
     const validationError = Boolean(
       PrinterFormatInput.validateInput(positionIndexes)
     );
@@ -375,7 +350,7 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
       return validationError;
     }
     return (
-      (isEmpty(channels) &&
+      (isEmpty(channelIds) &&
         isEmpty(positionIndexes) &&
         isEmpty(scenes) &&
         isEmpty(subImageNames)) ||

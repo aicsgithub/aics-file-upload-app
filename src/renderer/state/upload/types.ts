@@ -1,10 +1,10 @@
 import {
+  CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Channel } from "../metadata/types";
 import { Workflow } from "../selection/types";
 import { AutoSaveAction, State, WriteToStoreAction } from "../types";
 
@@ -14,7 +14,7 @@ export interface UploadStateBranch {
 
 // Think of this group as a composite key. No two rows should have the same combination of these values.
 export interface UploadRowId {
-  channelId?: number;
+  channelId?: string;
   file: string; // fullpath
   positionIndex?: number;
   scene?: number;
@@ -78,11 +78,8 @@ export interface UploadJobTableRow extends UploadRowId {
   // plate barcode associated with well and file
   barcode?: string;
 
-  // if this row keeps track of information for a channel, the channel should be present here
-  channel?: Channel;
-
   // Keeps track of all channelIds - used only on the top-level row
-  channelIds: number[];
+  [CHANNEL_ANNOTATION_NAME]: string[];
 
   // react-data-grid property needed for nested rows. if true, row will show carat for expanding/collapsing row
   group: boolean;
@@ -225,7 +222,7 @@ export interface UpdateUploadsAction extends AutoSaveAction {
 }
 
 export interface UpdateSubImagesPayload {
-  channels: Channel[];
+  channelIds: string[];
   positionIndexes: number[];
   row: UploadJobTableRow;
   scenes: number[];

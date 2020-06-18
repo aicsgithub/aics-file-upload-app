@@ -758,9 +758,8 @@ export const mockChannels: LabkeyChannel[] = [
 ];
 
 export const mockChannel: Channel = {
-  channelId: 1,
+  channelId: "Raw 468 nm",
   description: "a channel",
-  name: "Raw 468 nm",
 };
 
 export const mockUnit: Unit = {
