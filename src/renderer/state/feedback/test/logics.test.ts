@@ -2,10 +2,7 @@ import { expect } from "chai";
 import { createSandbox, stub } from "sinon";
 
 import { openTemplateEditor } from "../../selection/actions";
-import {
-  clearTemplateDraft,
-  updateTemplateDraft,
-} from "../../template/actions";
+import { updateTemplateDraft } from "../../template/actions";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
 import {
@@ -31,7 +28,6 @@ describe("Feedback logics", () => {
       ...mockState,
       feedback: {
         ...mockState.feedback,
-        deferredAction: clearTemplateDraft(),
         visibleModals: ["templateEditor"],
       },
       template: getMockStateWithHistory({
@@ -56,7 +52,7 @@ describe("Feedback logics", () => {
       // after
       expect(getTemplateEditorVisible(store.getState())).to.be.false;
     });
-    it("dispatches deferred action if present", async () => {
+    it("clears template draft state when templateEditor modal is closed", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...templateEditorOpenState,
       });
