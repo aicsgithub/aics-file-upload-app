@@ -138,7 +138,9 @@ describe("Upload logics", () => {
       expect(alert).to.be.undefined;
 
       // apply
-      store.dispatch(associateFilesAndWells([{ file: "foo", channelId: 1 }]));
+      store.dispatch(
+        associateFilesAndWells([{ file: "foo", channelId: "Raw 405nm" }])
+      );
 
       // after
       alert = getAlert(store.getState());
@@ -539,7 +541,7 @@ describe("Upload logics", () => {
     const file = "/path/to/file1";
     const fileRowKey = getUploadRowKey({ file });
     let fileRow: UploadJobTableRow | undefined;
-    const mockChannel = { channelId: 1, description: "", name: "" };
+    const mockChannel = "Raw 405nm";
     let oneFileUploadMockState: State;
 
     beforeEach(() => {
@@ -584,7 +586,7 @@ describe("Upload logics", () => {
       expect(filePositionMetadata).to.deep.equal({
         "Favorite Color": [],
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         file: "/path/to/file1",
         key: getUploadRowKey({ file, positionIndex: 0 }),
         [NOTES_ANNOTATION_NAME]: [],
@@ -615,7 +617,7 @@ describe("Upload logics", () => {
       expect(filePositionMetadata).to.deep.equal({
         "Favorite Color": [],
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         file: "/path/to/file1",
         key: getUploadRowKey({ file, scene: 0 }),
         [NOTES_ANNOTATION_NAME]: [],
@@ -635,7 +637,7 @@ describe("Upload logics", () => {
 
       if (fileRow) {
         // apply
-        store.dispatch(updateSubImages(fileRow, { channels: [mockChannel] }));
+        store.dispatch(updateSubImages(fileRow, { channelIds: [mockChannel] }));
       }
 
       // after
@@ -702,7 +704,7 @@ describe("Upload logics", () => {
       const { store } = createMockReduxStore(oneFileUploadMockState);
       const channelOnlyRowKey = getUploadRowKey({
         file,
-        channelId: mockChannel.channelId,
+        channelId: mockChannel,
       });
 
       // before
@@ -712,7 +714,7 @@ describe("Upload logics", () => {
 
       if (fileRow) {
         // apply
-        store.dispatch(updateSubImages(fileRow, { channels: [mockChannel] }));
+        store.dispatch(updateSubImages(fileRow, { channelIds: [mockChannel] }));
       }
 
       // after
@@ -725,10 +727,10 @@ describe("Upload logics", () => {
       expect(channelUpload).to.not.be.undefined;
       expect(channelUpload).to.deep.equal({
         barcode: "1234",
-        channel: mockChannel,
+        channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
-        key: getUploadRowKey({ file, channelId: 1 }),
+        key: getUploadRowKey({ file, channelId: "Raw 405nm" }),
         [NOTES_ANNOTATION_NAME]: [],
         positionIndex: undefined,
         scene: undefined,
@@ -759,7 +761,7 @@ describe("Upload logics", () => {
       expect(positionUpload).to.not.be.undefined;
       expect(positionUpload).to.deep.equal({
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file, positionIndex: 1 }),
@@ -789,7 +791,7 @@ describe("Upload logics", () => {
       expect(sceneUpload).to.not.be.undefined;
       expect(sceneUpload).to.deep.equal({
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file, scene: 1 }),
@@ -821,7 +823,7 @@ describe("Upload logics", () => {
       expect(subImageUpload).to.not.be.undefined;
       expect(subImageUpload).to.deep.equal({
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file, subImageName: "foo" }),
@@ -838,16 +840,18 @@ describe("Upload logics", () => {
       // before
       let state = store.getState();
       expect(keys(getUpload(state)).length).to.equal(1);
-      expect(getUpload(state)[getUploadRowKey({ file, channelId: 1 })]).to.be
-        .undefined;
-      expect(getUpload(state)[getUploadRowKey({ file, channelId: 2 })]).to.be
-        .undefined;
+      expect(
+        getUpload(state)[getUploadRowKey({ file, channelId: "Raw 405nm" })]
+      ).to.be.undefined;
+      expect(
+        getUpload(state)[getUploadRowKey({ file, channelId: "Raw 468nm" })]
+      ).to.be.undefined;
 
       if (fileRow) {
         // apply
         store.dispatch(
           updateSubImages(fileRow, {
-            channels: [mockChannel, { ...mockChannel, channelId: 2 }],
+            channelIds: [mockChannel, "Raw 468nm"],
           })
         );
       }
@@ -855,10 +859,12 @@ describe("Upload logics", () => {
       // after
       state = store.getState();
       expect(keys(getUpload(state)).length).to.equal(3);
-      expect(getUpload(state)[getUploadRowKey({ file, channelId: 1 })]).to.not
-        .be.undefined;
-      expect(getUpload(state)[getUploadRowKey({ file, channelId: 2 })]).to.not
-        .be.undefined;
+      expect(
+        getUpload(state)[getUploadRowKey({ file, channelId: "Raw 405nm" })]
+      ).to.not.be.undefined;
+      expect(
+        getUpload(state)[getUploadRowKey({ file, channelId: "Raw 468nm" })]
+      ).to.not.be.undefined;
     });
 
     it("adds all positions provided", () => {
@@ -987,7 +993,7 @@ describe("Upload logics", () => {
         store.dispatch(
           updateSubImages(fileRow, {
             positionIndexes: [1],
-            channels: [mockChannel],
+            channelIds: [mockChannel],
           })
         );
       }
@@ -1000,7 +1006,7 @@ describe("Upload logics", () => {
         uploads[getUploadRowKey({ file, positionIndex: 1 })];
       expect(positionUpload).to.deep.equal({
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file, positionIndex: 1 }),
@@ -1013,13 +1019,13 @@ describe("Upload logics", () => {
       const positionAndChannelKey = getUploadRowKey({
         file,
         positionIndex: 1,
-        channelId: 1,
+        channelId: "Raw 405nm",
       });
       const positionAndChannelUpload = uploads[positionAndChannelKey];
       expect(positionAndChannelUpload).to.not.be.undefined;
       expect(positionAndChannelUpload).to.deep.equal({
         barcode: "1234",
-        channel: mockChannel,
+        channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: positionAndChannelKey,
@@ -1040,7 +1046,7 @@ describe("Upload logics", () => {
       if (fileRow) {
         // apply
         store.dispatch(
-          updateSubImages(fileRow, { scenes: [1], channels: [mockChannel] })
+          updateSubImages(fileRow, { scenes: [1], channelIds: [mockChannel] })
         );
       }
 
@@ -1051,7 +1057,7 @@ describe("Upload logics", () => {
       const sceneUpload = uploads[getUploadRowKey({ file, scene: 1 })];
       expect(sceneUpload).to.deep.equal({
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file, scene: 1 }),
@@ -1064,13 +1070,13 @@ describe("Upload logics", () => {
       const sceneAndChannelKey = getUploadRowKey({
         file,
         scene: 1,
-        channelId: 1,
+        channelId: "Raw 405nm",
       });
       const sceneAndChannelUpload = uploads[sceneAndChannelKey];
       expect(sceneAndChannelUpload).to.not.be.undefined;
       expect(sceneAndChannelUpload).to.deep.equal({
         barcode: "1234",
-        channel: mockChannel,
+        channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: sceneAndChannelKey,
@@ -1093,7 +1099,7 @@ describe("Upload logics", () => {
         store.dispatch(
           updateSubImages(fileRow, {
             subImageNames: ["foo"],
-            channels: [mockChannel],
+            channelIds: [mockChannel],
           })
         );
       }
@@ -1106,7 +1112,7 @@ describe("Upload logics", () => {
         uploads[getUploadRowKey({ file, subImageName: "foo" })];
       expect(positionUpload).to.deep.equal({
         barcode: "1234",
-        channel: undefined,
+        channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: getUploadRowKey({ file, subImageName: "foo" }),
@@ -1119,13 +1125,13 @@ describe("Upload logics", () => {
       const positionAndChannelKey = getUploadRowKey({
         file,
         subImageName: "foo",
-        channelId: 1,
+        channelId: "Raw 405nm",
       });
       const positionAndChannelUpload = uploads[positionAndChannelKey];
       expect(positionAndChannelUpload).to.not.be.undefined;
       expect(positionAndChannelUpload).to.deep.equal({
         barcode: "1234",
-        channel: mockChannel,
+        channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
         key: positionAndChannelKey,
@@ -1141,13 +1147,13 @@ describe("Upload logics", () => {
       const position1Channel1Key = getUploadRowKey({
         file,
         positionIndex: 1,
-        channelId: 1,
+        channelId: mockChannel,
       });
       const position2Key = getUploadRowKey({ file, positionIndex: 2 });
       const position2Channel1Key = getUploadRowKey({
         file,
         positionIndex: 2,
-        channelId: 1,
+        channelId: mockChannel,
       });
       const { store } = createMockReduxStore(
         {
@@ -1155,7 +1161,7 @@ describe("Upload logics", () => {
           upload: getMockStateWithHistory({
             [fileRowKey]: {
               barcode: "1234",
-              channelIds: [1],
+              channelIds: [mockChannel],
               file: "/path/to/file1",
               positionIndexes: [1, 2],
               [WELL_ANNOTATION_NAME]: [],
@@ -1168,7 +1174,7 @@ describe("Upload logics", () => {
             },
             [position1Channel1Key]: {
               barcode: "1234",
-              channel: mockChannel,
+              channelId: mockChannel,
               file: "/path/to/file1",
               positionIndex: 1,
               [WELL_ANNOTATION_NAME]: [],
@@ -1181,7 +1187,7 @@ describe("Upload logics", () => {
             },
             [position2Channel1Key]: {
               barcode: "1234",
-              channel: mockChannel,
+              channelId: mockChannel,
               file: "/path/to/file1",
               positionIndex: 2,
               [WELL_ANNOTATION_NAME]: [],
@@ -1198,7 +1204,10 @@ describe("Upload logics", () => {
       if (fileRow) {
         // apply
         store.dispatch(
-          updateSubImages(fileRow, { scenes: [1, 2], channels: [mockChannel] })
+          updateSubImages(fileRow, {
+            scenes: [1, 2],
+            channelIds: [mockChannel],
+          })
         );
         const uploads = getUpload(store.getState());
         expect(uploads[position1Key]).to.be.undefined;
@@ -1207,12 +1216,14 @@ describe("Upload logics", () => {
         expect(uploads[position2Channel1Key]).to.be.undefined;
         expect(uploads[getUploadRowKey({ file, scene: 1 })]).to.not.be
           .undefined;
-        expect(uploads[getUploadRowKey({ file, scene: 1, channelId: 1 })]).to
-          .not.be.undefined;
+        expect(
+          uploads[getUploadRowKey({ file, scene: 1, channelId: "Raw 405nm" })]
+        ).to.not.be.undefined;
         expect(uploads[getUploadRowKey({ file, scene: 2 })]).to.not.be
           .undefined;
-        expect(uploads[getUploadRowKey({ file, scene: 2, channelId: 1 })]).to
-          .not.be.undefined;
+        expect(
+          uploads[getUploadRowKey({ file, scene: 2, channelId: "Raw 405nm" })]
+        ).to.not.be.undefined;
       }
     });
 
@@ -1221,9 +1232,9 @@ describe("Upload logics", () => {
       const scene1Channel1RowKey = getUploadRowKey({
         file,
         scene: 1,
-        channelId: 1,
+        channelId: "Raw 405nm",
       });
-      const channel1RowKey = getUploadRowKey({ file, channelId: 1 });
+      const channel1RowKey = getUploadRowKey({ file, channelId: "Raw 405nm" });
 
       const { store } = createMockReduxStore(oneFileUploadMockState);
 
@@ -1231,7 +1242,7 @@ describe("Upload logics", () => {
       if (fileRow) {
         // before
         store.dispatch(
-          updateSubImages(fileRow, { scenes: [1], channels: [mockChannel] })
+          updateSubImages(fileRow, { scenes: [1], channelIds: [mockChannel] })
         );
         upload = getUpload(store.getState());
         expect(upload[scene1RowKey]).to.not.be.undefined;
@@ -1242,7 +1253,7 @@ describe("Upload logics", () => {
         store.dispatch(
           updateSubImages(fileRow, {
             subImageNames: ["foo"],
-            channels: [mockChannel],
+            channelIds: [mockChannel],
           })
         );
       }
@@ -1256,7 +1267,7 @@ describe("Upload logics", () => {
       const fooChannel1RowKey = getUploadRowKey({
         file,
         subImageName: "foo",
-        channelId: 1,
+        channelId: "Raw 405nm",
       });
       expect(fooRowKey).to.not.be.undefined;
       expect(fooChannel1RowKey).to.not.be.undefined;

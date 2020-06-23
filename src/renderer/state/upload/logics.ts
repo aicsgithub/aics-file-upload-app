@@ -22,6 +22,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
+  CHANNEL_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
@@ -50,7 +51,6 @@ import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
 } from "../metadata/selectors";
-import { Channel } from "../metadata/types";
 import { openEditFileMetadataTab, selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import {
@@ -120,6 +120,7 @@ import {
 import {
   OpenUploadDraftAction,
   SaveUploadDraftAction,
+  UpdateSubImagesAction,
   UpdateUploadRowsAction,
   UploadMetadata,
   UploadRowId,
@@ -468,12 +469,15 @@ const getSubImagesAndKey = (
 const updateSubImagesLogic = createLogic({
   type: UPDATE_SUB_IMAGES,
   validate: (
-    { action, getState }: ReduxLogicTransformDependencies,
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<UpdateSubImagesAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
     const {
-      channels,
+      channelIds,
       positionIndexes,
       row: fileRow,
       scenes,
@@ -501,7 +505,6 @@ const updateSubImagesLogic = createLogic({
       return;
     }
 
-    const channelIds = channels.map((c: Channel) => c.channelId);
     const { subImageKey, subImages } = getSubImagesAndKey(
       positionIndexes,
       scenes,
@@ -540,25 +543,29 @@ const updateSubImagesLogic = createLogic({
     );
 
     // If there are subimages for a file, remove the well associations from the file row
+    // Also add channels as an annotation
     if (!isEmpty(subImages)) {
       update[fileRow.key] = {
         ...uploads[fileRow.key],
         [WELL_ANNOTATION_NAME]: [],
+        ...(channelIds.length && {
+          [CHANNEL_ANNOTATION_NAME]: channelIds,
+        }),
       };
     }
 
     // add channel rows that are new
     const oldChannelIds = fileRow.channelIds || [];
-    channels
-      .filter((c: Channel) => !includes(oldChannelIds, c.channelId))
-      .forEach((channel: Channel) => {
+    channelIds
+      .filter((c: string) => !includes(oldChannelIds, c))
+      .forEach((channelId: string) => {
         const key = getUploadRowKey({
           file: fileRow.file,
-          channelId: channel.channelId,
+          channelId,
         });
         update[key] = {
           barcode: fileRow.barcode,
-          channel,
+          channelId,
           file: fileRow.file,
           key,
           [NOTES_ANNOTATION_NAME]: [],
@@ -584,7 +591,7 @@ const updateSubImagesLogic = createLogic({
         });
         update[subImageOnlyRowKey] = {
           barcode: fileRow.barcode,
-          channel: undefined,
+          channelId: undefined,
           file: fileRow.file,
           key: subImageOnlyRowKey,
           [NOTES_ANNOTATION_NAME]: [],
@@ -595,23 +602,23 @@ const updateSubImagesLogic = createLogic({
         };
       }
 
-      channels.forEach((channel: Channel) => {
+      channelIds.forEach((channelId: string) => {
         const matchingChannelRow = existingUploadsForFile.find(
           (u) =>
-            u.channel &&
-            u.channel.channelId === channel.channelId &&
+            u.channelId &&
+            u.channelId === channelId &&
             u[subImageKey] === subImageValue
         );
 
         if (!matchingChannelRow) {
           const key = getUploadRowKey({
-            channelId: channel.channelId,
+            channelId: channelId,
             file: fileRow.file,
             [subImageKey]: subImageValue,
           });
           update[key] = {
             barcode: fileRow.barcode,
-            channel,
+            channelId,
             file: fileRow.file,
             key,
             [NOTES_ANNOTATION_NAME]: [],
@@ -633,25 +640,24 @@ const updateSubImagesLogic = createLogic({
           (!isNil(u.scene) && !includes(scenes, u.scene)) ||
           (!isNil(u.subImageName) &&
             !includes(subImageNames, u.subImageName)) ||
-          (!isNil(u.channel) && !includes(channelIds, u.channel.channelId))
+          (!isNil(u.channelId) && !includes(channelIds, u.channelId))
       )
       .map(
         ({
           file,
           positionIndex,
-          channel,
+          channelId,
           scene,
           subImageName,
         }: UploadMetadata) =>
           getUploadRowKey({
-            channelId: channel ? channel.channelId : undefined,
+            channelId,
             file,
             positionIndex,
             scene,
             subImageName,
           })
       );
-
     next(batchActions([updateUploads(update), removeUploads(rowKeysToDelete)]));
   },
 });

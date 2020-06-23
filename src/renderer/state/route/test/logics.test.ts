@@ -764,7 +764,6 @@ describe("Route logics", () => {
           ...fileMetadata[0],
           "Favorite Color": [],
           barcode: undefined,
-          channel: undefined,
           file: "/localFilePath",
         },
       });

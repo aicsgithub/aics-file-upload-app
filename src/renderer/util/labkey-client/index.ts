@@ -308,9 +308,8 @@ export default class LabkeyClient extends BaseServiceClient {
     );
     const response = await this.httpClient.get(query);
     return response.rows.map((channel: LabkeyChannel) => ({
-      channelId: channel.ContentTypeId,
+      channelId: channel.Name,
       description: channel.Description,
-      name: channel.Name,
     }));
   }
 
