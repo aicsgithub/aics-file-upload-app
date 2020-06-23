@@ -18,11 +18,11 @@ import { createLogic } from "redux-logic";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import {
+  CHANNEL_ANNOTATION_NAME,
   LIST_DELIMITER_SPLIT,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
-  CHANNEL_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import {
@@ -274,6 +274,9 @@ const initiateUploadLogic = createLogic({
       const currentPage = getPage(getState());
       const nextPage = findNextPage(currentPage, 1);
       const actions = [
+        removeRequestFromInProgress(
+          `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
+        ),
         updateIncompleteJobIds(updatedIncompleteJobIds),
         clearUploadError(),
       ];

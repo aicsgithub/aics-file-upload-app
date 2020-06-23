@@ -18,9 +18,12 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
-import { setErrorAlert } from "../../feedback/actions";
+import {
+  removeRequestFromInProgress,
+  setErrorAlert,
+} from "../../feedback/actions";
 import { getAlert, getUploadError } from "../../feedback/selectors";
-import { AlertType } from "../../feedback/types";
+import { AlertType, AsyncRequest } from "../../feedback/types";
 import { selectPage } from "../../route/actions";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
@@ -456,9 +459,9 @@ describe("Upload logics", () => {
       });
     });
 
-    it("clears Upload Error", () => {
+    it("clears Upload Error and removes INITIATE_UPLOAD from requestsInProgress", () => {
       const uploadFilesStub = setUpSuccessStubs();
-      const { store } = createMockReduxStore(
+      const { actions, store } = createMockReduxStore(
         {
           ...nonEmptyStateForInitiatingUpload,
           feedback: {
@@ -473,6 +476,12 @@ describe("Upload logics", () => {
       // before
       let state = store.getState();
       expect(getUploadError(state)).to.not.be.undefined;
+      const jobName = "file1, file2, file3";
+      expect(
+        actions.includesMatch(
+          removeRequestFromInProgress(`${AsyncRequest}-${jobName}`)
+        )
+      ).to.be.false;
 
       // apply
       store.dispatch(initiateUpload());
@@ -484,6 +493,11 @@ describe("Upload logics", () => {
           clock.tick(2000);
           state = store.getState();
           expect(getUploadError(state)).to.be.undefined;
+          expect(
+            actions.includesMatch(
+              removeRequestFromInProgress(`${AsyncRequest}-${jobName}`)
+            )
+          ).to.be.false;
         }
       });
     });
