@@ -4,7 +4,6 @@ import { createSandbox, SinonStub, stub } from "sinon";
 
 import { openTemplateEditor } from "../../selection/actions";
 import {
-  clearTemplateDraft,
   startTemplateDraft,
   startTemplateDraftFailed,
 } from "../../template/actions";
@@ -33,7 +32,6 @@ describe("Feedback logics", () => {
       ...mockState,
       feedback: {
         ...mockState.feedback,
-        deferredAction: clearTemplateDraft(),
         visibleModals: ["templateEditor"],
       },
       template: getMockStateWithHistory({
@@ -58,7 +56,7 @@ describe("Feedback logics", () => {
       // after
       expect(getTemplateEditorVisible(store.getState())).to.be.false;
     });
-    it("dispatches deferred action if present", async () => {
+    it("clears template draft state when templateEditor modal is closed", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...templateEditorOpenState,
       });

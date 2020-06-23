@@ -29,6 +29,7 @@ import * as moment from "moment";
 import { createSelector } from "reselect";
 
 import {
+  CHANNEL_ANNOTATION_NAME,
   LIST_DELIMITER_SPLIT,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
@@ -217,17 +218,17 @@ const convertToUploadJobRow = (
   treeDepth: number,
   template?: TemplateWithTypeNames,
   hasSubRows = false,
-  channelIds: number[] = [],
+  channelIds: string[] = [],
   positionIndexes: number[] = [],
   scenes: number[] = [],
   subImageNames: string[] = []
 ): UploadJobTableRow => {
   return {
     ...metadata,
-    channelIds,
+    [CHANNEL_ANNOTATION_NAME]: channelIds,
     group: hasSubRows,
     key: getUploadRowKey({
-      channelId: metadata.channel ? metadata.channel.channelId : undefined,
+      channelId: metadata.channelId,
       file: metadata.file,
       positionIndex: metadata.positionIndex,
       scene: metadata.scene,
@@ -410,8 +411,10 @@ export const getUploadSummaryRows = createSelector(
           const hasSubRows = channelRows.length + subImageRows.length > 0;
           const allChannelIds = uniq(
             allMetadataForFile
-              .filter((m: UploadMetadataWithDisplayFields) => !!m.channel)
-              .map((m: UploadMetadataWithDisplayFields) => m.channel.channelId)
+              .filter((m: UploadMetadataWithDisplayFields) => !!m.channelId)
+              .map(
+                (m: UploadMetadataWithDisplayFields) => m.channelId
+              ) as string[]
           );
           const allPositionIndexes: number[] = uniq(
             allMetadataForFile
@@ -508,7 +511,6 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
   ): { [key: string]: { [annotation: string]: string } } => {
-    console.log(template);
     if (!template) {
       return {};
     }
@@ -551,7 +553,6 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                   invalidValues = value
                     .filter((v: any) => typeof v !== "boolean")
                     .join(", ");
-                  console.log(annotationName, templateAnnotation);
                   if (invalidValues) {
                     annotationToErrorMap[
                       annotationName
@@ -731,9 +732,7 @@ const getAnnotations = (
         if (addAnnotation) {
           result.push({
             annotationId: annotation.annotationId,
-            channelId: metadatum.channel
-              ? metadatum.channel.channelId
-              : undefined,
+            channelId: metadatum.channelId,
             positionIndex: metadatum.positionIndex,
             scene: metadatum.scene,
             subImageName: metadatum.subImageName,
@@ -956,7 +955,6 @@ export const getCanSubmitUpload = createSelector(
     upload: UploadStateBranch,
     originalUpload?: UploadStateBranch
   ): boolean => {
-    console.log(validationErrors);
     const noValidationErrorsOrRequestsInProgress =
       validationErrors.length === 0 && requestsInProgress.length === 0;
     return originalUpload

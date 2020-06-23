@@ -55,8 +55,7 @@ export interface BarcodePrefix {
 }
 
 export interface Channel {
-  channelId: number;
-  name: string;
+  channelId: string;
   description: string;
 }
 

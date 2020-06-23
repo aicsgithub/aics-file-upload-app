@@ -130,7 +130,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         editor: WellsEditor,
         formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
           if (
-            row.channel ||
+            row.channelId ||
             !isEmpty(row.positionIndexes) ||
             !isEmpty(row.scenes) ||
             !isEmpty(row.subImageNames)
@@ -300,6 +300,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               addScenes={this.addScenes}
               channelOptions={this.props.channels}
               fileOptions={files}
+              key={row.key}
               row={row}
               value={value}
             />
@@ -543,7 +544,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private addScenes = (
     files: string[],
     positionIndexes: number[],
-    channels: Channel[],
+    channelIds: string[],
     scenes: number[],
     subImageNames: string[]
   ) => {
@@ -553,7 +554,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       );
       this.props.updateSubImages(row, {
         positionIndexes,
-        channels,
+        channelIds,
         scenes,
         subImageNames,
       });

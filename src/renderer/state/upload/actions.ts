@@ -300,7 +300,7 @@ export function updateSubImages(
   return {
     autoSave: true,
     payload: {
-      channels: payload.channels || [],
+      channelIds: payload.channelIds || [],
       positionIndexes: payload.positionIndexes || [],
       row,
       scenes: payload.scenes || [],

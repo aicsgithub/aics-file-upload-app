@@ -390,16 +390,11 @@ const convertImageModelMetadataToUploadStateBranch = (
         scene,
         subImageName,
       });
-      const channel =
-        curr.channel && curr.channelId
-          ? { name: curr.channel, channelId: curr.channelId }
-          : undefined;
       return {
         ...accum,
         [key]: {
           ...curr,
           barcode: curr.barcode ? `${curr.barcode}` : undefined,
-          channel,
           file,
         },
       };
