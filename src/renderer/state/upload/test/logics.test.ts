@@ -497,7 +497,7 @@ describe("Upload logics", () => {
             actions.includesMatch(
               removeRequestFromInProgress(`${AsyncRequest}-${jobName}`)
             )
-          ).to.be.false;
+          ).to.be.true;
         }
       });
     });
