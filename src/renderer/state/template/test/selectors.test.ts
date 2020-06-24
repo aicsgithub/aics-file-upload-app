@@ -4,6 +4,7 @@ import {
   getMockStateWithHistory,
   mockAnnotationDraft,
   mockFavoriteColorAnnotation,
+  mockMMSTemplate,
   mockNotesAnnotation,
   mockState,
   mockTemplateDraft,
@@ -12,9 +13,11 @@ import {
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
+import { State } from "../../types";
 import {
   getCompleteAppliedTemplate,
   getTemplateDraftErrors,
+  getWarnAboutTemplateVersionMessage,
 } from "../selectors";
 import { ColumnType } from "../types";
 
@@ -224,6 +227,104 @@ describe("Template selectors", () => {
         const types = result.annotations.map((a) => a.type).filter((t) => !!t);
         expect(types.length).to.equal(result.annotations.length);
       }
+    });
+  });
+  describe("getWarnAboutTemplateVersionMessage", () => {
+    let stateWithTemplateInfo: State;
+    beforeEach(() => {
+      stateWithTemplateInfo = {
+        ...nonEmptyStateForInitiatingUpload,
+        template: getMockStateWithHistory({
+          ...nonEmptyStateForInitiatingUpload.template.present,
+          draft: { ...mockTemplateDraft, templateId: 1 },
+          original: mockMMSTemplate,
+          originalTemplateHasBeenUsed: true,
+        }),
+      };
+    });
+    it("returns undefined if no original template", () => {
+      const result = getWarnAboutTemplateVersionMessage({
+        ...stateWithTemplateInfo,
+        template: getMockStateWithHistory({
+          ...stateWithTemplateInfo.template.present,
+          original: undefined,
+        }),
+      });
+      expect(result).to.be.undefined;
+    });
+    it("returns undefined if original template has not been used to upload files before", () => {
+      const result = getWarnAboutTemplateVersionMessage({
+        ...stateWithTemplateInfo,
+        template: getMockStateWithHistory({
+          ...stateWithTemplateInfo.template.present,
+          originalTemplateHasBeenUsed: false,
+        }),
+      });
+      expect(result).to.be.undefined;
+    });
+    it("returns undefined if draft does not have a templateId", () => {
+      const result = getWarnAboutTemplateVersionMessage({
+        ...stateWithTemplateInfo,
+        template: getMockStateWithHistory({
+          ...stateWithTemplateInfo.template.present,
+          draft: {
+            ...mockTemplateDraft,
+            templateId: undefined,
+          },
+        }),
+      });
+      expect(result).to.be.undefined;
+    });
+    it("returns message about adding or removing annotations if an annotation was added", () => {
+      const result = getWarnAboutTemplateVersionMessage({
+        ...stateWithTemplateInfo,
+        template: getMockStateWithHistory({
+          ...stateWithTemplateInfo.template.present,
+          draft: {
+            ...mockTemplateDraft,
+            annotations: [
+              mockAnnotationDraft,
+              { ...mockAnnotationDraft, name: "Something else" },
+            ],
+            templateId: 1,
+          },
+        }),
+      });
+      expect(result).to.equal(
+        "Adding or removing annotations will version your template"
+      );
+    });
+    it("returns message about adding or removing annotations if an annotation was added, and another was removed", () => {
+      const result = getWarnAboutTemplateVersionMessage({
+        ...stateWithTemplateInfo,
+        template: getMockStateWithHistory({
+          ...stateWithTemplateInfo.template.present,
+          draft: {
+            ...mockTemplateDraft,
+            annotations: [{ ...mockAnnotationDraft, name: "Something else" }],
+            templateId: 1,
+          },
+        }),
+      });
+      expect(result).to.equal(
+        "Adding or removing annotations will version your template"
+      );
+    });
+    it("returns a message if an optional annotation was made required", () => {
+      const result = getWarnAboutTemplateVersionMessage({
+        ...stateWithTemplateInfo,
+        template: getMockStateWithHistory({
+          ...stateWithTemplateInfo.template.present,
+          draft: {
+            ...mockTemplateDraft,
+            annotations: [{ ...mockAnnotationDraft, required: true }],
+            templateId: 1,
+          },
+        }),
+      });
+      expect(result).to.equal(
+        "Adding or removing annotations will version your template"
+      );
     });
   });
 });

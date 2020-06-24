@@ -1,6 +1,8 @@
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
+import { CLOSE_MODAL } from "../feedback/constants";
+import { CloseModalAction } from "../feedback/types";
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
@@ -16,12 +18,14 @@ import {
   JUMP_TO_PAST_TEMPLATE,
   JUMP_TO_TEMPLATE,
   SET_APPLIED_TEMPLATE,
+  START_TEMPLATE_DRAFT,
   UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import { getAppliedTemplate } from "./selectors";
 import {
   ClearTemplateDraftAction,
   SetAppliedTemplateAction,
+  StartTemplateDraftAction,
   TemplateStateBranch,
   UpdateTemplateDraftAction,
 } from "./types";
@@ -29,6 +33,8 @@ import {
 export const initialState: TemplateStateBranch = {
   appliedTemplate: undefined,
   draft: DEFAULT_TEMPLATE_DRAFT,
+  original: undefined,
+  originalTemplateHasBeenUsed: undefined,
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
@@ -82,6 +88,36 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: TemplateStateBranch) => ({
       ...state,
       appliedTemplate: undefined,
+    }),
+  },
+  [CLOSE_MODAL]: {
+    accepts: (action: AnyAction): action is CloseModalAction =>
+      action.type === CLOSE_MODAL,
+    perform: (state: TemplateStateBranch, { payload }: CloseModalAction) => {
+      if (payload === "templateEditor") {
+        return {
+          ...state,
+          draft: DEFAULT_TEMPLATE_DRAFT,
+          original: undefined,
+          originalTemplateHasBeenUsed: undefined,
+        };
+      }
+      return state;
+    },
+  },
+  [START_TEMPLATE_DRAFT]: {
+    accepts: (action: AnyAction): action is StartTemplateDraftAction =>
+      action.type === START_TEMPLATE_DRAFT,
+    perform: (
+      state: TemplateStateBranch,
+      {
+        payload: { draft, original, originalTemplateHasBeenUsed },
+      }: StartTemplateDraftAction
+    ) => ({
+      ...state,
+      draft,
+      original,
+      originalTemplateHasBeenUsed,
     }),
   },
 };

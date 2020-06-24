@@ -24,15 +24,21 @@ import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
+  ReduxLogicTransformDependenciesWithAction,
 } from "../types";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
-import { getSaveTemplateRequest, getTemplateDraft } from "./selectors";
-import { AnnotationDraft } from "./types";
+import {
+  getSaveTemplateRequest,
+  getTemplateDraft,
+  getWarnAboutTemplateVersionMessage,
+} from "./selectors";
+import { AnnotationDraft, SaveTemplateAction } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
@@ -203,6 +209,35 @@ const saveTemplateLogic = createLogic({
     done();
   },
   type: SAVE_TEMPLATE,
+  validate: async (
+    {
+      action,
+      dialog,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<SaveTemplateAction>,
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
+  ) => {
+    const warning: string | undefined = getWarnAboutTemplateVersionMessage(
+      getState()
+    );
+    if (warning) {
+      const { response } = await dialog.showMessageBox({
+        buttons: ["Cancel", "Continue"],
+        defaultId: 1,
+        message: `This template has been used for uploading other files. ${warning}. Continuing will submit this update.`,
+        type: "warning",
+      });
+      if (response === 0) {
+        reject({ type: "ignore" });
+        return;
+      } else {
+        next(action);
+        return;
+      }
+    }
+    next(action);
+  },
 });
 
 export default [

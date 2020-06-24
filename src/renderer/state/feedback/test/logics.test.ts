@@ -1,12 +1,17 @@
 import { expect } from "chai";
-import { createSandbox, stub } from "sinon";
+import { AnyAction } from "redux";
+import { createSandbox, SinonStub, stub } from "sinon";
 
 import { openTemplateEditor } from "../../selection/actions";
-import { updateTemplateDraft } from "../../template/actions";
+import {
+  startTemplateDraft,
+  startTemplateDraftFailed,
+} from "../../template/actions";
 import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
 import {
   createMockReduxStore,
+  labkeyClient,
   mmsClient,
 } from "../../test/configure-mock-store";
 import {
@@ -18,9 +23,8 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
-import { closeModal, removeRequestFromInProgress } from "../actions";
+import { closeModal } from "../actions";
 import { getTemplateEditorVisible } from "../selectors";
-import { AsyncRequest } from "../types";
 
 describe("Feedback logics", () => {
   describe("closeModalLogic", () => {
@@ -78,43 +82,67 @@ describe("Feedback logics", () => {
       sandbox.restore();
     });
 
-    it("dispatches setDeferredAction and getTemplate", async () => {
-      const expectedUpdateTemplateDraftAction = updateTemplateDraft({
-        ...mockMMSTemplate,
-        annotations: [
-          {
-            ...mockFavoriteColorAnnotation,
-            annotationTypeName: "Text",
-            index: 0,
-          },
-        ],
-      });
+    const stubMethods = (
+      getTemplateOverride?: SinonStub,
+      getTemplateHasBeenUsedOverride?: SinonStub
+    ) => {
       sandbox.replace(
         mmsClient,
         "getTemplate",
-        stub().resolves(mockMMSTemplate)
+        getTemplateOverride || stub().resolves(mockMMSTemplate)
       );
+      sandbox.replace(
+        labkeyClient,
+        "getTemplateHasBeenUsed",
+        getTemplateHasBeenUsedOverride || stub().resolves(true)
+      );
+    };
+
+    const runTest = async (expectedAction: AnyAction) => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload
       );
-      expect(
-        actions.includesMatch(
-          removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)
-        )
-      ).to.be.false;
-      expect(actions.includesMatch(expectedUpdateTemplateDraftAction)).to.be
-        .false;
+      expect(actions.includesMatch(expectedAction)).to.be.false;
 
       store.dispatch(openTemplateEditor(1));
       await logicMiddleware.whenComplete();
 
-      expect(
-        actions.includesMatch(
-          removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE)
-        )
-      ).to.be.true;
-      expect(actions.includesMatch(expectedUpdateTemplateDraftAction)).to.be
-        .true;
+      expect(actions.includesMatch(expectedAction)).to.be.true;
+    };
+
+    it("dispatches startTemplateDraft given OK requests", async () => {
+      stubMethods();
+      const expectedAction = startTemplateDraft(
+        mockMMSTemplate,
+        {
+          ...mockMMSTemplate,
+          annotations: [
+            {
+              ...mockFavoriteColorAnnotation,
+              annotationTypeName: "Text",
+              index: 0,
+            },
+          ],
+        },
+        true
+      );
+      await runTest(expectedAction);
+    });
+
+    it("dispatches startTemplateDraftFailed if getting template fails", async () => {
+      stubMethods(stub().rejects(new Error("foo")));
+      const expectedAction = startTemplateDraftFailed(
+        "Could not retrieve template: foo"
+      );
+      await runTest(expectedAction);
+    });
+
+    it("dispatches startTemplateDraftFailed if getting template is used fails", async () => {
+      stubMethods(undefined, stub().rejects(new Error("foo")));
+      const expectedAction = startTemplateDraftFailed(
+        "Could not retrieve template: foo"
+      );
+      await runTest(expectedAction);
     });
 
     it("dispatches getTemplate without a templateId", async () => {

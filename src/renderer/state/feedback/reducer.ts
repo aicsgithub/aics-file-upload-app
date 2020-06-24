@@ -33,10 +33,18 @@ import {
   SelectionStateBranch,
   SetPlateAction,
 } from "../selection/types";
-import { SAVE_TEMPLATE, SET_APPLIED_TEMPLATE } from "../template/constants";
+import { clearTemplateDraft } from "../template/actions";
+import {
+  SAVE_TEMPLATE,
+  SET_APPLIED_TEMPLATE,
+  START_TEMPLATE_DRAFT,
+  START_TEMPLATE_DRAFT_FAILED,
+} from "../template/constants";
 import {
   SaveTemplateAction,
   SetAppliedTemplateAction,
+  StartTemplateDraftAction,
+  StartTemplateDraftFailedAction,
 } from "../template/types";
 import { HTTP_STATUS, TypeToDescriptionMap } from "../types";
 import {
@@ -268,8 +276,15 @@ const actionToConfigMap: TypeToDescriptionMap = {
   [OPEN_TEMPLATE_MENU_ITEM_CLICKED]: {
     accepts: (action: AnyAction): action is OpenTemplateEditorAction =>
       action.type === OPEN_TEMPLATE_MENU_ITEM_CLICKED,
-    perform: (state: FeedbackStateBranch) => ({
+    perform: (
+      state: FeedbackStateBranch,
+      { payload }: OpenTemplateEditorAction
+    ) => ({
       ...state,
+      deferredAction: clearTemplateDraft(),
+      requestsInProgress: payload
+        ? addRequestToInProgress(state, AsyncRequest.GET_TEMPLATE)
+        : state.requestsInProgress,
       visibleModals: uniq([...state.visibleModals, "templateEditor"]),
     }),
   },
@@ -555,6 +570,32 @@ const actionToConfigMap: TypeToDescriptionMap = {
         folderTreeOpen: pagesToShowFolderTree.includes(nextPage),
       };
     },
+  },
+  [START_TEMPLATE_DRAFT]: {
+    accepts: (action: AnyAction): action is StartTemplateDraftAction =>
+      action.type === START_TEMPLATE_DRAFT,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_TEMPLATE
+      ),
+    }),
+  },
+  [START_TEMPLATE_DRAFT_FAILED]: {
+    accepts: (action: AnyAction): action is StartTemplateDraftFailedAction =>
+      action.type === START_TEMPLATE_DRAFT_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: StartTemplateDraftFailedAction
+    ) => ({
+      ...state,
+      alert: getErrorAlert(action.payload),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_TEMPLATE
+      ),
+    }),
   },
   [SUBMIT_FILE_METADATA_UPDATE]: {
     accepts: (action: AnyAction): action is SubmitFileMetadataUpdateAction =>
