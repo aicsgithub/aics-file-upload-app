@@ -314,11 +314,7 @@ const initiateUploadLogic = createLogic({
       );
     }
 
-    // hopefully give job queries a chance to catch up
-    setTimeout(() => {
-      dispatch(stopJobPoll());
-      done();
-    }, 2000);
+    done();
   },
   type: INITIATE_UPLOAD,
   validate: (

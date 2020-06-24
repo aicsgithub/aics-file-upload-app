@@ -2,14 +2,7 @@ import { StartUploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
-import {
-  createSandbox,
-  match,
-  SinonFakeTimers,
-  SinonStub,
-  stub,
-  useFakeTimers,
-} from "sinon";
+import { createSandbox, match, SinonStub, stub } from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import {
@@ -358,14 +351,6 @@ describe("Upload logics", () => {
       jobId: "abcd",
       uploadDirectory: "/test",
     };
-    let clock: SinonFakeTimers;
-    beforeEach(() => {
-      clock = useFakeTimers();
-    });
-
-    afterEach(() => {
-      clock.restore();
-    });
 
     const setUpSuccessStubs = () => {
       const uploadFilesStub = stub().resolves();
@@ -398,9 +383,9 @@ describe("Upload logics", () => {
       expect(getAlert(store.getState())).to.not.be.undefined;
     });
 
-    it("calls uploadFiles given OK response from validateMetadataAndGetUploadDirectory", () => {
+    it("calls uploadFiles given OK response from validateMetadataAndGetUploadDirectory", async () => {
       const uploadFilesStub = setUpSuccessStubs();
-      const { store } = createMockReduxStore(
+      const { logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         undefined,
         uploadLogics
@@ -409,19 +394,15 @@ describe("Upload logics", () => {
       expect(uploadFilesStub.called).to.be.false;
 
       // apply
+      store.dispatch(initiateUpload());
 
       // after
-      // the setTimeout in the logics forces us to use store.subscribe
-      store.subscribe(() => {
-        if (uploadFilesStub.called) {
-          clock.tick(2000);
-          expect(uploadFilesStub.calledWith(startUploadResponse)).to.be.true;
-        }
-      });
+      await logicMiddleware.whenComplete();
+      expect(uploadFilesStub.calledWith(startUploadResponse)).to.be.true;
     });
-    it("adds to list of incomplete job ids", () => {
-      const uploadFilesStub = setUpSuccessStubs();
-      const { actions, store } = createMockReduxStore(
+    it("adds to list of incomplete job ids", async () => {
+      setUpSuccessStubs();
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         {
           ...nonEmptyStateForInitiatingUpload,
           job: {
@@ -444,24 +425,19 @@ describe("Upload logics", () => {
       store.dispatch(initiateUpload());
 
       // after
-      // the setTimeout in the logics forces us to use store.subscribe
-      store.subscribe(() => {
-        if (uploadFilesStub.called) {
-          clock.tick(2000);
-          expect(
-            actions.list.find((a) => {
-              return (
-                a.writeToStore && a.updates && a.updates[INCOMPLETE_JOB_IDS_KEY]
-              );
-            })
-          ).to.not.be.undefined;
-        }
-      });
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.list.find((a) => {
+          return (
+            a.writeToStore && a.updates && a.updates[INCOMPLETE_JOB_IDS_KEY]
+          );
+        })
+      ).to.not.be.undefined;
     });
 
-    it("clears Upload Error and removes INITIATE_UPLOAD from requestsInProgress", () => {
-      const uploadFilesStub = setUpSuccessStubs();
-      const { actions, store } = createMockReduxStore(
+    it("clears Upload Error and removes INITIATE_UPLOAD from requestsInProgress", async () => {
+      setUpSuccessStubs();
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         {
           ...nonEmptyStateForInitiatingUpload,
           feedback: {
@@ -487,19 +463,16 @@ describe("Upload logics", () => {
       store.dispatch(initiateUpload());
 
       // after
-      // the setTimeout in the logics forces us to use store.subscribe
-      store.subscribe(() => {
-        if (uploadFilesStub.called) {
-          clock.tick(2000);
-          state = store.getState();
-          expect(getUploadError(state)).to.be.undefined;
-          expect(
-            actions.includesMatch(
-              removeRequestFromInProgress(`${AsyncRequest}-${jobName}`)
-            )
-          ).to.be.true;
-        }
-      });
+      await logicMiddleware.whenComplete();
+      state = store.getState();
+      expect(getUploadError(state)).to.be.undefined;
+      expect(
+        actions.includesMatch(
+          removeRequestFromInProgress(
+            `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
+          )
+        )
+      ).to.be.true;
     });
     it("sets upload error if upload fails", async () => {
       sandbox.replace(
@@ -525,9 +498,9 @@ describe("Upload logics", () => {
       state = store.getState();
       expect(getUploadError(state)).to.not.be.undefined;
     });
-    it("closes upload tab", () => {
-      const uploadFilesStub = setUpSuccessStubs();
-      const { store } = createMockReduxStore(
+    it("closes upload tab", async () => {
+      setUpSuccessStubs();
+      const { logicMiddleware, store } = createMockReduxStore(
         {
           ...nonEmptyStateForInitiatingUpload,
           route: {
@@ -543,12 +516,10 @@ describe("Upload logics", () => {
       expect(getPage(store.getState())).to.equal(Page.AddCustomData);
 
       store.dispatch(initiateUpload());
-      store.subscribe(() => {
-        if (uploadFilesStub.called) {
-          clock.tick(2000);
-          expect(getPage(store.getState())).to.equal(Page.UploadSummary);
-        }
-      });
+
+      await logicMiddleware.whenComplete();
+
+      expect(getPage(store.getState())).to.equal(Page.UploadSummary);
     });
   });
   describe("updateSubImagesLogic", () => {
