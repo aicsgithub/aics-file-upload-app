@@ -105,7 +105,7 @@ export function addRequestToInProgress(
 }
 
 export function removeRequestFromInProgress(
-  payload: AsyncRequest
+  payload: AsyncRequest | string
 ): RemoveRequestInProgressAction {
   return {
     payload,
