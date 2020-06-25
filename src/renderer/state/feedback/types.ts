@@ -77,7 +77,7 @@ export interface AddRequestInProgressAction {
 
 export interface RemoveRequestInProgressAction {
   type: string;
-  payload: AsyncRequest;
+  payload: AsyncRequest | string;
 }
 
 export interface OpenSetMountPointNotificationAction {

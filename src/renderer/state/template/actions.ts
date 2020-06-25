@@ -8,6 +8,8 @@ import {
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
   SET_APPLIED_TEMPLATE,
+  START_TEMPLATE_DRAFT,
+  START_TEMPLATE_DRAFT_FAILED,
   UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import {
@@ -19,6 +21,8 @@ import {
   RemoveAnnotationsAction,
   SaveTemplateAction,
   SetAppliedTemplateAction,
+  StartTemplateDraftAction,
+  StartTemplateDraftFailedAction,
   Template,
   TemplateDraft,
   UpdateTemplateDraftAction,
@@ -85,5 +89,29 @@ export function updateTemplateDraft(
   return {
     payload: draftUpdates,
     type: UPDATE_TEMPLATE_DRAFT,
+  };
+}
+
+export function startTemplateDraft(
+  original: Template,
+  draft: TemplateDraft,
+  originalHasBeenUsed: boolean
+): StartTemplateDraftAction {
+  return {
+    payload: {
+      original,
+      draft,
+      originalTemplateHasBeenUsed: originalHasBeenUsed,
+    },
+    type: START_TEMPLATE_DRAFT,
+  };
+}
+
+export function startTemplateDraftFailed(
+  error: string
+): StartTemplateDraftFailedAction {
+  return {
+    payload: error,
+    type: START_TEMPLATE_DRAFT_FAILED,
   };
 }

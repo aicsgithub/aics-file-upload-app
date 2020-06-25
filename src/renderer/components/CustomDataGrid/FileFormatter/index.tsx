@@ -6,6 +6,7 @@ import { isEmpty, isNil, uniq } from "lodash";
 import { ReactNode } from "react";
 import * as React from "react";
 
+import { CHANNEL_ANNOTATION_NAME } from "../../../constants";
 import { Channel } from "../../../state/metadata/types";
 import { UploadJobTableRow } from "../../../state/upload/types";
 import LabeledInput from "../../LabeledInput";
@@ -262,8 +263,9 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
   private getInitialState = () => {
     const {
-      row: { channelIds, file, positionIndexes, scenes, subImageNames },
+      row: { file, positionIndexes, scenes, subImageNames },
     } = this.props;
+    const channelIds = this.props.row[CHANNEL_ANNOTATION_NAME];
     let subImageType: subImage = "position";
     if (!isEmpty(scenes)) {
       subImageType = "scene";
