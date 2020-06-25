@@ -1,8 +1,9 @@
 # Version Notes
 
-## 1.0.46
+## 1.0.46 (6/25/20)
 - Behind the scenes changes for how we track channels on a file
 - Feature: added Edit action next to uploads so that users can edit and delete files they uploaded
+- Feature: warn users when saving changes to a template that will version the template
 - Bugfix: fix issue where template editor was not clearing properly after closing
 
 ## 1.0.45 (6/16/20)
