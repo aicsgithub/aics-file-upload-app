@@ -17,7 +17,7 @@ interface FormPageProps {
   saveButtonName?: string;
   saveButtonDisabled?: boolean;
   saveInProgress?: boolean;
-  showProgressBar?: boolean;
+  hideProgressBar?: boolean;
   onSave: () => any;
   backButtonName?: string;
   onBack: () => any;
@@ -31,6 +31,7 @@ class FormPage extends React.Component<FormPageProps, {}> {
   public static defaultProps = {
     backButtonDisabled: false,
     backButtonName: "Back",
+    hideProgressBar: false,
     saveButtonDisabled: false,
     saveButtonName: "Next",
     saveInProgress: false,
@@ -60,12 +61,12 @@ class FormPage extends React.Component<FormPageProps, {}> {
       saveInProgress,
       saveButtonDisabled,
       saveButtonName,
-      showProgressBar,
+      hideProgressBar,
     } = this.props;
 
     return (
       <div className={classNames(styles.container, className)}>
-        {showProgressBar && (
+        {!hideProgressBar && (
           <ProgressBar className={styles.progressBar} page={page} />
         )}
         <div className={styles.content}>
