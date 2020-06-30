@@ -70,14 +70,16 @@ const StatusBar: React.FunctionComponent<StatusBarProps> = (props) => {
         <div className={styles.status} title={statusMessage}>
           {statusMessage}
         </div>
-        <Button
-          className={styles.copy}
-          onClick={copyStatusToClipboard(statusMessage)}
-          size="small"
-          type="link"
-        >
-          Copy
-        </Button>
+        {statusMessage !== "" && (
+          <Button
+            className={styles.copy}
+            onClick={copyStatusToClipboard(statusMessage)}
+            size="small"
+            type="link"
+          >
+            Copy
+          </Button>
+        )}
       </div>
       <div className={styles.host}>LIMS Host: {limsUrl}</div>
     </div>
