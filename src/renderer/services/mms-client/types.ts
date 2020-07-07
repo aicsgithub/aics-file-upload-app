@@ -1,5 +1,3 @@
-import { CellPopulation, Solution } from "../../state/selection/types";
-
 export interface CreateAnnotationRequest {
   annotationOptions?: string[];
   annotationTypeId: number;
@@ -19,6 +17,56 @@ export type AnnotationRequest =
 export interface SaveTemplateRequest {
   name: string;
   annotations: AnnotationRequest[];
+}
+
+export interface PopulationEdit {
+  cas9BatchId: number;
+  cas9BatchName: string;
+  crRnaBatchId: number;
+  crRnaBatchName: string;
+  donorPlasmidBatchId: number;
+  donorPlasmidBatchName: string;
+}
+export interface CellPopulationInfo {
+  cellLineId?: number;
+  cellLineName?: string;
+  cellPopulationId?: number;
+  clone?: string;
+  edits?: PopulationEdit[];
+  passage?: number;
+  plateBarcode?: string;
+  plateId?: number;
+  seedingDensity?: string;
+  stageId?: number;
+  stageName?: string;
+  wellId?: number;
+  wellLabel?: string;
+}
+
+export interface SolutionLot {
+  concentration: number;
+  concentrationUnitsId: number;
+  concentrationUnitsDisplay?: string;
+  dilutionFactorPart: number;
+  dilutionFactorTotal: number;
+  solutionName: string;
+}
+
+export interface CellPopulation {
+  seedingDensity: string;
+  sourceCellPopulation?: CellPopulationInfo;
+  sourcePlateWell?: CellPopulationInfo;
+  sourceVial?: {
+    barcode: string;
+  };
+  wellCellPopulation?: CellPopulationInfo;
+}
+
+export interface Solution {
+  solutionLot: SolutionLot;
+  volume: string;
+  volumeUnitsId: number;
+  volumeUnitDisplay?: string;
 }
 
 export interface GetPlateResponse {

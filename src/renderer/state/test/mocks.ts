@@ -22,11 +22,14 @@ import {
   Unit,
   Workflow,
 } from "../../services/labkey-client/types";
-import { Template, TemplateAnnotation } from "../../services/mms-client/types";
+import {
+  CellPopulation,
+  Template,
+  TemplateAnnotation,
+} from "../../services/mms-client/types";
 import { SearchResultsHeader } from "../metadata/types";
 import { Page } from "../route/types";
 import {
-  CellPopulation,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   SelectionStateBranch,

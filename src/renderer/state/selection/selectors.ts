@@ -8,7 +8,12 @@ import {
   ImagingSession,
   Unit,
 } from "../../services/labkey-client/types";
-import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import {
+  PlateResponse,
+  Solution,
+  SolutionLot,
+  WellResponse,
+} from "../../services/mms-client/types";
 import { getWellLabel } from "../../util";
 import {
   getAnnotations,
@@ -21,8 +26,6 @@ import { State } from "../types";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
-  Solution,
-  SolutionLot,
   Well,
 } from "./types";
 

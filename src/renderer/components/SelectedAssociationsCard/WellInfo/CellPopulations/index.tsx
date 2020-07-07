@@ -2,7 +2,7 @@ import { Divider } from "antd";
 import * as React from "react";
 
 import { NULL_TEXT } from "..";
-import { CellPopulation } from "../../../../state/selection/types";
+import { CellPopulation } from "../../../../services/mms-client/types";
 import KeyValueDisplay from "../../KeyValueDisplay";
 
 const styles = require("../style.pcss");
