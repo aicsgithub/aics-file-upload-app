@@ -15,13 +15,12 @@ import {
   getImagingSessions,
 } from "../../state/metadata/selectors";
 import { getPage } from "../../state/route/selectors";
-import { Page } from "../../state/route/types";
 import {
   getAllPlates,
   getAllWells,
   getSelectedJob,
 } from "../../state/selection/selectors";
-import { UploadMetadata, UploadStateBranch } from "../../state/types";
+import { Page, UploadMetadata, UploadStateBranch } from "../../state/types";
 import { isFileRow } from "../../state/upload/constants";
 import {
   getUpload,

@@ -12,7 +12,6 @@ import {
   openEditFileMetadataTabSucceeded,
   selectPage,
 } from "../../route/actions";
-import { Page } from "../../route/types";
 import {
   openTemplateEditor,
   selectBarcode,
@@ -34,7 +33,12 @@ import {
   mockTemplateDraft,
   mockWellUpload,
 } from "../../test/mocks";
-import { AlertType, AsyncRequest, FeedbackStateBranch } from "../../types";
+import {
+  AlertType,
+  AsyncRequest,
+  FeedbackStateBranch,
+  Page,
+} from "../../types";
 import {
   applyTemplate,
   cancelUpload,

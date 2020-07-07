@@ -1,18 +1,13 @@
 import { AnyAction } from "redux";
 
-import { TypeToDescriptionMap } from "../types";
+import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import { SELECT_PAGE, SELECT_VIEW } from "./constants";
 import { getPage } from "./selectors";
-import {
-  Page,
-  RouteStateBranch,
-  SelectPageAction,
-  SelectViewAction,
-} from "./types";
+import { SelectPageAction, SelectViewAction } from "./types";
 
 export const initialState: RouteStateBranch = {
   page: Page.UploadSummary,

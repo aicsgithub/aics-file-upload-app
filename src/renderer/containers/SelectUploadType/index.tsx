@@ -28,7 +28,7 @@ import {
   GetBarcodeSearchResultsAction,
 } from "../../state/metadata/types";
 import { goBack, goForward } from "../../state/route/actions";
-import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
+import { GoBackAction, NextPageAction } from "../../state/route/types";
 import {
   selectBarcode,
   selectWorkflowPath,
@@ -41,7 +41,7 @@ import {
   SelectBarcodeAction,
   SelectWorkflowPathAction,
 } from "../../state/selection/types";
-import { AlertType, AsyncRequest, State } from "../../state/types";
+import { AlertType, AsyncRequest, Page, State } from "../../state/types";
 import { BarcodeSelectorOption } from "../BarcodeSearch";
 
 const styles = require("./style.pcss");

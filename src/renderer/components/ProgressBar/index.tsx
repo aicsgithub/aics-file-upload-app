@@ -2,7 +2,7 @@ import { Steps, Tooltip } from "antd";
 import { startCase } from "lodash";
 import * as React from "react";
 
-import { Page } from "../../state/route/types";
+import { Page } from "../../state/types";
 
 const { Step } = Steps;
 

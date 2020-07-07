@@ -5,7 +5,6 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
-import { Page } from "../../../state/route/types";
 import {
   getMockStateWithHistory,
   mockSelection,
@@ -13,7 +12,7 @@ import {
   mockSuccessfulUploadJob,
   mockWells,
 } from "../../../state/test/mocks";
-import { State } from "../../../state/types";
+import { Page, State } from "../../../state/types";
 import { getFileToTags, getUploadTabName } from "../selectors";
 
 describe("App selectors", () => {

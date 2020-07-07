@@ -12,7 +12,6 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
-import { Page } from "../../route/types";
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
@@ -39,7 +38,7 @@ import {
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, State } from "../../types";
+import { AsyncRequest, Page, State } from "../../types";
 import { UploadMetadata as UploadMetadataRow } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {

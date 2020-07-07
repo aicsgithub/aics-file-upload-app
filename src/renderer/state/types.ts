@@ -25,7 +25,6 @@ import {
   Workflow,
 } from "../services/labkey-client/types";
 
-import { RouteStateBranch } from "./route/types";
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
 import { TemplateStateBranch } from "./template/types";
@@ -248,6 +247,21 @@ export interface MetadataStateBranch {
 }
 
 export type ModalName = "openTemplate" | "settings" | "templateEditor";
+
+export enum Page {
+  DragAndDrop = "DragAndDrop",
+  SearchFiles = "SearchFiles",
+  SelectUploadType = "SelectUploadType",
+  AssociateFiles = "AssociateFiles",
+  SelectStorageLocation = "SelectStorageIntent",
+  AddCustomData = "AddCustomData",
+  UploadSummary = "UploadSummary",
+}
+
+export interface RouteStateBranch {
+  page: Page;
+  view: Page;
+}
 
 export interface State {
   // For tracking how to display the app and feedback like alerts and notifications

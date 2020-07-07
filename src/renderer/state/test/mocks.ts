@@ -28,7 +28,6 @@ import {
   TemplateAnnotation,
 } from "../../services/mms-client/types";
 import { SearchResultsHeader } from "../metadata/types";
-import { Page } from "../route/types";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
@@ -40,7 +39,7 @@ import {
   TemplateDraft,
   TemplateStateBranch,
 } from "../template/types";
-import { JobFilter, JobStateBranch, State } from "../types";
+import { JobFilter, JobStateBranch, Page, State } from "../types";
 import { UploadStateBranch } from "../types";
 import { getUploadRowKey } from "../upload/constants";
 

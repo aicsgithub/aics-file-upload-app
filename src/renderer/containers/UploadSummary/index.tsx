@@ -69,7 +69,6 @@ import {
 import { getPage } from "../../state/route/selectors";
 import {
   OpenEditFileMetadataTabAction,
-  Page,
   SelectPageAction,
   SelectViewAction,
 } from "../../state/route/types";
@@ -78,14 +77,15 @@ import { UploadFile } from "../../state/selection/types";
 import {
   AsyncRequest,
   JobFilter,
+  Page,
   SearchResultRow,
   State,
+  UploadMetadata,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
   CancelUploadAction,
   RetryUploadAction,
-  UploadMetadata,
 } from "../../state/upload/types";
 
 const styles = require("./styles.pcss");

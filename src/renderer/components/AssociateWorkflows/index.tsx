@@ -5,13 +5,11 @@ import { ActionCreator } from "redux";
 import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import LookupSearch from "../../containers/LookupSearch";
 import { Workflow } from "../../services/labkey-client/types";
-import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
+import { GoBackAction, NextPageAction } from "../../state/route/types";
 import { SelectWorkflowsAction } from "../../state/selection/types";
+import { Page, UploadMetadata } from "../../state/types";
 import { undoFileWorkflowAssociation } from "../../state/upload/actions";
-import {
-  AssociateFilesAndWorkflowsAction,
-  UploadMetadata,
-} from "../../state/upload/types";
+import { AssociateFilesAndWorkflowsAction } from "../../state/upload/types";
 import FormPage from "../FormPage";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";
 import KeyValueDisplay from "../SelectedAssociationsCard/KeyValueDisplay";

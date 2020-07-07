@@ -4,11 +4,10 @@ import {
   mockSelection,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
+import { Page, RouteStateBranch, State } from "../../types";
 import { replaceUpload } from "../../upload/actions";
 import { selectPage } from "../actions";
 import reducer from "../reducer";
-import { Page, RouteStateBranch } from "../types";
 
 describe("route reducer", () => {
   let route: RouteStateBranch;

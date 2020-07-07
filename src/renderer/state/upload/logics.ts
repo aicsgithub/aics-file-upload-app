@@ -59,7 +59,6 @@ import {
   handleGoingToNextPageForNewUpload,
 } from "../route/logics";
 import { getPage } from "../route/selectors";
-import { Page } from "../route/types";
 import { deselectFiles, stageFiles } from "../selection/actions";
 import {
   getSelectedBarcode,
@@ -73,6 +72,7 @@ import {
   AlertType,
   AsyncRequest,
   HTTP_STATUS,
+  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,

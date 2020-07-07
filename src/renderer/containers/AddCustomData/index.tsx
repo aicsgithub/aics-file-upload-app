@@ -30,7 +30,7 @@ import {
   getTemplates,
 } from "../../state/metadata/selectors";
 import { goBack } from "../../state/route/actions";
-import { GoBackAction, Page } from "../../state/route/types";
+import { GoBackAction } from "../../state/route/types";
 import {
   selectBarcode,
   toggleExpandedUploadJobRow,
@@ -54,7 +54,7 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AsyncRequest, State } from "../../state/types";
+import { AsyncRequest, Page, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,

@@ -47,7 +47,7 @@ import {
   mockSuccessfulUploadJob,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AlertType, Logger, State } from "../../types";
+import { AlertType, Logger, Page, State } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
 import {
@@ -68,7 +68,6 @@ import {
 } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
-import { Page } from "../types";
 import Menu = Electron.Menu;
 
 describe("Route logics", () => {

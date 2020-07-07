@@ -28,7 +28,7 @@ import {
   ToggleExpandedUploadJobRowAction,
   Well,
 } from "../../state/selection/types";
-import { AlertType } from "../../state/types";
+import { AlertType, UploadMetadata } from "../../state/types";
 import {
   getUploadRowKey,
   getUploadRowKeyFromUploadTableRow,
@@ -39,7 +39,6 @@ import {
   UpdateUploadAction,
   UpdateUploadRowsAction,
   UploadJobTableRow,
-  UploadMetadata,
 } from "../../state/upload/types";
 import { convertToArray, onDrop } from "../../util";
 import BooleanFormatter from "../BooleanFormatter";

@@ -25,7 +25,6 @@ import {
 } from "../../feedback/selectors";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
-import { Page } from "../../route/types";
 import {
   createMockReduxStore,
   dialog,
@@ -40,7 +39,13 @@ import {
   mockWells,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AlertType, AppAlert, AsyncRequest, HTTP_STATUS } from "../../types";
+import {
+  AlertType,
+  AppAlert,
+  AsyncRequest,
+  HTTP_STATUS,
+  Page,
+} from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
 import { clearStagedFiles, selectBarcode, selectWells } from "../actions";

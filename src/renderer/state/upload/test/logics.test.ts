@@ -19,7 +19,6 @@ import {
 import { getAlert, getUploadError } from "../../feedback/selectors";
 import { selectPage } from "../../route/actions";
 import { getPage } from "../../route/selectors";
-import { Page } from "../../route/types";
 import {
   getSelectedBarcode,
   getSelectedFiles,
@@ -51,6 +50,7 @@ import {
   AlertType,
   AsyncRequest,
   HTTP_STATUS,
+  Page,
   State,
   UploadMetadata,
 } from "../../types";

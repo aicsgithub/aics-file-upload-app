@@ -53,7 +53,6 @@ import {
 } from "../metadata/selectors";
 import { pageOrder } from "../route/constants";
 import { getPage } from "../route/selectors";
-import { Page } from "../route/types";
 import {
   getAllPlates,
   getAllWells,
@@ -66,7 +65,7 @@ import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import { State, UploadMetadata, UploadStateBranch } from "../types";
+import { Page, State, UploadMetadata, UploadStateBranch } from "../types";
 
 import {
   getUploadRowKey,

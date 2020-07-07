@@ -40,7 +40,6 @@ import { getPage, getView } from "../../state/route/selectors";
 import {
   AppPageConfig,
   CloseUploadTabAction,
-  Page,
   SelectViewAction,
 } from "../../state/route/types";
 import {
@@ -73,7 +72,7 @@ import {
   SwitchEnvironmentAction,
   UpdateSettingsAction,
 } from "../../state/setting/types";
-import { AlertType, AppAlert, AppEvent, State } from "../../state/types";
+import { AlertType, AppAlert, AppEvent, Page, State } from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,

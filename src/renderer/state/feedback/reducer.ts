@@ -24,7 +24,6 @@ import {
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabFailedAction,
   OpenEditFileMetadataTabSucceededAction,
-  Page,
   SelectPageAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
@@ -51,6 +50,7 @@ import {
   AsyncRequest,
   FeedbackStateBranch,
   HTTP_STATUS,
+  Page,
   TypeToDescriptionMap,
 } from "../types";
 import {

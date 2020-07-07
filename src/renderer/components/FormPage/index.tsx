@@ -3,7 +3,7 @@ import * as classNames from "classnames";
 import { ReactNode, ReactNodeArray } from "react";
 import * as React from "react";
 
-import { Page } from "../../state/route/types";
+import { Page } from "../../state/types";
 import ProgressBar from "../ProgressBar";
 
 const styles = require("./style.pcss");
