@@ -8,6 +8,7 @@ import { interval } from "rxjs/internal/observable/interval";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
+import { LocalStorage } from "../../services";
 import { getWithRetry } from "../../util";
 import {
   addEvent,
@@ -20,7 +21,6 @@ import {
   AlertType,
   AsyncRequest,
   JobFilter,
-  LocalStorage,
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,

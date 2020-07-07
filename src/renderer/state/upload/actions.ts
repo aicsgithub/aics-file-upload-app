@@ -3,7 +3,7 @@ import {
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Workflow } from "../selection/types";
+import { Workflow } from "../../services/labkey-client/types";
 import { State } from "../types";
 
 import {

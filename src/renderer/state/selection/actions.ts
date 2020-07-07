@@ -1,5 +1,6 @@
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { Workflow } from "../../services/labkey-client/types";
 import { OpenTemplateEditorAction } from "../feedback/types";
 
 import {
@@ -47,7 +48,6 @@ import {
   ToggleExpandedUploadJobRowAction,
   UpdateStagedFilesAction,
   UploadFile,
-  Workflow,
 } from "./types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {

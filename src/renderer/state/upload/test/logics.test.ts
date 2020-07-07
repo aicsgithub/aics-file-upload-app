@@ -10,6 +10,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import {
   removeRequestFromInProgress,
@@ -24,7 +25,6 @@ import {
   getSelectedFiles,
 } from "../../selection/selectors";
 import { setAppliedTemplate } from "../../template/actions";
-import { ColumnType } from "../../template/types";
 import {
   createMockReduxStore,
   fms,

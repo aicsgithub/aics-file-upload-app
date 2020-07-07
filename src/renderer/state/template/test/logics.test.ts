@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { createSandbox, SinonStub, stub } from "sinon";
 
+import { ColumnType } from "../../../services/labkey-client/types";
+import { Template } from "../../../services/mms-client/types";
 import { getAlert } from "../../feedback/selectors";
 import {
   createMockReduxStore,
@@ -26,7 +28,6 @@ import {
   saveTemplate,
 } from "../actions";
 import { getTemplateDraftAnnotations } from "../selectors";
-import { ColumnType, Template } from "../types";
 
 describe("Template Logics", () => {
   const sandbox = createSandbox();

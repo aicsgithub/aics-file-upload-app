@@ -6,12 +6,12 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
+import { LabkeyTemplate } from "../../services/labkey-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { openTemplateEditor } from "../../state/selection/actions";
 import { AsyncRequest } from "../../state/types";
-import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 const styles = require("./styles.pcss");
 

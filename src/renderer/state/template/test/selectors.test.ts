@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { ColumnType } from "../../../services/labkey-client/types";
 import {
   getMockStateWithHistory,
   mockAnnotationDraft,
@@ -19,7 +20,6 @@ import {
   getTemplateDraftErrors,
   getWarnAboutTemplateVersionMessage,
 } from "../selectors";
-import { ColumnType } from "../types";
 
 describe("Template selectors", () => {
   describe("getTemplateDraftErrors", () => {

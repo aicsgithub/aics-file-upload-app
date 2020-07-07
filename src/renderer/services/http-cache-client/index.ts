@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
-import { LocalStorage } from "../../state/types";
+import { LocalStorage } from "../index";
 
 export default class HttpCacheClient {
   private httpClient: AxiosInstance;

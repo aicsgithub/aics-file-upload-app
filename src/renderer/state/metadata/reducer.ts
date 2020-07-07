@@ -10,7 +10,7 @@ import {
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
 } from "../route/types";
-import { TypeToDescriptionMap } from "../types";
+import { MetadataStateBranch, TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD, SAVE_UPLOAD_DRAFT_SUCCESS } from "../upload/constants";
 import {
   ReplaceUploadAction,
@@ -30,7 +30,6 @@ import {
 import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
-  MetadataStateBranch,
   ReceiveFileMetadataAction,
   ReceiveMetadataAction,
   ResetHistoryAction,

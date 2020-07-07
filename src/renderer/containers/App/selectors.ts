@@ -8,11 +8,12 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { ImagingSession } from "../../services/labkey-client/types";
+import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import {
   getCurrentUploadFilePath,
   getImagingSessions,
 } from "../../state/metadata/selectors";
-import { ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
 import { Page } from "../../state/route/types";
 import {
@@ -20,7 +21,6 @@ import {
   getAllWells,
   getSelectedJob,
 } from "../../state/selection/selectors";
-import { PlateResponse, WellResponse } from "../../state/selection/types";
 import { isFileRow } from "../../state/upload/constants";
 import {
   getUpload,

@@ -2,7 +2,7 @@ import { Card, Select } from "antd";
 import classNames from "classnames";
 import * as React from "react";
 
-import { BarcodePrefix } from "../../../state/metadata/types";
+import { BarcodePrefix } from "../../../services/labkey-client/types";
 import LabeledInput from "../../LabeledInput";
 import SelectedForm from "../SelectedForm";
 

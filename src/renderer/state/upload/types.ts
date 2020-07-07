@@ -5,7 +5,7 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Workflow } from "../selection/types";
+import { Workflow } from "../../services/labkey-client/types";
 import { AutoSaveAction, State, WriteToStoreAction } from "../types";
 
 export interface UploadStateBranch {

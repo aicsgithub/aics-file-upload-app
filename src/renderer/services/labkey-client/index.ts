@@ -1,25 +1,17 @@
 import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
-import { Channel } from "../../state/metadata/types";
-import {
-  BarcodePrefix,
-  ImagingSession,
-  LabkeyUnit,
-  Unit,
-} from "../../state/metadata/types";
-import { Workflow } from "../../state/selection/types";
+import BaseServiceClient from "../base-service-client";
+import { LocalStorage } from "../index";
+
 import {
   Annotation,
   AnnotationLookup,
   AnnotationOption,
   AnnotationType,
-  Lookup,
-} from "../../state/template/types";
-import { LocalStorage } from "../../state/types";
-import BaseServiceClient from "../base-service-client";
-
-import {
+  BarcodePrefix,
+  Channel,
+  ImagingSession,
   LabkeyAnnotation,
   LabkeyAnnotationLookup,
   LabkeyAnnotationOption,
@@ -32,8 +24,12 @@ import {
   LabkeyPlateResponse,
   LabkeyResponse,
   LabkeyTemplate,
+  LabkeyUnit,
   LabkeyUser,
   LabKeyWorkflow,
+  Lookup,
+  Unit,
+  Workflow,
 } from "./types";
 
 const LK_FILEMETADATA_SCHEMA = "filemetadata";

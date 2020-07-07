@@ -9,11 +9,11 @@ import * as React from "react";
 import FormControl from "../../../components/FormControl";
 import {
   Annotation,
-  AnnotationDraft,
   AnnotationType,
   ColumnType,
   Lookup,
-} from "../../../state/template/types";
+} from "../../../services/labkey-client/types";
+import { AnnotationDraft } from "../../../state/template/types";
 import { titleCase } from "../../../util";
 
 const styles = require("./styles.pcss");

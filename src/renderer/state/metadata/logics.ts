@@ -11,6 +11,11 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
+import {
+  Annotation,
+  AnnotationLookup,
+  Lookup,
+} from "../../services/labkey-client/types";
 import { getWithRetry, retrieveFileMetadata } from "../../util";
 import {
   addRequestToInProgress,
@@ -18,7 +23,6 @@ import {
   setAlert,
   setErrorAlert,
 } from "../feedback/actions";
-import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 import {
   AlertType,
   AsyncRequest,

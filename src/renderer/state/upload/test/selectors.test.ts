@@ -11,8 +11,8 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { TemplateAnnotation } from "../../../services/mms-client/types";
 import { Page } from "../../route/types";
-import { TemplateAnnotation } from "../../template/types";
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,

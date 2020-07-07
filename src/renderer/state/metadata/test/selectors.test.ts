@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { ColumnType } from "../../template/types";
+import { ColumnType } from "../../../services/labkey-client/types";
 import {
   mockAuditInfo,
   mockNotesAnnotation,

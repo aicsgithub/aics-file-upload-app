@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 import * as React from "react";
 
 import { CHANNEL_ANNOTATION_NAME } from "../../../constants";
-import { Channel } from "../../../state/metadata/types";
+import { Channel } from "../../../services/labkey-client/types";
 import { UploadJobTableRow } from "../../../state/upload/types";
 import LabeledInput from "../../LabeledInput";
 import PrinterFormatInput from "../../PrinterFormatInput";

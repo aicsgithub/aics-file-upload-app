@@ -1,8 +1,9 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import { MetadataStateBranch } from "../metadata/types";
-import { Audited, AutoSaveAction } from "../types";
+import { Workflow } from "../../services/labkey-client/types";
+import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import { AutoSaveAction, MetadataStateBranch } from "../types";
 
 export interface SelectionStateBranch extends UploadTabSelections {
   annotation: string;
@@ -119,30 +120,6 @@ export interface Solution {
   volumeUnitDisplay?: string;
 }
 
-export interface GetPlateResponse {
-  plate: PlateResponse;
-  wells: WellResponse[];
-}
-
-export interface PlateResponse extends Audited {
-  barcode: string;
-  comments: string;
-  imagingSessionId?: number;
-  plateGeometryId: number;
-  plateId: number;
-  plateStatusId: number;
-  seededOn?: string; // Date string
-}
-
-export interface WellResponse {
-  row: number;
-  col: number;
-  plateId: number;
-  wellId: number;
-  cellPopulations: CellPopulation[];
-  solutions: Solution[];
-}
-
 export interface Well {
   row: number;
   col: number;
@@ -151,12 +128,6 @@ export interface Well {
   plateId: number;
   modified?: boolean;
   solutions: Solution[];
-}
-
-export interface Workflow {
-  workflowId: number;
-  name: string;
-  description: string;
 }
 
 export interface LoadFilesFromDragAndDropAction extends AutoSaveAction {

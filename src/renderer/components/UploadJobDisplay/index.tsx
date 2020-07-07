@@ -6,7 +6,7 @@ import { isEmpty, uniq } from "lodash";
 import * as React from "react";
 
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { SearchResultRow } from "../../state/metadata/types";
+import { SearchResultRow } from "../../state/types";
 import { titleCase } from "../../util";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 

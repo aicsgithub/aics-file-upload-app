@@ -7,20 +7,20 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { BarcodeSelectorOption } from "../../containers/BarcodeSearch";
-import { titleCase } from "../../util";
-import { LabkeyPlateResponse } from "../../util/labkey-client/types";
-import { getMetadataColumns } from "../setting/selectors";
 import {
   Annotation,
   AnnotationOption,
   AnnotationType,
-  AnnotationWithOptions,
   ColumnType,
-} from "../template/types";
-import { State } from "../types";
+  LabkeyPlateResponse,
+} from "../../services/labkey-client/types";
+import { titleCase } from "../../util";
+import { getMetadataColumns } from "../setting/selectors";
+import { AnnotationWithOptions } from "../template/types";
+import { SearchResultRow, State } from "../types";
 
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
-import { SearchResultRow, SearchResultsHeader } from "./types";
+import { SearchResultsHeader } from "./types";
 
 // BASIC SELECTORS
 export const getMetadata = (state: State) => state.metadata;

@@ -1,7 +1,13 @@
 import { difference, intersection, isEmpty, trim, uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { LabkeyTemplate } from "../../util/labkey-client/types";
+import {
+  Annotation,
+  AnnotationType,
+  ColumnType,
+  LabkeyTemplate,
+} from "../../services/labkey-client/types";
+import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import {
   getAnnotationTypes,
   getNotesAnnotation,
@@ -11,16 +17,7 @@ import {
 } from "../metadata/selectors";
 import { State } from "../types";
 
-import {
-  Annotation,
-  AnnotationDraft,
-  AnnotationType,
-  ColumnType,
-  Template,
-  TemplateAnnotation,
-  TemplateDraft,
-  TemplateWithTypeNames,
-} from "./types";
+import { AnnotationDraft, TemplateDraft, TemplateWithTypeNames } from "./types";
 
 export const getAppliedTemplate = (state: State) =>
   state.template.present.appliedTemplate;

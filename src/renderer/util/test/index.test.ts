@@ -17,6 +17,10 @@ import {
   splitTrimAndFilter,
   titleCase,
 } from "../";
+import {
+  GetPlateResponse,
+  PlateResponse,
+} from "../../services/mms-client/types";
 import { API_WAIT_TIME_SECONDS } from "../../state/constants";
 import {
   addRequestToInProgress,
@@ -24,11 +28,7 @@ import {
   removeRequestFromInProgress,
   setAlert,
 } from "../../state/feedback/actions";
-import {
-  GetPlateResponse,
-  PlateResponse,
-  Well,
-} from "../../state/selection/types";
+import { Well } from "../../state/selection/types";
 import { setAppliedTemplate } from "../../state/template/actions";
 import { SetAppliedTemplateAction } from "../../state/template/types";
 import {

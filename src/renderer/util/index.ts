@@ -22,6 +22,14 @@ import {
 import { AnyAction } from "redux";
 
 import { LIST_DELIMITER_SPLIT } from "../constants";
+import MMSClient from "../services/mms-client";
+import {
+  GetPlateResponse,
+  PlateResponse,
+  Template,
+  TemplateAnnotation,
+  WellResponse,
+} from "../services/mms-client/types";
 import { API_WAIT_TIME_SECONDS } from "../state/constants";
 import {
   addRequestToInProgress,
@@ -38,19 +46,12 @@ import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
 import {
   DragAndDropFileList,
-  GetPlateResponse,
-  PlateResponse,
   SetPlateAction,
   UploadFile,
-  WellResponse,
 } from "../state/selection/types";
 import { setAppliedTemplate } from "../state/template/actions";
 import { getAppliedTemplate } from "../state/template/selectors";
-import {
-  SetAppliedTemplateAction,
-  Template,
-  TemplateAnnotation,
-} from "../state/template/types";
+import { SetAppliedTemplateAction } from "../state/template/types";
 import {
   AlertType,
   AsyncRequest,
@@ -62,8 +63,6 @@ import {
 import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
 import { UploadMetadata, UploadStateBranch } from "../state/upload/types";
 import { batchActions } from "../state/util";
-
-import MMSClient from "./mms-client";
 
 const stat = promisify(fsStat);
 

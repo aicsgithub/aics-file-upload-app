@@ -1,6 +1,10 @@
 import { expect } from "chai";
 
 import {
+  PlateResponse,
+  WellResponse,
+} from "../../../services/mms-client/types";
+import {
   getMockStateWithHistory,
   mockAnnotationTypes,
   mockBooleanAnnotation,
@@ -26,13 +30,7 @@ import {
   getWellsWithUnitsAndModified,
   NO_UNIT,
 } from "../selectors";
-import {
-  CellPopulation,
-  PlateResponse,
-  Solution,
-  Well,
-  WellResponse,
-} from "../types";
+import { CellPopulation, Solution, Well } from "../types";
 
 describe("Selections selectors", () => {
   let mockEmptyWell: Well;

@@ -6,7 +6,7 @@ import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
 
 import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
-import { ColumnType } from "../../../state/template/types";
+import { ColumnType } from "../../../services/labkey-client/types";
 import { convertToArray } from "../../../util";
 import { FormatterProps } from "../index";
 

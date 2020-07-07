@@ -10,6 +10,12 @@ import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import {
+  AnnotationType,
+  Channel,
+  LabkeyTemplate,
+} from "../../services/labkey-client/types";
+import { Template } from "../../services/mms-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import {
   getRequestsInProgressContains,
@@ -23,7 +29,6 @@ import {
   getChannels,
   getTemplates,
 } from "../../state/metadata/selectors";
-import { Channel } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction, Page } from "../../state/route/types";
 import {
@@ -49,7 +54,6 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AnnotationType, Template } from "../../state/template/types";
 import { AsyncRequest, State } from "../../state/types";
 import {
   applyTemplate,
@@ -81,7 +85,6 @@ import {
   UpdateUploadRowsAction,
   UploadJobTableRow,
 } from "../../state/upload/types";
-import { LabkeyTemplate } from "../../util/labkey-client/types";
 import BarcodeSearch from "../BarcodeSearch";
 
 const styles = require("./style.pcss");

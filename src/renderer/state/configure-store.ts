@@ -23,8 +23,8 @@ import {
   LIMS_PROTOCOL,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../shared/constants";
-import LabkeyClient from "../util/labkey-client";
-import MMSClient from "../util/mms-client";
+import LabkeyClient from "../services/labkey-client";
+import MMSClient from "../services/mms-client";
 
 import { addEvent } from "./feedback/actions";
 import { getCurrentUploadFilePath } from "./metadata/selectors";

@@ -11,6 +11,10 @@ import selections from "../";
 import { feedback } from "../../";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
 import {
+  GetPlateResponse,
+  PlateResponse,
+} from "../../../services/mms-client/types";
+import {
   SERVICE_IS_DOWN_MESSAGE,
   SERVICE_MIGHT_BE_DOWN_MESSAGE,
 } from "../../../util";
@@ -53,8 +57,6 @@ import {
 } from "../selectors";
 import {
   DragAndDropFileList,
-  GetPlateResponse,
-  PlateResponse,
   SelectionStateBranch,
   UploadFile,
   Well,

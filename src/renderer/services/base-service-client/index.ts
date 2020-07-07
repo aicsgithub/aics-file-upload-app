@@ -1,7 +1,7 @@
 import axios from "axios";
 
-import { LocalStorage } from "../../state/types";
 import HttpCacheClient from "../http-cache-client";
+import { LocalStorage } from "../index";
 
 export default abstract class BaseServiceClient {
   protected httpClient: HttpCacheClient;

@@ -16,19 +16,18 @@ import {
   NOTES_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import {
+  AnnotationType,
+  Channel,
+  ColumnType,
+} from "../../services/labkey-client/types";
+import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import { SetAlertAction } from "../../state/feedback/types";
-import { Channel } from "../../state/metadata/types";
 import {
   ExpandedRows,
   ToggleExpandedUploadJobRowAction,
   Well,
 } from "../../state/selection/types";
-import {
-  AnnotationType,
-  ColumnType,
-  Template,
-  TemplateAnnotation,
-} from "../../state/template/types";
 import { AlertType } from "../../state/types";
 import {
   getUploadRowKey,

@@ -59,7 +59,6 @@ import {
 import {
   ClearFileMetadataForJobAction,
   RequestFileMetadataForJobAction,
-  SearchResultRow,
   SearchResultsHeader,
 } from "../../state/metadata/types";
 import {
@@ -76,7 +75,12 @@ import {
 } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
 import { UploadFile } from "../../state/selection/types";
-import { AsyncRequest, JobFilter, State } from "../../state/types";
+import {
+  AsyncRequest,
+  JobFilter,
+  SearchResultRow,
+  State,
+} from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
   CancelUploadAction,

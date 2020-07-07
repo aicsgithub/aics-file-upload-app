@@ -8,6 +8,8 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
+import LabkeyClient from "../../services/labkey-client";
+import MMSClient from "../../services/mms-client";
 import {
   getSetAppliedTemplateAction,
   getSetPlateAction,
@@ -16,8 +18,6 @@ import {
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
 } from "../../util";
-import LabkeyClient from "../../util/labkey-client";
-import MMSClient from "../../util/mms-client";
 import {
   openSetMountPointNotification,
   setErrorAlert,

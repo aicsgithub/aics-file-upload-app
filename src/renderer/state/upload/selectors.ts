@@ -35,6 +35,8 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
+import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { getWellLabel, titleCase } from "../../util";
 import { getRequestsInProgress } from "../feedback/selectors";
 import {
@@ -49,7 +51,6 @@ import {
   getTextAnnotationTypeId,
   getUploadHistory,
 } from "../metadata/selectors";
-import { ImagingSession } from "../metadata/types";
 import { pageOrder } from "../route/constants";
 import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
@@ -59,10 +60,9 @@ import {
   getExpandedUploadJobRows,
   getSelectedJob,
 } from "../selection/selectors";
-import { ExpandedRows, PlateResponse, WellResponse } from "../selection/types";
+import { ExpandedRows } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
-  ColumnType,
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";

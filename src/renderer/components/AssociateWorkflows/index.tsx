@@ -4,8 +4,9 @@ import { ActionCreator } from "redux";
 
 import { WORKFLOW_ANNOTATION_NAME } from "../../constants";
 import LookupSearch from "../../containers/LookupSearch";
+import { Workflow } from "../../services/labkey-client/types";
 import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
-import { SelectWorkflowsAction, Workflow } from "../../state/selection/types";
+import { SelectWorkflowsAction } from "../../state/selection/types";
 import { undoFileWorkflowAssociation } from "../../state/upload/actions";
 import {
   AssociateFilesAndWorkflowsAction,

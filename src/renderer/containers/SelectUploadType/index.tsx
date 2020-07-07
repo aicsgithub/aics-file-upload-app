@@ -11,6 +11,7 @@ import FormPage from "../../components/FormPage";
 import CreateBarcodeCard from "../../components/SelectPath/CreateBarcodeCard";
 import EnterBarcodeCard from "../../components/SelectPath/EnterBarcodeCard";
 import SelectWorkflowCard from "../../components/SelectPath/SelectWorkflowCard";
+import { BarcodePrefix } from "../../services/labkey-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
 import { SetAlertAction } from "../../state/feedback/types";
@@ -23,7 +24,6 @@ import {
   getUniqueBarcodeSearchResults,
 } from "../../state/metadata/selectors";
 import {
-  BarcodePrefix,
   CreateBarcodeAction,
   GetBarcodeSearchResultsAction,
 } from "../../state/metadata/types";

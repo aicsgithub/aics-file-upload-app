@@ -1,8 +1,8 @@
 import { get, includes } from "lodash";
 import { createLogic } from "redux-logic";
 
+import { SaveTemplateRequest } from "../../services/mms-client/types";
 import { getSetAppliedTemplateAction } from "../../util";
-import { SaveTemplateRequest } from "../../util/mms-client/types";
 import {
   addRequestToInProgress,
   closeModal,

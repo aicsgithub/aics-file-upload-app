@@ -25,6 +25,8 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
+import { Template } from "../../services/mms-client/types";
 import {
   ensureDraftGetsSaved,
   getSetAppliedTemplateAction,
@@ -67,7 +69,6 @@ import {
 } from "../selection/selectors";
 import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
-import { AnnotationType, ColumnType, Template } from "../template/types";
 import {
   AlertType,
   AsyncRequest,

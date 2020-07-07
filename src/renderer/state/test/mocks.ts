@@ -9,11 +9,21 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
+  Annotation,
+  AnnotationLookup,
+  AnnotationOption,
+  AnnotationType,
+  Channel,
+  ColumnType,
   LabkeyChannel,
   LabkeyImagingSession,
   LabKeyPlateBarcodePrefix,
-} from "../../util/labkey-client/types";
-import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
+  Lookup,
+  Unit,
+  Workflow,
+} from "../../services/labkey-client/types";
+import { Template, TemplateAnnotation } from "../../services/mms-client/types";
+import { SearchResultsHeader } from "../metadata/types";
 import { Page } from "../route/types";
 import {
   CellPopulation,
@@ -21,18 +31,9 @@ import {
   ImagingSessionIdToWellsMap,
   SelectionStateBranch,
   Well,
-  Workflow,
 } from "../selection/types";
 import {
-  Annotation,
   AnnotationDraft,
-  AnnotationLookup,
-  AnnotationOption,
-  AnnotationType,
-  ColumnType,
-  Lookup,
-  Template,
-  TemplateAnnotation,
   TemplateDraft,
   TemplateStateBranch,
 } from "../template/types";

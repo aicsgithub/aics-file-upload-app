@@ -1,3 +1,10 @@
+export interface Audited {
+  created: Date;
+  createdBy: number;
+  modified: Date;
+  modifiedBy: number;
+}
+
 export interface LabkeyAudited {
   Created: string; // Date string
   CreatedBy: number;
@@ -100,4 +107,83 @@ export interface LabkeyChannel {
   ContentTypeId: number;
   Description: string;
   Name: string;
+}
+
+export interface Annotation extends Audited {
+  annotationId: number;
+  annotationTypeId: number;
+  description: string;
+  exposeToFileUploadApp?: boolean;
+  name: string;
+}
+
+export interface AnnotationLookup {
+  annotationId: number;
+  lookupId: number;
+}
+
+export interface AnnotationOption {
+  annotationId: number;
+  annotationOptionId: number;
+  value: string;
+}
+
+export enum ColumnType {
+  TEXT = "Text",
+  DROPDOWN = "Dropdown",
+  BOOLEAN = "YesNo",
+  NUMBER = "Number",
+  DATE = "Date",
+  DATETIME = "DateTime",
+  LOOKUP = "Lookup",
+}
+
+export interface AnnotationType {
+  annotationTypeId: number;
+  name: ColumnType;
+}
+
+export interface Lookup extends Audited {
+  columnName: string;
+  descriptionColumn: string;
+  lookupId: number;
+  schemaName: string;
+  tableName: string;
+}
+
+export interface BarcodePrefix {
+  description: string;
+  prefixId: number;
+  prefix: string;
+}
+
+export interface Channel {
+  channelId: string;
+  description: string;
+}
+
+export interface ImagingSession {
+  imagingSessionId: number;
+  name: string;
+  description: string;
+}
+
+export interface Unit {
+  description: string;
+  name: string;
+  type: string;
+  unitsId: number;
+}
+
+export interface LabkeyUnit {
+  Type: string;
+  Description: string;
+  UnitsId: number;
+  Name: string;
+}
+
+export interface Workflow {
+  workflowId: number;
+  name: string;
+  description: string;
 }

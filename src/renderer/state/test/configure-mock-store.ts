@@ -22,8 +22,8 @@ import {
   template,
   upload,
 } from "../";
-import LabkeyClient from "../../util/labkey-client";
-import MMSClient from "../../util/mms-client";
+import LabkeyClient from "../../services/labkey-client";
+import MMSClient from "../../services/mms-client";
 import { State } from "../types";
 
 import { Actions, default as ActionTracker } from "./action-tracker";

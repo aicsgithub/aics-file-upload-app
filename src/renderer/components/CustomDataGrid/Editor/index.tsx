@@ -6,7 +6,7 @@ import { editors } from "react-data-grid";
 
 import { LIST_DELIMITER_JOIN, LIST_DELIMITER_SPLIT } from "../../../constants";
 import LookupSearch from "../../../containers/LookupSearch";
-import { ColumnType } from "../../../state/template/types";
+import { ColumnType } from "../../../services/labkey-client/types";
 import { convertToArray } from "../../../util";
 
 const styles = require("./styles.pcss");

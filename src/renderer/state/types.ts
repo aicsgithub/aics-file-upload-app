@@ -6,10 +6,25 @@ import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
-import LabkeyClient from "../util/labkey-client";
-import MMSClient from "../util/mms-client";
+import { LocalStorage } from "../services";
+import LabkeyClient from "../services/labkey-client";
+import {
+  Annotation,
+  AnnotationLookup,
+  AnnotationOption,
+  AnnotationType,
+  BarcodePrefix,
+  Channel,
+  ImagingSession,
+  LabkeyPlateResponse,
+  LabkeyTemplate,
+  LabkeyUser,
+  Lookup,
+  Unit,
+  Workflow,
+} from "../services/labkey-client/types";
+import MMSClient from "../services/mms-client";
 
-import { MetadataStateBranch } from "./metadata/types";
 import { RouteStateBranch } from "./route/types";
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
@@ -35,14 +50,6 @@ export interface Logger {
   error: (...x: any[]) => void;
   info: (...x: any[]) => void;
   warn: (...x: any[]) => void;
-}
-
-export interface LocalStorage {
-  clear: () => void;
-  delete: (key: string) => void;
-  get: (key: string) => any;
-  has: (key: string) => boolean;
-  set: (key: string, value: any) => void;
 }
 
 export interface Dialog {
@@ -145,6 +152,14 @@ export enum JobFilter {
   Successful = "Successful",
 }
 
+export interface PageToIndexMap {
+  [page: string]: number;
+}
+
+export interface SearchResultRow {
+  [key: string]: string | number | undefined;
+}
+
 export interface FeedbackStateBranch {
   alert?: AppAlert;
   deferredAction?: AnyAction; // action to dispatch when modal closes
@@ -173,6 +188,39 @@ export interface JobStateBranch {
   jobFilter: JobFilter;
   // Whether the app is polling for jobs
   polling: boolean;
+}
+
+export interface MetadataStateBranch {
+  annotations: Annotation[];
+  annotationLookups: AnnotationLookup[];
+  annotationOptions: AnnotationOption[];
+  annotationTypes: AnnotationType[];
+  barcode?: string;
+  barcodePrefixes: BarcodePrefix[];
+  barcodeSearchResults: LabkeyPlateResponse[];
+  channels: Channel[];
+  // this represents the filepath to an upload draft that has been saved is currently opened in the upload wizard
+  currentUploadFilePath?: string;
+  fileMetadataForJob?: SearchResultRow[];
+  fileMetadataSearchResults?: SearchResultRow[];
+  imagingSessions: ImagingSession[];
+  lookups: Lookup[];
+  // for tracking whether an upload has changed when updating the upload
+  originalUpload?: UploadStateBranch;
+  templates: LabkeyTemplate[];
+  users: LabkeyUser[];
+  units: Unit[];
+  // Gets updated every time app changes pages.
+  // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
+  history: {
+    selection: PageToIndexMap;
+    template: PageToIndexMap;
+    upload: PageToIndexMap;
+  };
+  workflowOptions: Workflow[];
+
+  // expected type is string[] but typescript index signatures won't allow explicit typing like this in this case
+  [lookupName: string]: any;
 }
 
 export type ModalName = "openTemplate" | "settings" | "templateEditor";
@@ -206,13 +254,6 @@ export interface State {
 
 export interface TypeToDescriptionMap {
   [propName: string]: ActionDescription;
-}
-
-export interface Audited {
-  created: Date;
-  createdBy: number;
-  modified: Date;
-  modifiedBy: number;
 }
 
 export interface AutoSaveAction extends AnyAction {

@@ -14,9 +14,8 @@ import { getMetadata } from "../../state/metadata/selectors";
 import {
   ClearOptionsForLookupAction,
   GetOptionsForLookupAction,
-  MetadataStateBranch,
 } from "../../state/metadata/types";
-import { AsyncRequest, State } from "../../state/types";
+import { AsyncRequest, MetadataStateBranch, State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
