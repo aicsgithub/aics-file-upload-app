@@ -66,7 +66,7 @@ import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import { State } from "../types";
+import { State, UploadMetadata, UploadStateBranch } from "../types";
 
 import {
   getUploadRowKey,
@@ -81,9 +81,7 @@ import {
   FileType,
   MMSAnnotationValueRequest,
   UploadJobTableRow,
-  UploadMetadata,
   UploadMetadataWithDisplayFields,
-  UploadStateBranch,
 } from "./types";
 
 export const getUpload = (state: State) => state.upload.present;

@@ -41,8 +41,8 @@ import {
   TemplateStateBranch,
 } from "../template/types";
 import { JobFilter, JobStateBranch, State } from "../types";
+import { UploadStateBranch } from "../types";
 import { getUploadRowKey } from "../upload/constants";
-import { UploadStateBranch } from "../upload/types";
 
 export const mockAuditInfo = {
   created: new Date(2019, 9, 30),

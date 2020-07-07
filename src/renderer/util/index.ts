@@ -59,9 +59,10 @@ import {
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   State,
+  UploadMetadata,
+  UploadStateBranch,
 } from "../state/types";
 import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
-import { UploadMetadata, UploadStateBranch } from "../state/upload/types";
 import { batchActions } from "../state/util";
 
 const stat = promisify(fsStat);

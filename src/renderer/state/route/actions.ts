@@ -1,6 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
-import { UploadStateBranch } from "../upload/types";
+import { UploadStateBranch } from "../types";
 
 import {
   CLOSE_UPLOAD_TAB,

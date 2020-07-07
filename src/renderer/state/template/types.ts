@@ -1,7 +1,6 @@
 import { Annotation, Audited } from "../../services/labkey-client/types";
 import { Template, TemplateAnnotation } from "../../services/mms-client/types";
-import { AutoSaveAction } from "../types";
-import { UploadStateBranch } from "../upload/types";
+import { AutoSaveAction, UploadStateBranch } from "../types";
 
 export interface TemplateStateBranch {
   appliedTemplate?: Template;

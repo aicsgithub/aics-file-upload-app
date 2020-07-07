@@ -21,17 +21,13 @@ import {
   getAllWells,
   getSelectedJob,
 } from "../../state/selection/selectors";
+import { UploadMetadata, UploadStateBranch } from "../../state/types";
 import { isFileRow } from "../../state/upload/constants";
 import {
   getUpload,
   getWellLabelAndImagingSessionName,
 } from "../../state/upload/selectors";
-import {
-  FileTag,
-  FileTagType,
-  UploadMetadata,
-  UploadStateBranch,
-} from "../../state/upload/types";
+import { FileTag, FileTagType } from "../../state/upload/types";
 
 // Result used by the FolderTree to display tags by each file with associated metadata
 export const getFileToTags = createSelector(

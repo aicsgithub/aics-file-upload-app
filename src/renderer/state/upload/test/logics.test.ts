@@ -47,7 +47,13 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AlertType, AsyncRequest, HTTP_STATUS, State } from "../../types";
+import {
+  AlertType,
+  AsyncRequest,
+  HTTP_STATUS,
+  State,
+  UploadMetadata,
+} from "../../types";
 import {
   applyTemplate,
   associateFilesAndWells,
@@ -74,11 +80,7 @@ import {
   getUpload,
   getUploadSummaryRows,
 } from "../selectors";
-import {
-  UpdateSubImagesPayload,
-  UploadJobTableRow,
-  UploadMetadata,
-} from "../types";
+import { UpdateSubImagesPayload, UploadJobTableRow } from "../types";
 
 describe("Upload logics", () => {
   const sandbox = createSandbox();

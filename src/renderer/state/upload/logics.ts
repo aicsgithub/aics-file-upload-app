@@ -79,6 +79,9 @@ import {
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
+  UploadMetadata,
+  UploadRowId,
+  UploadStateBranch,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -124,9 +127,6 @@ import {
   SaveUploadDraftAction,
   UpdateSubImagesAction,
   UpdateUploadRowsAction,
-  UploadMetadata,
-  UploadRowId,
-  UploadStateBranch,
 } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({

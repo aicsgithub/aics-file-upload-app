@@ -11,8 +11,8 @@ import {
   getSelectedWorkflows,
 } from "../../state/selection/selectors";
 import { Well } from "../../state/selection/types";
+import { UploadMetadata, UploadStateBranch } from "../../state/types";
 import { getUpload } from "../../state/upload/selectors";
-import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
 export const getWellsWithAssociations = createSelector(
   [getUpload],

@@ -6,6 +6,7 @@ import {
 } from "../../../constants";
 import { closeUploadTab } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
+import { UploadStateBranch } from "../../types";
 import {
   replaceUpload,
   undoFileWorkflowAssociation,
@@ -13,7 +14,6 @@ import {
   updateUploads,
 } from "../actions";
 import reducer from "../reducer";
-import { UploadStateBranch } from "../types";
 
 describe("upload reducer", () => {
   let uploads: UploadStateBranch;

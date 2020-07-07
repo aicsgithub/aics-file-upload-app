@@ -1,6 +1,6 @@
 import { Annotation } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
-import { UploadStateBranch } from "../upload/types";
+import { UploadStateBranch } from "../types";
 
 import {
   ADD_ANNOTATION,

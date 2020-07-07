@@ -4,7 +4,7 @@ import {
 } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { Workflow } from "../../services/labkey-client/types";
-import { State } from "../types";
+import { State, UploadMetadata, UploadRowId } from "../types";
 
 import {
   APPLY_TEMPLATE,
@@ -78,8 +78,6 @@ import {
   UpdateUploadRowsAction,
   UpdateUploadsAction,
   UploadJobTableRow,
-  UploadMetadata,
-  UploadRowId,
 } from "./types";
 
 export function associateFilesAndWells(

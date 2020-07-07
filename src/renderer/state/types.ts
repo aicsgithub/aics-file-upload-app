@@ -6,7 +6,8 @@ import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
-import { LocalStorage } from "../services";
+import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
+import { LocalStorage, MMSClient } from "../services";
 import LabkeyClient from "../services/labkey-client";
 import {
   Annotation,
@@ -23,13 +24,11 @@ import {
   Unit,
   Workflow,
 } from "../services/labkey-client/types";
-import MMSClient from "../services/mms-client";
 
 import { RouteStateBranch } from "./route/types";
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
 import { TemplateStateBranch } from "./template/types";
-import { UploadStateBranch } from "./upload/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -188,6 +187,31 @@ export interface JobStateBranch {
   jobFilter: JobFilter;
   // Whether the app is polling for jobs
   polling: boolean;
+}
+
+export interface UploadStateBranch {
+  [fullPath: string]: UploadMetadata;
+}
+
+// Think of this group as a composite key. No two rows should have the same combination of these values.
+export interface UploadRowId {
+  channelId?: string;
+  file: string; // fullpath
+  positionIndex?: number;
+  scene?: number;
+  subImageName?: string;
+}
+
+// Metadata associated with a file
+export interface UploadMetadata extends UploadRowId {
+  barcode?: string;
+  notes?: string[]; // only one note expected but we treat this like other custom annotations
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
+  templateId?: number;
+  [WELL_ANNOTATION_NAME]?: number[];
+  [WORKFLOW_ANNOTATION_NAME]?: string[];
+  [genericKey: string]: any;
 }
 
 export interface MetadataStateBranch {

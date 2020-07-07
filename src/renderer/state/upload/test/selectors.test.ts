@@ -40,6 +40,7 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AsyncRequest, State } from "../../types";
+import { UploadMetadata as UploadMetadataRow } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanGoForwardFromSelectStorageLocationPage,
@@ -57,11 +58,7 @@ import {
   getUploadValidationErrors,
   getUploadWithCalculatedData,
 } from "../selectors";
-import {
-  FileType,
-  MMSAnnotationValueRequest,
-  UploadMetadata as UploadMetadataRow,
-} from "../types";
+import { FileType, MMSAnnotationValueRequest } from "../types";
 
 const orderAnnotationValueRequests = (
   annotations: MMSAnnotationValueRequest[]

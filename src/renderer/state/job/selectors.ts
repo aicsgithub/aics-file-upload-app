@@ -8,9 +8,8 @@ import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
-import { AsyncRequest, State } from "../types";
+import { AsyncRequest, State, UploadStateBranch } from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
-import { UploadStateBranch } from "../upload/types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;

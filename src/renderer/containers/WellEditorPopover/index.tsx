@@ -7,7 +7,7 @@ import { ActionCreator } from "redux";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { getSelectedWellIds } from "../../state/selection/selectors";
-import { State } from "../../state/types";
+import { State, UploadStateBranch } from "../../state/types";
 import {
   associateFilesAndWells,
   undoFileWellAssociation,
@@ -18,7 +18,6 @@ import {
   AssociateFilesAndWellsAction,
   UndoFileWellAssociationAction,
   UploadJobTableRow,
-  UploadStateBranch,
 } from "../../state/upload/types";
 import ImagingSessionSelector from "../ImagingSessionSelector";
 import Plate from "../PlateContainer";

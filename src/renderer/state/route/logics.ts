@@ -39,7 +39,7 @@ import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
-import { AsyncRequest } from "../types";
+import { AsyncRequest, UploadMetadata, UploadStateBranch } from "../types";
 import {
   Logger,
   ReduxLogicDoneCb,
@@ -58,7 +58,6 @@ import {
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
 import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
-import { UploadMetadata, UploadStateBranch } from "../upload/types";
 import { batchActions } from "../util";
 
 import {

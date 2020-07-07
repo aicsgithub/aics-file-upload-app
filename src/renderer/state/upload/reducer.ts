@@ -11,7 +11,7 @@ import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
-import { TypeToDescriptionMap } from "../types";
+import { TypeToDescriptionMap, UploadStateBranch } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
@@ -48,7 +48,6 @@ import {
   UpdateUploadAction,
   UpdateUploadRowsAction,
   UpdateUploadsAction,
-  UploadStateBranch,
 } from "./types";
 
 export const initialState = {};
