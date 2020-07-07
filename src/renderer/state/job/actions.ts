@@ -1,6 +1,7 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
+import { JobFilter } from "../types";
 
 import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
@@ -13,7 +14,6 @@ import {
 } from "./constants";
 import {
   GatherIncompleteJobIdsAction,
-  JobFilter,
   ReceiveJobsAction,
   RetrieveJobsAction,
   SelectJobFilterAction,

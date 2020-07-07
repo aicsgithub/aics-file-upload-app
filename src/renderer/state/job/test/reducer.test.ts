@@ -6,6 +6,7 @@ import {
   mockSuccessfulUploadJob,
   mockWorkingAddMetadataJob,
 } from "../../test/mocks";
+import { JobFilter } from "../../types";
 import {
   retryUpload,
   retryUploadFailed,
@@ -20,7 +21,6 @@ import {
 } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
-import { JobFilter } from "../types";
 
 describe("job reducer", () => {
   describe("receiveJobs", () => {

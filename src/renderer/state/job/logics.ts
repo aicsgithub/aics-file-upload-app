@@ -19,6 +19,7 @@ import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
   AsyncRequest,
+  JobFilter,
   LocalStorage,
   Logger,
   ReduxLogicDoneCb,
@@ -40,7 +41,6 @@ import {
   SUCCESSFUL_STATUS,
 } from "./constants";
 import { getIncompleteJobIds, getJobFilter } from "./selectors";
-import { JobFilter } from "./types";
 
 interface Jobs {
   actualIncompleteJobIds?: string[];

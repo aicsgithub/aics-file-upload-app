@@ -13,7 +13,6 @@ import {
   LabkeyImagingSession,
   LabKeyPlateBarcodePrefix,
 } from "../../util/labkey-client/types";
-import { JobFilter, JobStateBranch } from "../job/types";
 import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
 import { Page } from "../route/types";
 import {
@@ -37,7 +36,7 @@ import {
   TemplateDraft,
   TemplateStateBranch,
 } from "../template/types";
-import { State } from "../types";
+import { JobFilter, JobStateBranch, State } from "../types";
 import { getUploadRowKey } from "../upload/constants";
 import { UploadStateBranch } from "../upload/types";
 

@@ -43,7 +43,6 @@ import {
 } from "../../state/job/selectors";
 import {
   GatherIncompleteJobIdsAction,
-  JobFilter,
   RetrieveJobsAction,
   SelectJobFilterAction,
   StartJobPollAction,
@@ -77,7 +76,7 @@ import {
 } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
 import { UploadFile } from "../../state/selection/types";
-import { AsyncRequest, State } from "../../state/types";
+import { AsyncRequest, JobFilter, State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
   CancelUploadAction,
