@@ -16,7 +16,6 @@ import {
   setErrorAlert,
 } from "../../feedback/actions";
 import { getAlert, getUploadError } from "../../feedback/selectors";
-import { AlertType, AsyncRequest } from "../../feedback/types";
 import { selectPage } from "../../route/actions";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
@@ -48,7 +47,7 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { HTTP_STATUS, State } from "../../types";
+import { AlertType, AsyncRequest, HTTP_STATUS, State } from "../../types";
 import {
   applyTemplate,
   associateFilesAndWells,

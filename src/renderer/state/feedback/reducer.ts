@@ -46,7 +46,13 @@ import {
   StartTemplateDraftAction,
   StartTemplateDraftFailedAction,
 } from "../template/types";
-import { HTTP_STATUS, TypeToDescriptionMap } from "../types";
+import {
+  AlertType,
+  AsyncRequest,
+  FeedbackStateBranch,
+  HTTP_STATUS,
+  TypeToDescriptionMap,
+} from "../types";
 import {
   APPLY_TEMPLATE,
   CANCEL_UPLOAD,
@@ -96,14 +102,11 @@ import {
 import {
   AddEventAction,
   AddRequestInProgressAction,
-  AlertType,
-  AsyncRequest,
   ClearAlertAction,
   ClearDeferredAction,
   ClearUploadErrorAction,
   CloseModalAction,
   CloseSetMountPointNotificationAction,
-  FeedbackStateBranch,
   OpenModalAction,
   OpenSetMountPointNotificationAction,
   OpenTemplateEditorAction,

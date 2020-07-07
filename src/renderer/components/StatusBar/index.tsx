@@ -3,7 +3,7 @@ import * as classNames from "classnames";
 import * as logger from "js-logger";
 import * as React from "react";
 
-import { AppEvent } from "../../state/feedback/types";
+import { AppEvent } from "../../state/types";
 
 const styles = require("./style.pcss");
 export const SECONDS_IN_A_MINUTE = 60;

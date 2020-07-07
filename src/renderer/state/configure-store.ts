@@ -27,9 +27,8 @@ import LabkeyClient from "../util/labkey-client";
 import MMSClient from "../util/mms-client";
 
 import { addEvent } from "./feedback/actions";
-import { AlertType } from "./feedback/types";
 import { getCurrentUploadFilePath } from "./metadata/selectors";
-import { State } from "./types";
+import { AlertType, State } from "./types";
 
 import {
   enableBatching,

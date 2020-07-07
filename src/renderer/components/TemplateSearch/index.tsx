@@ -7,10 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import { requestTemplates } from "../../state/metadata/actions";
 import { getTemplates } from "../../state/metadata/selectors";
 import { openTemplateEditor } from "../../state/selection/actions";
+import { AsyncRequest } from "../../state/types";
 import { LabkeyTemplate } from "../../util/labkey-client/types";
 
 const styles = require("./styles.pcss");

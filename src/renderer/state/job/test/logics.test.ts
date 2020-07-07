@@ -3,13 +3,13 @@ import { createSandbox, stub } from "sinon";
 
 import { JOB_STORAGE_KEY } from "../../../../shared/constants";
 import { ADD_EVENT, SET_ALERT } from "../../feedback/constants";
-import { AlertType } from "../../feedback/types";
 import { logger } from "../../test/configure-mock-store";
 import {
   mockSuccessfulAddMetadataJob,
   mockSuccessfulCopyJob,
   mockSuccessfulUploadJob,
 } from "../../test/mocks";
+import { AlertType } from "../../types";
 import { getActionFromBatch } from "../../util";
 import { RECEIVE_JOBS } from "../constants";
 import { mapJobsToActions } from "../logics";

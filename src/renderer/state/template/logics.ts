@@ -11,7 +11,6 @@ import {
   setErrorAlert,
   setSuccessAlert,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import { requestTemplates } from "../metadata/actions";
 import {
   getAnnotationLookups,
@@ -21,6 +20,8 @@ import {
 } from "../metadata/selectors";
 import { updateSettings } from "../setting/actions";
 import {
+  AlertType,
+  AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,

@@ -18,9 +18,10 @@ import {
   setAlert,
   setErrorAlert,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import { Annotation, AnnotationLookup, Lookup } from "../template/types";
 import {
+  AlertType,
+  AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,

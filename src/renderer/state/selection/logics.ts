@@ -11,7 +11,6 @@ import {
   mergeChildPaths,
 } from "../../util";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
-import { AlertType } from "../feedback/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
@@ -19,6 +18,7 @@ import { getPage } from "../route/selectors";
 import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import {
+  AlertType,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,

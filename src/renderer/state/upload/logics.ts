@@ -40,7 +40,6 @@ import {
   setErrorAlert,
   setUploadError,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import {
   startJobPoll,
   stopJobPoll,
@@ -70,6 +69,8 @@ import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
 import { AnnotationType, ColumnType, Template } from "../template/types";
 import {
+  AlertType,
+  AsyncRequest,
   HTTP_STATUS,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,

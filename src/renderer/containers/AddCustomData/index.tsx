@@ -15,7 +15,7 @@ import {
   getRequestsInProgressContains,
   getUploadError,
 } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import { getUploadInProgress } from "../../state/job/selectors";
 import {
   getAnnotationTypes,
@@ -50,7 +50,7 @@ import {
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { AnnotationType, Template } from "../../state/template/types";
-import { State } from "../../state/types";
+import { AsyncRequest, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,

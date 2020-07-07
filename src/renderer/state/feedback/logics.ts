@@ -10,6 +10,7 @@ import {
 } from "../template/actions";
 import { TemplateAnnotation } from "../template/types";
 import {
+  AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -19,7 +20,7 @@ import {
 import { clearDeferredAction } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
-import { AsyncRequest, OpenTemplateEditorAction } from "./types";
+import { OpenTemplateEditorAction } from "./types";
 
 const openTemplateEditorLogic = createLogic({
   process: async (

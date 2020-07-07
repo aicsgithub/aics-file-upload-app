@@ -10,10 +10,10 @@ import {
 import { LimsUrl } from "../../../shared/types";
 import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
-import { AlertType } from "../feedback/types";
 import { retrieveJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
 import {
+  AlertType,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,

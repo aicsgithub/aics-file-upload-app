@@ -13,11 +13,7 @@ import EnterBarcodeCard from "../../components/SelectPath/EnterBarcodeCard";
 import SelectWorkflowCard from "../../components/SelectPath/SelectWorkflowCard";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import {
-  AlertType,
-  AsyncRequest,
-  SetAlertAction,
-} from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import {
   createBarcode,
   requestBarcodeSearchResults,
@@ -45,7 +41,7 @@ import {
   SelectBarcodeAction,
   SelectWorkflowPathAction,
 } from "../../state/selection/types";
-import { State } from "../../state/types";
+import { AlertType, AsyncRequest, State } from "../../state/types";
 import { BarcodeSelectorOption } from "../BarcodeSearch";
 
 const styles = require("./style.pcss");

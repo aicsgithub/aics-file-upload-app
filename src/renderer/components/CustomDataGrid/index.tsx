@@ -16,7 +16,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { AlertType, SetAlertAction } from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import { Channel } from "../../state/metadata/types";
 import {
   ExpandedRows,
@@ -29,6 +29,7 @@ import {
   Template,
   TemplateAnnotation,
 } from "../../state/template/types";
+import { AlertType } from "../../state/types";
 import {
   getUploadRowKey,
   getUploadRowKeyFromUploadTableRow,

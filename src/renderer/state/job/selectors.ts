@@ -7,9 +7,8 @@ import { createSelector } from "reselect";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
-import { AsyncRequest } from "../feedback/types";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
-import { State } from "../types";
+import { AsyncRequest, State } from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
 import { UploadStateBranch } from "../upload/types";
 

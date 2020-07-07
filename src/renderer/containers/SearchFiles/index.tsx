@@ -13,7 +13,7 @@ import FileMetadataModal from "../../components/FileMetadataModal";
 import LabeledInput from "../../components/LabeledInput";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import {
   exportFileMetadataCSV,
   requestAnnotations,
@@ -52,7 +52,7 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { Annotation } from "../../state/template/types";
-import { State } from "../../state/types";
+import { AsyncRequest, State } from "../../state/types";
 import { LabkeyUser } from "../../util/labkey-client/types";
 
 import AnnotationForm from "./AnnotationForm";

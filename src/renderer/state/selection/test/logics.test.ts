@@ -19,7 +19,6 @@ import {
   getAlert,
   getRequestsInProgressContains,
 } from "../../feedback/selectors";
-import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
 import { Page } from "../../route/types";
@@ -37,7 +36,7 @@ import {
   mockWells,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { HTTP_STATUS } from "../../types";
+import { AlertType, AppAlert, AsyncRequest, HTTP_STATUS } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
 import { clearStagedFiles, selectBarcode, selectWells } from "../actions";

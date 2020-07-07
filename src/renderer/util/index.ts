@@ -29,7 +29,6 @@ import {
   setAlert,
   setSuccessAlert,
 } from "../state/feedback/actions";
-import { AlertType, AsyncRequest } from "../state/feedback/types";
 import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
@@ -53,6 +52,8 @@ import {
   TemplateAnnotation,
 } from "../state/template/types";
 import {
+  AlertType,
+  AsyncRequest,
   HTTP_STATUS,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,

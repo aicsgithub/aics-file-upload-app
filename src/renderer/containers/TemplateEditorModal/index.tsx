@@ -21,7 +21,6 @@ import {
   getRequestsInProgressContains,
   getTemplateEditorVisible,
 } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import { requestAnnotations } from "../../state/metadata/actions";
 import {
   getAnnotationsWithAnnotationOptions,
@@ -43,7 +42,7 @@ import {
   getTemplateDraftErrors,
 } from "../../state/template/selectors";
 import { Annotation, AnnotationDraft } from "../../state/template/types";
-import { State } from "../../state/types";
+import { AsyncRequest, State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
 import AnnotationListItem from "./AnnotationListItem";

@@ -34,6 +34,7 @@ import {
   mockTemplateDraft,
   mockWellUpload,
 } from "../../test/mocks";
+import { AlertType, AsyncRequest, FeedbackStateBranch } from "../../types";
 import {
   applyTemplate,
   cancelUpload,
@@ -68,7 +69,6 @@ import {
 } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
-import { AlertType, AsyncRequest, FeedbackStateBranch } from "../types";
 
 describe("feedback reducer", () => {
   describe("clearAlert", () => {

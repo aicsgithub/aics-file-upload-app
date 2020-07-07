@@ -3,7 +3,6 @@ import { get } from "lodash";
 import { createSandbox, stub } from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
-import { AlertType } from "../../feedback/types";
 import {
   createMockReduxStore,
   fms,
@@ -28,6 +27,7 @@ import {
   mockUsers,
   mockWellAnnotation,
 } from "../../test/mocks";
+import { AlertType } from "../../types";
 import {
   requestAnnotations,
   requestBarcodeSearchResults,

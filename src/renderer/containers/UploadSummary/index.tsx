@@ -29,7 +29,6 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import {
   gatherIncompleteJobIds,
   retrieveJobs,
@@ -78,7 +77,7 @@ import {
 } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
 import { UploadFile } from "../../state/selection/types";
-import { State } from "../../state/types";
+import { AsyncRequest, State } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
   CancelUploadAction,

@@ -15,9 +15,10 @@ import {
   setErrorAlert,
   setSuccessAlert,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import { getLoggedInUser } from "../setting/selectors";
 import {
+  AlertType,
+  AsyncRequest,
   LocalStorage,
   Logger,
   ReduxLogicDoneCb,

@@ -28,9 +28,6 @@ import {
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
 import {
-  AlertType,
-  AppAlert,
-  AppEvent,
   ClearAlertAction,
   SetAlertAction,
   ToggleFolderTreeAction,
@@ -76,7 +73,7 @@ import {
   SwitchEnvironmentAction,
   UpdateSettingsAction,
 } from "../../state/setting/types";
-import { State } from "../../state/types";
+import { AlertType, AppAlert, AppEvent, State } from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,

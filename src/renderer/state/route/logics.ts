@@ -22,7 +22,6 @@ import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
-import { AsyncRequest } from "../feedback/types";
 import { updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,
@@ -40,6 +39,7 @@ import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
+import { AsyncRequest } from "../types";
 import {
   Logger,
   ReduxLogicDoneCb,

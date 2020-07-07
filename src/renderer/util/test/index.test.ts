@@ -24,7 +24,6 @@ import {
   removeRequestFromInProgress,
   setAlert,
 } from "../../state/feedback/actions";
-import { AlertType, AsyncRequest } from "../../state/feedback/types";
 import {
   GetPlateResponse,
   PlateResponse,
@@ -49,6 +48,8 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../state/test/mocks";
 import {
+  AlertType,
+  AsyncRequest,
   HTTP_STATUS,
   ReduxLogicTransformDependencies,
   State,

@@ -11,7 +11,6 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
-import { AsyncRequest } from "../../feedback/types";
 import { Page } from "../../route/types";
 import { TemplateAnnotation } from "../../template/types";
 import {
@@ -40,7 +39,7 @@ import {
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
+import { AsyncRequest, State } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanGoForwardFromSelectStorageLocationPage,
