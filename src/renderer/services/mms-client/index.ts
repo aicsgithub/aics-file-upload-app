@@ -3,7 +3,7 @@ import { AxiosRequestConfig } from "axios";
 import { decamelizeKeys } from "humps";
 
 import BaseServiceClient from "../base-service-client";
-import { LocalStorage } from "../index";
+import { LocalStorage } from "../http-cache-client";
 
 import {
   GetPlateResponse,

@@ -2,7 +2,7 @@ import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
 import BaseServiceClient from "../base-service-client";
-import { LocalStorage } from "../index";
+import { LocalStorage } from "../http-cache-client";
 
 import {
   Annotation,
