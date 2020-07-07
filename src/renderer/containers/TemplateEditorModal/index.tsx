@@ -42,8 +42,7 @@ import {
   getTemplateDraft,
   getTemplateDraftErrors,
 } from "../../state/template/selectors";
-import { AnnotationDraft } from "../../state/template/types";
-import { AsyncRequest, State } from "../../state/types";
+import { AnnotationDraft, AsyncRequest, State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
 import AnnotationListItem from "./AnnotationListItem";

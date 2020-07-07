@@ -24,10 +24,10 @@ import {
   Unit,
   Workflow,
 } from "../services/labkey-client/types";
+import { Template } from "../services/mms-client/types";
 
 import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
-import { TemplateStateBranch } from "./template/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -261,6 +261,33 @@ export enum Page {
 export interface RouteStateBranch {
   page: Page;
   view: Page;
+}
+
+export interface AnnotationDraft {
+  annotationId?: number;
+  annotationOptions?: string[];
+  annotationTypeId: number;
+  annotationTypeName: string;
+  description?: string;
+  index: number;
+  name?: string;
+  lookupSchema?: string;
+  lookupTable?: string;
+  required: boolean;
+}
+
+export interface TemplateDraft {
+  annotations: AnnotationDraft[];
+  name?: string;
+  templateId?: number;
+  version?: number;
+}
+
+export interface TemplateStateBranch {
+  appliedTemplate?: Template;
+  draft: TemplateDraft;
+  original?: Template;
+  originalTemplateHasBeenUsed?: boolean;
 }
 
 export interface State {

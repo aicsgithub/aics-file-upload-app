@@ -21,6 +21,7 @@ import {
 import { updateSettings } from "../setting/actions";
 import {
   AlertType,
+  AnnotationDraft,
   AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -39,7 +40,7 @@ import {
   getTemplateDraft,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
-import { AnnotationDraft, SaveTemplateAction } from "./types";
+import { SaveTemplateAction } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (

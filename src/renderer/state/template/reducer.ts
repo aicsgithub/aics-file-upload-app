@@ -6,7 +6,7 @@ import { CloseModalAction } from "../feedback/types";
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
-import { TypeToDescriptionMap } from "../types";
+import { TemplateStateBranch, TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
@@ -26,7 +26,6 @@ import {
   ClearTemplateDraftAction,
   SetAppliedTemplateAction,
   StartTemplateDraftAction,
-  TemplateStateBranch,
   UpdateTemplateDraftAction,
 } from "./types";
 

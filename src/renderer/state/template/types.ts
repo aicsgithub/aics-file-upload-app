@@ -1,30 +1,10 @@
 import { Annotation, Audited } from "../../services/labkey-client/types";
 import { Template, TemplateAnnotation } from "../../services/mms-client/types";
-import { AutoSaveAction, UploadStateBranch } from "../types";
-
-export interface TemplateStateBranch {
-  appliedTemplate?: Template;
-  draft: TemplateDraft;
-  original?: Template;
-  originalTemplateHasBeenUsed?: boolean;
-}
+import { AutoSaveAction, TemplateDraft, UploadStateBranch } from "../types";
 
 export interface AddExistingAnnotationAction {
   payload: Annotation;
   type: string;
-}
-
-export interface AnnotationDraft {
-  annotationId?: number;
-  annotationOptions?: string[];
-  annotationTypeId: number;
-  annotationTypeName: string;
-  description?: string;
-  index: number;
-  name?: string;
-  lookupSchema?: string;
-  lookupTable?: string;
-  required: boolean;
 }
 
 // if dropdown, annotationOptions array is supplied
@@ -72,13 +52,6 @@ export interface SetAppliedTemplateAction extends AutoSaveAction {
 
 export interface TemplateAnnotationWithTypeName extends TemplateAnnotation {
   type: string; // name of annotationType
-}
-
-export interface TemplateDraft {
-  annotations: AnnotationDraft[];
-  name?: string;
-  templateId?: number;
-  version?: number;
 }
 
 export interface TemplateWithTypeNames extends Audited {

@@ -36,10 +36,13 @@ import {
 } from "../selection/types";
 import {
   AnnotationDraft,
+  JobFilter,
+  JobStateBranch,
+  Page,
+  State,
   TemplateDraft,
   TemplateStateBranch,
-} from "../template/types";
-import { JobFilter, JobStateBranch, Page, State } from "../types";
+} from "../types";
 import { UploadStateBranch } from "../types";
 import { getUploadRowKey } from "../upload/constants";
 

@@ -15,9 +15,9 @@ import {
   getWellAnnotation,
   getWorkflowAnnotation,
 } from "../metadata/selectors";
-import { State } from "../types";
+import { AnnotationDraft, State, TemplateDraft } from "../types";
 
-import { AnnotationDraft, TemplateDraft, TemplateWithTypeNames } from "./types";
+import { TemplateWithTypeNames } from "./types";
 
 export const getAppliedTemplate = (state: State) =>
   state.template.present.appliedTemplate;

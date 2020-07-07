@@ -7,7 +7,7 @@ import {
   AnnotationType,
   Lookup,
 } from "../../../services/labkey-client/types";
-import { AnnotationDraft, TemplateDraft } from "../../../state/template/types";
+import { AnnotationDraft, TemplateDraft } from "../../../state/types";
 import AnnotationForm from "../AnnotationForm";
 import IconText from "../IconText";
 
