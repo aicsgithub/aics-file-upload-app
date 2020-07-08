@@ -6,6 +6,7 @@ import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
+import { LimsUrl } from "../../shared/types";
 import { GridCell } from "../components/AssociateWells/grid-cell";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
 import { LocalStorage, MMSClient } from "../services";
@@ -31,7 +32,6 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 
-import { SettingStateBranch } from "./setting/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -342,6 +342,17 @@ export interface TemplateStateBranch {
   draft: TemplateDraft;
   original?: Template;
   originalTemplateHasBeenUsed?: boolean;
+}
+
+export interface SettingStateBranch extends LimsUrl {
+  associateByWorkflow: boolean;
+  metadataColumns: string[];
+  mountPoint?: string;
+  // if true show hints on how to use the grid to enter data
+  showUploadHint: boolean;
+  showTemplateHint: boolean;
+  templateId?: number;
+  username: string;
 }
 
 export interface State {
