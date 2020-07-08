@@ -6,7 +6,6 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { BarcodeSelectorOption } from "../../containers/BarcodeSearch";
 import {
   Annotation,
   AnnotationOption,
@@ -17,7 +16,7 @@ import {
 import { titleCase } from "../../util";
 import { getMetadataColumns } from "../setting/selectors";
 import { AnnotationWithOptions } from "../template/types";
-import { SearchResultRow, State } from "../types";
+import { BarcodeSelectorOption, SearchResultRow, State } from "../types";
 
 import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
 import { SearchResultsHeader } from "./types";

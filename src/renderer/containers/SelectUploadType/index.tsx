@@ -41,8 +41,13 @@ import {
   SelectBarcodeAction,
   SelectWorkflowPathAction,
 } from "../../state/selection/types";
-import { AlertType, AsyncRequest, Page, State } from "../../state/types";
-import { BarcodeSelectorOption } from "../BarcodeSearch";
+import {
+  AlertType,
+  AsyncRequest,
+  BarcodeSelectorOption,
+  Page,
+  State,
+} from "../../state/types";
 
 const styles = require("./style.pcss");
 

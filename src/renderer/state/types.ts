@@ -402,3 +402,8 @@ export enum HTTP_STATUS {
   NOT_FOUND = 404,
   OK = 200,
 }
+
+export interface BarcodeSelectorOption {
+  barcode: string;
+  imagingSessionIds: Array<number | null>;
+}
