@@ -6,6 +6,7 @@ import { createSandbox, spy, stub, useFakeTimers } from "sinon";
 
 import {
   alphaOrderComparator,
+  API_WAIT_TIME_SECONDS,
   convertToArray,
   ensureDraftGetsSaved,
   getSetAppliedTemplateAction,
@@ -21,7 +22,6 @@ import {
   GetPlateResponse,
   PlateResponse,
 } from "../../services/mms-client/types";
-import { API_WAIT_TIME_SECONDS } from "../../state/constants";
 import {
   addRequestToInProgress,
   clearAlert,

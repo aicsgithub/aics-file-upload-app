@@ -17,8 +17,8 @@ import {
 import {
   SERVICE_IS_DOWN_MESSAGE,
   SERVICE_MIGHT_BE_DOWN_MESSAGE,
+  API_WAIT_TIME_SECONDS,
 } from "../../../util";
-import { API_WAIT_TIME_SECONDS } from "../../constants";
 import {
   getAlert,
   getRequestsInProgressContains,

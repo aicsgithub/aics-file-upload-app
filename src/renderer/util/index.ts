@@ -30,7 +30,6 @@ import {
   TemplateAnnotation,
   WellResponse,
 } from "../services/mms-client/types";
-import { API_WAIT_TIME_SECONDS } from "../state/constants";
 import {
   addRequestToInProgress,
   removeRequestFromInProgress,
@@ -63,6 +62,7 @@ import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
 import { batchActions } from "../state/util";
 
 const stat = promisify(fsStat);
+export const API_WAIT_TIME_SECONDS = 20;
 
 export async function readTxtFile(
   file: string,
