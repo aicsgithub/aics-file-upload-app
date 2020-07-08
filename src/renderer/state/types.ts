@@ -1,3 +1,4 @@
+import { AicsGridCell } from "@aics/aics-react-labkey";
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
@@ -7,7 +8,6 @@ import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
-import { GridCell } from "../components/AssociateWells/grid-cell";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
 import { LocalStorage, MMSClient } from "../services";
 import LabkeyClient from "../services/labkey-client";
@@ -280,7 +280,7 @@ export interface SelectionStateBranch extends UploadTabSelections {
   imagingSessionIds: Array<number | null>;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
-  selectedWells: GridCell[];
+  selectedWells: AicsGridCell[];
   selectedWorkflows: Workflow[];
   stagedFiles: UploadFile[];
   user: string;
@@ -294,7 +294,7 @@ export interface UploadTabSelections {
   job?: JSSJob;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
-  selectedWells: GridCell[];
+  selectedWells: AicsGridCell[];
   selectedWorkflows: Workflow[];
   stagedFiles: UploadFile[];
 }
