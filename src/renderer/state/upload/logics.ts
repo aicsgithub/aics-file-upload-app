@@ -25,6 +25,8 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
+import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
+import { Template } from "../../services/mms-client/types";
 import {
   ensureDraftGetsSaved,
   getSetAppliedTemplateAction,
@@ -40,7 +42,6 @@ import {
   setErrorAlert,
   setUploadError,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import {
   startJobPoll,
   stopJobPoll,
@@ -58,7 +59,6 @@ import {
   handleGoingToNextPageForNewUpload,
 } from "../route/logics";
 import { getPage } from "../route/selectors";
-import { Page } from "../route/types";
 import { deselectFiles, stageFiles } from "../selection/actions";
 import {
   getSelectedBarcode,
@@ -66,17 +66,22 @@ import {
   getSelectedWellIds,
   getStagedFiles,
 } from "../selection/selectors";
-import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
-import { AnnotationType, ColumnType, Template } from "../template/types";
 import {
+  AlertType,
+  AsyncRequest,
   HTTP_STATUS,
+  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
+  UploadFile,
+  UploadMetadata,
+  UploadRowId,
+  UploadStateBranch,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -122,9 +127,6 @@ import {
   SaveUploadDraftAction,
   UpdateSubImagesAction,
   UpdateUploadRowsAction,
-  UploadMetadata,
-  UploadRowId,
-  UploadStateBranch,
 } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({

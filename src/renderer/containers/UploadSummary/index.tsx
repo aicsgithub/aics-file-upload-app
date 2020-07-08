@@ -29,7 +29,6 @@ import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import {
   gatherIncompleteJobIds,
   retrieveJobs,
@@ -44,7 +43,6 @@ import {
 } from "../../state/job/selectors";
 import {
   GatherIncompleteJobIdsAction,
-  JobFilter,
   RetrieveJobsAction,
   SelectJobFilterAction,
   StartJobPollAction,
@@ -61,7 +59,6 @@ import {
 import {
   ClearFileMetadataForJobAction,
   RequestFileMetadataForJobAction,
-  SearchResultRow,
   SearchResultsHeader,
 } from "../../state/metadata/types";
 import {
@@ -72,18 +69,23 @@ import {
 import { getPage } from "../../state/route/selectors";
 import {
   OpenEditFileMetadataTabAction,
-  Page,
   SelectPageAction,
   SelectViewAction,
 } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
-import { UploadFile } from "../../state/selection/types";
-import { State } from "../../state/types";
+import {
+  AsyncRequest,
+  JobFilter,
+  Page,
+  SearchResultRow,
+  State,
+  UploadFile,
+  UploadMetadata,
+} from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
   CancelUploadAction,
   RetryUploadAction,
-  UploadMetadata,
 } from "../../state/upload/types";
 
 const styles = require("./styles.pcss");

@@ -1,8 +1,8 @@
 import { get, includes } from "lodash";
 import { createLogic } from "redux-logic";
 
+import { SaveTemplateRequest } from "../../services/mms-client/types";
 import { getSetAppliedTemplateAction } from "../../util";
-import { SaveTemplateRequest } from "../../util/mms-client/types";
 import {
   addRequestToInProgress,
   closeModal,
@@ -11,7 +11,6 @@ import {
   setErrorAlert,
   setSuccessAlert,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import { requestTemplates } from "../metadata/actions";
 import {
   getAnnotationLookups,
@@ -21,6 +20,9 @@ import {
 } from "../metadata/selectors";
 import { updateSettings } from "../setting/actions";
 import {
+  AlertType,
+  AnnotationDraft,
+  AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -38,7 +40,7 @@ import {
   getTemplateDraft,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
-import { AnnotationDraft, SaveTemplateAction } from "./types";
+import { SaveTemplateAction } from "./types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (

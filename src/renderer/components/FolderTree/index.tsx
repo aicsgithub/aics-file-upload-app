@@ -6,7 +6,6 @@ import * as React from "react";
 import { ActionCreator } from "redux";
 
 import {
-  AlertType,
   SetAlertAction,
   ToggleFolderTreeAction,
 } from "../../state/feedback/types";
@@ -17,8 +16,8 @@ import {
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectFileAction,
-  UploadFile,
 } from "../../state/selection/types";
+import { AlertType, UploadFile } from "../../state/types";
 import {
   undoFileWellAssociation,
   undoFileWorkflowAssociation,

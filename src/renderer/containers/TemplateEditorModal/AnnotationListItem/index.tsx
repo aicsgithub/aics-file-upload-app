@@ -4,11 +4,10 @@ import * as React from "react";
 import { LIST_DELIMITER_JOIN } from "../../../constants";
 import {
   Annotation,
-  AnnotationDraft,
   AnnotationType,
   Lookup,
-  TemplateDraft,
-} from "../../../state/template/types";
+} from "../../../services/labkey-client/types";
+import { AnnotationDraft, TemplateDraft } from "../../../state/types";
 import AnnotationForm from "../AnnotationForm";
 import IconText from "../IconText";
 

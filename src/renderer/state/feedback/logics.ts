@@ -1,6 +1,7 @@
 import { createLogic } from "redux-logic";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
+import { TemplateAnnotation } from "../../services/mms-client/types";
 import { getWithRetry } from "../../util";
 import { getAnnotationTypes } from "../metadata/selectors";
 import {
@@ -8,8 +9,8 @@ import {
   startTemplateDraft,
   startTemplateDraftFailed,
 } from "../template/actions";
-import { TemplateAnnotation } from "../template/types";
 import {
+  AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -19,7 +20,7 @@ import {
 import { clearDeferredAction } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
-import { AsyncRequest, OpenTemplateEditorAction } from "./types";
+import { OpenTemplateEditorAction } from "./types";
 
 const openTemplateEditorLogic = createLogic({
   process: async (

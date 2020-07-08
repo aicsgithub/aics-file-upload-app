@@ -8,30 +8,25 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { ImagingSession } from "../../services/labkey-client/types";
+import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import {
   getCurrentUploadFilePath,
   getImagingSessions,
 } from "../../state/metadata/selectors";
-import { ImagingSession } from "../../state/metadata/types";
 import { getPage } from "../../state/route/selectors";
-import { Page } from "../../state/route/types";
 import {
   getAllPlates,
   getAllWells,
   getSelectedJob,
 } from "../../state/selection/selectors";
-import { PlateResponse, WellResponse } from "../../state/selection/types";
+import { Page, UploadMetadata, UploadStateBranch } from "../../state/types";
 import { isFileRow } from "../../state/upload/constants";
 import {
   getUpload,
   getWellLabelAndImagingSessionName,
 } from "../../state/upload/selectors";
-import {
-  FileTag,
-  FileTagType,
-  UploadMetadata,
-  UploadStateBranch,
-} from "../../state/upload/types";
+import { FileTag, FileTagType } from "../../state/upload/types";
 
 // Result used by the FolderTree to display tags by each file with associated metadata
 export const getFileToTags = createSelector(

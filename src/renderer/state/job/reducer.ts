@@ -1,7 +1,7 @@
 import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
-import { TypeToDescriptionMap } from "../types";
+import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
 import {
   RETRY_UPLOAD,
   RETRY_UPLOAD_FAILED,
@@ -22,8 +22,6 @@ import {
   UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-  JobFilter,
-  JobStateBranch,
   ReceiveJobsAction,
   SelectJobFilterAction,
   StartJobPollAction,

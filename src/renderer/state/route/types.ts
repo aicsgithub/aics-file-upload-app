@@ -1,11 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
-import { UploadStateBranch } from "../upload/types";
-
-export interface RouteStateBranch {
-  page: Page;
-  view: Page;
-}
+import { Page, UploadStateBranch } from "../types";
 
 export interface AppPageConfig {
   container: JSX.Element;
@@ -21,16 +16,6 @@ export interface GoBackAction {
 
 export interface NextPageAction {
   type: string;
-}
-
-export enum Page {
-  DragAndDrop = "DragAndDrop",
-  SearchFiles = "SearchFiles",
-  SelectUploadType = "SelectUploadType",
-  AssociateFiles = "AssociateFiles",
-  SelectStorageLocation = "SelectStorageIntent",
-  AddCustomData = "AddCustomData",
-  UploadSummary = "UploadSummary",
 }
 
 export interface SelectPageAction {

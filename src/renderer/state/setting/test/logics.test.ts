@@ -21,6 +21,7 @@ import {
   mockState,
   mockUnit,
 } from "../../test/mocks";
+import { SettingStateBranch } from "../../types";
 import { gatherSettings, updateSettings } from "../actions";
 import settingsLogics from "../logics";
 import {
@@ -30,7 +31,6 @@ import {
   getShowUploadHint,
   getTemplateId,
 } from "../selectors";
-import { SettingStateBranch } from "../types";
 
 describe("Setting logics", () => {
   const localhost = "localhost";

@@ -4,13 +4,11 @@ import * as React from "react";
 import { ActionCreator } from "redux";
 
 import ImagingSessionSelector from "../../containers/ImagingSessionSelector";
-import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
+import { GoBackAction, NextPageAction } from "../../state/route/types";
 import { SelectWellsAction, Well } from "../../state/selection/types";
+import { Page, UploadMetadata } from "../../state/types";
 import { undoFileWellAssociation } from "../../state/upload/actions";
-import {
-  AssociateFilesAndWellsAction,
-  UploadMetadata,
-} from "../../state/upload/types";
+import { AssociateFilesAndWellsAction } from "../../state/upload/types";
 import FormPage from "../FormPage";
 import Plate from "../Plate";
 import SelectedAssociationsCard from "../SelectedAssociationsCard";

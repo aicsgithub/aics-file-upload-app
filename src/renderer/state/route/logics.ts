@@ -8,6 +8,8 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
+import LabkeyClient from "../../services/labkey-client";
+import MMSClient from "../../services/mms-client";
 import {
   getSetAppliedTemplateAction,
   getSetPlateAction,
@@ -16,13 +18,10 @@ import {
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
 } from "../../util";
-import LabkeyClient from "../../util/labkey-client";
-import MMSClient from "../../util/mms-client";
 import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
-import { AsyncRequest } from "../feedback/types";
 import { updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,
@@ -41,6 +40,12 @@ import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
+  AsyncRequest,
+  Page,
+  UploadMetadata,
+  UploadStateBranch,
+} from "../types";
+import {
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -58,7 +63,6 @@ import {
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
 import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
-import { UploadMetadata, UploadStateBranch } from "../upload/types";
 import { batchActions } from "../util";
 
 import {
@@ -77,7 +81,7 @@ import {
   SELECT_PAGE,
 } from "./constants";
 import { getPage } from "./selectors";
-import { Page, SelectPageAction } from "./types";
+import { SelectPageAction } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
 const getFileMenu = (menu: Menu): MenuItem | undefined =>

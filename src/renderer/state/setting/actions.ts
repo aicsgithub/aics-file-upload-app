@@ -1,4 +1,5 @@
 import { SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED } from "../../../shared/constants";
+import { SettingStateBranch } from "../types";
 
 import {
   ASSOCIATE_BY_WORKFLOW,
@@ -10,7 +11,6 @@ import {
   AssociateByWorkflowAction,
   GatherSettingsAction,
   SetMountPointAction,
-  SettingStateBranch,
   SwitchEnvironmentAction,
   UpdateSettingsAction,
 } from "./types";

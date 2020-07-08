@@ -1,5 +1,7 @@
 import { AnyAction } from "redux";
 
+import { AlertType, AppAlert, AsyncRequest, ModalName } from "../types";
+
 import {
   ADD_EVENT,
   ADD_REQUEST_IN_PROGRESS,
@@ -21,15 +23,11 @@ import {
 import {
   AddEventAction,
   AddRequestInProgressAction,
-  AlertType,
-  AppAlert,
-  AsyncRequest,
   ClearAlertAction,
   ClearDeferredAction,
   ClearUploadErrorAction,
   CloseModalAction,
   CloseSetMountPointNotificationAction,
-  ModalName,
   OpenModalAction,
   OpenSetMountPointNotificationAction,
   RemoveRequestInProgressAction,

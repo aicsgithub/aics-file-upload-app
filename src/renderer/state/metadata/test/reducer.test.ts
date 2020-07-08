@@ -5,12 +5,12 @@ import {
   openEditFileMetadataTab,
   openEditFileMetadataTabSucceeded,
 } from "../../route/actions";
-import { Page } from "../../route/types";
 import {
   mockState,
   mockSuccessfulUploadJob,
   mockWellUpload,
 } from "../../test/mocks";
+import { Page } from "../../types";
 import { replaceUpload, saveUploadDraftSuccess } from "../../upload/actions";
 import {
   clearFileMetadataForJob,

@@ -1,7 +1,7 @@
 import { Button, Card, Tabs } from "antd";
 import * as React from "react";
 
-import { UploadMetadata } from "../../state/upload/types";
+import { UploadMetadata } from "../../state/types";
 
 import FileAssociations from "./FileAssociations/index";
 

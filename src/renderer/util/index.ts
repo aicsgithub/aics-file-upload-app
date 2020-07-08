@@ -22,14 +22,20 @@ import {
 import { AnyAction } from "redux";
 
 import { LIST_DELIMITER_SPLIT } from "../constants";
-import { API_WAIT_TIME_SECONDS } from "../state/constants";
+import MMSClient from "../services/mms-client";
+import {
+  GetPlateResponse,
+  PlateResponse,
+  Template,
+  TemplateAnnotation,
+  WellResponse,
+} from "../services/mms-client/types";
 import {
   addRequestToInProgress,
   removeRequestFromInProgress,
   setAlert,
   setSuccessAlert,
 } from "../state/feedback/actions";
-import { AlertType, AsyncRequest } from "../state/feedback/types";
 import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
@@ -37,34 +43,26 @@ import {
 import { setPlate } from "../state/selection/actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
-import {
-  DragAndDropFileList,
-  GetPlateResponse,
-  PlateResponse,
-  SetPlateAction,
-  UploadFile,
-  WellResponse,
-} from "../state/selection/types";
+import { DragAndDropFileList, SetPlateAction } from "../state/selection/types";
 import { setAppliedTemplate } from "../state/template/actions";
 import { getAppliedTemplate } from "../state/template/selectors";
+import { SetAppliedTemplateAction } from "../state/template/types";
 import {
-  SetAppliedTemplateAction,
-  Template,
-  TemplateAnnotation,
-} from "../state/template/types";
-import {
+  AlertType,
+  AsyncRequest,
   HTTP_STATUS,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   State,
+  UploadFile,
+  UploadMetadata,
+  UploadStateBranch,
 } from "../state/types";
 import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
-import { UploadMetadata, UploadStateBranch } from "../state/upload/types";
 import { batchActions } from "../state/util";
 
-import MMSClient from "./mms-client";
-
 const stat = promisify(fsStat);
+export const API_WAIT_TIME_SECONDS = 20;
 
 export async function readTxtFile(
   file: string,

@@ -11,13 +11,10 @@ import FormPage from "../../components/FormPage";
 import CreateBarcodeCard from "../../components/SelectPath/CreateBarcodeCard";
 import EnterBarcodeCard from "../../components/SelectPath/EnterBarcodeCard";
 import SelectWorkflowCard from "../../components/SelectPath/SelectWorkflowCard";
+import { BarcodePrefix } from "../../services/labkey-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import {
-  AlertType,
-  AsyncRequest,
-  SetAlertAction,
-} from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import {
   createBarcode,
   requestBarcodeSearchResults,
@@ -27,12 +24,11 @@ import {
   getUniqueBarcodeSearchResults,
 } from "../../state/metadata/selectors";
 import {
-  BarcodePrefix,
   CreateBarcodeAction,
   GetBarcodeSearchResultsAction,
 } from "../../state/metadata/types";
 import { goBack, goForward } from "../../state/route/actions";
-import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
+import { GoBackAction, NextPageAction } from "../../state/route/types";
 import {
   selectBarcode,
   selectWorkflowPath,
@@ -45,8 +41,13 @@ import {
   SelectBarcodeAction,
   SelectWorkflowPathAction,
 } from "../../state/selection/types";
-import { State } from "../../state/types";
-import { BarcodeSelectorOption } from "../BarcodeSearch";
+import {
+  AlertType,
+  AsyncRequest,
+  BarcodeSelectorOption,
+  Page,
+  State,
+} from "../../state/types";
 
 const styles = require("./style.pcss");
 

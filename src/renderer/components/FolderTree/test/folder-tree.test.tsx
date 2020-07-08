@@ -10,7 +10,7 @@ import FolderTree from "../";
 import { selection } from "../../../state";
 import { setAlert } from "../../../state/feedback/actions";
 import { UploadFileImpl } from "../../../state/selection/models/upload-file";
-import { UploadFile } from "../../../state/selection/types";
+import { UploadFile } from "../../../state/types";
 
 const DirectoryTree = Tree.DirectoryTree;
 

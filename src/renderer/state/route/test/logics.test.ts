@@ -10,7 +10,6 @@ import {
   SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
 } from "../../../util";
 import { getAlert } from "../../feedback/selectors";
-import { AlertType } from "../../feedback/types";
 import {
   getFileMetadataForJob,
   getSelectionHistory,
@@ -48,7 +47,7 @@ import {
   mockSuccessfulUploadJob,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { Logger, State } from "../../types";
+import { AlertType, Logger, Page, State } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
 import {
@@ -69,7 +68,6 @@ import {
 } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
-import { Page } from "../types";
 import Menu = Electron.Menu;
 
 describe("Route logics", () => {

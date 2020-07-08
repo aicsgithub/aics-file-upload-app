@@ -11,9 +11,10 @@ import { ActionCreator } from "redux";
 
 import FileMetadataModal from "../../components/FileMetadataModal";
 import LabeledInput from "../../components/LabeledInput";
+import { Annotation, LabkeyUser } from "../../services/labkey-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import {
   exportFileMetadataCSV,
   requestAnnotations,
@@ -33,7 +34,6 @@ import {
   GetAnnotationsAction,
   GetTemplatesAction,
   SearchFileMetadataAction,
-  SearchResultRow,
 } from "../../state/metadata/types";
 import { selectAnnotation, selectUser } from "../../state/selection/actions";
 import {
@@ -51,9 +51,7 @@ import {
   getMetadataColumns,
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
-import { Annotation } from "../../state/template/types";
-import { State } from "../../state/types";
-import { LabkeyUser } from "../../util/labkey-client/types";
+import { AsyncRequest, SearchResultRow, State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
 import TemplateForm from "./TemplateForm";

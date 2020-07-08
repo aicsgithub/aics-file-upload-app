@@ -9,37 +9,40 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
-  LabkeyChannel,
-  LabkeyImagingSession,
-  LabKeyPlateBarcodePrefix,
-} from "../../util/labkey-client/types";
-import { JobFilter, JobStateBranch } from "../job/types";
-import { Channel, SearchResultsHeader, Unit } from "../metadata/types";
-import { Page } from "../route/types";
-import {
-  CellPopulation,
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
-  SelectionStateBranch,
-  Well,
-  Workflow,
-} from "../selection/types";
-import {
   Annotation,
-  AnnotationDraft,
   AnnotationLookup,
   AnnotationOption,
   AnnotationType,
+  Channel,
   ColumnType,
+  LabkeyChannel,
+  LabkeyImagingSession,
+  LabKeyPlateBarcodePrefix,
   Lookup,
+  Unit,
+  Workflow,
+} from "../../services/labkey-client/types";
+import {
+  CellPopulation,
   Template,
   TemplateAnnotation,
+} from "../../services/mms-client/types";
+import { SearchResultsHeader } from "../metadata/types";
+import { Well } from "../selection/types";
+import {
+  AnnotationDraft,
+  ImagingSessionIdToPlateMap,
+  ImagingSessionIdToWellsMap,
+  JobFilter,
+  JobStateBranch,
+  Page,
+  SelectionStateBranch,
+  State,
   TemplateDraft,
   TemplateStateBranch,
-} from "../template/types";
-import { State } from "../types";
+} from "../types";
+import { UploadStateBranch } from "../types";
 import { getUploadRowKey } from "../upload/constants";
-import { UploadStateBranch } from "../upload/types";
 
 export const mockAuditInfo = {
   created: new Date(2019, 9, 30),

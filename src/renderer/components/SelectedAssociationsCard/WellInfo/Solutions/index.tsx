@@ -1,19 +1,20 @@
 import { Divider } from "antd";
 import * as React from "react";
 
-import { Solution } from "../../../../state/selection/types";
+import { Solution } from "../../../../services/mms-client/types";
 import KeyValueDisplay from "../../KeyValueDisplay";
-import { NULL_TEXT } from "../index";
 
 const styles = require("../style.pcss");
 
 export interface SolutionsProps {
   className?: string;
+  nullText?: string;
   solutions: Solution[];
 }
 
 const Solutions: React.FunctionComponent<SolutionsProps> = (props) => {
-  const { className, solutions } = props;
+  const { className, nullText, solutions } = props;
+  const NULL_TEXT = nullText || "None";
 
   return (
     <div className={className}>

@@ -1,7 +1,6 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { AsyncRequest } from "../../feedback/types";
 import {
   getMockStateWithHistory,
   mockFailedAddMetadataJob,
@@ -15,6 +14,7 @@ import {
   mockWorkingUploadJob,
   nonEmptyJobStateBranch,
 } from "../../test/mocks";
+import { AsyncRequest } from "../../types";
 import {
   getCurrentJobName,
   getIsSafeToExit,

@@ -6,7 +6,6 @@ import { connect } from "react-redux";
 import { ActionCreator, AnyAction } from "redux";
 
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import {
   clearOptionsForLookup,
   retrieveOptionsForLookup,
@@ -15,9 +14,8 @@ import { getMetadata } from "../../state/metadata/selectors";
 import {
   ClearOptionsForLookupAction,
   GetOptionsForLookupAction,
-  MetadataStateBranch,
 } from "../../state/metadata/types";
-import { State } from "../../state/types";
+import { AsyncRequest, MetadataStateBranch, State } from "../../state/types";
 
 const styles = require("./styles.pcss");
 

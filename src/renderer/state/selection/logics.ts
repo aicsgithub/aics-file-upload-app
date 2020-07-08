@@ -11,19 +11,20 @@ import {
   mergeChildPaths,
 } from "../../util";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
-import { AlertType } from "../feedback/types";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
-import { Page } from "../route/types";
 import { associateByWorkflow } from "../setting/actions";
 import {
+  AlertType,
+  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
+  UploadFile,
 } from "../types";
 import { clearUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
@@ -49,7 +50,7 @@ import {
   getStagedFiles,
   getWellsWithModified,
 } from "./selectors";
-import { DragAndDropFileList, UploadFile } from "./types";
+import { DragAndDropFileList } from "./types";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,

@@ -7,11 +7,9 @@ import { createSelector } from "reselect";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
-import { AsyncRequest } from "../feedback/types";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
-import { State } from "../types";
+import { AsyncRequest, State, UploadStateBranch } from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
-import { UploadStateBranch } from "../upload/types";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;

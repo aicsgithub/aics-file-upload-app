@@ -9,13 +9,13 @@ import {
   mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
+import { TemplateStateBranch } from "../../types";
 import { replaceUpload } from "../../upload/actions";
 import { startTemplateDraft, updateTemplateDraft } from "../actions";
 import { DEFAULT_TEMPLATE_DRAFT } from "../constants";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import { getAppliedTemplate } from "../selectors";
-import { TemplateStateBranch } from "../types";
 
 describe("template reducer", () => {
   describe("replaceUpload", () => {

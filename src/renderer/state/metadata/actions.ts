@@ -1,3 +1,6 @@
+import { BarcodePrefix } from "../../services/labkey-client/types";
+import { MetadataStateBranch, SearchResultRow } from "../types";
+
 import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
@@ -17,7 +20,6 @@ import {
 } from "./constants";
 import { initialState } from "./reducer";
 import {
-  BarcodePrefix,
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
@@ -26,7 +28,6 @@ import {
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
-  MetadataStateBranch,
   ReceiveFileMetadataAction,
   ReceiveMetadataAction,
   RequestFileMetadataForJobAction,
@@ -34,7 +35,6 @@ import {
   ResetHistoryAction,
   SearchConfig,
   SearchFileMetadataAction,
-  SearchResultRow,
   UpdatePageHistoryMapAction,
 } from "./types";
 

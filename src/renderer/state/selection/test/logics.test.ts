@@ -11,18 +11,20 @@ import selections from "../";
 import { feedback } from "../../";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
 import {
+  GetPlateResponse,
+  PlateResponse,
+} from "../../../services/mms-client/types";
+import {
   SERVICE_IS_DOWN_MESSAGE,
   SERVICE_MIGHT_BE_DOWN_MESSAGE,
+  API_WAIT_TIME_SECONDS,
 } from "../../../util";
-import { API_WAIT_TIME_SECONDS } from "../../constants";
 import {
   getAlert,
   getRequestsInProgressContains,
 } from "../../feedback/selectors";
-import { AlertType, AppAlert, AsyncRequest } from "../../feedback/types";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
-import { Page } from "../../route/types";
 import {
   createMockReduxStore,
   dialog,
@@ -37,7 +39,15 @@ import {
   mockWells,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { HTTP_STATUS } from "../../types";
+import {
+  AlertType,
+  AppAlert,
+  AsyncRequest,
+  HTTP_STATUS,
+  Page,
+  SelectionStateBranch,
+  UploadFile,
+} from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
 import { clearStagedFiles, selectBarcode, selectWells } from "../actions";
@@ -52,14 +62,7 @@ import {
   getStagedFiles,
   getWells,
 } from "../selectors";
-import {
-  DragAndDropFileList,
-  GetPlateResponse,
-  PlateResponse,
-  SelectionStateBranch,
-  UploadFile,
-  Well,
-} from "../types";
+import { DragAndDropFileList, Well } from "../types";
 
 describe("Selection logics", () => {
   const sandbox = createSandbox();

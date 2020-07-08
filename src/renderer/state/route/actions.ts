@@ -1,6 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
-import { UploadStateBranch } from "../upload/types";
+import { Page, UploadStateBranch } from "../types";
 
 import {
   CLOSE_UPLOAD_TAB,
@@ -19,7 +19,6 @@ import {
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabFailedAction,
   OpenEditFileMetadataTabSucceededAction,
-  Page,
   SelectPageAction,
   SelectViewAction,
 } from "./types";

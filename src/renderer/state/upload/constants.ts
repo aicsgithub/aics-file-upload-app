@@ -2,9 +2,10 @@ import { get, isNil } from "lodash";
 import * as moment from "moment";
 
 import { LONG_DATETIME_FORMAT } from "../../constants";
+import { UploadMetadata, UploadRowId } from "../types";
 import { makeConstant } from "../util";
 
-import { UploadJobTableRow, UploadMetadata, UploadRowId } from "./types";
+import { UploadJobTableRow } from "./types";
 
 const BRANCH_NAME = "upload";
 

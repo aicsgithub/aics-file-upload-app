@@ -7,8 +7,8 @@ import { ActionCreator } from "redux";
 
 import FormPage from "../../components/FormPage";
 import { goBack, goForward } from "../../state/route/actions";
-import { GoBackAction, NextPageAction, Page } from "../../state/route/types";
-import { State } from "../../state/types";
+import { GoBackAction, NextPageAction } from "../../state/route/types";
+import { Page, State } from "../../state/types";
 import {
   updateFilesToArchive,
   updateFilesToStoreOnIsilon,

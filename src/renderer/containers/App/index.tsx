@@ -28,9 +28,6 @@ import {
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
 import {
-  AlertType,
-  AppAlert,
-  AppEvent,
   ClearAlertAction,
   SetAlertAction,
   ToggleFolderTreeAction,
@@ -43,7 +40,6 @@ import { getPage, getView } from "../../state/route/selectors";
 import {
   AppPageConfig,
   CloseUploadTabAction,
-  Page,
   SelectViewAction,
 } from "../../state/route/types";
 import {
@@ -61,7 +57,6 @@ import {
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectFileAction,
-  UploadFile,
 } from "../../state/selection/types";
 import {
   gatherSettings,
@@ -76,7 +71,14 @@ import {
   SwitchEnvironmentAction,
   UpdateSettingsAction,
 } from "../../state/setting/types";
-import { State } from "../../state/types";
+import {
+  AlertType,
+  AppAlert,
+  AppEvent,
+  Page,
+  State,
+  UploadFile,
+} from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,

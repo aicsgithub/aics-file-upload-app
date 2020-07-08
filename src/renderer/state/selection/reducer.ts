@@ -13,7 +13,11 @@ import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
 } from "../route/types";
-import { TypeToDescriptionMap } from "../types";
+import {
+  SelectionStateBranch,
+  TypeToDescriptionMap,
+  UploadTabSelections,
+} from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
@@ -53,7 +57,6 @@ import {
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
-  SelectionStateBranch,
   SelectMetadataAction,
   SelectUserAction,
   SelectWellsAction,
@@ -62,7 +65,6 @@ import {
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateStagedFilesAction,
-  UploadTabSelections,
 } from "./types";
 
 const DEFAULT_ANNOTATION = "Dataset";

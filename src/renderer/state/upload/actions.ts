@@ -3,8 +3,8 @@ import {
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Workflow } from "../selection/types";
-import { State } from "../types";
+import { Workflow } from "../../services/labkey-client/types";
+import { State, UploadMetadata, UploadRowId } from "../types";
 
 import {
   APPLY_TEMPLATE,
@@ -78,8 +78,6 @@ import {
   UpdateUploadRowsAction,
   UpdateUploadsAction,
   UploadJobTableRow,
-  UploadMetadata,
-  UploadRowId,
 } from "./types";
 
 export function associateFilesAndWells(

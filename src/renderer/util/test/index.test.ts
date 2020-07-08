@@ -6,6 +6,7 @@ import { createSandbox, spy, stub, useFakeTimers } from "sinon";
 
 import {
   alphaOrderComparator,
+  API_WAIT_TIME_SECONDS,
   convertToArray,
   ensureDraftGetsSaved,
   getSetAppliedTemplateAction,
@@ -17,19 +18,17 @@ import {
   splitTrimAndFilter,
   titleCase,
 } from "../";
-import { API_WAIT_TIME_SECONDS } from "../../state/constants";
+import {
+  GetPlateResponse,
+  PlateResponse,
+} from "../../services/mms-client/types";
 import {
   addRequestToInProgress,
   clearAlert,
   removeRequestFromInProgress,
   setAlert,
 } from "../../state/feedback/actions";
-import { AlertType, AsyncRequest } from "../../state/feedback/types";
-import {
-  GetPlateResponse,
-  PlateResponse,
-  Well,
-} from "../../state/selection/types";
+import { Well } from "../../state/selection/types";
 import { setAppliedTemplate } from "../../state/template/actions";
 import { SetAppliedTemplateAction } from "../../state/template/types";
 import {
@@ -49,6 +48,8 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../state/test/mocks";
 import {
+  AlertType,
+  AsyncRequest,
   HTTP_STATUS,
   ReduxLogicTransformDependencies,
   State,

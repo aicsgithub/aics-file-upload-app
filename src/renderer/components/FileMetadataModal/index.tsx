@@ -9,7 +9,7 @@ import {
   MAIN_FILE_COLUMNS,
   UNIMPORTANT_COLUMNS,
 } from "../../state/metadata/constants";
-import { SearchResultRow } from "../../state/metadata/types";
+import { SearchResultRow } from "../../state/types";
 import { titleCase } from "../../util";
 
 const styles = require("./styles.pcss");

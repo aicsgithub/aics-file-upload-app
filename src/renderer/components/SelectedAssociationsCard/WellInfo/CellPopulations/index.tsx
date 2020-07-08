@@ -1,8 +1,7 @@
 import { Divider } from "antd";
 import * as React from "react";
 
-import { NULL_TEXT } from "..";
-import { CellPopulation } from "../../../../state/selection/types";
+import { CellPopulation } from "../../../../services/mms-client/types";
 import KeyValueDisplay from "../../KeyValueDisplay";
 
 const styles = require("../style.pcss");
@@ -10,12 +9,14 @@ const styles = require("../style.pcss");
 export interface CellPopulationsProps {
   className?: string;
   cellPopulations: CellPopulation[];
+  nullText?: string;
 }
 
 const CellPopulations: React.FunctionComponent<CellPopulationsProps> = (
   props
 ) => {
-  const { className, cellPopulations } = props;
+  const { className, cellPopulations, nullText } = props;
+  const NULL_TEXT = nullText || "None";
 
   return (
     <div className={className}>

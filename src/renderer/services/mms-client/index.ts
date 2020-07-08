@@ -2,12 +2,15 @@ import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-
 import { AxiosRequestConfig } from "axios";
 import { decamelizeKeys } from "humps";
 
-import { GetPlateResponse, WellResponse } from "../../state/selection/types";
-import { Template } from "../../state/template/types";
-import { LocalStorage } from "../../state/types";
 import BaseServiceClient from "../base-service-client";
+import { LocalStorage } from "../http-cache-client";
 
-import { SaveTemplateRequest } from "./types";
+import {
+  GetPlateResponse,
+  SaveTemplateRequest,
+  Template,
+  WellResponse,
+} from "./types";
 
 export default class MMSClient extends BaseServiceClient {
   public username: string;

@@ -6,8 +6,8 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import LabeledInput from "../../components/LabeledInput";
+import { ImagingSession } from "../../services/labkey-client/types";
 import { getImagingSessions } from "../../state/metadata/selectors";
-import { ImagingSession } from "../../state/metadata/types";
 import { selectImagingSessionId } from "../../state/selection/actions";
 import {
   getSelectedImagingSessionId,

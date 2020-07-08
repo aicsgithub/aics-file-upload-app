@@ -1,4 +1,25 @@
 # Version Notes
+
+## 1.0.46 (6/25/20)
+- Behind the scenes changes for how we track channels on a file
+- Feature: added Edit action next to uploads so that users can edit and delete files they uploaded
+- Feature: warn users when saving changes to a template that will version the template
+- Bugfix: fix issue where template editor was not clearing properly after closing
+
+## 1.0.45 (6/16/20)
+- Feature: toggle template hint visibility from settings and remember settings even after app closes
+- Bugfix: fix upload draft saving mechanism. Now saving to separate files that can be accessed with native file explorer.
+- Bugfix: don't show alert when creating a new template
+
+
+## 1.0.44 (6/4/20)
+- Behind the scenes code cleanup and upgrades
+- Feature: make workflow editable on custom data page
+- Bugfix: fix when undo button on custom data page is enabled
+- Bugfix: don't show validation error if user hasn't touched required Yes/No fields 
+- Bugfix: update Boolean editor on custom data page
+- Bugfix: double clicking notes grid cell was causing issues
+
 ## 1.0.43 (5/26/20)
 - Bugfix: fix runtime issue
 

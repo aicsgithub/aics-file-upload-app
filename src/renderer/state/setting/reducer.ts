@@ -5,7 +5,7 @@ import { AnyAction } from "redux";
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
 import { SET_PLATE } from "../selection/constants";
 import { SetPlateAction } from "../selection/types";
-import { TypeToDescriptionMap } from "../types";
+import { SettingStateBranch, TypeToDescriptionMap } from "../types";
 import { APPLY_TEMPLATE, REPLACE_UPLOAD } from "../upload/constants";
 import { ApplyTemplateAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
@@ -19,7 +19,6 @@ import { getAssociateByWorkflow } from "./selectors";
 import {
   AssociateByWorkflowAction,
   GatherSettingsAction,
-  SettingStateBranch,
   UpdateSettingsAction,
 } from "./types";
 

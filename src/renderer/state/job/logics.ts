@@ -8,6 +8,7 @@ import { interval } from "rxjs/internal/observable/interval";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
+import { LocalStorage } from "../../services";
 import { getWithRetry } from "../../util";
 import {
   addEvent,
@@ -15,10 +16,11 @@ import {
   setErrorAlert,
   setSuccessAlert,
 } from "../feedback/actions";
-import { AlertType, AsyncRequest } from "../feedback/types";
 import { getLoggedInUser } from "../setting/selectors";
 import {
-  LocalStorage,
+  AlertType,
+  AsyncRequest,
+  JobFilter,
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -39,7 +41,6 @@ import {
   SUCCESSFUL_STATUS,
 } from "./constants";
 import { getIncompleteJobIds, getJobFilter } from "./selectors";
-import { JobFilter } from "./types";
 
 interface Jobs {
   actualIncompleteJobIds?: string[];

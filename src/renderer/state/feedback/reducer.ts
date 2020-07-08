@@ -24,15 +24,10 @@ import {
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabFailedAction,
   OpenEditFileMetadataTabSucceededAction,
-  Page,
   SelectPageAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
-import {
-  SelectBarcodeAction,
-  SelectionStateBranch,
-  SetPlateAction,
-} from "../selection/types";
+import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
 import { clearTemplateDraft } from "../template/actions";
 import {
   SAVE_TEMPLATE,
@@ -46,7 +41,14 @@ import {
   StartTemplateDraftAction,
   StartTemplateDraftFailedAction,
 } from "../template/types";
-import { HTTP_STATUS, TypeToDescriptionMap } from "../types";
+import {
+  AlertType,
+  AsyncRequest,
+  FeedbackStateBranch,
+  HTTP_STATUS,
+  Page,
+  TypeToDescriptionMap,
+} from "../types";
 import {
   APPLY_TEMPLATE,
   CANCEL_UPLOAD,
@@ -96,14 +98,11 @@ import {
 import {
   AddEventAction,
   AddRequestInProgressAction,
-  AlertType,
-  AsyncRequest,
   ClearAlertAction,
   ClearDeferredAction,
   ClearUploadErrorAction,
   CloseModalAction,
   CloseSetMountPointNotificationAction,
-  FeedbackStateBranch,
   OpenModalAction,
   OpenSetMountPointNotificationAction,
   OpenTemplateEditorAction,
@@ -242,7 +241,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action: AnyAction
     ): action is OpenSetMountPointNotificationAction =>
       action.type === OPEN_SET_MOUNT_POINT_NOTIFICATION,
-    perform: (state: SelectionStateBranch) => ({
+    perform: (state: FeedbackStateBranch) => ({
       ...state,
       setMountPointNotificationVisible: true,
     }),
@@ -252,7 +251,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action: AnyAction
     ): action is CloseSetMountPointNotificationAction =>
       action.type === CLOSE_SET_MOUNT_POINT_NOTIFICATION,
-    perform: (state: SelectionStateBranch) => ({
+    perform: (state: FeedbackStateBranch) => ({
       ...state,
       setMountPointNotificationVisible: false,
     }),
@@ -558,7 +557,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     accepts: (action: AnyAction): action is SelectPageAction =>
       action.type === SELECT_PAGE,
     perform: (
-      state: SelectionStateBranch,
+      state: FeedbackStateBranch,
       { payload: { nextPage } }: SelectPageAction
     ) => {
       const pagesToShowFolderTree = [

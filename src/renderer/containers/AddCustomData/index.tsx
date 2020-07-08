@@ -10,12 +10,18 @@ import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import {
+  AnnotationType,
+  Channel,
+  LabkeyTemplate,
+} from "../../services/labkey-client/types";
+import { Template } from "../../services/mms-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import {
   getRequestsInProgressContains,
   getUploadError,
 } from "../../state/feedback/selectors";
-import { AsyncRequest, SetAlertAction } from "../../state/feedback/types";
+import { SetAlertAction } from "../../state/feedback/types";
 import { getUploadInProgress } from "../../state/job/selectors";
 import {
   getAnnotationTypes,
@@ -23,9 +29,8 @@ import {
   getChannels,
   getTemplates,
 } from "../../state/metadata/selectors";
-import { Channel } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
-import { GoBackAction, Page } from "../../state/route/types";
+import { GoBackAction } from "../../state/route/types";
 import {
   selectBarcode,
   toggleExpandedUploadJobRow,
@@ -37,7 +42,6 @@ import {
   getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
-  ExpandedRows,
   ToggleExpandedUploadJobRowAction,
   Well,
 } from "../../state/selection/types";
@@ -49,8 +53,7 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AnnotationType, Template } from "../../state/template/types";
-import { State } from "../../state/types";
+import { AsyncRequest, ExpandedRows, Page, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,
@@ -81,7 +84,6 @@ import {
   UpdateUploadRowsAction,
   UploadJobTableRow,
 } from "../../state/upload/types";
-import { LabkeyTemplate } from "../../util/labkey-client/types";
 import BarcodeSearch from "../BarcodeSearch";
 
 const styles = require("./style.pcss");

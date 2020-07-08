@@ -2,16 +2,10 @@ import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
 import { getRequestsInProgressContains } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import { requestBarcodeSearchResults } from "../../state/metadata/actions";
 import { getUniqueBarcodeSearchResults } from "../../state/metadata/selectors";
-import { State } from "../../state/types";
+import { AsyncRequest, BarcodeSelectorOption, State } from "../../state/types";
 import LookupSearch from "../LookupSearch";
-
-export interface BarcodeSelectorOption {
-  barcode: string;
-  imagingSessionIds: Array<number | null>;
-}
 
 export type OnBarcodeChange = (
   imagingSessionIds: Array<number | null>,

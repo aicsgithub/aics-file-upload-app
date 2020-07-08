@@ -16,12 +16,12 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { Annotation } from "../../services/labkey-client/types";
 import { closeModal } from "../../state/feedback/actions";
 import {
   getRequestsInProgressContains,
   getTemplateEditorVisible,
 } from "../../state/feedback/selectors";
-import { AsyncRequest } from "../../state/feedback/types";
 import { requestAnnotations } from "../../state/metadata/actions";
 import {
   getAnnotationsWithAnnotationOptions,
@@ -42,8 +42,7 @@ import {
   getTemplateDraft,
   getTemplateDraftErrors,
 } from "../../state/template/selectors";
-import { Annotation, AnnotationDraft } from "../../state/template/types";
-import { State } from "../../state/types";
+import { AnnotationDraft, AsyncRequest, State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
 import AnnotationListItem from "./AnnotationListItem";

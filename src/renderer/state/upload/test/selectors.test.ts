@@ -11,9 +11,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
-import { AsyncRequest } from "../../feedback/types";
-import { Page } from "../../route/types";
-import { TemplateAnnotation } from "../../template/types";
+import { TemplateAnnotation } from "../../../services/mms-client/types";
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
@@ -40,7 +38,8 @@ import {
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
+import { AsyncRequest, Page, State } from "../../types";
+import { UploadMetadata as UploadMetadataRow } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanGoForwardFromSelectStorageLocationPage,
@@ -58,11 +57,7 @@ import {
   getUploadValidationErrors,
   getUploadWithCalculatedData,
 } from "../selectors";
-import {
-  FileType,
-  MMSAnnotationValueRequest,
-  UploadMetadata as UploadMetadataRow,
-} from "../types";
+import { FileType, MMSAnnotationValueRequest } from "../types";
 
 const orderAnnotationValueRequests = (
   annotations: MMSAnnotationValueRequest[]

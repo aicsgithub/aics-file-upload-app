@@ -5,33 +5,14 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { Workflow } from "../selection/types";
-import { AutoSaveAction, State, WriteToStoreAction } from "../types";
-
-export interface UploadStateBranch {
-  [fullPath: string]: UploadMetadata;
-}
-
-// Think of this group as a composite key. No two rows should have the same combination of these values.
-export interface UploadRowId {
-  channelId?: string;
-  file: string; // fullpath
-  positionIndex?: number;
-  scene?: number;
-  subImageName?: string;
-}
-
-// Metadata associated with a file
-export interface UploadMetadata extends UploadRowId {
-  barcode?: string;
-  notes?: string[]; // only one note expected but we treat this like other custom annotations
-  shouldBeInArchive?: boolean;
-  shouldBeInLocal?: boolean;
-  templateId?: number;
-  [WELL_ANNOTATION_NAME]?: number[];
-  [WORKFLOW_ANNOTATION_NAME]?: string[];
-  [genericKey: string]: any;
-}
+import { Workflow } from "../../services/labkey-client/types";
+import {
+  AutoSaveAction,
+  State,
+  UploadMetadata,
+  UploadRowId,
+  WriteToStoreAction,
+} from "../types";
 
 export interface DisplayUploadStateBranch {
   [fullPath: string]: UploadMetadataWithDisplayFields;

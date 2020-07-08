@@ -1,9 +1,7 @@
 import { includes, last } from "lodash";
 import { createSelector } from "reselect";
 
-import { State } from "../types";
-
-import { AppEvent, AsyncRequest, ModalName } from "./types";
+import { AppEvent, AsyncRequest, ModalName, State } from "../types";
 
 // BASIC SELECTORS
 export const getIsLoading = (state: State) => state.feedback.isLoading;

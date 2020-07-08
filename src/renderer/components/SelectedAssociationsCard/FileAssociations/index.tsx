@@ -3,7 +3,7 @@ import * as classNames from "classnames";
 import { isEmpty } from "lodash";
 import * as React from "react";
 
-import { UploadMetadata } from "../../../state/upload/types";
+import { UploadMetadata } from "../../../state/types";
 
 const styles = require("./style.pcss");
 

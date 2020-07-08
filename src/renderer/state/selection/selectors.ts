@@ -3,6 +3,17 @@ import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
+import {
+  Annotation,
+  ImagingSession,
+  Unit,
+} from "../../services/labkey-client/types";
+import {
+  PlateResponse,
+  Solution,
+  SolutionLot,
+  WellResponse,
+} from "../../services/mms-client/types";
 import { getWellLabel } from "../../util";
 import {
   getAnnotations,
@@ -10,19 +21,13 @@ import {
   getLookupAnnotationTypeId,
   getUnits,
 } from "../metadata/selectors";
-import { ImagingSession, Unit } from "../metadata/types";
-import { Annotation } from "../template/types";
-import { State } from "../types";
-
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
-  PlateResponse,
-  Solution,
-  SolutionLot,
-  Well,
-  WellResponse,
-} from "./types";
+  State,
+} from "../types";
+
+import { Well } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) =>

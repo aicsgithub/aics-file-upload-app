@@ -10,22 +10,20 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import {
   removeRequestFromInProgress,
   setErrorAlert,
 } from "../../feedback/actions";
 import { getAlert, getUploadError } from "../../feedback/selectors";
-import { AlertType, AsyncRequest } from "../../feedback/types";
 import { selectPage } from "../../route/actions";
 import { getPage } from "../../route/selectors";
-import { Page } from "../../route/types";
 import {
   getSelectedBarcode,
   getSelectedFiles,
 } from "../../selection/selectors";
 import { setAppliedTemplate } from "../../template/actions";
-import { ColumnType } from "../../template/types";
 import {
   createMockReduxStore,
   fms,
@@ -48,7 +46,14 @@ import {
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { HTTP_STATUS, State } from "../../types";
+import {
+  AlertType,
+  AsyncRequest,
+  HTTP_STATUS,
+  Page,
+  State,
+  UploadMetadata,
+} from "../../types";
 import {
   applyTemplate,
   associateFilesAndWells,
@@ -75,11 +80,7 @@ import {
   getUpload,
   getUploadSummaryRows,
 } from "../selectors";
-import {
-  UpdateSubImagesPayload,
-  UploadJobTableRow,
-  UploadMetadata,
-} from "../types";
+import { UpdateSubImagesPayload, UploadJobTableRow } from "../types";
 
 describe("Upload logics", () => {
   const sandbox = createSandbox();

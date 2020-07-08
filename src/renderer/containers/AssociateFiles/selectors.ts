@@ -5,13 +5,14 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { Workflow } from "../../services/labkey-client/types";
 import {
   getSelectedWellsWithData,
   getSelectedWorkflows,
 } from "../../state/selection/selectors";
-import { Well, Workflow } from "../../state/selection/types";
+import { Well } from "../../state/selection/types";
+import { UploadMetadata, UploadStateBranch } from "../../state/types";
 import { getUpload } from "../../state/upload/selectors";
-import { UploadMetadata, UploadStateBranch } from "../../state/upload/types";
 
 export const getWellsWithAssociations = createSelector(
   [getUpload],

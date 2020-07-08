@@ -1,6 +1,12 @@
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { Workflow } from "../../services/labkey-client/types";
 import { OpenTemplateEditorAction } from "../feedback/types";
+import {
+  ImagingSessionIdToPlateMap,
+  ImagingSessionIdToWellsMap,
+  UploadFile,
+} from "../types";
 
 import {
   ADD_STAGE_FILES,
@@ -30,8 +36,6 @@ import {
   DeselectFilesAction,
   DragAndDropFileList,
   GetFilesInFolderAction,
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
@@ -46,8 +50,6 @@ import {
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateStagedFilesAction,
-  UploadFile,
-  Workflow,
 } from "./types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
