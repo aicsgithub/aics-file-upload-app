@@ -21,13 +21,13 @@ import {
   getLookupAnnotationTypeId,
   getUnits,
 } from "../metadata/selectors";
-import { State } from "../types";
-
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
-  Well,
-} from "./types";
+  State,
+} from "../types";
+
+import { Well } from "./types";
 
 // BASIC SELECTORS
 export const getSelectedBarcode = (state: State) =>

@@ -73,13 +73,13 @@ import {
   SelectViewAction,
 } from "../../state/route/types";
 import { getStagedFiles } from "../../state/selection/selectors";
-import { UploadFile } from "../../state/selection/types";
 import {
   AsyncRequest,
   JobFilter,
   Page,
   SearchResultRow,
   State,
+  UploadFile,
   UploadMetadata,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";

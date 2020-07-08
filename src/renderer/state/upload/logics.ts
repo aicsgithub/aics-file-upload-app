@@ -66,7 +66,6 @@ import {
   getSelectedWellIds,
   getStagedFiles,
 } from "../selection/selectors";
-import { UploadFile } from "../selection/types";
 import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,
@@ -79,6 +78,7 @@ import {
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
+  UploadFile,
   UploadMetadata,
   UploadRowId,
   UploadStateBranch,

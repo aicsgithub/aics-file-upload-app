@@ -44,11 +44,7 @@ import {
 import { setPlate } from "../state/selection/actions";
 import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
-import {
-  DragAndDropFileList,
-  SetPlateAction,
-  UploadFile,
-} from "../state/selection/types";
+import { DragAndDropFileList, SetPlateAction } from "../state/selection/types";
 import { setAppliedTemplate } from "../state/template/actions";
 import { getAppliedTemplate } from "../state/template/selectors";
 import { SetAppliedTemplateAction } from "../state/template/types";
@@ -59,6 +55,7 @@ import {
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   State,
+  UploadFile,
   UploadMetadata,
   UploadStateBranch,
 } from "../state/types";

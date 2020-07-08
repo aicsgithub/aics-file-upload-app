@@ -27,11 +27,7 @@ import {
   SelectPageAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
-import {
-  SelectBarcodeAction,
-  SelectionStateBranch,
-  SetPlateAction,
-} from "../selection/types";
+import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
 import { clearTemplateDraft } from "../template/actions";
 import {
   SAVE_TEMPLATE,
@@ -245,7 +241,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action: AnyAction
     ): action is OpenSetMountPointNotificationAction =>
       action.type === OPEN_SET_MOUNT_POINT_NOTIFICATION,
-    perform: (state: SelectionStateBranch) => ({
+    perform: (state: FeedbackStateBranch) => ({
       ...state,
       setMountPointNotificationVisible: true,
     }),
@@ -255,7 +251,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action: AnyAction
     ): action is CloseSetMountPointNotificationAction =>
       action.type === CLOSE_SET_MOUNT_POINT_NOTIFICATION,
-    perform: (state: SelectionStateBranch) => ({
+    perform: (state: FeedbackStateBranch) => ({
       ...state,
       setMountPointNotificationVisible: false,
     }),
@@ -561,7 +557,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     accepts: (action: AnyAction): action is SelectPageAction =>
       action.type === SELECT_PAGE,
     perform: (
-      state: SelectionStateBranch,
+      state: FeedbackStateBranch,
       { payload: { nextPage } }: SelectPageAction
     ) => {
       const pagesToShowFolderTree = [

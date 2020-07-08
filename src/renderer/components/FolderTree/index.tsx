@@ -16,9 +16,8 @@ import {
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectFileAction,
-  UploadFile,
 } from "../../state/selection/types";
-import { AlertType } from "../../state/types";
+import { AlertType, UploadFile } from "../../state/types";
 import {
   undoFileWellAssociation,
   undoFileWorkflowAssociation,

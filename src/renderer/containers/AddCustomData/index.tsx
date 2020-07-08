@@ -42,7 +42,6 @@ import {
   getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
 import {
-  ExpandedRows,
   ToggleExpandedUploadJobRowAction,
   Well,
 } from "../../state/selection/types";
@@ -54,7 +53,7 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AsyncRequest, Page, State } from "../../state/types";
+import { AsyncRequest, ExpandedRows, Page, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,

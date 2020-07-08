@@ -28,17 +28,15 @@ import {
   TemplateAnnotation,
 } from "../../services/mms-client/types";
 import { SearchResultsHeader } from "../metadata/types";
-import {
-  ImagingSessionIdToPlateMap,
-  ImagingSessionIdToWellsMap,
-  SelectionStateBranch,
-  Well,
-} from "../selection/types";
+import { Well } from "../selection/types";
 import {
   AnnotationDraft,
+  ImagingSessionIdToPlateMap,
+  ImagingSessionIdToWellsMap,
   JobFilter,
   JobStateBranch,
   Page,
+  SelectionStateBranch,
   State,
   TemplateDraft,
   TemplateStateBranch,

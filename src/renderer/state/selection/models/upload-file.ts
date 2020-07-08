@@ -3,7 +3,7 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
 import { canUserRead } from "../../../util";
-import { UploadFile } from "../types";
+import { UploadFile } from "../../types";
 
 const readdir = promisify(fsReaddir);
 const stat = promisify(fsStat);

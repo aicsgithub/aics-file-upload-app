@@ -6,6 +6,7 @@ import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
+import { GridCell } from "../components/AssociateWells/grid-cell";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
 import { LocalStorage, MMSClient } from "../services";
 import LabkeyClient from "../services/labkey-client";
@@ -24,9 +25,12 @@ import {
   Unit,
   Workflow,
 } from "../services/labkey-client/types";
-import { Template } from "../services/mms-client/types";
+import {
+  PlateResponse,
+  Template,
+  WellResponse,
+} from "../services/mms-client/types";
 
-import { SelectionStateBranch } from "./selection/types";
 import { SettingStateBranch } from "./setting/types";
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
@@ -261,6 +265,56 @@ export enum Page {
 export interface RouteStateBranch {
   page: Page;
   view: Page;
+}
+
+export interface ExpandedRows {
+  [rowKey: string]: boolean;
+}
+
+export interface SelectionStateBranch extends UploadTabSelections {
+  annotation: string;
+  barcode?: string;
+  expandedUploadJobRows: ExpandedRows;
+  files: string[];
+  imagingSessionId?: number;
+  imagingSessionIds: Array<number | null>;
+  plate: ImagingSessionIdToPlateMap;
+  wells: ImagingSessionIdToWellsMap;
+  selectedWells: GridCell[];
+  selectedWorkflows: Workflow[];
+  stagedFiles: UploadFile[];
+  user: string;
+}
+
+export interface UploadTabSelections {
+  barcode?: string;
+  expandedUploadJobRows: ExpandedRows;
+  imagingSessionId?: number;
+  imagingSessionIds: Array<number | null>;
+  job?: JSSJob;
+  plate: ImagingSessionIdToPlateMap;
+  wells: ImagingSessionIdToWellsMap;
+  selectedWells: GridCell[];
+  selectedWorkflows: Workflow[];
+  stagedFiles: UploadFile[];
+}
+
+export interface ImagingSessionIdToPlateMap {
+  [imagingSessionId: number]: PlateResponse;
+}
+
+export interface ImagingSessionIdToWellsMap {
+  [imagingSessionId: number]: WellResponse[];
+}
+
+export interface UploadFile {
+  name: string;
+  path: string;
+  files: UploadFile[];
+  fullPath: string;
+  canRead: boolean;
+  isDirectory: boolean;
+  loadFiles(): Promise<Array<Promise<UploadFile>>>;
 }
 
 export interface AnnotationDraft {

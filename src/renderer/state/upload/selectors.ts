@@ -59,13 +59,18 @@ import {
   getExpandedUploadJobRows,
   getSelectedJob,
 } from "../selection/selectors";
-import { ExpandedRows } from "../selection/types";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import { Page, State, UploadMetadata, UploadStateBranch } from "../types";
+import {
+  ExpandedRows,
+  Page,
+  State,
+  UploadMetadata,
+  UploadStateBranch,
+} from "../types";
 
 import {
   getUploadRowKey,

@@ -45,6 +45,8 @@ import {
   AsyncRequest,
   HTTP_STATUS,
   Page,
+  SelectionStateBranch,
+  UploadFile,
 } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
@@ -60,12 +62,7 @@ import {
   getStagedFiles,
   getWells,
 } from "../selectors";
-import {
-  DragAndDropFileList,
-  SelectionStateBranch,
-  UploadFile,
-  Well,
-} from "../types";
+import { DragAndDropFileList, Well } from "../types";
 
 describe("Selection logics", () => {
   const sandbox = createSandbox();

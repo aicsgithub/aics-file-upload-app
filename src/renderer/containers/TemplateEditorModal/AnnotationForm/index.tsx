@@ -13,7 +13,7 @@ import {
   ColumnType,
   Lookup,
 } from "../../../services/labkey-client/types";
-import { AnnotationDraft } from "../../../state/template/types";
+import { AnnotationDraft } from "../../../state/types";
 import { titleCase } from "../../../util";
 
 const styles = require("./styles.pcss");

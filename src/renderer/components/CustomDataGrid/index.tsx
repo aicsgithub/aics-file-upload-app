@@ -24,11 +24,10 @@ import {
 import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import { SetAlertAction } from "../../state/feedback/types";
 import {
-  ExpandedRows,
   ToggleExpandedUploadJobRowAction,
   Well,
 } from "../../state/selection/types";
-import { AlertType, UploadMetadata } from "../../state/types";
+import { AlertType, ExpandedRows, UploadMetadata } from "../../state/types";
 import {
   getUploadRowKey,
   getUploadRowKeyFromUploadTableRow,

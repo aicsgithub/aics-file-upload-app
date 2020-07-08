@@ -1,67 +1,16 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { Workflow } from "../../services/labkey-client/types";
+import { CellPopulation, Solution } from "../../services/mms-client/types";
 import {
-  CellPopulation,
-  PlateResponse,
-  Solution,
-  WellResponse,
-} from "../../services/mms-client/types";
-import { AutoSaveAction, MetadataStateBranch } from "../types";
-
-export interface SelectionStateBranch extends UploadTabSelections {
-  annotation: string;
-  barcode?: string;
-  expandedUploadJobRows: ExpandedRows;
-  files: string[];
-  imagingSessionId?: number;
-  imagingSessionIds: Array<number | null>;
-  plate: ImagingSessionIdToPlateMap;
-  wells: ImagingSessionIdToWellsMap;
-  selectedWells: GridCell[];
-  selectedWorkflows: Workflow[];
-  stagedFiles: UploadFile[];
-  user: string;
-}
-
-export interface UploadTabSelections {
-  barcode?: string;
-  expandedUploadJobRows: ExpandedRows;
-  imagingSessionId?: number;
-  imagingSessionIds: Array<number | null>;
-  job?: JSSJob;
-  plate: ImagingSessionIdToPlateMap;
-  wells: ImagingSessionIdToWellsMap;
-  selectedWells: GridCell[];
-  selectedWorkflows: Workflow[];
-  stagedFiles: UploadFile[];
-}
-
-export interface ImagingSessionIdToPlateMap {
-  [imagingSessionId: number]: PlateResponse;
-}
-
-export interface ImagingSessionIdToWellsMap {
-  [imagingSessionId: number]: WellResponse[];
-}
-
-export interface UploadFile {
-  name: string;
-  path: string;
-  files: UploadFile[];
-  fullPath: string;
-  canRead: boolean;
-  isDirectory: boolean;
-  loadFiles(): Promise<Array<Promise<UploadFile>>>;
-}
+  AutoSaveAction,
+  ImagingSessionIdToPlateMap,
+  ImagingSessionIdToWellsMap,
+  MetadataStateBranch,
+  UploadFile,
+} from "../types";
 
 export interface DeselectFilesAction {
   type: string;
-}
-
-export interface ExpandedRows {
-  [rowKey: string]: boolean;
 }
 
 export interface SelectFileAction {

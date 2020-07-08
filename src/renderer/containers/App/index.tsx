@@ -57,7 +57,6 @@ import {
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectFileAction,
-  UploadFile,
 } from "../../state/selection/types";
 import {
   gatherSettings,
@@ -72,7 +71,14 @@ import {
   SwitchEnvironmentAction,
   UpdateSettingsAction,
 } from "../../state/setting/types";
-import { AlertType, AppAlert, AppEvent, Page, State } from "../../state/types";
+import {
+  AlertType,
+  AppAlert,
+  AppEvent,
+  Page,
+  State,
+  UploadFile,
+} from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,

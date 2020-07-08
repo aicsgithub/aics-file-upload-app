@@ -24,6 +24,7 @@ import {
   ReduxLogicProcessDependencies,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
+  UploadFile,
 } from "../types";
 import { clearUpload } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
@@ -49,7 +50,7 @@ import {
   getStagedFiles,
   getWellsWithModified,
 } from "./selectors";
-import { DragAndDropFileList, UploadFile } from "./types";
+import { DragAndDropFileList } from "./types";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,
