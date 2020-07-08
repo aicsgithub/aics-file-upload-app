@@ -36,9 +36,12 @@ class WellInfo extends React.Component<WellInfoProps, []> {
 
     return (
       <div className={classNames(styles.container, className)}>
-        <CellPopulations cellPopulations={cellPopulations} />
+        <CellPopulations
+          cellPopulations={cellPopulations}
+          nullText={NULL_TEXT}
+        />
         {!isEmpty(solutions) && <Divider />}
-        <Solutions solutions={solutions} />
+        <Solutions solutions={solutions} nullText={NULL_TEXT} />
       </div>
     );
   }
