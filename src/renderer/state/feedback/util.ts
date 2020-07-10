@@ -1,16 +1,26 @@
-// need a promise based timeout
 import { HTTP_STATUS, ReduxLogicNextCb } from "../types";
 
 import { setSuccessAlert, setWarningAlert } from "./actions";
 
-const timeout = (ms: number) =>
-  new Promise((resolve: () => void) => setTimeout(resolve, ms));
-export const SERVICE_IS_DOWN_MESSAGE2 = `Could not contact server. Make sure services are running.`;
-export const SERVICE_MIGHT_BE_DOWN_MESSAGE2 =
+// need a promise based timeout
+export const timeout = (ms: number) =>
+  new Promise((resolve: () => void) => {
+    setTimeout(resolve, ms);
+  });
+const SERVICE_IS_DOWN_MESSAGE2 = `Could not contact server. Make sure services are running.`;
+const SERVICE_MIGHT_BE_DOWN_MESSAGE2 =
   "Services might be down. Retrying request...";
 const CANNOT_FIND_ADDRESS = "ENOTFOUND";
 const RETRY_INTERVAL = 10000; // ms
 const NUM_TRIES = 5;
+
+/**
+ * Wrapper for async requests that retries non-OK requests related to VPN issues and service deployments
+ * Dispatches warning if it needs to retry and success if it retried and succeeded before reaching 5 tries
+ * Waits 10 sec between tries
+ * @param request function that returns a promise
+ * @param dispatch Redux Logic dispatch call back (must be in process)
+ */
 export async function getWithRetry2<T = any>(
   request: () => Promise<T>,
   dispatch: ReduxLogicNextCb
@@ -19,8 +29,9 @@ export async function getWithRetry2<T = any>(
   let sentRetryAlert = false;
   let response: T | undefined;
   let error: string | undefined;
+  let receivedNonRetryableError = false;
 
-  while (triesLeft > 0 && !response) {
+  while (triesLeft > 0 && !response && !receivedNonRetryableError) {
     try {
       triesLeft--;
       response = await request();
@@ -41,6 +52,7 @@ export async function getWithRetry2<T = any>(
         }
         await timeout(RETRY_INTERVAL);
       } else {
+        receivedNonRetryableError = true;
         error = e.message;
       }
     }
