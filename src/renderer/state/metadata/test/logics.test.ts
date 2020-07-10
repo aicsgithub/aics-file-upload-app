@@ -1,12 +1,20 @@
 import { expect } from "chai";
-import { get } from "lodash";
-import { createSandbox, stub } from "sinon";
+import { AnyAction } from "redux";
+import { createSandbox, SinonStub, stub } from "sinon";
 
+import { WELL_ANNOTATION_NAME } from "../../../constants";
+import {
+  LabkeyPlateResponse,
+  LabkeyTemplate,
+} from "../../../services/labkey-client/types";
+import { requestFailed } from "../../actions";
 import { getAlert } from "../../feedback/selectors";
 import {
   createMockReduxStore,
   fms,
+  ipcRenderer,
   labkeyClient,
+  mmsClient,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -16,7 +24,7 @@ import {
   mockAnnotationTypes,
   mockAuditInfo,
   mockBarcodePrefixes,
-  mockChannels,
+  mockChannel,
   mockImagingSessions,
   mockLookupOptions,
   mockLookups,
@@ -27,8 +35,10 @@ import {
   mockUsers,
   mockWellAnnotation,
 } from "../../test/mocks";
-import { AlertType } from "../../types";
+import { AsyncRequest } from "../../types";
 import {
+  createBarcode,
+  receiveMetadata,
   requestAnnotations,
   requestBarcodeSearchResults,
   requestFileMetadataForJob,
@@ -38,37 +48,84 @@ import {
   searchFileMetadata,
 } from "../actions";
 import {
-  getAnnotationLookups,
-  getAnnotationOptions,
-  getAnnotations,
-  getAnnotationTypes,
-  getBarcodePrefixes,
   getBarcodeSearchResults,
-  getChannels,
   getFileMetadataForJob,
   getFileMetadataSearchResults,
-  getImagingSessions,
-  getLookups,
-  getMetadata,
-  getTemplates,
-  getUnits,
-  getUsers,
-  getWorkflowOptions,
 } from "../selectors";
 
 describe("Metadata logics", () => {
   const sandbox = createSandbox();
+  const prefix = Object.freeze({
+    description: "some prefix",
+    prefixId: 1,
+    prefix: "AD",
+  });
 
   afterEach(() => {
     sandbox.restore();
   });
 
+  const runRequestFailedTest = async (
+    actionToDispatch: AnyAction,
+    error: string,
+    requestType: AsyncRequest | string,
+    state = mockState
+  ) => {
+    const { actions, logicMiddleware, store } = createMockReduxStore(state);
+    store.dispatch(actionToDispatch);
+    await logicMiddleware.whenComplete();
+
+    expect(actions.includesMatch(requestFailed(error, requestType))).to.be.true;
+  };
+
+  const runRequestSucceededTest = async (
+    actionToDispatch: AnyAction,
+    expectedAction: AnyAction,
+    state = mockState
+  ) => {
+    const { actions, logicMiddleware, store } = createMockReduxStore(state);
+    expect(actions.includesMatch(expectedAction)).to.be.false;
+
+    store.dispatch(actionToDispatch);
+
+    await logicMiddleware.whenComplete();
+    expect(actions.includesMatch(expectedAction)).to.be.true;
+  };
+
+  describe("createBarcodeLogic", () => {
+    let sendStub: SinonStub;
+
+    beforeEach(() => {
+      sendStub = stub();
+      sandbox.replace(ipcRenderer, "send", sendStub);
+    });
+    it("sends a event on the OPEN_CREATE_PLATE_STANDALONE channel if it successfully creates a barcode", async () => {
+      const createBarcodeStub = stub().resolves("fake");
+      sandbox.replace(mmsClient, "createBarcode", createBarcodeStub);
+      const { logicMiddleware, store } = createMockReduxStore();
+      store.dispatch(createBarcode(prefix));
+      await logicMiddleware.whenComplete();
+
+      expect(sendStub.called).to.be.true;
+    });
+    it("dispatches requestFailed if request fails", async () => {
+      const createBarcodeStub = stub().rejects(new Error("foo"));
+      sandbox.replace(mmsClient, "createBarcode", createBarcodeStub);
+      await runRequestFailedTest(
+        createBarcode(prefix),
+        "Could not create barcode: foo",
+        AsyncRequest.CREATE_BARCODE
+      );
+      expect(sendStub.called).to.be.false;
+    });
+  });
   describe("requestMetadata", () => {
     it("sets metadata given OK response", async () => {
+      const channels = [mockChannel];
       const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
       const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
       const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
-      const getChannelsStub = stub().resolves(mockChannels);
+      const getChannelsStub = stub().resolves(channels);
       const getImagingSessionsStub = stub().resolves(mockImagingSessions);
       const getLookupsStub = stub().resolves(mockLookups);
       const getUnitsStub = stub().resolves([mockUnit]);
@@ -101,62 +158,31 @@ describe("Metadata logics", () => {
       sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
       sandbox.replace(labkeyClient, "getUsers", getUsersStub);
 
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getAnnotationLookups(state)).to.be.empty;
-      expect(getAnnotationTypes(state)).to.be.empty;
-      expect(getBarcodePrefixes(state)).to.be.empty;
-      expect(getChannels(state)).to.be.empty;
-      expect(getImagingSessions(state)).to.be.empty;
-      expect(getLookups(state)).to.be.empty;
-      expect(getUnits(state)).to.be.empty;
-      expect(getWorkflowOptions(state)).to.be.empty;
-      expect(getUsers(state)).to.be.empty;
-
-      store.dispatch(requestMetadata());
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAnnotationLookups(state)).to.not.be.empty;
-      expect(getAnnotationTypes(state)).to.not.be.empty;
-      expect(getBarcodePrefixes(state)).to.not.be.empty;
-      expect(getChannels(state)).to.not.be.empty;
-      expect(getImagingSessions(state)).to.not.be.empty;
-      expect(getLookups(state)).to.not.be.empty;
-      expect(getUnits(state)).to.not.be.empty;
-      expect(getWorkflowOptions(state)).to.not.be.empty;
-      expect(getUsers(state)).to.not.be.empty;
+      const expectedAction = receiveMetadata({
+        annotationLookups: mockAnnotationLookups,
+        annotationTypes: mockAnnotationTypes,
+        barcodePrefixes: mockBarcodePrefixes,
+        channels: channels,
+        imagingSessions: mockImagingSessions,
+        lookups: mockLookups,
+        units: [mockUnit],
+        workflowOptions: mockSelectedWorkflows,
+        users: mockUsers,
+      });
+      await runRequestSucceededTest(requestMetadata(), expectedAction);
     });
-    it("sets alert given non-OK response", async () => {
-      const getImagingSessionsStub = stub().rejects(
-        "Failed to retrieve metadata"
-      );
+    it("dispatches requestFailed given non-OK response", async () => {
+      const getImagingSessionsStub = stub().rejects(new Error("foo"));
       sandbox.replace(
         labkeyClient,
         "getImagingSessions",
         getImagingSessionsStub
       );
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      await runRequestFailedTest(
+        requestMetadata(),
+        "Failed to retrieve metadata: foo",
+        AsyncRequest.GET_METADATA
       );
-
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
-      store.dispatch(requestMetadata());
-
-      // after
-      await logicMiddleware.whenComplete();
-      const alert = getAlert(store.getState());
-      expect(alert).to.not.be.undefined;
-      expect(get(alert, "type")).to.equal(AlertType.ERROR);
-      expect(get(alert, "message")).to.contain("Failed to retrieve metadata.");
     });
   });
   describe("requestAnnotations", () => {
@@ -169,74 +195,45 @@ describe("Metadata logics", () => {
         "getAnnotationOptions",
         getAnnotationOptionsStub
       );
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      await runRequestSucceededTest(
+        requestAnnotations(),
+        receiveMetadata(
+          {
+            annotations: mockAnnotations,
+            annotationOptions: mockAnnotationOptions,
+          },
+          AsyncRequest.GET_ANNOTATIONS
+        )
       );
-
-      let state = store.getState();
-      expect(getAnnotations(state)).to.be.empty;
-      expect(getAnnotationOptions(state)).to.be.empty;
-
-      store.dispatch(requestAnnotations());
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAnnotations(state)).to.not.be.empty;
-      expect(getAnnotationOptions(state)).to.not.be.empty;
     });
-    it("sets alert given not OK response", async () => {
-      const getAnnotationsStub = stub().rejects();
+    it("dispatches requestFailed given not OK response", async () => {
+      const getAnnotationsStub = stub().rejects(new Error("foo"));
       sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      await runRequestFailedTest(
+        requestAnnotations(),
+        "Could not retrieve annotations: foo",
+        AsyncRequest.GET_ANNOTATIONS
       );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(requestAnnotations());
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
     });
   });
   describe("requestTemplates", () => {
     it("sets templates given OK response", async () => {
+      const templates: LabkeyTemplate[] = [];
       const getTemplatesStub = stub().resolves(mockAnnotations);
       sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      await runRequestSucceededTest(
+        requestTemplates(),
+        receiveMetadata({ templates }, AsyncRequest.GET_TEMPLATES)
       );
-
-      let state = store.getState();
-      expect(getAnnotations(state)).to.be.empty;
-
-      store.dispatch(requestTemplates());
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getTemplates(state)).to.not.be.empty;
     });
-    it("sets templates given not OK response", async () => {
-      const getTemplatesStub = stub().rejects();
+    it("dispatches requestFailed given non-ok response", async () => {
+      const getTemplatesStub = stub().rejects(new Error("foo"));
       sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      await runRequestFailedTest(
+        requestTemplates(),
+        "Could not retrieve templates: foo",
+        AsyncRequest.GET_TEMPLATES
       );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(requestTemplates());
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
     });
   });
   describe("requestOptionsForLookup", () => {
@@ -263,80 +260,40 @@ describe("Metadata logics", () => {
     it("sets lookupOptions given OK response", async () => {
       const getOptionsStub = stub().resolves(mockLookupOptions);
       sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockStateWithAnnotations,
-        mockReduxLogicDeps
+      await runRequestSucceededTest(
+        retrieveOptionsForLookup(WELL_ANNOTATION_NAME),
+        receiveMetadata(
+          { Well: mockLookupOptions },
+          AsyncRequest.GET_OPTIONS_FOR_LOOKUP
+        ),
+        mockStateWithAnnotations
       );
-
-      let state = store.getState();
-      expect(getMetadata(state).Well).to.be.undefined;
-
-      store.dispatch(retrieveOptionsForLookup("Well"));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getMetadata(state).Well).to.not.be.empty;
     });
-    it("sets lookupOptions given not OK response", async () => {
-      const getOptionsStub = stub().rejects();
+    it("dispatches requestFailed given not OK response", async () => {
+      const getOptionsStub = stub().rejects(new Error("foo"));
       sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockStateWithAnnotations,
-        mockReduxLogicDeps
+      await runRequestFailedTest(
+        retrieveOptionsForLookup("Well"),
+        "Could not retrieve options for lookup annotation: foo",
+        AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
+        mockStateWithAnnotations
       );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(retrieveOptionsForLookup("Well"));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
     });
-    it("sets error alert if annotation name is not defined", async () => {
-      const getOptionsStub = stub().rejects();
+    it("dispatches requestFailed if annotation's lookup not found", async () => {
+      const getOptionsStub = stub().resolves([]);
       sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockStateWithAnnotations,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(retrieveOptionsForLookup(""));
-      await logicMiddleware.whenComplete();
-
-      state = store.getState();
-      const alert = getAlert(state);
-      expect(alert).to.not.be.undefined;
-      if (alert) {
-        expect(alert.type).to.equal(AlertType.ERROR);
-      }
-    });
-    it("sets error alert if annotation's lookup not found", async () => {
-      const getOptionsStub = stub().rejects();
-      sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
-      const { logicMiddleware, store } = createMockReduxStore(
+      await runRequestFailedTest(
+        retrieveOptionsForLookup("Well"),
+        "Could not retrieve options for lookup: could not find lookup. Contact Software.",
+        AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
         {
           ...mockStateWithAnnotations,
           metadata: {
             ...mockStateWithAnnotations.metadata,
             lookups: [],
           },
-        },
-        mockReduxLogicDeps
+        }
       );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(retrieveOptionsForLookup("Well"));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
     });
   });
   describe("searchFileMetadataLogic", () => {
@@ -494,49 +451,35 @@ describe("Metadata logics", () => {
     });
   });
   describe("getBarcodeSearchResults", () => {
-    it("sets barcodeSearchResults given good request", async () => {
-      const getPlatesByBarcodeStub = stub().resolves([{}]);
+    it("dispatches receiveMetadata given good request", async () => {
+      const barcodeSearchResults: LabkeyPlateResponse[] = [];
+      const getPlatesByBarcodeStub = stub().resolves(barcodeSearchResults);
       sandbox.replace(
         labkeyClient,
         "getPlatesByBarcode",
         getPlatesByBarcodeStub
       );
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      const expectedAction = receiveMetadata(
+        { barcodeSearchResults },
+        AsyncRequest.GET_BARCODE_SEARCH_RESULTS
       );
-
-      // before
-      expect(getBarcodeSearchResults(store.getState())).to.be.empty;
-
-      // apply
-      store.dispatch(requestBarcodeSearchResults("35"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(getBarcodeSearchResults(store.getState())).to.not.be.empty;
+      await runRequestSucceededTest(
+        requestBarcodeSearchResults("35"),
+        expectedAction
+      );
     });
-    it("sets error alert given bad request", async () => {
-      const getPlatesByBarcodeStub = stub().rejects();
+    it("dispatches requestFailed given bad request", async () => {
+      const getPlatesByBarcodeStub = stub().rejects(new Error("foo"));
       sandbox.replace(
         labkeyClient,
         "getPlatesByBarcode",
         getPlatesByBarcodeStub
       );
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
+      await runRequestFailedTest(
+        requestBarcodeSearchResults("35"),
+        "Could not retrieve barcode search results: foo",
+        AsyncRequest.GET_BARCODE_SEARCH_RESULTS
       );
-
-      // before
-      expect(getAlert(store.getState())).to.be.undefined;
-
-      // apply
-      store.dispatch(requestBarcodeSearchResults("35"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(getAlert(store.getState())).to.not.be.undefined;
     });
     it("doesn't request data if payload is empty", async () => {
       const getPlatesByBarcodeStub = stub().rejects();

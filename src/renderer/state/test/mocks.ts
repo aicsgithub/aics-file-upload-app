@@ -16,11 +16,11 @@ import {
   Channel,
   ColumnType,
   LabkeyChannel,
-  LabkeyImagingSession,
-  LabKeyPlateBarcodePrefix,
   Lookup,
   Unit,
   Workflow,
+  ImagingSession,
+  BarcodePrefix,
 } from "../../services/labkey-client/types";
 import {
   CellPopulation,
@@ -709,11 +709,11 @@ export const mockTemplateDraft: TemplateDraft = {
 
 export const mockAnnotationLookups: AnnotationLookup[] = [
   {
-    annotationId: 1,
+    annotationId: mockWellAnnotation.annotationId,
     lookupId: 1,
   },
   {
-    annotationId: 2,
+    annotationId: mockWorkflowAnnotation.annotationId,
     lookupId: 2,
   },
 ];
@@ -726,29 +726,29 @@ export const mockAnnotationOptions: AnnotationOption[] = [
   },
 ];
 
-export const mockImagingSessions: LabkeyImagingSession[] = [
+export const mockImagingSessions: ImagingSession[] = [
   {
-    Description: "",
-    ImagingSessionId: 1,
-    Name: "1 Week",
+    description: "",
+    imagingSessionId: 1,
+    name: "1 Week",
   },
   {
-    Description: "",
-    ImagingSessionId: 2,
-    Name: "2 Weeks",
+    description: "",
+    imagingSessionId: 2,
+    name: "2 Weeks",
   },
 ];
 
-export const mockBarcodePrefixes: LabKeyPlateBarcodePrefix[] = [
+export const mockBarcodePrefixes: BarcodePrefix[] = [
   {
-    PlateBarcodePrefixId: 1,
-    Prefix: "AX",
-    TeamName: "Assay Dev",
+    description: "Assay Dev",
+    prefix: "AD",
+    prefixId: 1,
   },
   {
-    PlateBarcodePrefixId: 2,
-    Prefix: "MX",
-    TeamName: "Microscopy",
+    description: "Microscopy",
+    prefix: "MI",
+    prefixId: 2,
   },
 ];
 
@@ -787,6 +787,7 @@ export const nonEmptyStateForInitiatingUpload: State = {
   ...mockState,
   metadata: {
     ...mockState.metadata,
+    annotationLookups: mockAnnotationLookups,
     annotationOptions: mockAnnotationOptions,
     annotationTypes: mockAnnotationTypes,
     annotations: mockAnnotations,
@@ -795,6 +796,7 @@ export const nonEmptyStateForInitiatingUpload: State = {
       modified: new Date(),
       name: "foo",
     },
+    lookups: mockLookups,
   },
   selection: getMockStateWithHistory({
     ...mockState.selection.present,

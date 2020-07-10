@@ -323,7 +323,7 @@ function mapStateToProps(state: State) {
     loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
     loadingFileMetadata: getRequestsInProgressContains(
       state,
-      AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+      AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
     savedTemplateId: getTemplateId(state),
     selectedBarcode: getSelectedBarcode(state),

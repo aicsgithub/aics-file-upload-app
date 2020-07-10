@@ -227,13 +227,13 @@ describe("General utilities", () => {
       const dispatchSpy = spy();
       await getWithRetry(
         request,
-        AsyncRequest.REQUEST_METADATA,
+        AsyncRequest.GET_METADATA,
         dispatchSpy,
         "Service"
       );
       expect(
         dispatchSpy.calledWith(
-          addRequestToInProgress(AsyncRequest.REQUEST_METADATA)
+          addRequestToInProgress(AsyncRequest.GET_METADATA)
         )
       ).to.be.true;
     });
@@ -243,13 +243,13 @@ describe("General utilities", () => {
       const dispatchSpy = spy();
       await getWithRetry(
         request,
-        AsyncRequest.REQUEST_METADATA,
+        AsyncRequest.GET_METADATA,
         dispatchSpy,
         "Service"
       );
       expect(
         dispatchSpy.calledWith(
-          removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA)
+          removeRequestFromInProgress(AsyncRequest.GET_METADATA)
         )
       ).to.be.true;
     });
@@ -262,7 +262,7 @@ describe("General utilities", () => {
       try {
         await getWithRetry(
           request,
-          AsyncRequest.REQUEST_METADATA,
+          AsyncRequest.GET_METADATA,
           spy(),
           "Service",
           genericError,
@@ -270,7 +270,7 @@ describe("General utilities", () => {
         );
       } catch (e) {
         const expectedActions = [
-          removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA),
+          removeRequestFromInProgress(AsyncRequest.GET_METADATA),
           setAlert({
             message: genericError,
             type: AlertType.ERROR,
@@ -291,7 +291,7 @@ describe("General utilities", () => {
       try {
         await getWithRetry(
           request,
-          AsyncRequest.REQUEST_METADATA,
+          AsyncRequest.GET_METADATA,
           spy(),
           "Service"
         );
@@ -312,7 +312,7 @@ describe("General utilities", () => {
       try {
         await getWithRetry(
           request,
-          AsyncRequest.REQUEST_METADATA,
+          AsyncRequest.GET_METADATA,
           spy(),
           "Service"
         );
@@ -345,7 +345,7 @@ describe("General utilities", () => {
       try {
         await getWithRetry(
           getStub,
-          AsyncRequest.REQUEST_METADATA,
+          AsyncRequest.GET_METADATA,
           dispatchSpy,
           "Service"
         );
@@ -386,7 +386,7 @@ describe("General utilities", () => {
       try {
         await getWithRetry(
           getStub,
-          AsyncRequest.REQUEST_METADATA,
+          AsyncRequest.GET_METADATA,
           dispatchSpy,
           "Service"
         );
@@ -417,7 +417,7 @@ describe("General utilities", () => {
 
       await getWithRetry(
         getStub,
-        AsyncRequest.REQUEST_METADATA,
+        AsyncRequest.GET_METADATA,
         dispatchSpy,
         "Service",
         undefined,
@@ -436,7 +436,7 @@ describe("General utilities", () => {
       expect(
         batchActionsSpy.calledWith([
           clearAlert(),
-          removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA),
+          removeRequestFromInProgress(AsyncRequest.GET_METADATA),
         ])
       );
     });
@@ -454,7 +454,7 @@ describe("General utilities", () => {
 
       await getWithRetry(
         getStub,
-        AsyncRequest.REQUEST_METADATA,
+        AsyncRequest.GET_METADATA,
         dispatchSpy,
         "Service",
         undefined,
@@ -473,7 +473,7 @@ describe("General utilities", () => {
       expect(
         batchActionsSpy.calledWith([
           clearAlert(),
-          removeRequestFromInProgress(AsyncRequest.REQUEST_METADATA),
+          removeRequestFromInProgress(AsyncRequest.GET_METADATA),
         ])
       );
     });

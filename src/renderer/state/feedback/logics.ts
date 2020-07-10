@@ -2,7 +2,6 @@ import { createLogic } from "redux-logic";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { TemplateAnnotation } from "../../services/mms-client/types";
-import { getWithRetry } from "../../util";
 import { getAnnotationTypes } from "../metadata/selectors";
 import {
   clearTemplateDraft,
@@ -10,7 +9,6 @@ import {
   startTemplateDraftFailed,
 } from "../template/actions";
 import {
-  AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -21,6 +19,7 @@ import { clearDeferredAction } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
 import { OpenTemplateEditorAction } from "./types";
+import { getWithRetry2 } from "./util";
 
 const openTemplateEditorLogic = createLogic({
   process: async (
@@ -37,16 +36,13 @@ const openTemplateEditorLogic = createLogic({
     if (typeof templateId === "number") {
       const annotationTypes = getAnnotationTypes(getState());
       try {
-        const [template, hasBeenUsed] = await getWithRetry(
+        const [template, hasBeenUsed] = await getWithRetry2(
           () =>
             Promise.all([
               mmsClient.getTemplate(templateId),
               labkeyClient.getTemplateHasBeenUsed(templateId),
             ]),
-          AsyncRequest.GET_TEMPLATE,
-          dispatch,
-          "MMS",
-          "Could not retrieve template"
+          dispatch
         );
         const { annotations, ...etc } = template;
         dispatch(

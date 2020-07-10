@@ -13,7 +13,6 @@ import MMSClient from "../../services/mms-client";
 import {
   getSetAppliedTemplateAction,
   getSetPlateAction,
-  getWithRetry,
   ensureDraftGetsSaved,
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
@@ -22,6 +21,7 @@ import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
+import { getWithRetry2 } from "../feedback/util";
 import { updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,
@@ -39,12 +39,7 @@ import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
-import {
-  AsyncRequest,
-  Page,
-  UploadMetadata,
-  UploadStateBranch,
-} from "../types";
+import { Page, UploadMetadata, UploadStateBranch } from "../types";
 import {
   Logger,
   ReduxLogicDoneCb,
@@ -469,12 +464,7 @@ const openEditFileMetadataTabLogic = createLogic({
     let fileMetadataForJob: ImageModelMetadata[];
     const request = () => retrieveFileMetadata(fileIds, fms);
     try {
-      fileMetadataForJob = await getWithRetry(
-        request,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
-        dispatch,
-        "MMS"
-      );
+      fileMetadataForJob = await getWithRetry2(request, dispatch);
     } catch (e) {
       const error = `Could not retrieve file metadata for fileIds=${fileIds.join(
         ", "

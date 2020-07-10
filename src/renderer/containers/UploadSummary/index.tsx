@@ -462,7 +462,7 @@ function mapStateToProps(state: State) {
     fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
     fileMetadataForJobLoading: getRequestsInProgressContains(
       state,
-      AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+      AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
     files: getStagedFiles(state),
     isPolling: getIsPolling(state),

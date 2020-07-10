@@ -1,3 +1,4 @@
+export const REQUEST_FAILED = "REQUEST_FAILED";
 export const FAILED_STATUS = "FAILED";
 export const IN_PROGRESS_STATUSES = [
   "WORKING",

@@ -5,8 +5,7 @@ import {
   FileToFileMetadata,
   ImageModelMetadata,
 } from "@aics/aicsfiles/type-declarations/types";
-import { ipcRenderer } from "electron";
-import { isEmpty, sortBy, trim } from "lodash";
+import { isEmpty, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -16,25 +15,21 @@ import {
   AnnotationLookup,
   Lookup,
 } from "../../services/labkey-client/types";
-import { getWithRetry, retrieveFileMetadata } from "../../util";
+import { retrieveFileMetadata } from "../../util";
+import { requestFailed } from "../actions";
+import { setErrorAlert } from "../feedback/actions";
+import { getWithRetry2 } from "../feedback/util";
 import {
-  addRequestToInProgress,
-  removeRequestFromInProgress,
-  setAlert,
-  setErrorAlert,
-} from "../feedback/actions";
-import {
-  AlertType,
   AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
 } from "../types";
-import { batchActions } from "../util";
 
-import { receiveFileMetadata, receiveMetadata } from "./actions";
+import { receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,
   EXPORT_FILE_METADATA,
@@ -52,11 +47,19 @@ import {
   getLookups,
   getSearchResultsHeader,
 } from "./selectors";
+import { GetOptionsForLookupAction } from "./types";
 
 const createBarcodeLogic = createLogic({
-  transform: async (
-    { getState, action, mmsClient }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb
+  process: async (
+    {
+      action,
+      getState,
+      ipcRenderer,
+      logger,
+      mmsClient,
+    }: ReduxLogicTransformDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
   ) => {
     try {
       const {
@@ -71,15 +74,12 @@ const createBarcodeLogic = createLogic({
         barcode,
         prefix
       );
-      next(action);
     } catch (ex) {
-      next(
-        setAlert({
-          message: "Could not create barcode: " + ex.message,
-          type: AlertType.ERROR,
-        })
-      );
+      const error = "Could not create barcode: " + ex.message;
+      logger.error(error);
+      dispatch(requestFailed(error, AsyncRequest.CREATE_BARCODE));
     }
+    done();
   },
   type: CREATE_BARCODE,
 });
@@ -113,13 +113,7 @@ const requestMetadataLogic = createLogic({
         units,
         users,
         workflowOptions,
-      ] = await getWithRetry(
-        request,
-        AsyncRequest.REQUEST_METADATA,
-        dispatch,
-        "LabKey",
-        "Failed to retrieve metadata."
-      );
+      ] = await getWithRetry2(request, dispatch);
       dispatch(
         receiveMetadata({
           annotationLookups,
@@ -135,6 +129,12 @@ const requestMetadataLogic = createLogic({
       );
     } catch (e) {
       logger.error(e.message);
+      dispatch(
+        requestFailed(
+          "Failed to retrieve metadata: " + e.message,
+          AsyncRequest.GET_METADATA
+        )
+      );
     }
     done();
   },
@@ -153,16 +153,17 @@ const getBarcodeSearchResultsLogic = createLogic({
     const request = () => labkeyClient.getPlatesByBarcode(searchStr);
 
     try {
-      const barcodeSearchResults = await getWithRetry(
-        request,
-        AsyncRequest.GET_BARCODE_SEARCH_RESULTS,
-        dispatch,
-        "LabKey",
-        "Could not retrieve barcode search results"
+      const barcodeSearchResults = await getWithRetry2(request, dispatch);
+      dispatch(
+        receiveMetadata(
+          { barcodeSearchResults },
+          AsyncRequest.GET_BARCODE_SEARCH_RESULTS
+        )
       );
-      dispatch(receiveMetadata({ barcodeSearchResults }));
     } catch (e) {
-      logger.error(e.message);
+      const error = "Could not retrieve barcode search results: " + e.message;
+      logger.error(error);
+      dispatch(requestFailed(error, AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
     }
     done();
   },
@@ -192,25 +193,28 @@ const requestAnnotationsLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dispatch(addRequestToInProgress(AsyncRequest.GET_ANNOTATIONS));
     try {
-      const annotations = sortBy(await labkeyClient.getAnnotations(), ["name"]);
-      const annotationOptions = await labkeyClient.getAnnotationOptions();
+      const request = () =>
+        Promise.all([
+          labkeyClient.getAnnotations(),
+          labkeyClient.getAnnotationOptions(),
+        ]);
+      const [annotations, annotationOptions] = await getWithRetry2(
+        request,
+        dispatch
+      );
       dispatch(
-        batchActions([
-          receiveMetadata({ annotationOptions, annotations }),
-          removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
-        ])
+        receiveMetadata(
+          { annotationOptions, annotations },
+          AsyncRequest.GET_ANNOTATIONS
+        )
       );
     } catch (e) {
       dispatch(
-        batchActions([
-          removeRequestFromInProgress(AsyncRequest.GET_ANNOTATIONS),
-          setAlert({
-            message: "Could not retrieve annotations: " + e.message,
-            type: AlertType.ERROR,
-          }),
-        ])
+        requestFailed(
+          "Could not retrieve annotations: " + e.message,
+          AsyncRequest.GET_ANNOTATIONS
+        )
       );
     }
     done();
@@ -227,7 +231,7 @@ const requestOptionsForLookupLogic = createLogic({
       getState,
       labkeyClient,
       logger,
-    }: ReduxLogicProcessDependencies,
+    }: ReduxLogicProcessDependenciesWithAction<GetOptionsForLookupAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -256,8 +260,9 @@ const requestOptionsForLookupLogic = createLogic({
 
     if (!lookup) {
       dispatch(
-        setErrorAlert(
-          "Could not retrieve options for lookup: could not find lookup. Contact Software."
+        requestFailed(
+          "Could not retrieve options for lookup: could not find lookup. Contact Software.",
+          AsyncRequest.GET_OPTIONS_FOR_LOOKUP
         )
       );
       done();
@@ -266,7 +271,7 @@ const requestOptionsForLookupLogic = createLogic({
 
     const { columnName, schemaName, tableName } = lookup;
     try {
-      const optionsForLookup = await getWithRetry(
+      const optionsForLookup = await getWithRetry2(
         () =>
           labkeyClient.getOptionsForLookup(
             schemaName,
@@ -274,17 +279,18 @@ const requestOptionsForLookupLogic = createLogic({
             columnName,
             searchStr
           ),
-        AsyncRequest.GET_OPTIONS_FOR_LOOKUP,
-        dispatch,
-        "LabKey",
-        "Could not retrieve options for lookup annotation"
+        dispatch
       );
-      dispatch(receiveMetadata({ [lookupAnnotationName]: optionsForLookup }));
+      dispatch(
+        receiveMetadata(
+          { [lookupAnnotationName]: optionsForLookup },
+          AsyncRequest.GET_OPTIONS_FOR_LOOKUP
+        )
+      );
     } catch (e) {
-      logger.error(
-        "Could not retrieve options for lookup annotation",
-        e.message
-      );
+      const error = `Could not retrieve options for lookup annotation: ${e.message}`;
+      logger.error(error);
+      dispatch(requestFailed(error, AsyncRequest.GET_OPTIONS_FOR_LOOKUP));
     }
     done();
   },
@@ -316,16 +322,15 @@ const requestTemplatesLogicLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     try {
-      const templates = await getWithRetry(
+      const templates = await getWithRetry2(
         () => labkeyClient.getTemplates(),
-        AsyncRequest.GET_TEMPLATES,
-        dispatch,
-        "LabKey",
-        "Could not retrieve templates"
+        dispatch
       );
-      dispatch(receiveMetadata({ templates }));
+      dispatch(receiveMetadata({ templates }, AsyncRequest.GET_TEMPLATES));
     } catch (e) {
-      logger.error("Could not retrieve templates", e);
+      const error = `Could not retrieve templates: ${e.message}`;
+      logger.error(error);
+      dispatch(requestFailed(error, AsyncRequest.GET_TEMPLATES));
     }
     done();
   },
@@ -348,11 +353,10 @@ const innerJoinOrDefault = (
 
 const searchFileMetadataLogic = createLogic({
   process: async (
-    { action, fms }: ReduxLogicProcessDependencies,
+    { action, fms, logger }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dispatch(addRequestToInProgress(AsyncRequest.SEARCH_FILE_METADATA));
     try {
       const { annotation, searchValue, templateId, user } = action.payload;
       let searchResultsAsMap: FileToFileMetadata | undefined;
@@ -385,32 +389,20 @@ const searchFileMetadataLogic = createLogic({
           searchResultsAsMap
         );
         dispatch(
-          batchActions([
-            receiveMetadata({ fileMetadataSearchResults }),
-            removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
-          ])
+          receiveMetadata(
+            { fileMetadataSearchResults },
+            AsyncRequest.SEARCH_FILE_METADATA
+          )
         );
       } else {
-        dispatch(
-          batchActions([
-            removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
-            setAlert({
-              message: "Could not perform search, no query params provided",
-              type: AlertType.ERROR,
-            }),
-          ])
-        );
+        const error = "Could not perform search, no query params provided";
+        logger.error(error);
+        dispatch(requestFailed(error, AsyncRequest.SEARCH_FILE_METADATA));
       }
     } catch (e) {
-      dispatch(
-        batchActions([
-          removeRequestFromInProgress(AsyncRequest.SEARCH_FILE_METADATA),
-          setAlert({
-            message: "Could not perform search: " + e.message,
-            type: AlertType.ERROR,
-          }),
-        ])
-      );
+      const error = `Could not perform search: ${e.message}`;
+      logger.error(error);
+      dispatch(requestFailed(error, AsyncRequest.SEARCH_FILE_METADATA));
     }
     done();
   },
@@ -419,29 +411,24 @@ const searchFileMetadataLogic = createLogic({
 
 const retrieveFileMetadataForJobLogic = createLogic({
   process: async (
-    { action, fms }: ReduxLogicProcessDependencies,
+    { action, fms, logger }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const fileIds: string[] = action.payload;
     const request = () => retrieveFileMetadata(fileIds, fms);
     try {
-      const fileMetadataForJob = await getWithRetry(
-        request,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
-        dispatch,
-        "Labkey or MMS"
-      );
-      dispatch(receiveFileMetadata(fileMetadataForJob));
-    } catch (e) {
+      const fileMetadataForJob = await getWithRetry2(request, dispatch);
       dispatch(
-        batchActions([
-          removeRequestFromInProgress(
-            AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
-          ),
-          setErrorAlert("Could retrieve metadata for job: " + e.message),
-        ])
+        receiveMetadata(
+          { fileMetadataForJob },
+          AsyncRequest.GET_FILE_METADATA_FOR_JOB
+        )
       );
+    } catch (e) {
+      const error = "Could retrieve metadata for job: " + e.message;
+      logger.error(error);
+      dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
     }
     done();
   },
@@ -454,7 +441,6 @@ const exportFileMetadataLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dispatch(addRequestToInProgress(AsyncRequest.EXPORT_FILE_METADATA));
     try {
       const filePath: string = action.payload;
       const state = getState();
@@ -469,25 +455,15 @@ const exportFileMetadataLogic = createLogic({
           fileMetadataSearchResults as ImageModelMetadata[]
         );
         fs.writeFileSync(filePath, csv);
-        dispatch(
-          batchActions([
-            removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
-            setAlert({
-              message: "Exported successfully",
-              type: AlertType.SUCCESS,
-            }),
-          ])
-        );
+        // nothing to write to state but need to remove request
+        dispatch(receiveMetadata({}, AsyncRequest.EXPORT_FILE_METADATA));
       }
     } catch (e) {
       dispatch(
-        batchActions([
-          removeRequestFromInProgress(AsyncRequest.EXPORT_FILE_METADATA),
-          setAlert({
-            message: "Could not export: " + e.message,
-            type: AlertType.ERROR,
-          }),
-        ])
+        requestFailed(
+          "Could not export: " + e.message,
+          AsyncRequest.EXPORT_FILE_METADATA
+        )
       );
     }
     done();
