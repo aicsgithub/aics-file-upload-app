@@ -2,7 +2,12 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { Menu, MessageBoxOptions, OpenDialogOptions } from "electron";
+import {
+  ipcRenderer,
+  Menu,
+  MessageBoxOptions,
+  OpenDialogOptions,
+} from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -71,10 +76,7 @@ export interface ReduxLogicExtraDependencies {
   dialog: Dialog;
   fms: FileManagementSystem;
   getApplicationMenu: () => Menu | null;
-  ipcRenderer: {
-    on: (channel: string, listener: (...args: any[]) => void) => void;
-    send: (channel: string, ...args: any[]) => void;
-  };
+  ipcRenderer: typeof ipcRenderer;
   jssClient: JobStatusClient;
   labkeyClient: LabkeyClient;
   logger: Logger;
