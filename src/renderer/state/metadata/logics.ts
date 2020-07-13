@@ -47,7 +47,7 @@ import {
   getLookups,
   getSearchResultsHeader,
 } from "./selectors";
-import { GetOptionsForLookupAction } from "./types";
+import { CreateBarcodeAction, GetOptionsForLookupAction } from "./types";
 
 const createBarcodeLogic = createLogic({
   process: async (
@@ -57,7 +57,7 @@ const createBarcodeLogic = createLogic({
       ipcRenderer,
       logger,
       mmsClient,
-    }: ReduxLogicTransformDependencies,
+    }: ReduxLogicProcessDependenciesWithAction<CreateBarcodeAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
