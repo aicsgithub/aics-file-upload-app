@@ -19,7 +19,6 @@ import {
   trim,
   uniq,
 } from "lodash";
-import { AnyAction } from "redux";
 
 import { LIST_DELIMITER_SPLIT } from "../constants";
 import MMSClient from "../services/mms-client";
@@ -30,27 +29,17 @@ import {
   TemplateAnnotation,
   WellResponse,
 } from "../services/mms-client/types";
-import {
-  addRequestToInProgress,
-  removeRequestFromInProgress,
-  setAlert,
-  setSuccessAlert,
-} from "../state/feedback/actions";
+import { getWithRetry } from "../state/feedback/util";
 import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
 } from "../state/metadata/selectors";
-import { setPlate } from "../state/selection/actions";
-import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../state/selection/logics";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
-import { DragAndDropFileList, SetPlateAction } from "../state/selection/types";
-import { setAppliedTemplate } from "../state/template/actions";
+import { DragAndDropFileList } from "../state/selection/types";
 import { getAppliedTemplate } from "../state/template/selectors";
-import { SetAppliedTemplateAction } from "../state/template/types";
 import {
-  AlertType,
-  AsyncRequest,
-  HTTP_STATUS,
+  ImagingSessionIdToPlateMap,
+  ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
   State,
@@ -59,7 +48,6 @@ import {
   UploadStateBranch,
 } from "../state/types";
 import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
-import { batchActions } from "../state/util";
 
 const stat = promisify(fsStat);
 export const API_WAIT_TIME_SECONDS = 20;
@@ -216,104 +204,6 @@ export function makePosixPathCompatibleWithPlatform(
   return path;
 }
 
-export const SERVICE_IS_DOWN_MESSAGE = (service: string) =>
-  `Could not contact server. Make sure ${service} is running.`;
-export const SERVICE_MIGHT_BE_DOWN_MESSAGE = (service: string) =>
-  `${service} might be down. Retrying request...`;
-const CANNOT_FIND_ADDRESS = "ENOTFOUND";
-
-/**
- * Returns the result of a request and retries for 2 minutes while the response is a Gateway Error
- * @param request callback that returns a promise that we may want to retry
- * @param requestType the name of the request
- * @param dispatch callback from redux logic process
- * @param serviceName name of the service we're contacting
- * @param genericError error to show in case this we do not get a bad gateway and the error message is not defined
- * @param batchActionsFn only necessary for testing
- */
-export async function getWithRetry<T = any>(
-  request: () => Promise<T>,
-  requestType: AsyncRequest,
-  dispatch: ReduxLogicNextCb,
-  serviceName: string,
-  genericError?: string,
-  batchActionsFn: (actions: AnyAction[]) => AnyAction = batchActions
-): Promise<T> {
-  dispatch(addRequestToInProgress(requestType));
-  const startTime = new Date().getTime() / 1000;
-  let currentTime = startTime;
-  let response: T | undefined;
-  let receivedRetryableError = false;
-  let sentRetryAlert = false;
-  let error;
-
-  while (
-    currentTime - startTime < API_WAIT_TIME_SECONDS &&
-    !response &&
-    !receivedRetryableError
-  ) {
-    try {
-      response = await request();
-    } catch (e) {
-      // Retry if we get a Bad Gateway. This is common when a server goes down during deployment.
-      if (e.response?.status === HTTP_STATUS.BAD_GATEWAY) {
-        if (!sentRetryAlert) {
-          dispatch(
-            setAlert({
-              manualClear: true,
-              message: SERVICE_MIGHT_BE_DOWN_MESSAGE(serviceName),
-              type: AlertType.WARN,
-            })
-          );
-          sentRetryAlert = true;
-        }
-        // Retrying requests where the host could not be resolved. This is common for VPN issues.
-      } else if (e.code === CANNOT_FIND_ADDRESS) {
-        if (!sentRetryAlert) {
-          dispatch(
-            setAlert({
-              manualClear: true,
-              message: "Could not reach host. Retrying request...",
-              type: AlertType.WARN,
-            })
-          );
-        }
-        sentRetryAlert = true;
-      } else {
-        receivedRetryableError = true;
-        error = e.message;
-      }
-    } finally {
-      currentTime = new Date().getTime() / 1000;
-    }
-  }
-
-  if (response) {
-    if (sentRetryAlert) {
-      dispatch(setSuccessAlert("Success!"));
-    }
-    dispatch(removeRequestFromInProgress(requestType));
-    return response;
-  } else {
-    let message = genericError;
-    if (sentRetryAlert) {
-      message = SERVICE_IS_DOWN_MESSAGE(serviceName);
-    } else if (error) {
-      message = error;
-    }
-    dispatch(
-      batchActionsFn([
-        removeRequestFromInProgress(requestType),
-        setAlert({
-          message,
-          type: AlertType.ERROR,
-        }),
-      ])
-    );
-    throw new Error(message);
-  }
-}
-
 export const getUploadFilePromise = async (
   name: string,
   path: string
@@ -342,20 +232,24 @@ export const mergeChildPaths = (filePaths: string[]): string[] => {
   });
 };
 
+export interface PlateInfo {
+  plate: ImagingSessionIdToPlateMap;
+  wells: ImagingSessionIdToWellsMap;
+}
 /**
  * Queries for plate with given barcode and transforms the response into a list of actions to dispatch
  * @param {string} barcode
  * @param {number[]} imagingSessionIds the imagingSessionIds for the plate with this barcode
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
- * @returns {Promise<AnyAction[]>}
+ * @returns {Promise<PlateInfo>}
  */
-export const getSetPlateAction = async (
+export const getPlateInfo = async (
   barcode: string,
   imagingSessionIds: Array<number | null>,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb
-): Promise<SetPlateAction> => {
+): Promise<PlateInfo> => {
   const request = (): Promise<GetPlateResponse[]> =>
     Promise.all(
       imagingSessionIds.map((imagingSessionId: number | null) =>
@@ -365,10 +259,7 @@ export const getSetPlateAction = async (
 
   const platesAndWells: GetPlateResponse[] = await getWithRetry(
     request,
-    AsyncRequest.GET_PLATE,
-    dispatch,
-    "MMS",
-    GENERIC_GET_WELLS_ERROR_MESSAGE(barcode)
+    dispatch
   );
 
   const imagingSessionIdToPlate: {
@@ -384,11 +275,10 @@ export const getSetPlateAction = async (
     imagingSessionIdToWells[imagingSessionId] = wells;
   });
 
-  return setPlate(
-    imagingSessionIdToPlate,
-    imagingSessionIdToWells,
-    imagingSessionIds
-  );
+  return {
+    plate: imagingSessionIdToPlate,
+    wells: imagingSessionIdToWells,
+  };
 };
 
 /**
@@ -421,23 +311,26 @@ export const retrieveFileMetadata = async (
   );
 };
 
+export interface ApplyTemplateInfo {
+  template: Template;
+  uploads: UploadStateBranch;
+}
 /***
- * Helper that gets the template by id from MMS and returns setappliedtemplate action
- * and update the uploads with those annotations
+ * Helper that gets the template by id from MMS and returns template and updated uploads
  * @param {number} templateId
  * @param {() => State} getState
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
  * @param upload optional Upload override to apply template annotations to
- * @returns {Promise<SetAppliedTemplateAction>}
+ * @returns {Promise<ApplyTemplateInfo>} info needed for setting applied template
  */
-export const getSetAppliedTemplateAction = async (
+export const getApplyTemplateInfo = async (
   templateId: number,
   getState: () => State,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb,
   upload?: UploadStateBranch
-): Promise<SetAppliedTemplateAction> => {
+): Promise<ApplyTemplateInfo> => {
   upload = upload || getUpload(getState());
   const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
   if (!booleanAnnotationTypeId) {
@@ -450,10 +343,7 @@ export const getSetAppliedTemplateAction = async (
 
   const template: Template = await getWithRetry(
     () => mmsClient.getTemplate(templateId),
-    AsyncRequest.GET_TEMPLATE,
-    dispatch,
-    "MMS",
-    "Could not retrieve template"
+    dispatch
   );
   const { annotations } = template;
   const annotationsToExclude = difference(
@@ -474,7 +364,7 @@ export const getSetAppliedTemplateAction = async (
       ...metadata, // prevent existing annotations from getting overwritten
     };
   });
-  return setAppliedTemplate(template, uploads);
+  return { template, uploads };
 };
 
 export const CANCEL_BUTTON_INDEX = 0;

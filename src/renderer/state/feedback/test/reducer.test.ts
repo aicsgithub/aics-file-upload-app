@@ -9,7 +9,6 @@ import { requestFileMetadataForJob } from "../../metadata/actions";
 import {
   closeUploadTab,
   openEditFileMetadataTab,
-  openEditFileMetadataTabFailed,
   openEditFileMetadataTabSucceeded,
   selectPage,
 } from "../../route/actions";
@@ -592,40 +591,20 @@ describe("feedback reducer", () => {
       ).to.be.false;
     });
   });
-  describe("openEditMetadataTabFailed", () => {
-    it("sets alert and removes GET_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
+  describe("openEditMetadataTabSucceeded", () => {
+    it("removes GET_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
       const result = reducer(
         {
           ...initialState,
           requestsInProgress: [AsyncRequest.GET_FILE_METADATA_FOR_JOB],
         },
-        openEditFileMetadataTabFailed("foo")
+        openEditFileMetadataTabSucceeded(mockWellUpload)
       );
       expect(
         result.requestsInProgress.includes(
           AsyncRequest.GET_FILE_METADATA_FOR_JOB
         )
       ).to.be.false;
-      expect(result.alert).to.deep.equal({
-        message: "foo",
-        type: AlertType.ERROR,
-      });
-    });
-    describe("openEditMetadataTabSucceeded", () => {
-      it("removes GET_FILE_METADATA_FOR_JOB from requestsInProgress", () => {
-        const result = reducer(
-          {
-            ...initialState,
-            requestsInProgress: [AsyncRequest.GET_FILE_METADATA_FOR_JOB],
-          },
-          openEditFileMetadataTabSucceeded(mockWellUpload)
-        );
-        expect(
-          result.requestsInProgress.includes(
-            AsyncRequest.GET_FILE_METADATA_FOR_JOB
-          )
-        ).to.be.false;
-      });
     });
   });
   describe("retrieveJobsFailed", () => {

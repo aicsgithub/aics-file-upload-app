@@ -9,6 +9,8 @@ import {
   CANCEL_BUTTON_INDEX,
   SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
 } from "../../../util";
+import { requestFailed } from "../../actions";
+import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
 import {
   getFileMetadataForJob,
@@ -47,7 +49,7 @@ import {
   mockSuccessfulUploadJob,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AlertType, Logger, Page, State } from "../../types";
+import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
 import {
@@ -59,13 +61,9 @@ import {
   closeUploadTab,
   goBack,
   openEditFileMetadataTab,
-  openEditFileMetadataTabFailed,
   selectPage,
 } from "../actions";
-import {
-  OPEN_EDIT_FILE_METADATA_TAB_FAILED,
-  OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
-} from "../constants";
+import { OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
 import Menu = Electron.Menu;
@@ -621,9 +619,8 @@ describe("Route logics", () => {
           (a) => a.type === OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED
         )
       ).to.be.undefined;
-      expect(
-        actions.list.find((a) => a.type === OPEN_EDIT_FILE_METADATA_TAB_FAILED)
-      ).to.be.undefined;
+      expect(actions.list.find((a) => a.type === REQUEST_FAILED)).to.be
+        .undefined;
     });
     it("shows save dialog if user has another draft open", async () => {
       const showSaveDialog = stub().resolves({
@@ -767,7 +764,7 @@ describe("Route logics", () => {
       });
       expect(getAppliedTemplateId(state)).to.not.be.undefined;
     });
-    it("dispatches openEditFileMetadataTabFailed given not OK response when getting file metadata", async () => {
+    it("dispatches requestFailed given not OK response when getting file metadata", async () => {
       stubMethods({
         transformFileMetadataIntoTable: stub().rejects(new Error("error!")),
       });
@@ -780,8 +777,9 @@ describe("Route logics", () => {
 
       expect(
         actions.includesMatch(
-          openEditFileMetadataTabFailed(
-            "Could not retrieve file metadata for fileIds=cat, dog: error!"
+          requestFailed(
+            "Could not retrieve file metadata for fileIds=cat, dog: error!",
+            AsyncRequest.GET_FILE_METADATA_FOR_JOB
           )
         )
       ).to.be.true;
@@ -814,8 +812,9 @@ describe("Route logics", () => {
       );
       expect(
         actions.includesMatch(
-          openEditFileMetadataTabFailed(
-            "Could not get plate information from upload: foo"
+          requestFailed(
+            "Could not get plate information from upload: foo",
+            AsyncRequest.GET_FILE_METADATA_FOR_JOB
           )
         )
       ).to.be.false;
@@ -825,11 +824,30 @@ describe("Route logics", () => {
 
       expect(
         actions.includesMatch(
-          openEditFileMetadataTabFailed(
-            "Could not get plate information from upload: foo"
+          requestFailed(
+            "Could not get plate information from upload: foo",
+            AsyncRequest.GET_FILE_METADATA_FOR_JOB
           )
         )
       ).to.be.true;
+    });
+    it("dispatches requestFailed if getting template fails", async () => {
+      stubMethods({
+        getTemplate: stub().rejects(new Error("foo")),
+      });
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+      const expectedAction = requestFailed(
+        "Could not open upload editor: foo",
+        AsyncRequest.GET_FILE_METADATA_FOR_JOB
+      );
+      expect(actions.includesMatch(expectedAction)).to.be.false;
+
+      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      await logicMiddleware.whenComplete();
+
+      expect(actions.includesMatch(expectedAction)).to.be.true;
     });
   });
 });

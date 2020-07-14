@@ -2,19 +2,16 @@
 
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
-import { createSandbox, spy, stub, useFakeTimers } from "sinon";
+import { createSandbox, spy, stub } from "sinon";
 
 import {
   alphaOrderComparator,
-  API_WAIT_TIME_SECONDS,
   convertToArray,
   ensureDraftGetsSaved,
-  getSetAppliedTemplateAction,
-  getSetPlateAction,
-  getWithRetry,
+  getApplyTemplateInfo,
+  getPlateInfo,
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
-  SERVICE_MIGHT_BE_DOWN_MESSAGE,
   splitTrimAndFilter,
   titleCase,
 } from "../";
@@ -22,15 +19,7 @@ import {
   GetPlateResponse,
   PlateResponse,
 } from "../../services/mms-client/types";
-import {
-  addRequestToInProgress,
-  clearAlert,
-  removeRequestFromInProgress,
-  setAlert,
-} from "../../state/feedback/actions";
 import { Well } from "../../state/selection/types";
-import { setAppliedTemplate } from "../../state/template/actions";
-import { SetAppliedTemplateAction } from "../../state/template/types";
 import {
   dialog,
   fms,
@@ -47,13 +36,7 @@ import {
   mockState,
   nonEmptyStateForInitiatingUpload,
 } from "../../state/test/mocks";
-import {
-  AlertType,
-  AsyncRequest,
-  HTTP_STATUS,
-  ReduxLogicTransformDependencies,
-  State,
-} from "../../state/types";
+import { ReduxLogicTransformDependencies, State } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getWellLabel } from "../index";
 
@@ -199,286 +182,7 @@ describe("General utilities", () => {
       ).to.equal(expectedPath);
     });
   });
-
-  describe("getWithRetry", () => {
-    const mockBadGatewayResponse = {
-      config: {},
-      isAxiosError: true,
-      message: "Bad Gateway",
-      name: "",
-      response: {
-        config: {},
-        data: [],
-        headers: {},
-        status: HTTP_STATUS.BAD_GATEWAY,
-        statusText: "Bad Gateway",
-      },
-    };
-
-    const mockCannotFindAddressError = {
-      code: "ENOTFOUND",
-      config: {},
-      message: "getaddrinfo ENOTFOUND stg-aics.corp.alleninstitute.org",
-      name: "Error",
-    };
-
-    it("Adds request to requests in progress", async () => {
-      const request = stub().resolves({});
-      const dispatchSpy = spy();
-      await getWithRetry(
-        request,
-        AsyncRequest.GET_METADATA,
-        dispatchSpy,
-        "Service"
-      );
-      expect(
-        dispatchSpy.calledWith(
-          addRequestToInProgress(AsyncRequest.GET_METADATA)
-        )
-      ).to.be.true;
-    });
-
-    it("removes request from requests in progress if request is OK", async () => {
-      const request = stub().resolves({});
-      const dispatchSpy = spy();
-      await getWithRetry(
-        request,
-        AsyncRequest.GET_METADATA,
-        dispatchSpy,
-        "Service"
-      );
-      expect(
-        dispatchSpy.calledWith(
-          removeRequestFromInProgress(AsyncRequest.GET_METADATA)
-        )
-      ).to.be.true;
-    });
-
-    it("removes request from requests in progress if request is not OK", async () => {
-      const genericError = "generic error";
-      const request = stub().rejects(genericError);
-      const batchActionsSpy = spy();
-
-      try {
-        await getWithRetry(
-          request,
-          AsyncRequest.GET_METADATA,
-          spy(),
-          "Service",
-          genericError,
-          batchActionsSpy
-        );
-      } catch (e) {
-        const expectedActions = [
-          removeRequestFromInProgress(AsyncRequest.GET_METADATA),
-          setAlert({
-            message: genericError,
-            type: AlertType.ERROR,
-          }),
-        ];
-        expect(batchActionsSpy.calledWith(expectedActions)).to.be.true;
-        expect(e.message).to.equal(genericError);
-      }
-    });
-    it("does not retry request if response is non Bad Gateway or Cannot Find Address error", async () => {
-      const message = "oops";
-      const request = stub()
-        .onFirstCall()
-        .callsFake(() => {
-          return Promise.reject({ message, status: HTTP_STATUS.BAD_REQUEST });
-        });
-
-      try {
-        await getWithRetry(
-          request,
-          AsyncRequest.GET_METADATA,
-          spy(),
-          "Service"
-        );
-      } catch (e) {
-        expect(request.callCount).to.equal(1);
-        expect(e.message).to.equal(message);
-      }
-    });
-    it("does not retry request if a response is non Bad Gateway or Cannot Find Address error", async () => {
-      const message = "oops";
-      const badRequest = stub()
-        .onFirstCall()
-        .callsFake(() => {
-          return Promise.reject({ message, status: HTTP_STATUS.BAD_REQUEST });
-        });
-      const request = stub().resolves([stub().resolves(), badRequest]);
-
-      try {
-        await getWithRetry(
-          request,
-          AsyncRequest.GET_METADATA,
-          spy(),
-          "Service"
-        );
-      } catch (e) {
-        expect(request.callCount).to.equal(1);
-        expect(e.message).to.equal(message);
-      }
-    });
-    it("shows error message if it only receives Bad Gateway error for 20 seconds", async function () {
-      // here we're using a fake clock so that 20 seconds passes more quickly and to give control
-      // over to the test in terms of timing.
-      this.clock = useFakeTimers(new Date().getTime());
-
-      // extends timeout for this test since we're testing a potentially long running process
-      const waitTime = API_WAIT_TIME_SECONDS * 1000 + 3000;
-      this.timeout(waitTime);
-
-      let secondsPassed = 0;
-      const incrementMs = 5000;
-
-      const getStub = stub().callsFake(() => {
-        this.clock.tick(incrementMs);
-        secondsPassed += incrementMs / 1000;
-
-        return Promise.reject(mockBadGatewayResponse);
-      });
-
-      const dispatchSpy = spy();
-
-      try {
-        await getWithRetry(
-          getStub,
-          AsyncRequest.GET_METADATA,
-          dispatchSpy,
-          "Service"
-        );
-      } catch (e) {
-        expect(
-          dispatchSpy.calledWith(
-            setAlert({
-              manualClear: true,
-              message: SERVICE_MIGHT_BE_DOWN_MESSAGE("Service"),
-              type: AlertType.WARN,
-            })
-          )
-        ).to.be.true;
-        expect(secondsPassed).to.be.equal(API_WAIT_TIME_SECONDS);
-      }
-    });
-    it("shows error message if it only receives Cannot Find Address error for 20 seconds", async function () {
-      // here we're using a fake clock so that 20 seconds passes more quickly and to give control
-      // over to the test in terms of timing.
-      this.clock = useFakeTimers(new Date().getTime());
-
-      // extends timeout for this test since we're testing a potentially long running process
-      const waitTime = API_WAIT_TIME_SECONDS * 1000 + 3000;
-      this.timeout(waitTime);
-
-      let secondsPassed = 0;
-      const incrementMs = 5000;
-
-      const getStub = stub().callsFake(() => {
-        this.clock.tick(incrementMs);
-        secondsPassed += incrementMs / 1000;
-
-        return Promise.reject(mockCannotFindAddressError);
-      });
-
-      const dispatchSpy = spy();
-
-      try {
-        await getWithRetry(
-          getStub,
-          AsyncRequest.GET_METADATA,
-          dispatchSpy,
-          "Service"
-        );
-      } catch (e) {
-        expect(
-          dispatchSpy.calledWith(
-            setAlert({
-              manualClear: true,
-              message: "Could not reach host. Retrying request...",
-              type: AlertType.WARN,
-            })
-          )
-        ).to.be.true;
-        expect(secondsPassed).to.be.equal(API_WAIT_TIME_SECONDS);
-      }
-    });
-    it("Stops retrying request after receiving OK response (After Bad Gateway Error)", async function () {
-      this.timeout(API_WAIT_TIME_SECONDS * 1000 + 3000);
-      const getStub = stub()
-        .onFirstCall()
-        .rejects(mockBadGatewayResponse)
-        .onSecondCall()
-        .callsFake(() => {
-          return Promise.resolve({});
-        });
-      const dispatchSpy = spy();
-      const batchActionsSpy = spy();
-
-      await getWithRetry(
-        getStub,
-        AsyncRequest.GET_METADATA,
-        dispatchSpy,
-        "Service",
-        undefined,
-        batchActionsSpy
-      );
-
-      expect(
-        dispatchSpy.calledWith(
-          setAlert({
-            manualClear: true,
-            message: SERVICE_MIGHT_BE_DOWN_MESSAGE("Service"),
-            type: AlertType.WARN,
-          })
-        )
-      );
-      expect(
-        batchActionsSpy.calledWith([
-          clearAlert(),
-          removeRequestFromInProgress(AsyncRequest.GET_METADATA),
-        ])
-      );
-    });
-    it("Stops retrying request after receiving OK response (After Cannot Find Address Error)", async function () {
-      this.timeout(API_WAIT_TIME_SECONDS * 1000 + 3000);
-      const getStub = stub()
-        .onFirstCall()
-        .rejects(mockCannotFindAddressError)
-        .onSecondCall()
-        .callsFake(() => {
-          return Promise.resolve({});
-        });
-      const dispatchSpy = spy();
-      const batchActionsSpy = spy();
-
-      await getWithRetry(
-        getStub,
-        AsyncRequest.GET_METADATA,
-        dispatchSpy,
-        "Service",
-        undefined,
-        batchActionsSpy
-      );
-
-      expect(
-        dispatchSpy.calledWith(
-          setAlert({
-            manualClear: true,
-            message: SERVICE_MIGHT_BE_DOWN_MESSAGE("Service"),
-            type: AlertType.WARN,
-          })
-        )
-      );
-      expect(
-        batchActionsSpy.calledWith([
-          clearAlert(),
-          removeRequestFromInProgress(AsyncRequest.GET_METADATA),
-        ])
-      );
-    });
-  });
-  describe("getSetPlateAction", () => {
+  describe("getPlateInfo", () => {
     const barcode = "123456";
     const mockEmptyWell: Well = {
       cellPopulations: [],
@@ -514,20 +218,17 @@ describe("General utilities", () => {
       const dispatchSpy = spy();
       const imagingSessionIds = [null, 4];
 
-      const setPlateAction = await getSetPlateAction(
+      const { plate, wells } = await getPlateInfo(
         barcode,
         imagingSessionIds,
         mmsClient,
         dispatchSpy
       );
-      expect(setPlateAction.payload.imagingSessionIds).to.equal(
-        imagingSessionIds
-      );
-      expect(setPlateAction.payload.plate).to.deep.equal({
+      expect(plate).to.deep.equal({
         0: mockPlate,
         4: { ...mockPlate, imagingSessionId: 4, plateId: 2 },
       });
-      expect(setPlateAction.payload.wells).to.deep.equal({
+      expect(wells).to.deep.equal({
         0: [mockEmptyWell],
         4: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
       });
@@ -563,7 +264,7 @@ describe("General utilities", () => {
       expect(result).to.equal(expected);
     });
   });
-  describe("getSetAppliedTemplateAction", () => {
+  describe("getApplyTemplateInfo", () => {
     let mockStateWithUploads: State;
     const key = getUploadRowKey({ file: "/path/to/file1" });
     const template = {
@@ -613,7 +314,7 @@ describe("General utilities", () => {
       });
       sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
       expect(
-        getSetAppliedTemplateAction(1, getStateStub, mmsClient, stub())
+        getApplyTemplateInfo(1, getStateStub, mmsClient, stub())
       ).to.be.rejectedWith(Error);
     });
     it("throws error if getTemplate request fails", () => {
@@ -624,37 +325,36 @@ describe("General utilities", () => {
         stub().rejects(new Error("Oops"))
       );
       expect(
-        getSetAppliedTemplateAction(1, getStateStub, mmsClient, stub())
+        getApplyTemplateInfo(1, getStateStub, mmsClient, stub())
       ).to.be.rejectedWith(Error);
     });
     it("returns setAppliedTemplate action with template returned from MMS and expected upload", async () => {
       const getStateStub = stub().returns(mockStateWithUploads);
       sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
-      const result: SetAppliedTemplateAction = await getSetAppliedTemplateAction(
+      const { template: resultTemplate, uploads } = await getApplyTemplateInfo(
         1,
         getStateStub,
         mmsClient,
         stub()
       );
+      expect(resultTemplate).to.deep.equal(template);
       // the Age annotation goes away since it's not part of the applied template
-      expect(result).to.deep.equal(
-        setAppliedTemplate(template, {
-          [key]: {
-            // This annotation got added and is initialized as undefined
-            "Clone Number Garbage": [],
-            // this stays here because it is part of the template and does not get cleared out
-            "Favorite Color": "red",
-            // This annotation got added
-            Qc: [false],
-            barcode: "1234",
-            file: "/path/to/file1",
-            key: getUploadRowKey({ file: "/path/to/file" }),
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
-            wellIds: [1],
-          },
-        })
-      );
+      expect(uploads).to.deep.equal({
+        [key]: {
+          // This annotation got added and is initialized as undefined
+          "Clone Number Garbage": [],
+          // this stays here because it is part of the template and does not get cleared out
+          "Favorite Color": "red",
+          // This annotation got added
+          Qc: [false],
+          barcode: "1234",
+          file: "/path/to/file1",
+          key: getUploadRowKey({ file: "/path/to/file" }),
+          shouldBeInArchive: true,
+          shouldBeInLocal: true,
+          wellIds: [1],
+        },
+      });
     });
   });
   describe("ensureDraftGetsSaved", () => {

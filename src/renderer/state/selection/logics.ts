@@ -1,15 +1,15 @@
 import { basename, dirname } from "path";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
 import {
-  getSetPlateAction,
+  getPlateInfo,
   getUploadFilePromise,
   mergeChildPaths,
 } from "../../util";
+import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -18,6 +18,7 @@ import { getPage } from "../route/selectors";
 import { associateByWorkflow } from "../setting/actions";
 import {
   AlertType,
+  AsyncRequest,
   Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -33,6 +34,7 @@ import { batchActions, getActionFromBatch } from "../util";
 import {
   deselectFiles,
   selectWells,
+  setPlate,
   stageFiles,
   updateStagedFiles,
 } from "./actions";
@@ -197,15 +199,17 @@ const selectBarcodeLogic = createLogic({
       selectPage(Page.SelectUploadType, nextPage)
     );
     try {
-      const setPlateAction: AnyAction = await getSetPlateAction(
+      const { plate, wells } = await getPlateInfo(
         barcode,
         imagingSessionIds,
         mmsClient,
         dispatch
       );
-      dispatch(batchActions([...selectPageActions, setPlateAction]));
+      dispatch(batchActions([...selectPageActions, setPlate(plate, wells)]));
     } catch (e) {
+      const error = "Could not get plate info: " + e.message;
       logger.error(e.message);
+      dispatch(requestFailed(error, AsyncRequest.GET_PLATE));
     }
 
     done();

@@ -10,10 +10,6 @@ export const OPEN_EDIT_FILE_METADATA_TAB = makeConstant(
   BRANCH_NAME,
   "open-edit-file-metadata-tab"
 );
-export const OPEN_EDIT_FILE_METADATA_TAB_FAILED = makeConstant(
-  BRANCH_NAME,
-  "open-edit-file-metadata-tab-failed"
-);
 export const OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED = makeConstant(
   BRANCH_NAME,
   "open-edit-file-metadata-tab-succeeded"
