@@ -53,6 +53,7 @@ import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
+  getCurrentUploadFilePath,
 } from "../metadata/selectors";
 import { openEditFileMetadataTab, selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -858,9 +859,13 @@ const saveUploadDraftLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action } = deps;
+    const { action, getState } = deps;
     try {
-      const { cancelled, filePath } = await ensureDraftGetsSaved(deps, true);
+      const { cancelled, filePath } = await ensureDraftGetsSaved(
+        deps,
+        getCurrentUploadFilePath(getState()),
+        true
+      );
       if (cancelled || !filePath) {
         // don't let this action get to the reducer
         reject({ type: "ignore" });
@@ -923,9 +928,12 @@ const openUploadLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action, ctx, dialog, readFile } = deps;
+    const { action, ctx, dialog, getState, readFile } = deps;
     try {
-      const { cancelled } = await ensureDraftGetsSaved(deps);
+      const { cancelled } = await ensureDraftGetsSaved(
+        deps,
+        getCurrentUploadFilePath(getState())
+      );
       if (cancelled) {
         reject({ type: "ignore" });
         return;

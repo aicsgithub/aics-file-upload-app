@@ -30,8 +30,6 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
-import { getCurrentUploadFilePath } from "../state/metadata/selectors";
-import { UploadFileImpl } from "../state/selection/models/upload-file";
 import { DragAndDropFileList } from "../state/selection/types";
 import {
   ImagingSessionIdToPlateMap,
@@ -43,6 +41,8 @@ import {
   UploadStateBranch,
 } from "../state/types";
 import { getCanSaveUploadDraft } from "../state/upload/selectors";
+
+import { UploadFileImpl } from "./models/upload-file";
 
 const stat = promisify(fsStat);
 
@@ -366,6 +366,7 @@ export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
  * to save their upload before the upload potentially gets updated.
  * Examples include: close upload tab, editing an upload, opening an upload, saving an upload.
  * @param deps redux logic transform dependencies
+ * @param currentUploadFilePath
  * @param skipWarningDialog whether or not to warn users that if they don't save, their draft will be discarded.
  * This won't be necessary if the user explicitly saves the draft (i.e. File > Save)
  * Returns promise of object { cancelled: boolean, filePath?: string } where cancelled indicates whether
@@ -374,6 +375,7 @@ export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
  */
 export const ensureDraftGetsSaved = async (
   deps: ReduxLogicTransformDependencies,
+  currentUploadFilePath: string | undefined,
   skipWarningDialog = false
 ): Promise<{
   cancelled: boolean; // User decides they want to continue working on the current upload draft
@@ -381,7 +383,6 @@ export const ensureDraftGetsSaved = async (
 }> => {
   const { dialog, getState, writeFile } = deps;
 
-  const currentUploadFilePath = getCurrentUploadFilePath(getState());
   // if currentUploadFilePath is set, user is working on a upload draft that
   // they have saved before. Now we just need to save to that file.
   if (currentUploadFilePath) {

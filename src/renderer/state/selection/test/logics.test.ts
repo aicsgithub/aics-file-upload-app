@@ -13,6 +13,7 @@ import {
   GetPlateResponse,
   PlateResponse,
 } from "../../../services/mms-client/types";
+import { UploadFileImpl } from "../../../util/models/upload-file";
 import { requestFailed } from "../../actions";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
@@ -39,7 +40,6 @@ import {
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
 import { clearStagedFiles, selectBarcode, selectWells } from "../actions";
-import { UploadFileImpl } from "../models/upload-file";
 import {
   getSelectedBarcode,
   getSelectedFiles,

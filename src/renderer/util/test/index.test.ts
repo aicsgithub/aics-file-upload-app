@@ -372,7 +372,11 @@ describe("General utilities", () => {
         writeFile: writeFileStub,
       } as any) as ReduxLogicTransformDependencies;
 
-      const result = await ensureDraftGetsSaved(deps, skipWarningDialog);
+      const result = await ensureDraftGetsSaved(
+        deps,
+        undefined,
+        skipWarningDialog
+      );
       return { result, showMessageBoxStub, showSaveDialogStub, writeFileStub };
     };
     it("automatically saves draft if user is working on a draft that has previously been saved", async () => {

@@ -26,6 +26,7 @@ import { getWithRetry } from "../feedback/util";
 import { updatePageHistory } from "../metadata/actions";
 import {
   getBooleanAnnotationTypeId,
+  getCurrentUploadFilePath,
   getSelectionHistory,
   getTemplateHistory,
   getUploadHistory,
@@ -347,7 +348,10 @@ const closeUploadTabLogic = createLogic({
   ) => {
     const { action, getApplicationMenu, getState, logger } = deps;
     try {
-      const { cancelled } = await ensureDraftGetsSaved(deps);
+      const { cancelled } = await ensureDraftGetsSaved(
+        deps,
+        getCurrentUploadFilePath(getState())
+      );
 
       if (cancelled) {
         // prevent action from getting to reducer
@@ -575,9 +579,12 @@ const openEditFileMetadataTabLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action, ctx, logger } = deps;
+    const { action, ctx, getState, logger } = deps;
     try {
-      const { cancelled } = await ensureDraftGetsSaved(deps);
+      const { cancelled } = await ensureDraftGetsSaved(
+        deps,
+        getCurrentUploadFilePath(getState())
+      );
       if (cancelled) {
         reject({ type: "ignore" });
         return;

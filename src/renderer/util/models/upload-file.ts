@@ -2,8 +2,8 @@ import { readdir as fsReaddir, stat as fsStat, Stats } from "fs";
 import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
-import { canUserRead } from "../../../util";
-import { UploadFile } from "../../types";
+import { UploadFile } from "../../state/types";
+import { canUserRead } from "../index";
 
 const readdir = promisify(fsReaddir);
 const stat = promisify(fsStat);
