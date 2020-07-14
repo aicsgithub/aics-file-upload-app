@@ -21,7 +21,7 @@ const NUM_TRIES = 5;
  * @param request function that returns a promise
  * @param dispatch Redux Logic dispatch call back (must be in process)
  */
-export async function getWithRetry2<T = any>(
+export async function getWithRetry<T = any>(
   request: () => Promise<T>,
   dispatch: ReduxLogicNextCb
 ): Promise<T> {

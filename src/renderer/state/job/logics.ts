@@ -10,7 +10,7 @@ import { map, mergeMap, takeUntil } from "rxjs/operators";
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../services";
 import { setAlert, setErrorAlert, setSuccessAlert } from "../feedback/actions";
-import { getWithRetry2 } from "../feedback/util";
+import { getWithRetry } from "../feedback/util";
 import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
@@ -261,7 +261,7 @@ const retrieveJobsLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const { getState, jssClient, logger, storage } = deps;
-    const jobs = await getWithRetry2(
+    const jobs = await getWithRetry(
       () => fetchJobs(getState, jssClient),
       dispatch
     );

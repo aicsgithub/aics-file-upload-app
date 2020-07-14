@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { SinonStub, stub, createSandbox } from "sinon";
 
 import { setSuccessAlert, setWarningAlert } from "../actions";
-import { getWithRetry2 } from "../util";
+import { getWithRetry } from "../util";
 
 describe("feedback util", () => {
   let requestStub: SinonStub;
@@ -28,21 +28,19 @@ describe("feedback util", () => {
     it("does not retry if response is OK", async () => {
       const resp = {};
       requestStub.resolves(resp);
-      const result = await getWithRetry2(requestStub, dispatchStub);
+      const result = await getWithRetry(requestStub, dispatchStub);
       expect(dispatchStub.called).to.be.false;
       expect(requestStub.callCount).to.equal(1);
       expect(result).to.equal(resp);
     });
     it("throws error if response is not OK", () => {
       requestStub.rejects(new Error("foo"));
-      expect(getWithRetry2(requestStub, dispatchStub)).to.be.rejectedWith(
-        Error
-      );
+      expect(getWithRetry(requestStub, dispatchStub)).to.be.rejectedWith(Error);
     });
     it("does not retry if response is not Bad Gateway or VPN error", async () => {
       requestStub.rejects(new Error("foo"));
       try {
-        await getWithRetry2(requestStub, dispatchStub);
+        await getWithRetry(requestStub, dispatchStub);
       } catch (e) {
         expect(dispatchStub.called).to.be.false;
         expect(requestStub.callCount).to.equal(1);
@@ -62,7 +60,7 @@ describe("feedback util", () => {
         .onSecondCall()
         .resolves(response);
 
-      const resp = await getWithRetry2(requestStub, dispatchStub);
+      const resp = await getWithRetry(requestStub, dispatchStub);
 
       expect(
         dispatchStub.calledWithMatch(
@@ -86,7 +84,7 @@ describe("feedback util", () => {
         .onSecondCall()
         .resolves(response);
 
-      const resp = await getWithRetry2(requestStub, dispatchStub);
+      const resp = await getWithRetry(requestStub, dispatchStub);
       expect(
         dispatchStub.calledWithMatch(
           setWarningAlert("Services might be down. Retrying request...")
@@ -100,7 +98,7 @@ describe("feedback util", () => {
     it("stops retrying after 5 tries", async () => {
       requestStub.rejects(mockCannotFindAddressError);
       try {
-        await getWithRetry2(requestStub, dispatchStub);
+        await getWithRetry(requestStub, dispatchStub);
       } catch (e) {
         expect(requestStub.callCount).to.equal(5);
       }

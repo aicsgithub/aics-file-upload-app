@@ -18,7 +18,7 @@ import {
 import { retrieveFileMetadata } from "../../util";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
-import { getWithRetry2 } from "../feedback/util";
+import { getWithRetry } from "../feedback/util";
 import {
   AsyncRequest,
   ReduxLogicDoneCb,
@@ -113,7 +113,7 @@ const requestMetadataLogic = createLogic({
         units,
         users,
         workflowOptions,
-      ] = await getWithRetry2(request, dispatch);
+      ] = await getWithRetry(request, dispatch);
       dispatch(
         receiveMetadata({
           annotationLookups,
@@ -153,7 +153,7 @@ const getBarcodeSearchResultsLogic = createLogic({
     const request = () => labkeyClient.getPlatesByBarcode(searchStr);
 
     try {
-      const barcodeSearchResults = await getWithRetry2(request, dispatch);
+      const barcodeSearchResults = await getWithRetry(request, dispatch);
       dispatch(
         receiveMetadata(
           { barcodeSearchResults },
@@ -199,7 +199,7 @@ const requestAnnotationsLogic = createLogic({
           labkeyClient.getAnnotations(),
           labkeyClient.getAnnotationOptions(),
         ]);
-      const [annotations, annotationOptions] = await getWithRetry2(
+      const [annotations, annotationOptions] = await getWithRetry(
         request,
         dispatch
       );
@@ -271,7 +271,7 @@ const requestOptionsForLookupLogic = createLogic({
 
     const { columnName, schemaName, tableName } = lookup;
     try {
-      const optionsForLookup = await getWithRetry2(
+      const optionsForLookup = await getWithRetry(
         () =>
           labkeyClient.getOptionsForLookup(
             schemaName,
@@ -322,7 +322,7 @@ const requestTemplatesLogicLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     try {
-      const templates = await getWithRetry2(
+      const templates = await getWithRetry(
         () => labkeyClient.getTemplates(),
         dispatch
       );
@@ -418,7 +418,7 @@ const retrieveFileMetadataForJobLogic = createLogic({
     const fileIds: string[] = action.payload;
     const request = () => retrieveFileMetadata(fileIds, fms);
     try {
-      const fileMetadataForJob = await getWithRetry2(request, dispatch);
+      const fileMetadataForJob = await getWithRetry(request, dispatch);
       dispatch(
         receiveMetadata(
           { fileMetadataForJob },

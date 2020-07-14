@@ -19,7 +19,7 @@ import { clearDeferredAction } from "./actions";
 import { CLOSE_MODAL } from "./constants";
 import { getDeferredAction } from "./selectors";
 import { OpenTemplateEditorAction } from "./types";
-import { getWithRetry2 } from "./util";
+import { getWithRetry } from "./util";
 
 const openTemplateEditorLogic = createLogic({
   process: async (
@@ -36,7 +36,7 @@ const openTemplateEditorLogic = createLogic({
     if (typeof templateId === "number") {
       const annotationTypes = getAnnotationTypes(getState());
       try {
-        const [template, hasBeenUsed] = await getWithRetry2(
+        const [template, hasBeenUsed] = await getWithRetry(
           () =>
             Promise.all([
               mmsClient.getTemplate(templateId),
