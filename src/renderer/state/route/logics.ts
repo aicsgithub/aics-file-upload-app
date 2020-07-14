@@ -25,6 +25,7 @@ import {
 import { getWithRetry } from "../feedback/util";
 import { updatePageHistory } from "../metadata/actions";
 import {
+  getBooleanAnnotationTypeId,
   getSelectionHistory,
   getTemplateHistory,
   getUploadHistory,
@@ -526,12 +527,23 @@ const openEditFileMetadataTabLogic = createLogic({
 
       // Currently we only allow applying one template at a time
       if (fileMetadataForJob[0].templateId) {
+        const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+        if (!booleanAnnotationTypeId) {
+          dispatch(
+            requestFailed(
+              "Boolean annotation type id not found. Contact Software.",
+              AsyncRequest.GET_FILE_METADATA_FOR_JOB
+            )
+          );
+          done();
+          return;
+        }
         try {
           const { template, uploads } = await getApplyTemplateInfo(
             fileMetadataForJob[0].templateId,
-            getState,
             mmsClient,
             dispatch,
+            booleanAnnotationTypeId,
             newUpload
           );
           updateUploadsAction = setAppliedTemplate(template, uploads);

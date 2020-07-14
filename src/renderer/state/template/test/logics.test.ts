@@ -3,6 +3,7 @@ import { createSandbox, SinonStub, stub } from "sinon";
 
 import { ColumnType } from "../../../services/labkey-client/types";
 import { Template } from "../../../services/mms-client/types";
+import { requestFailed } from "../../actions";
 import { getAlert } from "../../feedback/selectors";
 import {
   createMockReduxStore,
@@ -21,11 +22,12 @@ import {
   mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
+import { AsyncRequest, State } from "../../types";
 import {
   addExistingAnnotation,
   removeAnnotations,
   saveTemplate,
+  saveTemplateSucceeded,
 } from "../actions";
 import { getTemplateDraftAnnotations } from "../selectors";
 
@@ -312,7 +314,7 @@ describe("Template Logics", () => {
       await logicMiddleware.whenComplete();
       expect(createTemplateStub.called).to.be.true;
     });
-    it("sets alert if endpoint returns not OK response", async () => {
+    it("dispatches requestFailed if saving template fails", async () => {
       const error = "Bad credentials";
       const editTemplateStub = stub().rejects({
         response: {
@@ -322,7 +324,7 @@ describe("Template Logics", () => {
         },
       });
       sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
-      const { logicMiddleware, store } = createMockReduxStore({
+      const { actions, logicMiddleware, store } = createMockReduxStore({
         ...startState,
         template: getMockStateWithHistory({
           ...startState.template.present,
@@ -334,15 +336,93 @@ describe("Template Logics", () => {
         }),
       });
 
-      expect(getAlert(store.getState())).to.be.undefined;
       store.dispatch(saveTemplate());
 
       await logicMiddleware.whenComplete();
-      const alert = getAlert(store.getState());
-      expect(alert).to.not.be.undefined;
-      if (alert) {
-        expect(alert.message).to.equal(`Could not save template: ${error}`);
-      }
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Could not save template: Bad credentials",
+            AsyncRequest.SAVE_TEMPLATE
+          )
+        )
+      ).to.be.true;
+    });
+    it("dispatches saveTemplateSucceeded if template was saved successfully", async () => {
+      sandbox.replace(
+        dialog,
+        "showMessageBox",
+        stub().resolves({ response: 1 })
+      );
+      sandbox.replace(mmsClient, "editTemplate", stub().resolves(1));
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        stateWithChangedTemplateDraft
+      );
+
+      store.dispatch(saveTemplate());
+      await logicMiddleware.whenComplete();
+
+      expect(actions.includesMatch(saveTemplateSucceeded(1))).to.be.true;
+    });
+    it("dispatches requestFailed if booleanAnnotationTypeId is not defined", async () => {
+      sandbox.replace(
+        dialog,
+        "showMessageBox",
+        stub().resolves({ response: 1 })
+      );
+      sandbox.replace(mmsClient, "editTemplate", stub().resolves(1));
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...stateWithChangedTemplateDraft,
+        metadata: {
+          ...stateWithChangedTemplateDraft.metadata,
+          annotationTypes: [],
+        },
+      });
+
+      store.dispatch(saveTemplate());
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Could not get boolean annotation type id. Contact Software",
+            AsyncRequest.SAVE_TEMPLATE
+          )
+        )
+      );
+    });
+    it("dispatches requestFailed if getTemplate fails", async () => {
+      sandbox.replace(
+        dialog,
+        "showMessageBox",
+        stub().resolves({ response: 1 })
+      );
+      sandbox.replace(mmsClient, "editTemplate", stub().resolves(1));
+      sandbox.replace(
+        mmsClient,
+        "getTemplate",
+        stub().rejects({
+          response: {
+            data: {
+              error: "foo",
+            },
+          },
+        })
+      );
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        stateWithChangedTemplateDraft
+      );
+
+      store.dispatch(saveTemplate());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Could not retrieve template and update uploads: foo",
+            AsyncRequest.GET_TEMPLATE
+          )
+        )
+      );
     });
   });
 });

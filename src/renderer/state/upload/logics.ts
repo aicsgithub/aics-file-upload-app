@@ -4,6 +4,7 @@ import {
   castArray,
   flatMap,
   forEach,
+  get,
   includes,
   isEmpty,
   isNil,
@@ -35,6 +36,7 @@ import {
   pivotAnnotations,
   splitTrimAndFilter,
 } from "../../util";
+import { requestFailed } from "../actions";
 import {
   clearUploadError,
   removeRequestFromInProgress,
@@ -212,20 +214,37 @@ const applyTemplateLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const templateId = action.payload;
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!booleanAnnotationTypeId) {
+      dispatch(
+        requestFailed(
+          "Boolean annotation type id not found. Contact Software.",
+          AsyncRequest.GET_TEMPLATE
+        )
+      );
+      done();
+      return;
+    }
     try {
       const { template, uploads } = await getApplyTemplateInfo(
         templateId,
-        getState,
         mmsClient,
-        dispatch
+        dispatch,
+        booleanAnnotationTypeId,
+        getUpload(getState()),
+        getAppliedTemplate(getState())
       );
       dispatch(setAppliedTemplate(template, uploads));
     } catch (e) {
       dispatch(
-        batchActions([
-          setErrorAlert("Could not apply template: " + e.message),
-          removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-        ])
+        requestFailed(
+          `Could not apply template: ${get(
+            e,
+            ["response", "data", "error"],
+            e.message
+          )}`,
+          AsyncRequest.GET_TEMPLATE
+        )
       );
     }
     done();

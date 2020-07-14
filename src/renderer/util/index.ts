@@ -30,27 +30,21 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
-import {
-  getBooleanAnnotationTypeId,
-  getCurrentUploadFilePath,
-} from "../state/metadata/selectors";
+import { getCurrentUploadFilePath } from "../state/metadata/selectors";
 import { UploadFileImpl } from "../state/selection/models/upload-file";
 import { DragAndDropFileList } from "../state/selection/types";
-import { getAppliedTemplate } from "../state/template/selectors";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
-  State,
   UploadFile,
   UploadMetadata,
   UploadStateBranch,
 } from "../state/types";
-import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
+import { getCanSaveUploadDraft } from "../state/upload/selectors";
 
 const stat = promisify(fsStat);
-export const API_WAIT_TIME_SECONDS = 20;
 
 export async function readTxtFile(
   file: string,
@@ -318,25 +312,22 @@ export interface ApplyTemplateInfo {
 /***
  * Helper that gets the template by id from MMS and returns template and updated uploads
  * @param {number} templateId
- * @param {() => State} getState
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
- * @param upload optional Upload override to apply template annotations to
+ * @param {number} booleanAnnotationTypeId boolean annotation type id
+ * @param {object | undefined} upload to apply template annotations to
+ * @param {Template | undefined} prevAppliedTemplate previously applied template this is to retain
+ * any information they may have entered for an upload for an annotation that exists on the new template
  * @returns {Promise<ApplyTemplateInfo>} info needed for setting applied template
  */
 export const getApplyTemplateInfo = async (
   templateId: number,
-  getState: () => State,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb,
-  upload?: UploadStateBranch
+  booleanAnnotationTypeId: number,
+  upload?: UploadStateBranch,
+  prevAppliedTemplate?: Template
 ): Promise<ApplyTemplateInfo> => {
-  upload = upload || getUpload(getState());
-  const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
-  if (!booleanAnnotationTypeId) {
-    throw new Error("Could not get boolean annotation type. Contact Software");
-  }
-  const prevAppliedTemplate = getAppliedTemplate(getState());
   const previousTemplateAnnotationNames = prevAppliedTemplate
     ? prevAppliedTemplate.annotations.map((a) => a.name)
     : [];

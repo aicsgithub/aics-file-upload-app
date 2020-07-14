@@ -1,3 +1,4 @@
+import { USER_SETTINGS_KEY } from "../../../shared/constants";
 import { Annotation } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { TemplateDraft, UploadStateBranch } from "../types";
@@ -9,6 +10,7 @@ import {
   JUMP_TO_PAST_TEMPLATE,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
+  SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
   START_TEMPLATE_DRAFT,
   START_TEMPLATE_DRAFT_FAILED,
@@ -21,6 +23,7 @@ import {
   JumpToPastTemplateAction,
   RemoveAnnotationsAction,
   SaveTemplateAction,
+  SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
   StartTemplateDraftAction,
   StartTemplateDraftFailedAction,
@@ -65,6 +68,21 @@ export function removeAnnotations(indexes: number[]): RemoveAnnotationsAction {
 export function saveTemplate(): SaveTemplateAction {
   return {
     type: SAVE_TEMPLATE,
+  };
+}
+
+export function saveTemplateSucceeded(
+  templateId: number
+): SaveTemplateSucceededAction {
+  return {
+    payload: templateId,
+    type: SAVE_TEMPLATE_SUCCEEDED,
+    updates: {
+      [USER_SETTINGS_KEY]: {
+        templateId,
+      },
+    },
+    writeToStore: true,
   };
 }
 

@@ -18,6 +18,7 @@ import {
 import {
   GetPlateResponse,
   PlateResponse,
+  Template,
 } from "../../services/mms-client/types";
 import { Well } from "../../state/selection/types";
 import {
@@ -27,16 +28,18 @@ import {
   mockReduxLogicDeps,
 } from "../../state/test/configure-mock-store";
 import {
-  getMockStateWithHistory,
   mockAuditInfo,
   mockBooleanAnnotation,
   mockFavoriteColorAnnotation,
   mockMMSTemplate,
   mockNumberAnnotation,
   mockState,
-  nonEmptyStateForInitiatingUpload,
 } from "../../state/test/mocks";
-import { ReduxLogicTransformDependencies, State } from "../../state/types";
+import {
+  ReduxLogicTransformDependencies,
+  State,
+  UploadStateBranch,
+} from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getWellLabel } from "../index";
 
@@ -265,7 +268,8 @@ describe("General utilities", () => {
     });
   });
   describe("getApplyTemplateInfo", () => {
-    let mockStateWithUploads: State;
+    let uploads: UploadStateBranch;
+    let previouslyAppliedTemplate: Template;
     const key = getUploadRowKey({ file: "/path/to/file1" });
     const template = {
       ...mockMMSTemplate,
@@ -277,69 +281,60 @@ describe("General utilities", () => {
     };
 
     beforeEach(() => {
-      mockStateWithUploads = {
-        ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.template.present,
-          appliedTemplate: {
-            ...mockMMSTemplate,
-            annotations: [
-              mockFavoriteColorAnnotation,
-              { ...mockNumberAnnotation, name: "Age" },
-            ],
-          },
-        }),
-        upload: getMockStateWithHistory({
-          [key]: {
-            Age: 16,
-            "Favorite Color": "red",
-            barcode: "1234",
-            file: "/path/to/file1",
-            key: getUploadRowKey({ file: "/path/to/file" }),
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
-            wellIds: [1],
-          },
-        }),
+      uploads = {
+        [key]: {
+          Age: 16,
+          "Favorite Color": "red",
+          barcode: "1234",
+          file: "/path/to/file1",
+          key: getUploadRowKey({ file: "/path/to/file" }),
+          shouldBeInArchive: true,
+          shouldBeInLocal: true,
+          wellIds: [1],
+        },
+      };
+      previouslyAppliedTemplate = {
+        ...mockMMSTemplate,
+        annotations: [
+          mockFavoriteColorAnnotation,
+          { ...mockNumberAnnotation, name: "Age" },
+        ],
       };
     });
 
-    it("throws error if no boolean type set", () => {
-      const getStateStub = stub().returns({
-        ...mockStateWithUploads,
-        metadata: {
-          ...mockStateWithUploads.metadata,
-          annotationTypes: [],
-        },
-      });
-      sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
-      expect(
-        getApplyTemplateInfo(1, getStateStub, mmsClient, stub())
-      ).to.be.rejectedWith(Error);
-    });
     it("throws error if getTemplate request fails", () => {
-      const getStateStub = stub().returns(mockStateWithUploads);
       sandbox.replace(
         mmsClient,
         "getTemplate",
         stub().rejects(new Error("Oops"))
       );
       expect(
-        getApplyTemplateInfo(1, getStateStub, mmsClient, stub())
+        getApplyTemplateInfo(
+          1,
+          mmsClient,
+          stub(),
+          mockBooleanAnnotation.annotationTypeId,
+          uploads,
+          previouslyAppliedTemplate
+        )
       ).to.be.rejectedWith(Error);
     });
     it("returns setAppliedTemplate action with template returned from MMS and expected upload", async () => {
-      const getStateStub = stub().returns(mockStateWithUploads);
       sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
-      const { template: resultTemplate, uploads } = await getApplyTemplateInfo(
+      const {
+        template: resultTemplate,
+        uploads: uploadsResult,
+      } = await getApplyTemplateInfo(
         1,
-        getStateStub,
         mmsClient,
-        stub()
+        stub(),
+        mockBooleanAnnotation.annotationTypeId,
+        uploads,
+        previouslyAppliedTemplate
       );
       expect(resultTemplate).to.deep.equal(template);
       // the Age annotation goes away since it's not part of the applied template
-      expect(uploads).to.deep.equal({
+      expect(uploadsResult).to.deep.equal({
         [key]: {
           // This annotation got added and is initialized as undefined
           "Clone Number Garbage": [],

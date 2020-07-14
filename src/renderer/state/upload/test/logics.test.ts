@@ -12,6 +12,7 @@ import {
 } from "../../../constants";
 import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
+import { requestFailed } from "../../actions";
 import {
   removeRequestFromInProgress,
   setErrorAlert,
@@ -26,11 +27,11 @@ import {
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
+  dialog,
   fms,
+  jssClient,
   mmsClient,
   mockReduxLogicDeps,
-  dialog,
-  jssClient,
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
@@ -304,6 +305,49 @@ describe("Upload logics", () => {
   });
 
   describe("applyTemplateLogic", () => {
+    it("dispatches requestFailed if booleanAnnotationTypeId not defined", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore();
+      store.dispatch(applyTemplate(1));
+      await logicMiddleware.whenComplete();
+
+      console.log(actions.list);
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Boolean annotation type id not found. Contact Software.",
+            AsyncRequest.GET_TEMPLATE
+          )
+        )
+      ).to.be.true;
+    });
+    it("dispatches requestFailed if getTemplate fails", async () => {
+      sandbox.replace(
+        mmsClient,
+        "getTemplate",
+        stub().rejects({
+          response: {
+            data: {
+              error: "foo",
+            },
+          },
+        })
+      );
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+
+      store.dispatch(applyTemplate(1));
+      await logicMiddleware.whenComplete();
+      console.log(actions.list);
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Could not apply template: foo",
+            AsyncRequest.GET_TEMPLATE
+          )
+        )
+      ).to.be.true;
+    });
     it("calls getTemplate using templateId provided", async () => {
       sandbox.replace(
         mmsClient,

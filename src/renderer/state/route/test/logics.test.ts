@@ -764,6 +764,22 @@ describe("Route logics", () => {
       });
       expect(getAppliedTemplateId(state)).to.not.be.undefined;
     });
+    it("dispatches requestFailed if boolean annotation type id is not defined", async () => {
+      stubMethods({});
+      const { actions, logicMiddleware, store } = createMockReduxStore();
+
+      store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Boolean annotation type id not found. Contact Software.",
+            AsyncRequest.GET_FILE_METADATA_FOR_JOB
+          )
+        )
+      ).to.be.true;
+    });
     it("dispatches requestFailed given not OK response when getting file metadata", async () => {
       stubMethods({
         transformFileMetadataIntoTable: stub().rejects(new Error("error!")),

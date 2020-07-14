@@ -3,22 +3,16 @@ import { createLogic } from "redux-logic";
 
 import { SaveTemplateRequest } from "../../services/mms-client/types";
 import { getApplyTemplateInfo } from "../../util";
-import {
-  addRequestToInProgress,
-  closeModal,
-  removeRequestFromInProgress,
-  setAlert,
-  setErrorAlert,
-  setSuccessAlert,
-} from "../feedback/actions";
+import { requestFailed } from "../actions";
+import { setAlert } from "../feedback/actions";
 import { requestTemplates } from "../metadata/actions";
 import {
   getAnnotationLookups,
   getAnnotationTypes,
+  getBooleanAnnotationTypeId,
   getLookupAnnotationTypeId,
   getLookups,
 } from "../metadata/selectors";
-import { updateSettings } from "../setting/actions";
 import {
   AlertType,
   AnnotationDraft,
@@ -30,12 +24,16 @@ import {
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
-import { getCanSaveUploadDraft } from "../upload/selectors";
-import { batchActions } from "../util";
+import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
 
-import { setAppliedTemplate, updateTemplateDraft } from "./actions";
+import {
+  saveTemplateSucceeded,
+  setAppliedTemplate,
+  updateTemplateDraft,
+} from "./actions";
 import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import {
+  getAppliedTemplate,
   getSaveTemplateRequest,
   getTemplateDraft,
   getWarnAboutTemplateVersionMessage,
@@ -163,22 +161,14 @@ const saveTemplateLogic = createLogic({
         createdTemplateId = await mmsClient.createTemplate(request);
       }
 
-      dispatch(
-        batchActions([
-          closeModal("templateEditor"),
-          removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE),
-          updateSettings({ templateId: createdTemplateId }),
-          setSuccessAlert("Template saved successfully!"),
-          addRequestToInProgress(AsyncRequest.GET_TEMPLATES),
-        ])
-      );
+      dispatch(saveTemplateSucceeded(createdTemplateId));
     } catch (e) {
       const error = get(e, ["response", "data", "error"], e.message);
       dispatch(
-        batchActions([
-          setErrorAlert("Could not save template: " + error),
-          removeRequestFromInProgress(AsyncRequest.SAVE_TEMPLATE),
-        ])
+        requestFailed(
+          "Could not save template: " + error,
+          AsyncRequest.SAVE_TEMPLATE
+        )
       );
       done();
       return;
@@ -189,23 +179,34 @@ const saveTemplateLogic = createLogic({
     dispatch(requestTemplates());
 
     if (getCanSaveUploadDraft(getState())) {
+      const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+      if (!booleanAnnotationTypeId) {
+        dispatch(
+          requestFailed(
+            "Could not get boolean annotation type id. Contact Software",
+            AsyncRequest.SAVE_TEMPLATE
+          )
+        );
+        done();
+        return;
+      }
       try {
         const { template, uploads } = await getApplyTemplateInfo(
           createdTemplateId,
-          getState,
           mmsClient,
-          dispatch
+          dispatch,
+          booleanAnnotationTypeId,
+          getUpload(getState()),
+          getAppliedTemplate(getState())
         );
         dispatch(setAppliedTemplate(template, uploads));
       } catch (e) {
-        dispatch(
-          batchActions([
-            setErrorAlert(
-              "Could not retrieve template and update uploads: " + e.message
-            ),
-            removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-          ])
-        );
+        const error = `Could not retrieve template and update uploads: ${get(
+          e,
+          ["response", "data", "error"],
+          e.message
+        )}`;
+        dispatch(requestFailed(error, AsyncRequest.GET_TEMPLATE));
       }
     }
     done();
