@@ -154,17 +154,20 @@ export const fetchJobs = async (
       user,
     });
 
-    return await Promise.all([getCopyJobsPromise, getAddMetadataPromise]).then(
-      ([copyJobs, addMetadataJobs]) => ({
-        actualIncompleteJobIds,
-        addMetadataJobs,
-        copyJobs,
-        inProgressUploadJobs,
-        recentlyFailedJobNames: recentlyFailedJobIds,
-        recentlySucceededJobNames: recentlySucceededJobIds,
-        uploadJobs,
-      })
-    );
+    const [copyJobs, addMetadataJobs] = await Promise.all([
+      getCopyJobsPromise,
+      getAddMetadataPromise,
+    ]);
+
+    return {
+      actualIncompleteJobIds,
+      addMetadataJobs,
+      copyJobs,
+      inProgressUploadJobs,
+      recentlyFailedJobNames: recentlyFailedJobIds,
+      recentlySucceededJobNames: recentlySucceededJobIds,
+      uploadJobs,
+    };
   } catch (error) {
     return { error };
   }
