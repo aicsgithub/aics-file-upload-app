@@ -5,6 +5,8 @@ import { AnyAction } from "redux";
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
 import { SET_PLATE } from "../selection/constants";
 import { SetPlateAction } from "../selection/types";
+import { SAVE_TEMPLATE_SUCCEEDED } from "../template/constants";
+import { SaveTemplateSucceededAction } from "../template/types";
 import { SettingStateBranch, TypeToDescriptionMap } from "../types";
 import { APPLY_TEMPLATE, REPLACE_UPLOAD } from "../upload/constants";
 import { ApplyTemplateAction, ReplaceUploadAction } from "../upload/types";
@@ -83,6 +85,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: SettingStateBranch) => ({
       ...state,
       associateByWorkflow: false,
+    }),
+  },
+  [SAVE_TEMPLATE_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is SaveTemplateSucceededAction =>
+      action.type === SAVE_TEMPLATE_SUCCEEDED,
+    perform: (
+      state: SettingStateBranch,
+      action: SaveTemplateSucceededAction
+    ) => ({
+      ...state,
+      templateId: action.payload,
     }),
   },
 };
