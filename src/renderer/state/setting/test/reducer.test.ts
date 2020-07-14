@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { setPlate } from "../../selection/actions";
+import { saveTemplateSucceeded } from "../../template/actions";
 import { mockPlate, mockState, mockWells } from "../../test/mocks";
 import { replaceUpload } from "../../upload/actions";
 import reducer from "../reducer";
@@ -32,6 +33,12 @@ describe("setting reducer", () => {
         setPlate(mockPlate, mockWells)
       );
       expect(result.associateByWorkflow).to.be.false;
+    });
+  });
+  describe("saveTemplateSucceeded", () => {
+    it("sets templateId", () => {
+      const result = reducer(initialState, saveTemplateSucceeded(1));
+      expect(result.templateId).to.equal(1);
     });
   });
 });
