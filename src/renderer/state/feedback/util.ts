@@ -1,3 +1,5 @@
+import { get } from "lodash";
+
 import { HTTP_STATUS, ReduxLogicNextCb } from "../types";
 
 import { setSuccessAlert, setWarningAlert } from "./actions";
@@ -7,8 +9,8 @@ export const timeout = (ms: number) =>
   new Promise((resolve: () => void) => {
     setTimeout(resolve, ms);
   });
-const SERVICE_IS_DOWN_MESSAGE2 = `Could not contact server. Make sure services are running.`;
-const SERVICE_MIGHT_BE_DOWN_MESSAGE2 =
+const SERVICE_IS_DOWN_MESSAGE = `Could not contact server. Make sure services are running.`;
+const SERVICE_MIGHT_BE_DOWN_MESSAGE =
   "Services might be down. Retrying request...";
 const CANNOT_FIND_ADDRESS = "ENOTFOUND";
 const RETRY_INTERVAL = 10000; // ms
@@ -46,14 +48,14 @@ export async function getWithRetry<T = any>(
           const message =
             e.response?.status === HTTP_STATUS.BAD_GATEWAY
               ? `Could not contact server. Make sure services are running.`
-              : SERVICE_MIGHT_BE_DOWN_MESSAGE2;
+              : SERVICE_MIGHT_BE_DOWN_MESSAGE;
           dispatch(setWarningAlert(message));
           sentRetryAlert = true;
         }
         await timeout(RETRY_INTERVAL);
       } else {
         receivedNonRetryableError = true;
-        error = e.message;
+        error = get(e, ["response", "data", "error"], e.message);
       }
     }
   }
@@ -66,7 +68,7 @@ export async function getWithRetry<T = any>(
   } else {
     let message = "Unknown error";
     if (sentRetryAlert) {
-      message = SERVICE_IS_DOWN_MESSAGE2;
+      message = SERVICE_IS_DOWN_MESSAGE;
     } else if (error) {
       message = error;
     }

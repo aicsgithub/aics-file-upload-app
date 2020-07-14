@@ -24,7 +24,7 @@ describe("feedback util", () => {
     sandbox.restore();
   });
 
-  describe("getWithRetry2", () => {
+  describe("getWithRetry", () => {
     it("does not retry if response is OK", async () => {
       const resp = {};
       requestStub.resolves(resp);

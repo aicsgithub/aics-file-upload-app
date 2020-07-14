@@ -131,7 +131,7 @@ const requestMetadataLogic = createLogic({
       logger.error(e.message);
       dispatch(
         requestFailed(
-          "Failed to retrieve metadata: " + e.message,
+          `Failed to retrieve metadata: ${e.message}`,
           AsyncRequest.GET_METADATA
         )
       );
@@ -161,7 +161,7 @@ const getBarcodeSearchResultsLogic = createLogic({
         )
       );
     } catch (e) {
-      const error = "Could not retrieve barcode search results: " + e.message;
+      const error = `Could not retrieve barcode search results: ${e.message}`;
       logger.error(error);
       dispatch(requestFailed(error, AsyncRequest.GET_BARCODE_SEARCH_RESULTS));
     }
@@ -212,7 +212,7 @@ const requestAnnotationsLogic = createLogic({
     } catch (e) {
       dispatch(
         requestFailed(
-          "Could not retrieve annotations: " + e.message,
+          `Could not retrieve annotations: ${e.message}`,
           AsyncRequest.GET_ANNOTATIONS
         )
       );
@@ -426,7 +426,7 @@ const retrieveFileMetadataForJobLogic = createLogic({
         )
       );
     } catch (e) {
-      const error = "Could retrieve metadata for job: " + e.message;
+      const error = `Could retrieve metadata for job: ${e.message}`;
       logger.error(error);
       dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
     }
@@ -461,7 +461,7 @@ const exportFileMetadataLogic = createLogic({
     } catch (e) {
       dispatch(
         requestFailed(
-          "Could not export: " + e.message,
+          `Could not export: ${e.message}`,
           AsyncRequest.EXPORT_FILE_METADATA
         )
       );
