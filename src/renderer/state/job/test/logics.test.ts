@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { createSandbox, stub } from "sinon";
 
 import { JOB_STORAGE_KEY } from "../../../../shared/constants";
-import { ADD_EVENT, SET_ALERT } from "../../feedback/constants";
+import { SET_ALERT } from "../../feedback/constants";
 import { logger } from "../../test/configure-mock-store";
 import {
   mockSuccessfulAddMetadataJob,
@@ -11,6 +11,7 @@ import {
 } from "../../test/mocks";
 import { AlertType } from "../../types";
 import { getActionFromBatch } from "../../util";
+import { retrieveJobsFailed } from "../actions";
 import { RECEIVE_JOBS } from "../constants";
 import { mapJobsToActions } from "../logics";
 
@@ -35,16 +36,13 @@ describe("Job logics", () => {
       set: stub(),
     };
 
-    it("Sets error if error is present", () => {
-      const actions = mapJobsToActions(
+    it("Returns retrieveJobsFailed if error is present", () => {
+      const action = mapJobsToActions(
         storage,
         logger
       )({ error: new Error("boo") });
-      const addEventAction = getActionFromBatch(actions, ADD_EVENT);
-      expect(addEventAction).to.not.be.undefined;
-      expect(addEventAction?.payload.type).to.equal(AlertType.ERROR);
-      expect(addEventAction?.payload.message).to.equal(
-        "Could not retrieve jobs: boo"
+      expect(action).to.deep.equal(
+        retrieveJobsFailed("Could not retrieve jobs: boo")
       );
     });
 

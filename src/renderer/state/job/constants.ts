@@ -12,6 +12,10 @@ export const UPDATE_INCOMPLETE_JOB_IDS = makeConstant(
   "update-incomplete-jobs"
 );
 export const RETRIEVE_JOBS = makeConstant(BRANCH_NAME, "retrieve-jobs");
+export const RETRIEVE_JOBS_FAILED = makeConstant(
+  BRANCH_NAME,
+  "retrieve-jobs-failed"
+);
 export const SELECT_JOB_FILTER = makeConstant(BRANCH_NAME, "select-job-filter");
 export const START_JOB_POLL = makeConstant(BRANCH_NAME, "start-job-poll");
 export const STOP_JOB_POLL = makeConstant(BRANCH_NAME, "stop-job-poll");

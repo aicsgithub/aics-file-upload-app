@@ -3,8 +3,16 @@ import { AnyAction } from "redux";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { REQUEST_FAILED } from "../constants";
-import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
-import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
+import {
+  RECEIVE_JOBS,
+  RETRIEVE_JOBS,
+  RETRIEVE_JOBS_FAILED,
+} from "../job/constants";
+import {
+  ReceiveJobsAction,
+  RetrieveJobsAction,
+  RetrieveJobsFailedAction,
+} from "../job/types";
 import {
   CREATE_BARCODE,
   EXPORT_FILE_METADATA,
@@ -436,6 +444,28 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: addRequestToInProgress(state, AsyncRequest.GET_JOBS),
+    }),
+  },
+  [RETRIEVE_JOBS_FAILED]: {
+    accepts: (action: AnyAction): action is RetrieveJobsFailedAction =>
+      action.type === RETRIEVE_JOBS_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: RetrieveJobsFailedAction
+    ) => ({
+      ...state,
+      events: [
+        ...state.events,
+        {
+          date: new Date(),
+          message: action.payload,
+          type: AlertType.ERROR,
+        },
+      ],
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_JOBS
+      ),
     }),
   },
   [RECEIVE_JOBS]: {

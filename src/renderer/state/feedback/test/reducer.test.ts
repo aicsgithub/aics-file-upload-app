@@ -1,6 +1,10 @@
 import { expect } from "chai";
 
-import { receiveJobs, retrieveJobs } from "../../job/actions";
+import {
+  receiveJobs,
+  retrieveJobs,
+  retrieveJobsFailed,
+} from "../../job/actions";
 import { requestFileMetadataForJob } from "../../metadata/actions";
 import {
   closeUploadTab,
@@ -622,6 +626,24 @@ describe("feedback reducer", () => {
           )
         ).to.be.false;
       });
+    });
+  });
+  describe("retrieveJobsFailed", () => {
+    it("removes GET_JOBS request from requestsInProgress and adds error event", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.GET_JOBS],
+        },
+        retrieveJobsFailed("foo")
+      );
+      expect(result.requestsInProgress.includes(AsyncRequest.GET_JOBS)).to.be
+        .false;
+      expect(
+        result.events.find(
+          (e) => e.type === AlertType.ERROR && e.message === "foo"
+        )
+      );
     });
   });
 });
