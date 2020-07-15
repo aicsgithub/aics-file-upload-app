@@ -5,8 +5,7 @@ import { ColumnProps } from "antd/es/table";
 import { isEmpty, uniq } from "lodash";
 import * as React from "react";
 
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
-import { SearchResultRow } from "../../state/types";
+import { SearchResultRow, UploadSummaryTableRow } from "../../state/types";
 import { titleCase } from "../../util";
 import JobOverviewDisplay from "../JobOverviewDisplay";
 

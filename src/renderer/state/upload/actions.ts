@@ -2,9 +2,13 @@ import {
   TEMP_UPLOAD_STORAGE_KEY,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { Workflow } from "../../services/labkey-client/types";
-import { State, UploadMetadata, UploadRowId } from "../types";
+import {
+  State,
+  UploadMetadata,
+  UploadRowId,
+  UploadSummaryTableRow,
+} from "../types";
 
 import {
   APPLY_TEMPLATE,

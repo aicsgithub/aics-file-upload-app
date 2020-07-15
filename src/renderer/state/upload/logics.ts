@@ -25,7 +25,6 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
@@ -86,6 +85,7 @@ import {
   UploadMetadata,
   UploadRowId,
   UploadStateBranch,
+  UploadSummaryTableRow,
 } from "../types";
 import { batchActions } from "../util";
 

@@ -1,7 +1,4 @@
-import {
-  JSSJob,
-  JSSJobStatus,
-} from "@aics/job-status-client/type-declarations/types";
+import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
 import {
   Button,
   Col,
@@ -81,6 +78,7 @@ import {
   State,
   UploadFile,
   UploadMetadata,
+  UploadSummaryTableRow,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
 import {
@@ -100,12 +98,6 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
   weekday: "short",
   year: "numeric",
 });
-
-// Matches a Job but the created date is represented as a string
-export interface UploadSummaryTableRow extends JSSJob {
-  // used by antd's Table component to uniquely identify rows
-  key: string;
-}
 
 interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
