@@ -36,11 +36,6 @@ export interface OpenEditFileMetadataTabAction {
   type: string;
 }
 
-export interface OpenEditFileMetadataTabFailedAction {
-  payload: string;
-  type: string;
-}
-
 export interface OpenEditFileMetadataTabSucceededAction {
   payload: {
     originalUpload: UploadStateBranch;

@@ -1,7 +1,7 @@
 import { ColumnProps } from "antd/es/table";
 
 import { BarcodePrefix } from "../../services/labkey-client/types";
-import { MetadataStateBranch, SearchResultRow } from "../types";
+import { AsyncRequest, MetadataStateBranch, SearchResultRow } from "../types";
 
 // This wrapper interface is merely to convince ts-lint that title is always present
 export interface SearchResultsHeader extends ColumnProps<SearchResultRow> {
@@ -43,12 +43,10 @@ export interface ClearFileMetadataForJobAction {
 }
 
 export interface ReceiveMetadataAction {
-  payload: Partial<MetadataStateBranch>;
-  type: string;
-}
-
-export interface ReceiveFileMetadataAction {
-  payload: SearchResultRow[];
+  payload: {
+    metadata: Partial<MetadataStateBranch>;
+    requestType: AsyncRequest | string;
+  };
   type: string;
 }
 

@@ -11,17 +11,18 @@ import { WELL_ANNOTATION_NAME } from "../../constants";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";
 import {
-  getSetAppliedTemplateAction,
-  getSetPlateAction,
-  getWithRetry,
+  getApplyTemplateInfo,
   ensureDraftGetsSaved,
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
+  getPlateInfo,
 } from "../../util";
+import { requestFailed } from "../actions";
 import {
   openSetMountPointNotification,
   setErrorAlert,
 } from "../feedback/actions";
+import { getWithRetry } from "../feedback/util";
 import { updatePageHistory } from "../metadata/actions";
 import {
   getSelectionHistory,
@@ -33,11 +34,16 @@ import {
   clearSelectionHistory,
   jumpToPastSelection,
   selectBarcode,
+  setPlate,
 } from "../selection/actions";
 import { getCurrentSelectionIndex } from "../selection/selectors";
 import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
-import { clearTemplateHistory, jumpToPastTemplate } from "../template/actions";
+import {
+  clearTemplateHistory,
+  jumpToPastTemplate,
+  setAppliedTemplate,
+} from "../template/actions";
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
   AsyncRequest,
@@ -67,7 +73,6 @@ import { batchActions } from "../util";
 
 import {
   closeUploadTab,
-  openEditFileMetadataTabFailed,
   openEditFileMetadataTabSucceeded,
   selectPage,
 } from "./actions";
@@ -426,13 +431,16 @@ const getPlateRelatedActions = async (
   const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
     barcode
   );
-  const setPlateAction = await getSetPlateAction(
+  const { plate, wells } = await getPlateInfo(
     barcode,
     imagingSessionIds,
     mmsClient,
     dispatch
   );
-  actions.push(selectBarcode(barcode, imagingSessionIds), setPlateAction);
+  actions.push(
+    selectBarcode(barcode, imagingSessionIds),
+    setPlate(plate, wells, imagingSessionIds)
+  );
 
   return actions;
 };
@@ -469,18 +477,13 @@ const openEditFileMetadataTabLogic = createLogic({
     let fileMetadataForJob: ImageModelMetadata[];
     const request = () => retrieveFileMetadata(fileIds, fms);
     try {
-      fileMetadataForJob = await getWithRetry(
-        request,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
-        dispatch,
-        "MMS"
-      );
+      fileMetadataForJob = await getWithRetry(request, dispatch);
     } catch (e) {
       const error = `Could not retrieve file metadata for fileIds=${fileIds.join(
         ", "
       )}: ${e.message}`;
       logger.error(error);
-      dispatch(openEditFileMetadataTabFailed(error));
+      dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
       done();
       return;
     }
@@ -511,7 +514,9 @@ const openEditFileMetadataTabLogic = createLogic({
         } catch (e) {
           const error = `Could not get plate information from upload: ${e.message}`;
           logger.error(error);
-          dispatch(openEditFileMetadataTabFailed(error));
+          dispatch(
+            requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB)
+          );
           done();
           return;
         }
@@ -521,13 +526,23 @@ const openEditFileMetadataTabLogic = createLogic({
 
       // Currently we only allow applying one template at a time
       if (fileMetadataForJob[0].templateId) {
-        updateUploadsAction = await getSetAppliedTemplateAction(
-          fileMetadataForJob[0].templateId,
-          getState,
-          mmsClient,
-          dispatch,
-          newUpload
-        );
+        try {
+          const { template, uploads } = await getApplyTemplateInfo(
+            fileMetadataForJob[0].templateId,
+            getState,
+            mmsClient,
+            dispatch,
+            newUpload
+          );
+          updateUploadsAction = setAppliedTemplate(template, uploads);
+        } catch (e) {
+          dispatch(
+            requestFailed(
+              "Could not open upload editor: " + e.message,
+              AsyncRequest.GET_FILE_METADATA_FOR_JOB
+            )
+          );
+        }
       } else {
         updateUploadsAction = updateUploads(newUpload, true);
       }

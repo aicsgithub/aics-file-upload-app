@@ -29,7 +29,7 @@ import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
   ensureDraftGetsSaved,
-  getSetAppliedTemplateAction,
+  getApplyTemplateInfo,
   getUploadFilePromise,
   mergeChildPaths,
   pivotAnnotations,
@@ -66,6 +66,7 @@ import {
   getSelectedWellIds,
   getStagedFiles,
 } from "../selection/selectors";
+import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,
@@ -212,13 +213,13 @@ const applyTemplateLogic = createLogic({
   ) => {
     const templateId = action.payload;
     try {
-      const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+      const { template, uploads } = await getApplyTemplateInfo(
         templateId,
         getState,
         mmsClient,
         dispatch
       );
-      dispatch(setAppliedTemplateAction);
+      dispatch(setAppliedTemplate(template, uploads));
     } catch (e) {
       dispatch(
         batchActions([

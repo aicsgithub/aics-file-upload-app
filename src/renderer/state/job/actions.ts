@@ -7,6 +7,7 @@ import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
   RECEIVE_JOBS,
   RETRIEVE_JOBS,
+  RETRIEVE_JOBS_FAILED,
   SELECT_JOB_FILTER,
   START_JOB_POLL,
   STOP_JOB_POLL,
@@ -16,6 +17,7 @@ import {
   GatherIncompleteJobIdsAction,
   ReceiveJobsAction,
   RetrieveJobsAction,
+  RetrieveJobsFailedAction,
   SelectJobFilterAction,
   StartJobPollAction,
   StopJobPollAction,
@@ -25,6 +27,13 @@ import {
 export function retrieveJobs(): RetrieveJobsAction {
   return {
     type: RETRIEVE_JOBS,
+  };
+}
+
+export function retrieveJobsFailed(error: string): RetrieveJobsFailedAction {
+  return {
+    payload: error,
+    type: RETRIEVE_JOBS_FAILED,
   };
 }
 

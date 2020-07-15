@@ -2,7 +2,12 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { Menu, MessageBoxOptions, OpenDialogOptions } from "electron";
+import {
+  ipcRenderer,
+  Menu,
+  MessageBoxOptions,
+  OpenDialogOptions,
+} from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
@@ -71,10 +76,7 @@ export interface ReduxLogicExtraDependencies {
   dialog: Dialog;
   fms: FileManagementSystem;
   getApplicationMenu: () => Menu | null;
-  ipcRenderer: {
-    on: (channel: string, listener: (...args: any[]) => void) => void;
-    send: (channel: string, ...args: any[]) => void;
-  };
+  ipcRenderer: typeof ipcRenderer;
   jssClient: JobStatusClient;
   labkeyClient: LabkeyClient;
   logger: Logger;
@@ -139,12 +141,13 @@ export enum AsyncRequest {
   GET_TEMPLATE = "GET_TEMPLATE", // full template with annotations from MMS
   GET_TEMPLATES = "GET_TEMPLATES", // just template name from Labkey
   INITIATE_UPLOAD = "INITIATE_UPLOAD",
-  REQUEST_METADATA = "REQUEST_METADATA",
-  REQUEST_FILE_METADATA_FOR_JOB = "REQUEST_FILE_METADATA_FOR_JOB",
+  GET_METADATA = "GET_METADATA",
+  GET_FILE_METADATA_FOR_JOB = "GET_FILE_METADATA_FOR_JOB",
   RETRY_UPLOAD = "RETRY_UPLOAD",
   SAVE_TEMPLATE = "SAVE_TEMPLATE",
   SEARCH_FILE_METADATA = "SEARCH_FILE_METADATA",
   UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
+  CREATE_BARCODE = "CREATE_BARCODE",
 }
 
 export enum JobFilter {
@@ -406,4 +409,12 @@ export enum HTTP_STATUS {
 export interface BarcodeSelectorOption {
   barcode: string;
   imagingSessionIds: Array<number | null>;
+}
+
+export interface RequestFailedAction {
+  payload: {
+    error: string;
+    requestType: AsyncRequest | string;
+  };
+  type: string;
 }

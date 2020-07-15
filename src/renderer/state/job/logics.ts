@@ -9,17 +9,11 @@ import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { JOB_STORAGE_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../services";
-import { getWithRetry } from "../../util";
-import {
-  addEvent,
-  setAlert,
-  setErrorAlert,
-  setSuccessAlert,
-} from "../feedback/actions";
+import { setAlert, setErrorAlert, setSuccessAlert } from "../feedback/actions";
+import { getWithRetry } from "../feedback/util";
 import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
-  AsyncRequest,
   JobFilter,
   Logger,
   ReduxLogicDoneCb,
@@ -30,7 +24,12 @@ import {
 } from "../types";
 import { batchActions } from "../util";
 
-import { receiveJobs, stopJobPoll, updateIncompleteJobIds } from "./actions";
+import {
+  receiveJobs,
+  retrieveJobsFailed,
+  stopJobPoll,
+  updateIncompleteJobIds,
+} from "./actions";
 import {
   FAILED_STATUSES,
   GATHER_STORED_INCOMPLETE_JOB_IDS,
@@ -181,11 +180,7 @@ export const mapJobsToActions = (storage: LocalStorage, logger: Logger) => (
   } = jobs;
   if (error) {
     logger.error(error);
-    return addEvent(
-      `Could not retrieve jobs: ${error.message}`,
-      AlertType.ERROR,
-      new Date()
-    );
+    return retrieveJobsFailed(`Could not retrieve jobs: ${error.message}`);
   }
 
   const actions: AnyAction[] = [];
@@ -264,9 +259,7 @@ const retrieveJobsLogic = createLogic({
     const { getState, jssClient, logger, storage } = deps;
     const jobs = await getWithRetry(
       () => fetchJobs(getState, jssClient),
-      AsyncRequest.GET_JOBS,
-      dispatch,
-      "JSS"
+      dispatch
     );
     dispatch(mapJobsToActions(storage, logger)(jobs));
     done();

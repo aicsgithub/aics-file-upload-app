@@ -1,5 +1,5 @@
 import { BarcodePrefix } from "../../services/labkey-client/types";
-import { MetadataStateBranch, SearchResultRow } from "../types";
+import { AsyncRequest, MetadataStateBranch } from "../types";
 
 import {
   CLEAR_FILE_METADATA_FOR_JOB,
@@ -10,7 +10,6 @@ import {
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
-  RECEIVE_FILE_METADATA,
   RECEIVE_METADATA,
   REQUEST_FILE_METADATA_FOR_JOB,
   REQUEST_METADATA,
@@ -28,7 +27,6 @@ import {
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
-  ReceiveFileMetadataAction,
   ReceiveMetadataAction,
   RequestFileMetadataForJobAction,
   RequestMetadataAction,
@@ -67,20 +65,15 @@ export function retrieveOptionsForLookup(
 }
 
 export function receiveMetadata(
-  payload: Partial<MetadataStateBranch> = initialState
+  metadata: Partial<MetadataStateBranch> = initialState,
+  requestType: AsyncRequest | string = AsyncRequest.GET_METADATA
 ): ReceiveMetadataAction {
   return {
-    payload,
+    payload: {
+      metadata,
+      requestType,
+    },
     type: RECEIVE_METADATA,
-  };
-}
-
-export function receiveFileMetadata(
-  fileMetadata: SearchResultRow[]
-): ReceiveFileMetadataAction {
-  return {
-    payload: fileMetadata,
-    type: RECEIVE_FILE_METADATA,
   };
 }
 

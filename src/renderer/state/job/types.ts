@@ -6,6 +6,11 @@ export interface RetrieveJobsAction {
   type: string;
 }
 
+export interface RetrieveJobsFailedAction {
+  payload: string;
+  type: string;
+}
+
 export interface ReceiveJobsAction {
   payload: {
     addMetadataJobs: JSSJob[];

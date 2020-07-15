@@ -21,7 +21,6 @@ import { makeReducer } from "../util";
 import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
-  RECEIVE_FILE_METADATA,
   RECEIVE_METADATA,
   RESET_HISTORY,
   SEARCH_FILE_METADATA,
@@ -30,7 +29,6 @@ import {
 import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
-  ReceiveFileMetadataAction,
   ReceiveMetadataAction,
   ResetHistoryAction,
   SearchFileMetadataAction,
@@ -70,9 +68,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
   [RECEIVE_METADATA]: {
     accepts: (action: AnyAction): action is ReceiveMetadataAction =>
       action.type === RECEIVE_METADATA,
-    perform: (state: MetadataStateBranch, action: ReceiveMetadataAction) => ({
+    perform: (
+      state: MetadataStateBranch,
+      { payload: { metadata } }: ReceiveMetadataAction
+    ) => ({
       ...state,
-      ...action.payload,
+      ...metadata,
     }),
   },
   [RESET_HISTORY]: {
@@ -143,17 +144,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       currentUploadFilePath: undefined,
       originalUpload: undefined,
-    }),
-  },
-  [RECEIVE_FILE_METADATA]: {
-    accepts: (action: AnyAction): action is ReceiveFileMetadataAction =>
-      action.type === RECEIVE_FILE_METADATA,
-    perform: (
-      state: MetadataStateBranch,
-      action: ReceiveFileMetadataAction
-    ) => ({
-      ...state,
-      fileMetadataForJob: action.payload,
     }),
   },
   // this is necessary because we are sharing the upload tab

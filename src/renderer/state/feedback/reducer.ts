@@ -2,27 +2,50 @@ import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
-import { RECEIVE_JOBS, RETRIEVE_JOBS } from "../job/constants";
-import { ReceiveJobsAction, RetrieveJobsAction } from "../job/types";
+import { REQUEST_FAILED } from "../constants";
 import {
-  RECEIVE_FILE_METADATA,
+  RECEIVE_JOBS,
+  RETRIEVE_JOBS,
+  RETRIEVE_JOBS_FAILED,
+} from "../job/constants";
+import {
+  ReceiveJobsAction,
+  RetrieveJobsAction,
+  RetrieveJobsFailedAction,
+} from "../job/types";
+import {
+  CREATE_BARCODE,
+  EXPORT_FILE_METADATA,
+  GET_ANNOTATIONS,
+  GET_BARCODE_SEARCH_RESULTS,
+  GET_OPTIONS_FOR_LOOKUP,
+  GET_TEMPLATES,
+  RECEIVE_METADATA,
   REQUEST_FILE_METADATA_FOR_JOB,
+  REQUEST_METADATA,
+  SEARCH_FILE_METADATA,
 } from "../metadata/constants";
 import {
-  ReceiveFileMetadataAction,
+  CreateBarcodeAction,
+  ExportFileMetadataAction,
+  GetAnnotationsAction,
+  GetBarcodeSearchResultsAction,
+  GetOptionsForLookupAction,
+  GetTemplatesAction,
+  ReceiveMetadataAction,
   RequestFileMetadataForJobAction,
+  RequestMetadataAction,
+  SearchFileMetadataAction,
 } from "../metadata/types";
 import {
   CLOSE_UPLOAD_TAB,
   OPEN_EDIT_FILE_METADATA_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB_FAILED,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
   SELECT_PAGE,
 } from "../route/constants";
 import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
-  OpenEditFileMetadataTabFailedAction,
   OpenEditFileMetadataTabSucceededAction,
   SelectPageAction,
 } from "../route/types";
@@ -47,6 +70,7 @@ import {
   FeedbackStateBranch,
   HTTP_STATUS,
   Page,
+  RequestFailedAction,
   TypeToDescriptionMap,
 } from "../types";
 import {
@@ -116,11 +140,13 @@ import {
 } from "./types";
 
 const BAD_GATEWAY_ERROR = "Bad Gateway Error: Labkey or MMS is down.";
-const addRequestToInProgress = (state: FeedbackStateBranch, request: string) =>
-  uniq([...state.requestsInProgress, request]);
+const addRequestToInProgress = (
+  state: FeedbackStateBranch,
+  request: AsyncRequest | string
+) => uniq([...state.requestsInProgress, request]);
 const removeRequestFromInProgress = (
   state: FeedbackStateBranch,
-  request: string
+  request: AsyncRequest | string
 ) => without(state.requestsInProgress, request);
 const getInfoAlert = (message: string) => ({
   message,
@@ -362,7 +388,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       requestsInProgress: uniq([
         ...state.requestsInProgress,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB,
+        AsyncRequest.GET_FILE_METADATA_FOR_JOB,
       ]),
     }),
   },
@@ -373,18 +399,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       requestsInProgress: addRequestToInProgress(
         state,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
-      ),
-    }),
-  },
-  [RECEIVE_FILE_METADATA]: {
-    accepts: (action: AnyAction): action is ReceiveFileMetadataAction =>
-      action.type === RECEIVE_FILE_METADATA,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        AsyncRequest.GET_FILE_METADATA_FOR_JOB
       ),
     }),
   },
@@ -427,6 +442,28 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: addRequestToInProgress(state, AsyncRequest.GET_JOBS),
+    }),
+  },
+  [RETRIEVE_JOBS_FAILED]: {
+    accepts: (action: AnyAction): action is RetrieveJobsFailedAction =>
+      action.type === RETRIEVE_JOBS_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: RetrieveJobsFailedAction
+    ) => ({
+      ...state,
+      events: [
+        ...state.events,
+        {
+          date: new Date(),
+          message: action.payload,
+          type: AlertType.ERROR,
+        },
+      ],
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_JOBS
+      ),
     }),
   },
   [RECEIVE_JOBS]: {
@@ -634,23 +671,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ),
     }),
   },
-  [OPEN_EDIT_FILE_METADATA_TAB_FAILED]: {
-    accepts: (
-      action: AnyAction
-    ): action is OpenEditFileMetadataTabFailedAction =>
-      action.type === OPEN_EDIT_FILE_METADATA_TAB_FAILED,
-    perform: (
-      state: FeedbackStateBranch,
-      action: OpenEditFileMetadataTabFailedAction
-    ) => ({
-      ...state,
-      alert: getErrorAlert(action.payload),
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
-      ),
-    }),
-  },
   [OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED]: {
     accepts: (
       action: AnyAction
@@ -660,7 +680,118 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.REQUEST_FILE_METADATA_FOR_JOB
+        AsyncRequest.GET_FILE_METADATA_FOR_JOB
+      ),
+    }),
+  },
+  [REQUEST_METADATA]: {
+    accepts: (action: AnyAction): action is RequestMetadataAction =>
+      action.type === REQUEST_METADATA,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.GET_METADATA
+      ),
+    }),
+  },
+  [RECEIVE_METADATA]: {
+    accepts: (action: AnyAction): action is ReceiveMetadataAction =>
+      action.type === RECEIVE_METADATA,
+    perform: (
+      state: FeedbackStateBranch,
+      { payload: { requestType } }: ReceiveMetadataAction
+    ) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(state, requestType),
+    }),
+  },
+  [REQUEST_FAILED]: {
+    accepts: (action: AnyAction): action is RequestFailedAction =>
+      action.type === REQUEST_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      { payload: { error, requestType } }: RequestFailedAction
+    ) => ({
+      ...state,
+      alert: getErrorAlert(error),
+      requestsInProgress: removeRequestFromInProgress(state, requestType),
+    }),
+  },
+  [GET_BARCODE_SEARCH_RESULTS]: {
+    accepts: (action: AnyAction): action is GetBarcodeSearchResultsAction =>
+      action.type === GET_BARCODE_SEARCH_RESULTS,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.GET_BARCODE_SEARCH_RESULTS
+      ),
+    }),
+  },
+  [GET_ANNOTATIONS]: {
+    accepts: (action: AnyAction): action is GetAnnotationsAction =>
+      action.type === GET_ANNOTATIONS,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.GET_ANNOTATIONS
+      ),
+    }),
+  },
+  [GET_TEMPLATES]: {
+    accepts: (action: AnyAction): action is GetTemplatesAction =>
+      action.type === GET_TEMPLATES,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.GET_TEMPLATES
+      ),
+    }),
+  },
+  [SEARCH_FILE_METADATA]: {
+    accepts: (action: AnyAction): action is SearchFileMetadataAction =>
+      action.type === SEARCH_FILE_METADATA,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.SEARCH_FILE_METADATA
+      ),
+    }),
+  },
+  [EXPORT_FILE_METADATA]: {
+    accepts: (action: AnyAction): action is ExportFileMetadataAction =>
+      action.type === EXPORT_FILE_METADATA,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.EXPORT_FILE_METADATA
+      ),
+    }),
+  },
+  [GET_OPTIONS_FOR_LOOKUP]: {
+    accepts: (action: AnyAction): action is GetOptionsForLookupAction =>
+      action.type === GET_OPTIONS_FOR_LOOKUP,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.GET_OPTIONS_FOR_LOOKUP
+      ),
+    }),
+  },
+  [CREATE_BARCODE]: {
+    accepts: (action: AnyAction): action is CreateBarcodeAction =>
+      action.type === CREATE_BARCODE,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.CREATE_BARCODE
       ),
     }),
   },

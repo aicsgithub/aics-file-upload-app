@@ -2,7 +2,7 @@ import { get, includes } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { SaveTemplateRequest } from "../../services/mms-client/types";
-import { getSetAppliedTemplateAction } from "../../util";
+import { getApplyTemplateInfo } from "../../util";
 import {
   addRequestToInProgress,
   closeModal,
@@ -33,7 +33,7 @@ import {
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { updateTemplateDraft } from "./actions";
+import { setAppliedTemplate, updateTemplateDraft } from "./actions";
 import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
 import {
   getSaveTemplateRequest,
@@ -190,13 +190,13 @@ const saveTemplateLogic = createLogic({
 
     if (getCanSaveUploadDraft(getState())) {
       try {
-        const setAppliedTemplateAction = await getSetAppliedTemplateAction(
+        const { template, uploads } = await getApplyTemplateInfo(
           createdTemplateId,
           getState,
           mmsClient,
           dispatch
         );
-        dispatch(setAppliedTemplateAction);
+        dispatch(setAppliedTemplate(template, uploads));
       } catch (e) {
         dispatch(
           batchActions([

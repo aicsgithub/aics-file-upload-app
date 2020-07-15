@@ -7,7 +7,6 @@ import {
   GO_BACK,
   GO_FORWARD,
   OPEN_EDIT_FILE_METADATA_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB_FAILED,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
   SELECT_PAGE,
   SELECT_VIEW,
@@ -17,7 +16,6 @@ import {
   GoBackAction,
   NextPageAction,
   OpenEditFileMetadataTabAction,
-  OpenEditFileMetadataTabFailedAction,
   OpenEditFileMetadataTabSucceededAction,
   SelectPageAction,
   SelectViewAction,
@@ -64,15 +62,6 @@ export function openEditFileMetadataTab(
   return {
     payload: job,
     type: OPEN_EDIT_FILE_METADATA_TAB,
-  };
-}
-
-export function openEditFileMetadataTabFailed(
-  error: string
-): OpenEditFileMetadataTabFailedAction {
-  return {
-    payload: error,
-    type: OPEN_EDIT_FILE_METADATA_TAB_FAILED,
   };
 }
 

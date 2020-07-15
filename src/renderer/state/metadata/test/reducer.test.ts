@@ -15,7 +15,6 @@ import { replaceUpload, saveUploadDraftSuccess } from "../../upload/actions";
 import {
   clearFileMetadataForJob,
   clearOptionsForLookup,
-  receiveFileMetadata,
   receiveMetadata,
   resetHistory,
   searchFileMetadata,
@@ -125,12 +124,6 @@ describe("metadata reducer", () => {
         openEditFileMetadataTabSucceeded(mockWellUpload)
       );
       expect(result.originalUpload).to.equal(mockWellUpload);
-    });
-  });
-  describe("receiveFileMetadata", () => {
-    it("sets fileMetadataForJob", () => {
-      const result = reducer(initialState, receiveFileMetadata([]));
-      expect(result.fileMetadataForJob).to.not.be.undefined;
     });
   });
   describe("saveUploadDraftSuccess", () => {

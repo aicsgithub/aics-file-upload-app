@@ -1,6 +1,5 @@
 import { dirname, resolve } from "path";
 
-import { AxiosError } from "axios";
 import { expect } from "chai";
 import { isEmpty } from "lodash";
 import { StateWithHistory } from "redux-undo";
@@ -14,15 +13,7 @@ import {
   GetPlateResponse,
   PlateResponse,
 } from "../../../services/mms-client/types";
-import {
-  SERVICE_IS_DOWN_MESSAGE,
-  SERVICE_MIGHT_BE_DOWN_MESSAGE,
-  API_WAIT_TIME_SECONDS,
-} from "../../../util";
-import {
-  getAlert,
-  getRequestsInProgressContains,
-} from "../../feedback/selectors";
+import { requestFailed } from "../../actions";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
 import {
@@ -40,10 +31,7 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
-  AlertType,
-  AppAlert,
   AsyncRequest,
-  HTTP_STATUS,
   Page,
   SelectionStateBranch,
   UploadFile,
@@ -51,7 +39,6 @@ import {
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
 import { clearStagedFiles, selectBarcode, selectWells } from "../actions";
-import { GENERIC_GET_WELLS_ERROR_MESSAGE } from "../logics";
 import { UploadFileImpl } from "../models/upload-file";
 import {
   getSelectedBarcode,
@@ -386,7 +373,6 @@ describe("Selection logics", () => {
     const barcode = "1234";
     const plateId = 1;
     let mockOkGetPlateResponse: GetPlateResponse;
-    let mockBadGatewayResponse: AxiosError;
     const mockEmptyWell: Well = {
       cellPopulations: [],
       col: 0,
@@ -411,149 +397,12 @@ describe("Selection logics", () => {
         plate: mockPlate,
         wells: [mockEmptyWell],
       };
-      mockBadGatewayResponse = {
-        config: {},
-        isAxiosError: true,
-        message: "Bad Gateway",
-        name: "",
-        response: {
-          config: {},
-          data: [],
-          headers: {},
-          status: HTTP_STATUS.BAD_GATEWAY,
-          statusText: "Bad Gateway",
-        },
-      };
     });
 
     it("Sets wells, page, barcode, and plateId if GET wells is OK", async () => {
       const getStub = sinon
         .stub()
         .onFirstCall()
-        .callsFake(() => {
-          return Promise.resolve(mockOkGetPlateResponse);
-        });
-      sandbox.replace(mmsClient, "getPlate", getStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      // apply
-      store.dispatch(selectBarcode(barcode));
-
-      // after
-      await logicMiddleware.whenComplete();
-      const state = store.getState();
-      expect(getWells(state)).to.not.be.empty;
-      expect(getPage(state)).to.equal(Page.AssociateFiles);
-      expect(getSelectedBarcode(state)).to.equal(barcode);
-      expect(getSelectedPlateId(state)).to.equal(plateId);
-    });
-
-    it("Does not retry GET wells request if response is non-Bad Gateway error", async () => {
-      const getStub = sinon
-        .stub()
-        .onFirstCall()
-        .callsFake(() => {
-          return Promise.reject({
-            ...mockOkGetPlateResponse,
-            status: HTTP_STATUS.BAD_REQUEST,
-          });
-        });
-      sandbox.replace(mmsClient, "getPlate", getStub);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      // apply
-      store.dispatch(selectBarcode(barcode));
-
-      // after
-      await logicMiddleware.whenComplete();
-      const state = store.getState();
-      expect(getRequestsInProgressContains(state, AsyncRequest.GET_PLATE)).to.be
-        .false;
-      expect(getStub.callCount).to.equal(1);
-
-      const alert = getAlert(state);
-      expect(alert).to.not.be.undefined;
-
-      if (alert) {
-        expect(alert.type).to.equal(AlertType.ERROR);
-        expect(alert.message).to.equal(
-          GENERIC_GET_WELLS_ERROR_MESSAGE(barcode)
-        );
-      }
-    });
-
-    it("Shows error message if it only receives Bad Gateway error for 20 seconds", async function () {
-      // here we're using a fake clock so that 20 seconds passes more quickly and to give control
-      // over to the test in terms of timing.
-      this.clock = sinon.useFakeTimers(new Date().getTime());
-
-      // extends timeout for this test since we're testing a potentially long running process
-      const waitTime = API_WAIT_TIME_SECONDS * 1000 + 3000;
-      this.timeout(waitTime);
-
-      let secondsPassed = 0;
-      const incrementMs = 5000;
-
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let firstAlert: AppAlert | undefined;
-
-      // increment clock on every get call by 5 seconds
-      const getStub = sinon.stub().callsFake(() => {
-        this.clock.tick(incrementMs);
-        secondsPassed += incrementMs / 1000;
-
-        if (!firstAlert) {
-          firstAlert = getAlert(store.getState());
-        }
-
-        return Promise.reject(mockBadGatewayResponse);
-      });
-      sandbox.replace(mmsClient, "getPlate", getStub);
-
-      // apply
-      store.dispatch(selectBarcode(barcode));
-
-      // after
-      await logicMiddleware.whenComplete();
-      if (secondsPassed >= API_WAIT_TIME_SECONDS) {
-        const state = store.getState();
-        const currentAlert: AppAlert | undefined = getAlert(state);
-        expect(getStub.callCount).to.be.greaterThan(1);
-        expect(firstAlert).to.not.be.undefined;
-
-        if (firstAlert) {
-          expect(firstAlert.type).to.equal(AlertType.WARN);
-          expect(firstAlert.message).to.equal(
-            SERVICE_MIGHT_BE_DOWN_MESSAGE("MMS")
-          );
-        }
-
-        expect(currentAlert).to.not.be.undefined;
-
-        if (currentAlert) {
-          expect(currentAlert.type).to.equal(AlertType.ERROR);
-          expect(currentAlert.message).to.equal(SERVICE_IS_DOWN_MESSAGE("MMS"));
-        }
-      }
-    });
-
-    it("Can handle successful response after retrying GET wells request", async function () {
-      this.timeout(API_WAIT_TIME_SECONDS * 1000 + 3000);
-      const getStub = sinon
-        .stub()
-        .onFirstCall()
-        .rejects(mockBadGatewayResponse)
-        .onSecondCall()
         .callsFake(() => {
           return Promise.resolve(mockOkGetPlateResponse);
         });
@@ -617,6 +466,19 @@ describe("Selection logics", () => {
       expect(getPage(state)).to.equal(Page.AssociateFiles);
       expect(getSelectedBarcode(state)).to.equal(barcode);
       expect(getSelectedPlateId(state)).to.equal(plateId);
+    });
+    it("dispatches requestFailed if request fails", async () => {
+      sandbox.replace(mmsClient, "getPlate", stub().rejects(new Error("foo")));
+      const { actions, logicMiddleware, store } = createMockReduxStore();
+
+      store.dispatch(selectBarcode(barcode, [null]));
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          requestFailed("Could not get plate info: foo", AsyncRequest.GET_PLATE)
+        )
+      ).to.be.true;
     });
   });
 
