@@ -61,11 +61,7 @@ const getJobStatusesToInclude = (jobFilter: JobFilter): string[] => {
     case JobFilter.InProgress:
       return [...IN_PROGRESS_STATUSES];
     default:
-      return [
-        ...FAILED_STATUSES,
-        ...SUCCESSFUL_STATUS,
-        ...IN_PROGRESS_STATUSES,
-      ];
+      return [...FAILED_STATUSES, SUCCESSFUL_STATUS, ...IN_PROGRESS_STATUSES];
   }
 };
 
