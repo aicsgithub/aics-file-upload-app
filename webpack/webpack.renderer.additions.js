@@ -1,5 +1,6 @@
 const path = require("path");
 
+const CircularDependencyPlugin = require("circular-dependency-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const tsImportPluginFactory = require("ts-import-plugin");
 
@@ -8,7 +9,22 @@ const getCssLoaders = require("./css-loaders");
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 module.exports = {
-  plugins: [new MiniCssExtractPlugin("style.pcss")],
+  plugins: [
+    new MiniCssExtractPlugin("style.pcss"),
+    new CircularDependencyPlugin({
+      // exclude detection of files based on a RegExp
+      exclude: /a\.js|node_modules/,
+      // include specific files based on a RegExp
+      include: /dir/,
+      // add errors to webpack instead of warnings
+      failOnError: true,
+      // allow import cycles that include an asyncronous import,
+      // e.g. via import(/* webpackMode: "weak" */ './file.js')
+      allowAsyncCycles: false,
+      // set the current working directory for displaying module paths
+      cwd: process.cwd(),
+    }),
+  ],
   module: {
     rules: [
       {
