@@ -33,11 +33,9 @@ import {
   mockFavoriteColorAnnotation,
   mockMMSTemplate,
   mockNumberAnnotation,
-  mockState,
 } from "../../state/test/mocks";
 import {
   ReduxLogicTransformDependencies,
-  State,
   UploadStateBranch,
 } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
@@ -354,9 +352,9 @@ describe("General utilities", () => {
   });
   describe("ensureDraftGetsSaved", () => {
     const runTest = async (
-      state: State,
       skipWarningDialog: boolean,
       showMessageBoxResponse?: number,
+      currentUploadFilePath?: string,
       saveFilePath?: string
     ) => {
       const writeFileStub = stub();
@@ -368,49 +366,39 @@ describe("General utilities", () => {
       sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
       const deps = ({
         ...mockReduxLogicDeps,
-        getState: () => state,
+        getState: () => ({}),
         writeFile: writeFileStub,
       } as any) as ReduxLogicTransformDependencies;
 
       const result = await ensureDraftGetsSaved(
         deps,
-        undefined,
+        true,
+        currentUploadFilePath,
         skipWarningDialog
       );
       return { result, showMessageBoxStub, showSaveDialogStub, writeFileStub };
     };
     it("automatically saves draft if user is working on a draft that has previously been saved", async () => {
-      const state = {
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          currentUploadFilePath: "/foo",
-        },
-      };
       const {
         showMessageBoxStub,
         showSaveDialogStub,
         writeFileStub,
-      } = await runTest(state, false);
+      } = await runTest(false, undefined, "/foo");
       expect(writeFileStub.called).to.be.true;
       expect(showMessageBoxStub.called).to.be.false;
       expect(showSaveDialogStub.called).to.be.false;
     });
     it("shows warning dialog if skipWarningDialog is false", async () => {
-      const { showMessageBoxStub } = await runTest(mockState, false);
+      const { showMessageBoxStub } = await runTest(false);
       expect(showMessageBoxStub.called).to.be.true;
     });
     it("does not show warning dialog if skipWarningDialog is true and opens save dialog", async () => {
-      const { showMessageBoxStub, showSaveDialogStub } = await runTest(
-        mockState,
-        true
-      );
+      const { showMessageBoxStub, showSaveDialogStub } = await runTest(true);
       expect(showMessageBoxStub.called).to.be.false;
       expect(showSaveDialogStub.called).to.be.true;
     });
     it("returns { cancelled: false, filePath: undefined } if user chooses to discard draft", async () => {
       const { result, showMessageBoxStub, showSaveDialogStub } = await runTest(
-        mockState,
         false,
         1 // discard button index
       );
@@ -429,9 +417,9 @@ describe("General utilities", () => {
         showSaveDialogStub,
         writeFileStub,
       } = await runTest(
-        mockState,
         false,
         2, // save button index
+        undefined,
         filePath
       );
       expect(showMessageBoxStub.called).to.be.true;
@@ -449,9 +437,9 @@ describe("General utilities", () => {
         showSaveDialogStub,
         writeFileStub,
       } = await runTest(
-        mockState,
         false,
         2, // save button index
+        undefined,
         undefined
       );
       expect(showMessageBoxStub.called).to.be.true;
@@ -464,7 +452,6 @@ describe("General utilities", () => {
     });
     it("returns { cancelled: true, filePath: undefined } if user clicks Cancel in warning dialog", async () => {
       const { result, showMessageBoxStub, showSaveDialogStub } = await runTest(
-        mockState,
         false,
         0 // cancel button index
       );

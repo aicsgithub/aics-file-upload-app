@@ -310,7 +310,6 @@ describe("Upload logics", () => {
       store.dispatch(applyTemplate(1));
       await logicMiddleware.whenComplete();
 
-      console.log(actions.list);
       expect(
         actions.includesMatch(
           requestFailed(
@@ -338,7 +337,6 @@ describe("Upload logics", () => {
 
       store.dispatch(applyTemplate(1));
       await logicMiddleware.whenComplete();
-      console.log(actions.list);
       expect(
         actions.includesMatch(
           requestFailed(

@@ -9,11 +9,10 @@ import { selection } from "../../state";
 import { goBack, goForward } from "../../state/route/actions";
 import { GoBackAction, NextPageAction } from "../../state/route/types";
 import {
-  DragAndDropFileList,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
 } from "../../state/selection/types";
-import { Page } from "../../state/types";
+import { DragAndDropFileList, Page } from "../../state/types";
 
 interface DragAndDropSquareProps {
   goBack: ActionCreator<GoBackAction>;

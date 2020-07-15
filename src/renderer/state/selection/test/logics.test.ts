@@ -13,7 +13,7 @@ import {
   GetPlateResponse,
   PlateResponse,
 } from "../../../services/mms-client/types";
-import { UploadFileImpl } from "../../../util/models/upload-file";
+import { UploadFileImpl } from "../../../util";
 import { requestFailed } from "../../actions";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
@@ -33,6 +33,7 @@ import {
 } from "../../test/mocks";
 import {
   AsyncRequest,
+  DragAndDropFileList,
   Page,
   SelectionStateBranch,
   UploadFile,
@@ -49,7 +50,7 @@ import {
   getStagedFiles,
   getWells,
 } from "../selectors";
-import { DragAndDropFileList, Well } from "../types";
+import { Well } from "../types";
 
 describe("Selection logics", () => {
   const sandbox = createSandbox();

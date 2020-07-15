@@ -3,6 +3,7 @@ import { GridCell } from "../../components/AssociateWells/grid-cell";
 import { Workflow } from "../../services/labkey-client/types";
 import { OpenTemplateEditorAction } from "../feedback/types";
 import {
+  DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   UploadFile,
@@ -34,7 +35,6 @@ import {
   ClearSelectionHistoryAction,
   ClearStagedFilesAction,
   DeselectFilesAction,
-  DragAndDropFileList,
   GetFilesInFolderAction,
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,

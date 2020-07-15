@@ -3,7 +3,7 @@ import TextArea from "antd/es/input/TextArea";
 import { clipboard, OpenDialogOptions, remote } from "electron";
 import * as React from "react";
 
-import { DragAndDropFileList } from "../../state/selection/types";
+import { DragAndDropFileList } from "../../state/types";
 import { onDrop, onOpen } from "../../util";
 import DragAndDrop from "../DragAndDrop";
 

@@ -3,6 +3,7 @@ import { Workflow } from "../../services/labkey-client/types";
 import { CellPopulation, Solution } from "../../services/mms-client/types";
 import {
   AutoSaveAction,
+  DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   MetadataStateBranch,
@@ -98,16 +99,6 @@ export interface SelectAnnotationAction {
 export interface SelectUserAction {
   payload: string;
   type: string;
-}
-
-export interface DragAndDropFileList {
-  readonly length: number;
-  [index: number]: DragAndDropFile;
-}
-
-export interface DragAndDropFile {
-  readonly name: string;
-  readonly path: string;
 }
 
 export interface JumpToPastSelectionAction extends AutoSaveAction {

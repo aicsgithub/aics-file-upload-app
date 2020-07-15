@@ -418,3 +418,13 @@ export interface RequestFailedAction {
   };
   type: string;
 }
+
+export interface DragAndDropFileList {
+  readonly length: number;
+  [index: number]: DragAndDropFile;
+}
+
+export interface DragAndDropFile {
+  readonly name: string;
+  readonly path: string;
+}

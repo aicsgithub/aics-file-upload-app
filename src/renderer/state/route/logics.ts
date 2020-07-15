@@ -70,7 +70,11 @@ import {
   updateUploads,
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
-import { getCurrentUploadIndex, getUploadFiles } from "../upload/selectors";
+import {
+  getCanSaveUploadDraft,
+  getCurrentUploadIndex,
+  getUploadFiles,
+} from "../upload/selectors";
 import { batchActions } from "../util";
 
 import {
@@ -350,6 +354,7 @@ const closeUploadTabLogic = createLogic({
     try {
       const { cancelled } = await ensureDraftGetsSaved(
         deps,
+        getCanSaveUploadDraft(getState()),
         getCurrentUploadFilePath(getState())
       );
 
@@ -583,6 +588,7 @@ const openEditFileMetadataTabLogic = createLogic({
     try {
       const { cancelled } = await ensureDraftGetsSaved(
         deps,
+        getCanSaveUploadDraft(getState()),
         getCurrentUploadFilePath(getState())
       );
       if (cancelled) {

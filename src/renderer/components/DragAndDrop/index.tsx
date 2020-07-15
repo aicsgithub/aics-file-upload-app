@@ -4,7 +4,7 @@ import { OpenDialogOptions, remote } from "electron";
 import { isEmpty } from "lodash";
 import * as React from "react";
 
-import { DragAndDropFileList } from "../../state/selection/types";
+import { DragAndDropFileList } from "../../state/types";
 
 const styles = require("../../components/DragAndDrop/style.pcss");
 

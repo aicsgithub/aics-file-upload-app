@@ -11,13 +11,12 @@ import {
 } from "../../state/feedback/types";
 import {
   ClearStagedFilesAction,
-  DragAndDropFileList,
   GetFilesInFolderAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectFileAction,
 } from "../../state/selection/types";
-import { AlertType, UploadFile } from "../../state/types";
+import { AlertType, DragAndDropFileList, UploadFile } from "../../state/types";
 import {
   undoFileWellAssociation,
   undoFileWorkflowAssociation,

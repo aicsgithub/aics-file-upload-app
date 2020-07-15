@@ -121,6 +121,7 @@ import {
   UPDATE_UPLOAD_ROWS,
 } from "./constants";
 import {
+  getCanSaveUploadDraft,
   getEditFileMetadataRequests,
   getFileIdsToDelete,
   getUpload,
@@ -863,6 +864,7 @@ const saveUploadDraftLogic = createLogic({
     try {
       const { cancelled, filePath } = await ensureDraftGetsSaved(
         deps,
+        getCanSaveUploadDraft(getState()),
         getCurrentUploadFilePath(getState()),
         true
       );
@@ -932,6 +934,7 @@ const openUploadLogic = createLogic({
     try {
       const { cancelled } = await ensureDraftGetsSaved(
         deps,
+        getCanSaveUploadDraft(getState()),
         getCurrentUploadFilePath(getState())
       );
       if (cancelled) {
