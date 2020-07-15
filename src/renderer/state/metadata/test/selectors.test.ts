@@ -221,8 +221,9 @@ describe("Metadata selectors", () => {
     const mockAnnotation2 = {
       ...mockAnnotation,
       annotationId: 3,
+      name: "A comes before Dropdown",
     };
-    it("adds annotation options to matching annotation if found", () => {
+    it("adds annotation options to matching annotation if found and alphabetizes annotations by name", () => {
       const result = getAnnotationsWithAnnotationOptions({
         ...mockState,
         metadata: {
@@ -244,12 +245,12 @@ describe("Metadata selectors", () => {
       });
       expect(result).to.deep.equal([
         {
-          ...mockAnnotation,
-          annotationOptions: ["a", "b"],
-        },
-        {
           ...mockAnnotation2,
           annotationOptions: undefined,
+        },
+        {
+          ...mockAnnotation,
+          annotationOptions: ["a", "b"],
         },
       ]);
     });
