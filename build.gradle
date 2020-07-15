@@ -53,6 +53,10 @@ task test(type: YarnTask) {
    args = ["test"]
 }
 
+task detectCircularDeps(type: YarnTask) {
+    args = ["madge"]
+}
+
 task dev(type: YarnTask) {
     environment = [NODE_ENV: "development"]
     args = ["electron-webpack", "dev"]

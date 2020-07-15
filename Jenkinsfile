@@ -34,6 +34,11 @@ pipeline {
                 sh "./gradlew -i yarn lint"
             }
         }
+        stage("circular-dependencies") {
+            steps {
+                sh "./gradlew -i detectCircularDeps"
+            }
+        }
         stage ("test") {
             steps {
                 sh "./gradlew -i test"
