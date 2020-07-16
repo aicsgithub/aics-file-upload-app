@@ -60,7 +60,7 @@
     "js-logger": "1.6.0",
     "jsdom": "14.0.0",
     "jsdom-global": "3.0.2",
-    "lodash": "4.17.11",
+    "lodash": "4.17.19",
     "mocha": "6.0.2",
     "moment": "2.24.0",
     "react": "16.9.0",
