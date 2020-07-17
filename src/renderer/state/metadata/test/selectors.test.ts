@@ -216,13 +216,19 @@ describe("Metadata selectors", () => {
       annotationTypeId: 3,
       description: "",
       exposeToFileUploadApp: true,
-      name: "Dropdown",
+      name: "B",
     };
     const mockAnnotation2 = {
       ...mockAnnotation,
       annotationId: 3,
+      name: "AA",
     };
-    it("adds annotation options to matching annotation if found", () => {
+    const mockAnnotation3 = {
+      ...mockAnnotation,
+      annotationId: 4,
+      name: "AB",
+    };
+    it("adds annotation options to matching annotation if found and alphabetizes annotations by name", () => {
       const result = getAnnotationsWithAnnotationOptions({
         ...mockState,
         metadata: {
@@ -239,17 +245,21 @@ describe("Metadata selectors", () => {
               value: "b",
             },
           ],
-          annotations: [mockAnnotation, mockAnnotation2],
+          annotations: [mockAnnotation, mockAnnotation2, mockAnnotation3],
         },
       });
       expect(result).to.deep.equal([
         {
-          ...mockAnnotation,
-          annotationOptions: ["a", "b"],
-        },
-        {
           ...mockAnnotation2,
           annotationOptions: undefined,
+        },
+        {
+          ...mockAnnotation3,
+          annotationOptions: undefined,
+        },
+        {
+          ...mockAnnotation,
+          annotationOptions: ["a", "b"],
         },
       ]);
     });

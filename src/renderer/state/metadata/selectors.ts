@@ -191,14 +191,16 @@ export const getAnnotationsWithAnnotationOptions = createSelector(
     annotations: Annotation[],
     annotationOptions: AnnotationOption[]
   ): AnnotationWithOptions[] => {
-    return annotations.map((a) => {
-      const options = annotationOptions
-        .filter((o) => o.annotationId === a.annotationId)
-        .map((o) => o.value);
-      return {
-        ...a,
-        annotationOptions: options.length ? options : undefined,
-      };
-    });
+    return annotations
+      .map((a) => {
+        const options = annotationOptions
+          .filter((o) => o.annotationId === a.annotationId)
+          .map((o) => o.value);
+        return {
+          ...a,
+          annotationOptions: options.length ? options : undefined,
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 );
