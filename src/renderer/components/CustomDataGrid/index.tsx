@@ -46,6 +46,7 @@ import CellWithContextMenu from "./CellWithContextMenu";
 import DatesEditor from "./DatesEditor";
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
+import { FormatterProps } from "./types";
 import WellsEditor from "./WellsEditor";
 
 const styles = require("./style.pcss");
@@ -113,12 +114,6 @@ interface OnExpandArgs {
   idx: number;
   rowData: UploadJobTableRow;
   rowIdx: number;
-}
-
-export interface FormatterProps<T> {
-  isScrollable?: boolean;
-  row: T;
-  value?: any;
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {

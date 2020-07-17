@@ -20,6 +20,7 @@ import {
 import {
   clearTemplateDraft,
   saveTemplate,
+  saveTemplateSucceeded,
   setAppliedTemplate,
   startTemplateDraft,
   startTemplateDraftFailed,
@@ -371,6 +372,26 @@ describe("feedback reducer", () => {
       const result = reducer(initialState, saveTemplate());
       expect(result.requestsInProgress.includes(AsyncRequest.SAVE_TEMPLATE)).to
         .be.true;
+    });
+  });
+  describe("saveTemplateSucceeded", () => {
+    it("removes SAVE_TEMPLATE from requestsInProgress, sets success alert, and closes template editor", () => {
+      const result = reducer(
+        {
+          ...initialState,
+          requestsInProgress: [AsyncRequest.SAVE_TEMPLATE],
+          visibleModals: ["templateEditor"],
+        },
+        saveTemplateSucceeded(1)
+      );
+      expect(result.requestsInProgress).to.not.include(
+        AsyncRequest.SAVE_TEMPLATE
+      );
+      expect(result.alert).to.deep.equal({
+        message: "Template saved successfully!",
+        type: AlertType.SUCCESS,
+      });
+      expect(result.visibleModals).to.not.include("templateEditor");
     });
   });
   describe("retrieveJobs", () => {

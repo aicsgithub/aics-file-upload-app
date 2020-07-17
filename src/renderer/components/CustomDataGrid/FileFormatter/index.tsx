@@ -11,7 +11,7 @@ import { Channel } from "../../../services/labkey-client/types";
 import { UploadJobTableRow } from "../../../state/upload/types";
 import LabeledInput from "../../LabeledInput";
 import PrinterFormatInput from "../../PrinterFormatInput";
-import { FormatterProps } from "../index";
+import { FormatterProps } from "../types";
 
 const styles = require("./styles.pcss");
 

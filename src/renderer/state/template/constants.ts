@@ -21,6 +21,10 @@ export const REMOVE_ANNOTATIONS = makeConstant(
   "remove-annotations"
 );
 export const SAVE_TEMPLATE = makeConstant(BRANCH_NAME, "save-template");
+export const SAVE_TEMPLATE_SUCCEEDED = makeConstant(
+  BRANCH_NAME,
+  "save-template-succeeded"
+);
 export const SET_APPLIED_TEMPLATE = makeConstant(
   BRANCH_NAME,
   "set-applied-template"

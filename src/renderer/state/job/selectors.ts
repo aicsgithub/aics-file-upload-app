@@ -4,11 +4,15 @@ import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
-import { AsyncRequest, State, UploadStateBranch } from "../types";
+import {
+  AsyncRequest,
+  State,
+  UploadStateBranch,
+  UploadSummaryTableRow,
+} from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
 
 export const getCopyJobs = (state: State) => state.job.copyJobs;

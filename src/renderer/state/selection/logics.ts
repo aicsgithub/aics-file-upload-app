@@ -19,6 +19,7 @@ import { associateByWorkflow } from "../setting/actions";
 import {
   AlertType,
   AsyncRequest,
+  DragAndDropFileList,
   Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -52,7 +53,6 @@ import {
   getStagedFiles,
   getWellsWithModified,
 } from "./selectors";
-import { DragAndDropFileList } from "./types";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,

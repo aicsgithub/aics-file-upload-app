@@ -9,8 +9,8 @@ import * as sinon from "sinon";
 import FolderTree from "../";
 import { selection } from "../../../state";
 import { setAlert } from "../../../state/feedback/actions";
-import { UploadFileImpl } from "../../../state/selection/models/upload-file";
 import { UploadFile } from "../../../state/types";
+import { UploadFileImpl } from "../../../util";
 
 const DirectoryTree = Tree.DirectoryTree;
 

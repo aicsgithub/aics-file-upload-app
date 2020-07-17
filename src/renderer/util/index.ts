@@ -1,5 +1,11 @@
-import { constants, promises, stat as fsStat, Stats } from "fs";
-import { resolve as resolvePath } from "path";
+import {
+  constants,
+  promises,
+  readdir as fsReaddir,
+  stat as fsStat,
+  Stats,
+} from "fs";
+import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
@@ -30,27 +36,19 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { getWithRetry } from "../state/feedback/util";
-import {
-  getBooleanAnnotationTypeId,
-  getCurrentUploadFilePath,
-} from "../state/metadata/selectors";
-import { UploadFileImpl } from "../state/selection/models/upload-file";
-import { DragAndDropFileList } from "../state/selection/types";
-import { getAppliedTemplate } from "../state/template/selectors";
+import { DragAndDropFileList } from "../state/types";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   ReduxLogicNextCb,
   ReduxLogicTransformDependencies,
-  State,
   UploadFile,
   UploadMetadata,
   UploadStateBranch,
 } from "../state/types";
-import { getCanSaveUploadDraft, getUpload } from "../state/upload/selectors";
 
 const stat = promisify(fsStat);
-export const API_WAIT_TIME_SECONDS = 20;
+const readdir = promisify(fsReaddir);
 
 export async function readTxtFile(
   file: string,
@@ -204,21 +202,6 @@ export function makePosixPathCompatibleWithPlatform(
   return path;
 }
 
-export const getUploadFilePromise = async (
-  name: string,
-  path: string
-): Promise<UploadFile> => {
-  const fullPath = resolvePath(path, name);
-  const stats: Stats = await stat(fullPath);
-  const isDirectory = stats.isDirectory();
-  const canRead = await canUserRead(fullPath);
-  const file = new UploadFileImpl(name, path, isDirectory, canRead);
-  if (isDirectory && canRead) {
-    file.files = await Promise.all(await file.loadFiles());
-  }
-  return file;
-};
-
 export const mergeChildPaths = (filePaths: string[]): string[] => {
   filePaths = uniq(filePaths);
 
@@ -318,25 +301,22 @@ export interface ApplyTemplateInfo {
 /***
  * Helper that gets the template by id from MMS and returns template and updated uploads
  * @param {number} templateId
- * @param {() => State} getState
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
- * @param upload optional Upload override to apply template annotations to
+ * @param {number} booleanAnnotationTypeId boolean annotation type id
+ * @param {object | undefined} upload to apply template annotations to
+ * @param {Template | undefined} prevAppliedTemplate previously applied template this is to retain
+ * any information they may have entered for an upload for an annotation that exists on the new template
  * @returns {Promise<ApplyTemplateInfo>} info needed for setting applied template
  */
 export const getApplyTemplateInfo = async (
   templateId: number,
-  getState: () => State,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb,
-  upload?: UploadStateBranch
+  booleanAnnotationTypeId: number,
+  upload?: UploadStateBranch,
+  prevAppliedTemplate?: Template
 ): Promise<ApplyTemplateInfo> => {
-  upload = upload || getUpload(getState());
-  const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
-  if (!booleanAnnotationTypeId) {
-    throw new Error("Could not get boolean annotation type. Contact Software");
-  }
-  const prevAppliedTemplate = getAppliedTemplate(getState());
   const previousTemplateAnnotationNames = prevAppliedTemplate
     ? prevAppliedTemplate.annotations.map((a) => a.name)
     : [];
@@ -375,6 +355,8 @@ export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
  * to save their upload before the upload potentially gets updated.
  * Examples include: close upload tab, editing an upload, opening an upload, saving an upload.
  * @param deps redux logic transform dependencies
+ * @param canSaveUploadDraft whether the upload draft can be saved
+ * @param currentUploadFilePath current file path that the current upload is saved to, if present
  * @param skipWarningDialog whether or not to warn users that if they don't save, their draft will be discarded.
  * This won't be necessary if the user explicitly saves the draft (i.e. File > Save)
  * Returns promise of object { cancelled: boolean, filePath?: string } where cancelled indicates whether
@@ -383,6 +365,8 @@ export const SAVE_UPLOAD_DRAFT_BUTTON_INDEX = 2;
  */
 export const ensureDraftGetsSaved = async (
   deps: ReduxLogicTransformDependencies,
+  canSaveUploadDraft: boolean,
+  currentUploadFilePath: string | undefined,
   skipWarningDialog = false
 ): Promise<{
   cancelled: boolean; // User decides they want to continue working on the current upload draft
@@ -390,13 +374,12 @@ export const ensureDraftGetsSaved = async (
 }> => {
   const { dialog, getState, writeFile } = deps;
 
-  const currentUploadFilePath = getCurrentUploadFilePath(getState());
   // if currentUploadFilePath is set, user is working on a upload draft that
   // they have saved before. Now we just need to save to that file.
   if (currentUploadFilePath) {
     await writeFile(currentUploadFilePath, JSON.stringify(getState()));
     return { cancelled: false, filePath: currentUploadFilePath };
-  } else if (getCanSaveUploadDraft(getState())) {
+  } else if (canSaveUploadDraft) {
     // figure out if user wants to save their draft before we replace it
     let buttonIndex = SAVE_UPLOAD_DRAFT_BUTTON_INDEX;
     if (!skipWarningDialog) {
@@ -446,4 +429,69 @@ export const ensureDraftGetsSaved = async (
     cancelled: false,
     filePath: undefined,
   };
+};
+
+export class UploadFileImpl implements UploadFile {
+  public name: string;
+  public path: string;
+  // this will get populated once the folder is expanded
+  public files: UploadFile[] = [];
+  public readonly isDirectory: boolean;
+  public readonly canRead: boolean;
+
+  constructor(
+    name: string,
+    path: string,
+    isDirectory: boolean,
+    canRead: boolean
+  ) {
+    this.name = name;
+    this.path = path;
+    this.isDirectory = isDirectory;
+    this.canRead = canRead;
+  }
+
+  get fullPath(): string {
+    return resolvePath(this.path, this.name);
+  }
+
+  public async loadFiles(): Promise<Array<Promise<UploadFile>>> {
+    if (!this.isDirectory) {
+      return Promise.reject("Not a directory");
+    }
+    const fullPath = resolvePath(this.path, this.name);
+    if (!this.canRead) {
+      return Promise.reject(
+        `You do not have permission to view this file/directory: ${fullPath}.`
+      );
+    }
+
+    const files: string[] = await readdir(this.fullPath);
+    return files.map(async (file: string) => {
+      const filePath = resolvePath(this.fullPath, file);
+      const stats: Stats = await stat(filePath);
+      const canRead = await canUserRead(filePath);
+      return new UploadFileImpl(
+        basename(filePath),
+        dirname(filePath),
+        stats.isDirectory(),
+        canRead
+      );
+    });
+  }
+}
+
+export const getUploadFilePromise = async (
+  name: string,
+  path: string
+): Promise<UploadFile> => {
+  const fullPath = resolvePath(path, name);
+  const stats: Stats = await stat(fullPath);
+  const isDirectory = stats.isDirectory();
+  const canRead = await canUserRead(fullPath);
+  const file = new UploadFileImpl(name, path, isDirectory, canRead);
+  if (isDirectory && canRead) {
+    file.files = await Promise.all(await file.loadFiles());
+  }
+  return file;
 };

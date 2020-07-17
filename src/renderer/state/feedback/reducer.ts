@@ -54,12 +54,14 @@ import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
 import { clearTemplateDraft } from "../template/actions";
 import {
   SAVE_TEMPLATE,
+  SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
   START_TEMPLATE_DRAFT,
   START_TEMPLATE_DRAFT_FAILED,
 } from "../template/constants";
 import {
   SaveTemplateAction,
+  SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
   StartTemplateDraftAction,
   StartTemplateDraftFailedAction,
@@ -793,6 +795,19 @@ const actionToConfigMap: TypeToDescriptionMap = {
         state,
         AsyncRequest.CREATE_BARCODE
       ),
+    }),
+  },
+  [SAVE_TEMPLATE_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is SaveTemplateSucceededAction =>
+      action.type === SAVE_TEMPLATE_SUCCEEDED,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      alert: getSuccessAlert("Template saved successfully!"),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.SAVE_TEMPLATE
+      ),
+      visibleModals: without(state.visibleModals, "templateEditor"),
     }),
   },
 };

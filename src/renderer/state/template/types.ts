@@ -1,6 +1,11 @@
 import { Annotation, Audited } from "../../services/labkey-client/types";
 import { Template, TemplateAnnotation } from "../../services/mms-client/types";
-import { AutoSaveAction, TemplateDraft, UploadStateBranch } from "../types";
+import {
+  AutoSaveAction,
+  TemplateDraft,
+  UploadStateBranch,
+  WriteToStoreAction,
+} from "../types";
 
 export interface AddExistingAnnotationAction {
   payload: Annotation;
@@ -39,6 +44,11 @@ export interface RemoveAnnotationsAction {
 }
 
 export interface SaveTemplateAction {
+  type: string;
+}
+
+export interface SaveTemplateSucceededAction extends WriteToStoreAction {
+  payload: number;
   type: string;
 }
 

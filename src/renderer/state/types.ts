@@ -418,3 +418,19 @@ export interface RequestFailedAction {
   };
   type: string;
 }
+
+export interface DragAndDropFileList {
+  readonly length: number;
+  [index: number]: DragAndDropFile;
+}
+
+export interface DragAndDropFile {
+  readonly name: string;
+  readonly path: string;
+}
+
+// Matches a Job but the created date is represented as a string
+export interface UploadSummaryTableRow extends JSSJob {
+  // used by antd's Table component to uniquely identify rows
+  key: string;
+}

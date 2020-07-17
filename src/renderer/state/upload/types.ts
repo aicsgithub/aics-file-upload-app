@@ -4,8 +4,8 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { Workflow } from "../../services/labkey-client/types";
+import { UploadSummaryTableRow } from "../types";
 import {
   AutoSaveAction,
   State,

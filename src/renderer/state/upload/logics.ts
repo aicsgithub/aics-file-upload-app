@@ -4,6 +4,7 @@ import {
   castArray,
   flatMap,
   forEach,
+  get,
   includes,
   isEmpty,
   isNil,
@@ -24,7 +25,6 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { UploadSummaryTableRow } from "../../containers/UploadSummary";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
@@ -35,6 +35,7 @@ import {
   pivotAnnotations,
   splitTrimAndFilter,
 } from "../../util";
+import { requestFailed } from "../actions";
 import {
   clearUploadError,
   removeRequestFromInProgress,
@@ -51,6 +52,7 @@ import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
+  getCurrentUploadFilePath,
 } from "../metadata/selectors";
 import { openEditFileMetadataTab, selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
@@ -83,6 +85,7 @@ import {
   UploadMetadata,
   UploadRowId,
   UploadStateBranch,
+  UploadSummaryTableRow,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -118,6 +121,7 @@ import {
   UPDATE_UPLOAD_ROWS,
 } from "./constants";
 import {
+  getCanSaveUploadDraft,
   getEditFileMetadataRequests,
   getFileIdsToDelete,
   getUpload,
@@ -212,20 +216,37 @@ const applyTemplateLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const templateId = action.payload;
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!booleanAnnotationTypeId) {
+      dispatch(
+        requestFailed(
+          "Boolean annotation type id not found. Contact Software.",
+          AsyncRequest.GET_TEMPLATE
+        )
+      );
+      done();
+      return;
+    }
     try {
       const { template, uploads } = await getApplyTemplateInfo(
         templateId,
-        getState,
         mmsClient,
-        dispatch
+        dispatch,
+        booleanAnnotationTypeId,
+        getUpload(getState()),
+        getAppliedTemplate(getState())
       );
       dispatch(setAppliedTemplate(template, uploads));
     } catch (e) {
       dispatch(
-        batchActions([
-          setErrorAlert("Could not apply template: " + e.message),
-          removeRequestFromInProgress(AsyncRequest.GET_TEMPLATE),
-        ])
+        requestFailed(
+          `Could not apply template: ${get(
+            e,
+            ["response", "data", "error"],
+            e.message
+          )}`,
+          AsyncRequest.GET_TEMPLATE
+        )
       );
     }
     done();
@@ -839,9 +860,14 @@ const saveUploadDraftLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action } = deps;
+    const { action, getState } = deps;
     try {
-      const { cancelled, filePath } = await ensureDraftGetsSaved(deps, true);
+      const { cancelled, filePath } = await ensureDraftGetsSaved(
+        deps,
+        getCanSaveUploadDraft(getState()),
+        getCurrentUploadFilePath(getState()),
+        true
+      );
       if (cancelled || !filePath) {
         // don't let this action get to the reducer
         reject({ type: "ignore" });
@@ -904,9 +930,13 @@ const openUploadLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action, ctx, dialog, readFile } = deps;
+    const { action, ctx, dialog, getState, readFile } = deps;
     try {
-      const { cancelled } = await ensureDraftGetsSaved(deps);
+      const { cancelled } = await ensureDraftGetsSaved(
+        deps,
+        getCanSaveUploadDraft(getState()),
+        getCurrentUploadFilePath(getState())
+      );
       if (cancelled) {
         reject({ type: "ignore" });
         return;
