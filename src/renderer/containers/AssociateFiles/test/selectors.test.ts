@@ -7,6 +7,7 @@ import {
   mockSelection,
   mockState,
   mockWells,
+  mockWellUpload,
 } from "../../../state/test/mocks";
 import {
   getMutualUploadsForWells,
@@ -23,6 +24,7 @@ describe("AssociateFiles selectors", () => {
           selectedWells: mockSelectedWells.slice(0, 3),
           wells: mockWells,
         }),
+        upload: getMockStateWithHistory(mockWellUpload),
       });
       expect(result[0].file).to.equal("/path/to/file3");
       expect(result.length).to.equal(1);
@@ -58,6 +60,7 @@ describe("AssociateFiles selectors", () => {
           ...mockSelection,
           selectedWorkflows: mockSelectedWorkflows.slice(0, 1),
         }),
+        upload: getMockStateWithHistory(mockWellUpload),
       });
       expect(result[0].file).to.equal("/path/to/file1");
       expect(result[1].file).to.equal("/path/to/file2");

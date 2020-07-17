@@ -9,6 +9,7 @@ import {
   mockSuccessfulAddMetadataJob,
   mockSuccessfulCopyJob,
   mockSuccessfulUploadJob,
+  mockWellUpload,
   mockWorkingAddMetadataJob,
   mockWorkingCopyJob,
   mockWorkingUploadJob,
@@ -241,6 +242,7 @@ describe("Job selectors", () => {
           ...mockState.metadata,
           currentUploadFilePath: "/path/foo.json",
         },
+        upload: getMockStateWithHistory(mockWellUpload),
       });
       expect(inProgress).to.be.true;
     });
