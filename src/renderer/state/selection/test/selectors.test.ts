@@ -11,6 +11,7 @@ import {
   mockAnnotationTypes,
   mockBooleanAnnotation,
   mockLookupAnnotation,
+  mockPlate,
   mockSelectedWells,
   mockSelection,
   mockState,
@@ -84,7 +85,7 @@ describe("Selections selectors", () => {
       selection: {
         ...mockState.selection,
         present: {
-          ...mockState.selection.present,
+          ...mockSelection,
           wells: { 0: [mockWell] },
         },
       },
@@ -177,7 +178,7 @@ describe("Selections selectors", () => {
           imagingSessionId: 1,
         }),
       });
-      expect(result).to.equal(getAllPlates(mockState)[1]);
+      expect(result).to.equal(mockPlate[1]);
     });
   });
 
@@ -436,14 +437,20 @@ describe("Selections selectors", () => {
 
   describe("getAllWells", () => {
     it("returns all wells from all imaging sessions in a flat list", () => {
-      const result = getAllWells(mockState);
+      const result = getAllWells({
+        ...mockState,
+        selection: getMockStateWithHistory(mockSelection),
+      });
       expect(result.length).to.equal(7);
     });
   });
 
   describe("getAllPlates", () => {
     it("returns all plates from all imaging sessions", () => {
-      const result = getAllPlates(mockState);
+      const result = getAllPlates({
+        ...mockState,
+        selection: getMockStateWithHistory(mockSelection),
+      });
       expect(result.length).to.equal(2);
     });
   });

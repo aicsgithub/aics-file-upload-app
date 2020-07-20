@@ -708,8 +708,9 @@ describe("Upload selectors", () => {
           mockTemplateStateBranchWithAppliedTemplate
         ),
         upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "/path/to/file3" })]: mockState.upload
-            .present[getUploadRowKey({ file: "/path/to/file3" })],
+          [getUploadRowKey({ file: "/path/to/file3" })]: mockWellUpload[
+            getUploadRowKey({ file: "/path/to/file3" })
+          ],
         }),
       });
       expect(jobName).to.equal("file3");
@@ -730,6 +731,7 @@ describe("Upload selectors", () => {
         template: getMockStateWithHistory(
           mockTemplateStateBranchWithAppliedTemplate
         ),
+        upload: getMockStateWithHistory(mockWellUpload),
       });
       expect(jobName).to.equal("file1, file2, file3");
     });
@@ -739,6 +741,8 @@ describe("Upload selectors", () => {
     it("handles files without scenes or channels", () => {
       const rows = getUploadSummaryRows({
         ...mockState,
+        selection: getMockStateWithHistory(mockSelection),
+        upload: getMockStateWithHistory(mockWellUpload),
       });
       expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
       expect(rows).to.deep.include({
@@ -905,6 +909,7 @@ describe("Upload selectors", () => {
     it("shows scene and channel only rows if file row is not present", () => {
       const rows = getUploadSummaryRows({
         ...mockState,
+        selection: getMockStateWithHistory(mockSelection),
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
             barcode: "1234",

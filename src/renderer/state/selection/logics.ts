@@ -284,6 +284,8 @@ const clearStagedFilesLogic = createLogic({
         // clear everything
         next(batchActions([action, clearUpload(), deselectFiles()]));
       }
+    } else {
+      next(action);
     }
   },
 });

@@ -27,15 +27,23 @@ import {
   Template,
   TemplateAnnotation,
 } from "../../services/mms-client/types";
+import {
+  feedback,
+  job,
+  metadata,
+  route,
+  selection,
+  setting,
+  template,
+  upload,
+} from "../index";
 import { SearchResultsHeader } from "../metadata/types";
 import { Well } from "../selection/types";
 import {
   AnnotationDraft,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
-  JobFilter,
   JobStateBranch,
-  Page,
   SelectionStateBranch,
   State,
   TemplateDraft,
@@ -368,63 +376,14 @@ export const mockTemplateWithManyValues: Template = {
 };
 
 export const mockState: State = {
-  feedback: {
-    deferredAction: undefined,
-    events: [],
-    folderTreeOpen: false,
-    isLoading: false,
-    requestsInProgress: [],
-    setMountPointNotificationVisible: false,
-    uploadError: undefined,
-    visibleModals: [],
-  },
-  job: {
-    addMetadataJobs: [],
-    copyJobs: [],
-    inProgressUploadJobs: [],
-    incompleteJobIds: [],
-    jobFilter: JobFilter.InProgress,
-    polling: true,
-    uploadJobs: [],
-  },
-  metadata: {
-    annotationLookups: [],
-    annotationOptions: [],
-    annotationTypes: [],
-    annotations: [],
-    barcodePrefixes: [],
-    barcodeSearchResults: [],
-    channels: [],
-    history: {
-      selection: {},
-      template: {},
-      upload: {},
-    },
-    imagingSessions: [],
-    lookups: [],
-    templates: [],
-    units: [],
-    uploadDrafts: [],
-    users: [],
-    workflowOptions: [],
-  },
-  route: {
-    page: Page.DragAndDrop,
-    view: Page.DragAndDrop,
-  },
-  selection: getMockStateWithHistory(mockSelection),
-  setting: {
-    associateByWorkflow: false,
-    limsHost: "localhost",
-    limsPort: "8080",
-    limsProtocol: "http",
-    metadataColumns: [],
-    showUploadHint: true,
-    showTemplateHint: true,
-    username: "foo",
-  },
-  template: getMockStateWithHistory(mockTemplateStateBranch),
-  upload: getMockStateWithHistory(mockWellUpload),
+  feedback: feedback.initialState,
+  job: job.initialState,
+  metadata: metadata.initialState,
+  route: route.initialState,
+  selection: getMockStateWithHistory(selection.initialState),
+  setting: setting.initialState,
+  template: getMockStateWithHistory(template.initialState),
+  upload: getMockStateWithHistory(upload.initialState),
 };
 
 export const mockSearchResults: ImageModelMetadata[] = [
@@ -799,7 +758,7 @@ export const nonEmptyStateForInitiatingUpload: State = {
     lookups: mockLookups,
   },
   selection: getMockStateWithHistory({
-    ...mockState.selection.present,
+    ...mockSelection,
     barcode: "1234",
     selectedWells: [{ col: 0, row: 0 }],
   }),

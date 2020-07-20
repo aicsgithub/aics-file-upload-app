@@ -29,6 +29,7 @@ import {
   mockSelection,
   mockState,
   mockWells,
+  mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
@@ -102,7 +103,13 @@ describe("Selection logics", () => {
     });
 
     it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...mockState,
+        route: {
+          page: Page.DragAndDrop,
+          view: Page.DragAndDrop,
+        },
+      });
 
       // before
       expect(route.selectors.getPage(store.getState())).to.equal(
@@ -205,7 +212,13 @@ describe("Selection logics", () => {
     });
 
     it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
-      const { logicMiddleware, store } = createMockReduxStore(mockState);
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...mockState,
+        route: {
+          page: Page.DragAndDrop,
+          view: Page.DragAndDrop,
+        },
+      });
 
       // before
       expect(getPage(store.getState())).to.equal(Page.DragAndDrop);
@@ -506,6 +519,25 @@ describe("Selection logics", () => {
   });
 
   describe("clearStagedFilesLogic", () => {
+    it("does not show warning dialog if upload is empty", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...mockState,
+        selection: getMockStateWithHistory({
+          ...mockState.selection.present,
+          files: ["/path/test.txt"],
+          stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
+        }),
+      });
+
+      const showMessageBoxStub = stub();
+      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
+
+      store.dispatch(clearStagedFiles());
+      await logicMiddleware.whenComplete();
+
+      expect(showMessageBoxStub.called).to.be.false;
+      expect(actions.list.length).to.equal(1);
+    });
     it("does not do anything if cancel clicked", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
@@ -546,6 +578,7 @@ describe("Selection logics", () => {
           files: ["/path/test.txt"],
           stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
         }),
+        upload: getMockStateWithHistory(mockWellUpload),
       });
 
       const showMessageBoxStub = stub().resolves({ response: 1 });

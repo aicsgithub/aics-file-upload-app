@@ -47,6 +47,7 @@ import {
   mockSelectedWorkflows,
   mockState,
   mockSuccessfulUploadJob,
+  mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
@@ -385,6 +386,7 @@ describe("Route logics", () => {
         page: startPage,
         view: startPage,
       },
+      upload: getMockStateWithHistory(mockWellUpload),
     });
 
     expect(getPage(store.getState())).to.equal(startPage);
