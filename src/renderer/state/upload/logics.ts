@@ -324,7 +324,7 @@ const initiateUploadLogic = createLogic({
         updates,
         writeToStore: true,
       });
-      await fms.uploadFiles(startUploadResponse, payload, jobName);
+      fms.uploadFiles(startUploadResponse, payload, jobName);
     } catch (e) {
       const error = `Upload Failed: ${e.message}`;
       logger.error(error);
