@@ -127,7 +127,8 @@
     "sinon": "7.2.7",
     "style-loader": "0.23.1",
     "typescript": "3.7.2",
-    "webpack": "4.28.4"
+    "webpack": "4.28.4",
+    "worker-loader": "2.0.0"
   },
   "husky": {
     "hooks": {
