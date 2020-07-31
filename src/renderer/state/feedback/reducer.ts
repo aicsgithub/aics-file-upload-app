@@ -83,10 +83,14 @@ import {
   EDIT_FILE_METADATA_FAILED,
   EDIT_FILE_METADATA_SUCCEEDED,
   INITIATE_UPLOAD,
+  INITIATE_UPLOAD_FAILED,
+  INITIATE_UPLOAD_SUCCEEDED,
   RETRY_UPLOAD,
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
   SUBMIT_FILE_METADATA_UPDATE,
+  UPLOAD_FAILED,
+  UPLOAD_SUCCEEDED,
 } from "../upload/constants";
 import {
   ApplyTemplateAction,
@@ -96,10 +100,14 @@ import {
   EditFileMetadataFailedAction,
   EditFileMetadataSucceededAction,
   InitiateUploadAction,
+  InitiateUploadFailedAction,
+  InitiateUploadSucceededAction,
   RetryUploadAction,
   RetryUploadFailedAction,
   RetryUploadSucceededAction,
   SubmitFileMetadataUpdateAction,
+  UploadFailedAction,
+  UploadSucceededAction,
 } from "../upload/types";
 import { makeReducer } from "../util";
 
@@ -116,7 +124,6 @@ import {
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
   SET_DEFERRED_ACTION,
-  SET_UPLOAD_ERROR,
   START_LOADING,
   STOP_LOADING,
   TOGGLE_FOLDER_TREE,
@@ -135,7 +142,6 @@ import {
   RemoveRequestInProgressAction,
   SetAlertAction,
   SetDeferredActionAction,
-  SetUploadErrorAction,
   StartLoadingAction,
   StopLoadingAction,
   ToggleFolderTreeAction,
@@ -341,12 +347,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
       uploadError: undefined,
     }),
   },
-  [SET_UPLOAD_ERROR]: {
-    accepts: (action: AnyAction): action is SetUploadErrorAction =>
-      action.type === SET_UPLOAD_ERROR,
+  [INITIATE_UPLOAD_FAILED]: {
+    accepts: (action: AnyAction): action is InitiateUploadFailedAction =>
+      action.type === INITIATE_UPLOAD_FAILED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { error, jobName } }: SetUploadErrorAction
+      { payload: { error, jobName } }: InitiateUploadFailedAction
     ) => ({
       ...state,
       requestsInProgress: removeRequestFromInProgress(
@@ -354,6 +360,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
       ),
       uploadError: error,
+    }),
+  },
+  [UPLOAD_FAILED]: {
+    accepts: (action: AnyAction): action is UploadFailedAction =>
+      action.type === UPLOAD_FAILED,
+    perform: (state: FeedbackStateBranch, action: UploadFailedAction) => ({
+      ...state,
+      alert: getErrorAlert(action.payload.error),
     }),
   },
   [CLEAR_UPLOAD_ERROR]: {
@@ -494,18 +508,59 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ),
     }),
   },
+  [INITIATE_UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is InitiateUploadSucceededAction =>
+      action.type === INITIATE_UPLOAD_SUCCEEDED,
+    perform: (
+      state: FeedbackStateBranch,
+      { payload: { jobName } }: InitiateUploadSucceededAction
+    ) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
+      ),
+      uploadError: undefined,
+    }),
+  },
+  [INITIATE_UPLOAD_FAILED]: {
+    accepts: (action: AnyAction): action is InitiateUploadFailedAction =>
+      action.type === INITIATE_UPLOAD_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: InitiateUploadFailedAction
+    ) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        `${AsyncRequest.INITIATE_UPLOAD}-${action.payload.jobName}`
+      ),
+      uploadError: action.payload.error,
+    }),
+  },
+  [UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is UploadSucceededAction =>
+      action.type === UPLOAD_SUCCEEDED,
+    perform: (
+      state: FeedbackStateBranch,
+      { payload: { jobName } }: UploadSucceededAction
+    ) => ({
+      ...state,
+      alert: getSuccessAlert(`Upload ${jobName} succeeded!`),
+    }),
+  },
   [RETRY_UPLOAD]: {
     accepts: (action: AnyAction): action is RetryUploadAction =>
       action.type === RETRY_UPLOAD,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { jobName } }: RetryUploadAction
+      { payload: { job } }: RetryUploadAction
     ) => ({
       ...state,
-      alert: getInfoAlert(`Retrying upload ${jobName}`),
+      alert: getInfoAlert(`Retrying upload ${job.jobName}`),
       requestsInProgress: addRequestToInProgress(
         state,
-        AsyncRequest.RETRY_UPLOAD
+        `${AsyncRequest.RETRY_UPLOAD}-${job.jobName}`
       ),
     }),
   },
@@ -514,13 +569,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === RETRY_UPLOAD_SUCCEEDED,
     perform: (
       state: FeedbackStateBranch,
-      { payload }: RetryUploadSucceededAction
+      { payload: { job } }: RetryUploadSucceededAction
     ) => ({
       ...state,
-      alert: getSuccessAlert(`Retry upload ${payload.jobName} succeeded!`),
+      alert: getSuccessAlert(`Retry upload ${job.jobName} succeeded!`),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.RETRY_UPLOAD
+        `${AsyncRequest.RETRY_UPLOAD}-${job.jobName}`
       ),
     }),
   },
@@ -529,13 +584,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === RETRY_UPLOAD_FAILED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { error } }: RetryUploadFailedAction
+      { payload: { error, job } }: RetryUploadFailedAction
     ) => ({
       ...state,
       alert: getErrorAlert(error),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.RETRY_UPLOAD
+        `${AsyncRequest.RETRY_UPLOAD}-${job.jobName}`
       ),
     }),
   },
@@ -544,13 +599,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === CANCEL_UPLOAD,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { jobName } }: CancelUploadAction
+      {
+        payload: {
+          job: { jobName },
+        },
+      }: CancelUploadAction
     ) => ({
       ...state,
       alert: getInfoAlert(`Cancelling upload ${jobName}`),
       requestsInProgress: addRequestToInProgress(
         state,
-        AsyncRequest.CANCEL_UPLOAD
+        `${AsyncRequest.CANCEL_UPLOAD}-${jobName}`
       ),
     }),
   },
@@ -565,7 +624,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       alert: getSuccessAlert(`Cancel upload ${jobName} succeeded`),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.CANCEL_UPLOAD
+        `${AsyncRequest.CANCEL_UPLOAD}-${jobName}`
       ),
     }),
   },
@@ -574,13 +633,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === CANCEL_UPLOAD_FAILED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { error } }: CancelUploadFailedAction
+      { payload: { error, job } }: CancelUploadFailedAction
     ) => ({
       ...state,
       alert: getErrorAlert(error),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.CANCEL_UPLOAD
+        `${AsyncRequest.CANCEL_UPLOAD}-${job.jobName}`
       ),
     }),
   },

@@ -25,7 +25,10 @@ import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
 import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
-import { getRequestsInProgressContains } from "../../state/feedback/selectors";
+import {
+  getRequestsInProgress,
+  getRequestsInProgressContains,
+} from "../../state/feedback/selectors";
 import {
   gatherIncompleteJobIds,
   retrieveJobs,
@@ -109,12 +112,12 @@ interface Props {
   files: UploadFile[];
   gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
   isPolling: boolean;
-  loading: boolean;
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
   page: Page;
   requestFileMetadataForJob: ActionCreator<RequestFileMetadataForJobAction>;
+  requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
   retrieveJobs: ActionCreator<RetrieveJobsAction>;
   retryUpload: ActionCreator<RetryUploadAction>;
@@ -213,7 +216,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             {row.status === FAILED_STATUS && (
               <a
                 className={classNames(styles.action, {
-                  [styles.disabled]: this.props.loading,
+                  [styles.disabled]: this.props.requestsInProgress.includes(
+                    `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
+                  ),
                 })}
                 onClick={this.retryJob(row)}
               >
@@ -223,7 +228,9 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             {IN_PROGRESS_STATUSES.includes(row.status) && (
               <a
                 className={classNames(styles.action, {
-                  [styles.disabled]: this.props.loading,
+                  [styles.disabled]: this.props.requestsInProgress.includes(
+                    `${AsyncRequest.CANCEL_UPLOAD}-${row.jobName}`
+                  ),
                 })}
                 onClick={this.cancelJob(row)}
               >
@@ -430,13 +437,24 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
   };
 
   private retryJob = (row: UploadSummaryTableRow) => () => {
-    if (!this.props.loading) {
+    if (
+      !this.props.requestsInProgress.includes(
+        `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
+      )
+    ) {
       this.props.retryUpload(row);
     }
   };
 
-  private cancelJob = (row: UploadSummaryTableRow) => () =>
-    this.props.cancelUpload(row);
+  private cancelJob = (row: UploadSummaryTableRow) => () => {
+    if (
+      !this.props.requestsInProgress.includes(
+        `${AsyncRequest.CANCEL_UPLOAD}-${row.jobName}`
+      )
+    ) {
+      this.props.cancelUpload(row);
+    }
+  };
 
   private editJob = (row: UploadSummaryTableRow) => () => {
     this.props.openEditFileMetadataTab(row);
@@ -460,10 +478,8 @@ function mapStateToProps(state: State) {
     isPolling: getIsPolling(state),
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),
-    loading:
-      getRequestsInProgressContains(state, AsyncRequest.RETRY_UPLOAD) ||
-      getRequestsInProgressContains(state, AsyncRequest.CANCEL_UPLOAD),
     page: getPage(state),
+    requestsInProgress: getRequestsInProgress(state),
     requestingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
   };
 }

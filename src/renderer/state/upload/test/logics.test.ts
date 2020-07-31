@@ -13,13 +13,9 @@ import {
 import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
-import {
-  removeRequestFromInProgress,
-  setErrorAlert,
-} from "../../feedback/actions";
-import { getAlert, getUploadError } from "../../feedback/selectors";
+import { setErrorAlert } from "../../feedback/actions";
+import { getAlert } from "../../feedback/selectors";
 import { selectPage } from "../../route/actions";
-import { getPage } from "../../route/selectors";
 import {
   getSelectedBarcode,
   getSelectedFiles,
@@ -37,6 +33,7 @@ import {
   getMockStateWithHistory,
   mockAnnotationTypes,
   mockDateAnnotation,
+  mockFailedUploadJob,
   mockMMSTemplate,
   mockNumberAnnotation,
   mockState,
@@ -61,8 +58,11 @@ import {
   editFileMetadataFailed,
   editFileMetadataSucceeded,
   initiateUpload,
+  initiateUploadFailed,
+  initiateUploadSucceeded,
   openUploadDraft,
   replaceUpload,
+  retryUpload,
   saveUploadDraft,
   saveUploadDraftSuccess,
   submitFileMetadataUpdate,
@@ -72,8 +72,16 @@ import {
   updateSubImages,
   updateUpload,
   updateUploadRows,
+  uploadSucceeded,
+  uploadFailed,
+  retryUploadSucceeded,
+  retryUploadFailed,
 } from "../actions";
-import { getUploadRowKey, SAVE_UPLOAD_DRAFT_SUCCESS } from "../constants";
+import {
+  getUploadRowKey,
+  INITIATE_UPLOAD,
+  SAVE_UPLOAD_DRAFT_SUCCESS,
+} from "../constants";
 import uploadLogics from "../logics";
 import {
   getFileToArchive,
@@ -390,61 +398,117 @@ describe("Upload logics", () => {
   });
 
   describe("initiateUploadLogic", () => {
+    const jobId = "abcd";
     const startUploadResponse: StartUploadResponse = {
-      jobId: "abcd",
+      jobId,
       uploadDirectory: "/test",
     };
+    const jobName = "file1, file2, file3";
+    let uploadWorker;
+    let getUploadWorker: SinonStub;
 
-    const setUpSuccessStubs = () => {
-      const uploadFilesStub = stub().resolves();
-      sandbox.replace(fms, "uploadFiles", uploadFilesStub);
+    const setUpSuccessStub = () => {
       sandbox.replace(
         fms,
         "validateMetadataAndGetUploadDirectory",
         stub().resolves(startUploadResponse)
       );
-      return uploadFilesStub;
+      uploadWorker = {
+        postMessage: function () {
+          this.onmessage(({ data: "success" } as any) as MessageEvent);
+        },
+        // eslint-disable-next-line
+        onmessage: function (e: MessageEvent) {},
+      };
+      getUploadWorker = stub().returns(uploadWorker);
+      sandbox.replace(mockReduxLogicDeps, "getUploadWorker", getUploadWorker);
     };
+
+    it("prevents the user from uploading if we cannot name the upload", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockState,
+        undefined,
+        uploadLogics
+      );
+      store.dispatch(initiateUpload());
+      await logicMiddleware.whenComplete();
+      expect(actions.includesMatch(initiateUpload())).to.be.false;
+      expect(actions.includesMatch(setErrorAlert("Nothing to upload")));
+    });
+
+    it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions, and starts a web worker", async () => {
+      setUpSuccessStub();
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        {
+          ...nonEmptyStateForInitiatingUpload,
+          route: {
+            page: Page.AddCustomData,
+            view: Page.AddCustomData,
+          },
+        },
+        undefined,
+        uploadLogics
+      );
+      store.dispatch(initiateUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch({
+          autoSave: true,
+          payload: {
+            jobName,
+          },
+          type: INITIATE_UPLOAD,
+        })
+      ).to.be.true;
+      expect(actions.includesMatch(initiateUploadSucceeded(jobName, jobId, [])))
+        .to.be.true;
+      expect(
+        actions.includesMatch(
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        )
+      );
+      expect(actions.includesMatch(uploadSucceeded(jobName, jobId, []))).to.be
+        .true;
+    });
 
     it("sets error alert given validation error", async () => {
       sandbox.replace(
         fms,
         "validateMetadataAndGetUploadDirectory",
-        stub().rejects()
+        stub().rejects(new Error("foo"))
       );
-      const { logicMiddleware, store } = createMockReduxStore(
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         undefined,
         uploadLogics
       );
 
-      expect(getAlert(store.getState())).to.be.undefined;
-
       store.dispatch(initiateUpload());
       await logicMiddleware.whenComplete();
 
-      expect(getAlert(store.getState())).to.not.be.undefined;
+      expect(actions.includesMatch(initiateUploadFailed(jobName, "foo"))).to.be
+        .true;
     });
 
-    it("calls uploadFiles given OK response from validateMetadataAndGetUploadDirectory", async () => {
-      const uploadFilesStub = setUpSuccessStubs();
+    it("creates web worker given OK response from validateMetadataAndGetUploadDirectory", async () => {
+      setUpSuccessStub();
       const { logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         undefined,
         uploadLogics
       );
       // before
-      expect(uploadFilesStub.called).to.be.false;
+      expect(getUploadWorker.called).to.be.false;
 
       // apply
       store.dispatch(initiateUpload());
 
       // after
       await logicMiddleware.whenComplete();
-      expect(uploadFilesStub.calledWith(startUploadResponse)).to.be.true;
+      expect(getUploadWorker.called).to.be.true;
     });
     it("adds to list of incomplete job ids", async () => {
-      setUpSuccessStubs();
+      setUpSuccessStub();
       const { actions, logicMiddleware, store } = createMockReduxStore(
         {
           ...nonEmptyStateForInitiatingUpload,
@@ -477,92 +541,108 @@ describe("Upload logics", () => {
         })
       ).to.not.be.undefined;
     });
-
-    it("clears Upload Error and removes INITIATE_UPLOAD from requestsInProgress", async () => {
-      setUpSuccessStubs();
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        {
-          ...nonEmptyStateForInitiatingUpload,
-          feedback: {
-            ...nonEmptyStateForInitiatingUpload.feedback,
-            uploadError: "foo",
-          },
-        },
-        mockReduxLogicDeps,
-        uploadLogics
-      );
-
-      // before
-      let state = store.getState();
-      expect(getUploadError(state)).to.not.be.undefined;
-      const jobName = "file1, file2, file3";
-      expect(
-        actions.includesMatch(
-          removeRequestFromInProgress(`${AsyncRequest}-${jobName}`)
-        )
-      ).to.be.false;
-
-      // apply
-      store.dispatch(initiateUpload());
-
-      // after
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getUploadError(state)).to.be.undefined;
-      expect(
-        actions.includesMatch(
-          removeRequestFromInProgress(
-            `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
-          )
-        )
-      ).to.be.true;
-    });
-    it("sets upload error if upload fails", async () => {
+    it("dispatches uploadFailed if worker emits error", async () => {
       sandbox.replace(
         fms,
         "validateMetadataAndGetUploadDirectory",
-        stub().rejects(new Error("Oops"))
+        stub().resolves(startUploadResponse)
       );
-      const { logicMiddleware, store } = createMockReduxStore(
+      uploadWorker = {
+        postMessage: function () {
+          this.onerror(({ message: "error message" } as any) as MessageEvent);
+        },
+        // eslint-disable-next-line
+        onerror: function (e: ErrorEvent) {},
+      };
+      getUploadWorker = stub().returns(uploadWorker);
+      sandbox.replace(mockReduxLogicDeps, "getUploadWorker", getUploadWorker);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         mockReduxLogicDeps,
         uploadLogics
       );
 
-      // before
-      let state = store.getState();
-      expect(getUploadError(state)).to.be.undefined;
-
-      // apply
       store.dispatch(initiateUpload());
       await logicMiddleware.whenComplete();
 
-      // after
-      state = store.getState();
-      expect(getUploadError(state)).to.not.be.undefined;
+      expect(
+        actions.includesMatch(
+          uploadFailed(
+            `Upload ${jobName} failed: error message`,
+            jobName,
+            jobId,
+            []
+          )
+        )
+      ).to.be.true;
     });
-    it("closes upload tab", async () => {
-      setUpSuccessStubs();
-      const { logicMiddleware, store } = createMockReduxStore(
-        {
-          ...nonEmptyStateForInitiatingUpload,
-          route: {
-            ...nonEmptyStateForInitiatingUpload.route,
-            page: Page.AddCustomData,
-            view: Page.AddCustomData,
-          },
+  });
+  describe("retryUploadLogic", () => {
+    it("starts a retry upload worker and dispatches retryUploadSucceeded when worker sends message with 'success'", async () => {
+      const retryWorkerStub = {
+        postMessage: function () {
+          this.onmessage(({ data: "success" } as any) as MessageEvent);
         },
+        // eslint-disable-next-line
+        onmessage: function (e: MessageEvent) {},
+      };
+      const getRetryUploadWorker = stub().returns(retryWorkerStub);
+      sandbox.replace(
         mockReduxLogicDeps,
+        "getRetryUploadWorker",
+        getRetryUploadWorker
+      );
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockState,
+        undefined,
         uploadLogics
       );
 
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
-
-      store.dispatch(initiateUpload());
-
+      const uploadJob = { ...mockFailedUploadJob, key: "foo" };
+      store.dispatch(retryUpload(uploadJob, []));
       await logicMiddleware.whenComplete();
 
-      expect(getPage(store.getState())).to.equal(Page.UploadSummary);
+      expect(
+        actions.includesMatch(
+          retryUploadSucceeded(uploadJob, [mockFailedUploadJob.jobId])
+        )
+      ).to.be.true;
+      expect(getRetryUploadWorker.called).to.be.true;
+    });
+    it("dispatches retryUploadFailed if worker emits error", async () => {
+      const retryWorkerStub = {
+        postMessage: function () {
+          this.onerror(({ message: "error" } as any) as MessageEvent);
+        },
+        // eslint-disable-next-line
+        onerror: function (e: MessageEvent) {},
+      };
+      const getRetryUploadWorker = stub().returns(retryWorkerStub);
+      sandbox.replace(
+        mockReduxLogicDeps,
+        "getRetryUploadWorker",
+        getRetryUploadWorker
+      );
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockState,
+        undefined,
+        uploadLogics
+      );
+
+      const uploadJob = { ...mockFailedUploadJob, key: "foo" };
+      store.dispatch(retryUpload(uploadJob, []));
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          retryUploadFailed(
+            uploadJob,
+            `Retry upload ${mockFailedUploadJob.jobName} failed: error`,
+            [mockFailedUploadJob.jobId]
+          )
+        )
+      ).to.be.true;
+      expect(getRetryUploadWorker.called).to.be.true;
     });
   });
   describe("updateSubImagesLogic", () => {
