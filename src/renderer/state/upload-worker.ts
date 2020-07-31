@@ -13,7 +13,7 @@ ctx.onmessage = async (e: MessageEvent) => {
     },
     {}
   );
-  const fms = new FileManagementSystem({ host, port, username });
+
   // updates copyProgress
   const onCopyProgress = (
     originalFilePath: string,
@@ -29,6 +29,7 @@ ctx.onmessage = async (e: MessageEvent) => {
     ctx.postMessage(`percent copied:${percentCopied}`);
   };
   try {
+    const fms = new FileManagementSystem({ host, port, username });
     await fms.uploadFiles(
       startUploadResponse,
       payload,

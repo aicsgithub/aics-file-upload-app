@@ -27,7 +27,15 @@ ctx.onmessage = async (e: MessageEvent) => {
     ctx.postMessage(`percent copied:${percentCopied}`);
   };
   ctx.postMessage("Web worker retrying upload");
-  const fms = new FileManagementSystem({ host, port, username });
-  await fms.retryUpload(job, onCopyProgress);
-  ctx.postMessage("Upload success!");
+  try {
+    const fms = new FileManagementSystem({ host, port, username });
+    await fms.retryUpload(job, onCopyProgress);
+    ctx.postMessage("Upload success!");
+  } catch (e) {
+    ctx.postMessage(`Retry upload failed: ${e.message}`);
+    // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror
+    setTimeout(() => {
+      throw e;
+    }, 500);
+  }
 };

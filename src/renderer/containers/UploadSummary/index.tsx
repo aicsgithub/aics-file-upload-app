@@ -37,6 +37,7 @@ import {
   stopJobPoll,
 } from "../../state/job/actions";
 import {
+  getIncompleteJobIds,
   getIsPolling,
   getJobFilter,
   getJobsForTable,
@@ -111,6 +112,7 @@ interface Props {
   fileMetadataForJobLoading: boolean;
   files: UploadFile[];
   gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
+  incompleteJobIds: string[];
   isPolling: boolean;
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
@@ -442,7 +444,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
       )
     ) {
-      this.props.retryUpload(row);
+      this.props.retryUpload(row, this.props.incompleteJobIds);
     }
   };
 
@@ -475,6 +477,7 @@ function mapStateToProps(state: State) {
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
     files: getStagedFiles(state),
+    incompleteJobIds: getIncompleteJobIds(state),
     isPolling: getIsPolling(state),
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),

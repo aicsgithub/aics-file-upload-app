@@ -1,6 +1,9 @@
 import { basename, dirname, resolve as resolvePath } from "path";
 
-import { StartUploadResponse } from "@aics/aicsfiles/type-declarations/types";
+import {
+  StartUploadResponse,
+  UploadMetadata as AicsFilesUploadMetadata,
+} from "@aics/aicsfiles/type-declarations/types";
 import {
   castArray,
   flatMap,
@@ -494,7 +497,16 @@ const retryUploadLogic = createLogic({
       );
       done();
     };
-    worker.postMessage([uploadJob, fms.host, fms.port, fms.username]);
+    const fileNames = uploadJob.serviceFields.files.map(
+      ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
+    );
+    worker.postMessage([
+      uploadJob,
+      fileNames,
+      fms.host,
+      fms.port,
+      fms.username,
+    ]);
   },
   transform: (
     { action }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
