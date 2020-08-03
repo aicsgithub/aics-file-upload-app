@@ -578,6 +578,29 @@ describe("Upload logics", () => {
     });
   });
   describe("retryUploadLogic", () => {
+    it("sets error alert if upload job is missing information", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockState,
+        undefined,
+        uploadLogics
+      );
+
+      const uploadJob = {
+        ...mockFailedUploadJob,
+        serviceFields: undefined,
+        key: "foo",
+      };
+      store.dispatch(retryUpload(uploadJob, []));
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          setErrorAlert(
+            "Not enough information to retry upload. Contact Software."
+          )
+        )
+      ).to.be.true;
+    });
     it("starts a retry upload worker and dispatches retryUploadSucceeded when worker sends message with 'success'", async () => {
       const retryWorkerStub = {
         postMessage: function () {
