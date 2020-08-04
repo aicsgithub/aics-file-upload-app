@@ -38,12 +38,11 @@ import {
   mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { AsyncRequest, Page, State } from "../../types";
+import { Page, State } from "../../types";
 import { UploadMetadata as UploadMetadataRow } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
   getCanGoForwardFromSelectStorageLocationPage,
-  getCanSubmitUpload,
   getCanUndoUpload,
   getFileIdsToDelete,
   getFileToAnnotationHasValueMap,
@@ -1590,49 +1589,5 @@ describe("Upload selectors", () => {
         )
       ).to.be.true;
     });
-  });
-});
-
-describe("getCanSubmitUpload", () => {
-  it("returns true if working on new upload, no validation errors, and no requests in progress", () => {
-    const result = getCanSubmitUpload(nonEmptyStateForInitiatingUpload);
-    expect(result).to.be.true;
-  });
-  it("returns true if editing an upload and has made changes, no validation errors, and no requests in progress", () => {
-    const result = getCanSubmitUpload({
-      ...nonEmptyStateForInitiatingUpload,
-      metadata: {
-        ...nonEmptyStateForInitiatingUpload.metadata,
-        originalUpload: {},
-      },
-    });
-    expect(result).to.be.true;
-  });
-  it("returns false if there are validation errors", () => {
-    const result = getCanSubmitUpload({
-      ...nonEmptyStateForInitiatingUpload,
-      upload: getMockStateWithHistory({}),
-    });
-    expect(result).to.be.false;
-  });
-  it("returns false if there are requests in progress", () => {
-    const result = getCanSubmitUpload({
-      ...nonEmptyStateForInitiatingUpload,
-      feedback: {
-        ...nonEmptyStateForInitiatingUpload.feedback,
-        requestsInProgress: [AsyncRequest.GET_TEMPLATE],
-      },
-    });
-    expect(result).to.be.false;
-  });
-  it("returns false if editing an upload but have not made changes", () => {
-    const result = getCanSubmitUpload({
-      ...nonEmptyStateForInitiatingUpload,
-      metadata: {
-        ...nonEmptyStateForInitiatingUpload.metadata,
-        originalUpload: mockWellUpload,
-      },
-    });
-    expect(result).to.be.false;
   });
 });

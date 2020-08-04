@@ -418,17 +418,24 @@ export function submitFileMetadataUpdate(): SubmitFileMetadataUpdateAction {
   };
 }
 
-export function editFileMetadataSucceeded(): EditFileMetadataSucceededAction {
+export function editFileMetadataSucceeded(
+  jobName: string
+): EditFileMetadataSucceededAction {
   return {
+    payload: jobName,
     type: EDIT_FILE_METADATA_SUCCEEDED,
   };
 }
 
 export function editFileMetadataFailed(
-  message: string
+  message: string,
+  jobName: string
 ): EditFileMetadataFailedAction {
   return {
-    payload: message,
+    payload: {
+      error: message,
+      jobName,
+    },
     type: EDIT_FILE_METADATA_FAILED,
   };
 }
