@@ -1,5 +1,10 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 
+import {
+  UPLOAD_WORKER_ON_PROGRESS,
+  UPLOAD_WORKER_SUCCEEDED,
+} from "./constants";
+
 const ctx: Worker = self as any;
 ctx.onmessage = async (e: MessageEvent) => {
   const [startUploadResponse, payload, jobName, host, port, username] = e.data;
@@ -26,7 +31,7 @@ ctx.onmessage = async (e: MessageEvent) => {
       0
     );
     const percentCopied = (totalBytesCopied / totalBytes) * 100;
-    ctx.postMessage(`percent copied:${percentCopied}`);
+    ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${percentCopied}`);
   };
   try {
     const fms = new FileManagementSystem({ host, port, username });
@@ -36,7 +41,7 @@ ctx.onmessage = async (e: MessageEvent) => {
       jobName,
       onCopyProgress
     );
-    ctx.postMessage("Upload success!");
+    ctx.postMessage(UPLOAD_WORKER_SUCCEEDED);
   } catch (e) {
     ctx.postMessage(`Upload failed: ${e.message}`);
     // https://stackoverflow.com/questions/39992417/how-to-bubble-a-web-worker-error-in-a-promise-via-worker-onerror

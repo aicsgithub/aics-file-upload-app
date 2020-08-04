@@ -37,6 +37,10 @@ import {
   splitTrimAndFilter,
 } from "../../util";
 import { requestFailed } from "../actions";
+import {
+  UPLOAD_WORKER_SUCCEEDED,
+  UPLOAD_WORKER_ON_PROGRESS,
+} from "../constants";
 import { setAlert, setErrorAlert } from "../feedback/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
@@ -326,7 +330,7 @@ const initiateUploadLogic = createLogic({
     const worker = getUploadWorker();
     worker.onmessage = (e: MessageEvent) => {
       const lowerCaseMessage: string = e?.data.toLowerCase();
-      if (lowerCaseMessage.includes("success")) {
+      if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
         dispatch(
           uploadSucceeded(
             jobName,
@@ -335,7 +339,7 @@ const initiateUploadLogic = createLogic({
           )
         );
         done();
-      } else if (lowerCaseMessage.includes("percent copied")) {
+      } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
         logger.info(e.data);
         // todo: FUA-27 Display this
       } else {
@@ -477,13 +481,13 @@ const retryUploadLogic = createLogic({
     const worker = getRetryUploadWorker();
     worker.onmessage = (e: MessageEvent) => {
       const lowerCaseMessage = e?.data.toLowerCase();
-      if (lowerCaseMessage.includes("success")) {
+      if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
         logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
         dispatch(
           retryUploadSucceeded(uploadJob, getIncompleteJobIds(getState()))
         );
         done();
-      } else if (lowerCaseMessage.includes("percent copied")) {
+      } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
         logger.info(e.data);
         // todo: FUA-27 Display this to the user
       } else {
