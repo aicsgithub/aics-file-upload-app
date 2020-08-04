@@ -48,6 +48,17 @@
     js-logger "^1.6.0"
     lodash "^4.17.11"
 
+"@aics/job-status-client@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@aics/job-status-client/-/job-status-client-1.1.2.tgz#eb182076c1befa01e9fb59d6096377251fb792c9"
+  integrity sha512-a3Y1W1wa9k9Vw4jTHIdI1IkSBySsisZ+ODpTReU1Bp+yiDo0Qbgup6fPmfYXS9Bc/SifWgPcM/x/IxRTL3+Ytg==
+  dependencies:
+    "@babel/polyfill" "^7.4.4"
+    axios "^0.19.0"
+    humps "^2.0.1"
+    js-logger "^1.6.0"
+    lodash "^4.17.11"
+
 "@ant-design/colors@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@ant-design/colors/-/colors-3.1.0.tgz#b7e2cc61a4e86d3d109494034acfb1222dacaa3c"
@@ -12249,7 +12260,7 @@ worker-farm@^1.5.2:
   dependencies:
     errno "~0.1.7"
 
-worker-loader@^2.0.0:
+worker-loader@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/worker-loader/-/worker-loader-2.0.0.tgz#45fda3ef76aca815771a89107399ee4119b430ac"
   integrity sha512-tnvNp4K3KQOpfRnD20m8xltE3eWh89Ye+5oj7wXEEHKac1P4oZ6p9oTj8/8ExqoSBnk9nu5Pr4nKfQ1hn2APJw==

@@ -287,7 +287,8 @@ const initiateUploadLogic = createLogic({
     const payload = getUploadPayload(getState());
     try {
       startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
-        payload
+        payload,
+        jobName
       );
     } catch (e) {
       // This will show an error on the last page of the upload wizard
@@ -508,13 +509,18 @@ const retryUploadLogic = createLogic({
       fms.username,
     ]);
   },
-  transform: (
+  validate: (
     { action }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
-    next: ReduxLogicNextCb
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
-    if (!uploadJob) {
-      next(setErrorAlert("Cannot retry undefined upload job"));
+    if (isEmpty(uploadJob.serviceFields?.files)) {
+      reject(
+        setErrorAlert(
+          "Not enough information to retry upload. Contact Software."
+        )
+      );
     } else {
       next(action);
     }
