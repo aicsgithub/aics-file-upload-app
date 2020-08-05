@@ -15,6 +15,7 @@ import {
   LIST_DELIMITER_JOIN,
   NOTES_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
+  MAIN_FONT_WIDTH,
 } from "../../constants";
 import {
   AnnotationType,
@@ -271,9 +272,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         error={error}
         template={contextMenuItems}
       >
-        {childElement || (
-          <div className={styles.cell}>{value.join(LIST_DELIMITER_JOIN)}</div>
-        )}
+        <Tooltip mouseLeaveDelay={0} title={value.join(LIST_DELIMITER_JOIN)}>
+          {childElement || (
+            <div className={styles.cell}>{value.join(LIST_DELIMITER_JOIN)}</div>
+          )}
+        </Tooltip>
       </CellWithContextMenu>
     );
   };
@@ -378,12 +381,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
         column.editor = formatterNeedsModal ? DatesEditor : Editor;
 
+        const headerTextWidth =
+          column.name.length * MAIN_FONT_WIDTH + 2.5 * MAIN_FONT_WIDTH; // account for padding
         if (type === ColumnType.DATETIME) {
-          column.width = 250;
+          column.width = Math.max(250, headerTextWidth);
         } else if (type === ColumnType.BOOLEAN) {
-          column.width = 100;
+          column.width = Math.max(100, headerTextWidth);
         } else {
-          column.width = DEFAULT_COLUMN_WIDTH;
+          column.width = Math.max(DEFAULT_COLUMN_WIDTH, headerTextWidth);
         }
 
         // eventually we may want to allow undefined Booleans as well but for now, the default value is False
@@ -394,7 +399,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             row,
             value,
           }: FormatterProps<UploadJobTableRow>) => {
-            const childEl = convertToArray(value)
+            const formattedValue = convertToArray(value)
               .map((v: any) => {
                 switch (type) {
                   case ColumnType.DATETIME:
@@ -406,7 +411,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 }
               })
               .join(LIST_DELIMITER_JOIN);
-
+            const childEl = <div className={styles.cell}>{formattedValue}</div>;
             return this.renderFormat(row, name, value, childEl, required);
           };
         }
