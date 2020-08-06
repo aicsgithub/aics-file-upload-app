@@ -9,15 +9,10 @@ const ctx: Worker = self as any;
 ctx.onmessage = async (e: MessageEvent) => {
   const [startUploadResponse, payload, jobName, host, port, username] = e.data;
   ctx.postMessage("Web worker starting upload");
-  const copyProgress = Object.keys(payload).reduce(
-    (accum: { [originalPath: string]: number }, filePath) => {
-      return {
-        ...accum,
-        [filePath]: 0,
-      };
-    },
-    {}
-  );
+  const copyProgress = new Map();
+  Object.keys(payload).forEach((originalPath: string) => {
+    copyProgress.set(originalPath, 0);
+  });
 
   // updates copyProgress
   const onCopyProgress = (
@@ -25,7 +20,7 @@ ctx.onmessage = async (e: MessageEvent) => {
     bytesCopied: number,
     totalBytes: number
   ) => {
-    copyProgress[originalFilePath] = bytesCopied;
+    copyProgress.set(originalFilePath, bytesCopied);
     const totalBytesCopied = Object.values(copyProgress).reduce(
       (totalCopied: number, curr: number) => totalCopied + curr,
       0
