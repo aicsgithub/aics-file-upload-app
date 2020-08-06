@@ -240,6 +240,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.IMAGE,
             originalPath: "/path/to.dot/image.tiff",
             shouldBeInArchive: true,
@@ -397,6 +398,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.IMAGE,
             originalPath: "/path/to.dot/image.tiff",
             shouldBeInArchive: true,
@@ -429,6 +431,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.czi",
             shouldBeInArchive: true,
@@ -461,6 +464,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.ome.tiff",
             shouldBeInArchive: true,
@@ -493,6 +497,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.png",
             shouldBeInArchive: true,
@@ -525,6 +530,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.tiff",
             shouldBeInArchive: true,
@@ -557,6 +563,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.TEXT,
             originalPath: "/path/to/multi-well.txt",
             shouldBeInArchive: true,
@@ -589,6 +596,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.OTHER,
             originalPath: "/path/to/no-extension",
             shouldBeInArchive: true,
@@ -621,6 +629,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.CSV,
             originalPath: "/path/to/not-image.csv",
             shouldBeInArchive: true,
@@ -653,6 +662,7 @@ describe("Upload selectors", () => {
             templateId: mockMMSTemplate.templateId,
           },
           file: {
+            disposition: "tape",
             fileType: FileType.TEXT,
             originalPath: "/path/to/not-image.txt",
             shouldBeInArchive: true,

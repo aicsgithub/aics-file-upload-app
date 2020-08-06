@@ -814,6 +814,7 @@ export const getUploadPayload = createSelector(
               templateId: template.templateId,
             },
             file: {
+              disposition: "tape", // prevent czi -> ome.tiff conversions
               ...(metadata[0]?.fileId && { fileId: metadata[0]?.fileId }),
               fileType:
                 extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
