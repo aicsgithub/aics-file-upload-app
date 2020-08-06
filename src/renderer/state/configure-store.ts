@@ -16,6 +16,8 @@ import {
   createStore,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
+import RetryUploadWorker from "worker-loader!./retry-upload-worker";
+import UploadWorker from "worker-loader!./upload-worker";
 
 import {
   LIMS_HOST,
@@ -80,6 +82,8 @@ export const reduxLogicDependencies = {
     username,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
+  getRetryUploadWorker: () => new RetryUploadWorker(),
+  getUploadWorker: () => new UploadWorker(),
   ipcRenderer,
   jssClient: new JobStatusClient({
     host: LIMS_HOST,

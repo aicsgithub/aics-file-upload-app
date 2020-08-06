@@ -33,7 +33,6 @@ export const CLEAR_DEFERRED_ACTION = makeConstant(
   BRANCH_NAME,
   "clear-deferred-action"
 );
-export const SET_UPLOAD_ERROR = makeConstant(BRANCH_NAME, "set-upload-error");
 export const CLEAR_UPLOAD_ERROR = makeConstant(
   BRANCH_NAME,
   "clear-upload-error"

@@ -43,6 +43,16 @@ export const EDIT_FILE_METADATA_SUCCEEDED = makeConstant(
   "edit-file-metadata-succeeded"
 );
 export const INITIATE_UPLOAD = makeConstant(BRANCH_NAME, "initiate-upload");
+export const INITIATE_UPLOAD_SUCCEEDED = makeConstant(
+  BRANCH_NAME,
+  "initiate-upload-succeeded"
+);
+export const INITIATE_UPLOAD_FAILED = makeConstant(
+  BRANCH_NAME,
+  "initiate-upload-failed"
+);
+export const UPLOAD_FAILED = makeConstant(BRANCH_NAME, "upload-failed");
+export const UPLOAD_SUCCEEDED = makeConstant(BRANCH_NAME, "upload-succeeded");
 export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
 export const REMOVE_FILE_FROM_ARCHIVE = makeConstant(
   BRANCH_NAME,
