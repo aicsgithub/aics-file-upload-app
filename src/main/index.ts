@@ -31,6 +31,7 @@ function createMainWindow() {
       // Allows us to load LabKey which uses jQuery which does not play well with NodeJS:
       // https://www.electronjs.org/docs/faq#i-can-not-use-jqueryrequirejsmeteorangularjs-in-electron
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
       // Disables same-origin policy and allows us to query Labkey
       webSecurity: false,
     },
