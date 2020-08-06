@@ -329,7 +329,7 @@ const initiateUploadLogic = createLogic({
     }
     const worker = getUploadWorker();
     worker.onmessage = (e: MessageEvent) => {
-      const lowerCaseMessage: string = e?.data.toLowerCase();
+      const lowerCaseMessage: string = (e.data || "").toLowerCase();
       if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
         dispatch(
           uploadSucceeded(

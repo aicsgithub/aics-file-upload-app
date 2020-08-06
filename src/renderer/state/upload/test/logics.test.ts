@@ -13,6 +13,7 @@ import {
 import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
+import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { selectPage } from "../../route/actions";
@@ -415,7 +416,9 @@ describe("Upload logics", () => {
       );
       uploadWorker = {
         postMessage: function () {
-          this.onmessage(({ data: "success" } as any) as MessageEvent);
+          this.onmessage(({
+            data: UPLOAD_WORKER_SUCCEEDED,
+          } as any) as MessageEvent);
         },
         // eslint-disable-next-line
         onmessage: function (e: MessageEvent) {},
@@ -604,7 +607,9 @@ describe("Upload logics", () => {
     it("starts a retry upload worker and dispatches retryUploadSucceeded when worker sends message with 'success'", async () => {
       const retryWorkerStub = {
         postMessage: function () {
-          this.onmessage(({ data: "success" } as any) as MessageEvent);
+          this.onmessage(({
+            data: UPLOAD_WORKER_SUCCEEDED,
+          } as any) as MessageEvent);
         },
         // eslint-disable-next-line
         onmessage: function (e: MessageEvent) {},
