@@ -669,13 +669,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === EDIT_FILE_METADATA_SUCCEEDED,
     perform: (
       state: FeedbackStateBranch,
-      { payload }: EditFileMetadataSucceededAction
+      { payload: jobName }: EditFileMetadataSucceededAction
     ) => ({
       ...state,
       alert: getSuccessAlert("File metadata updated successfully!"),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        `${AsyncRequest.UPDATE_FILE_METADATA}-${payload}`
+        `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
       ),
     }),
   },
