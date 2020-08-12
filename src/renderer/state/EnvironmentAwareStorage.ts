@@ -13,7 +13,7 @@ import { LocalStorage } from "../services/http-cache-client";
 /**
  * Wrapper for electron-store's default class that prefixes keys that it gets and sets with environment info
  */
-export class EnvironmentAwareStorage<T = any> extends Store<T>
+class EnvironmentAwareStorage<T = any> extends Store<T>
   implements LocalStorage<T> {
   public protocol: string = LIMS_PROTOCOL;
   public host: string = LIMS_HOST;

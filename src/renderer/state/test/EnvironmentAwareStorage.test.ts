@@ -9,7 +9,7 @@ import {
   LIMS_PORT,
   LIMS_PROTOCOL,
 } from "../../../shared/constants";
-import storage, { EnvironmentAwareStorage } from "../EnvironmentAwareStorage";
+import storage from "../EnvironmentAwareStorage";
 
 describe("EnvironmentAwareStorage", () => {
   const sandbox = createSandbox();
@@ -62,7 +62,7 @@ describe("EnvironmentAwareStorage", () => {
   describe("delete", () => {
     it("calls base delete method with prefixed key", () => {
       const deleteStub = stub();
-      sandbox.replace(EnvironmentAwareStorage.prototype, "delete", deleteStub);
+      sandbox.replace(Store.prototype, "delete", deleteStub);
       storage.delete("foo");
       expect(deleteStub.calledWith(prefixedKey));
     });
@@ -70,7 +70,7 @@ describe("EnvironmentAwareStorage", () => {
   describe("has", () => {
     it("calls base has method with prefixed key", () => {
       const hasStub = stub();
-      sandbox.replace(EnvironmentAwareStorage.prototype, "has", hasStub);
+      sandbox.replace(Store.prototype, "has", hasStub);
       storage.has("foo");
       expect(hasStub.calledWith(prefixedKey));
     });
@@ -78,7 +78,7 @@ describe("EnvironmentAwareStorage", () => {
   describe("reset", () => {
     it("calls base reset method with prefixed keys", () => {
       const resetStub = stub();
-      sandbox.replace(EnvironmentAwareStorage.prototype, "reset", resetStub);
+      sandbox.replace(Store.prototype, "reset", resetStub);
       storage.reset("foo", "bar");
       expect(resetStub.calledWith(prefixedKey, `${prefix}.bar`));
     });
