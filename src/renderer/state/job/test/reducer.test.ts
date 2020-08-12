@@ -6,11 +6,15 @@ import {
   mockSuccessfulUploadJob,
   mockWorkingAddMetadataJob,
 } from "../../test/mocks";
-import { JobFilter } from "../../types";
+import { AsyncRequest, JobFilter } from "../../types";
 import {
+  cancelUpload,
+  initiateUploadSucceeded,
   retryUpload,
   retryUploadFailed,
   retryUploadSucceeded,
+  uploadFailed,
+  uploadSucceeded,
 } from "../../upload/actions";
 import {
   receiveJobs,
@@ -73,30 +77,83 @@ describe("job reducer", () => {
     });
   });
   describe("retryUpload", () => {
-    it("sets incompleteJobIds", () => {
+    it("sets incompleteJobIds and sets polling to true", () => {
       const result = reducer(
         initialState,
-        retryUpload({ ...mockFailedUploadJob, key: "key" })
+        retryUpload({ ...mockFailedUploadJob, key: "key" }, [])
       );
       expect(result.incompleteJobIds).to.include(mockFailedUploadJob.jobId);
+      expect(result.polling).to.be.true;
     });
   });
   describe("retryUploadSucceeded", () => {
     it("sets incompleteJobIds", () => {
       const result = reducer(
         initialState,
-        retryUploadSucceeded({ ...mockFailedUploadJob, key: "key" })
+        retryUploadSucceeded(
+          { ...mockFailedUploadJob, jobId: "foo", key: "key" },
+          ["foo"]
+        )
       );
-      expect(result.incompleteJobIds).to.not.include(mockFailedUploadJob.jobId);
+      expect(result.incompleteJobIds).to.not.include("foo");
     });
   });
   describe("retryUploadFailed", () => {
     it("sets incompleteJobIds", () => {
+      const requestType = `${AsyncRequest.RETRY_UPLOAD}-jobName`;
+      const result = reducer(
+        { ...initialState, incompleteJobIds: ["foo"] },
+        retryUploadFailed(
+          {
+            ...mockFailedUploadJob,
+            jobId: "foo",
+            jobName: "jobName",
+            key: "key",
+          },
+          "error",
+          [requestType]
+        )
+      );
+      expect(result.incompleteJobIds).to.not.include("foo");
+    });
+  });
+  describe("initiateUploadSucceeded", () => {
+    it("sets incompleteJobIds", () => {
       const result = reducer(
         initialState,
-        retryUploadFailed({ ...mockFailedUploadJob, key: "key" }, "error")
+        initiateUploadSucceeded("foo", "jobId", [])
       );
-      expect(result.incompleteJobIds).to.not.include(mockFailedUploadJob.jobId);
+      expect(result.incompleteJobIds.length).to.equal(1);
+    });
+  });
+  describe("uploadSucceeded", () => {
+    it("sets incompleteJobIds", () => {
+      const result = reducer(
+        { ...initialState, incompleteJobIds: ["jobId"] },
+        uploadSucceeded("foo", "jobId", [])
+      );
+      expect(result.incompleteJobIds).to.be.empty;
+    });
+  });
+  describe("uploadFailed", () => {
+    it("sets incompleteJobIds", () => {
+      const result = reducer(
+        { ...initialState, incompleteJobIds: ["jobId"] },
+        uploadFailed("error", "foo", "jobId", [])
+      );
+      expect(result.incompleteJobIds).to.be.empty;
+    });
+  });
+  describe("cancelUpload", () => {
+    it("sets incompleteJobIds and sets polling to true", () => {
+      const result = reducer(
+        { ...initialState, incompleteJobIds: ["foo"] },
+        cancelUpload({ ...mockFailedUploadJob, jobId: "foo", key: "bar" }, [
+          "foo",
+        ])
+      );
+      expect(result.incompleteJobIds).to.be.empty;
+      expect(result.polling).to.be.true;
     });
   });
 });

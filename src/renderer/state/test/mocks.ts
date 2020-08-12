@@ -552,6 +552,16 @@ export const mockFailedUploadJob: JSSJob = {
   jobId: "3333333333",
   jobName: "mockFailedUploadJob",
   modified: new Date(),
+  serviceFields: {
+    files: [
+      {
+        file: {
+          originalPath: "/some/filepath",
+          fileType: "other",
+        },
+      },
+    ],
+  },
   status: "FAILED",
   user: "test_user",
 };

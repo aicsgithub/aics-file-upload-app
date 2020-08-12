@@ -159,25 +159,67 @@ export interface InitiateUploadAction extends AutoSaveAction {
   type: string;
 }
 
-export interface CancelUploadAction {
-  payload: UploadSummaryTableRow;
+export interface InitiateUploadSucceededAction extends WriteToStoreAction {
+  payload: {
+    jobName: string;
+    recentJobs: string[];
+  };
   type: string;
 }
 
-export interface RetryUploadAction {
-  payload: UploadSummaryTableRow;
+export interface InitiateUploadFailedAction {
+  payload: {
+    jobName: string;
+    error: string;
+  };
   type: string;
 }
 
-export interface RetryUploadSucceededAction {
-  payload: UploadSummaryTableRow;
+export interface UploadSucceededAction extends WriteToStoreAction {
+  payload: {
+    jobName: string;
+    recentJobs: string[];
+  };
+}
+
+export interface UploadFailedAction extends WriteToStoreAction {
+  payload: {
+    jobName: string;
+    error: string;
+    recentJobs: string[];
+  };
   type: string;
 }
 
-export interface RetryUploadFailedAction {
+export interface CancelUploadAction extends WriteToStoreAction {
+  payload: {
+    job: UploadSummaryTableRow;
+    recentJobs: string[];
+  };
+  type: string;
+}
+
+export interface RetryUploadAction extends WriteToStoreAction {
+  payload: {
+    job: UploadSummaryTableRow;
+    recentJobs: string[];
+  };
+  type: string;
+}
+
+export interface RetryUploadSucceededAction extends WriteToStoreAction {
+  payload: {
+    job: UploadSummaryTableRow;
+    recentJobs: string[];
+  };
+  type: string;
+}
+
+export interface RetryUploadFailedAction extends WriteToStoreAction {
   payload: {
     error: string;
-    row: UploadSummaryTableRow;
+    job: UploadSummaryTableRow;
+    recentJobs: string[];
   };
   type: string;
 }
@@ -190,7 +232,7 @@ export interface CancelUploadSucceededAction {
 export interface CancelUploadFailedAction {
   payload: {
     error: string;
-    row: UploadSummaryTableRow;
+    job: UploadSummaryTableRow;
   };
   type: string;
 }

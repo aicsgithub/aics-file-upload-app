@@ -1,6 +1,10 @@
 import { basename, dirname, resolve as resolvePath } from "path";
 
 import {
+  StartUploadResponse,
+  UploadMetadata as AicsFilesUploadMetadata,
+} from "@aics/aicsfiles/type-declarations/types";
+import {
   castArray,
   flatMap,
   forEach,
@@ -10,14 +14,11 @@ import {
   isNil,
   map,
   trim,
-  uniq,
   values,
-  without,
 } from "lodash";
 import { isDate, isMoment } from "moment";
 import { createLogic } from "redux-logic";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import {
   CHANNEL_ANNOTATION_NAME,
   LIST_DELIMITER_SPLIT,
@@ -37,17 +38,10 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import {
-  clearUploadError,
-  removeRequestFromInProgress,
-  setAlert,
-  setErrorAlert,
-  setUploadError,
-} from "../feedback/actions";
-import {
-  startJobPoll,
-  stopJobPoll,
-  updateIncompleteJobIds,
-} from "../job/actions";
+  UPLOAD_WORKER_SUCCEEDED,
+  UPLOAD_WORKER_ON_PROGRESS,
+} from "../constants";
+import { setAlert, setErrorAlert } from "../feedback/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
   getAnnotationTypes,
@@ -77,9 +71,8 @@ import {
   Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
-  ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
-  ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
   UploadFile,
   UploadMetadata,
@@ -94,6 +87,8 @@ import {
   cancelUploadSucceeded,
   editFileMetadataFailed,
   editFileMetadataSucceeded,
+  initiateUploadFailed,
+  initiateUploadSucceeded,
   removeUploads,
   replaceUpload,
   retryUploadFailed,
@@ -101,6 +96,8 @@ import {
   saveUploadDraftSuccess,
   updateUpload,
   updateUploads,
+  uploadFailed,
+  uploadSucceeded,
 } from "./actions";
 import {
   APPLY_TEMPLATE,
@@ -128,16 +125,29 @@ import {
   getUploadPayload,
 } from "./selectors";
 import {
+  ApplyTemplateAction,
+  AssociateFilesAndWellsAction,
+  CancelUploadAction,
+  InitiateUploadAction,
   OpenUploadDraftAction,
+  RetryUploadAction,
   SaveUploadDraftAction,
+  SubmitFileMetadataUpdateAction,
+  UndoFileWellAssociationAction,
+  UpdateFilesToArchive,
+  UpdateFilesToStoreOnIsilon,
   UpdateSubImagesAction,
+  UpdateUploadAction,
   UpdateUploadRowsAction,
 } from "./types";
 
 const associateFilesAndWellsLogic = createLogic({
   type: ASSOCIATE_FILES_AND_WELLS,
   validate: (
-    { action, getState }: ReduxLogicTransformDependencies,
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<AssociateFilesAndWellsAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -174,7 +184,7 @@ const associateFilesAndWellsLogic = createLogic({
 
     action.payload = {
       ...action.payload,
-      barcode: getSelectedBarcode(state),
+      barcode,
       wellIds: getSelectedWellIds(state),
     };
     next(batchActions([action, deselectFiles()]));
@@ -184,7 +194,10 @@ const associateFilesAndWellsLogic = createLogic({
 const undoFileWellAssociationLogic = createLogic({
   type: UNDO_FILE_WELL_ASSOCIATION,
   validate: (
-    { action, getState }: ReduxLogicTransformDependencies,
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<UndoFileWellAssociationAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -211,7 +224,11 @@ const undoFileWellAssociationLogic = createLogic({
 
 const applyTemplateLogic = createLogic({
   process: async (
-    { action, getState, mmsClient }: ReduxLogicProcessDependencies,
+    {
+      action,
+      getState,
+      mmsClient,
+    }: ReduxLogicProcessDependenciesWithAction<ApplyTemplateAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -255,100 +272,115 @@ const applyTemplateLogic = createLogic({
 });
 
 const initiateUploadLogic = createLogic({
+  latest: true,
   process: async (
     {
       ctx,
       fms,
       getApplicationMenu,
       getState,
+      getUploadWorker,
       logger,
-    }: ReduxLogicProcessDependencies,
+    }: ReduxLogicProcessDependenciesWithAction<InitiateUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const { jobName } = ctx;
     // validate and get jobId
-    let startUploadResponse;
+    let startUploadResponse: StartUploadResponse;
+    const payload = getUploadPayload(getState());
     try {
       startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
-        getUploadPayload(getState())
+        payload,
+        jobName
       );
-      const updatedIncompleteJobIds = uniq([
-        ...getIncompleteJobIds(getState()),
-        startUploadResponse.jobId,
-      ]);
-      dispatch(updateIncompleteJobIds(updatedIncompleteJobIds));
     } catch (e) {
+      // This will show an error on the last page of the upload wizard
       dispatch(
-        setUploadError(jobName, e.message || "Validation failed for upload")
+        initiateUploadFailed(
+          jobName,
+          e.message || "Validation failed for upload"
+        )
       );
       done();
       return;
     }
 
-    dispatch(startJobPoll());
-    try {
-      const payload = getUploadPayload(getState());
-      const incompleteJobIds = getIncompleteJobIds(getState());
-      const updatedIncompleteJobIds = [
-        ...incompleteJobIds,
+    dispatch(
+      initiateUploadSucceeded(
+        jobName,
         startUploadResponse.jobId,
-      ];
-
-      const currentPage = getPage(getState());
-      const nextPage = findNextPage(currentPage, 1);
-      const actions = [
-        removeRequestFromInProgress(
-          `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
-        ),
-        updateIncompleteJobIds(updatedIncompleteJobIds),
-        clearUploadError(),
-      ];
-      if (nextPage) {
-        actions.push(
-          ...getSelectPageActions(
-            logger,
-            getState(),
-            getApplicationMenu,
-            selectPage(currentPage, nextPage)
+        getIncompleteJobIds(getState())
+      )
+    );
+    const actions = [];
+    const currentPage = getPage(getState());
+    const nextPage = findNextPage(currentPage, 1);
+    if (nextPage) {
+      actions.push(
+        ...getSelectPageActions(
+          logger,
+          getState(),
+          getApplicationMenu,
+          selectPage(currentPage, nextPage)
+        )
+      );
+      dispatch(batchActions(actions));
+    }
+    const worker = getUploadWorker();
+    worker.onmessage = (e: MessageEvent) => {
+      const lowerCaseMessage: string = (e.data || "").toLowerCase();
+      if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
+        dispatch(
+          uploadSucceeded(
+            jobName,
+            startUploadResponse.jobId,
+            getIncompleteJobIds(getState())
           )
         );
+        done();
+      } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
+        logger.info(e.data);
+        // todo: FUA-27 Display this
+      } else {
+        logger.info(e.data);
       }
-
-      const updates: { [key: string]: any } = {
-        [INCOMPLETE_JOB_IDS_KEY]: updatedIncompleteJobIds,
-      };
-
-      dispatch({
-        ...batchActions(actions),
-        updates,
-        writeToStore: true,
-      });
-      await fms.uploadFiles(startUploadResponse, payload, jobName);
-    } catch (e) {
-      const error = `Upload Failed: ${e.message}`;
-      logger.error(error);
+    };
+    worker.onerror = (e: ErrorEvent) => {
+      const error = `Upload ${jobName} failed: ${e.message}`;
+      logger.error(`Upload failed`, e);
       dispatch(
-        batchActions([
-          setErrorAlert(error),
-          updateIncompleteJobIds(
-            without(getIncompleteJobIds(getState()), startUploadResponse.jobId)
-          ),
-        ])
+        uploadFailed(
+          error,
+          jobName,
+          startUploadResponse.jobId,
+          getIncompleteJobIds(getState())
+        )
       );
-    }
-
-    done();
+      done();
+    };
+    worker.postMessage([
+      startUploadResponse,
+      payload,
+      jobName,
+      fms.host,
+      fms.port,
+      fms.username,
+    ]);
   },
   type: INITIATE_UPLOAD,
   validate: (
-    { action, ctx, getState }: ReduxLogicTransformDependencies,
+    {
+      action,
+      ctx,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<InitiateUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
     ctx.jobName = getCurrentJobName(getState());
     if (!ctx.jobName) {
-      reject({ type: "ignore" });
+      reject(setErrorAlert("Nothing to upload"));
       return;
     }
 
@@ -361,25 +393,29 @@ const initiateUploadLogic = createLogic({
       writeToStore: true,
     });
   },
+  warnTimeout: 0,
 });
 
 const cancelUploadLogic = createLogic({
   process: async (
-    { action, jssClient, logger }: ReduxLogicProcessDependencies,
+    {
+      action,
+      jssClient,
+      logger,
+    }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dispatch(startJobPoll());
-    const uploadJob: UploadSummaryTableRow = action.payload;
+    const uploadJob: UploadSummaryTableRow = action.payload.job;
 
     try {
+      // TODO FUA-55: we need to do more than this to really stop an upload
       await jssClient.updateJob(uploadJob.jobId, {
         serviceFields: {
           error: "Cancelled by user",
         },
         status: "UNRECOVERABLE",
       });
-      // TODO: Go through FSS?
       dispatch(cancelUploadSucceeded(uploadJob));
     } catch (e) {
       logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
@@ -390,16 +426,18 @@ const cancelUploadLogic = createLogic({
         )
       );
     }
-    dispatch(stopJobPoll());
     done();
   },
   type: CANCEL_UPLOAD,
   validate: async (
-    { action, dialog }: ReduxLogicTransformDependencies,
+    {
+      action,
+      dialog,
+    }: ReduxLogicTransformDependenciesWithAction<CancelUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const uploadJob: UploadSummaryTableRow = action.payload;
+    const uploadJob: UploadSummaryTableRow = action.payload.job;
     if (!uploadJob) {
       next(
         setAlert({
@@ -427,36 +465,72 @@ const cancelUploadLogic = createLogic({
 });
 
 const retryUploadLogic = createLogic({
-  process: async (
-    { action, fms, logger }: ReduxLogicProcessDependencies,
+  latest: true,
+  process: (
+    {
+      action,
+      fms,
+      getRetryUploadWorker,
+      getState,
+      logger,
+    }: ReduxLogicProcessDependenciesWithAction<RetryUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dispatch(startJobPoll());
-    const uploadJob: UploadSummaryTableRow = action.payload;
-    try {
-      await fms.retryUpload(uploadJob);
-      dispatch(retryUploadSucceeded(uploadJob));
-    } catch (e) {
+    const uploadJob: UploadSummaryTableRow = action.payload.job;
+    const worker = getRetryUploadWorker();
+    worker.onmessage = (e: MessageEvent) => {
+      const lowerCaseMessage = e?.data.toLowerCase();
+      if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
+        logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
+        dispatch(
+          retryUploadSucceeded(uploadJob, getIncompleteJobIds(getState()))
+        );
+        done();
+      } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
+        logger.info(e.data);
+        // todo: FUA-27 Display this to the user
+      } else {
+        logger.info(e.data);
+      }
+    };
+    worker.onerror = (e: ErrorEvent) => {
       const error = `Retry upload ${uploadJob.jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-      dispatch(retryUploadFailed(uploadJob, error));
-    }
-    dispatch(stopJobPoll());
-    done();
+      dispatch(
+        retryUploadFailed(uploadJob, error, getIncompleteJobIds(getState()))
+      );
+      done();
+    };
+    const fileNames = uploadJob.serviceFields.files.map(
+      ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
+    );
+    worker.postMessage([
+      uploadJob,
+      fileNames,
+      fms.host,
+      fms.port,
+      fms.username,
+    ]);
   },
-  transform: (
-    { action }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb
+  validate: (
+    { action }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
   ) => {
-    const uploadJob: UploadSummaryTableRow = action.payload;
-    if (!uploadJob) {
-      next(setErrorAlert("Cannot retry undefined upload job"));
+    const uploadJob: UploadSummaryTableRow = action.payload.job;
+    if (isEmpty(uploadJob.serviceFields?.files)) {
+      reject(
+        setErrorAlert(
+          "Not enough information to retry upload. Contact Software."
+        )
+      );
     } else {
       next(action);
     }
   },
   type: RETRY_UPLOAD,
+  warnTimeout: 0,
 });
 
 const getSubImagesAndKey = (
@@ -759,7 +833,11 @@ function formatUpload(
 
 const updateUploadLogic = createLogic({
   transform: (
-    { action, getState, logger }: ReduxLogicTransformDependencies,
+    {
+      action,
+      getState,
+      logger,
+    }: ReduxLogicTransformDependenciesWithAction<UpdateUploadAction>,
     next: ReduxLogicNextCb
   ) => {
     const { upload } = action.payload;
@@ -823,7 +901,9 @@ const updateUploadRowsLogic = createLogic({
 
 const updateFilesToStoreOnIsilonLogic = createLogic({
   transform: (
-    { action }: ReduxLogicTransformDependencies,
+    {
+      action,
+    }: ReduxLogicTransformDependenciesWithAction<UpdateFilesToStoreOnIsilon>,
     next: ReduxLogicNextCb
   ) => {
     const updates = map(
@@ -838,7 +918,7 @@ const updateFilesToStoreOnIsilonLogic = createLogic({
 
 const updateFilesToStoreInArchiveLogic = createLogic({
   transform: (
-    { action }: ReduxLogicTransformDependencies,
+    { action }: ReduxLogicTransformDependenciesWithAction<UpdateFilesToArchive>,
     next: ReduxLogicNextCb
   ) => {
     const updates = map(
@@ -889,7 +969,7 @@ const openUploadLogic = createLogic({
       getApplicationMenu,
       getState,
       logger,
-    }: ReduxLogicProcessDependencies,
+    }: ReduxLogicProcessDependenciesWithAction<OpenUploadDraftAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -988,7 +1068,7 @@ const submitFileMetadataUpdateLogic = createLogic({
       jssClient,
       logger,
       mmsClient,
-    }: ReduxLogicProcessDependencies,
+    }: ReduxLogicProcessDependenciesWithAction<SubmitFileMetadataUpdateAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -1059,7 +1139,13 @@ const submitFileMetadataUpdateLogic = createLogic({
   },
   type: SUBMIT_FILE_METADATA_UPDATE,
   validate: (
-    { action, ctx, getState }: ReduxLogicTransformDependencies,
+    {
+      action,
+      ctx,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<
+      SubmitFileMetadataUpdateAction
+    >,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {

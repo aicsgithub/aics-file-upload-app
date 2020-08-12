@@ -1,5 +1,15 @@
 # Version Notes
 
+## 1.0.48 (8/12/20)
+- Bugfix: Prevent uploads from causing app hangs for large upload sizes
+
+## 1.0.47 (7/27/20)
+- Bugfix: don't show Copy link in status bar if nothing to copy
+- Bugfix: "Your Uploads" page, All filter wasn't showing successful uploads
+- Bugfix: Fix issue with HTTP requests on Linux
+- Bugfix: Alphabetize annotations in template editor
+- Bugfix: Fix issue where folder tree didn't clear files
+
 ## 1.0.46 (6/25/20)
 - Behind the scenes changes for how we track channels on a file
 - Feature: added Edit action next to uploads so that users can edit and delete files they uploaded
