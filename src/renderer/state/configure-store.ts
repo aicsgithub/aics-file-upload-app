@@ -1,11 +1,9 @@
 import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
-import { userInfo } from "os";
 import { promisify } from "util";
 
 import { FileManagementSystem } from "@aics/aicsfiles";
 import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
-import Store from "electron-store";
 import * as Logger from "js-logger";
 import { forEach, isNil } from "lodash";
 import * as moment from "moment";
@@ -20,6 +18,7 @@ import RetryUploadWorker from "worker-loader!./retry-upload-worker";
 import UploadWorker from "worker-loader!./upload-worker";
 
 import {
+  DEFAULT_USERNAME,
   LIMS_HOST,
   LIMS_PORT,
   LIMS_PROTOCOL,
@@ -28,6 +27,7 @@ import {
 import LabkeyClient from "../services/labkey-client";
 import MMSClient from "../services/mms-client";
 
+import storage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
 import { getCurrentUploadFilePath } from "./metadata/selectors";
 import { AlertType, State } from "./types";
@@ -46,8 +46,6 @@ import {
 
 const readFile = promisify(fsReadFile);
 const writeFile = promisify(fsWriteFile);
-
-const storage = new Store();
 
 const reducers = {
   feedback: feedback.reducer,
@@ -71,7 +69,7 @@ const logics = [
   ...upload.logics,
 ];
 
-const username: string = userInfo().username;
+const username: string = DEFAULT_USERNAME;
 
 export const reduxLogicDependencies = {
   dialog: remote.dialog,

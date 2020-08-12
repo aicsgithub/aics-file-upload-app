@@ -126,19 +126,27 @@ const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-  transform: (
+  validate: (
     {
       action,
       fms,
       jssClient,
       labkeyClient,
+      logger,
       mmsClient,
       storage,
     }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
   ) => {
     try {
       const settings = storage.get(USER_SETTINGS_KEY);
+      if (!settings) {
+        reject({ type: "ignore" });
+        logger.debug("no user settings found");
+        return;
+      }
+
       const { limsHost, limsPort, username } = settings;
       if (limsHost) {
         fms.host = limsHost;

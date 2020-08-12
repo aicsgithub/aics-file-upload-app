@@ -1,8 +1,8 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
-export interface LocalStorage {
+export interface LocalStorage<T = any> {
   clear: () => void;
-  delete: (key: string) => void;
+  delete: <Key extends keyof T>(key: Key) => void;
   get: (key: string) => any;
   has: (key: string) => boolean;
   set: (key: string, value: any) => void;

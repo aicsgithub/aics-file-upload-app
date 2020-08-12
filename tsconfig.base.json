@@ -9,7 +9,7 @@
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ES5",
+    "target": "ES6",
     "baseUrl": ".",
     "paths": {
       "@aics/aics-react-labkey": ["src/renderer/@types/@aics/aics-react-labkey"]

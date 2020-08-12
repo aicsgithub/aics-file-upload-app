@@ -1,3 +1,5 @@
+import { userInfo } from "os";
+
 // Misc
 export const SCHEMA_SYNONYM = "Template";
 
@@ -34,12 +36,15 @@ export const OPEN_OPEN_TEMPLATE_MODAL = "OPEN_OPEN_TEMPLATE_MODAL";
 // emitted by main process when user selects File > Settings
 export const OPEN_SETTINGS_EDITOR = "OPEN_SETTINGS_MODAL";
 
-// User settings
+// Default host/port/protocol for LIMS
 export const LIMS_HOST =
   process.env.ELECTRON_WEBPACK_APP_LIMS_HOST || "localhost";
 export const LIMS_PORT = process.env.ELECTRON_WEBPACK_APP_LIMS_PORT || "8080";
 export const LIMS_PROTOCOL =
   process.env.ELECTRON_WEBPACK_APP_LIMS_PROTOCOL || "http";
+
+// Default user
+export const DEFAULT_USERNAME = userInfo().username;
 
 // User setting storage
 export const USER_SETTINGS_KEY = "userSettings";
