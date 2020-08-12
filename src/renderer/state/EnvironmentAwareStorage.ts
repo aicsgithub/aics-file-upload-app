@@ -20,6 +20,10 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
   public port: string = LIMS_PORT;
   public user: string = DEFAULT_USERNAME;
 
+  constructor(options?: Store.Options<T>) {
+    super(options);
+  }
+
   public set = <Key extends keyof T>(
     keyOrObject: Key | string | Partial<T>,
     value?: T[Key] | unknown
@@ -81,4 +85,4 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
 }
 
 // Ensure only one instance so that the environment only needs to get set on this instance
-export default new EnvironmentAwareStorage<any>();
+export default new EnvironmentAwareStorage();

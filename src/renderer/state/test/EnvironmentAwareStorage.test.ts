@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import Store from "electron-store";
 import * as hash from "object-hash";
 import { createSandbox, SinonStub, stub } from "sinon";
 
@@ -24,11 +25,10 @@ describe("EnvironmentAwareStorage", () => {
   });
 
   describe("set", () => {
-    let setStub: SinonStub;
+    const setStub = stub();
 
     beforeEach(() => {
-      setStub = stub();
-      sandbox.replace(EnvironmentAwareStorage.prototype, "set", setStub);
+      sandbox.replace(Store.prototype, "set", setStub);
     });
 
     it("calls base set method with prefixed key if first arg is a string", () => {
@@ -43,7 +43,7 @@ describe("EnvironmentAwareStorage", () => {
   describe("get", () => {
     const getStub: SinonStub = stub();
     beforeEach(() => {
-      sandbox.replace(EnvironmentAwareStorage.prototype, "get", getStub);
+      sandbox.replace(Store.prototype, "get", getStub);
     });
 
     it("returns value after prefixing key", () => {
