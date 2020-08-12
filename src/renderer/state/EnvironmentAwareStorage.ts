@@ -11,7 +11,8 @@ import {
 import { LocalStorage } from "../services/http-cache-client";
 
 /**
- * Wrapper for electron-store's default class that prefixes keys that it gets and sets with environment info
+ * Wrapper for electron-store's default class. Scopes reads and writes to environmental settings using LIMS URL values
+ * and username
  */
 class EnvironmentAwareStorage<T = any> extends Store<T>
   implements LocalStorage<T> {
@@ -26,7 +27,7 @@ class EnvironmentAwareStorage<T = any> extends Store<T>
 
   public set = <Key extends keyof T>(
     keyOrObject: Key | string | Partial<T>,
-    value?: T[Key] | unknown
+    value?: T[Key]
   ) => {
     if (typeof keyOrObject === "object") {
       const objectWithPrefixes: any = {};
@@ -39,7 +40,7 @@ class EnvironmentAwareStorage<T = any> extends Store<T>
       if (typeof prefixedKey === "string") {
         super.set(prefixedKey, value);
       } else {
-        super.set<Key>(prefixedKey, (value as any) as T[Key]);
+        super.set<Key>(prefixedKey, value as T[Key]);
       }
     }
   };
