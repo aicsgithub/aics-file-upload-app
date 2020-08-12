@@ -22,6 +22,11 @@ import {
   ReduxLogicTransformDependencies,
   State,
 } from "../types";
+import {
+  CANCEL_UPLOAD,
+  INITIATE_UPLOAD_SUCCEEDED,
+  RETRY_UPLOAD,
+} from "../upload/constants";
 import { batchActions } from "../util";
 
 import {
@@ -289,7 +294,12 @@ const pollJobsLogic = createLogic({
       )
     );
   },
-  type: START_JOB_POLL,
+  type: [
+    START_JOB_POLL,
+    INITIATE_UPLOAD_SUCCEEDED,
+    CANCEL_UPLOAD,
+    RETRY_UPLOAD,
+  ],
   warnTimeout: 0,
 });
 

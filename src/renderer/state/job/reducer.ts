@@ -1,16 +1,24 @@
-import { uniq, without } from "lodash";
+import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
 import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
 import {
+  CANCEL_UPLOAD,
+  INITIATE_UPLOAD_SUCCEEDED,
   RETRY_UPLOAD,
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
+  UPLOAD_FAILED,
+  UPLOAD_SUCCEEDED,
 } from "../upload/constants";
 import {
+  CancelUploadAction,
+  InitiateUploadSucceededAction,
   RetryUploadAction,
   RetryUploadFailedAction,
   RetryUploadSucceededAction,
+  UploadFailedAction,
+  UploadSucceededAction,
 } from "../upload/types";
 import { makeReducer } from "../util";
 
@@ -104,28 +112,78 @@ const actionToConfigMap: TypeToDescriptionMap = {
   [RETRY_UPLOAD]: {
     accepts: (action: AnyAction): action is RetryUploadAction =>
       action.type === RETRY_UPLOAD,
-    perform: (state: JobStateBranch, action: RetryUploadAction) => ({
+    perform: (
+      state: JobStateBranch,
+      { payload: { recentJobs } }: RetryUploadAction
+    ) => ({
       ...state,
-      incompleteJobIds: uniq([...state.incompleteJobIds, action.payload.jobId]),
+      incompleteJobIds: recentJobs,
+      polling: true,
     }),
   },
   [RETRY_UPLOAD_SUCCEEDED]: {
     accepts: (action: AnyAction): action is RetryUploadSucceededAction =>
       action.type === RETRY_UPLOAD_SUCCEEDED,
-    perform: (state: JobStateBranch, action: RetryUploadSucceededAction) => ({
+    perform: (
+      state: JobStateBranch,
+      { payload: { recentJobs } }: RetryUploadSucceededAction
+    ) => ({
       ...state,
-      incompleteJobIds: without(state.incompleteJobIds, action.payload.jobId),
+      incompleteJobIds: recentJobs,
     }),
   },
   [RETRY_UPLOAD_FAILED]: {
     accepts: (action: AnyAction): action is RetryUploadFailedAction =>
       action.type === RETRY_UPLOAD_FAILED,
-    perform: (state: JobStateBranch, action: RetryUploadFailedAction) => ({
+    perform: (
+      state: JobStateBranch,
+      { payload: { recentJobs } }: RetryUploadFailedAction
+    ) => ({
       ...state,
-      incompleteJobIds: without(
-        state.incompleteJobIds,
-        action.payload.row.jobId
-      ),
+      incompleteJobIds: recentJobs,
+    }),
+  },
+  [UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is UploadSucceededAction =>
+      action.type === UPLOAD_SUCCEEDED,
+    perform: (
+      state: JobStateBranch,
+      { payload: { recentJobs } }: UploadSucceededAction
+    ) => ({
+      ...state,
+      incompleteJobIds: recentJobs,
+    }),
+  },
+  [UPLOAD_FAILED]: {
+    accepts: (action: AnyAction): action is UploadFailedAction =>
+      action.type === UPLOAD_FAILED,
+    perform: (
+      state: JobStateBranch,
+      { payload: { recentJobs } }: UploadFailedAction
+    ) => ({
+      ...state,
+      incompleteJobIds: recentJobs,
+    }),
+  },
+  [CANCEL_UPLOAD]: {
+    accepts: (action: AnyAction): action is CancelUploadAction =>
+      action.type === CANCEL_UPLOAD,
+    perform: (state: JobStateBranch, action: CancelUploadAction) => ({
+      ...state,
+      incompleteJobIds: action.payload.recentJobs,
+      polling: true,
+    }),
+  },
+  [INITIATE_UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is InitiateUploadSucceededAction =>
+      action.type === INITIATE_UPLOAD_SUCCEEDED,
+    perform: (
+      state: JobStateBranch,
+      action: InitiateUploadSucceededAction
+    ) => ({
+      ...state,
+      incompleteJobIds: action.payload.recentJobs,
+      polling: true,
     }),
   },
 };

@@ -15,7 +15,6 @@ import {
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
   SET_DEFERRED_ACTION,
-  SET_UPLOAD_ERROR,
   START_LOADING,
   STOP_LOADING,
   TOGGLE_FOLDER_TREE,
@@ -33,7 +32,6 @@ import {
   RemoveRequestInProgressAction,
   SetAlertAction,
   SetDeferredActionAction,
-  SetUploadErrorAction,
   StartLoadingAction,
   StopLoadingAction,
   ToggleFolderTreeAction,
@@ -162,19 +160,6 @@ export function setDeferredAction(action: AnyAction): SetDeferredActionAction {
 export function clearDeferredAction(): ClearDeferredAction {
   return {
     type: CLEAR_DEFERRED_ACTION,
-  };
-}
-
-export function setUploadError(
-  jobName: string,
-  error: string
-): SetUploadErrorAction {
-  return {
-    payload: {
-      error,
-      jobName,
-    },
-    type: SET_UPLOAD_ERROR,
   };
 }
 

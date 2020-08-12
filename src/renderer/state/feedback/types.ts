@@ -70,14 +70,6 @@ export interface ClearDeferredAction {
   type: string;
 }
 
-export interface SetUploadErrorAction {
-  payload: {
-    error: string;
-    jobName: string;
-  };
-  type: string;
-}
-
 export interface ClearUploadErrorAction {
   type: string;
 }

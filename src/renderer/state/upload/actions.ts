@@ -1,4 +1,7 @@
+import { uniq, without } from "lodash";
+
 import {
+  INCOMPLETE_JOB_IDS_KEY,
   TEMP_UPLOAD_STORAGE_KEY,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
@@ -44,6 +47,10 @@ import {
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
   UPDATE_UPLOADS,
+  INITIATE_UPLOAD_FAILED,
+  UPLOAD_SUCCEEDED,
+  INITIATE_UPLOAD_SUCCEEDED,
+  UPLOAD_FAILED,
 } from "./constants";
 import {
   ApplyTemplateAction,
@@ -59,6 +66,8 @@ import {
   EditFileMetadataSucceededAction,
   FilepathToBoolean,
   InitiateUploadAction,
+  InitiateUploadFailedAction,
+  InitiateUploadSucceededAction,
   JumpToPastUploadAction,
   JumpToUploadAction,
   OpenUploadDraftAction,
@@ -81,7 +90,9 @@ import {
   UpdateUploadAction,
   UpdateUploadRowsAction,
   UpdateUploadsAction,
+  UploadFailedAction,
   UploadJobTableRow,
+  UploadSucceededAction,
 } from "./types";
 
 export function associateFilesAndWells(
@@ -184,6 +195,77 @@ export function initiateUpload(): InitiateUploadAction {
   };
 }
 
+export function initiateUploadSucceeded(
+  jobName: string,
+  jobId: string,
+  recentJobs: string[]
+): InitiateUploadSucceededAction {
+  return {
+    payload: {
+      jobName,
+      recentJobs: [...recentJobs, jobId],
+    },
+    type: INITIATE_UPLOAD_SUCCEEDED,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: recentJobs,
+    },
+    writeToStore: true,
+  };
+}
+
+export function initiateUploadFailed(
+  jobName: string,
+  error: string
+): InitiateUploadFailedAction {
+  return {
+    payload: {
+      error,
+      jobName,
+    },
+    type: INITIATE_UPLOAD_FAILED,
+  };
+}
+
+export function uploadSucceeded(
+  jobName: string,
+  jobId: string,
+  prevRecentJobs: string[]
+): UploadSucceededAction {
+  const updatedRecentJobs = without(prevRecentJobs, jobId);
+  return {
+    payload: {
+      jobName,
+      recentJobs: updatedRecentJobs,
+    },
+    type: UPLOAD_SUCCEEDED,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: updatedRecentJobs,
+    },
+    writeToStore: true,
+  };
+}
+
+export function uploadFailed(
+  error: string,
+  jobName: string,
+  jobId: string,
+  prevRecentJobs: string[]
+): UploadFailedAction {
+  const updatedRecentJobs = without(prevRecentJobs, jobId);
+  return {
+    payload: {
+      error,
+      jobName,
+      recentJobs: updatedRecentJobs,
+    },
+    type: UPLOAD_FAILED,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: updatedRecentJobs,
+    },
+    writeToStore: true,
+  };
+}
+
 export function applyTemplate(templateId: number): ApplyTemplateAction {
   return {
     payload: templateId,
@@ -223,10 +305,21 @@ export function updateUploadRows(
   };
 }
 
-export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
+export function cancelUpload(
+  job: UploadSummaryTableRow,
+  prevRecentJobs: string[]
+): CancelUploadAction {
+  const recentJobs = without(prevRecentJobs, job.jobId);
   return {
-    payload: job,
+    payload: {
+      job,
+      recentJobs,
+    },
     type: CANCEL_UPLOAD,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: recentJobs,
+    },
+    writeToStore: true,
   };
 }
 
@@ -240,44 +333,71 @@ export function cancelUploadSucceeded(
 }
 
 export function cancelUploadFailed(
-  row: UploadSummaryTableRow,
+  job: UploadSummaryTableRow,
   error: string
 ): CancelUploadFailedAction {
   return {
     payload: {
       error,
-      row,
+      job,
     },
     type: CANCEL_UPLOAD_FAILED,
   };
 }
 
-export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
+export function retryUpload(
+  job: UploadSummaryTableRow,
+  recentJobs: string[]
+): RetryUploadAction {
+  const updatedRecentJobs = uniq([...recentJobs, job.jobId]);
   return {
-    payload: job,
+    payload: {
+      job,
+      recentJobs: updatedRecentJobs,
+    },
     type: RETRY_UPLOAD,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: updatedRecentJobs,
+    },
+    writeToStore: true,
   };
 }
 
 export function retryUploadSucceeded(
-  job: UploadSummaryTableRow
+  job: UploadSummaryTableRow,
+  recentJobs: string[]
 ): RetryUploadSucceededAction {
+  const updatedRecentJobs = without(recentJobs, job.jobId);
   return {
-    payload: job,
+    payload: {
+      job,
+      recentJobs: updatedRecentJobs,
+    },
     type: RETRY_UPLOAD_SUCCEEDED,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: updatedRecentJobs,
+    },
+    writeToStore: true,
   };
 }
 
 export function retryUploadFailed(
-  row: UploadSummaryTableRow,
-  error: string
+  job: UploadSummaryTableRow,
+  error: string,
+  recentJobs: string[]
 ): RetryUploadFailedAction {
+  const updatedRecentJobs = without(recentJobs, job.jobId);
   return {
     payload: {
       error,
-      row,
+      job,
+      recentJobs: updatedRecentJobs,
     },
     type: RETRY_UPLOAD_FAILED,
+    updates: {
+      [INCOMPLETE_JOB_IDS_KEY]: updatedRecentJobs,
+    },
+    writeToStore: true,
   };
 }
 
