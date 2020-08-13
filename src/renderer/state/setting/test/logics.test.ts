@@ -280,6 +280,14 @@ describe("Setting logics", () => {
   });
 
   describe("gatherSettingsLogic", () => {
+    it("doesn't do anything if no settings stored", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore();
+      store.dispatch(gatherSettings());
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.includesMatch(gatherSettings())).to.be.false;
+    });
     it("updates settings to what is saved in storage and doesn't set alert", () => {
       const deps = {
         ...mockReduxLogicDeps,
