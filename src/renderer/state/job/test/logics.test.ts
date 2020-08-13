@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { createSandbox, stub } from "sinon";
 
-import { JOB_STORAGE_KEY } from "../../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { SET_ALERT } from "../../feedback/constants";
 import { logger } from "../../test/configure-mock-store";
 import {
@@ -93,9 +93,7 @@ describe("Job logics", () => {
       const setAlertAction = getActionFromBatch(actions, SET_ALERT);
       expect(setAlertAction).to.not.be.undefined;
       expect(actions.updates).to.not.be.undefined;
-      expect(
-        actions?.updates[`${JOB_STORAGE_KEY}.incompleteJobIds`]
-      ).to.deep.equal([]);
+      expect(actions?.updates[INCOMPLETE_JOB_IDS_KEY]).to.deep.equal([]);
       if (setAlertAction) {
         expect(setAlertAction.payload.type).to.equal(AlertType.SUCCESS);
         expect(setAlertAction.payload.message).to.equal("mockJob1 Succeeded");
@@ -122,8 +120,7 @@ describe("Job logics", () => {
 
       const setAlertAction = getActionFromBatch(actions, SET_ALERT);
       expect(setAlertAction).to.not.be.undefined;
-      expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobIds`, [])).to
-        .be.true;
+      expect(setStub.calledWith(INCOMPLETE_JOB_IDS_KEY, [])).to.be.true;
       if (setAlertAction) {
         expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
         expect(setAlertAction.payload.message).to.equal(

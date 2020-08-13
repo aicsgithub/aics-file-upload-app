@@ -4,6 +4,7 @@ import { map } from "lodash";
 import { createLogic } from "redux-logic";
 
 import {
+  PREFERRED_TEMPLATE_ID,
   SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
@@ -140,14 +141,15 @@ const gatherSettingsLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     try {
-      const settings = storage.get(USER_SETTINGS_KEY);
-      if (!settings) {
+      const userSettings = storage.get(USER_SETTINGS_KEY);
+      if (!userSettings) {
         reject({ type: "ignore" });
         logger.debug("no user settings found");
         return;
       }
 
-      const { limsHost, limsPort, username } = settings;
+      const { limsHost, limsPort, username } = userSettings;
+      userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
       if (limsHost) {
         fms.host = limsHost;
         jssClient.host = limsHost;
@@ -170,7 +172,7 @@ const gatherSettingsLogic = createLogic({
 
       next({
         ...action,
-        payload: settings,
+        payload: userSettings,
       });
     } catch (e) {
       next(
