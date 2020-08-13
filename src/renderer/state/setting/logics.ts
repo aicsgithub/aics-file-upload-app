@@ -10,7 +10,7 @@ import {
 import { LimsUrl } from "../../../shared/types";
 import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
-import { retrieveJobs } from "../job/actions";
+import { handleAbandonedJobs, retrieveJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
 import {
   AlertType,
@@ -66,6 +66,7 @@ const updateSettingsLogic = createLogic({
       mmsClient.username = username;
 
       dispatch(requestMetadata());
+      dispatch(handleAbandonedJobs());
       dispatch(retrieveJobs());
     }
 

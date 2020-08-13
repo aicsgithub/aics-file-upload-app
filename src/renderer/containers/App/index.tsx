@@ -32,6 +32,7 @@ import {
   SetAlertAction,
   ToggleFolderTreeAction,
 } from "../../state/feedback/types";
+import { handleAbandonedJobs } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { RequestMetadataAction } from "../../state/metadata/types";
@@ -123,6 +124,7 @@ interface AppProps {
   folderTreeOpen: boolean;
   gatherSettings: ActionCreator<GatherSettingsAction>;
   getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
+  handleAbandonedJobs: typeof handleAbandonedJobs;
   limsUrl: string;
   loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
   openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
@@ -196,6 +198,7 @@ class App extends React.Component<AppProps, {}> {
   public componentDidMount() {
     this.props.requestMetadata();
     this.props.gatherSettings();
+    this.props.handleAbandonedJobs();
     ipcRenderer.on(
       SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
       this.props.switchEnvironment
@@ -415,6 +418,7 @@ const dispatchToPropsMap = {
   closeUploadTab,
   gatherSettings,
   getFilesInFolder: selection.actions.getFilesInFolder,
+  handleAbandonedJobs,
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
   openUploadDraft,
