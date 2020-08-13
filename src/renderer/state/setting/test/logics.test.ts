@@ -293,9 +293,14 @@ describe("Setting logics", () => {
         ...mockReduxLogicDeps,
         storage: {
           ...mockReduxLogicDeps.storage,
-          get: sinon.stub().returns({
-            limsHost: stagingHost,
-          }),
+          get: sinon
+            .stub()
+            .onFirstCall()
+            .returns({
+              limsHost: stagingHost,
+            })
+            .onSecondCall()
+            .returns(1),
         },
       };
       const { store } = createMockReduxStore(mockState, deps);
@@ -309,6 +314,7 @@ describe("Setting logics", () => {
       // after
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
       expect(getAlert(store.getState())).to.be.undefined;
+      expect(getTemplateId(store.getState())).to.equal(1);
     });
 
     it("updates various lims clients", async () => {
