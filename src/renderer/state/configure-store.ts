@@ -27,7 +27,7 @@ import {
 import LabkeyClient from "../services/labkey-client";
 import MMSClient from "../services/mms-client";
 
-import storage from "./EnvironmentAwareStorage";
+import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
 import { getCurrentUploadFilePath } from "./metadata/selectors";
 import { AlertType, State } from "./types";
@@ -70,6 +70,7 @@ const logics = [
 ];
 
 const username: string = DEFAULT_USERNAME;
+const storage = new EnvironmentAwareStorage();
 
 export const reduxLogicDependencies = {
   dialog: remote.dialog,

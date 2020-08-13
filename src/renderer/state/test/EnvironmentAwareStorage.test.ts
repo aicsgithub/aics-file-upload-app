@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import Store from "electron-store";
+import * as Store from "electron-store";
 import * as hash from "object-hash";
 import { createSandbox, SinonStub, stub } from "sinon";
 
@@ -9,7 +9,8 @@ import {
   LIMS_PORT,
   LIMS_PROTOCOL,
 } from "../../../shared/constants";
-import storage from "../EnvironmentAwareStorage";
+import { LocalStorage } from "../../services/http-cache-client";
+import { EnvironmentAwareStorage } from "../EnvironmentAwareStorage";
 
 describe("EnvironmentAwareStorage", () => {
   const sandbox = createSandbox();
@@ -20,6 +21,13 @@ describe("EnvironmentAwareStorage", () => {
     user: DEFAULT_USERNAME,
   });
   const prefixedKey = `${prefix}.foo`;
+  let storage: LocalStorage;
+  beforeEach(() => {
+    // EnvironmentAwareStorage extends ElectronStore which relies on certain electron properties
+    // to be defined but are not in the mocha testing environment
+    Object.setPrototypeOf(EnvironmentAwareStorage, stub());
+    storage = new EnvironmentAwareStorage();
+  });
   afterEach(() => {
     sandbox.restore();
   });

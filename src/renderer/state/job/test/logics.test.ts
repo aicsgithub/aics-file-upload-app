@@ -33,6 +33,7 @@ describe("Job logics", () => {
       delete: stub(),
       get: stub().returns(["abc"]),
       has: stub(),
+      reset: stub(),
       set: stub(),
     };
 

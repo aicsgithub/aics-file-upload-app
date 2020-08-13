@@ -1,4 +1,5 @@
-import Store from "electron-store";
+import * as Store from "electron-store";
+import { isNil } from "lodash";
 import * as hash from "object-hash";
 
 import {
@@ -14,7 +15,7 @@ import { LocalStorage } from "../services/http-cache-client";
  * Wrapper for electron-store's default class. Scopes reads and writes to environmental settings using LIMS URL values
  * and username
  */
-class EnvironmentAwareStorage<T = any> extends Store<T>
+export class EnvironmentAwareStorage<T = any> extends Store<T>
   implements LocalStorage<T> {
   public protocol: string = LIMS_PROTOCOL;
   public host: string = LIMS_HOST;
@@ -26,54 +27,51 @@ class EnvironmentAwareStorage<T = any> extends Store<T>
   }
 
   public set = <Key extends keyof T>(
-    keyOrObject: Key | string | Partial<T>,
+    keyOrObject: Key | Partial<T>,
     value?: T[Key]
   ) => {
     if (typeof keyOrObject === "object") {
       const objectWithPrefixes: any = {};
       for (const [key, value] of Object.entries(keyOrObject)) {
-        objectWithPrefixes[this.getPrefixedKey(key)] = value;
+        objectWithPrefixes[this.getPrefixedKey<Key>(key as Key)] = value;
       }
       super.set(objectWithPrefixes);
     } else {
       const prefixedKey = this.getPrefixedKey<Key>(keyOrObject);
-      if (typeof prefixedKey === "string") {
-        super.set(prefixedKey, value);
-      } else {
+      if (typeof prefixedKey === "object") {
         super.set<Key>(prefixedKey, value as T[Key]);
+      } else if (!isNil(value)) {
+        super.set(prefixedKey, value);
       }
     }
   };
 
-  public get = <Key extends keyof T, Default = T[Key]>(
-    key: Key | string,
-    defaultValue?: Default
-  ): T[Key] | undefined | Default => {
+  public get = <Key extends keyof T>(
+    key: Key,
+    defaultValue?: T[Key]
+  ): T[Key] => {
     if (defaultValue) {
-      return super.get<Key, Default>(
-        this.getPrefixedKey<Key>(key),
-        defaultValue
-      );
+      return super.get<Key>(this.getPrefixedKey<Key>(key), defaultValue);
     }
-    return super.get<Key>(this.getPrefixedKey<Key>(`${key}`));
+    return super.get<Key>(this.getPrefixedKey<Key>(key));
   };
 
   public delete = <Key extends keyof T>(key: Key): void => {
-    super.delete<Key>(this.getPrefixedKey<Key>(key) as Key);
+    super.delete<Key>(this.getPrefixedKey<Key>(key));
   };
 
-  public has = <Key extends keyof T>(key: Key | string) => {
+  public has = <Key extends keyof T>(key: Key): boolean => {
     return super.has<Key>(this.getPrefixedKey(key));
   };
 
   public reset = <Key extends keyof T>(...keys: Key[]) => {
-    super.reset<Key>(...keys.map((k: Key) => this.getPrefixedKey(k) as Key));
+    super.reset<Key>(...keys.map((k: Key) => this.getPrefixedKey(k)));
   };
 
-  private getPrefixedKey = <Key extends keyof T>(
-    key: string | Key
-  ): Key | string =>
-    `${key}`.startsWith(USER_SETTINGS_KEY) ? key : `${this.prefix}.${key}`;
+  private getPrefixedKey = <Key extends keyof T>(key: Key): Key =>
+    `${key}`.startsWith(USER_SETTINGS_KEY)
+      ? key
+      : (`${this.prefix}.${key}` as Key);
 
   private get prefix() {
     return hash.MD5({
@@ -85,5 +83,4 @@ class EnvironmentAwareStorage<T = any> extends Store<T>
   }
 }
 
-// Ensure only one instance so that the environment only needs to get set on this instance
-export default new EnvironmentAwareStorage();
+export default EnvironmentAwareStorage;
