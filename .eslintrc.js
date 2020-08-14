@@ -10,7 +10,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: ["./tsconfig.json"],
   },
-  plugins: ["@typescript-eslint", "import"],
+  plugins: ["@typescript-eslint", "import", "no-only-tests"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
@@ -43,5 +43,6 @@ module.exports = {
     }],
     "eqeqeq": ["error", "always"],
     "react-hooks/exhaustive-deps": "error",
+    "no-only-tests/no-only-tests": "error",
   },
 };

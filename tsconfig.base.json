@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "jsx": "React",
-    "lib": ["DOM", "ES2015", "ES6", "DOM.Iterable", "ScriptHost"],
+    "lib": ["DOM", "ES2015", "ES6", "DOM.Iterable", "ScriptHost", "ESNext.Array"],
     "moduleResolution": "Node",
     "noEmit": true,
     "preserveConstEnums": true,

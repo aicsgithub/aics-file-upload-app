@@ -80,6 +80,16 @@ export function setSuccessAlert(message: string): SetAlertAction {
   };
 }
 
+export function setInfoAlert(message: string): SetAlertAction {
+  return {
+    payload: {
+      message,
+      type: AlertType.INFO,
+    },
+    type: SET_ALERT,
+  };
+}
+
 export function startLoading(): StartLoadingAction {
   return {
     type: START_LOADING,
