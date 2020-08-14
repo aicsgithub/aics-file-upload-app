@@ -321,9 +321,7 @@ describe("Job logics", () => {
       await logicMiddleware.whenComplete();
       expect(actions.list).to.deep.equal([
         handleAbandonedJobs(),
-        setErrorAlert(
-          "Error encountered when handling abandoned jobs. Error: Error while querying"
-        ),
+        setErrorAlert("Could not retry abandoned jobs: Error while querying"),
       ]);
       expect(jssStub.getJobs).to.have.been.calledOnce;
     });
@@ -368,7 +366,7 @@ describe("Job logics", () => {
           'Upload "abandoned_job" was abandoned and will now be retried.'
         ),
         setErrorAlert(
-          'Retry for upload "abandoned_job" failed. Error: Error in worker'
+          'Retry for upload "abandoned_job" failed: Error in worker'
         ),
       ]);
       expect(workerStub.postMessage).to.have.been.calledOnce;

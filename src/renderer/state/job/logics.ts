@@ -396,7 +396,7 @@ export const handleAbandonedJobsLogic = createLogic({
               );
               dispatch(
                 setErrorAlert(
-                  `Retry for upload "${updatedJob.jobName}" failed. Error: ${e.message}`
+                  `Retry for upload "${updatedJob.jobName}" failed: ${e.message}`
                 )
               );
               resolve();
@@ -417,12 +417,8 @@ export const handleAbandonedJobsLogic = createLogic({
         })
       );
     } catch (e) {
-      logger.error(`Error encountered when handling abandoned jobs.`, e);
-      dispatch(
-        setErrorAlert(
-          `Error encountered when handling abandoned jobs. Error: ${e.message}`
-        )
-      );
+      logger.error(`Could not retry abandoned jobs.`, e);
+      dispatch(setErrorAlert(`Could not retry abandoned jobs: ${e.message}`));
     } finally {
       done();
     }
