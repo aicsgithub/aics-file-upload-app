@@ -38,7 +38,6 @@ import {
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { getWellLabel, titleCase } from "../../util";
-import { getRequestsInProgress } from "../feedback/selectors";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
@@ -942,27 +941,5 @@ export const getEditFileMetadataRequests = createSelector(
       });
     });
     return result;
-  }
-);
-
-export const getCanSubmitUpload = createSelector(
-  [
-    getUploadValidationErrors,
-    getRequestsInProgress,
-    getUpload,
-    getOriginalUpload,
-  ],
-  (
-    validationErrors: string[],
-    requestsInProgress: string[],
-    upload: UploadStateBranch,
-    originalUpload?: UploadStateBranch
-  ): boolean => {
-    const noValidationErrorsOrRequestsInProgress =
-      validationErrors.length === 0 && requestsInProgress.length === 0;
-    return originalUpload
-      ? noValidationErrorsOrRequestsInProgress &&
-          !isEqual(upload, originalUpload)
-      : noValidationErrorsOrRequestsInProgress;
   }
 );

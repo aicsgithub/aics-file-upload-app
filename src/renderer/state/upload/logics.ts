@@ -1085,7 +1085,8 @@ const submitFileMetadataUpdateLogic = createLogic({
             editFileMetadataFailed(
               `Could not delete file ${fileId}: ${
                 e?.response?.data?.error || e.message
-              }`
+              }`,
+              ctx.jobName
             )
           );
           done();
@@ -1105,7 +1106,8 @@ const submitFileMetadataUpdateLogic = createLogic({
         editFileMetadataFailed(
           `Could not update upload with deleted fileIds: ${
             e?.response?.data?.error || e.message
-          }`
+          }`,
+          ctx.jobName
         )
       );
     }
@@ -1119,14 +1121,16 @@ const submitFileMetadataUpdateLogic = createLogic({
       );
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
-      dispatch(editFileMetadataFailed("Could not edit files: " + message));
+      dispatch(
+        editFileMetadataFailed("Could not edit files: " + message, ctx.jobName)
+      );
       done();
       return;
     }
 
     dispatch(
       batchActions([
-        editFileMetadataSucceeded(),
+        editFileMetadataSucceeded(ctx.jobName),
         ...getSelectPageActions(
           logger,
           getState(),
@@ -1150,7 +1154,8 @@ const submitFileMetadataUpdateLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     const selectedJob = getSelectedJob(getState());
-    if (!selectedJob) {
+    const jobName = getCurrentJobName(getState());
+    if (!selectedJob || !jobName) {
       reject(setErrorAlert("Nothing found to update"));
       return;
     }
@@ -1160,7 +1165,11 @@ const submitFileMetadataUpdateLogic = createLogic({
       );
     }
     ctx.selectedJobId = selectedJob.jobId;
-    next(action);
+    ctx.jobName = jobName;
+    next({
+      ...action,
+      payload: jobName,
+    });
   },
 });
 

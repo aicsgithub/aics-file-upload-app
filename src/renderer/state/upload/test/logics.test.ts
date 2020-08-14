@@ -16,6 +16,7 @@ import { requestFailed } from "../../actions";
 import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
+import { getCurrentJobName } from "../../job/selectors";
 import { selectPage } from "../../route/actions";
 import {
   getSelectedBarcode,
@@ -1964,6 +1965,7 @@ describe("Upload logics", () => {
   describe("submitFileMetadataUpdateLogic", () => {
     let mockStateForEditingMetadata: State | undefined;
     let catUpload: UploadMetadata | undefined;
+    let jobName: string;
     beforeEach(() => {
       catUpload = {
         ...mockWellUpload,
@@ -1980,6 +1982,7 @@ describe("Upload logics", () => {
           cat: catUpload,
         }),
       };
+      jobName = getCurrentJobName(mockStateForEditingMetadata) || "";
     });
 
     const stubMethods = (
@@ -2023,6 +2026,21 @@ describe("Upload logics", () => {
         )
       );
     });
+    it("adds jobName to payload if current job is defined", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateForEditingMetadata
+      );
+
+      store.dispatch(submitFileMetadataUpdate());
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includes({
+          ...submitFileMetadataUpdate(),
+          payload: "file1, file2, file3",
+        })
+      );
+    });
     it("deletes any file that is found on the selectedJob but not in uploads", async () => {
       const {
         deleteFileMetadataStub,
@@ -2047,7 +2065,7 @@ describe("Upload logics", () => {
       ).to.be.true;
       expect(editFileMetadataStub.calledWith("cat", match.object)).to.be.true;
       expect(editFileMetadataStub.calledWith("dog", match.object)).to.be.false;
-      expect(actions.includesMatch(editFileMetadataSucceeded()));
+      expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
       expect(
         actions.includesMatch(
           selectPage(Page.AddCustomData, Page.UploadSummary)
@@ -2071,7 +2089,7 @@ describe("Upload logics", () => {
       expect(deleteFileMetadataStub.called).to.be.true;
       expect(updateJobStub.called).to.be.true;
       expect(editFileMetadataStub.called).to.be.true;
-      expect(actions.includesMatch(editFileMetadataSucceeded()));
+      expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
     });
     it("dispatches editFileMetadataFailed when deleting file fails (non-404)", async () => {
       const deleteFileMetadataStub = stub().rejects({
@@ -2097,7 +2115,7 @@ describe("Upload logics", () => {
       expect(editFileMetadataStub.called).to.be.false;
       expect(
         actions.includesMatch(
-          editFileMetadataFailed("Could not delete file dog: foo")
+          editFileMetadataFailed("Could not delete file dog: foo", jobName)
         )
       );
     });
@@ -2114,7 +2132,8 @@ describe("Upload logics", () => {
       expect(
         actions.includesMatch(
           editFileMetadataFailed(
-            "Could not update upload with deleted fileIds: foo"
+            "Could not update upload with deleted fileIds: foo",
+            jobName
           )
         )
       ).to.be.true;
@@ -2137,7 +2156,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          editFileMetadataFailed("Could not edit files: foo")
+          editFileMetadataFailed("Could not edit files: foo", jobName)
         )
       );
     });
