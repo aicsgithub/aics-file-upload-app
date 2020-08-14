@@ -21,12 +21,13 @@ ctx.onmessage = async (e: MessageEvent) => {
     totalBytes: number
   ) => {
     copyProgress.set(originalFilePath, bytesCopied);
-    const totalBytesCopied = Object.values(copyProgress).reduce(
-      (totalCopied: number, curr: number) => totalCopied + curr,
-      0
+    let totalBytesCopied = 0;
+    copyProgress.forEach((value: number) => {
+      totalBytesCopied += value;
+    });
+    ctx.postMessage(
+      `${UPLOAD_WORKER_ON_PROGRESS}:${totalBytesCopied}:${totalBytes}`
     );
-    const percentCopied = (totalBytesCopied / totalBytes) * 100;
-    ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${percentCopied}`);
   };
   try {
     const fms = new FileManagementSystem({ host, port, username });
@@ -34,7 +35,8 @@ ctx.onmessage = async (e: MessageEvent) => {
       startUploadResponse,
       payload,
       jobName,
-      onCopyProgress
+      onCopyProgress,
+      5000
     );
     ctx.postMessage(UPLOAD_WORKER_SUCCEEDED);
   } catch (e) {

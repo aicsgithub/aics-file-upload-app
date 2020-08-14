@@ -8,6 +8,7 @@ import {
   RETRY_UPLOAD,
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
+  UPDATE_UPLOAD_PROGRESS_INFO,
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
 } from "../upload/constants";
@@ -35,11 +36,13 @@ import {
   StartJobPollAction,
   StopJobPollAction,
   UpdateIncompleteJobIdsAction,
+  UpdateUploadProgressInfoAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
   addMetadataJobs: [],
   copyJobs: [],
+  copyProgress: {},
   inProgressUploadJobs: [],
   incompleteJobIds: [],
   jobFilter: JobFilter.InProgress,
@@ -184,6 +187,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       incompleteJobIds: action.payload.recentJobs,
       polling: true,
+    }),
+  },
+  [UPDATE_UPLOAD_PROGRESS_INFO]: {
+    accepts: (action: AnyAction): action is UpdateUploadProgressInfoAction =>
+      action.type === UPDATE_UPLOAD_PROGRESS_INFO,
+    perform: (
+      state: JobStateBranch,
+      { payload: { jobId, progress } }: UpdateUploadProgressInfoAction
+    ) => ({
+      ...state,
+      copyProgress: {
+        ...state.copyProgress,
+        [jobId]: progress,
+      },
     }),
   },
 };

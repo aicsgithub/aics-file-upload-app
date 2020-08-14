@@ -495,3 +495,16 @@ export const getUploadFilePromise = async (
   }
   return file;
 };
+
+/**
+ * Returns largest factor of 1000 for num
+ * @param num
+ */
+export const getPowerOf1000 = (num: number) => {
+  let count = 0;
+  while (Math.floor(num / 1000) > 0) {
+    count++;
+    num = num / 1000;
+  }
+  return count;
+};

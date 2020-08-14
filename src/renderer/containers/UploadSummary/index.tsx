@@ -5,18 +5,16 @@ import {
   Empty,
   Icon,
   Modal,
-  Progress,
   Radio,
   Row,
   Spin,
   Switch,
   Table,
-  Tooltip,
 } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
-import { capitalize, isEmpty, map } from "lodash";
+import { isEmpty, map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -82,6 +80,7 @@ import {
   State,
   UploadFile,
   UploadMetadata,
+  UploadProgressInfo,
   UploadSummaryTableRow,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
@@ -89,6 +88,8 @@ import {
   CancelUploadAction,
   RetryUploadAction,
 } from "../../state/upload/types";
+
+import UploadProgress from "./UploadProgress";
 
 const styles = require("./styles.pcss");
 
@@ -136,19 +137,6 @@ interface UploadSummaryState {
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
-  private static STAGE_TO_PROGRESS = (stage: string): number => {
-    if (stage.toLowerCase() === "copy file") {
-      return 25;
-    }
-    if (stage.toLowerCase() === "waiting for file copy") {
-      return 50;
-    }
-    if (stage.toLowerCase() === "create filerows in labkey") {
-      return 75;
-    }
-    return 0;
-  };
-
   private get columns(): Array<ColumnProps<UploadSummaryTableRow>> {
     return [
       {
@@ -160,40 +148,20 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         width: "90px",
       },
       {
-        dataIndex: "currentStage",
-        key: "currentStage",
-        render: (stage: string, row) =>
-          !["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ? (
-            <div className={styles.progressContainer}>
-              <Progress
-                showInfo={false}
-                status="active"
-                percent={UploadSummary.STAGE_TO_PROGRESS(stage)}
-                successPercent={50}
-              />
-              {!this.props.isPolling && (
-                <Tooltip
-                  mouseLeaveDelay={0}
-                  title="Polling is not turned on - progress might not be accurate."
-                >
-                  <Icon className={styles.warningIcon} type="warning" />
-                </Tooltip>
-              )}
-            </div>
-          ) : row.serviceFields && row.serviceFields.replacementJobId ? (
-            "Replaced"
-          ) : (
-            capitalize(row.status)
-          ),
-        title: "Progress",
-        width: "190px",
-      },
-      {
         dataIndex: "jobName",
         ellipsis: true,
         key: "fileName",
         title: "File Names",
         width: "100%",
+      },
+      {
+        dataIndex: "progress",
+        key: "progress",
+        render: (progress: UploadProgressInfo, row) => (
+          <UploadProgress isPolling={this.props.isPolling} row={row} />
+        ),
+        title: "Progress",
+        width: "350px",
       },
       {
         dataIndex: "modified",

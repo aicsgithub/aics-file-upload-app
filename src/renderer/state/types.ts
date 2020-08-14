@@ -179,6 +179,12 @@ export interface FeedbackStateBranch {
   visibleModals: ModalName[];
 }
 
+export interface UploadProgressInfo {
+  completedBytes: number;
+  totalBytes: number;
+  // timeLeft: number; // TODO later
+}
+
 export interface JobStateBranch {
   // Parent job representing an upload of a batch of files
   uploadJobs: JSSJob[];
@@ -191,6 +197,9 @@ export interface JobStateBranch {
   // List of upload jobs that may or may not be in-progress - used for reporting on jobs that succeed or failed on app
   // startup
   incompleteJobIds: string[];
+  copyProgress: {
+    [jobId: string]: UploadProgressInfo;
+  };
   // Represents which filter has been selected on the Upload Summary page
   jobFilter: JobFilter;
   // Whether the app is polling for jobs
@@ -435,4 +444,5 @@ export interface DragAndDropFile {
 export interface UploadSummaryTableRow extends JSSJob {
   // used by antd's Table component to uniquely identify rows
   key: string;
+  progress?: UploadProgressInfo;
 }

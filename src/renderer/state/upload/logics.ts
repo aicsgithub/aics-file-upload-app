@@ -42,6 +42,7 @@ import {
   UPLOAD_WORKER_ON_PROGRESS,
 } from "../constants";
 import { setAlert, setErrorAlert } from "../feedback/actions";
+import { updateUploadProgressInfo } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
   getAnnotationTypes,
@@ -79,6 +80,8 @@ import {
   UploadRowId,
   UploadStateBranch,
   UploadSummaryTableRow,
+  Logger,
+  UploadProgressInfo,
 } from "../types";
 import { batchActions } from "../util";
 
@@ -271,6 +274,29 @@ const applyTemplateLogic = createLogic({
   type: APPLY_TEMPLATE,
 });
 
+const handleUploadProgressUpdate = (
+  e: MessageEvent,
+  logger: Logger,
+  dispatch: ReduxLogicNextCb,
+  jobId: string
+) => {
+  logger.info(e.data);
+  const info = e.data.split(":");
+  if (info.length === 3) {
+    try {
+      const progress: UploadProgressInfo = {
+        completedBytes: info[1],
+        totalBytes: info[2],
+      };
+      dispatch(updateUploadProgressInfo(jobId, progress));
+    } catch (e) {
+      logger.error("Could not parse JSON progress info", e);
+    }
+  } else {
+    logger.error("progress info contains insufficient amount of information");
+  }
+};
+
 const initiateUploadLogic = createLogic({
   latest: true,
   process: async (
@@ -340,8 +366,12 @@ const initiateUploadLogic = createLogic({
         );
         done();
       } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
-        logger.info(e.data);
-        // todo: FUA-27 Display this
+        handleUploadProgressUpdate(
+          e,
+          logger,
+          dispatch,
+          startUploadResponse.jobId
+        );
       } else {
         logger.info(e.data);
       }
@@ -480,6 +510,7 @@ const retryUploadLogic = createLogic({
     const uploadJob: UploadSummaryTableRow = action.payload.job;
     const worker = getRetryUploadWorker();
     worker.onmessage = (e: MessageEvent) => {
+      console.log("retry message", e);
       const lowerCaseMessage = e?.data.toLowerCase();
       if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
         logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
@@ -488,8 +519,7 @@ const retryUploadLogic = createLogic({
         );
         done();
       } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
-        logger.info(e.data);
-        // todo: FUA-27 Display this to the user
+        handleUploadProgressUpdate(e, logger, dispatch, uploadJob.jobId);
       } else {
         logger.info(e.data);
       }

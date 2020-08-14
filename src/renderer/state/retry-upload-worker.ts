@@ -18,18 +18,20 @@ ctx.onmessage = async (e: MessageEvent) => {
     bytesCopied: number,
     totalBytes: number
   ) => {
+    console.log("on copy prog", originalFilePath, bytesCopied, totalBytes);
     copyProgress.set(originalFilePath, bytesCopied);
-    const totalBytesCopied = Object.values(copyProgress).reduce(
-      (totalCopied: number, curr: number) => totalCopied + curr,
-      0
+    let totalBytesCopied = 0;
+    copyProgress.forEach((value: number) => {
+      totalBytesCopied += value;
+    });
+    ctx.postMessage(
+      `${UPLOAD_WORKER_ON_PROGRESS}:${totalBytesCopied}:${totalBytes}`
     );
-    const percentCopied = (totalBytesCopied / totalBytes) * 100;
-    ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${percentCopied}`);
   };
   ctx.postMessage("Web worker retrying upload");
   try {
     const fms = new FileManagementSystem({ host, port, username });
-    await fms.retryUpload(job, onCopyProgress);
+    await fms.retryUpload(job, onCopyProgress, 5000);
     ctx.postMessage(UPLOAD_WORKER_SUCCEEDED);
   } catch (e) {
     ctx.postMessage(`Retry upload failed: ${e.message}`);

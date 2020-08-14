@@ -1,7 +1,11 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
-import { JobFilter } from "../types";
+import {
+  INCOMPLETE_JOB_IDS_KEY,
+  UPLOAD_PROGRESS_KEY,
+} from "../../../shared/constants";
+import { JobFilter, UploadProgressInfo } from "../types";
+import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
 import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
@@ -22,6 +26,7 @@ import {
   StartJobPollAction,
   StopJobPollAction,
   UpdateIncompleteJobIdsAction,
+  UpdateUploadProgressInfoAction,
 } from "./types";
 
 export function retrieveJobs(): RetrieveJobsAction {
@@ -91,5 +96,22 @@ export function startJobPoll(): StartJobPollAction {
 export function stopJobPoll(): StopJobPollAction {
   return {
     type: STOP_JOB_POLL,
+  };
+}
+
+export function updateUploadProgressInfo(
+  jobId: string,
+  progress: UploadProgressInfo
+): UpdateUploadProgressInfoAction {
+  return {
+    payload: {
+      jobId,
+      progress,
+    },
+    type: UPDATE_UPLOAD_PROGRESS_INFO,
+    updates: {
+      [`${UPLOAD_PROGRESS_KEY}.${jobId}`]: progress,
+    },
+    writeToStore: true,
   };
 }

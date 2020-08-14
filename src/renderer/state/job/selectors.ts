@@ -10,6 +10,7 @@ import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
   AsyncRequest,
   State,
+  UploadProgressInfo,
   UploadStateBranch,
   UploadSummaryTableRow,
 } from "../types";
@@ -21,19 +22,26 @@ export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
 export const getIncompleteJobIds = (state: State) => state.job.incompleteJobIds;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getIsPolling = (state: State) => state.job.polling;
+export const getCopyProgress = (state: State) => state.job.copyProgress;
 
 export const getInProgressUploadJobs = (state: State) =>
   state.job.inProgressUploadJobs;
 
 export const getJobsForTable = createSelector(
-  [getUploadJobs],
-  (uploadJobs: JSSJob[]): UploadSummaryTableRow[] => {
-    return orderBy(uploadJobs, ["modified"], ["desc"]).map((job) => ({
-      ...job,
-      created: new Date(job.created),
-      key: job.jobId,
-      modified: new Date(job.modified),
-    }));
+  [getUploadJobs, getCopyProgress],
+  (
+    uploadJobs: JSSJob[],
+    copyProgress: { [jobId: string]: UploadProgressInfo }
+  ): UploadSummaryTableRow[] => {
+    return orderBy(uploadJobs, ["modified"], ["desc"]).map((job) => {
+      return {
+        ...job,
+        created: new Date(job.created),
+        key: job.jobId,
+        modified: new Date(job.modified),
+        progress: copyProgress[job.jobId],
+      };
+    });
   }
 );
 
