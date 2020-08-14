@@ -1,9 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
-import {
-  INCOMPLETE_JOB_IDS_KEY,
-  UPLOAD_PROGRESS_KEY,
-} from "../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { JobFilter, UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
@@ -109,9 +106,5 @@ export function updateUploadProgressInfo(
       progress,
     },
     type: UPDATE_UPLOAD_PROGRESS_INFO,
-    updates: {
-      [`${UPLOAD_PROGRESS_KEY}.${jobId}`]: progress,
-    },
-    writeToStore: true,
   };
 }

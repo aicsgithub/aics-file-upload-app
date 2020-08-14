@@ -51,4 +51,3 @@ export const USER_SETTINGS_KEY = "userSettings";
 export const INCOMPLETE_JOB_IDS_KEY = "incompleteJobIds";
 export const TEMP_UPLOAD_STORAGE_KEY = "upload";
 export const PREFERRED_TEMPLATE_ID = "templateId";
-export const UPLOAD_PROGRESS_KEY = "uploadProgress";

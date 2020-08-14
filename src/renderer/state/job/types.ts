@@ -45,7 +45,7 @@ export interface StartJobPollAction {
   type: string;
 }
 
-export interface UpdateUploadProgressInfoAction extends WriteToStoreAction {
+export interface UpdateUploadProgressInfoAction {
   payload: {
     jobId: string;
     progress: UploadProgressInfo;
