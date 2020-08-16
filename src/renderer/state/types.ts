@@ -56,6 +56,8 @@ export interface Logger {
   debug: (...x: any[]) => void;
   error: (...x: any[]) => void;
   info: (...x: any[]) => void;
+  time: (timerName: string) => void;
+  timeEnd: (timerName: string) => void;
   warn: (...x: any[]) => void;
 }
 
