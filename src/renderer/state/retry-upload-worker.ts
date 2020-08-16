@@ -18,7 +18,6 @@ ctx.onmessage = async (e: MessageEvent) => {
     bytesCopied: number,
     totalBytes: number
   ) => {
-    console.log("on copy prog", originalFilePath, bytesCopied, totalBytes);
     copyProgress.set(originalFilePath, bytesCopied);
     let totalBytesCopied = 0;
     copyProgress.forEach((value: number) => {
