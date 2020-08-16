@@ -137,8 +137,8 @@ interface UploadSummaryState {
 }
 
 class UploadSummary extends React.Component<Props, UploadSummaryState> {
-  private get columns(): Array<ColumnProps<UploadSummaryTableRow>> {
-    return [
+  private get columns(): ColumnProps<UploadSummaryTableRow>[] {
+    const columns: ColumnProps<UploadSummaryTableRow>[] = [
       {
         align: "center",
         dataIndex: "status",
@@ -153,15 +153,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         key: "fileName",
         title: "File Names",
         width: "100%",
-      },
-      {
-        dataIndex: "progress",
-        key: "progress",
-        render: (progress: UploadProgressInfo, row) => (
-          <UploadProgress isPolling={this.props.isPolling} row={row} />
-        ),
-        title: "Progress",
-        width: "350px",
       },
       {
         dataIndex: "modified",
@@ -213,6 +204,19 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         width: "200px",
       },
     ];
+
+    if ([JobFilter.All, JobFilter.InProgress].includes(this.props.jobFilter)) {
+      columns.splice(2, 0, {
+        dataIndex: "progress",
+        key: "progress",
+        render: (progress: UploadProgressInfo, row: UploadSummaryTableRow) => (
+          <UploadProgress isPolling={this.props.isPolling} row={row} />
+        ),
+        title: "Progress",
+        width: "350px",
+      });
+    }
+    return columns;
   }
 
   constructor(props: Props) {
