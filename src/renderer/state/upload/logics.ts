@@ -285,8 +285,8 @@ const handleUploadProgressUpdate = (
   if (info.length === 3) {
     try {
       const progress: UploadProgressInfo = {
-        completedBytes: info[1],
-        totalBytes: info[2],
+        completedBytes: parseInt(info[1], 10),
+        totalBytes: parseInt(info[2]),
       };
       dispatch(updateUploadProgressInfo(jobId, progress));
     } catch (e) {

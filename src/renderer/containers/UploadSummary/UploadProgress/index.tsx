@@ -46,24 +46,25 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
     1
   );
 
+  if (completedBytes >= totalBytes) {
+    return <>Copy complete, now finishing up</>;
+  }
+
   return (
     <div className={styles.progressContainer}>
-      {progress && (
-        <Progress
-          showInfo={false}
-          status="active"
-          percent={Math.floor((100 * completedBytes) / totalBytes)}
-        />
-      )}
-      {progress && (
-        <div className={styles.copyStatsContainer}>
-          <div className={styles.bytes}>
-            {completedBytesDisplay}
-            {unit} / {totalBytesDisplay}
-            {unit}
-          </div>
+      <Progress
+        className={styles.progress}
+        showInfo={false}
+        status="success"
+        percent={Math.floor((100 * completedBytes) / totalBytes)}
+      />
+      <div className={styles.copyStatsContainer}>
+        <div className={styles.bytes}>
+          {completedBytesDisplay}
+          {unit} / {totalBytesDisplay}
+          {unit}
         </div>
-      )}
+      </div>
       {!isPolling && (
         <Tooltip
           mouseLeaveDelay={0}
