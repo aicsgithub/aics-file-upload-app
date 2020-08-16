@@ -46,10 +46,6 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
     1
   );
 
-  if (completedBytes >= totalBytes) {
-    return <>Copy complete, now finishing up</>;
-  }
-
   return (
     <div className={styles.progressContainer}>
       <Progress
@@ -64,6 +60,7 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
           {unit} / {totalBytesDisplay}
           {unit}
         </div>
+        {completedBytes === totalBytes && <div>Finishing up</div>}
       </div>
       {!isPolling && (
         <Tooltip
