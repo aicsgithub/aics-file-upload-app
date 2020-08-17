@@ -7,4 +7,4 @@ export const IN_PROGRESS_STATUSES = [
   "BLOCKED",
 ];
 export const UPLOAD_WORKER_SUCCEEDED = "worker-success";
-export const UPLOAD_WORKER_ON_PROGRESS = "percent copied";
+export const UPLOAD_WORKER_ON_PROGRESS = "upload-progress";

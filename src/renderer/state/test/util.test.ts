@@ -1,11 +1,13 @@
 import { expect } from "chai";
 import { AnyAction } from "redux";
+import { stub } from "sinon";
 
 import { APP_ID } from "../../constants";
 import { TypeToDescriptionMap } from "../types";
 import {
   batchActions,
   enableBatching,
+  getCopyProgressCb,
   makeConstant,
   makeReducer,
 } from "../util";
@@ -152,6 +154,23 @@ describe("state utilities", () => {
       const result = batchingReducer(initialState, enableBeans);
       expect(result).to.deep.equal(reducer(initialState, enableBeans));
       expect(result).to.deep.equal(expectedState);
+    });
+  });
+  describe("getCopyProgressCb", () => {
+    it("returns a function that calls postMessage with the correct stats over time", () => {
+      const postMessageStub = stub();
+      const copyProgressCb = getCopyProgressCb(["a", "b"], postMessageStub);
+
+      copyProgressCb("a", 1, 12);
+      expect(postMessageStub.calledWith("upload-progress:1:12"));
+      postMessageStub.reset();
+
+      copyProgressCb("b", 2, 12);
+      expect(postMessageStub.calledWith("upload-progress:3:12"));
+      postMessageStub.reset();
+
+      copyProgressCb("a", 2, 12);
+      expect(postMessageStub.calledWith("upload-progress:5:12"));
     });
   });
 });
