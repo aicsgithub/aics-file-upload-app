@@ -363,7 +363,10 @@ describe("Metadata logics", () => {
       expect(getAlert(state)).to.be.undefined;
 
       store.dispatch(
-        searchFileMetadata({ annotation: "something", searchValue: "value" })
+        searchFileMetadata({
+          annotation: "fakeAnnotation",
+          searchValue: "something",
+        })
       );
 
       await logicMiddleware.whenComplete();

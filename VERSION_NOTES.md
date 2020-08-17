@@ -1,4 +1,8 @@
 # Version Notes
+
+## 1.0.48 (8/12/20)
+- Bugfix: Prevent uploads from causing app hangs for large upload sizes
+
 ## 1.0.47 (7/27/20)
 - Bugfix: don't show Copy link in status bar if nothing to copy
 - Bugfix: "Your Uploads" page, All filter wasn't showing successful uploads

@@ -1,5 +1,5 @@
 import * as Store from "electron-store";
-import { isNil } from "lodash";
+import { isNil, isPlainObject } from "lodash";
 import * as hash from "object-hash";
 
 import {
@@ -30,19 +30,22 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
     keyOrObject: Key | Partial<T>,
     value?: T[Key]
   ) => {
-    if (typeof keyOrObject === "object") {
+    if (isPlainObject(keyOrObject)) {
       const objectWithPrefixes: any = {};
       for (const [key, value] of Object.entries(keyOrObject)) {
         objectWithPrefixes[this.getPrefixedKey<Key>(key as Key)] = value;
       }
       super.set(objectWithPrefixes);
-    } else {
+    } else if (
+      !isNil(value) &&
+      (typeof keyOrObject === "string" || typeof keyOrObject === "number")
+    ) {
       const prefixedKey = this.getPrefixedKey<Key>(keyOrObject);
-      if (typeof prefixedKey === "object") {
-        super.set<Key>(prefixedKey, value as T[Key]);
-      } else if (!isNil(value)) {
-        super.set(prefixedKey, value);
-      }
+      super.set(prefixedKey, value);
+    } else {
+      throw new Error(
+        "Expected first argument to be an object, string, or number."
+      );
     }
   };
 

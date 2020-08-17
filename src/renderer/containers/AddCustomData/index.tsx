@@ -66,7 +66,6 @@ import {
 } from "../../state/upload/actions";
 import {
   getCanRedoUpload,
-  getCanSubmitUpload,
   getCanUndoUpload,
   getFileToAnnotationHasValueMap,
   getUploadKeyToAnnotationErrorMap,
@@ -85,6 +84,8 @@ import {
   UploadJobTableRow,
 } from "../../state/upload/types";
 import BarcodeSearch from "../BarcodeSearch";
+
+import { getCanSubmitUpload, getUpdateInProgress } from "./selectors";
 
 const styles = require("./style.pcss");
 
@@ -330,10 +331,7 @@ function mapStateToProps(state: State) {
     selectedJob: getSelectedJob(state),
     showUploadHint: getShowUploadHint(state),
     templates: getTemplates(state),
-    updateInProgress: getRequestsInProgressContains(
-      state,
-      AsyncRequest.UPDATE_FILE_METADATA
-    ),
+    updateInProgress: getUpdateInProgress(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
     uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),

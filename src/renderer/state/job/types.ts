@@ -22,6 +22,10 @@ export interface ReceiveJobsAction {
   type: string;
 }
 
+export interface HandleAbandonedJobsAction {
+  type: string;
+}
+
 export interface GatherIncompleteJobIdsAction {
   type: string;
 }
