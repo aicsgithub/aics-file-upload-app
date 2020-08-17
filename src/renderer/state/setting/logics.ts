@@ -142,6 +142,8 @@ const gatherSettingsLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     try {
+      // Anything in the userSettings object is considered environment-independent, meaning that
+      // no matter what LIMS environment we're using or which user is "logged-in", these settings still apply.
       const userSettings = storage.get(USER_SETTINGS_KEY);
       if (!userSettings) {
         reject({ type: "ignore" });
@@ -150,6 +152,8 @@ const gatherSettingsLogic = createLogic({
       }
 
       const { limsHost, limsPort, username } = userSettings;
+      // Template ID is environment-dependent (staging and production could have different sets of template ids)
+      // so we need to get it from another place and add it manually.
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
       if (limsHost) {
         fms.host = limsHost;
