@@ -216,7 +216,7 @@ export const mockWellUpload: UploadStateBranch = {
     barcode: "1234",
     ["Favorite Color"]: ["Red"],
     file: "/path/to/file1",
-    key: getUploadRowKey({ file: "/path/to/file" }),
+    key: getUploadRowKey({ file: "/path/to/file1" }),
     shouldBeInArchive: true,
     shouldBeInLocal: true,
     [WELL_ANNOTATION_NAME]: [1],

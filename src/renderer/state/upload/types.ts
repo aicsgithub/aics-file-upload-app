@@ -308,15 +308,20 @@ export interface ClearUploadDraftAction extends WriteToStoreAction {
 }
 
 export interface SubmitFileMetadataUpdateAction {
+  payload?: string; // jobName
   type: string;
 }
 
 export interface EditFileMetadataSucceededAction {
+  payload: string; // jobName
   type: string;
 }
 
 export interface EditFileMetadataFailedAction {
-  payload: string;
+  payload: {
+    error: string;
+    jobName: string;
+  };
   type: string;
 }
 

@@ -639,40 +639,54 @@ describe("feedback reducer", () => {
     });
   });
   describe("submitFileMetadataUpdate", () => {
-    it("adds AsyncRequest.UPDATE_FILE_METADATA to requestsInProgress", () => {
-      const result = reducer(initialState, submitFileMetadataUpdate());
+    it("adds AsyncRequest.UPDATE_FILE_METADATA-jobName to requestsInProgress", () => {
+      const result = reducer(initialState, {
+        ...submitFileMetadataUpdate(),
+        payload: "jobName",
+      });
       expect(result.requestsInProgress).to.include(
-        AsyncRequest.UPDATE_FILE_METADATA
+        `${AsyncRequest.UPDATE_FILE_METADATA}-jobName`
       );
     });
   });
   describe("editFileMetadataFailed", () => {
     it("sets error alert", () => {
-      const result = reducer(initialState, editFileMetadataFailed("foo"));
+      const result = reducer(
+        initialState,
+        editFileMetadataFailed("foo", "jobName")
+      );
       expect(result.alert).to.deep.equal({
         message: "foo",
         type: AlertType.ERROR,
       });
     });
-    it("removes UPDATE_FILE_METADATA from requestsInProgress", () => {
-      const result = reducer(initialState, editFileMetadataFailed("foo"));
+    it("removes UPDATE_FILE_METADATA-jobName from requestsInProgress", () => {
+      const result = reducer(
+        initialState,
+        editFileMetadataFailed("foo", "jobName")
+      );
       expect(
-        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+        result.requestsInProgress.includes(
+          `${AsyncRequest.UPDATE_FILE_METADATA}-jobName`
+        )
       ).to.be.false;
     });
   });
   describe("editFileMetadataSucceeded", () => {
+    const jobName = "jobName";
     it("sets success alert", () => {
-      const result = reducer(initialState, editFileMetadataSucceeded());
+      const result = reducer(initialState, editFileMetadataSucceeded(jobName));
       expect(result.alert).to.deep.equal({
         message: "File metadata updated successfully!",
         type: AlertType.SUCCESS,
       });
     });
     it("removes UPDATE_FILE_METADATA from requestsInProgress", () => {
-      const result = reducer(initialState, editFileMetadataSucceeded());
+      const result = reducer(initialState, editFileMetadataSucceeded(jobName));
       expect(
-        result.requestsInProgress.includes(AsyncRequest.UPDATE_FILE_METADATA)
+        result.requestsInProgress.includes(
+          `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
+        )
       ).to.be.false;
     });
   });

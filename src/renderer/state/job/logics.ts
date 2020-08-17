@@ -1,3 +1,4 @@
+import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { isEmpty, uniq, without } from "lodash";
@@ -9,7 +10,16 @@ import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../services";
-import { setAlert, setErrorAlert, setSuccessAlert } from "../feedback/actions";
+import {
+  UPLOAD_WORKER_ON_PROGRESS,
+  UPLOAD_WORKER_SUCCEEDED,
+} from "../constants";
+import {
+  setAlert,
+  setErrorAlert,
+  setInfoAlert,
+  setSuccessAlert,
+} from "../feedback/actions";
 import { getWithRetry } from "../feedback/util";
 import { getLoggedInUser } from "../setting/selectors";
 import {
@@ -19,6 +29,7 @@ import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
   ReduxLogicTransformDependencies,
   State,
 } from "../types";
@@ -32,12 +43,14 @@ import { batchActions } from "../util";
 import {
   receiveJobs,
   retrieveJobsFailed,
+  startJobPoll,
   stopJobPoll,
   updateIncompleteJobIds,
 } from "./actions";
 import {
   FAILED_STATUSES,
   GATHER_STORED_INCOMPLETE_JOB_IDS,
+  HANDLE_ABANDONED_JOBS,
   IN_PROGRESS_STATUSES,
   RETRIEVE_JOBS,
   START_JOB_POLL,
@@ -45,6 +58,7 @@ import {
   SUCCESSFUL_STATUS,
 } from "./constants";
 import { getIncompleteJobIds, getJobFilter } from "./selectors";
+import { HandleAbandonedJobsAction } from "./types";
 
 interface Jobs {
   actualIncompleteJobIds?: string[];
@@ -154,17 +168,20 @@ export const fetchJobs = async (
       user,
     });
 
-    return await Promise.all([getCopyJobsPromise, getAddMetadataPromise]).then(
-      ([copyJobs, addMetadataJobs]) => ({
-        actualIncompleteJobIds,
-        addMetadataJobs,
-        copyJobs,
-        inProgressUploadJobs,
-        recentlyFailedJobNames: recentlyFailedJobIds,
-        recentlySucceededJobNames: recentlySucceededJobIds,
-        uploadJobs,
-      })
-    );
+    const [copyJobs, addMetadataJobs] = await Promise.all([
+      getCopyJobsPromise,
+      getAddMetadataPromise,
+    ]);
+
+    return {
+      actualIncompleteJobIds,
+      addMetadataJobs,
+      copyJobs,
+      inProgressUploadJobs,
+      recentlyFailedJobNames: recentlyFailedJobIds,
+      recentlySucceededJobNames: recentlySucceededJobIds,
+      uploadJobs,
+    };
   } catch (error) {
     return { error };
   }
@@ -268,6 +285,141 @@ const retrieveJobsLogic = createLogic({
   warnTimeout: 0,
 });
 
+export const handleAbandonedJobsLogic = createLogic({
+  type: HANDLE_ABANDONED_JOBS,
+  warnTimeout: 0,
+  async process(
+    {
+      logger,
+      getRetryUploadWorker,
+      fms,
+      jssClient,
+      getState,
+    }: ReduxLogicProcessDependenciesWithAction<HandleAbandonedJobsAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) {
+    try {
+      const state = getState();
+      const user = getLoggedInUser(state);
+
+      const inProgressJobs = await getWithRetry(
+        () =>
+          jssClient.getJobs({
+            status: { $in: IN_PROGRESS_STATUSES },
+            serviceFields: { type: "upload" },
+            user,
+          }),
+        dispatch
+      );
+
+      let incompleteChildren: JSSJob[] = [];
+      if (inProgressJobs.length > 0) {
+        incompleteChildren = await getWithRetry(
+          () =>
+            jssClient.getJobs({
+              parentId: { $in: inProgressJobs.map((job) => job.jobId) },
+              status: { $ne: SUCCESSFUL_STATUS },
+              user,
+            }),
+          dispatch
+        );
+      }
+
+      const abandonedJobs = inProgressJobs.filter((job) => {
+        // If an in progress upload has no children, it must have been abandoned
+        // before the child jobs could have been created.
+        if (!job.childIds) {
+          return true;
+        }
+
+        const incompleteChildrenForJob = incompleteChildren.filter(
+          (childJob) => childJob.parentId === job.jobId
+        );
+
+        // HEURISTIC:
+        // If any of the child jobs of an in progress upload have not
+        // completed, then it is very likely that the job is abandoned.
+        return incompleteChildrenForJob.length > 0;
+      });
+
+      if (abandonedJobs.length > 0) {
+        dispatch(startJobPoll());
+      }
+
+      // Wait for every abandoned job to be processed
+      await Promise.all(
+        abandonedJobs.map(async (abandonedJob) => {
+          logger.info(
+            `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`
+          );
+          dispatch(
+            setInfoAlert(
+              `Upload "${abandonedJob.jobName}" was abandoned and will now be retried.`
+            )
+          );
+
+          // Use the most up to date version of the job, which is returned
+          // after the upload is failed
+          const [updatedJob] = await fms.failUpload(abandonedJob.jobId);
+
+          // Wait until the worker succeeds or encounters an error
+          await new Promise((resolve) => {
+            const worker = getRetryUploadWorker();
+
+            worker.onmessage = (e: MessageEvent) => {
+              const lowerCaseMessage = e?.data.toLowerCase();
+              if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
+                logger.info(`Retry upload "${updatedJob.jobName}" succeeded!`);
+                dispatch(
+                  setSuccessAlert(
+                    `Retry for upload "${updatedJob.jobName}" succeeded!`
+                  )
+                );
+                resolve();
+              } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
+                logger.info(e.data);
+              } else {
+                logger.info(e.data);
+              }
+            };
+
+            worker.onerror = (e: ErrorEvent) => {
+              logger.error(
+                `Retry for upload "${updatedJob.jobName}" failed`,
+                e
+              );
+              dispatch(
+                setErrorAlert(
+                  `Retry for upload "${updatedJob.jobName}" failed: ${e.message}`
+                )
+              );
+              resolve();
+            };
+
+            const fileNames = updatedJob.serviceFields.files.map(
+              ({ file: { originalPath } }: AicsFilesUploadMetadata) =>
+                originalPath
+            );
+            worker.postMessage([
+              updatedJob,
+              fileNames,
+              fms.host,
+              fms.port,
+              fms.username,
+            ]);
+          });
+        })
+      );
+    } catch (e) {
+      logger.error(`Could not retry abandoned jobs.`, e);
+      dispatch(setErrorAlert(`Could not retry abandoned jobs: ${e.message}`));
+    } finally {
+      done();
+    }
+  },
+});
+
 // Based on https://codesandbox.io/s/j36jvpn8rv?file=/src/index.js
 const pollJobsLogic = createLogic({
   cancelType: STOP_JOB_POLL,
@@ -321,5 +473,6 @@ const gatherStoredIncompleteJobIdsLogic = createLogic({
 export default [
   retrieveJobsLogic,
   pollJobsLogic,
+  handleAbandonedJobsLogic,
   gatherStoredIncompleteJobIdsLogic,
 ];

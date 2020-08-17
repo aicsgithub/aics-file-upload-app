@@ -5,6 +5,7 @@ import { JobFilter } from "../types";
 
 import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
+  HANDLE_ABANDONED_JOBS,
   RECEIVE_JOBS,
   RETRIEVE_JOBS,
   RETRIEVE_JOBS_FAILED,
@@ -15,6 +16,7 @@ import {
 } from "./constants";
 import {
   GatherIncompleteJobIdsAction,
+  HandleAbandonedJobsAction,
   ReceiveJobsAction,
   RetrieveJobsAction,
   RetrieveJobsFailedAction,
@@ -53,6 +55,12 @@ export function receiveJobs(
       uploadJobs,
     },
     type: RECEIVE_JOBS,
+  };
+}
+
+export function handleAbandonedJobs(): HandleAbandonedJobsAction {
+  return {
+    type: HANDLE_ABANDONED_JOBS,
   };
 }
 

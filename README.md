@@ -21,6 +21,10 @@ cd file-upload-app
 ./gradlew devStg
 ```
 
+To create an executable that will allow you to test a production build of the
+app, you can run `yarn build-executable`. The executable will be built to the
+`dist` directory.
+
 ### WFH setup (Mac)
 How to run against dev machine in AI building over VPN:
 1. Make sure you are connected to the AI VPN

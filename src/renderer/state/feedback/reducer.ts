@@ -697,11 +697,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
   [SUBMIT_FILE_METADATA_UPDATE]: {
     accepts: (action: AnyAction): action is SubmitFileMetadataUpdateAction =>
       action.type === SUBMIT_FILE_METADATA_UPDATE,
-    perform: (state: FeedbackStateBranch) => ({
+    perform: (
+      state: FeedbackStateBranch,
+      { payload: jobName }: SubmitFileMetadataUpdateAction
+    ) => ({
       ...state,
       requestsInProgress: addRequestToInProgress(
         state,
-        AsyncRequest.UPDATE_FILE_METADATA
+        `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
       ),
     }),
   },
@@ -710,25 +713,28 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === EDIT_FILE_METADATA_FAILED,
     perform: (
       state: FeedbackStateBranch,
-      action: EditFileMetadataFailedAction
+      { payload: { error, jobName } }: EditFileMetadataFailedAction
     ) => ({
       ...state,
-      alert: getErrorAlert(action.payload),
+      alert: getErrorAlert(error),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.UPDATE_FILE_METADATA
+        `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
       ),
     }),
   },
   [EDIT_FILE_METADATA_SUCCEEDED]: {
     accepts: (action: AnyAction): action is EditFileMetadataSucceededAction =>
       action.type === EDIT_FILE_METADATA_SUCCEEDED,
-    perform: (state: FeedbackStateBranch) => ({
+    perform: (
+      state: FeedbackStateBranch,
+      { payload: jobName }: EditFileMetadataSucceededAction
+    ) => ({
       ...state,
       alert: getSuccessAlert("File metadata updated successfully!"),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        AsyncRequest.UPDATE_FILE_METADATA
+        `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
       ),
     }),
   },

@@ -15,6 +15,7 @@ import {
   FileToFileMetadata,
   ImageModelMetadata,
 } from "@aics/aicsfiles/type-declarations/types";
+import { memoize } from "lodash";
 import {
   castArray,
   difference,
@@ -26,7 +27,7 @@ import {
   uniq,
 } from "lodash";
 
-import { LIST_DELIMITER_SPLIT } from "../constants";
+import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
 import MMSClient from "../services/mms-client";
 import {
   GetPlateResponse,
@@ -494,4 +495,23 @@ export const getUploadFilePromise = async (
     file.files = await Promise.all(await file.loadFiles());
   }
   return file;
+};
+
+const getCanvasContext = memoize(() => {
+  return window.document.createElement("canvas").getContext("2d");
+});
+
+/**
+ * Helper for measuring how wide text would be displayed on the page. Defaults to an approximation of the width
+ * if it cannot create a canvas context for some reason.
+ * @param font https://developer.mozilla.org/en-US/docs/Web/CSS/font
+ * @param text the text to be displayed
+ */
+export const getTextWidth = (font: string, text: string) => {
+  const canvasContext = getCanvasContext();
+  if (!canvasContext) {
+    return text.length * MAIN_FONT_WIDTH;
+  }
+  canvasContext.font = font;
+  return canvasContext.measureText(text).width;
 };
