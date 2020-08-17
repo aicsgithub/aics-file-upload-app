@@ -362,7 +362,9 @@ describe("Metadata logics", () => {
       let state = store.getState();
       expect(getAlert(state)).to.be.undefined;
 
-      store.dispatch(searchFileMetadata({ user: "fake_user" }));
+      store.dispatch(
+        searchFileMetadata({ annotation: "something", searchValue: "value" })
+      );
 
       await logicMiddleware.whenComplete();
       state = store.getState();

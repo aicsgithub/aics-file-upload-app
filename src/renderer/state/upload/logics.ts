@@ -510,7 +510,6 @@ const retryUploadLogic = createLogic({
     const uploadJob: UploadSummaryTableRow = action.payload.job;
     const worker = getRetryUploadWorker();
     worker.onmessage = (e: MessageEvent) => {
-      console.log("retry message", e);
       const lowerCaseMessage = e?.data.toLowerCase();
       if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
         logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);

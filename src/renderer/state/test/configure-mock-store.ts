@@ -125,6 +125,8 @@ export const logger = {
   debug: stub(),
   error: stub(),
   info: stub(),
+  time: stub(),
+  timeEnd: stub(),
   warn: stub(),
 };
 
