@@ -8,7 +8,7 @@ import { Observable } from "rxjs";
 import { interval } from "rxjs/internal/observable/interval";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 
-import { JOB_STORAGE_KEY } from "../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { LocalStorage } from "../../services";
 import {
   UPLOAD_WORKER_ON_PROGRESS,
@@ -222,18 +222,13 @@ export const mapJobsToActions = (storage: LocalStorage, logger: Logger) => (
   }
 
   // Only update the state if the current incompleteJobs are different than the existing ones
-  const potentiallyIncompleteJobIdsStored = storage.get(
-    `${JOB_STORAGE_KEY}.incompleteJobIds`
-  );
+  const potentiallyIncompleteJobIdsStored = storage.get(INCOMPLETE_JOB_IDS_KEY);
   if (
     actualIncompleteJobIds &&
     potentiallyIncompleteJobIdsStored.length !== actualIncompleteJobIds.length
   ) {
     try {
-      storage.set(
-        `${JOB_STORAGE_KEY}.incompleteJobIds`,
-        actualIncompleteJobIds
-      );
+      storage.set(INCOMPLETE_JOB_IDS_KEY, actualIncompleteJobIds);
     } catch (e) {
       logger.warn(
         `Failed to update incomplete job names: ${actualIncompleteJobIds.join(
@@ -461,8 +456,7 @@ const gatherStoredIncompleteJobIdsLogic = createLogic({
     next: ReduxLogicNextCb
   ) => {
     try {
-      const incompleteJobIds =
-        storage.get(`${JOB_STORAGE_KEY}.incompleteJobIds`) || [];
+      const incompleteJobIds = storage.get(INCOMPLETE_JOB_IDS_KEY) || [];
       next(updateIncompleteJobIds(uniq(incompleteJobIds)));
     } catch (e) {
       next(

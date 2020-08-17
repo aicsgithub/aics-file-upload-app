@@ -34,6 +34,7 @@ export interface LocalStorageStub {
   delete: SinonStub;
   get: SinonStub;
   has: SinonStub;
+  reset: SinonStub;
   set: SinonStub;
 }
 
@@ -73,6 +74,7 @@ export const storage: LocalStorageStub = {
   delete: stub(),
   get: stub(),
   has: stub(),
+  reset: stub(),
   set: stub(),
 };
 

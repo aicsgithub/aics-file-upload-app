@@ -2,8 +2,8 @@ import { uniq, without } from "lodash";
 
 import {
   INCOMPLETE_JOB_IDS_KEY,
+  PREFERRED_TEMPLATE_ID,
   TEMP_UPLOAD_STORAGE_KEY,
-  USER_SETTINGS_KEY,
 } from "../../../shared/constants";
 import { Workflow } from "../../services/labkey-client/types";
 import {
@@ -271,7 +271,7 @@ export function applyTemplate(templateId: number): ApplyTemplateAction {
     payload: templateId,
     type: APPLY_TEMPLATE,
     updates: {
-      [`${USER_SETTINGS_KEY}.templateId`]: templateId,
+      [PREFERRED_TEMPLATE_ID]: templateId,
     },
     writeToStore: true,
   };

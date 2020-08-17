@@ -4,6 +4,7 @@ import { map } from "lodash";
 import { createLogic } from "redux-logic";
 
 import {
+  PREFERRED_TEMPLATE_ID,
   SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
@@ -127,20 +128,33 @@ const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-  transform: (
+  validate: (
     {
       action,
       fms,
       jssClient,
       labkeyClient,
+      logger,
       mmsClient,
       storage,
     }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
   ) => {
     try {
-      const settings = storage.get(USER_SETTINGS_KEY);
-      const { limsHost, limsPort, username } = settings;
+      // Anything in the userSettings object is considered environment-independent, meaning that
+      // no matter what LIMS environment we're using or which user is "logged-in", these settings still apply.
+      const userSettings = storage.get(USER_SETTINGS_KEY);
+      if (!userSettings) {
+        reject({ type: "ignore" });
+        logger.debug("no user settings found");
+        return;
+      }
+
+      const { limsHost, limsPort, username } = userSettings;
+      // Template ID is environment-dependent (staging and production could have different sets of template ids)
+      // so we need to get it from another place and add it manually.
+      userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
       if (limsHost) {
         fms.host = limsHost;
         jssClient.host = limsHost;
@@ -163,7 +177,7 @@ const gatherSettingsLogic = createLogic({
 
       next({
         ...action,
-        payload: settings,
+        payload: userSettings,
       });
     } catch (e) {
       next(

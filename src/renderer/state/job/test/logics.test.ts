@@ -9,7 +9,7 @@ import {
   stub,
 } from "sinon";
 
-import { JOB_STORAGE_KEY } from "../../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
 import {
   setErrorAlert,
@@ -58,6 +58,7 @@ describe("Job logics", () => {
       delete: stub(),
       get: stub().returns(["abc"]),
       has: stub(),
+      reset: stub(),
       set: stub(),
     };
 
@@ -117,9 +118,7 @@ describe("Job logics", () => {
       const setAlertAction = getActionFromBatch(actions, SET_ALERT);
       expect(setAlertAction).to.not.be.undefined;
       expect(actions.updates).to.not.be.undefined;
-      expect(
-        actions?.updates[`${JOB_STORAGE_KEY}.incompleteJobIds`]
-      ).to.deep.equal([]);
+      expect(actions?.updates[INCOMPLETE_JOB_IDS_KEY]).to.deep.equal([]);
       if (setAlertAction) {
         expect(setAlertAction.payload.type).to.equal(AlertType.SUCCESS);
         expect(setAlertAction.payload.message).to.equal("mockJob1 Succeeded");
@@ -146,8 +145,7 @@ describe("Job logics", () => {
 
       const setAlertAction = getActionFromBatch(actions, SET_ALERT);
       expect(setAlertAction).to.not.be.undefined;
-      expect(setStub.calledWith(`${JOB_STORAGE_KEY}.incompleteJobIds`, [])).to
-        .be.true;
+      expect(setStub.calledWith(INCOMPLETE_JOB_IDS_KEY, [])).to.be.true;
       if (setAlertAction) {
         expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
         expect(setAlertAction.payload.message).to.equal(

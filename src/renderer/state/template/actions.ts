@@ -1,4 +1,4 @@
-import { USER_SETTINGS_KEY } from "../../../shared/constants";
+import { PREFERRED_TEMPLATE_ID } from "../../../shared/constants";
 import { Annotation } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import { TemplateDraft, UploadStateBranch } from "../types";
@@ -78,9 +78,7 @@ export function saveTemplateSucceeded(
     payload: templateId,
     type: SAVE_TEMPLATE_SUCCEEDED,
     updates: {
-      [USER_SETTINGS_KEY]: {
-        templateId,
-      },
+      [PREFERRED_TEMPLATE_ID]: templateId,
     },
     writeToStore: true,
   };
