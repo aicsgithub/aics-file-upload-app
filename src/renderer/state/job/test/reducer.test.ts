@@ -22,6 +22,7 @@ import {
   startJobPoll,
   stopJobPoll,
   updateIncompleteJobIds,
+  updateUploadProgressInfo,
 } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
@@ -154,6 +155,20 @@ describe("job reducer", () => {
       );
       expect(result.incompleteJobIds).to.be.empty;
       expect(result.polling).to.be.true;
+    });
+  });
+  describe("updateUploadProgressInfo", () => {
+    it("adds progress info for a jobId without overwriting other progress info", () => {
+      const newProgress = { completedBytes: 1, totalBytes: 2 };
+      const result = reducer(
+        {
+          ...initialState,
+          copyProgress: { abc: { completedBytes: 0, totalBytes: 100 } },
+        },
+        updateUploadProgressInfo("def", newProgress)
+      );
+      expect(result.copyProgress.abc).to.not.be.undefined;
+      expect(result.copyProgress.def).to.equal(newProgress);
     });
   });
 });
