@@ -236,7 +236,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
                 })}
                 onClick={this.cancelJob(row)}
               >
-                Stop
+                Cancel
               </a>
             )}
           </>
