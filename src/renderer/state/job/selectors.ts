@@ -16,16 +16,12 @@ import {
 } from "../types";
 import { getUpload, getUploadFileNames } from "../upload/selectors";
 
-export const getCopyJobs = (state: State) => state.job.copyJobs;
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
 export const getIncompleteJobIds = (state: State) => state.job.incompleteJobIds;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getIsPolling = (state: State) => state.job.polling;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
-
-export const getInProgressUploadJobs = (state: State) =>
-  state.job.inProgressUploadJobs;
 
 export const getJobsForTable = createSelector(
   [getUploadJobs, getCopyProgress],
@@ -48,26 +44,11 @@ export const getJobsForTable = createSelector(
 // The app is only safe to exit after the add metadata step has been completed
 // The add metadata step represents sending a request to FSS's /uploadComplete endpoint which delegates
 // The last steps of the upload to FSS
-// Since the add metadata step is a child of the upload job and does not get failed if the upload fails,
-// We want to return false only if the parent upload job is in progress and the add metadata step is
-// in progress.
+// addMetadataJobs only contains add metadata child jobs for actual in progress uploads
 export const getIsSafeToExit = createSelector(
-  [getAddMetadataJobs, getInProgressUploadJobs],
-  (addMetadataJobs: JSSJob[], inProgressUploadJobs: JSSJob[]): boolean => {
-    const incompleteAddMetadataJobs = addMetadataJobs.filter(
-      (addMetadataJob) => {
-        const matchingUploadJob = inProgressUploadJobs.find(
-          (uploadJob) => uploadJob.jobId === addMetadataJob.parentId
-        );
-        if (!matchingUploadJob) {
-          // If the parent upload job is not in progress, then this job is not counted
-          return false;
-        }
-        return IN_PROGRESS_STATUSES.includes(addMetadataJob.status);
-      }
-    );
-    return incompleteAddMetadataJobs.length === 0;
-  }
+  [getAddMetadataJobs],
+  (addMetadataJobs: JSSJob[]): boolean =>
+    !addMetadataJobs.some((j) => IN_PROGRESS_STATUSES.includes(j.status))
 );
 
 export const getCurrentJobName = createSelector(

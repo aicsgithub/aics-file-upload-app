@@ -26,7 +26,6 @@ import {
 import {
   mockState,
   mockSuccessfulAddMetadataJob,
-  mockSuccessfulCopyJob,
   mockSuccessfulUploadJob,
   mockWaitingUploadJob,
 } from "../../test/mocks";
@@ -49,7 +48,6 @@ describe("Job logics", () => {
 
   describe("mapJobsToActions", () => {
     const addMetadataJobs = [mockSuccessfulAddMetadataJob];
-    const copyJobs = [mockSuccessfulCopyJob];
     const uploadJobs = [mockSuccessfulUploadJob];
     const recentlyFailedJobNames = ["jobName"];
     const recentlySucceededJobNames = ["jobName2"];
@@ -80,7 +78,6 @@ describe("Job logics", () => {
       )({
         actualIncompleteJobIds,
         addMetadataJobs,
-        copyJobs,
         recentlyFailedJobNames,
         recentlySucceededJobNames,
         uploadJobs,
@@ -90,8 +87,6 @@ describe("Job logics", () => {
       expect(receiveJobsAction).to.deep.equal({
         payload: {
           addMetadataJobs,
-          copyJobs,
-          inProgressUploadJobs: [],
           incompleteJobIds: actualIncompleteJobIds,
           uploadJobs,
         },
@@ -106,7 +101,6 @@ describe("Job logics", () => {
       )({
         actualIncompleteJobIds: [],
         addMetadataJobs,
-        copyJobs,
         recentlySucceededJobNames: ["mockJob1"],
         uploadJobs,
       });
@@ -134,7 +128,6 @@ describe("Job logics", () => {
       )({
         actualIncompleteJobIds: [],
         addMetadataJobs,
-        copyJobs,
         recentlyFailedJobNames: ["mockFailedUploadJob"],
         uploadJobs,
       });

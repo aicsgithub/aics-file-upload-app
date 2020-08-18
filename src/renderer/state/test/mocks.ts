@@ -566,31 +566,6 @@ export const mockFailedUploadJob: JSSJob = {
   user: "test_user",
 };
 
-export const mockSuccessfulCopyJob: JSSJob = {
-  created: new Date(),
-  currentStage: "Complete",
-  jobId: "copyJobId1",
-  jobName: "Copy job parent for 123434234",
-  modified: new Date(),
-  status: "SUCCEEDED",
-  user: "test_user",
-};
-export const mockWorkingCopyJob: JSSJob = {
-  ...mockSuccessfulCopyJob,
-  currentStage: "Copying files",
-  jobId: "copyJobId2",
-  jobName: "Copy job parent for 2222222222",
-  status: "WORKING",
-};
-
-export const mockFailedCopyJob: JSSJob = {
-  ...mockSuccessfulCopyJob,
-  currentStage: "Invalid permissions",
-  jobId: "copyJobId3",
-  jobName: "Copy job parent for 3333333333",
-  status: "FAILED",
-};
-
 const mockAddMetadataJob: JSSJob = {
   created: new Date(),
   currentStage: "Complete",
@@ -652,7 +627,6 @@ export const mockAnnotationTypes: AnnotationType[] = [
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
   ...mockState.job,
-  copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
   uploadJobs: [
     mockSuccessfulUploadJob,
     mockWorkingUploadJob,

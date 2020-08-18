@@ -41,9 +41,7 @@ import {
 
 export const initialState: JobStateBranch = {
   addMetadataJobs: [],
-  copyJobs: [],
   copyProgress: {},
-  inProgressUploadJobs: [],
   incompleteJobIds: [],
   jobFilter: JobFilter.All,
   polling: false,
@@ -57,20 +55,12 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (
       state: JobStateBranch,
       {
-        payload: {
-          addMetadataJobs,
-          copyJobs,
-          inProgressUploadJobs,
-          incompleteJobIds,
-          uploadJobs,
-        },
+        payload: { addMetadataJobs, incompleteJobIds, uploadJobs },
       }: ReceiveJobsAction
     ) => {
       return {
         ...state,
         addMetadataJobs,
-        copyJobs,
-        inProgressUploadJobs,
         incompleteJobIds: uniq(incompleteJobIds),
         uploadJobs,
       };

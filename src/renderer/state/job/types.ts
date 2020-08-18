@@ -14,9 +14,7 @@ export interface RetrieveJobsFailedAction {
 export interface ReceiveJobsAction {
   payload: {
     addMetadataJobs: JSSJob[];
-    copyJobs: JSSJob[];
     incompleteJobIds: string[];
-    inProgressUploadJobs: JSSJob[];
     uploadJobs: JSSJob[];
   };
   type: string;

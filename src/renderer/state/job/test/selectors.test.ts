@@ -4,14 +4,10 @@ import { WELL_ANNOTATION_NAME } from "../../../constants";
 import {
   getMockStateWithHistory,
   mockFailedAddMetadataJob,
-  mockFailedUploadJob,
   mockState,
   mockSuccessfulAddMetadataJob,
-  mockSuccessfulCopyJob,
-  mockSuccessfulUploadJob,
   mockWellUpload,
   mockWorkingAddMetadataJob,
-  mockWorkingCopyJob,
   mockWorkingUploadJob,
   nonEmptyJobStateBranch,
 } from "../../test/mocks";
@@ -67,32 +63,7 @@ describe("Job selectors", () => {
       expect(isSafeToExit).to.be.true;
     });
 
-    it("returns true if an upload job is failed", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          addMetadataJobs: [
-            {
-              ...mockFailedAddMetadataJob,
-              parentId: mockFailedUploadJob.jobId,
-            },
-          ],
-          uploadJobs: [
-            {
-              ...mockFailedUploadJob,
-              serviceFields: {
-                ...mockFailedUploadJob.serviceFields,
-                copyJobId: mockWorkingCopyJob.jobId,
-              },
-            },
-          ],
-        },
-      });
-      expect(isSafeToExit).to.be.true;
-    });
-
-    it("returns true if an upload job is in progress and its add metadata job is successful", () => {
+    it("returns true if addMetadataJobs only contains a successful job", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
@@ -103,22 +74,12 @@ describe("Job selectors", () => {
               parentId: mockWorkingUploadJob.jobId,
             },
           ],
-          copyJobs: [mockSuccessfulCopyJob],
-          uploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              serviceFields: {
-                ...mockWorkingUploadJob.serviceFields,
-                copyJobId: mockSuccessfulCopyJob.jobId,
-              },
-            },
-          ],
         },
       });
       expect(isSafeToExit).to.be.true;
     });
 
-    it("returns true if an upload job is in progress and its add metadata job is failed", () => {
+    it("returns true if addMetadataJobs only contains a failed job", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
@@ -129,22 +90,12 @@ describe("Job selectors", () => {
               parentId: mockWorkingUploadJob.jobId,
             },
           ],
-          copyJobs: [mockSuccessfulCopyJob],
-          uploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              serviceFields: {
-                ...mockWorkingUploadJob.serviceFields,
-                copyJobId: mockSuccessfulCopyJob.jobId,
-              },
-            },
-          ],
         },
       });
       expect(isSafeToExit).to.be.true;
     });
 
-    it("returns false if an upload job is in progress and its add metadata job is in progress", () => {
+    it("returns addMetadataJobs contains a working job", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
@@ -155,38 +106,9 @@ describe("Job selectors", () => {
               parentId: mockWorkingUploadJob.jobId,
             },
           ],
-          copyJobs: [mockSuccessfulCopyJob],
-          inProgressUploadJobs: [
-            {
-              ...mockWorkingUploadJob,
-              serviceFields: {
-                ...mockWorkingUploadJob.serviceFields,
-                copyJobId: mockSuccessfulCopyJob.jobId,
-              },
-            },
-          ],
-          incompleteJobIds: [mockWorkingUploadJob.jobId],
-          uploadJobs: [],
         },
       });
       expect(isSafeToExit).to.be.false;
-    });
-
-    it("returns true if an upload job is complete", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          addMetadataJobs: [
-            {
-              ...mockSuccessfulAddMetadataJob,
-              parentId: mockSuccessfulUploadJob.jobId,
-            },
-          ],
-          uploadJobs: [mockSuccessfulUploadJob],
-        },
-      });
-      expect(isSafeToExit).to.be.true;
     });
   });
 

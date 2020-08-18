@@ -1,7 +1,6 @@
 import { expect } from "chai";
 
 import {
-  mockFailedCopyJob,
   mockFailedUploadJob,
   mockSuccessfulUploadJob,
   mockWorkingAddMetadataJob,
@@ -31,25 +30,15 @@ describe("job reducer", () => {
   describe("receiveJobs", () => {
     it("sets addMetadataJobs, copyJobs, incompleteJobIds, uploadJobs, and inProgressJobs", () => {
       const addMetadataJobs = [mockWorkingAddMetadataJob];
-      const copyJobs = [mockFailedCopyJob];
       const incompleteJobIds = ["job1"];
       const uploadJobs = [mockSuccessfulUploadJob];
-      const inProgressJobs = [mockWorkingAddMetadataJob];
       const result = reducer(
         initialState,
-        receiveJobs(
-          uploadJobs,
-          copyJobs,
-          addMetadataJobs,
-          incompleteJobIds,
-          inProgressJobs
-        )
+        receiveJobs(uploadJobs, addMetadataJobs, incompleteJobIds)
       );
       expect(result.addMetadataJobs).to.equal(addMetadataJobs);
-      expect(result.copyJobs).to.equal(copyJobs);
       expect(result.incompleteJobIds).to.deep.equal(incompleteJobIds);
       expect(result.uploadJobs).to.equal(uploadJobs);
-      expect(result.inProgressUploadJobs).to.equal(inProgressJobs);
     });
   });
   describe("updateIncompleteJobIds", () => {

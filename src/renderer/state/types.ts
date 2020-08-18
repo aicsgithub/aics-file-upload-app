@@ -190,11 +190,9 @@ export interface UploadProgressInfo {
 export interface JobStateBranch {
   // Parent job representing an upload of a batch of files
   uploadJobs: JSSJob[];
-  // Parent upload jobs that are in progress
-  inProgressUploadJobs: JSSJob[];
-  // Child job representing the copy step of an upload job
-  copyJobs: JSSJob[];
   // Child job representing the add metadata step of an upload job
+  // These are requested only for in progress upload jobs
+  // And are only used to determine if it is safe to exit the app
   addMetadataJobs: JSSJob[];
   // List of upload jobs that may or may not be in-progress - used for reporting on jobs that succeed or failed on app
   // startup
