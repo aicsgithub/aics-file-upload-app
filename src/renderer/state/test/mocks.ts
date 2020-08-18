@@ -513,11 +513,6 @@ export const mockSuccessfulUploadJob: JSSJob = {
   user: "test_user",
 };
 
-export const mockUnrecoverableUploadJob: JSSJob = {
-  ...mockSuccessfulUploadJob,
-  status: "UNRECOVERABLE",
-};
-
 export const mockWorkingUploadJob: JSSJob = {
   created: new Date(),
   currentStage: "Copying files",
@@ -531,19 +526,9 @@ export const mockWorkingUploadJob: JSSJob = {
   user: "test_user",
 };
 
-export const mockRetryingUploadJob: JSSJob = {
-  ...mockWorkingUploadJob,
-  status: "RETRYING",
-};
-
 export const mockWaitingUploadJob: JSSJob = {
   ...mockWorkingUploadJob,
   status: "WAITING",
-};
-
-export const mockBlockedUploadJob: JSSJob = {
-  ...mockWorkingUploadJob,
-  status: "BLOCKED",
 };
 
 export const mockFailedUploadJob: JSSJob = {
