@@ -1,3 +1,5 @@
+import { JSSJob } from "@aics/job-status-client/type-declarations/types";
+
 import {
   CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
@@ -161,7 +163,7 @@ export interface InitiateUploadAction extends AutoSaveAction {
 
 export interface InitiateUploadSucceededAction extends WriteToStoreAction {
   payload: {
-    jobName: string;
+    job: JSSJob;
     recentJobs: string[];
   };
   type: string;

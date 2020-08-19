@@ -63,9 +63,7 @@ import { HandleAbandonedJobsAction } from "./types";
 interface Jobs {
   actualIncompleteJobIds?: string[];
   addMetadataJobs?: JSSJob[];
-  copyJobs?: JSSJob[];
   error?: Error;
-  inProgressUploadJobs?: JSSJob[];
   recentlySucceededJobNames?: string[];
   recentlyFailedJobNames?: string[];
   uploadJobs?: JSSJob[];
@@ -120,25 +118,16 @@ export const fetchJobs = async (
     status: { $in: statusesToInclude },
     user,
   });
-  const getInProgressUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs({
-    serviceFields: {
-      type: "upload",
-    },
-    status: { $in: IN_PROGRESS_STATUSES },
-    user,
-  });
 
   try {
     const [
       recentlySucceededJobs,
       recentlyFailedJobs,
       uploadJobs,
-      inProgressUploadJobs,
     ] = await Promise.all([
       recentlySucceededJobsPromise,
       recentlyFailedJobsPromise,
       getUploadJobsPromise,
-      getInProgressUploadJobsPromise,
     ]);
     const recentlyFailedJobIds: string[] = (recentlyFailedJobs || []).map(
       ({ jobId }: JSSJob) => jobId
@@ -152,15 +141,20 @@ export const fetchJobs = async (
       ...recentlyFailedJobIds
     );
 
+    const result = {
+      actualIncompleteJobIds,
+      addMetadataJobs: [],
+      recentlyFailedJobNames: recentlyFailedJobIds,
+      recentlySucceededJobNames: recentlySucceededJobIds,
+      uploadJobs,
+    };
+
+    if (actualIncompleteJobIds.length === 0) {
+      return result;
+    }
+
     // only get child jobs for the incomplete jobs
-    const getCopyJobsPromise = jssClient.getJobs({
-      parentId: { $in: actualIncompleteJobIds },
-      serviceFields: {
-        type: "copy",
-      },
-      user,
-    });
-    const getAddMetadataPromise = jssClient.getJobs({
+    const addMetadataJobs = await jssClient.getJobs({
       parentId: { $in: actualIncompleteJobIds },
       serviceFields: {
         type: "add_metadata",
@@ -168,19 +162,9 @@ export const fetchJobs = async (
       user,
     });
 
-    const [copyJobs, addMetadataJobs] = await Promise.all([
-      getCopyJobsPromise,
-      getAddMetadataPromise,
-    ]);
-
     return {
-      actualIncompleteJobIds,
+      ...result,
       addMetadataJobs,
-      copyJobs,
-      inProgressUploadJobs,
-      recentlyFailedJobNames: recentlyFailedJobIds,
-      recentlySucceededJobNames: recentlySucceededJobIds,
-      uploadJobs,
     };
   } catch (error) {
     return { error };
@@ -193,9 +177,7 @@ export const mapJobsToActions = (storage: LocalStorage, logger: Logger) => (
   const {
     actualIncompleteJobIds,
     addMetadataJobs,
-    copyJobs,
     error,
-    inProgressUploadJobs,
     recentlyFailedJobNames,
     recentlySucceededJobNames,
     uploadJobs,
@@ -245,13 +227,7 @@ export const mapJobsToActions = (storage: LocalStorage, logger: Logger) => (
     }
   }
   actions.push(
-    receiveJobs(
-      uploadJobs,
-      copyJobs,
-      addMetadataJobs,
-      actualIncompleteJobIds,
-      inProgressUploadJobs
-    )
+    receiveJobs(uploadJobs, addMetadataJobs, actualIncompleteJobIds)
   );
   let nextAction: AnyAction = batchActions(actions);
   if (!isEmpty(updates)) {

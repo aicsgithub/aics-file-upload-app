@@ -43,16 +43,12 @@ export function retrieveJobsFailed(error: string): RetrieveJobsFailedAction {
 
 export function receiveJobs(
   uploadJobs: JSSJob[] = [],
-  copyJobs: JSSJob[] = [],
   addMetadataJobs: JSSJob[] = [],
-  incompleteJobIds: string[] = [],
-  inProgressUploadJobs: JSSJob[] = []
+  incompleteJobIds: string[] = []
 ): ReceiveJobsAction {
   return {
     payload: {
       addMetadataJobs,
-      copyJobs,
-      inProgressUploadJobs,
       incompleteJobIds,
       uploadJobs,
     },
