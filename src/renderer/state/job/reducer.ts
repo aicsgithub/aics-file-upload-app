@@ -172,10 +172,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (
       state: JobStateBranch,
-      action: InitiateUploadSucceededAction
+      { payload: { job, recentJobs } }: InitiateUploadSucceededAction
     ) => ({
       ...state,
-      incompleteJobIds: action.payload.recentJobs,
+      uploadJobs: [...state.uploadJobs, job],
+      incompleteJobIds: recentJobs,
       polling: true,
     }),
   },

@@ -63,6 +63,7 @@ import {
   getSelectedWellIds,
   getStagedFiles,
 } from "../selection/selectors";
+import { getLoggedInUser } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
@@ -336,7 +337,8 @@ const initiateUploadLogic = createLogic({
       initiateUploadSucceeded(
         jobName,
         startUploadResponse.jobId,
-        getIncompleteJobIds(getState())
+        getIncompleteJobIds(getState()),
+        getLoggedInUser(getState())
       )
     );
     const actions = [];

@@ -65,7 +65,6 @@ import {
   editFileMetadataSucceeded,
   initiateUpload,
   initiateUploadFailed,
-  initiateUploadSucceeded,
   openUploadDraft,
   replaceUpload,
   retryUpload,
@@ -86,6 +85,7 @@ import {
 import {
   getUploadRowKey,
   INITIATE_UPLOAD,
+  INITIATE_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT_SUCCESS,
 } from "../constants";
 import uploadLogics from "../logics";
@@ -453,6 +453,10 @@ describe("Upload logics", () => {
             page: Page.AddCustomData,
             view: Page.AddCustomData,
           },
+          setting: {
+            ...nonEmptyStateForInitiatingUpload.setting,
+            username: "foo",
+          },
         },
         undefined,
         uploadLogics
@@ -468,8 +472,8 @@ describe("Upload logics", () => {
           type: INITIATE_UPLOAD,
         })
       ).to.be.true;
-      expect(actions.includesMatch(initiateUploadSucceeded(jobName, jobId, [])))
-        .to.be.true;
+      expect(actions.list.find((a) => a.type === INITIATE_UPLOAD_SUCCEEDED)).to
+        .not.be.undefined;
       expect(
         actions.includesMatch(
           selectPage(Page.AddCustomData, Page.UploadSummary)

@@ -111,7 +111,7 @@ describe("job reducer", () => {
     it("sets incompleteJobIds", () => {
       const result = reducer(
         initialState,
-        initiateUploadSucceeded("foo", "jobId", [])
+        initiateUploadSucceeded("foo", "jobId", [], "foo")
       );
       expect(result.incompleteJobIds.length).to.equal(1);
     });

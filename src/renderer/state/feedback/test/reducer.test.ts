@@ -421,7 +421,7 @@ describe("feedback reducer", () => {
     it("removes INITIATE_UPLOAD-jobName from requestsInProgress and clears uploadError", () => {
       const result = reducer(
         initialState,
-        initiateUploadSucceeded("jobName", "jobId", [])
+        initiateUploadSucceeded("jobName", "jobId", [], "foo")
       );
       expect(result.requestsInProgress).to.not.include(
         "INITIATE_UPLOAD-jobName"

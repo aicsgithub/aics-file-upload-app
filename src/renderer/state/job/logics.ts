@@ -1,7 +1,7 @@
 import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { JobStatusClient } from "@aics/job-status-client";
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-import { isEmpty, uniq, without } from "lodash";
+import { debounce, isEmpty, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { Observable } from "rxjs";
@@ -241,22 +241,28 @@ export const mapJobsToActions = (storage: LocalStorage, logger: Logger) => (
   return nextAction;
 };
 
+const retrieveJobsProcessLogic = async (
+  deps: ReduxLogicProcessDependencies,
+  dispatch: ReduxLogicNextCb,
+  done: ReduxLogicDoneCb
+) => {
+  const { getState, jssClient, logger, storage } = deps;
+  const jobs = await getWithRetry(
+    () => fetchJobs(getState, jssClient),
+    dispatch
+  );
+  dispatch(mapJobsToActions(storage, logger)(jobs));
+  done();
+};
+const debouncedProcess = debounce(retrieveJobsProcessLogic, 500);
 const retrieveJobsLogic = createLogic({
   debounce: 500,
   latest: true,
-  process: async (
+  process: (
     deps: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
-  ) => {
-    const { getState, jssClient, logger, storage } = deps;
-    const jobs = await getWithRetry(
-      () => fetchJobs(getState, jssClient),
-      dispatch
-    );
-    dispatch(mapJobsToActions(storage, logger)(jobs));
-    done();
-  },
+  ) => debouncedProcess(deps, dispatch, done),
   type: RETRIEVE_JOBS,
   warnTimeout: 0,
 });
