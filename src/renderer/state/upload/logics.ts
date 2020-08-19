@@ -282,6 +282,9 @@ const handleUploadProgressUpdate = (
 ) => {
   logger.info(e.data);
   const info = e.data.split(":");
+  // worker messages for uploads will look like "upload-progress:111:223" where upload-progress
+  // tells us what kind of message this is, 111 is the number of copied bytes and 223 is the total number
+  // of bytes to copy for a batch of files
   if (info.length === 3) {
     try {
       const progress: UploadProgressInfo = {
