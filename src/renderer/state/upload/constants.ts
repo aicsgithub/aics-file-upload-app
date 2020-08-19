@@ -106,6 +106,10 @@ export const UPDATE_FILES_TO_STORE_ON_ISILON = makeConstant(
   BRANCH_NAME,
   "update-files-to-store-on-isilon"
 );
+export const UPDATE_UPLOAD_PROGRESS_INFO = makeConstant(
+  BRANCH_NAME,
+  "update-upload-progress-info"
+);
 
 // todo could do hash eventually but we're being safe for now
 export const getUploadRowKey = ({

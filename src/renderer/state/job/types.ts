@@ -1,6 +1,6 @@
 import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 
-import { JobFilter, WriteToStoreAction } from "../types";
+import { JobFilter, UploadProgressInfo, WriteToStoreAction } from "../types";
 
 export interface RetrieveJobsAction {
   type: string;
@@ -46,5 +46,13 @@ export interface StopJobPollAction {
 
 export interface StartJobPollAction {
   payload?: JobFilter;
+  type: string;
+}
+
+export interface UpdateUploadProgressInfoAction {
+  payload: {
+    jobId: string;
+    progress: UploadProgressInfo;
+  };
   type: string;
 }

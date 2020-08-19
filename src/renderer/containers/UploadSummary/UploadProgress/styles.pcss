@@ -1,0 +1,29 @@
+.progress-container {
+    display: flex;
+    align-items: center;
+}
+
+.progress {
+    flex: 1;
+}
+
+.copy-stats-container {
+    flex: 0 0 auto;
+    padding-left: 1em;
+    font-size: var(--small);
+    color: var(--grey);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    & .bytes {
+        color: var(--success);
+    }
+}
+
+.warning-icon {
+    color: var(--warning);
+    margin-left: 1em;
+    flex: 0 0 auto;
+}

@@ -13,9 +13,13 @@ import {
 import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
-import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
+import {
+  UPLOAD_WORKER_ON_PROGRESS,
+  UPLOAD_WORKER_SUCCEEDED,
+} from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
+import { updateUploadProgressInfo } from "../../job/actions";
 import { getCurrentJobName } from "../../job/selectors";
 import { selectPage } from "../../route/actions";
 import {
@@ -544,6 +548,56 @@ describe("Upload logics", () => {
           );
         })
       ).to.not.be.undefined;
+    });
+    it("dispatches updateUploadProgressInfo given that worker sends progress info", async () => {
+      sandbox.replace(
+        fms,
+        "validateMetadataAndGetUploadDirectory",
+        stub().resolves(startUploadResponse)
+      );
+      uploadWorker = {
+        postMessage: function () {
+          this.onmessage(({
+            data: `${UPLOAD_WORKER_ON_PROGRESS}:1:10`,
+          } as any) as MessageEvent);
+          this.onmessage(({
+            data: UPLOAD_WORKER_SUCCEEDED,
+          } as any) as MessageEvent);
+        },
+        // eslint-disable-next-line
+        onmessage: function (e: MessageEvent) {},
+      };
+      getUploadWorker = stub().returns(uploadWorker);
+      sandbox.replace(mockReduxLogicDeps, "getUploadWorker", getUploadWorker);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        {
+          ...nonEmptyStateForInitiatingUpload,
+        },
+        undefined,
+        uploadLogics,
+        false
+      );
+      expect(
+        actions.includesMatch(
+          updateUploadProgressInfo(startUploadResponse.jobId, {
+            completedBytes: 1,
+            totalBytes: 10,
+          })
+        )
+      ).to.be.false;
+
+      store.dispatch(initiateUpload());
+
+      // after
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          updateUploadProgressInfo(startUploadResponse.jobId, {
+            completedBytes: 1,
+            totalBytes: 10,
+          })
+        )
+      ).to.be.true;
     });
     it("dispatches uploadFailed if worker emits error", async () => {
       sandbox.replace(

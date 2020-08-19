@@ -1,40 +1,20 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
 
-import {
-  UPLOAD_WORKER_ON_PROGRESS,
-  UPLOAD_WORKER_SUCCEEDED,
-} from "./constants";
+import { UPLOAD_WORKER_SUCCEEDED } from "./constants";
+import { getCopyProgressCb } from "./util";
 
 const ctx: Worker = self as any;
 ctx.onmessage = async (e: MessageEvent) => {
   const [startUploadResponse, payload, jobName, host, port, username] = e.data;
   ctx.postMessage("Web worker starting upload");
-  const copyProgress = new Map();
-  Object.keys(payload).forEach((originalPath: string) => {
-    copyProgress.set(originalPath, 0);
-  });
-
-  // updates copyProgress
-  const onCopyProgress = (
-    originalFilePath: string,
-    bytesCopied: number,
-    totalBytes: number
-  ) => {
-    copyProgress.set(originalFilePath, bytesCopied);
-    const totalBytesCopied = Object.values(copyProgress).reduce(
-      (totalCopied: number, curr: number) => totalCopied + curr,
-      0
-    );
-    const percentCopied = (totalBytesCopied / totalBytes) * 100;
-    ctx.postMessage(`${UPLOAD_WORKER_ON_PROGRESS}:${percentCopied}`);
-  };
   try {
     const fms = new FileManagementSystem({ host, port, username });
     await fms.uploadFiles(
       startUploadResponse,
       payload,
       jobName,
-      onCopyProgress
+      getCopyProgressCb(Object.keys(payload), ctx.postMessage.bind(ctx)),
+      2000
     );
     ctx.postMessage(UPLOAD_WORKER_SUCCEEDED);
   } catch (e) {

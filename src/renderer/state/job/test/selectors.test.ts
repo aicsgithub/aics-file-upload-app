@@ -29,10 +29,19 @@ describe("Job selectors", () => {
       const jobs = [...nonEmptyJobStateBranch.uploadJobs];
       const jobTableRows = getJobsForTable({
         ...mockState,
-        job: { ...nonEmptyJobStateBranch },
+        job: {
+          ...nonEmptyJobStateBranch,
+          copyProgress: {
+            [mockWorkingUploadJob.jobId]: {
+              completedBytes: 2,
+              totalBytes: 100,
+            },
+          },
+        },
       });
 
       expect(jobTableRows.length).to.equal(jobs.length);
+      let foundWorkingJob = false;
       jobTableRows.forEach((jobTableRow) => {
         const match = jobs.find((job) => {
           return (
@@ -42,8 +51,13 @@ describe("Job selectors", () => {
             job.status === jobTableRow.status
           );
         });
+        if (jobTableRow.status === "WORKING") {
+          expect(jobTableRow.progress).to.not.be.undefined;
+          foundWorkingJob = true;
+        }
         expect(match).to.not.be.undefined;
       });
+      expect(foundWorkingJob).to.be.true;
     });
   });
 
