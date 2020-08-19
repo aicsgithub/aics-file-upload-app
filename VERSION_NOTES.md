@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.49 (8/19/20)
+- Bugfix: show upload progress more transparently
+- Feature: automatically retry abandoned uploads on app start
+
 ## 1.0.48 (8/12/20)
 - Bugfix: Prevent uploads from causing app hangs for large upload sizes
 
