@@ -513,11 +513,6 @@ export const mockSuccessfulUploadJob: JSSJob = {
   user: "test_user",
 };
 
-export const mockUnrecoverableUploadJob: JSSJob = {
-  ...mockSuccessfulUploadJob,
-  status: "UNRECOVERABLE",
-};
-
 export const mockWorkingUploadJob: JSSJob = {
   created: new Date(),
   currentStage: "Copying files",
@@ -531,19 +526,9 @@ export const mockWorkingUploadJob: JSSJob = {
   user: "test_user",
 };
 
-export const mockRetryingUploadJob: JSSJob = {
-  ...mockWorkingUploadJob,
-  status: "RETRYING",
-};
-
 export const mockWaitingUploadJob: JSSJob = {
   ...mockWorkingUploadJob,
   status: "WAITING",
-};
-
-export const mockBlockedUploadJob: JSSJob = {
-  ...mockWorkingUploadJob,
-  status: "BLOCKED",
 };
 
 export const mockFailedUploadJob: JSSJob = {
@@ -564,31 +549,6 @@ export const mockFailedUploadJob: JSSJob = {
   },
   status: "FAILED",
   user: "test_user",
-};
-
-export const mockSuccessfulCopyJob: JSSJob = {
-  created: new Date(),
-  currentStage: "Complete",
-  jobId: "copyJobId1",
-  jobName: "Copy job parent for 123434234",
-  modified: new Date(),
-  status: "SUCCEEDED",
-  user: "test_user",
-};
-export const mockWorkingCopyJob: JSSJob = {
-  ...mockSuccessfulCopyJob,
-  currentStage: "Copying files",
-  jobId: "copyJobId2",
-  jobName: "Copy job parent for 2222222222",
-  status: "WORKING",
-};
-
-export const mockFailedCopyJob: JSSJob = {
-  ...mockSuccessfulCopyJob,
-  currentStage: "Invalid permissions",
-  jobId: "copyJobId3",
-  jobName: "Copy job parent for 3333333333",
-  status: "FAILED",
 };
 
 const mockAddMetadataJob: JSSJob = {
@@ -652,7 +612,6 @@ export const mockAnnotationTypes: AnnotationType[] = [
 
 export const nonEmptyJobStateBranch: JobStateBranch = {
   ...mockState.job,
-  copyJobs: [mockFailedCopyJob, mockSuccessfulCopyJob, mockWorkingCopyJob],
   uploadJobs: [
     mockSuccessfulUploadJob,
     mockWorkingUploadJob,

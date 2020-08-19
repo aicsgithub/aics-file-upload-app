@@ -44,13 +44,12 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
     );
   }
 
-  if (["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status)) {
-    return null;
-  }
-
   const { progress } = row;
-  if (!progress) {
-    return <div className={styles.progressContainer}>No progress info</div>;
+  if (
+    ["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ||
+    !progress
+  ) {
+    return null;
   }
 
   const { completedBytes, totalBytes } = progress;

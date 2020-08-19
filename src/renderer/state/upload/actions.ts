@@ -198,11 +198,19 @@ export function initiateUpload(): InitiateUploadAction {
 export function initiateUploadSucceeded(
   jobName: string,
   jobId: string,
-  recentJobs: string[]
+  recentJobs: string[],
+  currentUser: string
 ): InitiateUploadSucceededAction {
   return {
     payload: {
-      jobName,
+      job: {
+        created: new Date(),
+        jobId,
+        jobName,
+        modified: new Date(),
+        status: "WORKING",
+        user: currentUser,
+      },
       recentJobs: [...recentJobs, jobId],
     },
     type: INITIATE_UPLOAD_SUCCEEDED,

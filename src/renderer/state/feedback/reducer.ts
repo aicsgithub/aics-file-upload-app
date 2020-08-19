@@ -513,7 +513,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { jobName } }: InitiateUploadSucceededAction
+      {
+        payload: {
+          job: { jobName },
+        },
+      }: InitiateUploadSucceededAction
     ) => ({
       ...state,
       requestsInProgress: removeRequestFromInProgress(

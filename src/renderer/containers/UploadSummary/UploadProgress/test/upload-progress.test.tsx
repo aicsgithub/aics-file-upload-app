@@ -68,12 +68,9 @@ describe("<UploadProgress/>", () => {
       expect(replacedInfo.exists(".replaced")).to.be.true;
       expect(replacedInfo.text()).to.equal("Replaced with jobId abc");
     });
-    it("Returns <div>No Progress info</div> if row is missing progress info", () => {
+    it("Returns null if row is missing progress info", () => {
       const wrapper = shallow(<UploadProgress isPolling={true} row={row} />);
-      expect(wrapper.find(".progress").exists()).to.be.false;
-      expect(wrapper.find(".progressContainer").text()).to.equal(
-        "No progress info"
-      );
+      expect(wrapper.isEmptyRender()).to.be.true;
     });
 
     const testStatsDisplay = (
