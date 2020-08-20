@@ -1,5 +1,9 @@
 # Version Notes
 
+## 1.0.50 (8/20/20)
+- Bugfix: fix issue that was preventing progress information from displaying
+when a concurrent upload gets triggered
+
 ## 1.0.49 (8/19/20)
 - Bugfix: show upload progress more transparently
 - Feature: automatically retry abandoned uploads on app start
