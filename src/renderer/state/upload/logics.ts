@@ -302,7 +302,6 @@ const handleUploadProgressUpdate = (
 };
 
 const initiateUploadLogic = createLogic({
-  latest: true,
   process: async (
     {
       ctx,
@@ -500,7 +499,6 @@ const cancelUploadLogic = createLogic({
 });
 
 const retryUploadLogic = createLogic({
-  latest: true,
   process: (
     {
       action,
