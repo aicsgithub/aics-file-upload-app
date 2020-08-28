@@ -1,7 +1,9 @@
 import "@babel/polyfill/noConflict";
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
+import { camelizeKeys, decamelizeKeys } from "humps";
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
+import { castArray } from "lodash";
 
 import { AicsSuccessResponse, HeaderMap, HttpClient } from "../types";
 
@@ -131,6 +133,14 @@ export default class JobStatusClient {
         ...headers,
       },
       timeout,
+      transformResponse: [
+        ...castArray(axios.defaults.transformResponse),
+        (data) => camelizeKeys(data),
+      ],
+      transformRequest: [
+        (data) => decamelizeKeys(data),
+        ...castArray(axios.defaults.transformRequest),
+      ],
     };
   }
 }

@@ -11,7 +11,7 @@ import {
   INCOMPLETE_JOB_IDS_KEY,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
-import { JobStatusClient, LocalStorage } from "../../services";
+import { JobStatusClient } from "../../services";
 import { JSSJob } from "../../services/job-status-client/types";
 import { HttpClient } from "../../services/types";
 import {
@@ -29,6 +29,7 @@ import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
   JobFilter,
+  LocalStorage,
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
