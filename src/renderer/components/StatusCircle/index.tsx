@@ -1,7 +1,8 @@
-import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
 import { Tooltip } from "antd";
 import * as classNames from "classnames";
 import * as React from "react";
+
+import { JSSJobStatus } from "../../services/job-status-client/types";
 
 const styles = require("./styles.pcss");
 

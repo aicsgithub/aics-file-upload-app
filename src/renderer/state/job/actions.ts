@@ -1,6 +1,5 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
+import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 

@@ -1,5 +1,4 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
-import { JobStatusClient } from "@aics/job-status-client";
 import {
   applyMiddleware,
   combineReducers,
@@ -22,8 +21,7 @@ import {
   template,
   upload,
 } from "../";
-import LabkeyClient from "../../services/labkey-client";
-import MMSClient from "../../services/mms-client";
+import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
 import { State } from "../types";
 
 import { Actions, default as ActionTracker } from "./action-tracker";

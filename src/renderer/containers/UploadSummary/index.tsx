@@ -1,4 +1,3 @@
-import { JSSJobStatus } from "@aics/job-status-client/type-declarations/types";
 import {
   Button,
   Col,
@@ -22,6 +21,7 @@ import { ActionCreator } from "redux";
 import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
 import {
   getRequestsInProgress,

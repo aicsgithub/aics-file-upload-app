@@ -1,9 +1,9 @@
 import { basename } from "path";
 
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
+import { JSSJob } from "../../services/job-status-client/types";
 import { IN_PROGRESS_STATUSES } from "../constants";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";

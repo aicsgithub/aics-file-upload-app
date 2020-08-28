@@ -1,4 +1,3 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Alert, Spin } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -10,6 +9,7 @@ import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import { JSSJob } from "../../services/job-status-client/types";
 import {
   AnnotationType,
   Channel,

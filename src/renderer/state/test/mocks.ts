@@ -1,5 +1,4 @@
 import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { StateWithHistory } from "redux-undo";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
@@ -8,6 +7,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { JSSJob } from "../../services/job-status-client/types";
 import {
   Annotation,
   AnnotationLookup,

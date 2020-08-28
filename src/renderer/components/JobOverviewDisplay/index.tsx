@@ -1,6 +1,7 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { Descriptions } from "antd";
 import * as React from "react";
+
+import { JSSJob } from "../../services/job-status-client/types";
 
 const Item = Descriptions.Item;
 
