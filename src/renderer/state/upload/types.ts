@@ -1,11 +1,10 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-
 import {
   CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { JSSJob } from "../../services/job-status-client/types";
 import { Workflow } from "../../services/labkey-client/types";
 import { UploadSummaryTableRow } from "../types";
 import {

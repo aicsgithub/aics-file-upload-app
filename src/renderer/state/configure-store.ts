@@ -2,7 +2,6 @@ import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
 import { promisify } from "util";
 
 import { FileManagementSystem } from "@aics/aicsfiles";
-import { JobStatusClient } from "@aics/job-status-client";
 import { ipcRenderer, remote } from "electron";
 import * as Logger from "js-logger";
 import { forEach, isNil } from "lodash";
@@ -24,8 +23,7 @@ import {
   LIMS_PROTOCOL,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../shared/constants";
-import LabkeyClient from "../services/labkey-client";
-import MMSClient from "../services/mms-client";
+import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";

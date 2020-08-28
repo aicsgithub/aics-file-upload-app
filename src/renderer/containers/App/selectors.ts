@@ -1,6 +1,5 @@
 import { basename } from "path";
 
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { flatMap, forEach, groupBy, uniq } from "lodash";
 import { createSelector } from "reselect";
 
@@ -8,6 +7,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { JSSJob } from "../../services/job-status-client/types";
 import { ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import {

@@ -1,5 +1,4 @@
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
-
+import { JSSJob } from "../../services/job-status-client/types";
 import { Page, UploadStateBranch } from "../types";
 
 import {

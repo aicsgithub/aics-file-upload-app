@@ -1,6 +1,4 @@
 import { FileManagementSystem } from "@aics/aicsfiles";
-import { JobStatusClient } from "@aics/job-status-client";
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import { expect } from "chai";
 import {
   createSandbox,
@@ -10,6 +8,8 @@ import {
 } from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
+import JobStatusClient from "../../../services/job-status-client";
+import { JSSJob } from "../../../services/job-status-client/types";
 import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
 import {
   setErrorAlert,

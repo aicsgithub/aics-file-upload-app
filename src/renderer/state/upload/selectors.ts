@@ -4,7 +4,6 @@ import {
   UploadMetadata as AicsFilesUploadMetadata,
   Uploads,
 } from "@aics/aicsfiles/type-declarations/types";
-import { JSSJob } from "@aics/job-status-client/type-declarations/types";
 import {
   castArray,
   difference,
@@ -35,6 +34,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { getWellLabel, titleCase } from "../../util";
