@@ -2,8 +2,14 @@ import "@babel/polyfill/noConflict";
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 
+import {
+  DEFAULT_USERNAME,
+  LIMS_HOST,
+  LIMS_PORT,
+} from "../../../shared/constants";
+
 import { IllegalArgumentError } from "./errors/IllegalArgumentError";
-import { JSSConnection } from "./jss-connection";
+import { JSSConnection, JSSHttpClient } from "./jss-connection";
 import JSSRequestMapper from "./jss-request-mapper";
 import JSSResponseMapper from "./jss-response-mapper";
 import {
@@ -22,17 +28,17 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   warn: Logger.WARN,
 });
 
-export const JOB_STATUS_CLIENT_LOGGER = "job-status-client";
+const JOB_STATUS_CLIENT_LOGGER = "job-status-client";
 
 /***
  * Main class used by clients of this library to interact with JSS. Provides job create/read/update functionality.
  */
 export default class JobStatusClient {
-  private _host: string;
-  private _port: string;
-  private _username: string;
+  private _host: string = LIMS_HOST;
+  private _port: string = LIMS_PORT;
+  private _username: string = DEFAULT_USERNAME;
   private readonly logger: ILogger;
-  private readonly jss: JSSConnection;
+  private readonly jss: JSSHttpClient;
 
   public get port(): string {
     return this._port;

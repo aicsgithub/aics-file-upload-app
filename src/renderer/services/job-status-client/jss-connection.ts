@@ -4,15 +4,45 @@ import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 import { castArray } from "lodash";
 
-import { IllegalArgumentError } from "./errors/IllegalArgumentError";
-import { AicsSuccessResponse, HeaderMap } from "./types";
+import { AicsSuccessResponse, HeaderMap } from "../types";
 
-import { JOB_STATUS_CLIENT_LOGGER } from "./";
+import { IllegalArgumentError } from "./errors/IllegalArgumentError";
 
 // Timeout was chosen to match timeout used by aicsfiles-python
 const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
-export class JSSConnection {
+export interface JSSHttpClient {
+  host: string;
+  port: string;
+  username: string;
+  get<T = any>(
+    path: string,
+    headers?: HeaderMap,
+    timeout?: number
+  ): Promise<AicsSuccessResponse<T>>;
+  post<T = any>(
+    path: string,
+    body: any,
+    headers?: HeaderMap,
+    timeout?: number
+  ): Promise<AicsSuccessResponse<T>>;
+  put<T = any>(
+    path: string,
+    body: any,
+    headers?: HeaderMap,
+    timeout?: number
+  ): Promise<AicsSuccessResponse<T>>;
+  patch<T = any>(
+    path: string,
+    body: any,
+    headers?: HeaderMap,
+    timeout?: number
+  ): Promise<AicsSuccessResponse<T>>;
+}
+
+const JOB_STATUS_CLIENT_LOGGER = "job-status-client:jss-connection";
+
+export class JSSConnection implements JSSHttpClient {
   public host: string;
   public port: string;
   public username: string;
