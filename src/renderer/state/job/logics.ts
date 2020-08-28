@@ -6,9 +6,14 @@ import { Observable } from "rxjs";
 import { interval } from "rxjs/internal/observable/interval";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
+import {
+  DEFAULT_USERNAME,
+  INCOMPLETE_JOB_IDS_KEY,
+  USER_SETTINGS_KEY,
+} from "../../../shared/constants";
 import { JobStatusClient, LocalStorage } from "../../services";
 import { JSSJob } from "../../services/job-status-client/types";
+import { HttpClient } from "../../services/types";
 import {
   UPLOAD_WORKER_ON_PROGRESS,
   UPLOAD_WORKER_SUCCEEDED,
@@ -83,6 +88,8 @@ const getJobStatusesToInclude = (jobFilter: JobFilter): string[] => {
 
 export const fetchJobs = async (
   getStateFn: () => State,
+  httpClient: HttpClient,
+  username: string,
   jssClient: JobStatusClient,
   jobFilter?: JobFilter
 ): Promise<Jobs> => {
@@ -95,7 +102,7 @@ export const fetchJobs = async (
   const recentlySucceededJobsPromise: Promise<
     JSSJob[]
   > = previouslyIncompleteJobIds.length
-    ? jssClient.getJobs({
+    ? jssClient.getJobs(httpClient, username, {
         jobId: { $in: previouslyIncompleteJobIds },
         status: SUCCESSFUL_STATUS,
         user,
@@ -104,19 +111,23 @@ export const fetchJobs = async (
   const recentlyFailedJobsPromise: Promise<
     JSSJob[]
   > = previouslyIncompleteJobIds.length
-    ? jssClient.getJobs({
+    ? jssClient.getJobs(httpClient, username, {
         jobId: { $in: previouslyIncompleteJobIds },
         status: { $in: FAILED_STATUSES },
         user,
       })
     : Promise.resolve([]);
-  const getUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs({
-    serviceFields: {
-      type: "upload",
-    },
-    status: { $in: statusesToInclude },
-    user,
-  });
+  const getUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs(
+    httpClient,
+    username,
+    {
+      serviceFields: {
+        type: "upload",
+      },
+      status: { $in: statusesToInclude },
+      user,
+    }
+  );
 
   try {
     const [
@@ -153,7 +164,7 @@ export const fetchJobs = async (
     }
 
     // only get child jobs for the incomplete jobs
-    const addMetadataJobs = await jssClient.getJobs({
+    const addMetadataJobs = await jssClient.getJobs(httpClient, username, {
       parentId: { $in: actualIncompleteJobIds },
       serviceFields: {
         type: "add_metadata",
@@ -248,9 +259,11 @@ const retrieveJobsLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const { getState, jssClient, logger, storage } = deps;
+    const { getState, httpClient, jssClient, logger, storage } = deps;
+    const userSettings = storage.get(USER_SETTINGS_KEY);
+    const username = userSettings?.username || DEFAULT_USERNAME;
     const jobs = await getWithRetry(
-      () => fetchJobs(getState, jssClient),
+      () => fetchJobs(getState, httpClient, username, jssClient),
       dispatch
     );
     dispatch(mapJobsToActions(storage, logger)(jobs));
@@ -268,6 +281,7 @@ export const handleAbandonedJobsLogic = createLogic({
       logger,
       getRetryUploadWorker,
       fms,
+      httpClient,
       jssClient,
       getState,
     }: ReduxLogicProcessDependenciesWithAction<HandleAbandonedJobsAction>,
@@ -280,7 +294,7 @@ export const handleAbandonedJobsLogic = createLogic({
 
       const inProgressJobs = await getWithRetry(
         () =>
-          jssClient.getJobs({
+          jssClient.getJobs(httpClient, user, {
             status: { $in: IN_PROGRESS_STATUSES },
             serviceFields: { type: "upload" },
             user,
@@ -292,7 +306,7 @@ export const handleAbandonedJobsLogic = createLogic({
       if (inProgressJobs.length > 0) {
         incompleteChildren = await getWithRetry(
           () =>
-            jssClient.getJobs({
+            jssClient.getJobs(httpClient, user, {
               parentId: { $in: inProgressJobs.map((job) => job.jobId) },
               status: { $ne: SUCCESSFUL_STATUS },
               user,
@@ -403,11 +417,19 @@ const pollJobsLogic = createLogic({
   // Redux Logic's type definitions do not include dispatching observable actions so we are setting
   // the type of dispatch to any
   process: (deps: ReduxLogicProcessDependencies, dispatch: any) => {
-    const { cancelled$, getState, jssClient, logger, storage } = deps;
+    const {
+      cancelled$,
+      getState,
+      httpClient,
+      jssClient,
+      logger,
+      storage,
+    } = deps;
+    const username = getLoggedInUser(getState());
     dispatch(
       interval(1000).pipe(
         mergeMap(() => {
-          return fetchJobs(getState, jssClient);
+          return fetchJobs(getState, httpClient, username, jssClient);
         }),
         map(mapJobsToActions(storage, logger)),
         // CancelType doesn't seem to prevent polling the server even though the logics stops dispatching

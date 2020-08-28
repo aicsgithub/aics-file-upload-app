@@ -434,6 +434,8 @@ const cancelUploadLogic = createLogic({
   process: async (
     {
       action,
+      getState,
+      httpClient,
       jssClient,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
@@ -441,10 +443,10 @@ const cancelUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
-
+    const username = getLoggedInUser(getState());
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
-      await jssClient.updateJob(uploadJob.jobId, {
+      await jssClient.updateJob(httpClient, username, uploadJob.jobId, {
         serviceFields: {
           error: "Cancelled by user",
         },
@@ -1097,6 +1099,7 @@ const submitFileMetadataUpdateLogic = createLogic({
       ctx,
       getApplicationMenu,
       getState,
+      httpClient,
       jssClient,
       logger,
       mmsClient,
@@ -1129,6 +1132,8 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     try {
       await jssClient.updateJob(
+        httpClient,
+        getLoggedInUser(getState()),
         ctx.selectedJobId,
         { serviceFields: { deletedFileIds: fileIdsToDelete } },
         true

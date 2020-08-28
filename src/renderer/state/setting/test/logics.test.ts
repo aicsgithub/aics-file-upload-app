@@ -41,9 +41,6 @@ describe("Setting logics", () => {
   let fmsPortSetterSpy: SinonSpy;
   let fmsUsernameSetterSpy: SinonSpy;
   let fmsMountPointSetterSpy: SinonSpy;
-  let jssHostSetterSpy: SinonSpy;
-  let jssPortSetterSpy: SinonSpy;
-  let jssUsernameSetterSpy: SinonSpy;
   let labkeyClientHostSetterSpy: SinonSpy;
   let labkeyClientPortSetterSpy: SinonSpy;
   let mmsClientHostSetterSpy: SinonSpy;
@@ -55,23 +52,16 @@ describe("Setting logics", () => {
     fmsPortSetterSpy = spy();
     fmsUsernameSetterSpy = spy();
     fmsMountPointSetterSpy = spy();
-    jssHostSetterSpy = spy();
-    jssPortSetterSpy = spy();
-    jssUsernameSetterSpy = spy();
     labkeyClientHostSetterSpy = spy();
     labkeyClientPortSetterSpy = spy();
     mmsClientHostSetterSpy = spy();
     mmsClientPortSetterSpy = spy();
     mmsClientUsernameSetterSpy = spy();
 
-    const { fms, jssClient, mmsClient } = mockReduxLogicDeps;
+    const { fms, mmsClient } = mockReduxLogicDeps;
     stub(fms, "host").set(fmsHostSetterSpy);
     stub(fms, "port").set(fmsPortSetterSpy);
     stub(fms, "username").set(fmsUsernameSetterSpy);
-
-    stub(jssClient, "host").set(jssHostSetterSpy);
-    stub(jssClient, "port").set(jssPortSetterSpy);
-    stub(jssClient, "username").set(jssUsernameSetterSpy);
 
     stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
     stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
@@ -128,8 +118,6 @@ describe("Setting logics", () => {
       // before
       expect(fmsHostSetterSpy.called).to.be.false;
       expect(fmsPortSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
-      expect(jssPortSetterSpy.called).to.be.false;
       expect(mmsClientHostSetterSpy.called).to.be.false;
       expect(mmsClientPortSetterSpy.called).to.be.false;
 
@@ -139,8 +127,6 @@ describe("Setting logics", () => {
       // after
       expect(fmsHostSetterSpy.called).to.be.true;
       expect(fmsPortSetterSpy.called).to.be.true;
-      expect(jssHostSetterSpy.called).to.be.true;
-      expect(jssPortSetterSpy.called).to.be.true;
       expect(mmsClientHostSetterSpy.called).to.be.true;
       expect(mmsClientPortSetterSpy.called).to.be.true;
     });
@@ -150,7 +136,6 @@ describe("Setting logics", () => {
 
       // before
       expect(fmsUsernameSetterSpy.called).to.be.false;
-      expect(jssUsernameSetterSpy.called).to.be.false;
       expect(mmsClientUsernameSetterSpy.called).to.be.false;
 
       // apply
@@ -158,7 +143,6 @@ describe("Setting logics", () => {
 
       // after
       expect(fmsUsernameSetterSpy.called).to.be.true;
-      expect(jssUsernameSetterSpy.called).to.be.true;
       expect(mmsClientUsernameSetterSpy.called).to.be.true;
     });
 
@@ -253,8 +237,6 @@ describe("Setting logics", () => {
       store.dispatch(updateSettings({ associateByWorkflow: true }));
       expect(fmsHostSetterSpy.called).to.be.false;
       expect(fmsPortSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
-      expect(jssPortSetterSpy.called).to.be.false;
     });
 
     it("updates settings in memory and sets warning alert if data persistence failure", () => {
@@ -333,17 +315,14 @@ describe("Setting logics", () => {
 
       // before
       expect(fmsHostSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
       expect(labkeyClientHostSetterSpy.called).to.be.false;
       expect(mmsClientHostSetterSpy.called).to.be.false;
 
       expect(fmsPortSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
       expect(labkeyClientPortSetterSpy.called).to.be.false;
       expect(mmsClientPortSetterSpy.called).to.be.false;
 
       expect(fmsUsernameSetterSpy.called).to.be.false;
-      expect(jssUsernameSetterSpy.called).to.be.false;
       // labkey client currently doesn't need a username
       expect(mmsClientUsernameSetterSpy.called).to.be.false;
 
@@ -353,17 +332,14 @@ describe("Setting logics", () => {
 
       // after
       expect(fmsHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(jssHostSetterSpy.calledWith(stagingHost)).to.be.true;
       expect(labkeyClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
       expect(mmsClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
 
       expect(fmsPortSetterSpy.calledWith("80")).to.be.true;
-      expect(jssPortSetterSpy.calledWith("80")).to.be.true;
       expect(labkeyClientPortSetterSpy.calledWith("80")).to.be.true;
       expect(mmsClientPortSetterSpy.calledWith("80")).to.be.true;
 
       expect(fmsUsernameSetterSpy.calledWith("foo")).to.be.true;
-      expect(jssUsernameSetterSpy.calledWith("foo")).to.be.true;
       expect(mmsClientUsernameSetterSpy.calledWith("foo")).to.be.true;
     });
 

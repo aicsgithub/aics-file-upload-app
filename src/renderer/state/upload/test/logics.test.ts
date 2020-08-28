@@ -31,6 +31,7 @@ import {
   createMockReduxStore,
   dialog,
   fms,
+  httpClient,
   jssClient,
   mmsClient,
   mockReduxLogicDeps,
@@ -2036,6 +2037,10 @@ describe("Upload logics", () => {
           ...mockState.selection.present,
           job: mockSuccessfulUploadJob,
         }),
+        setting: {
+          ...nonEmptyStateForInitiatingUpload.setting,
+          username: "user",
+        },
         upload: getMockStateWithHistory({
           cat: catUpload,
         }),
@@ -2117,6 +2122,8 @@ describe("Upload logics", () => {
       expect(deleteFileMetadataStub.calledWith("cat", true)).to.be.false;
       expect(
         updateJobStub.calledWith(
+          httpClient,
+          "user",
           mockSuccessfulUploadJob.jobId,
           match({ serviceFields: { deletedFileIds: ["dog"] } })
         )

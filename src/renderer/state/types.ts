@@ -35,6 +35,7 @@ import {
   Template,
   WellResponse,
 } from "../services/mms-client/types";
+import { HttpClient } from "../services/types";
 
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
@@ -79,6 +80,7 @@ export interface ReduxLogicExtraDependencies {
   getApplicationMenu: () => Menu | null;
   getRetryUploadWorker: () => Worker;
   getUploadWorker: () => Worker;
+  httpClient: HttpClient;
   ipcRenderer: typeof ipcRenderer;
   jssClient: JobStatusClient;
   labkeyClient: LabkeyClient;

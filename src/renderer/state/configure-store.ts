@@ -2,6 +2,7 @@ import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
 import { promisify } from "util";
 
 import { FileManagementSystem } from "@aics/aicsfiles";
+import axios from "axios";
 import { ipcRenderer, remote } from "electron";
 import * as Logger from "js-logger";
 import { forEach, isNil } from "lodash";
@@ -24,6 +25,7 @@ import {
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
+import HttpCacheClient from "../services/http-cache-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -81,13 +83,15 @@ export const reduxLogicDependencies = {
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   getRetryUploadWorker: () => new RetryUploadWorker(),
   getUploadWorker: () => new UploadWorker(),
+  httpClient: new HttpCacheClient(
+    axios.create({
+      baseURL: `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}`,
+    }),
+    Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false,
+    storage
+  ),
   ipcRenderer,
-  jssClient: new JobStatusClient({
-    host: LIMS_HOST,
-    logLevel: "debug",
-    port: LIMS_PORT,
-    username,
-  }),
+  jssClient: new JobStatusClient("debug"),
   labkeyClient: new LabkeyClient({
     host: LIMS_HOST,
     localStorage: storage,

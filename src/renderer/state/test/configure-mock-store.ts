@@ -45,6 +45,13 @@ export interface ReduxLogicDependencies {
   getApplicationMenu: SinonStub;
   getRetryUploadWorker: SinonStub;
   getUploadWorker: SinonStub;
+  httpClient: {
+    get: SinonStub;
+    post: SinonStub;
+    put: SinonStub;
+    patch: SinonStub;
+    delete: SinonStub;
+  };
   ipcRenderer: {
     on: SinonStub;
     send: SinonStub;
@@ -77,7 +84,7 @@ export const storage: LocalStorageStub = {
 };
 
 export const fms = new FileManagementSystem({ host, port });
-export const jssClient = new JobStatusClient({ host, port, username });
+export const jssClient = new JobStatusClient();
 export const labkeyClient = new LabkeyClient({
   host,
   localStorage: storage,
@@ -133,12 +140,21 @@ export const ipcRenderer = {
   send: stub(),
 };
 
+export const httpClient = {
+  get: stub(),
+  post: stub(),
+  put: stub(),
+  patch: stub(),
+  delete: stub(),
+};
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
   dialog,
   fms,
   getApplicationMenu,
   getRetryUploadWorker: stub(),
   getUploadWorker: stub(),
+  httpClient,
   ipcRenderer,
   jssClient,
   labkeyClient,

@@ -38,7 +38,6 @@ const updateSettingsLogic = createLogic({
       ctx,
       fms,
       getState,
-      jssClient,
       labkeyClient,
       mmsClient,
     }: ReduxLogicProcessDependencies,
@@ -53,17 +52,14 @@ const updateSettingsLogic = createLogic({
 
     if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
       fms.host = host;
-      jssClient.host = host;
       labkeyClient.host = host;
       mmsClient.host = host;
 
       fms.port = port;
-      jssClient.port = port;
       labkeyClient.port = port;
       mmsClient.port = port;
 
       fms.username = username;
-      jssClient.username = username;
       mmsClient.username = username;
 
       dispatch(requestMetadata());
@@ -132,7 +128,6 @@ const gatherSettingsLogic = createLogic({
     {
       action,
       fms,
-      jssClient,
       labkeyClient,
       logger,
       mmsClient,
@@ -157,21 +152,18 @@ const gatherSettingsLogic = createLogic({
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
       if (limsHost) {
         fms.host = limsHost;
-        jssClient.host = limsHost;
         labkeyClient.host = limsHost;
         mmsClient.host = limsHost;
       }
 
       if (limsPort) {
         fms.port = limsPort;
-        jssClient.port = limsPort;
         labkeyClient.port = limsPort;
         mmsClient.port = limsPort;
       }
 
       if (username) {
         fms.username = username;
-        jssClient.username = username;
         mmsClient.username = username;
       }
 
