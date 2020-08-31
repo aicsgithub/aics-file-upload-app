@@ -43,9 +43,6 @@ describe("Setting logics", () => {
   let fmsMountPointSetterSpy: SinonSpy;
   let labkeyClientHostSetterSpy: SinonSpy;
   let labkeyClientPortSetterSpy: SinonSpy;
-  let mmsClientHostSetterSpy: SinonSpy;
-  let mmsClientPortSetterSpy: SinonSpy;
-  let mmsClientUsernameSetterSpy: SinonSpy;
 
   beforeEach(() => {
     fmsHostSetterSpy = spy();
@@ -54,21 +51,14 @@ describe("Setting logics", () => {
     fmsMountPointSetterSpy = spy();
     labkeyClientHostSetterSpy = spy();
     labkeyClientPortSetterSpy = spy();
-    mmsClientHostSetterSpy = spy();
-    mmsClientPortSetterSpy = spy();
-    mmsClientUsernameSetterSpy = spy();
 
-    const { fms, mmsClient } = mockReduxLogicDeps;
+    const { fms } = mockReduxLogicDeps;
     stub(fms, "host").set(fmsHostSetterSpy);
     stub(fms, "port").set(fmsPortSetterSpy);
     stub(fms, "username").set(fmsUsernameSetterSpy);
 
     stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
     stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
-
-    stub(mmsClient, "host").set(mmsClientHostSetterSpy);
-    stub(mmsClient, "port").set(mmsClientPortSetterSpy);
-    stub(mmsClient, "username").set(mmsClientUsernameSetterSpy);
 
     const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
     const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
@@ -118,8 +108,6 @@ describe("Setting logics", () => {
       // before
       expect(fmsHostSetterSpy.called).to.be.false;
       expect(fmsPortSetterSpy.called).to.be.false;
-      expect(mmsClientHostSetterSpy.called).to.be.false;
-      expect(mmsClientPortSetterSpy.called).to.be.false;
 
       // apply
       store.dispatch(updateSettings({ limsHost: stagingHost, limsPort: "90" }));
@@ -127,8 +115,6 @@ describe("Setting logics", () => {
       // after
       expect(fmsHostSetterSpy.called).to.be.true;
       expect(fmsPortSetterSpy.called).to.be.true;
-      expect(mmsClientHostSetterSpy.called).to.be.true;
-      expect(mmsClientPortSetterSpy.called).to.be.true;
     });
 
     it("sets username on all LIMS clients", () => {
@@ -136,14 +122,12 @@ describe("Setting logics", () => {
 
       // before
       expect(fmsUsernameSetterSpy.called).to.be.false;
-      expect(mmsClientUsernameSetterSpy.called).to.be.false;
 
       // apply
       store.dispatch(updateSettings({ username: "bar" }));
 
       // after
       expect(fmsUsernameSetterSpy.called).to.be.true;
-      expect(mmsClientUsernameSetterSpy.called).to.be.true;
     });
 
     it("sets mount point on FMS", () => {
@@ -316,15 +300,12 @@ describe("Setting logics", () => {
       // before
       expect(fmsHostSetterSpy.called).to.be.false;
       expect(labkeyClientHostSetterSpy.called).to.be.false;
-      expect(mmsClientHostSetterSpy.called).to.be.false;
 
       expect(fmsPortSetterSpy.called).to.be.false;
       expect(labkeyClientPortSetterSpy.called).to.be.false;
-      expect(mmsClientPortSetterSpy.called).to.be.false;
 
       expect(fmsUsernameSetterSpy.called).to.be.false;
       // labkey client currently doesn't need a username
-      expect(mmsClientUsernameSetterSpy.called).to.be.false;
 
       // apply
       store.dispatch(gatherSettings());
@@ -333,14 +314,11 @@ describe("Setting logics", () => {
       // after
       expect(fmsHostSetterSpy.calledWith(stagingHost)).to.be.true;
       expect(labkeyClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(mmsClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
 
       expect(fmsPortSetterSpy.calledWith("80")).to.be.true;
       expect(labkeyClientPortSetterSpy.calledWith("80")).to.be.true;
-      expect(mmsClientPortSetterSpy.calledWith("80")).to.be.true;
 
       expect(fmsUsernameSetterSpy.calledWith("foo")).to.be.true;
-      expect(mmsClientUsernameSetterSpy.calledWith("foo")).to.be.true;
     });
 
     it("sets alert if error in getting storage settings", () => {

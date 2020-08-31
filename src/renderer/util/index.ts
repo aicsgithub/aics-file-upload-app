@@ -36,6 +36,7 @@ import {
   TemplateAnnotation,
   WellResponse,
 } from "../services/mms-client/types";
+import { HttpClient } from "../services/types";
 import { getWithRetry } from "../state/feedback/util";
 import { DragAndDropFileList } from "../state/types";
 import {
@@ -224,6 +225,7 @@ export interface PlateInfo {
  * Queries for plate with given barcode and transforms the response into a list of actions to dispatch
  * @param {string} barcode
  * @param {number[]} imagingSessionIds the imagingSessionIds for the plate with this barcode
+ * @param httpClient
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
  * @returns {Promise<PlateInfo>}
@@ -231,13 +233,14 @@ export interface PlateInfo {
 export const getPlateInfo = async (
   barcode: string,
   imagingSessionIds: Array<number | null>,
+  httpClient: HttpClient,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb
 ): Promise<PlateInfo> => {
   const request = (): Promise<GetPlateResponse[]> =>
     Promise.all(
       imagingSessionIds.map((imagingSessionId: number | null) =>
-        mmsClient.getPlate(barcode, imagingSessionId || undefined)
+        mmsClient.getPlate(httpClient, barcode, imagingSessionId || undefined)
       )
     );
 
@@ -302,6 +305,7 @@ export interface ApplyTemplateInfo {
 /***
  * Helper that gets the template by id from MMS and returns template and updated uploads
  * @param {number} templateId
+ * @param httpClient
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
  * @param {number} booleanAnnotationTypeId boolean annotation type id
@@ -312,6 +316,7 @@ export interface ApplyTemplateInfo {
  */
 export const getApplyTemplateInfo = async (
   templateId: number,
+  httpClient: HttpClient,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb,
   booleanAnnotationTypeId: number,
@@ -323,7 +328,7 @@ export const getApplyTemplateInfo = async (
     : [];
 
   const template: Template = await getWithRetry(
-    () => mmsClient.getTemplate(templateId),
+    () => mmsClient.getTemplate(httpClient, templateId),
     dispatch
   );
   const { annotations } = template;

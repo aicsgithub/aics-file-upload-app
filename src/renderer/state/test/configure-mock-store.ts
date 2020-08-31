@@ -73,7 +73,6 @@ export interface ReduxLogicDependencies {
 const host = "localhost";
 const port = "80";
 const protocol = "http";
-const username = "foo";
 export const storage: LocalStorageStub = {
   clear: stub(),
   delete: stub(),
@@ -91,13 +90,7 @@ export const labkeyClient = new LabkeyClient({
   port,
   protocol,
 });
-export const mmsClient = new MMSClient({
-  host,
-  localStorage: storage,
-  port,
-  protocol,
-  username,
-});
+export const mmsClient = new MMSClient();
 
 export const switchEnvMenuItem = {
   enabled: true,

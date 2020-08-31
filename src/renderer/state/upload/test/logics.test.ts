@@ -2025,6 +2025,7 @@ describe("Upload logics", () => {
     let mockStateForEditingMetadata: State | undefined;
     let catUpload: UploadMetadata | undefined;
     let jobName: string;
+    const username = "some user";
     beforeEach(() => {
       catUpload = {
         ...mockWellUpload,
@@ -2039,7 +2040,7 @@ describe("Upload logics", () => {
         }),
         setting: {
           ...nonEmptyStateForInitiatingUpload.setting,
-          username: "user",
+          username,
         },
         upload: getMockStateWithHistory({
           cat: catUpload,
@@ -2118,18 +2119,36 @@ describe("Upload logics", () => {
       store.dispatch(submitFileMetadataUpdate());
       await logicMiddleware.whenComplete();
 
-      expect(deleteFileMetadataStub.calledWith("dog", true)).to.be.true;
-      expect(deleteFileMetadataStub.calledWith("cat", true)).to.be.false;
+      expect(
+        deleteFileMetadataStub.calledWith(httpClient, username, "dog", true)
+      ).to.be.true;
+      expect(
+        deleteFileMetadataStub.calledWith(httpClient, username, "cat", true)
+      ).to.be.false;
       expect(
         updateJobStub.calledWith(
           httpClient,
-          "user",
+          username,
           mockSuccessfulUploadJob.jobId,
           match({ serviceFields: { deletedFileIds: ["dog"] } })
         )
       ).to.be.true;
-      expect(editFileMetadataStub.calledWith("cat", match.object)).to.be.true;
-      expect(editFileMetadataStub.calledWith("dog", match.object)).to.be.false;
+      expect(
+        editFileMetadataStub.calledWith(
+          httpClient,
+          username,
+          "cat",
+          match.object
+        )
+      ).to.be.true;
+      expect(
+        editFileMetadataStub.calledWith(
+          httpClient,
+          username,
+          "dog",
+          match.object
+        )
+      ).to.be.false;
       expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
       expect(
         actions.includesMatch(

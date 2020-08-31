@@ -5,7 +5,7 @@ import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 import { castArray } from "lodash";
 
-import { AicsSuccessResponse, HeaderMap, HttpClient } from "../types";
+import { AicsSuccessResponse, HttpClient } from "../types";
 
 import JSSRequestMapper from "./jss-request-mapper";
 import JSSResponseMapper from "./jss-response-mapper";
@@ -121,18 +121,13 @@ export default class JobStatusClient {
     return response.data.map((job) => JSSResponseMapper.map(job));
   }
 
-  private static getHttpRequestConfig(
-    username: string,
-    headers: HeaderMap = {},
-    timeout: number = DEFAULT_TIMEOUT
-  ): AxiosRequestConfig {
+  private static getHttpRequestConfig(username: string): AxiosRequestConfig {
     return {
       headers: {
         "Content-Type": "application/json",
         "X-User-Id": username,
-        ...headers,
       },
-      timeout,
+      timeout: DEFAULT_TIMEOUT,
       transformResponse: [
         ...castArray(axios.defaults.transformResponse),
         (data) => camelizeKeys(data),

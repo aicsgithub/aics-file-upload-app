@@ -34,13 +34,7 @@ import {
 
 const updateSettingsLogic = createLogic({
   process: async (
-    {
-      ctx,
-      fms,
-      getState,
-      labkeyClient,
-      mmsClient,
-    }: ReduxLogicProcessDependencies,
+    { ctx, fms, getState, labkeyClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -53,14 +47,11 @@ const updateSettingsLogic = createLogic({
     if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
       fms.host = host;
       labkeyClient.host = host;
-      mmsClient.host = host;
 
       fms.port = port;
       labkeyClient.port = port;
-      mmsClient.port = port;
 
       fms.username = username;
-      mmsClient.username = username;
 
       dispatch(requestMetadata());
       dispatch(handleAbandonedJobs());
@@ -130,7 +121,6 @@ const gatherSettingsLogic = createLogic({
       fms,
       labkeyClient,
       logger,
-      mmsClient,
       storage,
     }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
@@ -153,18 +143,15 @@ const gatherSettingsLogic = createLogic({
       if (limsHost) {
         fms.host = limsHost;
         labkeyClient.host = limsHost;
-        mmsClient.host = limsHost;
       }
 
       if (limsPort) {
         fms.port = limsPort;
         labkeyClient.port = limsPort;
-        mmsClient.port = limsPort;
       }
 
       if (username) {
         fms.username = username;
-        mmsClient.username = username;
       }
 
       next({

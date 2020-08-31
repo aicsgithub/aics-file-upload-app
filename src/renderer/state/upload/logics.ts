@@ -231,6 +231,7 @@ const applyTemplateLogic = createLogic({
     {
       action,
       getState,
+      httpClient,
       mmsClient,
     }: ReduxLogicProcessDependenciesWithAction<ApplyTemplateAction>,
     dispatch: ReduxLogicNextCb,
@@ -251,6 +252,7 @@ const applyTemplateLogic = createLogic({
     try {
       const { template, uploads } = await getApplyTemplateInfo(
         templateId,
+        httpClient,
         mmsClient,
         dispatch,
         booleanAnnotationTypeId,
@@ -1108,11 +1110,12 @@ const submitFileMetadataUpdateLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
+    const username = getLoggedInUser(getState());
 
     // We delete files in series so that we can ignore the files that have already been deleted
     for (const fileId of fileIdsToDelete) {
       try {
-        await mmsClient.deleteFileMetadata(fileId, true);
+        await mmsClient.deleteFileMetadata(httpClient, username, fileId, true);
       } catch (e) {
         // ignoring not found to keep this idempotent
         if (e?.status !== HTTP_STATUS.NOT_FOUND) {
@@ -1133,7 +1136,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     try {
       await jssClient.updateJob(
         httpClient,
-        getLoggedInUser(getState()),
+        username,
         ctx.selectedJobId,
         { serviceFields: { deletedFileIds: fileIdsToDelete } },
         true
@@ -1153,7 +1156,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     try {
       await Promise.all(
         editFileMetadataRequests.map(({ fileId, request }) =>
-          mmsClient.editFileMetadata(fileId, request)
+          mmsClient.editFileMetadata(httpClient, username, fileId, request)
         )
       );
     } catch (e) {

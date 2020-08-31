@@ -13,6 +13,7 @@ import {
   getLookupAnnotationTypeId,
   getLookups,
 } from "../metadata/selectors";
+import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
   AnnotationDraft,
@@ -143,7 +144,7 @@ const removeAnnotationsLogic = createLogic({
 
 const saveTemplateLogic = createLogic({
   process: async (
-    { getState, mmsClient }: ReduxLogicProcessDependencies,
+    { getState, httpClient, mmsClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -151,14 +152,21 @@ const saveTemplateLogic = createLogic({
     const request: SaveTemplateRequest = getSaveTemplateRequest(getState());
 
     let createdTemplateId;
+    const username = getLoggedInUser(getState());
     try {
       if (draft.templateId) {
         createdTemplateId = await mmsClient.editTemplate(
+          httpClient,
+          username,
           request,
           draft.templateId
         );
       } else {
-        createdTemplateId = await mmsClient.createTemplate(request);
+        createdTemplateId = await mmsClient.createTemplate(
+          httpClient,
+          username,
+          request
+        );
       }
 
       dispatch(saveTemplateSucceeded(createdTemplateId));
@@ -193,6 +201,7 @@ const saveTemplateLogic = createLogic({
       try {
         const { template, uploads } = await getApplyTemplateInfo(
           createdTemplateId,
+          httpClient,
           mmsClient,
           dispatch,
           booleanAnnotationTypeId,

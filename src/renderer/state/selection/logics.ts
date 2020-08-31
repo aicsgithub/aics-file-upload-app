@@ -183,6 +183,7 @@ const selectBarcodeLogic = createLogic({
       action,
       getApplicationMenu,
       getState,
+      httpClient,
       logger,
       mmsClient,
     }: ReduxLogicProcessDependencies,
@@ -202,6 +203,7 @@ const selectBarcodeLogic = createLogic({
       const { plate, wells } = await getPlateInfo(
         barcode,
         imagingSessionIds,
+        httpClient,
         mmsClient,
         dispatch
       );
