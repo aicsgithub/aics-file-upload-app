@@ -13,7 +13,6 @@ import {
   getLookupAnnotationTypeId,
   getLookups,
 } from "../metadata/selectors";
-import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
   AnnotationDraft,
@@ -152,21 +151,15 @@ const saveTemplateLogic = createLogic({
     const request: SaveTemplateRequest = getSaveTemplateRequest(getState());
 
     let createdTemplateId;
-    const username = getLoggedInUser(getState());
     try {
       if (draft.templateId) {
         createdTemplateId = await mmsClient.editTemplate(
           httpClient,
-          username,
           request,
           draft.templateId
         );
       } else {
-        createdTemplateId = await mmsClient.createTemplate(
-          httpClient,
-          username,
-          request
-        );
+        createdTemplateId = await mmsClient.createTemplate(httpClient, request);
       }
 
       dispatch(saveTemplateSucceeded(createdTemplateId));

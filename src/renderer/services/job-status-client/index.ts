@@ -43,18 +43,17 @@ export default class JobStatusClient {
   /**
    * Creates a job and returns created job
    * @param httpClient
-   * @param username of user initiating request
    * @param job
    */
   public async createJob(
     httpClient: HttpClient,
-    username: string,
     job: CreateJobRequest
   ): Promise<JSSJob> {
     this.logger.debug("Received create job request", job);
     const response = await httpClient.post<AicsSuccessResponse<JSSJob>>(
       "/jss/1.0/job/",
-      job
+      job,
+      JobStatusClient.getHttpRequestConfig()
     );
     return response.data[0];
   }
@@ -62,7 +61,6 @@ export default class JobStatusClient {
   /***
    * Update Job in stored in JSS and returns updated job
    * @param httpClient
-   * @param username of user initiating request
    * @param jobId job to update
    * @param job partial job object with values to set
    * @param patchUpdateServiceFields indicates whether to patch update serviceFields of the job or replace the entire
@@ -70,7 +68,6 @@ export default class JobStatusClient {
    */
   public async updateJob(
     httpClient: HttpClient,
-    username: string,
     jobId: string,
     job: UpdateJobRequest,
     patchUpdateServiceFields = true
@@ -78,7 +75,8 @@ export default class JobStatusClient {
     this.logger.debug(`Received update job request for jobId=${jobId}`, job);
     const response = await httpClient.patch<AicsSuccessResponse<JSSJob>>(
       `/jss/1.0/job/${jobId}`,
-      JSSRequestMapper.map(job, patchUpdateServiceFields)
+      JSSRequestMapper.map(job, patchUpdateServiceFields),
+      JobStatusClient.getHttpRequestConfig()
     );
     return response.data[0];
   }
@@ -86,17 +84,13 @@ export default class JobStatusClient {
   /***
    * Get job by id
    * @param httpClient
-   * @param username
    * @param jobId corresponding id for job
    */
-  public async getJob(
-    httpClient: HttpClient,
-    username: string,
-    jobId: string
-  ): Promise<JSSJob> {
+  public async getJob(httpClient: HttpClient, jobId: string): Promise<JSSJob> {
     this.logger.debug(`Received get job request for jobId=${jobId}`);
     const response = await httpClient.get<AicsSuccessResponse<JSSJob>>(
-      `/jss/1.0/job/${jobId}`
+      `/jss/1.0/job/${jobId}`,
+      JobStatusClient.getHttpRequestConfig()
     );
     return JSSResponseMapper.map(response.data[0]);
   }
@@ -104,29 +98,24 @@ export default class JobStatusClient {
   /***
    * Get jobs matching mongoDB query
    * @param httpClient
-   * @param username of user initiating request
    * @param query query to be passed to mongoDB for finding matching jobs
    */
   public async getJobs(
     httpClient: HttpClient,
-    username: string,
     query: JobQuery
   ): Promise<JSSJob[]> {
     this.logger.debug(`Received get jobs request with query`, query);
     const response = await httpClient.post<AicsSuccessResponse<JSSJob>>(
       `/jss/1.0/job/query`,
       JSSRequestMapper.map(query, true),
-      JobStatusClient.getHttpRequestConfig(username)
+      JobStatusClient.getHttpRequestConfig()
     );
     return response.data.map((job) => JSSResponseMapper.map(job));
   }
 
-  private static getHttpRequestConfig(username: string): AxiosRequestConfig {
+  // JSS expects properties of requests to be in snake_case format and returns responses in snake_case format as well
+  private static getHttpRequestConfig(): AxiosRequestConfig {
     return {
-      headers: {
-        "Content-Type": "application/json",
-        "X-User-Id": username,
-      },
       timeout: DEFAULT_TIMEOUT,
       transformResponse: [
         ...castArray(axios.defaults.transformResponse),

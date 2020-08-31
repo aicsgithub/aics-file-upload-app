@@ -1,5 +1,12 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
+import {
+  DEFAULT_USERNAME,
+  LIMS_HOST,
+  LIMS_PORT,
+  LIMS_PROTOCOL,
+  USER_SETTINGS_KEY,
+} from "../../../shared/constants";
 import { LocalStorage } from "../../state/types";
 
 export default class HttpCacheClient {
@@ -24,7 +31,11 @@ export default class HttpCacheClient {
   }
 
   public get = async <T = any>(url: string, config?: AxiosRequestConfig) => {
-    const response = await this.httpClient.get(url, config);
+    url = this.getUrl(url);
+    const response = await this.httpClient.get(url, {
+      ...this.getHttpRequestConfig(),
+      ...config,
+    });
     return response.data;
   };
 
@@ -33,7 +44,11 @@ export default class HttpCacheClient {
     request: any,
     config?: AxiosRequestConfig
   ) => {
-    const response = await this.httpClient.post(url, request, config);
+    url = this.getUrl(url);
+    const response = await this.httpClient.post(url, request, {
+      ...this.getHttpRequestConfig(),
+      ...config,
+    });
     return response.data;
   };
 
@@ -42,7 +57,11 @@ export default class HttpCacheClient {
     request: any,
     config?: AxiosRequestConfig
   ) => {
-    const response = await this.httpClient.put(url, request, config);
+    url = this.getUrl(url);
+    const response = await this.httpClient.put(url, request, {
+      ...this.getHttpRequestConfig(),
+      ...config,
+    });
     return response.data;
   };
 
@@ -51,7 +70,11 @@ export default class HttpCacheClient {
     request: any,
     config?: AxiosRequestConfig
   ) => {
-    const response = await this.httpClient.patch(url, request, config);
+    url = this.getUrl(url);
+    const response = await this.httpClient.patch(url, request, {
+      ...this.getHttpRequestConfig(),
+      ...config,
+    });
     return response.data;
   };
 
@@ -60,7 +83,9 @@ export default class HttpCacheClient {
     request: any,
     config?: AxiosRequestConfig
   ) => {
+    url = this.getUrl(url);
     const response = await this.httpClient.delete(url, {
+      ...this.getHttpRequestConfig(),
       ...config,
       data: request,
     });
@@ -119,6 +144,32 @@ export default class HttpCacheClient {
       });
     return this.checkCache(key, action);
   };
+
+  private getHttpRequestConfig = (): AxiosRequestConfig => {
+    const userSettings = this.localStorage.get(USER_SETTINGS_KEY);
+    const username = userSettings?.username || DEFAULT_USERNAME;
+    return {
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Id": username,
+      },
+    };
+  };
+
+  private getUrl = (url: string) =>
+    `${this.limsUrl}${url.startsWith("/") ? url : `/${url}`}`;
+
+  private get limsUrl() {
+    const userSettings = this.localStorage.get(USER_SETTINGS_KEY);
+    let host = LIMS_HOST;
+    let port = LIMS_PORT;
+    const protocol = LIMS_PROTOCOL;
+    if (userSettings) {
+      host = userSettings.limsHost;
+      port = userSettings.limsPort;
+    }
+    return `${protocol}://${host}:${port}`;
+  }
 
   private checkCache = async <T = any>(
     key: string,

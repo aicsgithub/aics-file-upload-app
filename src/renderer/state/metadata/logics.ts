@@ -19,7 +19,6 @@ import { retrieveFileMetadata } from "../../util";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { getWithRetry } from "../feedback/util";
-import { getLoggedInUser } from "../setting/selectors";
 import {
   AsyncRequest,
   ReduxLogicDoneCb,
@@ -68,11 +67,7 @@ const createBarcodeLogic = createLogic({
         setting: { limsHost, limsPort },
       } = getState();
       const { prefixId, prefix } = action.payload;
-      const barcode = await mmsClient.createBarcode(
-        httpClient,
-        getLoggedInUser(getState()),
-        prefixId
-      );
+      const barcode = await mmsClient.createBarcode(httpClient, prefixId);
       ipcRenderer.send(
         OPEN_CREATE_PLATE_STANDALONE,
         limsHost,

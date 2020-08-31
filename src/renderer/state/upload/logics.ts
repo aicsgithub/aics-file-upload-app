@@ -436,7 +436,6 @@ const cancelUploadLogic = createLogic({
   process: async (
     {
       action,
-      getState,
       httpClient,
       jssClient,
       logger,
@@ -445,10 +444,9 @@ const cancelUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
-    const username = getLoggedInUser(getState());
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
-      await jssClient.updateJob(httpClient, username, uploadJob.jobId, {
+      await jssClient.updateJob(httpClient, uploadJob.jobId, {
         serviceFields: {
           error: "Cancelled by user",
         },
@@ -1110,12 +1108,11 @@ const submitFileMetadataUpdateLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
-    const username = getLoggedInUser(getState());
 
     // We delete files in series so that we can ignore the files that have already been deleted
     for (const fileId of fileIdsToDelete) {
       try {
-        await mmsClient.deleteFileMetadata(httpClient, username, fileId, true);
+        await mmsClient.deleteFileMetadata(httpClient, fileId, true);
       } catch (e) {
         // ignoring not found to keep this idempotent
         if (e?.status !== HTTP_STATUS.NOT_FOUND) {
@@ -1136,7 +1133,6 @@ const submitFileMetadataUpdateLogic = createLogic({
     try {
       await jssClient.updateJob(
         httpClient,
-        username,
         ctx.selectedJobId,
         { serviceFields: { deletedFileIds: fileIdsToDelete } },
         true
@@ -1156,7 +1152,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     try {
       await Promise.all(
         editFileMetadataRequests.map(({ fileId, request }) =>
-          mmsClient.editFileMetadata(httpClient, username, fileId, request)
+          mmsClient.editFileMetadata(httpClient, fileId, request)
         )
       );
     } catch (e) {

@@ -24,7 +24,6 @@ describe("JobStatusClient", () => {
     patch: stub(),
     delete: stub(),
   };
-  const username = "foo";
   afterEach(() => {
     sandbox.restore();
   });
@@ -35,7 +34,6 @@ describe("JobStatusClient", () => {
 
       const result = await jobStatusClient.createJob(
         httpClient,
-        username,
         mockCreateJobRequest
       );
       expect(result).to.deep.equal(mockJobResponse.data[0]);
@@ -44,21 +42,21 @@ describe("JobStatusClient", () => {
       sandbox.replace(httpClient, "post", stub().rejects(badRequestResponse));
 
       return expect(
-        jobStatusClient.createJob(httpClient, username, mockCreateJobRequest)
+        jobStatusClient.createJob(httpClient, mockCreateJobRequest)
       ).to.be.rejectedWith(badGatewayResponse);
     });
     it("Returns error response if JSS returns a 400", async () => {
       sandbox.replace(httpClient, "post", stub().rejects(badRequestResponse));
 
       return expect(
-        jobStatusClient.createJob(httpClient, username, mockCreateJobRequest)
+        jobStatusClient.createJob(httpClient, mockCreateJobRequest)
       ).to.be.rejectedWith(badRequestResponse);
     });
     it("Returns error response if JSS returns a 500", async () => {
       sandbox.replace(httpClient, "post", stub().rejects(internalServerError));
 
       return expect(
-        jobStatusClient.createJob(httpClient, username, mockCreateJobRequest)
+        jobStatusClient.createJob(httpClient, mockCreateJobRequest)
       ).to.be.rejectedWith(internalServerError);
     });
   });
@@ -69,7 +67,6 @@ describe("JobStatusClient", () => {
 
       const result = await jobStatusClient.updateJob(
         httpClient,
-        username,
         "some_job",
         mockUpdateJobRequest
       );
@@ -79,36 +76,21 @@ describe("JobStatusClient", () => {
       sandbox.replace(httpClient, "patch", stub().rejects(badGatewayResponse));
 
       return expect(
-        jobStatusClient.updateJob(
-          httpClient,
-          username,
-          "some_job",
-          mockCreateJobRequest
-        )
+        jobStatusClient.updateJob(httpClient, "some_job", mockCreateJobRequest)
       ).to.be.rejectedWith(badGatewayResponse);
     });
     it("Returns error response if JSS returns a 400", async () => {
       sandbox.replace(httpClient, "patch", stub().rejects(badRequestResponse));
 
       return expect(
-        jobStatusClient.updateJob(
-          httpClient,
-          username,
-          "some_job",
-          mockCreateJobRequest
-        )
+        jobStatusClient.updateJob(httpClient, "some_job", mockCreateJobRequest)
       ).to.be.rejectedWith(badRequestResponse);
     });
     it("Returns error response if JSS returns a 500", async () => {
       sandbox.replace(httpClient, "patch", stub().rejects(internalServerError));
 
       return expect(
-        jobStatusClient.updateJob(
-          httpClient,
-          username,
-          "some_job",
-          mockCreateJobRequest
-        )
+        jobStatusClient.updateJob(httpClient, "some_job", mockCreateJobRequest)
       ).to.be.rejectedWith(internalServerError);
     });
   });
@@ -117,32 +99,28 @@ describe("JobStatusClient", () => {
     it("Returns job from JSS", async () => {
       sandbox.replace(httpClient, "get", stub().resolves(mockJobResponse));
 
-      const result = await jobStatusClient.getJob(
-        httpClient,
-        username,
-        "some_job"
-      );
+      const result = await jobStatusClient.getJob(httpClient, "some_job");
       expect(result).to.deep.equal(mockJobResponse.data[0]);
     });
     it("Returns error response if JSS returns a 502", async () => {
       sandbox.replace(httpClient, "get", stub().rejects(badGatewayResponse));
 
       return expect(
-        jobStatusClient.getJob(httpClient, username, "some_job")
+        jobStatusClient.getJob(httpClient, "some_job")
       ).to.be.rejectedWith(badGatewayResponse);
     });
     it("Returns error response if JSS returns a 400", async () => {
       sandbox.replace(httpClient, "get", stub().rejects(badRequestResponse));
 
       return expect(
-        jobStatusClient.getJob(httpClient, username, "some_job")
+        jobStatusClient.getJob(httpClient, "some_job")
       ).to.be.rejectedWith(badRequestResponse);
     });
     it("Returns error response if JSS returns a 500", async () => {
       sandbox.replace(httpClient, "get", stub().rejects(internalServerError));
 
       return expect(
-        jobStatusClient.getJob(httpClient, username, "some_job")
+        jobStatusClient.getJob(httpClient, "some_job")
       ).to.be.rejectedWith(internalServerError);
     });
   });
@@ -154,30 +132,26 @@ describe("JobStatusClient", () => {
     it("Returns job from JSS", async () => {
       sandbox.replace(httpClient, "post", stub().resolves(mockJobResponse));
 
-      const result = await jobStatusClient.getJobs(
-        httpClient,
-        username,
-        mockQuery
-      );
+      const result = await jobStatusClient.getJobs(httpClient, mockQuery);
       expect(result).to.deep.equal(mockJobResponse.data);
     });
     it("Returns error response if JSS returns a 502", async () => {
       sandbox.replace(httpClient, "post", stub().rejects(badGatewayResponse));
 
       return expect(
-        jobStatusClient.getJobs(httpClient, username, mockQuery)
+        jobStatusClient.getJobs(httpClient, mockQuery)
       ).to.be.rejectedWith(badGatewayResponse);
     });
     it("Returns error response if JSS returns a 400", async () => {
       sandbox.replace(httpClient, "post", stub().rejects(badRequestResponse));
       return expect(
-        jobStatusClient.getJobs(httpClient, username, mockQuery)
+        jobStatusClient.getJobs(httpClient, mockQuery)
       ).to.be.rejectedWith(badRequestResponse);
     });
     it("Returns error response if JSS returns a 500", async () => {
       sandbox.replace(httpClient, "post", stub().rejects(internalServerError));
       return expect(
-        jobStatusClient.getJobs(httpClient, username, mockQuery)
+        jobStatusClient.getJobs(httpClient, mockQuery)
       ).to.be.rejectedWith(internalServerError);
     });
   });

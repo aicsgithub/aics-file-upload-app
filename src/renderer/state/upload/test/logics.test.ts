@@ -2119,36 +2119,21 @@ describe("Upload logics", () => {
       store.dispatch(submitFileMetadataUpdate());
       await logicMiddleware.whenComplete();
 
-      expect(
-        deleteFileMetadataStub.calledWith(httpClient, username, "dog", true)
-      ).to.be.true;
-      expect(
-        deleteFileMetadataStub.calledWith(httpClient, username, "cat", true)
-      ).to.be.false;
+      expect(deleteFileMetadataStub.calledWith(httpClient, "dog", true)).to.be
+        .true;
+      expect(deleteFileMetadataStub.calledWith(httpClient, "cat", true)).to.be
+        .false;
       expect(
         updateJobStub.calledWith(
           httpClient,
-          username,
           mockSuccessfulUploadJob.jobId,
           match({ serviceFields: { deletedFileIds: ["dog"] } })
         )
       ).to.be.true;
-      expect(
-        editFileMetadataStub.calledWith(
-          httpClient,
-          username,
-          "cat",
-          match.object
-        )
-      ).to.be.true;
-      expect(
-        editFileMetadataStub.calledWith(
-          httpClient,
-          username,
-          "dog",
-          match.object
-        )
-      ).to.be.false;
+      expect(editFileMetadataStub.calledWith(httpClient, "cat", match.object))
+        .to.be.true;
+      expect(editFileMetadataStub.calledWith(httpClient, "dog", match.object))
+        .to.be.false;
       expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
       expect(
         actions.includesMatch(

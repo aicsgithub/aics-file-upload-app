@@ -1,5 +1,4 @@
 import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
-import { AxiosRequestConfig } from "axios";
 import { decamelizeKeys } from "humps";
 
 import { HttpClient } from "../types";
@@ -17,21 +16,15 @@ export default class MMSClient {
   /**
    * Creates a barcode with a given prefix
    * @param httpClient
-   * @param username
    * @param prefixId, the prefixId for the selected prefix to be attached to the barcode
    */
   public async createBarcode(
     httpClient: HttpClient,
-    username: string,
     prefixId: number
   ): Promise<string> {
     const url = `${mmsURL}/1.0/plate/barcode`;
     const body = { prefixId, quantity: 1 };
-    const response = await httpClient.post(
-      url,
-      body,
-      MMSClient.getHttpRequestConfig(username)
-    );
+    const response = await httpClient.post(url, body);
     return response.data[0];
   }
 
@@ -72,67 +65,38 @@ export default class MMSClient {
 
   public async createTemplate(
     httpClient: HttpClient,
-    username: string,
     request: SaveTemplateRequest
   ): Promise<number> {
     const url = `${mmsURL}/1.0/template/`;
-    const response = await httpClient.post(
-      url,
-      request,
-      MMSClient.getHttpRequestConfig(username)
-    );
+    const response = await httpClient.post(url, request);
     return response.data[0];
   }
 
   public async editTemplate(
     httpClient: HttpClient,
-    username: string,
     request: SaveTemplateRequest,
     templateId: number
   ): Promise<number> {
     const url = `${mmsURL}/1.0/template/${templateId}`;
-    const response = await httpClient.put(
-      url,
-      request,
-      MMSClient.getHttpRequestConfig(username)
-    );
+    const response = await httpClient.put(url, request);
     return response.data[0];
   }
 
   public async editFileMetadata(
     httpClient: HttpClient,
-    username: string,
     fileId: string,
     request: AicsFilesUploadMetadata
   ): Promise<void> {
     const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
-    await httpClient.put(
-      url,
-      decamelizeKeys(request),
-      MMSClient.getHttpRequestConfig(username)
-    );
+    await httpClient.put(url, decamelizeKeys(request));
   }
 
   public async deleteFileMetadata(
     httpClient: HttpClient,
-    username: string,
     fileId: string,
     deleteFile: boolean
   ): Promise<void> {
     const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
-    await httpClient.delete(
-      url,
-      { deleteFile },
-      MMSClient.getHttpRequestConfig(username)
-    );
-  }
-
-  private static getHttpRequestConfig(username: string): AxiosRequestConfig {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-        "X-User-Id": username,
-      },
-    };
+    await httpClient.delete(url, { deleteFile });
   }
 }

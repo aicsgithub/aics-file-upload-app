@@ -103,7 +103,7 @@ export const fetchJobs = async (
   const recentlySucceededJobsPromise: Promise<
     JSSJob[]
   > = previouslyIncompleteJobIds.length
-    ? jssClient.getJobs(httpClient, username, {
+    ? jssClient.getJobs(httpClient, {
         jobId: { $in: previouslyIncompleteJobIds },
         status: SUCCESSFUL_STATUS,
         user,
@@ -112,7 +112,7 @@ export const fetchJobs = async (
   const recentlyFailedJobsPromise: Promise<
     JSSJob[]
   > = previouslyIncompleteJobIds.length
-    ? jssClient.getJobs(httpClient, username, {
+    ? jssClient.getJobs(httpClient, {
         jobId: { $in: previouslyIncompleteJobIds },
         status: { $in: FAILED_STATUSES },
         user,
@@ -120,7 +120,6 @@ export const fetchJobs = async (
     : Promise.resolve([]);
   const getUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs(
     httpClient,
-    username,
     {
       serviceFields: {
         type: "upload",
@@ -165,7 +164,7 @@ export const fetchJobs = async (
     }
 
     // only get child jobs for the incomplete jobs
-    const addMetadataJobs = await jssClient.getJobs(httpClient, username, {
+    const addMetadataJobs = await jssClient.getJobs(httpClient, {
       parentId: { $in: actualIncompleteJobIds },
       serviceFields: {
         type: "add_metadata",
@@ -295,7 +294,7 @@ export const handleAbandonedJobsLogic = createLogic({
 
       const inProgressJobs = await getWithRetry(
         () =>
-          jssClient.getJobs(httpClient, user, {
+          jssClient.getJobs(httpClient, {
             status: { $in: IN_PROGRESS_STATUSES },
             serviceFields: { type: "upload" },
             user,
@@ -307,7 +306,7 @@ export const handleAbandonedJobsLogic = createLogic({
       if (inProgressJobs.length > 0) {
         incompleteChildren = await getWithRetry(
           () =>
-            jssClient.getJobs(httpClient, user, {
+            jssClient.getJobs(httpClient, {
               parentId: { $in: inProgressJobs.map((job) => job.jobId) },
               status: { $ne: SUCCESSFUL_STATUS },
               user,
