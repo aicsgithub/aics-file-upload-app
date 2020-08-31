@@ -2025,7 +2025,6 @@ describe("Upload logics", () => {
     let mockStateForEditingMetadata: State | undefined;
     let catUpload: UploadMetadata | undefined;
     let jobName: string;
-    const username = "some user";
     beforeEach(() => {
       catUpload = {
         ...mockWellUpload,
@@ -2038,10 +2037,6 @@ describe("Upload logics", () => {
           ...mockState.selection.present,
           job: mockSuccessfulUploadJob,
         }),
-        setting: {
-          ...nonEmptyStateForInitiatingUpload.setting,
-          username,
-        },
         upload: getMockStateWithHistory({
           cat: catUpload,
         }),

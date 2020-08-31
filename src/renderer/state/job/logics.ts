@@ -6,11 +6,7 @@ import { Observable } from "rxjs";
 import { interval } from "rxjs/internal/observable/interval";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 
-import {
-  DEFAULT_USERNAME,
-  INCOMPLETE_JOB_IDS_KEY,
-  USER_SETTINGS_KEY,
-} from "../../../shared/constants";
+import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { JobStatusClient } from "../../services";
 import { JSSJob } from "../../services/job-status-client/types";
 import { HttpClient } from "../../services/types";
@@ -90,7 +86,6 @@ const getJobStatusesToInclude = (jobFilter: JobFilter): string[] => {
 export const fetchJobs = async (
   getStateFn: () => State,
   httpClient: HttpClient,
-  username: string,
   jssClient: JobStatusClient,
   jobFilter?: JobFilter
 ): Promise<Jobs> => {
@@ -260,10 +255,8 @@ const retrieveJobsLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const { getState, httpClient, jssClient, logger, storage } = deps;
-    const userSettings = storage.get(USER_SETTINGS_KEY);
-    const username = userSettings?.username || DEFAULT_USERNAME;
     const jobs = await getWithRetry(
-      () => fetchJobs(getState, httpClient, username, jssClient),
+      () => fetchJobs(getState, httpClient, jssClient),
       dispatch
     );
     dispatch(mapJobsToActions(storage, logger)(jobs));
@@ -425,11 +418,10 @@ const pollJobsLogic = createLogic({
       logger,
       storage,
     } = deps;
-    const username = getLoggedInUser(getState());
     dispatch(
       interval(1000).pipe(
         mergeMap(() => {
-          return fetchJobs(getState, httpClient, username, jssClient);
+          return fetchJobs(getState, httpClient, jssClient);
         }),
         map(mapJobsToActions(storage, logger)),
         // CancelType doesn't seem to prevent polling the server even though the logics stops dispatching
