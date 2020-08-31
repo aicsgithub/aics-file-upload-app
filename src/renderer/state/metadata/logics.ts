@@ -92,22 +92,22 @@ const createBarcodeLogic = createLogic({
 
 const requestMetadataLogic = createLogic({
   process: async (
-    { labkeyClient, logger }: ReduxLogicProcessDependencies,
+    { httpClient, labkeyClient, logger }: ReduxLogicProcessDependencies,
     dispatch: (action: AnyAction) => void,
     done: () => void
   ) => {
     try {
       const request = () =>
         Promise.all([
-          labkeyClient.getAnnotationLookups(),
-          labkeyClient.getAnnotationTypes(),
-          labkeyClient.getBarcodePrefixes(),
-          labkeyClient.getChannels(),
-          labkeyClient.getImagingSessions(),
-          labkeyClient.getLookups(),
-          labkeyClient.getUnits(),
-          labkeyClient.getUsers(),
-          labkeyClient.getWorkflows(),
+          labkeyClient.getAnnotationLookups(httpClient),
+          labkeyClient.getAnnotationTypes(httpClient),
+          labkeyClient.getBarcodePrefixes(httpClient),
+          labkeyClient.getChannels(httpClient),
+          labkeyClient.getImagingSessions(httpClient),
+          labkeyClient.getLookups(httpClient),
+          labkeyClient.getUnits(httpClient),
+          labkeyClient.getUsers(httpClient),
+          labkeyClient.getWorkflows(httpClient),
         ]);
       const [
         annotationLookups,
@@ -151,12 +151,13 @@ const getBarcodeSearchResultsLogic = createLogic({
   debounce: 500,
   latest: true,
   process: async (
-    { action, labkeyClient, logger }: ReduxLogicProcessDependencies,
+    { action, httpClient, labkeyClient, logger }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const { payload: searchStr } = action;
-    const request = () => labkeyClient.getPlatesByBarcode(searchStr);
+    const request = () =>
+      labkeyClient.getPlatesByBarcode(httpClient, searchStr);
 
     try {
       const barcodeSearchResults = await getWithRetry(request, dispatch);
@@ -195,15 +196,15 @@ const getBarcodeSearchResultsLogic = createLogic({
 
 const requestAnnotationsLogic = createLogic({
   process: async (
-    { labkeyClient }: ReduxLogicProcessDependencies,
+    { httpClient, labkeyClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     try {
       const request = () =>
         Promise.all([
-          labkeyClient.getAnnotations(),
-          labkeyClient.getAnnotationOptions(),
+          labkeyClient.getAnnotations(httpClient),
+          labkeyClient.getAnnotationOptions(httpClient),
         ]);
       const [annotations, annotationOptions] = await getWithRetry(
         request,
@@ -235,6 +236,7 @@ const requestOptionsForLookupLogic = createLogic({
     {
       action: { payload },
       getState,
+      httpClient,
       labkeyClient,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<GetOptionsForLookupAction>,
@@ -280,6 +282,7 @@ const requestOptionsForLookupLogic = createLogic({
       const optionsForLookup = await getWithRetry(
         () =>
           labkeyClient.getOptionsForLookup(
+            httpClient,
             schemaName,
             tableName,
             columnName,
@@ -323,13 +326,13 @@ const requestOptionsForLookupLogic = createLogic({
 
 const requestTemplatesLogicLogic = createLogic({
   process: async (
-    { labkeyClient, logger }: ReduxLogicProcessDependencies,
+    { httpClient, labkeyClient, logger }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     try {
       const templates = await getWithRetry(
-        () => labkeyClient.getTemplates(),
+        () => labkeyClient.getTemplates(httpClient),
         dispatch
       );
       dispatch(receiveMetadata({ templates }, AsyncRequest.GET_TEMPLATES));

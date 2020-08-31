@@ -34,7 +34,7 @@ import {
 
 const updateSettingsLogic = createLogic({
   process: async (
-    { ctx, fms, getState, labkeyClient }: ReduxLogicProcessDependencies,
+    { ctx, fms, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -46,11 +46,7 @@ const updateSettingsLogic = createLogic({
 
     if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
       fms.host = host;
-      labkeyClient.host = host;
-
       fms.port = port;
-      labkeyClient.port = port;
-
       fms.username = username;
 
       dispatch(requestMetadata());
@@ -116,13 +112,7 @@ const updateSettingsLogic = createLogic({
 
 const gatherSettingsLogic = createLogic({
   validate: (
-    {
-      action,
-      fms,
-      labkeyClient,
-      logger,
-      storage,
-    }: ReduxLogicTransformDependencies,
+    { action, fms, logger, storage }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -142,12 +132,10 @@ const gatherSettingsLogic = createLogic({
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
       if (limsHost) {
         fms.host = limsHost;
-        labkeyClient.host = limsHost;
       }
 
       if (limsPort) {
         fms.port = limsPort;
-        labkeyClient.port = limsPort;
       }
 
       if (username) {

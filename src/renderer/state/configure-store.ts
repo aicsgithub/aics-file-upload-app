@@ -104,12 +104,7 @@ export const reduxLogicDependencies = {
   ),
   ipcRenderer,
   jssClient: new JobStatusClient("debug"),
-  labkeyClient: new LabkeyClient({
-    host: LIMS_HOST,
-    localStorage: storage,
-    port: LIMS_PORT,
-    protocol: LIMS_PROTOCOL,
-  }),
+  labkeyClient: new LabkeyClient(),
   logger: Logger,
   mmsClient: new MMSClient(),
   readFile,

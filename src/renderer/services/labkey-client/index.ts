@@ -1,8 +1,7 @@
 import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
-import { LocalStorage } from "../../state/types";
-import BaseServiceClient from "../base-service-client";
+import { HttpClient } from "../types";
 
 import {
   Annotation,
@@ -36,14 +35,15 @@ const LK_FILEMETADATA_SCHEMA = "filemetadata";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
 const LK_PROCESSING_SCHEMA = "processing";
 const LK_UPLOADER_SCHEMA = "uploader";
+const BASE_URL = "/labkey";
 
-export default class LabkeyClient extends BaseServiceClient {
+export default class LabkeyClient {
   private static getSelectRowsURL = (
     schema: string,
     table: string,
     additionalQueries: string[] = []
   ) => {
-    const base = `/AICS/query-selectRows.api?schemaName=${schema}&query.queryName=${table}`;
+    const base = `${BASE_URL}/AICS/query-selectRows.api?schemaName=${schema}&query.queryName=${table}`;
     if (!isEmpty(additionalQueries)) {
       return `${base}&${additionalQueries.join("&")}`;
     }
@@ -51,24 +51,17 @@ export default class LabkeyClient extends BaseServiceClient {
     return base;
   };
 
-  constructor(config: {
-    host: string;
-    localStorage: LocalStorage;
-    port: string;
-    protocol: string;
-  }) {
-    super(config);
-  }
-
   /**
    * Gets all annotation types
    */
-  public async getAnnotationTypes(): Promise<AnnotationType[]> {
+  public async getAnnotationTypes(
+    httpClient: HttpClient
+  ): Promise<AnnotationType[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "AnnotationType"
     );
-    const { rows } = await this.httpClient.get(query);
+    const { rows } = await httpClient.get(query);
     return rows.map((r: LabkeyAnnotationType) =>
       camelizeKeys(pick(r, ["AnnotationTypeId", "Name"]))
     );
@@ -77,12 +70,12 @@ export default class LabkeyClient extends BaseServiceClient {
   /**
    * Gets all annotations
    */
-  public async getAnnotations(): Promise<Annotation[]> {
+  public async getAnnotations(httpClient: HttpClient): Promise<Annotation[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "Annotation"
     );
-    const { rows } = await this.httpClient.get(query);
+    const { rows } = await httpClient.get(query);
     return rows.map((r: LabkeyAnnotation) =>
       camelizeKeys(
         pick(r, [
@@ -100,23 +93,27 @@ export default class LabkeyClient extends BaseServiceClient {
     );
   }
 
-  public async getAnnotationLookups(): Promise<AnnotationLookup[]> {
+  public async getAnnotationLookups(
+    httpClient: HttpClient
+  ): Promise<AnnotationLookup[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "AnnotationLookup"
     );
-    const { rows } = await this.httpClient.get(query);
+    const { rows } = await httpClient.get(query);
     return rows.map((r: LabkeyAnnotationLookup) =>
       camelizeKeys(pick(r, ["AnnotationId", "LookupId"]))
     );
   }
 
-  public async getAnnotationOptions(): Promise<AnnotationOption[]> {
+  public async getAnnotationOptions(
+    httpClient: HttpClient
+  ): Promise<AnnotationOption[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "AnnotationOption"
     );
-    const { rows } = await this.httpClient.get(query);
+    const { rows } = await httpClient.get(query);
     return rows.map((r: LabkeyAnnotationOption) =>
       camelizeKeys(pick(r, ["AnnotationOptionId", "AnnotationId", "Value"]))
     );
@@ -124,6 +121,7 @@ export default class LabkeyClient extends BaseServiceClient {
 
   /**
    * Gets the values for a lookup based on the column provided
+   * @param httpClient
    * @param schema of the lookup
    * @param table of the lookup
    * @param column of the lookup
@@ -131,6 +129,7 @@ export default class LabkeyClient extends BaseServiceClient {
    * assumed that there could potentially be many more than that.
    */
   public async getOptionsForLookup(
+    httpClient: HttpClient,
     schema: string,
     table: string,
     column: string,
@@ -151,7 +150,7 @@ export default class LabkeyClient extends BaseServiceClient {
       table,
       additionalQueries
     );
-    const { rows } = await this.httpClient.get(lookupOptionsQuery);
+    const { rows } = await httpClient.get(lookupOptionsQuery);
     // Column names for lookups are stored in lowercase in the DB while the actual key may have any casing,
     // so we need to find the matching key
     if (isEmpty(rows)) {
@@ -160,16 +159,21 @@ export default class LabkeyClient extends BaseServiceClient {
     const properlyCasedKey = Object.keys(rows[0]).find(
       (key) => key.toLowerCase() === column.toLowerCase()
     );
-    // TODO: This method should be refactored to address this rule violation
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return rows.map((row: any) => row[properlyCasedKey!]);
+    if (!properlyCasedKey) {
+      throw new Error(
+        `Could not find column named ${column} in ${schema}.${table}`
+      );
+    }
+    return rows.map((row: any) => row[properlyCasedKey]);
   }
 
   /**
    * Searches plates where the barcode contains searchString
+   * @param httpClient
    * @param searchString fragment of a barcode
    */
   public async getPlatesByBarcode(
+    httpClient: HttpClient,
     searchString: string
   ): Promise<LabkeyPlateResponse[]> {
     const query = LabkeyClient.getSelectRowsURL("microscopy", "Plate", [
@@ -177,9 +181,7 @@ export default class LabkeyClient extends BaseServiceClient {
       `query.maxRows=30`,
     ]);
 
-    const response: LabkeyResponse<LabkeyPlate> = await this.httpClient.get(
-      query
-    );
+    const response: LabkeyResponse<LabkeyPlate> = await httpClient.get(query);
     const plates: LabkeyPlate[] = response.rows;
     return map(plates, (p) => ({
       barcode: p.BarCode,
@@ -190,12 +192,14 @@ export default class LabkeyClient extends BaseServiceClient {
   /**
    * Retrieves all imagingSessions
    */
-  public async getImagingSessions(): Promise<ImagingSession[]> {
+  public async getImagingSessions(
+    httpClient: HttpClient
+  ): Promise<ImagingSession[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_MICROSCOPY_SCHEMA,
       "ImagingSession"
     );
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows.map((imagingSession: LabkeyImagingSession) => ({
       description: imagingSession.Description,
       imagingSessionId: imagingSession.ImagingSessionId,
@@ -206,12 +210,14 @@ export default class LabkeyClient extends BaseServiceClient {
   /**
    * Retrieves all barcodePrefixes
    */
-  public async getBarcodePrefixes(): Promise<BarcodePrefix[]> {
+  public async getBarcodePrefixes(
+    httpClient: HttpClient
+  ): Promise<BarcodePrefix[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_MICROSCOPY_SCHEMA,
       "PlateBarcodePrefix"
     );
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows.map((barcodePrefix: LabKeyPlateBarcodePrefix) => ({
       description: `${barcodePrefix.Prefix} - ${barcodePrefix.TeamName}`,
       prefix: barcodePrefix.Prefix,
@@ -219,12 +225,12 @@ export default class LabkeyClient extends BaseServiceClient {
     }));
   }
 
-  public async getLookups(): Promise<Lookup[]> {
+  public async getLookups(httpClient: HttpClient): Promise<Lookup[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_FILEMETADATA_SCHEMA,
       "Lookup"
     );
-    const { rows } = await this.httpClient.get(query);
+    const { rows } = await httpClient.get(query);
     return rows.map((r: LabkeyLookup) =>
       camelizeKeys(
         pick(r, [
@@ -238,18 +244,18 @@ export default class LabkeyClient extends BaseServiceClient {
     );
   }
 
-  public async getTemplates(): Promise<LabkeyTemplate[]> {
+  public async getTemplates(httpClient: HttpClient): Promise<LabkeyTemplate[]> {
     const query = LabkeyClient.getSelectRowsURL(LK_UPLOADER_SCHEMA, "Template");
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows;
   }
 
   /**
    * Retrieves all units
    */
-  public async getUnits(): Promise<Unit[]> {
+  public async getUnits(httpClient: HttpClient): Promise<Unit[]> {
     const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Units");
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows.map((unit: LabkeyUnit) => ({
       description: unit.Description,
       name: unit.Name,
@@ -261,13 +267,14 @@ export default class LabkeyClient extends BaseServiceClient {
   /**
    * Retrieves all users in LabKey from a special view
    */
-  public async getUsers(): Promise<LabkeyUser[]> {
+  public async getUsers(httpClient: HttpClient): Promise<LabkeyUser[]> {
     const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "User");
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows;
   }
 
   public async getColumnValues(
+    httpClient: HttpClient,
     schemaName: string,
     queryName: string,
     columnName: string
@@ -275,7 +282,7 @@ export default class LabkeyClient extends BaseServiceClient {
     const query = LabkeyClient.getSelectRowsURL(schemaName, queryName, [
       `query.columns=${columnName}`,
     ]);
-    const response: LabkeyResponse<any> = await this.httpClient.get(query);
+    const response: LabkeyResponse<any> = await httpClient.get(query);
     // labkey casing may be different than what is saved in the Lookup table
     columnName = response.columnModel[0].dataIndex;
     return response.rows.map((columnValue: any) => columnValue[columnName]);
@@ -284,12 +291,12 @@ export default class LabkeyClient extends BaseServiceClient {
   /**
    * Retrieves all workflows
    */
-  public async getWorkflows(): Promise<Workflow[]> {
+  public async getWorkflows(httpClient: HttpClient): Promise<Workflow[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_MICROSCOPY_SCHEMA,
       "Workflow"
     );
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows.map((workflow: LabKeyWorkflow) => ({
       description: workflow.Description,
       name: workflow.Name,
@@ -297,35 +304,39 @@ export default class LabkeyClient extends BaseServiceClient {
     }));
   }
 
-  public async getChannels(): Promise<Channel[]> {
+  public async getChannels(httpClient: HttpClient): Promise<Channel[]> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_PROCESSING_SCHEMA,
       "ContentType"
     );
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows.map((channel: LabkeyChannel) => ({
       channelId: channel.Name,
       description: channel.Description,
     }));
   }
 
-  public async getTemplateHasBeenUsed(templateId: number): Promise<boolean> {
+  public async getTemplateHasBeenUsed(
+    httpClient: HttpClient,
+    templateId: number
+  ): Promise<boolean> {
     const query = LabkeyClient.getSelectRowsURL(
       LK_UPLOADER_SCHEMA,
       "FileTemplateJunction",
       [`query.TemplateId~eq=${templateId}`]
     );
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     return response.rows.length > 0;
   }
 
   public async getPlateBarcodeAndAllImagingSessionIdsFromWellId(
+    httpClient: HttpClient,
     wellId: number
   ): Promise<string> {
     const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Well", [
       `query.wellid~eq=${wellId}`,
     ]);
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     const plateId: number | undefined = response.rows[0]?.PlateId;
     if (!plateId) {
       throw new Error("could not find plate from wellId");
@@ -335,26 +346,23 @@ export default class LabkeyClient extends BaseServiceClient {
       "Plate",
       [`query.plateid~eq=${plateId}`]
     );
-    const plateResponse = await this.httpClient.get(plateQuery);
+    const plateResponse = await httpClient.get(plateQuery);
     return plateResponse.rows[0]?.BarCode;
   }
 
   public async getImagingSessionIdsForBarcode(
+    httpClient: HttpClient,
     barcode: string
   ): Promise<Array<number | null>> {
     const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate", [
       `query.barcode~eq=${barcode}`,
     ]);
-    const response = await this.httpClient.get(query);
+    const response = await httpClient.get(query);
     if (response.rows.length) {
       return uniq(
         response.rows.map((plate: LabkeyPlate) => plate.ImagingSessionId)
       );
     }
     return [];
-  }
-
-  protected get baseURL(): string {
-    return `${this.protocol}://${this.host}:${this.port}/labkey`;
   }
 }

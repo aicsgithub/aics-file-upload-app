@@ -41,24 +41,17 @@ describe("Setting logics", () => {
   let fmsPortSetterSpy: SinonSpy;
   let fmsUsernameSetterSpy: SinonSpy;
   let fmsMountPointSetterSpy: SinonSpy;
-  let labkeyClientHostSetterSpy: SinonSpy;
-  let labkeyClientPortSetterSpy: SinonSpy;
 
   beforeEach(() => {
     fmsHostSetterSpy = spy();
     fmsPortSetterSpy = spy();
     fmsUsernameSetterSpy = spy();
     fmsMountPointSetterSpy = spy();
-    labkeyClientHostSetterSpy = spy();
-    labkeyClientPortSetterSpy = spy();
 
     const { fms } = mockReduxLogicDeps;
     stub(fms, "host").set(fmsHostSetterSpy);
     stub(fms, "port").set(fmsPortSetterSpy);
     stub(fms, "username").set(fmsUsernameSetterSpy);
-
-    stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
-    stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
 
     const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
     const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
@@ -299,11 +292,7 @@ describe("Setting logics", () => {
 
       // before
       expect(fmsHostSetterSpy.called).to.be.false;
-      expect(labkeyClientHostSetterSpy.called).to.be.false;
-
       expect(fmsPortSetterSpy.called).to.be.false;
-      expect(labkeyClientPortSetterSpy.called).to.be.false;
-
       expect(fmsUsernameSetterSpy.called).to.be.false;
       // labkey client currently doesn't need a username
 
@@ -313,11 +302,7 @@ describe("Setting logics", () => {
 
       // after
       expect(fmsHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(labkeyClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
-
       expect(fmsPortSetterSpy.calledWith("80")).to.be.true;
-      expect(labkeyClientPortSetterSpy.calledWith("80")).to.be.true;
-
       expect(fmsUsernameSetterSpy.calledWith("foo")).to.be.true;
     });
 

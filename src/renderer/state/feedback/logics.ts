@@ -41,7 +41,7 @@ const openTemplateEditorLogic = createLogic({
           () =>
             Promise.all([
               mmsClient.getTemplate(httpClient, templateId),
-              labkeyClient.getTemplateHasBeenUsed(templateId),
+              labkeyClient.getTemplateHasBeenUsed(httpClient, templateId),
             ]),
           dispatch
         );

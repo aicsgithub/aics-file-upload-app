@@ -438,9 +438,11 @@ const getPlateRelatedActions = async (
   const wellId = wellIds[0];
   // we want to find the barcode associated with any well id found in this upload
   const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
+    httpClient,
     wellId
   );
   const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
+    httpClient,
     barcode
   );
   const { plate, wells } = await getPlateInfo(
