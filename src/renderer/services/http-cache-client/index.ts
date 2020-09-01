@@ -7,7 +7,7 @@ import {
   LIMS_PROTOCOL,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
-import { LocalStorage } from "../../state/types";
+import { LocalStorage } from "../../types";
 import { HttpClient } from "../types";
 
 export default class HttpCacheClient {

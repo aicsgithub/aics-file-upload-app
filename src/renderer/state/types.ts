@@ -35,6 +35,7 @@ import {
   Template,
   WellResponse,
 } from "../services/mms-client/types";
+import { LocalStorage } from "../types";
 
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
@@ -58,18 +59,6 @@ export interface Logger {
   time: (timerName: string) => void;
   timeEnd: (timerName: string) => void;
   warn: (...x: any[]) => void;
-}
-
-export interface LocalStorage<T = any> {
-  clear: () => void;
-  delete: <Key extends keyof T>(key: Key) => void;
-  get: <Key extends keyof T>(key: Key, defaultValue?: T[Key]) => any;
-  has: <Key extends keyof T>(key: Key) => boolean;
-  reset: <Key extends keyof T>(...keys: Key[]) => void;
-  set: <Key extends keyof T>(
-    keyOrObject: Key | Partial<T>,
-    value?: T[Key]
-  ) => void;
 }
 
 export interface Dialog {

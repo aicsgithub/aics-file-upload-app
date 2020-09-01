@@ -9,8 +9,8 @@ import {
   LIMS_PORT,
   LIMS_PROTOCOL,
 } from "../../../shared/constants";
+import { LocalStorage } from "../../types";
 import { EnvironmentAwareStorage } from "../EnvironmentAwareStorage";
-import { LocalStorage } from "../types";
 
 describe("EnvironmentAwareStorage", () => {
   const sandbox = createSandbox();

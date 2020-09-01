@@ -9,6 +9,7 @@ import { map, mergeMap, takeUntil } from "rxjs/operators";
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { JobStatusClient } from "../../services";
 import { JSSJob } from "../../services/job-status-client/types";
+import { LocalStorage } from "../../types";
 import {
   UPLOAD_WORKER_ON_PROGRESS,
   UPLOAD_WORKER_SUCCEEDED,
@@ -24,7 +25,6 @@ import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
   JobFilter,
-  LocalStorage,
   Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,

@@ -1,7 +1,7 @@
 import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
-import { LocalStorage } from "../../state/types";
+import { LocalStorage } from "../../types";
 import HttpCacheClient from "../http-cache-client";
 import { HttpClient } from "../types";
 

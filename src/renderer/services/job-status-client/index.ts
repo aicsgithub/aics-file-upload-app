@@ -5,7 +5,7 @@ import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 import { castArray } from "lodash";
 
-import { LocalStorage } from "../../state/types";
+import { LocalStorage } from "../../types";
 import HttpCacheClient from "../http-cache-client";
 import { AicsSuccessResponse, HttpClient } from "../types";
 

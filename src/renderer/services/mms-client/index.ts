@@ -1,7 +1,7 @@
 import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { decamelizeKeys } from "humps";
 
-import { LocalStorage } from "../../state/types";
+import { LocalStorage } from "../../types";
 import HttpCacheClient from "../http-cache-client";
 import { HttpClient } from "../types";
 
