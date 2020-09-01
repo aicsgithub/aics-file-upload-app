@@ -1,10 +1,6 @@
 import { basename, dirname, resolve as resolvePath } from "path";
 
 import {
-  StartUploadResponse,
-  UploadMetadata as AicsFilesUploadMetadata,
-} from "@aics/aicsfiles/type-declarations/types";
-import {
   castArray,
   flatMap,
   forEach,
@@ -26,6 +22,10 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import {
+  StartUploadResponse,
+  UploadMetadata as AicsFilesUploadMetadata,
+} from "../../services/aicsfiles/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {

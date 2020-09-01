@@ -1,7 +1,3 @@
-import {
-  UploadMetadata,
-  Uploads,
-} from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { forEach, orderBy } from "lodash";
 
@@ -11,6 +7,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { UploadMetadata, Uploads } from "../../../services/aicsfiles/types";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
 import {
   getMockStateWithHistory,

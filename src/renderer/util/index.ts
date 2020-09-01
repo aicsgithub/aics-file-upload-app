@@ -9,12 +9,6 @@ import { basename, dirname, resolve as resolvePath } from "path";
 import { promisify } from "util";
 
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { FileManagementSystem } from "@aics/aicsfiles";
-import {
-  FileMetadata,
-  FileToFileMetadata,
-  ImageModelMetadata,
-} from "@aics/aicsfiles/type-declarations/types";
 import { memoize } from "lodash";
 import {
   castArray,
@@ -28,6 +22,12 @@ import {
 } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
+import { FileManagementSystem } from "../services/aicsfiles";
+import {
+  FileMetadata,
+  FileToFileMetadata,
+  ImageModelMetadata,
+} from "../services/aicsfiles/types";
 import MMSClient from "../services/mms-client";
 import {
   GetPlateResponse,

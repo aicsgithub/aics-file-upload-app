@@ -9,7 +9,7 @@ import {
   LIMS_PORT,
   LIMS_PROTOCOL,
 } from "../../../shared/constants";
-import { LocalStorage } from "../../services/http-cache-client";
+import { LocalStorage } from "../../types";
 import { EnvironmentAwareStorage } from "../EnvironmentAwareStorage";
 
 describe("EnvironmentAwareStorage", () => {
