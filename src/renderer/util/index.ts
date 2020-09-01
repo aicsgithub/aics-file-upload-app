@@ -224,7 +224,6 @@ export interface PlateInfo {
  * Queries for plate with given barcode and transforms the response into a list of actions to dispatch
  * @param {string} barcode
  * @param {number[]} imagingSessionIds the imagingSessionIds for the plate with this barcode
- * @param httpClient
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
  * @returns {Promise<PlateInfo>}
@@ -303,7 +302,6 @@ export interface ApplyTemplateInfo {
 /***
  * Helper that gets the template by id from MMS and returns template and updated uploads
  * @param {number} templateId
- * @param httpClient
  * @param {MMSClient} mmsClient
  * @param {ReduxLogicNextCb} dispatch
  * @param {number} booleanAnnotationTypeId boolean annotation type id
