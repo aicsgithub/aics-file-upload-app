@@ -441,6 +441,7 @@ const cancelUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
+
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
       await jssClient.updateJob(uploadJob.jobId, {
