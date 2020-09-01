@@ -26,7 +26,6 @@ const openTemplateEditorLogic = createLogic({
     {
       action,
       getState,
-      httpClient,
       labkeyClient,
       mmsClient,
     }: ReduxLogicProcessDependenciesWithAction<OpenTemplateEditorAction>,
@@ -40,8 +39,8 @@ const openTemplateEditorLogic = createLogic({
         const [template, hasBeenUsed] = await getWithRetry(
           () =>
             Promise.all([
-              mmsClient.getTemplate(httpClient, templateId),
-              labkeyClient.getTemplateHasBeenUsed(httpClient, templateId),
+              mmsClient.getTemplate(templateId),
+              labkeyClient.getTemplateHasBeenUsed(templateId),
             ]),
           dispatch
         );

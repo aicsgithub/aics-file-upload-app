@@ -25,7 +25,6 @@ import { Well } from "../../state/selection/types";
 import {
   dialog,
   fms,
-  httpClient,
   mmsClient,
   mockReduxLogicDeps,
 } from "../../state/test/configure-mock-store";
@@ -215,12 +214,8 @@ describe("General utilities", () => {
         wells: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
       };
       const getPlateStub = stub();
-      getPlateStub
-        .withArgs(httpClient, barcode, undefined)
-        .resolves(mockGetPlateResponse1);
-      getPlateStub
-        .withArgs(httpClient, barcode, 4)
-        .resolves(mockGetPlateResponse2);
+      getPlateStub.withArgs(barcode, undefined).resolves(mockGetPlateResponse1);
+      getPlateStub.withArgs(barcode, 4).resolves(mockGetPlateResponse2);
       sandbox.replace(mmsClient, "getPlate", getPlateStub);
       const dispatchSpy = spy();
       const imagingSessionIds = [null, 4];
@@ -228,7 +223,6 @@ describe("General utilities", () => {
       const { plate, wells } = await getPlateInfo(
         barcode,
         imagingSessionIds,
-        httpClient,
         mmsClient,
         dispatchSpy
       );
@@ -316,7 +310,6 @@ describe("General utilities", () => {
       expect(
         getApplyTemplateInfo(
           1,
-          httpClient,
           mmsClient,
           stub(),
           mockBooleanAnnotation.annotationTypeId,
@@ -332,7 +325,6 @@ describe("General utilities", () => {
         uploads: uploadsResult,
       } = await getApplyTemplateInfo(
         1,
-        httpClient,
         mmsClient,
         stub(),
         mockBooleanAnnotation.annotationTypeId,

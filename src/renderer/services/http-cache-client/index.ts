@@ -16,8 +16,8 @@ export default class HttpCacheClient {
 
   constructor(
     httpClient: HttpClient,
-    useCache: boolean,
-    localStorage: LocalStorage
+    localStorage: LocalStorage,
+    useCache: boolean
   ) {
     this.httpClient = httpClient;
     this.localStorage = localStorage;
@@ -33,7 +33,7 @@ export default class HttpCacheClient {
 
   public get = async <T = any>(url: string, config?: AxiosRequestConfig) => {
     url = this.getFullUrl(url);
-    const response = await this.httpClient.get(url, {
+    const response: AxiosResponse<T> = await this.httpClient.get(url, {
       ...this.getHttpRequestConfig(),
       ...config,
     });
@@ -46,10 +46,14 @@ export default class HttpCacheClient {
     config?: AxiosRequestConfig
   ) => {
     url = this.getFullUrl(url);
-    const response = await this.httpClient.post(url, request, {
-      ...this.getHttpRequestConfig(),
-      ...config,
-    });
+    const response: AxiosResponse<T> = await this.httpClient.post(
+      url,
+      request,
+      {
+        ...this.getHttpRequestConfig(),
+        ...config,
+      }
+    );
     return response.data;
   };
 
@@ -59,7 +63,7 @@ export default class HttpCacheClient {
     config?: AxiosRequestConfig
   ) => {
     url = this.getFullUrl(url);
-    const response = await this.httpClient.put(url, request, {
+    const response: AxiosResponse<T> = await this.httpClient.put(url, request, {
       ...this.getHttpRequestConfig(),
       ...config,
     });
@@ -72,10 +76,14 @@ export default class HttpCacheClient {
     config?: AxiosRequestConfig
   ) => {
     url = this.getFullUrl(url);
-    const response = await this.httpClient.patch(url, request, {
-      ...this.getHttpRequestConfig(),
-      ...config,
-    });
+    const response: AxiosResponse<T> = await this.httpClient.patch(
+      url,
+      request,
+      {
+        ...this.getHttpRequestConfig(),
+        ...config,
+      }
+    );
     return response.data;
   };
 
@@ -85,7 +93,7 @@ export default class HttpCacheClient {
     config?: AxiosRequestConfig
   ) => {
     url = this.getFullUrl(url);
-    const response = await this.httpClient.delete(url, {
+    const response: AxiosResponse<T> = await this.httpClient.delete(url, {
       ...this.getHttpRequestConfig(),
       ...config,
       data: request,

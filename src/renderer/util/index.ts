@@ -36,7 +36,6 @@ import {
   TemplateAnnotation,
   WellResponse,
 } from "../services/mms-client/types";
-import { HttpClient } from "../services/types";
 import { getWithRetry } from "../state/feedback/util";
 import { DragAndDropFileList } from "../state/types";
 import {
@@ -233,14 +232,13 @@ export interface PlateInfo {
 export const getPlateInfo = async (
   barcode: string,
   imagingSessionIds: Array<number | null>,
-  httpClient: HttpClient,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb
 ): Promise<PlateInfo> => {
   const request = (): Promise<GetPlateResponse[]> =>
     Promise.all(
       imagingSessionIds.map((imagingSessionId: number | null) =>
-        mmsClient.getPlate(httpClient, barcode, imagingSessionId || undefined)
+        mmsClient.getPlate(barcode, imagingSessionId || undefined)
       )
     );
 
@@ -316,7 +314,6 @@ export interface ApplyTemplateInfo {
  */
 export const getApplyTemplateInfo = async (
   templateId: number,
-  httpClient: HttpClient,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb,
   booleanAnnotationTypeId: number,
@@ -328,7 +325,7 @@ export const getApplyTemplateInfo = async (
     : [];
 
   const template: Template = await getWithRetry(
-    () => mmsClient.getTemplate(httpClient, templateId),
+    () => mmsClient.getTemplate(templateId),
     dispatch
   );
   const { annotations } = template;

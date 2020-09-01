@@ -21,11 +21,9 @@ import {
   DEFAULT_USERNAME,
   LIMS_HOST,
   LIMS_PORT,
-  LIMS_PROTOCOL,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
-import HttpCacheClient from "../services/http-cache-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -83,7 +81,8 @@ const storage = new EnvironmentAwareStorage();
 // issues with Electron and/or Node running on
 // Linux (https://github.com/electron/electron/issues/10570).
 axios.defaults.adapter = require("axios/lib/adapters/xhr");
-
+const httpClient = axios;
+const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
@@ -95,18 +94,11 @@ export const reduxLogicDependencies = {
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   getRetryUploadWorker: () => new RetryUploadWorker(),
   getUploadWorker: () => new UploadWorker(),
-  httpClient: new HttpCacheClient(
-    axios.create({
-      baseURL: `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}`,
-    }),
-    Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false,
-    storage
-  ),
   ipcRenderer,
-  jssClient: new JobStatusClient("debug"),
-  labkeyClient: new LabkeyClient(),
+  jssClient: new JobStatusClient(httpClient, storage, useCache, "debug"),
+  labkeyClient: new LabkeyClient(httpClient, storage, useCache),
   logger: Logger,
-  mmsClient: new MMSClient(),
+  mmsClient: new MMSClient(httpClient, storage, useCache),
   readFile,
   storage,
   writeFile,

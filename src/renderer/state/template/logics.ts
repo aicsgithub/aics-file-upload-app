@@ -143,7 +143,7 @@ const removeAnnotationsLogic = createLogic({
 
 const saveTemplateLogic = createLogic({
   process: async (
-    { getState, httpClient, mmsClient }: ReduxLogicProcessDependencies,
+    { getState, mmsClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -154,12 +154,11 @@ const saveTemplateLogic = createLogic({
     try {
       if (draft.templateId) {
         createdTemplateId = await mmsClient.editTemplate(
-          httpClient,
           request,
           draft.templateId
         );
       } else {
-        createdTemplateId = await mmsClient.createTemplate(httpClient, request);
+        createdTemplateId = await mmsClient.createTemplate(request);
       }
 
       dispatch(saveTemplateSucceeded(createdTemplateId));
@@ -194,7 +193,6 @@ const saveTemplateLogic = createLogic({
       try {
         const { template, uploads } = await getApplyTemplateInfo(
           createdTemplateId,
-          httpClient,
           mmsClient,
           dispatch,
           booleanAnnotationTypeId,

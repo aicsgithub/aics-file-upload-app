@@ -54,7 +54,6 @@ const createBarcodeLogic = createLogic({
     {
       action,
       getState,
-      httpClient,
       ipcRenderer,
       logger,
       mmsClient,
@@ -67,7 +66,7 @@ const createBarcodeLogic = createLogic({
         setting: { limsHost, limsPort },
       } = getState();
       const { prefixId, prefix } = action.payload;
-      const barcode = await mmsClient.createBarcode(httpClient, prefixId);
+      const barcode = await mmsClient.createBarcode(prefixId);
       ipcRenderer.send(
         OPEN_CREATE_PLATE_STANDALONE,
         limsHost,
@@ -87,22 +86,22 @@ const createBarcodeLogic = createLogic({
 
 const requestMetadataLogic = createLogic({
   process: async (
-    { httpClient, labkeyClient, logger }: ReduxLogicProcessDependencies,
+    { labkeyClient, logger }: ReduxLogicProcessDependencies,
     dispatch: (action: AnyAction) => void,
     done: () => void
   ) => {
     try {
       const request = () =>
         Promise.all([
-          labkeyClient.getAnnotationLookups(httpClient),
-          labkeyClient.getAnnotationTypes(httpClient),
-          labkeyClient.getBarcodePrefixes(httpClient),
-          labkeyClient.getChannels(httpClient),
-          labkeyClient.getImagingSessions(httpClient),
-          labkeyClient.getLookups(httpClient),
-          labkeyClient.getUnits(httpClient),
-          labkeyClient.getUsers(httpClient),
-          labkeyClient.getWorkflows(httpClient),
+          labkeyClient.getAnnotationLookups(),
+          labkeyClient.getAnnotationTypes(),
+          labkeyClient.getBarcodePrefixes(),
+          labkeyClient.getChannels(),
+          labkeyClient.getImagingSessions(),
+          labkeyClient.getLookups(),
+          labkeyClient.getUnits(),
+          labkeyClient.getUsers(),
+          labkeyClient.getWorkflows(),
         ]);
       const [
         annotationLookups,
@@ -146,13 +145,12 @@ const getBarcodeSearchResultsLogic = createLogic({
   debounce: 500,
   latest: true,
   process: async (
-    { action, httpClient, labkeyClient, logger }: ReduxLogicProcessDependencies,
+    { action, labkeyClient, logger }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const { payload: searchStr } = action;
-    const request = () =>
-      labkeyClient.getPlatesByBarcode(httpClient, searchStr);
+    const request = () => labkeyClient.getPlatesByBarcode(searchStr);
 
     try {
       const barcodeSearchResults = await getWithRetry(request, dispatch);
@@ -191,15 +189,15 @@ const getBarcodeSearchResultsLogic = createLogic({
 
 const requestAnnotationsLogic = createLogic({
   process: async (
-    { httpClient, labkeyClient }: ReduxLogicProcessDependencies,
+    { labkeyClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     try {
       const request = () =>
         Promise.all([
-          labkeyClient.getAnnotations(httpClient),
-          labkeyClient.getAnnotationOptions(httpClient),
+          labkeyClient.getAnnotations(),
+          labkeyClient.getAnnotationOptions(),
         ]);
       const [annotations, annotationOptions] = await getWithRetry(
         request,
@@ -231,7 +229,6 @@ const requestOptionsForLookupLogic = createLogic({
     {
       action: { payload },
       getState,
-      httpClient,
       labkeyClient,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<GetOptionsForLookupAction>,
@@ -277,7 +274,6 @@ const requestOptionsForLookupLogic = createLogic({
       const optionsForLookup = await getWithRetry(
         () =>
           labkeyClient.getOptionsForLookup(
-            httpClient,
             schemaName,
             tableName,
             columnName,
@@ -321,13 +317,13 @@ const requestOptionsForLookupLogic = createLogic({
 
 const requestTemplatesLogicLogic = createLogic({
   process: async (
-    { httpClient, labkeyClient, logger }: ReduxLogicProcessDependencies,
+    { labkeyClient, logger }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     try {
       const templates = await getWithRetry(
-        () => labkeyClient.getTemplates(httpClient),
+        () => labkeyClient.getTemplates(),
         dispatch
       );
       dispatch(receiveMetadata({ templates }, AsyncRequest.GET_TEMPLATES));

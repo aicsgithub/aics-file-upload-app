@@ -10,7 +10,6 @@ import { createLogic } from "redux-logic";
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";
-import { HttpClient } from "../../services/types";
 import {
   getApplyTemplateInfo,
   ensureDraftGetsSaved,
@@ -425,7 +424,6 @@ const convertImageModelMetadataToUploadStateBranch = (
 
 const getPlateRelatedActions = async (
   wellIds: number[],
-  httpClient: HttpClient,
   labkeyClient: LabkeyClient,
   mmsClient: MMSClient,
   dispatch: ReduxLogicNextCb
@@ -438,17 +436,14 @@ const getPlateRelatedActions = async (
   const wellId = wellIds[0];
   // we want to find the barcode associated with any well id found in this upload
   const barcode = await labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId(
-    httpClient,
     wellId
   );
   const imagingSessionIds = await labkeyClient.getImagingSessionIdsForBarcode(
-    httpClient,
     barcode
   );
   const { plate, wells } = await getPlateInfo(
     barcode,
     imagingSessionIds,
-    httpClient,
     mmsClient,
     dispatch
   );
@@ -467,7 +462,6 @@ const openEditFileMetadataTabLogic = createLogic({
       fms,
       getApplicationMenu,
       getState,
-      httpClient,
       labkeyClient,
       logger,
       mmsClient,
@@ -522,7 +516,6 @@ const openEditFileMetadataTabLogic = createLogic({
         try {
           const plateRelatedActions = await getPlateRelatedActions(
             wellIds,
-            httpClient,
             labkeyClient,
             mmsClient,
             dispatch
@@ -557,7 +550,6 @@ const openEditFileMetadataTabLogic = createLogic({
         try {
           const { template, uploads } = await getApplyTemplateInfo(
             fileMetadataForJob[0].templateId,
-            httpClient,
             mmsClient,
             dispatch,
             booleanAnnotationTypeId,

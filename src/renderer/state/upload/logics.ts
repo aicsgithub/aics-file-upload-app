@@ -231,7 +231,6 @@ const applyTemplateLogic = createLogic({
     {
       action,
       getState,
-      httpClient,
       mmsClient,
     }: ReduxLogicProcessDependenciesWithAction<ApplyTemplateAction>,
     dispatch: ReduxLogicNextCb,
@@ -252,7 +251,6 @@ const applyTemplateLogic = createLogic({
     try {
       const { template, uploads } = await getApplyTemplateInfo(
         templateId,
-        httpClient,
         mmsClient,
         dispatch,
         booleanAnnotationTypeId,
@@ -436,7 +434,6 @@ const cancelUploadLogic = createLogic({
   process: async (
     {
       action,
-      httpClient,
       jssClient,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
@@ -446,7 +443,7 @@ const cancelUploadLogic = createLogic({
     const uploadJob: UploadSummaryTableRow = action.payload.job;
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
-      await jssClient.updateJob(httpClient, uploadJob.jobId, {
+      await jssClient.updateJob(uploadJob.jobId, {
         serviceFields: {
           error: "Cancelled by user",
         },
@@ -1099,7 +1096,6 @@ const submitFileMetadataUpdateLogic = createLogic({
       ctx,
       getApplicationMenu,
       getState,
-      httpClient,
       jssClient,
       logger,
       mmsClient,
@@ -1112,7 +1108,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     // We delete files in series so that we can ignore the files that have already been deleted
     for (const fileId of fileIdsToDelete) {
       try {
-        await mmsClient.deleteFileMetadata(httpClient, fileId, true);
+        await mmsClient.deleteFileMetadata(fileId, true);
       } catch (e) {
         // ignoring not found to keep this idempotent
         if (e?.status !== HTTP_STATUS.NOT_FOUND) {
@@ -1132,7 +1128,6 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     try {
       await jssClient.updateJob(
-        httpClient,
         ctx.selectedJobId,
         { serviceFields: { deletedFileIds: fileIdsToDelete } },
         true
@@ -1152,7 +1147,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     try {
       await Promise.all(
         editFileMetadataRequests.map(({ fileId, request }) =>
-          mmsClient.editFileMetadata(httpClient, fileId, request)
+          mmsClient.editFileMetadata(fileId, request)
         )
       );
     } catch (e) {

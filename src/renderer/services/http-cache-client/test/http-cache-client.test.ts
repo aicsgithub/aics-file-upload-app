@@ -35,7 +35,7 @@ describe("HttpCacheClient", () => {
   });
   it("doesn't use cache if useCache is false", async () => {
     sandbox.replace(storage, "get", storageGetStub);
-    const httpCacheClient = new HttpCacheClient(httpClient, false, storage);
+    const httpCacheClient = new HttpCacheClient(httpClient, storage, false);
     await httpCacheClient.get(url);
     await httpCacheClient.post(url, {});
     await httpCacheClient.put(url, {});
@@ -49,7 +49,7 @@ describe("HttpCacheClient", () => {
   });
   it("uses cache if useCache is true", async () => {
     sandbox.replace(storage, "get", storageGetStub);
-    const httpCacheClient = new HttpCacheClient(httpClient, true, storage);
+    const httpCacheClient = new HttpCacheClient(httpClient, storage, true);
     await httpCacheClient.get(url);
     await httpCacheClient.post(url, {});
     await httpCacheClient.put(url, {});
@@ -62,7 +62,7 @@ describe("HttpCacheClient", () => {
     expect(storageGetStub.calledWith(`DELETE ${limsURL}${url}`)).to.be.true;
   });
   it("makes http request if useCache=false and returns response.data", async () => {
-    const httpCacheClient = new HttpCacheClient(httpClient, false, storage);
+    const httpCacheClient = new HttpCacheClient(httpClient, storage, false);
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data);
   });
@@ -72,12 +72,12 @@ describe("HttpCacheClient", () => {
       .withArgs(`GET ${limsURL}${url}`)
       .returns(data2);
     sandbox.replace(storage, "get", storageGetStub2);
-    const httpCacheClient = new HttpCacheClient(httpClient, true, storage);
+    const httpCacheClient = new HttpCacheClient(httpClient, storage, true);
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data2);
   });
   it("makes http request if cache does not exist and useCache=true", async () => {
-    const httpCacheClient = new HttpCacheClient(httpClient, true, storage);
+    const httpCacheClient = new HttpCacheClient(httpClient, storage, true);
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data);
   });

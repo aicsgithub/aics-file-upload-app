@@ -24,6 +24,15 @@ export const mockJSSJob: JSSJob = {
   user: "demo",
 };
 
+export const makeAxiosResponse = <T>(resp: T): AxiosResponse<T> => ({
+  data: resp,
+  status: 200,
+  statusText: "OK",
+  headers: {},
+  config: {},
+  request: {},
+});
+
 export const mockJobResponse = {
   data: [
     {

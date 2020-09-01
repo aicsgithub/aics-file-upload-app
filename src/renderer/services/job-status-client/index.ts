@@ -5,6 +5,8 @@ import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 import { castArray } from "lodash";
 
+import { LocalStorage } from "../../state/types";
+import HttpCacheClient from "../http-cache-client";
 import { AicsSuccessResponse, HttpClient } from "../types";
 
 import JSSRequestMapper from "./jss-request-mapper";
@@ -25,16 +27,23 @@ const JOB_STATUS_CLIENT_LOGGER = "job-status-client";
 /***
  * Main class used by clients of this library to interact with JSS. Provides job create/read/update functionality.
  */
-export default class JobStatusClient {
+export default class JobStatusClient extends HttpCacheClient {
   private readonly logger: ILogger;
 
   /***
    * Create a JobStatusClient instance.
+   * @param httpClient
+   * @param storage
+   * @param useCache
    * @param logLevel minimum severity to log at
    */
   public constructor(
+    httpClient: HttpClient,
+    storage: LocalStorage,
+    useCache = false,
     logLevel: "debug" | "error" | "info" | "trace" | "warn" = "error"
   ) {
+    super(httpClient, storage, useCache);
     /* eslint-disable react-hooks/rules-of-hooks */
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = Logger.get(JOB_STATUS_CLIENT_LOGGER);
@@ -42,15 +51,11 @@ export default class JobStatusClient {
 
   /**
    * Creates a job and returns created job
-   * @param httpClient
    * @param job
    */
-  public async createJob(
-    httpClient: HttpClient,
-    job: CreateJobRequest
-  ): Promise<JSSJob> {
+  public async createJob(job: CreateJobRequest): Promise<JSSJob> {
     this.logger.debug("Received create job request", job);
-    const response = await httpClient.post<AicsSuccessResponse<JSSJob>>(
+    const response = await this.post<AicsSuccessResponse<JSSJob>>(
       "/jss/1.0/job/",
       job,
       JobStatusClient.getHttpRequestConfig()
@@ -60,20 +65,18 @@ export default class JobStatusClient {
 
   /***
    * Update Job in stored in JSS and returns updated job
-   * @param httpClient
    * @param jobId job to update
    * @param job partial job object with values to set
    * @param patchUpdateServiceFields indicates whether to patch update serviceFields of the job or replace the entire
    * serviceFields object in db with serviceFields provided in request.
    */
   public async updateJob(
-    httpClient: HttpClient,
     jobId: string,
     job: UpdateJobRequest,
     patchUpdateServiceFields = true
   ): Promise<JSSJob> {
     this.logger.debug(`Received update job request for jobId=${jobId}`, job);
-    const response = await httpClient.patch<AicsSuccessResponse<JSSJob>>(
+    const response = await this.patch<AicsSuccessResponse<JSSJob>>(
       `/jss/1.0/job/${jobId}`,
       JSSRequestMapper.map(job, patchUpdateServiceFields),
       JobStatusClient.getHttpRequestConfig()
@@ -83,12 +86,11 @@ export default class JobStatusClient {
 
   /***
    * Get job by id
-   * @param httpClient
    * @param jobId corresponding id for job
    */
-  public async getJob(httpClient: HttpClient, jobId: string): Promise<JSSJob> {
+  public async getJob(jobId: string): Promise<JSSJob> {
     this.logger.debug(`Received get job request for jobId=${jobId}`);
-    const response = await httpClient.get<AicsSuccessResponse<JSSJob>>(
+    const response = await this.get<AicsSuccessResponse<JSSJob>>(
       `/jss/1.0/job/${jobId}`,
       JobStatusClient.getHttpRequestConfig()
     );
@@ -97,20 +99,16 @@ export default class JobStatusClient {
 
   /***
    * Get jobs matching mongoDB query
-   * @param httpClient
    * @param query query to be passed to mongoDB for finding matching jobs
    */
-  public async getJobs(
-    httpClient: HttpClient,
-    query: JobQuery
-  ): Promise<JSSJob[]> {
+  public async getJobs(query: JobQuery): Promise<JSSJob[]> {
     this.logger.debug(`Received get jobs request with query`, query);
-    const response = await httpClient.post<AicsSuccessResponse<JSSJob>>(
+    const response = await this.post<AicsSuccessResponse<JSSJob>>(
       `/jss/1.0/job/query`,
       JSSRequestMapper.map(query, true),
       JobStatusClient.getHttpRequestConfig()
     );
-    return response.data.map((job) => JSSResponseMapper.map(job));
+    return response.data.map((job: JSSJob) => JSSResponseMapper.map(job));
   }
 
   // JSS expects properties of requests to be in snake_case format and returns responses in snake_case format as well

@@ -80,11 +80,18 @@ export const storage: LocalStorageStub = {
   reset: stub(),
   set: stub(),
 };
+export const httpClient = {
+  get: stub(),
+  post: stub(),
+  put: stub(),
+  patch: stub(),
+  delete: stub(),
+};
 
 export const fms = new FileManagementSystem({ host, port });
-export const jssClient = new JobStatusClient();
-export const labkeyClient = new LabkeyClient();
-export const mmsClient = new MMSClient();
+export const jssClient = new JobStatusClient(httpClient, storage, false);
+export const labkeyClient = new LabkeyClient(httpClient, storage, false);
+export const mmsClient = new MMSClient(httpClient, storage, false);
 
 export const switchEnvMenuItem = {
   enabled: true,
@@ -125,14 +132,6 @@ export const logger = {
 export const ipcRenderer = {
   on: stub(),
   send: stub(),
-};
-
-export const httpClient = {
-  get: stub(),
-  post: stub(),
-  put: stub(),
-  patch: stub(),
-  delete: stub(),
 };
 
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
