@@ -8,8 +8,8 @@ import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
 import { JSSJobStatus } from "../../job-status-client/types";
+import { AICSFILES_LOGGER } from "../constants";
 import { CopyError } from "../errors";
-import { AICSFILES_LOGGER } from "../file-management-system";
 import { CopyFilesStep } from "../steps/copy-files-step";
 import { UploadContext } from "../types";
 

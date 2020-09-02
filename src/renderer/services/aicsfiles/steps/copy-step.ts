@@ -6,8 +6,8 @@ import { noop } from "lodash";
 import * as rimraf from "rimraf";
 
 import JobStatusClient from "../../job-status-client";
+import { AICSFILES_LOGGER } from "../constants";
 import { CopyError, IllegalArgumentError } from "../errors";
-import { AICSFILES_LOGGER } from "../file-management-system";
 import { Job, Step, StepName, UploadContext } from "../types";
 import { makePosixPathCompatibleWithPlatform } from "../util";
 

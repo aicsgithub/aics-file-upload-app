@@ -12,3 +12,4 @@ export const UPLOADER = "uploader";
 
 // Misc.
 export const DEFAULT_TIMEOUT = 5 * 60 * 1000;
+export const AICSFILES_LOGGER = "aicsfiles";

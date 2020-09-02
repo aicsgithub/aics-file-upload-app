@@ -1,10 +1,4 @@
-// Client types
-import { ILogger } from "js-logger/src/types";
-
-import JobStatusClient from "../../job-status-client";
 import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
-import { FSSConnection } from "../connections";
-import { Uploader } from "../uploader";
 
 export interface Uploads {
   [filePath: string]: UploadMetadata;
@@ -12,19 +6,6 @@ export interface Uploads {
 
 export interface UploadResponse {
   [originalPath: string]: FSSResponseFile;
-}
-
-// Common types
-export interface AicsResponse {
-  responseType: "SUCCESS" | "SERVER_ERROR" | "CLIENT_ERROR";
-}
-
-export interface AicsSuccessResponse<T> extends AicsResponse {
-  data: T[];
-  totalCount: number;
-  hasMore?: boolean;
-  offset: number;
-  rows?: T[];
 }
 
 // FSS Request Types
@@ -93,36 +74,6 @@ export interface FSSResponseFile {
   fileName: string;
   fileId: string;
   readPath: string;
-}
-
-// Configuration object for FMS. Either host and port have to be defined or fss needs
-// to be defined.
-export interface FileManagementSystemConfig {
-  // Host that FSS is running on
-  host?: string;
-
-  // Port that FSS is running on
-  port?: string;
-
-  // minimum level to output logs at
-  logLevel?: "debug" | "error" | "info" | "trace" | "warn";
-
-  // Only useful for testing. If not specified, will use logLevel to create a logger.
-  logger?: ILogger;
-
-  // contains connection info for FSS. Only required if host/port not provided
-  // FMS will use currently logged in user.
-  // Only useful for testing.
-  fss?: FSSConnection;
-
-  // Client for interacting with JSS.  Only required if host/port not provided
-  // Only useful for testing.
-  jobStatusClient?: JobStatusClient;
-
-  // Uploads files. Only required if host/port not provided. Only useful for testing.
-  uploader?: Uploader;
-
-  username?: string;
 }
 
 export interface Job {

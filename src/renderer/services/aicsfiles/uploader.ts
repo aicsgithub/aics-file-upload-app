@@ -16,11 +16,8 @@ import {
 } from "../job-status-client/types";
 
 import { FSSConnection } from "./connections";
+import { AICSFILES_LOGGER } from "./constants";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
-import {
-  AICSFILES_LOGGER,
-  getCopyChildJobName,
-} from "./file-management-system";
 import { StepExecutor } from "./step-executor";
 import { AddMetadataStep } from "./steps/add-metadata-step";
 import { CopyFilesStep } from "./steps/copy-files-step";
@@ -400,7 +397,7 @@ export class Uploader {
         this.jss.createJob({
           ...this.defaultJobInfo,
           ...job,
-          jobName: getCopyChildJobName(job.serviceFields.originalPath),
+          jobName: `Upload job for ${job.serviceFields.originalPath}`,
           parentId: parentCopyJobId,
           serviceFields: {
             ...job.serviceFields,

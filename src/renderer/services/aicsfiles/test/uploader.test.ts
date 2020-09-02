@@ -8,7 +8,7 @@ import { ILogger } from "js-logger/src/types";
 import * as rimraf from "rimraf";
 import { createSandbox, SinonStub, stub } from "sinon";
 
-import { AICSFILES_LOGGER } from "../file-management-system";
+import { AICSFILES_LOGGER } from "../constants";
 import {
   ADD_METADATA_TYPE,
   COPY_CHILD_TYPE,

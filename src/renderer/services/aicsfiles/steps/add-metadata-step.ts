@@ -4,8 +4,8 @@ import { isEmpty } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
 import { FSSConnection } from "../connections";
+import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
-import { AICSFILES_LOGGER } from "../file-management-system";
 import { Job, Step, StepName, UploadContext } from "../types";
 
 // Step 2/2 of an upload in which we notify FSS that the upload is complete for a job and send metadata

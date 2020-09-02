@@ -1,7 +1,7 @@
 import { exists as fsExists, stat as fsStat, Stats } from "fs";
 import { userInfo } from "os";
-import { basename } from "path";
 import * as path from "path";
+import { basename } from "path";
 import { promisify } from "util";
 
 import * as Logger from "js-logger";
@@ -12,12 +12,11 @@ import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
 
 import { FSSConnection, LabKeyConnection, MMSConnection } from "./connections";
-import { UNRECOVERABLE_JOB_ERROR } from "./constants";
+import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
 import { CustomMetadataQuerier } from "./custom-metadata-querier";
 import { IllegalArgumentError, InvalidMetadataError } from "./errors";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
 import {
-  FileManagementSystemConfig,
   FileMetadata,
   FileToFileMetadata,
   ImageModelMetadata,
@@ -27,6 +26,36 @@ import {
   Uploads,
 } from "./types";
 import { Uploader } from "./uploader";
+
+// Configuration object for FMS. Either host and port have to be defined or fss needs
+// to be defined.
+export interface FileManagementSystemConfig {
+  // Host that FSS is running on
+  host?: string;
+
+  // Port that FSS is running on
+  port?: string;
+
+  // minimum level to output logs at
+  logLevel?: "debug" | "error" | "info" | "trace" | "warn";
+
+  // Only useful for testing. If not specified, will use logLevel to create a logger.
+  logger?: ILogger;
+
+  // contains connection info for FSS. Only required if host/port not provided
+  // FMS will use currently logged in user.
+  // Only useful for testing.
+  fss?: FSSConnection;
+
+  // Client for interacting with JSS.  Only required if host/port not provided
+  // Only useful for testing.
+  jobStatusClient?: JobStatusClient;
+
+  // Uploads files. Only required if host/port not provided. Only useful for testing.
+  uploader?: Uploader;
+
+  username?: string;
+}
 
 export const getDuplicateFilesError = (name: string): string =>
   `Multiple files supplied with the same name for a upload: ${name}`;
@@ -46,9 +75,6 @@ export const getOriginalPathPropertyDoesntMatch = (
   `metadata for file ${fullpath} has property file.originalPath set to ${originalPath} which doesn't match ${fullpath}`;
 const exists = promisify(fsExists);
 const stat = promisify(fsStat);
-export const AICSFILES_LOGGER = "aicsfiles";
-export const getCopyChildJobName = (filepath: string): string =>
-  `Upload job for ${filepath}`;
 
 const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   debug: Logger.DEBUG,

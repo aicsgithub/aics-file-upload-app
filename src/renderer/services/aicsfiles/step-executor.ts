@@ -4,7 +4,7 @@ import { includes } from "lodash";
 import JobStatusClient from "../job-status-client";
 import { JSSJobStatus } from "../job-status-client/types";
 
-import { AICSFILES_LOGGER } from "./file-management-system";
+import { AICSFILES_LOGGER } from "./constants";
 import { Step, UploadContext } from "./types";
 
 const VALID_STEP_STATUSES = ["SUCCEEDED", "WAITING", "FAILED"];

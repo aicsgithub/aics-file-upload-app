@@ -18,13 +18,13 @@ import { FSSConnection } from "../connections";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import {
   FileManagementSystem,
+  FileManagementSystemConfig,
   getDuplicateFilesError,
   getFileDoesNotExistError,
   getFilePropertyMissingError,
   getOriginalPathPropertyDoesntMatch,
   noFilesError,
 } from "../file-management-system";
-import { FileManagementSystemConfig } from "../types";
 import { Uploader } from "../uploader";
 
 import {

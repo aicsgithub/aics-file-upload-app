@@ -2,15 +2,25 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 
-import { DEFAULT_TIMEOUT } from "../constants";
+import { AICSFILES_LOGGER, DEFAULT_TIMEOUT } from "../constants";
 import { IllegalArgumentError } from "../errors";
-import { AICSFILES_LOGGER } from "../file-management-system";
-import { AicsSuccessResponse } from "../types";
 
 axios.defaults.adapter = require("axios/lib/adapters/xhr");
 
 interface HeaderMap {
   [key: string]: string;
+}
+
+export interface AicsResponse {
+  responseType: "SUCCESS" | "SERVER_ERROR" | "CLIENT_ERROR";
+}
+
+interface AicsSuccessResponse<T> extends AicsResponse {
+  data: T[];
+  totalCount: number;
+  hasMore?: boolean;
+  offset: number;
+  rows?: T[];
 }
 
 export abstract class ConnectionBase {

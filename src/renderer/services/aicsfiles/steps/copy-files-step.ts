@@ -3,8 +3,8 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty, noop } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
+import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
-import { AICSFILES_LOGGER } from "../file-management-system";
 import { StepExecutor } from "../step-executor";
 import { Job, SourceFiles, Step, StepName, UploadContext } from "../types";
 
