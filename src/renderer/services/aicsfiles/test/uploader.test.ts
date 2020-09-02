@@ -276,7 +276,7 @@ describe("Uploader", () => {
       const uploader2 = new Uploader(fss, jobStatusClient);
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
-      ).to.be.rejectedWith(Error);
+      ).to.be.rejectedWith("Could not find the parent copy job.");
     });
     it("Throws error if a copy job is missing originalPath", () => {
       getJobsStub = stub()

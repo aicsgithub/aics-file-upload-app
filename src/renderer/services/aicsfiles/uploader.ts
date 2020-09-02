@@ -115,7 +115,7 @@ export class Uploader {
       uploads,
       uploadJobName,
     });
-    const steps: Step[] = await this.getSteps(
+    const steps: Step[] = this.getSteps(
       childJobs,
       copyProgressCb,
       copyProgressCbThrottleMs
@@ -165,7 +165,7 @@ export class Uploader {
       uploadJob,
     });
 
-    const steps: Step[] = await this.getSteps(
+    const steps: Step[] = this.getSteps(
       childJobs,
       copyProgressCb,
       copyProgressCbThrottleMs
@@ -220,7 +220,7 @@ export class Uploader {
 
   private async getUploadChildJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: Promise<Job[]>; ctx: UploadContext }> {
+  ): Promise<{ jobs: Job[]; ctx: UploadContext }> {
     if (ctx.uploadJob) {
       this.logger.info("Getting existing upload jobs");
       return this.getExistingUploadJobs(ctx);
@@ -232,7 +232,7 @@ export class Uploader {
 
   private async getExistingUploadJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: Promise<Job[]>; ctx: UploadContext }> {
+  ): Promise<{ jobs: Job[]; ctx: UploadContext }> {
     const { uploadJob, uploads } = ctx;
     if (!uploadJob) {
       throw new Error("No upload job provided");
@@ -251,76 +251,63 @@ export class Uploader {
       );
     }
 
-    const childJobsPromise: Promise<JSSJob[]> = this.jss.getJobs({
-      jobId: {
-        $in: uploadJob.childIds,
-      },
-      user: this.username,
-    });
-
-    const childCopyJobsPromise: Promise<Job[]> = childJobsPromise
-      .then((jobs) => {
-        if (jobs.length !== EXPECTED_NUMBER_UPLOAD_STEPS) {
-          throw new UnrecoverableJobError(
-            `Was expecting to retrieve ${EXPECTED_NUMBER_UPLOAD_STEPS} child steps for upload. Retrieved ${jobs.length}.`
-          );
-        }
-
-        const copyJob = jobs.find(
-          (j) => j.serviceFields && j.serviceFields.type === COPY_TYPE
-        );
-        if (!copyJob) {
-          throw new UnrecoverableJobError(
-            "Could not find the parent copy job."
-          );
-        }
-        return this.jss
-          .getJobs({
-            jobId: {
-              $in: copyJob.childIds,
-            },
-            user: this.username,
-          })
-          .then((copyChildJobs) => {
-            const expectedNumberCopyChildJobs = keys(uploads).length;
-            if (copyChildJobs.length !== expectedNumberCopyChildJobs) {
-              throw new UnrecoverableJobError(
-                `Was expecting to retrieve ${expectedNumberCopyChildJobs} but instead retrieved ${copyChildJobs.length}`
-              );
-            }
-            if (
-              copyChildJobs.find(
-                (j) => !j.serviceFields || !j.serviceFields.originalPath
-              )
-            ) {
-              throw new UnrecoverableJobError(
-                `One or more copy child jobs are missing originalPath`
-              );
-            }
-            return copyChildJobs.map((j) =>
-              pick(j, ["jobId", "status", "serviceFields"])
-            );
-          });
-      })
-      .catch((e: AxiosError) => {
-        const childIds = uploadJob.childIds || [];
-        const error = `Failed to get upload job children: ${childIds.join(
-          ", "
-        )}`;
-        this.logger.error(error, e.response);
-        throw e;
+    try {
+      const childJobs = await this.jss.getJobs({
+        jobId: {
+          $in: uploadJob.childIds,
+        },
+        user: this.username,
       });
 
-    const fileToSizeMap = await this.getFileSizes(uploads);
-    return {
-      ctx: {
-        ...ctx,
-        copyChildJobs: await childCopyJobsPromise,
-        totalBytesToCopy: this.getTotalBytesToCopy(fileToSizeMap),
-        uploadChildJobIds: uploadJob.childIds,
-      },
-      jobs: childJobsPromise,
-    };
+      if (childJobs.length !== EXPECTED_NUMBER_UPLOAD_STEPS) {
+        throw new UnrecoverableJobError(
+          `Was expecting to retrieve ${EXPECTED_NUMBER_UPLOAD_STEPS} child steps for upload. Retrieved ${childJobs.length}.`
+        );
+      }
+
+      const copyJob = childJobs.find(
+        (j) => j.serviceFields && j.serviceFields.type === COPY_TYPE
+      );
+      if (!copyJob) {
+        throw new UnrecoverableJobError("Could not find the parent copy job.");
+      }
+
+      const copyChildJobs = await this.jss.getJobs({
+        jobId: {
+          $in: copyJob.childIds,
+        },
+        user: this.username,
+      });
+
+      const expectedNumberCopyChildJobs = keys(uploads).length;
+      if (copyChildJobs.length !== expectedNumberCopyChildJobs) {
+        throw new UnrecoverableJobError(
+          `Was expecting to retrieve ${expectedNumberCopyChildJobs} but instead retrieved ${copyChildJobs.length}`
+        );
+      }
+      if (copyChildJobs.find((j) => !j.serviceFields?.originalPath)) {
+        throw new UnrecoverableJobError(
+          `One or more copy child jobs are missing originalPath`
+        );
+      }
+      const fileToSizeMap = await this.getFileSizes(uploads);
+      return {
+        ctx: {
+          ...ctx,
+          copyChildJobs: copyChildJobs.map((j) =>
+            pick(j, ["jobId", "status", "serviceFields"])
+          ),
+          totalBytesToCopy: this.getTotalBytesToCopy(fileToSizeMap),
+          uploadChildJobIds: uploadJob.childIds,
+        },
+        jobs: childJobs,
+      };
+    } catch (e) {
+      const childIds = uploadJob.childIds || [];
+      const error = `Failed to get upload job children: ${childIds.join(", ")}`;
+      this.logger.error(error, e.response);
+      throw e;
+    }
   }
 
   private async getFileSizes(uploads: Uploads): Promise<Map<string, number>> {
@@ -340,7 +327,7 @@ export class Uploader {
 
   private async createUploadJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: Promise<Job[]>; ctx: UploadContext }> {
+  ): Promise<{ jobs: Job[]; ctx: UploadContext }> {
     const { startUploadResponse, uploads } = ctx;
     const parentId = startUploadResponse.jobId;
     const uploadChildJobIds = [getUUID(), getUUID()];
@@ -388,10 +375,8 @@ export class Uploader {
         totalBytesToCopy,
         uploadChildJobIds: uploadChildJobIds,
       },
-      jobs: Promise.resolve(
-        createUploadChildJobRequests.map((r) =>
-          pick(r, ["status", "serviceFields", "jobId"])
-        )
+      jobs: createUploadChildJobRequests.map((r) =>
+        pick(r, ["status", "serviceFields", "jobId"])
       ),
     };
   }
@@ -434,16 +419,15 @@ export class Uploader {
     return copyJobs;
   }
 
-  private async getSteps(
-    jobsPromise: Promise<Job[]>,
+  private getSteps(
+    jobs: Job[],
     copyProgressCb: (
       originalFilePath: string,
       bytesCopied: number,
       totalBytes: number
     ) => void = noop,
     copyProgressCbThrottleMs?: number
-  ): Promise<Step[]> {
-    const jobs = await jobsPromise;
+  ): Step[] {
     if (jobs.length !== EXPECTED_NUMBER_UPLOAD_STEPS) {
       throw new Error(`Unexpected number of child jobs: ${jobs.length}`);
     }
