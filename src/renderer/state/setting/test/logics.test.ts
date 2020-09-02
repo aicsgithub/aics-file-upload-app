@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { Store } from "redux";
 import { createSandbox, SinonSpy, spy, stub } from "sinon";
 import * as sinon from "sinon";
 
@@ -23,7 +24,7 @@ import {
 } from "../../test/mocks";
 import { SettingStateBranch } from "../../types";
 import { gatherSettings, updateSettings } from "../actions";
-import settingsLogics from "../logics";
+import settingsLogics, { updateSettingsLogic } from "../logics";
 import {
   getLimsHost,
   getMetadataColumns,
@@ -109,9 +110,20 @@ describe("Setting logics", () => {
   });
 
   describe("updateSettingsLogic", () => {
-    it("updates settings if data persisted correctly", () => {
-      const { store } = createMockReduxStore(mockState);
+    let store: Store;
 
+    beforeEach(() => {
+      ({ store } = createMockReduxStore(
+        mockState,
+        undefined,
+        // Provide only the logic we are testing so we avoid running all the
+        // logics that could be triggered by these tests.
+        [updateSettingsLogic],
+        undefined
+      ));
+    });
+
+    it("updates settings if data persisted correctly", () => {
       // before
       expect(getLimsHost(store.getState())).to.equal(localhost);
 
@@ -123,8 +135,6 @@ describe("Setting logics", () => {
     });
 
     it("sets host and port on all LIMS clients", () => {
-      const { store } = createMockReduxStore(mockState);
-
       // before
       expect(fmsHostSetterSpy.called).to.be.false;
       expect(fmsPortSetterSpy.called).to.be.false;
@@ -146,8 +156,6 @@ describe("Setting logics", () => {
     });
 
     it("sets username on all LIMS clients", () => {
-      const { store } = createMockReduxStore(mockState);
-
       // before
       expect(fmsUsernameSetterSpy.called).to.be.false;
       expect(jssUsernameSetterSpy.called).to.be.false;
@@ -163,8 +171,6 @@ describe("Setting logics", () => {
     });
 
     it("sets mount point on FMS", () => {
-      const { store } = createMockReduxStore(mockState);
-
       // before
       expect(fmsMountPointSetterSpy.called).to.be.false;
 
@@ -176,8 +182,6 @@ describe("Setting logics", () => {
     });
 
     it("sets template id in settings", () => {
-      const { store } = createMockReduxStore(mockState);
-
       expect(getTemplateId(store.getState())).to.be.undefined;
 
       store.dispatch(updateSettings({ templateId: 3 }));
@@ -186,8 +190,6 @@ describe("Setting logics", () => {
     });
 
     it("sets metadata columns in settings", () => {
-      const { store } = createMockReduxStore(mockState);
-
       expect(getMetadataColumns(store.getState())).to.be.empty;
 
       store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
@@ -196,8 +198,6 @@ describe("Setting logics", () => {
     });
 
     it("sets whether to show the upload hint in settings", () => {
-      const { store } = createMockReduxStore(mockState);
-
       expect(getShowUploadHint(store.getState())).to.be.true;
 
       store.dispatch(updateSettings({ showUploadHint: false }));
@@ -249,7 +249,6 @@ describe("Setting logics", () => {
     });
 
     it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
-      const { store } = createMockReduxStore(mockState);
       store.dispatch(updateSettings({ associateByWorkflow: true }));
       expect(fmsHostSetterSpy.called).to.be.false;
       expect(fmsPortSetterSpy.called).to.be.false;
@@ -265,7 +264,9 @@ describe("Setting logics", () => {
           set: sinon.stub().throwsException(),
         },
       };
-      const { store } = createMockReduxStore(mockState, deps);
+      const { store } = createMockReduxStore(mockState, deps, [
+        updateSettingsLogic,
+      ]);
 
       // before
       expect(getLimsHost(store.getState())).to.equal(localhost);

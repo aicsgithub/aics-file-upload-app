@@ -2085,6 +2085,7 @@ describe("Upload logics", () => {
       );
     });
     it("adds jobName to payload if current job is defined", async () => {
+      stubMethods();
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateForEditingMetadata
       );

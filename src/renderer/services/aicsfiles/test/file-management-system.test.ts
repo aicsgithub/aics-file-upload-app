@@ -336,6 +336,7 @@ describe("FileManagementSystem", () => {
     });
 
     it("throws UnrecoverableJobError if the upload job doesn't have serviceFields.file", () => {
+      sandbox.replace(jobStatusClient, "updateJob", stub());
       const fms = new FileManagementSystem({
         fss,
         jobStatusClient,
@@ -392,6 +393,7 @@ describe("FileManagementSystem", () => {
 
     it("throws error if uploader.retryUpload throws", () => {
       sandbox.replace(uploader, "retryUpload", stub().rejects());
+      sandbox.replace(jobStatusClient, "updateJob", stub());
       const fms = new FileManagementSystem({
         fss,
         jobStatusClient,
