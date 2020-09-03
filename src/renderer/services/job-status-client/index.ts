@@ -1,4 +1,3 @@
-import "@babel/polyfill/noConflict";
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 

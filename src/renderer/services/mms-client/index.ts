@@ -1,9 +1,9 @@
-import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { AxiosRequestConfig } from "axios";
 import { decamelizeKeys } from "humps";
 
+import { LocalStorage } from "../../types";
+import { UploadMetadata as AicsFilesUploadMetadata } from "../aicsfiles/types";
 import BaseServiceClient from "../base-service-client";
-import { LocalStorage } from "../http-cache-client";
 
 import {
   GetPlateResponse,

@@ -1,4 +1,4 @@
-import { FileManagementSystem } from "@aics/aicsfiles";
+import { FileManagementSystem } from "../services/aicsfiles";
 
 import { UPLOAD_WORKER_SUCCEEDED } from "./constants";
 import { getCopyProgressCb } from "./util";

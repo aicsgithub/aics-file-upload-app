@@ -24,7 +24,7 @@ plugins {
 apply plugin: "org.alleninstitute.git-info"
 
 node {
-    version = "10.15.3"
+    version = "12.18.3"
     npmVersion = "6.9.0"
     download = true
     nodeModulesDir = file("${project.projectDir}")

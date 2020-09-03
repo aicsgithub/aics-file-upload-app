@@ -9,7 +9,7 @@ import {
   LIMS_PROTOCOL,
   USER_SETTINGS_KEY,
 } from "../../shared/constants";
-import { LocalStorage } from "../services/http-cache-client";
+import { LocalStorage } from "../types";
 
 /**
  * Wrapper for electron-store's default class. Scopes reads and writes to environmental settings using LIMS URL values

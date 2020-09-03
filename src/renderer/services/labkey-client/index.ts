@@ -1,8 +1,8 @@
 import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
+import { LocalStorage } from "../../types";
 import BaseServiceClient from "../base-service-client";
-import { LocalStorage } from "../http-cache-client";
 
 import {
   Annotation,

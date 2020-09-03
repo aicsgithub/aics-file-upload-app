@@ -1,10 +1,10 @@
-import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { omit } from "lodash";
 import { ActionCreator, Store } from "redux";
 import { createSandbox, SinonStub, stub } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { ImageModelMetadata } from "../../../services/aicsfiles/types";
 import {
   CANCEL_BUTTON_INDEX,
   SAVE_UPLOAD_DRAFT_BUTTON_INDEX,

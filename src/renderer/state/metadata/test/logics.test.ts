@@ -178,6 +178,14 @@ describe("Metadata logics", () => {
         "getImagingSessions",
         getImagingSessionsStub
       );
+      sandbox.replace(labkeyClient, "getAnnotationLookups", stub());
+      sandbox.replace(labkeyClient, "getAnnotationTypes", stub());
+      sandbox.replace(labkeyClient, "getBarcodePrefixes", stub());
+      sandbox.replace(labkeyClient, "getChannels", stub());
+      sandbox.replace(labkeyClient, "getLookups", stub());
+      sandbox.replace(labkeyClient, "getUnits", stub());
+      sandbox.replace(labkeyClient, "getWorkflows", stub());
+      sandbox.replace(labkeyClient, "getUsers", stub());
       await runRequestFailedTest(
         requestMetadata(),
         "Failed to retrieve metadata: foo",
@@ -209,6 +217,7 @@ describe("Metadata logics", () => {
     it("dispatches requestFailed given not OK response", async () => {
       const getAnnotationsStub = stub().rejects(new Error("foo"));
       sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
+      sandbox.replace(labkeyClient, "getAnnotationOptions", stub());
       await runRequestFailedTest(
         requestAnnotations(),
         "Could not retrieve annotations: foo",

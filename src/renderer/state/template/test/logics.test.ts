@@ -9,6 +9,7 @@ import {
   createMockReduxStore,
   dialog,
   mmsClient,
+  labkeyClient,
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
@@ -212,6 +213,8 @@ describe("Template Logics", () => {
       sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
       sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
       sandbox.replace(mmsClient, "createTemplate", createTemplateStub);
+      sandbox.replace(mmsClient, "getTemplate", stub());
+      sandbox.replace(labkeyClient, "getTemplates", stub());
       return { showMessageBoxStub, editTemplateStub, createTemplateStub };
     };
 
@@ -349,6 +352,7 @@ describe("Template Logics", () => {
       ).to.be.true;
     });
     it("dispatches saveTemplateSucceeded if template was saved successfully", async () => {
+      sandbox.replace(labkeyClient, "getTemplates", stub());
       sandbox.replace(
         dialog,
         "showMessageBox",
@@ -365,6 +369,7 @@ describe("Template Logics", () => {
       expect(actions.includesMatch(saveTemplateSucceeded(1))).to.be.true;
     });
     it("dispatches requestFailed if booleanAnnotationTypeId is not defined", async () => {
+      sandbox.replace(labkeyClient, "getTemplates", stub());
       sandbox.replace(
         dialog,
         "showMessageBox",
@@ -392,6 +397,7 @@ describe("Template Logics", () => {
       );
     });
     it("dispatches requestFailed if getTemplate fails", async () => {
+      sandbox.replace(labkeyClient, "getTemplates", stub());
       sandbox.replace(
         dialog,
         "showMessageBox",

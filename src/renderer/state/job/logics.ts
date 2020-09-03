@@ -1,4 +1,3 @@
-import { UploadMetadata as AicsFilesUploadMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { isEmpty, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
@@ -7,8 +6,10 @@ import { interval } from "rxjs/internal/observable/interval";
 import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
-import { JobStatusClient, LocalStorage } from "../../services";
+import { JobStatusClient } from "../../services";
+import { UploadMetadata as AicsFilesUploadMetadata } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
+import { LocalStorage } from "../../types";
 import {
   UPLOAD_WORKER_ON_PROGRESS,
   UPLOAD_WORKER_SUCCEEDED,
