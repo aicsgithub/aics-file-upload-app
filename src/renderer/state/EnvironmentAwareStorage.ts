@@ -1,5 +1,5 @@
 import * as Store from "electron-store";
-import { isNil, isPlainObject } from "lodash";
+import { isNil, isPlainObject, memoize } from "lodash";
 import * as hash from "object-hash";
 
 import {
@@ -21,6 +21,7 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
   public host: string = LIMS_HOST;
   public port: string = LIMS_PORT;
   public user: string = DEFAULT_USERNAME;
+  public cache: WeakMap<any, any> = new WeakMap();
 
   constructor(options?: Store.Options<T>) {
     super(options);
@@ -30,10 +31,13 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
     keyOrObject: Key | Partial<T>,
     value?: T[Key]
   ) => {
+    const prefixedKeys = new Set<Key>();
     if (isPlainObject(keyOrObject)) {
       const objectWithPrefixes: any = {};
       for (const [key, value] of Object.entries(keyOrObject)) {
-        objectWithPrefixes[this.getPrefixedKey<Key>(key as Key)] = value;
+        const prefixedKey = this.getPrefixedKey<Key>(key as Key);
+        prefixedKeys.add(prefixedKey);
+        objectWithPrefixes[prefixedKey] = value;
       }
       super.set(objectWithPrefixes);
     } else if (
@@ -41,23 +45,24 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
       (typeof keyOrObject === "string" || typeof keyOrObject === "number")
     ) {
       const prefixedKey = this.getPrefixedKey<Key>(keyOrObject);
+      prefixedKeys.add(prefixedKey);
       super.set(prefixedKey, value);
     } else {
       throw new Error(
         "Expected first argument to be an object, string, or number."
       );
     }
+    prefixedKeys.forEach((key: Key) => this.get.cache.delete(key));
   };
 
-  public get = <Key extends keyof T>(
-    key: Key,
-    defaultValue?: T[Key]
-  ): T[Key] => {
-    if (defaultValue) {
-      return super.get<Key>(this.getPrefixedKey<Key>(key), defaultValue);
+  public get = memoize(
+    <Key extends keyof T>(key: Key, defaultValue?: T[Key]): T[Key] => {
+      if (defaultValue) {
+        return super.get<Key>(this.getPrefixedKey<Key>(key), defaultValue);
+      }
+      return super.get<Key>(this.getPrefixedKey<Key>(key));
     }
-    return super.get<Key>(this.getPrefixedKey<Key>(key));
-  };
+  );
 
   public delete = <Key extends keyof T>(key: Key): void => {
     super.delete<Key>(this.getPrefixedKey<Key>(key));

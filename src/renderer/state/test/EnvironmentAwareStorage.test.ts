@@ -43,6 +43,14 @@ describe("EnvironmentAwareStorage", () => {
       storage.set("foo", "bar");
       expect(setStub.calledWith(prefixedKey, "bar")).to.be.true;
     });
+    it("deletes relevant keys from cache", () => {
+      const cacheDeleteSpy = stub(storage.get.cache, "delete");
+      storage.set("foo", "bar");
+      expect(cacheDeleteSpy.calledWith(prefixedKey));
+      storage.set({ bar: { baz: 1 }, fuzz: "hello" });
+      expect(cacheDeleteSpy.calledWith(`${prefix}.bar`));
+      expect(cacheDeleteSpy.calledWith(`${prefix}.fuzz`));
+    });
     it("prefixes keys in object if first arg is object", () => {
       storage.set({ foo: "bar" });
       expect(setStub.calledWithMatch({ [prefixedKey]: "bar" })).to.be.true;
@@ -65,6 +73,14 @@ describe("EnvironmentAwareStorage", () => {
     it("doesn't prefix key if key starts with 'userSettings'", () => {
       storage.get("userSettings.username");
       expect(getStub.calledWith("userSettings.username"));
+    });
+    it("returns cached value if present", () => {
+      storage.get.cache.set("foo", "bar");
+      storage.get.cache.set("fuzz.ball", "kai");
+      const fooResult = storage.get("foo");
+      expect(fooResult).to.equal("bar");
+      const fuzzBallResult = storage.get("fuzz.ball");
+      expect(fuzzBallResult).to.equal("kai");
     });
   });
   describe("delete", () => {

@@ -3,6 +3,7 @@ import { createSandbox, stub } from "sinon";
 
 import JobStatusClient from "../";
 import { httpClient, storage } from "../../../state/test/configure-mock-store";
+import { LocalStorage } from "../../../types";
 import { JobQuery } from "../types";
 
 import {
@@ -17,7 +18,10 @@ import {
 
 describe("JobStatusClient", () => {
   const sandbox = createSandbox();
-  const jobStatusClient = new JobStatusClient(httpClient, storage);
+  const jobStatusClient = new JobStatusClient(
+    httpClient,
+    (storage as any) as LocalStorage
+  );
   afterEach(() => {
     sandbox.restore();
   });

@@ -22,6 +22,7 @@ import {
   upload,
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
+import { LocalStorage } from "../../types";
 import { State } from "../types";
 
 import { Actions, default as ActionTracker } from "./action-tracker";
@@ -89,9 +90,21 @@ export const httpClient = {
 };
 
 export const fms = new FileManagementSystem({ host, port });
-export const jssClient = new JobStatusClient(httpClient, storage, false);
-export const labkeyClient = new LabkeyClient(httpClient, storage, false);
-export const mmsClient = new MMSClient(httpClient, storage, false);
+export const jssClient = new JobStatusClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
+export const labkeyClient = new LabkeyClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
+export const mmsClient = new MMSClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
 
 export const switchEnvMenuItem = {
   enabled: true,

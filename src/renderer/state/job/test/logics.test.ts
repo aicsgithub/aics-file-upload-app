@@ -10,6 +10,7 @@ import {
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
+import { LocalStorage } from "../../../types";
 import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
 import {
   setErrorAlert,
@@ -51,14 +52,14 @@ describe("Job logics", () => {
     const uploadJobs = [mockSuccessfulUploadJob];
     const recentlyFailedJobNames = ["jobName"];
     const recentlySucceededJobNames = ["jobName2"];
-    const storage = {
+    const storage = ({
       clear: stub(),
       delete: stub(),
       get: stub().returns(["abc"]),
       has: stub(),
       reset: stub(),
       set: stub(),
-    };
+    } as any) as LocalStorage;
 
     it("Returns retrieveJobsFailed if error is present", () => {
       const action = mapJobsToActions(

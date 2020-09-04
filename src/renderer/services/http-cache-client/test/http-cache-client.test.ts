@@ -7,6 +7,7 @@ import {
   LIMS_PROTOCOL,
 } from "../../../../shared/constants";
 import { storage } from "../../../state/test/configure-mock-store";
+import { LocalStorage } from "../../../types";
 import { HttpClient } from "../../types";
 import HttpCacheClient from "../index";
 
@@ -35,7 +36,11 @@ describe("HttpCacheClient", () => {
   });
   it("doesn't use cache if useCache is false", async () => {
     sandbox.replace(storage, "get", storageGetStub);
-    const httpCacheClient = new HttpCacheClient(httpClient, storage, false);
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      false
+    );
     await httpCacheClient.get(url);
     await httpCacheClient.post(url, {});
     await httpCacheClient.put(url, {});
@@ -49,7 +54,11 @@ describe("HttpCacheClient", () => {
   });
   it("uses cache if useCache is true", async () => {
     sandbox.replace(storage, "get", storageGetStub);
-    const httpCacheClient = new HttpCacheClient(httpClient, storage, true);
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      true
+    );
     await httpCacheClient.get(url);
     await httpCacheClient.post(url, {});
     await httpCacheClient.put(url, {});
@@ -62,7 +71,11 @@ describe("HttpCacheClient", () => {
     expect(storageGetStub.calledWith(`DELETE ${limsURL}${url}`)).to.be.true;
   });
   it("makes http request if useCache=false and returns response.data", async () => {
-    const httpCacheClient = new HttpCacheClient(httpClient, storage, false);
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      false
+    );
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data);
   });
@@ -72,12 +85,20 @@ describe("HttpCacheClient", () => {
       .withArgs(`GET ${limsURL}${url}`)
       .returns(data2);
     sandbox.replace(storage, "get", storageGetStub2);
-    const httpCacheClient = new HttpCacheClient(httpClient, storage, true);
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      true
+    );
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data2);
   });
   it("makes http request if cache does not exist and useCache=true", async () => {
-    const httpCacheClient = new HttpCacheClient(httpClient, storage, true);
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      true
+    );
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data);
   });
