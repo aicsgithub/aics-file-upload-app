@@ -1,6 +1,5 @@
 /* tslint:disable:max-classes-per-file */
 
-import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { createSandbox, spy, stub } from "sinon";
 
@@ -16,6 +15,7 @@ import {
   splitTrimAndFilter,
   titleCase,
 } from "../";
+import { ImageModelMetadata } from "../../services/aicsfiles/types";
 import {
   GetPlateResponse,
   PlateResponse,

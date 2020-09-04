@@ -1,13 +1,13 @@
 import { existsSync } from "fs";
 import { platform } from "os";
 
-import { ImageModelMetadata } from "@aics/aicsfiles/type-declarations/types";
 import { Menu, MenuItem } from "electron";
 import { castArray, difference, isEmpty, isNil } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
+import { ImageModelMetadata } from "../../services/aicsfiles/types";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";
 import {

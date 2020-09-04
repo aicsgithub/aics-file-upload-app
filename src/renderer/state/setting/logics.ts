@@ -32,7 +32,7 @@ import {
   getMountPoint,
 } from "./selectors";
 
-const updateSettingsLogic = createLogic({
+export const updateSettingsLogic = createLogic({
   process: async (
     { ctx, fms, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,

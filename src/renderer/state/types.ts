@@ -1,5 +1,4 @@
 import { AicsGridCell } from "@aics/aics-react-labkey";
-import { FileManagementSystem } from "@aics/aicsfiles";
 import {
   ipcRenderer,
   Menu,
@@ -13,6 +12,7 @@ import { StateWithHistory } from "redux-undo";
 import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
+import { FileManagementSystem } from "../services/aicsfiles";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {

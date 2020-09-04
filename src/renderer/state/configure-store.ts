@@ -1,7 +1,6 @@
 import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
 import { promisify } from "util";
 
-import { FileManagementSystem } from "@aics/aicsfiles";
 import axios from "axios";
 import { ipcRenderer, remote } from "electron";
 import * as Logger from "js-logger";
@@ -24,6 +23,7 @@ import {
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
+import { FileManagementSystem } from "../services/aicsfiles";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";

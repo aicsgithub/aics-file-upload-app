@@ -1,15 +1,15 @@
 import fs from "fs";
 
-import { FileManagementSystem } from "@aics/aicsfiles";
-import {
-  FileToFileMetadata,
-  ImageModelMetadata,
-} from "@aics/aicsfiles/type-declarations/types";
 import { isEmpty, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
+import { FileManagementSystem } from "../../services/aicsfiles";
+import {
+  FileToFileMetadata,
+  ImageModelMetadata,
+} from "../../services/aicsfiles/types";
 import {
   Annotation,
   AnnotationLookup,

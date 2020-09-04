@@ -1,4 +1,3 @@
-import { FileManagementSystem } from "@aics/aicsfiles";
 import { expect } from "chai";
 import {
   createSandbox,
@@ -8,6 +7,7 @@ import {
 } from "sinon";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
+import { FileManagementSystem } from "../../../services/aicsfiles";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
 import { LocalStorage } from "../../../types";

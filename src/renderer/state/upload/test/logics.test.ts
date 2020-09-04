@@ -1,4 +1,3 @@
-import { StartUploadResponse } from "@aics/aicsfiles/type-declarations/types";
 import { expect } from "chai";
 import { get, keys } from "lodash";
 import * as moment from "moment";
@@ -10,6 +9,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
+import { StartUploadResponse } from "../../../services/aicsfiles/types";
 import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
@@ -2085,6 +2085,7 @@ describe("Upload logics", () => {
       );
     });
     it("adds jobName to payload if current job is defined", async () => {
+      stubMethods();
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateForEditingMetadata
       );

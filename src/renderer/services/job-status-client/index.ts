@@ -1,4 +1,3 @@
-import "@babel/polyfill/noConflict";
 import axios, { AxiosRequestConfig } from "axios";
 import { camelizeKeys, decamelizeKeys } from "humps";
 import * as Logger from "js-logger";
