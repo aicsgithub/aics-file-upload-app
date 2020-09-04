@@ -1,5 +1,12 @@
 import * as path from "path";
 
+import { stub } from "sinon";
+
+import {
+  httpClient,
+  LocalStorageStub,
+} from "../../../state/test/configure-mock-store";
+import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import { FSSConnection, LabKeyConnection, MMSConnection } from "../connections";
@@ -162,11 +169,19 @@ export const mockCopyJobChild2: JSSJob = {
 };
 
 // Mock clients
-export const jobStatusClient: JobStatusClient = new JobStatusClient({
-  host: "localhost",
-  port: "8080",
-  username: "fake_user",
-});
+export const storage: LocalStorageStub = {
+  clear: stub(),
+  delete: stub(),
+  get: stub(),
+  has: stub(),
+  reset: stub(),
+  set: stub(),
+};
+export const jobStatusClient = new JobStatusClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
 
 export const fss: FSSConnection = new FSSConnection(
   "localhost",

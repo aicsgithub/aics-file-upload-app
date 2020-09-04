@@ -47,9 +47,8 @@ export interface FileManagementSystemConfig {
   // Only useful for testing.
   fss?: FSSConnection;
 
-  // Client for interacting with JSS.  Only required if host/port not provided
-  // Only useful for testing.
-  jobStatusClient?: JobStatusClient;
+  // Client for interacting with JSS.
+  jobStatusClient: JobStatusClient;
 
   // Uploads files. Only required if host/port not provided. Only useful for testing.
   uploader?: Uploader;
@@ -159,8 +158,13 @@ export class FileManagementSystem {
   };
 
   public constructor(config: FileManagementSystemConfig) {
-    const { logger, port = "80", username = userInfo().username } = config;
-    let { fss, host, jobStatusClient, logLevel, uploader } = config;
+    const {
+      jobStatusClient,
+      logger,
+      port = "80",
+      username = userInfo().username,
+    } = config;
+    let { fss, host, logLevel, uploader } = config;
     logLevel = logLevel || "error";
 
     if (!fss) {
@@ -171,22 +175,6 @@ export class FileManagementSystem {
       }
 
       fss = new FSSConnection(host, port, username);
-    }
-
-    if (!jobStatusClient) {
-      host = fss.host || host;
-      if (!host) {
-        throw new IllegalArgumentError(
-          "Host must be defined if jss is not defined"
-        );
-      }
-
-      jobStatusClient = new JobStatusClient({
-        host,
-        port,
-        username,
-        logLevel,
-      });
     }
 
     if (!uploader) {

@@ -89,7 +89,6 @@ export const httpClient = {
   delete: stub(),
 };
 
-export const fms = new FileManagementSystem({ host, port });
 export const jssClient = new JobStatusClient(
   httpClient,
   (storage as any) as LocalStorage,
@@ -105,6 +104,11 @@ export const mmsClient = new MMSClient(
   (storage as any) as LocalStorage,
   false
 );
+export const fms = new FileManagementSystem({
+  host,
+  jobStatusClient: jssClient,
+  port,
+});
 
 export const switchEnvMenuItem = {
   enabled: true,

@@ -12,6 +12,8 @@ import {
   stub,
 } from "sinon";
 
+import { httpClient, storage } from "../../../state/test/configure-mock-store";
+import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import { FSSConnection } from "../connections";
@@ -68,8 +70,6 @@ describe("FileManagementSystem", () => {
       expect(fms.fss.port).to.equal(PORT);
       expect(fms.host).to.equal(HOST);
       expect(fms.port).to.equal(PORT);
-      expect(fms.jobStatusClient.host).to.equal(HOST);
-      expect(fms.jobStatusClient.port).to.equal(PORT);
       expect(fms.lk.host).to.equal(HOST);
       expect(fms.lk.port).to.equal(PORT);
       expect(fms.mms.host).to.equal(HOST);
@@ -81,7 +81,7 @@ describe("FileManagementSystem", () => {
     };
 
     it("uses host and port if provided", () => {
-      testConstructor({ host: HOST, port: PORT });
+      testConstructor({ host: HOST, jobStatusClient, port: PORT });
     });
 
     it("ignores host and port if fss connection and jobStatusClient provided", () => {
@@ -89,21 +89,19 @@ describe("FileManagementSystem", () => {
         host: "wronghost",
         port: "9090",
         fss: new FSSConnection(HOST, PORT, "foo"),
-        jobStatusClient: new JobStatusClient({
-          host: HOST,
-          port: PORT,
-          username: "foo",
-        }),
+        jobStatusClient: new JobStatusClient(
+          httpClient,
+          (storage as any) as LocalStorage
+        ),
       });
     });
 
     it("allows host and port to be optional", () => {
       const fss = new FSSConnection(HOST, PORT, "foo");
-      const jobStatusClient = new JobStatusClient({
-        host: HOST,
-        port: PORT,
-        username: "foo",
-      });
+      const jobStatusClient = new JobStatusClient(
+        httpClient,
+        (storage as any) as LocalStorage
+      );
       testConstructor({
         fss,
         jobStatusClient,
@@ -114,18 +112,18 @@ describe("FileManagementSystem", () => {
     it("throws an error if no connection info provided", () => {
       // can't test for specific error due to transpilation, i.e. this known error:
       // https://github.com/chaijs/chai/issues/596
-      expect(() => new FileManagementSystem({})).to.throw();
+      expect(() => new FileManagementSystem({ jobStatusClient })).to.throw();
     });
   });
 
   describe("set port", () => {
     const fms = new FileManagementSystem({
       host: "localhost",
+      jobStatusClient,
       port: "80",
     });
-    it("sets jobStatusClient and fss ports", () => {
+    it("sets fss ports", () => {
       fms.port = "90";
-      expect(fms.jobStatusClient.port).to.equal("90");
       expect(fms.fss.port).to.equal("90");
     });
   });
@@ -133,11 +131,11 @@ describe("FileManagementSystem", () => {
   describe("set host", () => {
     const fms = new FileManagementSystem({
       host: "localhost",
+      jobStatusClient,
       port: "80",
     });
-    it("sets jobStatusClient and fss hosts", () => {
+    it("sets fss hosts", () => {
       fms.host = "foo";
-      expect(fms.jobStatusClient.host).to.equal("foo");
       expect(fms.fss.host).to.equal("foo");
     });
   });
@@ -158,7 +156,11 @@ describe("FileManagementSystem", () => {
       rimraf.sync(differentTargetDir);
     });
 
-    const fms = new FileManagementSystem({ host: "localhost", port: "80" });
+    const fms = new FileManagementSystem({
+      host: "localhost",
+      jobStatusClient,
+      port: "80",
+    });
     it("Throws an error if mount point is an empty string", () => {
       expect(fms.setMountPoint("")).to.be.rejectedWith(Error);
     });
@@ -184,6 +186,7 @@ describe("FileManagementSystem", () => {
   describe("validateMetadataAndGetUploadDirectory", () => {
     const fms = new FileManagementSystem({
       host: "localhost",
+      jobStatusClient,
       port: "80",
     });
     const goodMetadata = {

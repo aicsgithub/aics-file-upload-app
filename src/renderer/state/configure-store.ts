@@ -83,10 +83,12 @@ const storage = new EnvironmentAwareStorage();
 axios.defaults.adapter = require("axios/lib/adapters/xhr");
 const httpClient = axios;
 const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
+const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
     host: LIMS_HOST,
+    jobStatusClient: jssClient,
     logLevel: "trace",
     port: LIMS_PORT,
     username,
@@ -95,7 +97,7 @@ export const reduxLogicDependencies = {
   getRetryUploadWorker: () => new RetryUploadWorker(),
   getUploadWorker: () => new UploadWorker(),
   ipcRenderer,
-  jssClient: new JobStatusClient(httpClient, storage, useCache, "debug"),
+  jssClient,
   labkeyClient: new LabkeyClient(httpClient, storage, useCache),
   logger: Logger,
   mmsClient: new MMSClient(httpClient, storage, useCache),
