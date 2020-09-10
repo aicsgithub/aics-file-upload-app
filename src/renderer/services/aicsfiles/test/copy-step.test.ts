@@ -1,9 +1,4 @@
-import {
-  exists as fsExists,
-  rmdir as fsRmdir,
-  unlink as fsUnlink,
-  mkdir as fsMkdir,
-} from "fs";
+import { exists as fsExists, rmdir as fsRmdir, mkdir as fsMkdir } from "fs";
 import { resolve } from "path";
 import { promisify } from "util";
 
@@ -26,7 +21,6 @@ import {
   sourceFiles,
   startUploadResponse,
   targetDir,
-  targetFile1,
   upload1,
   uploadJobId,
   uploads,
@@ -35,7 +29,6 @@ import {
 const exists: (path: string) => Promise<boolean> = promisify(fsExists);
 const mkdir = promisify(fsMkdir);
 const rmdir = promisify(fsRmdir);
-const unlink = promisify(fsUnlink);
 
 describe("CopyStep", () => {
   const sandbox = createSandbox();
@@ -79,9 +72,6 @@ describe("CopyStep", () => {
     });
 
     afterEach(async () => {
-      if (await exists(targetFile1)) {
-        await unlink(targetFile1);
-      }
       if (await exists(targetDir)) {
         await rmdir(targetDir);
       }
