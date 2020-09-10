@@ -85,11 +85,11 @@ export class CustomMetadataQuerier {
   }
 
   // Queries the given table and returns a list of IDs matching the filter and column_name given
-  private async selectIdsFromFileMetadata(
+  private selectIdsFromFileMetadata = async (
     table: string,
     columnName: "fileId" | "imageModelId",
     filter: Filter
-  ): Promise<(string | number)[]> {
+  ): Promise<(string | number)[]> => {
     const response = await this.lk.selectRowsAsList(
       FILE_METADATA,
       table,
@@ -97,14 +97,14 @@ export class CustomMetadataQuerier {
       [filter]
     );
     return response.map((annotation: any) => annotation[columnName]);
-  }
+  };
 
   // Queries the given file and image model junction tables for File IDs matching the filter
-  private async queryFileJunctions(
+  private queryFileJunctions = async (
     table: string,
     searchValue: string | number,
     filterColumn: string
-  ): Promise<string[]> {
+  ): Promise<string[]> => {
     const fileIds = (await this.selectIdsFromFileMetadata(
       `File${table}Junction`,
       "fileId",
@@ -124,7 +124,7 @@ export class CustomMetadataQuerier {
       createFilter("ImageModelId", imageModelIds, FilterType.IN)
     )) as string[];
     return uniq([...fileIds, ...fileIdsFromImageModels]);
-  }
+  };
 
   // Returns MMS GET File Metadata Response for given FileId
   public queryByFileId = async (fileId: string): Promise<FileMetadata> => {
@@ -162,12 +162,14 @@ export class CustomMetadataQuerier {
   };
 
   /*
-        This method queries for all files that were uploaded by the given user.
+    This method queries for all files that were uploaded by the given user.
 
-        :param userName: The user that uploaded the files querying for
-        :return: Dictionary of FileIds to metadata objects representing all metadata for the file
-    */
-  public async queryByUser(userName: string): Promise<FileToFileMetadata> {
+    :param userName: The user that uploaded the files querying for
+    :return: Dictionary of FileIds to metadata objects representing all metadata for the file
+   */
+  public queryByUser = async (
+    userName: string
+  ): Promise<FileToFileMetadata> => {
     const responses = await this.lk.selectRowsAsList(
       FMS,
       "File",
@@ -177,17 +179,17 @@ export class CustomMetadataQuerier {
     const fileIds = responses.map((response: any) => response.fileId);
     this.logger.info(`Found ${fileIds.length} files uploaded by ${userName}`);
     return this.queryByFileIds(fileIds);
-  }
+  };
 
   /*
-        This method queries for all files that were uploaded by the given user.
+    This method queries for all files that were uploaded by the given user.
 
-        :param template: Id of template used to upload the files querying for
-        :return: Dictionary of FileIds to metadata objects representing all metadata for the file
-    */
-  public async queryByTemplate(
+    :param template: Id of template used to upload the files querying for
+    :return: Dictionary of FileIds to metadata objects representing all metadata for the file
+   */
+  public queryByTemplate = async (
     templateId: number
-  ): Promise<FileToFileMetadata> {
+  ): Promise<FileToFileMetadata> => {
     const responses = await this.lk.selectRowsAsList(
       UPLOADER,
       "FileTemplateJunction",
@@ -199,7 +201,7 @@ export class CustomMetadataQuerier {
       `Found ${fileIds.length} files uploaded with ${templateId}`
     );
     return this.queryByFileIds(fileIds);
-  }
+  };
 
   /*
         This method queries for all files that contain the given annotationName and are equal to the given value.
@@ -208,10 +210,10 @@ export class CustomMetadataQuerier {
         :param searchValue: The value the file should have for the Annotation we are querying
         :return: Dictionary of FileIds to metadata objects representing all metadata for the file
     */
-  public async queryByAnnotation(
+  public queryByAnnotation = async (
     annotationName: string,
     searchValue: string
-  ): Promise<FileToFileMetadata> {
+  ): Promise<FileToFileMetadata> => {
     // Get the AnnotationId and AnnotationType matching the Annotation Name provided
     const annotation = (await this.lk.selectFirst(
       FILE_METADATA,
@@ -267,7 +269,7 @@ export class CustomMetadataQuerier {
       `Successfully built up Dictionary of ${fileIds.length} File IDs`
     );
     return response;
-  }
+  };
 
   private getIdToNameMap = (
     idColumn: string,
@@ -299,10 +301,10 @@ export class CustomMetadataQuerier {
         :param transformDates: boolean Whether to transform values to dates if the annotation type is date or datetime
         :return: Array of ImageModels to their metadata
      */
-  public async transformFileMetadataIntoTable(
+  public transformFileMetadataIntoTable = async (
     filesToFileMetadata: FileToFileMetadata,
     transformDates = false
-  ): Promise<ImageModelMetadata[]> {
+  ): Promise<ImageModelMetadata[]> => {
     const [possibleTemplates, possibleAnnotations] = await Promise.all([
       this.lk.selectRowsAsList(UPLOADER, "Template", ["TemplateId", "Name"]),
       this.lk.selectRowsAsList(FILE_METADATA, "Annotation", [
@@ -386,7 +388,7 @@ export class CustomMetadataQuerier {
     );
     this.logger.info("Successfully built up table");
     return Object.values(keyToImageModel);
-  }
+  };
 
   /*
         Receives table formatted file metadata and transformed it into a character separated value set.
@@ -396,11 +398,11 @@ export class CustomMetadataQuerier {
             whitespace and casing doesn't matter
         :return: Character separated value set
      */
-  public transformTableIntoCSV(
+  public transformTableIntoCSV = (
     header: string[],
     rows: ImageModelMetadata[],
     separator = ","
-  ): string {
+  ): string => {
     if (!rows.length) {
       return header.join(separator);
     }
@@ -422,5 +424,5 @@ export class CustomMetadataQuerier {
     });
     this.logger.info(`Successfully built up CSV of ${rows.length}`);
     return [header, ...csvData].join("\r");
-  }
+  };
 }
