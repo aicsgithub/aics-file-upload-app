@@ -1,10 +1,9 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
 
-import LabkeyClient from "../labkey-client";
-import MMSClient from "../mms-client";
-
-import { FILE_METADATA, FMS, UPLOADER } from "./constants";
+import LabkeyClient from "../../labkey-client";
+import MMSClient from "../../mms-client";
+import { FILE_METADATA, FMS, UPLOADER } from "../constants";
 import {
   CustomFileMetadata,
   FileMetadata,
@@ -13,7 +12,7 @@ import {
   FilterType,
   ImageModelMetadata,
   LabKeyFileMetadata,
-} from "./types";
+} from "../types";
 
 const { createFilter } = LabkeyClient;
 

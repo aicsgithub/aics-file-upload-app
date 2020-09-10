@@ -12,11 +12,12 @@ import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
-import { FSSClient } from "./connections";
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
-import { CustomMetadataQuerier } from "./custom-metadata-querier";
 import { InvalidMetadataError } from "./errors";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
+import { CustomMetadataQuerier } from "./helpers/custom-metadata-querier";
+import { FSSClient } from "./helpers/fss-client";
+import { Uploader } from "./helpers/uploader";
 import {
   FileMetadata,
   FileToFileMetadata,
@@ -26,7 +27,6 @@ import {
   UploadResponse,
   Uploads,
 } from "./types";
-import { Uploader } from "./uploader";
 
 // Configuration object for FMS. Either host and port have to be defined or fss needs
 // to be defined.

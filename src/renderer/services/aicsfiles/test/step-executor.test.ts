@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { match, SinonStub, stub } from "sinon";
 
 import { JSSJobStatus } from "../../job-status-client/types";
-import { StepExecutor } from "../step-executor";
+import { StepExecutor } from "../helpers/step-executor";
 import { Step, StepName, UploadContext } from "../types";
 
 import { jobStatusClient, mockJob, targetDir, uploadJobId } from "./mocks";

@@ -11,7 +11,7 @@ import { LabkeyClient } from "../../index";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import MMSClient from "../../mms-client";
-import { FSSClient } from "../connections";
+import { FSSClient } from "../helpers/fss-client";
 import {
   CustomFileMetadata,
   LabKeyFileMetadata,

@@ -14,7 +14,7 @@ import {
   COPY_CHILD_TYPE,
   COPY_TYPE,
   Uploader,
-} from "../uploader";
+} from "../helpers/uploader";
 
 import {
   fss,

@@ -22,7 +22,7 @@ import {
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
 import { FileManagementSystem } from "../../services/aicsfiles";
-import { FSSClient } from "../../services/aicsfiles/connections";
+import { FSSClient } from "../../services/aicsfiles/helpers/fss-client";
 import { LocalStorage } from "../../types";
 import { State } from "../types";
 

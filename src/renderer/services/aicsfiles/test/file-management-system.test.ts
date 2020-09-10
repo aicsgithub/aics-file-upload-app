@@ -19,7 +19,6 @@ import {
 } from "../../../state/test/configure-mock-store";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
-import { FSSClient } from "../connections";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import {
   FileManagementSystem,
@@ -29,7 +28,8 @@ import {
   getOriginalPathPropertyDoesntMatch,
   noFilesError,
 } from "../file-management-system";
-import { Uploader } from "../uploader";
+import { FSSClient } from "../helpers/fss-client";
+import { Uploader } from "../helpers/uploader";
 
 import {
   fss,
