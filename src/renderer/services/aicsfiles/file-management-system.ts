@@ -1,5 +1,4 @@
 import { exists as fsExists, stat as fsStat, Stats } from "fs";
-import { userInfo } from "os";
 import * as path from "path";
 import { basename } from "path";
 import { promisify } from "util";
@@ -12,10 +11,10 @@ import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
-import { FSSConnection, LabKeyConnection } from "./connections";
+import { FSSClient, LabKeyConnection } from "./connections";
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
 import { CustomMetadataQuerier } from "./custom-metadata-querier";
-import { IllegalArgumentError, InvalidMetadataError } from "./errors";
+import { InvalidMetadataError } from "./errors";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
 import {
   FileMetadata,
@@ -34,25 +33,14 @@ export interface FileManagementSystemConfig {
   // getter function for creating a copy worker
   getCopyWorker: () => Worker;
 
-  // todo remove
-  // Host that FSS is running on
-  host?: string;
-
-  // todo remove
-  // Port that FSS is running on
-  port?: string;
-
   // minimum level to output logs at
   logLevel?: "debug" | "error" | "info" | "trace" | "warn";
 
   // Only useful for testing. If not specified, will use logLevel to create a logger.
   logger?: ILogger;
 
-  // todo make required
-  // contains connection info for FSS. Only required if host/port not provided
-  // FMS will use currently logged in user.
-  // Only useful for testing.
-  fss?: FSSConnection;
+  // Client for interacting with FSS
+  fssClient: FSSClient;
 
   // Client for interacting with JSS.
   jobStatusClient: JobStatusClient;
@@ -63,9 +51,6 @@ export interface FileManagementSystemConfig {
   // todo update comment
   // Uploads files. Only required if host/port not provided. Only useful for testing.
   uploader?: Uploader;
-
-  // todo remove
-  username?: string;
 }
 
 export const getDuplicateFilesError = (name: string): string =>
@@ -97,7 +82,7 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
 
 // Main class exported from library for interacting with the uploader
 export class FileManagementSystem {
-  public readonly fss: FSSConnection;
+  public readonly fss: FSSClient;
   public readonly mms: MMSClient;
   public readonly lk: LabKeyConnection;
   public readonly jobStatusClient: JobStatusClient;
@@ -120,30 +105,12 @@ export class FileManagementSystem {
     return CustomMetadataQuerier.innerJoinResults(fileMetadata1, fileMetadata2);
   }
 
-  public get port(): string {
-    return this.fss.port;
-  }
-
   public set port(port: string) {
     this.lk.port = port;
-    this.fss.port = port;
-  }
-
-  public get host(): string {
-    return this.fss.host;
   }
 
   public set host(host: string) {
     this.lk.host = host;
-    this.fss.host = host;
-  }
-
-  public get username(): string {
-    return this.fss.user;
-  }
-
-  public set username(username: string) {
-    this.fss.user = username;
   }
 
   public get mountPoint(): string {
@@ -170,45 +137,25 @@ export class FileManagementSystem {
   public constructor(config: FileManagementSystemConfig) {
     const {
       jobStatusClient,
+      fssClient,
       getCopyWorker,
       logger,
       mmsClient,
-      port = "80",
-      username = userInfo().username,
+      uploader,
     } = config;
-    let { fss, host, logLevel, uploader } = config;
-    logLevel = logLevel || "error";
+    const { logLevel = "error" } = config;
 
-    if (!fss) {
-      if (!host) {
-        throw new IllegalArgumentError(
-          "Host must be defined if fss is not defined"
-        );
-      }
-
-      fss = new FSSConnection(host, port, username);
-    }
-
-    if (!uploader) {
-      host = fss.host || host;
-      if (!host) {
-        throw new IllegalArgumentError(
-          "Host must be defined if uploader is not defined"
-        );
-      }
-
-      uploader = new Uploader(getCopyWorker, fss, jobStatusClient);
-    }
     this.getCopyWorker = getCopyWorker;
     this.jobStatusClient = jobStatusClient;
-    this.uploader = uploader;
+    this.uploader =
+      uploader || new Uploader(getCopyWorker, fssClient, jobStatusClient);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = logger || Logger.get(AICSFILES_LOGGER);
 
-    this.fss = fss;
+    this.fss = fssClient;
     this.mms = mmsClient;
-    this.lk = new LabKeyConnection(fss.host, fss.port, fss.user);
+    this.lk = new LabKeyConnection("foo", "foo", "foo");
     this.customMetadataQuerier = new CustomMetadataQuerier(
       mmsClient,
       this.lk,

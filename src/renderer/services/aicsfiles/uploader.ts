@@ -15,7 +15,7 @@ import {
   JSSJobStatus,
 } from "../job-status-client/types";
 
-import { FSSConnection } from "./connections";
+import { FSSClient } from "./connections";
 import { AICSFILES_LOGGER } from "./constants";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
 import { StepExecutor } from "./step-executor";
@@ -52,7 +52,7 @@ const getUUID = (): string => {
  * This class is responsible for uploading files through FSS.
  */
 export class Uploader {
-  private readonly fss: FSSConnection;
+  private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
   private readonly username: string = userInfo().username;
   private readonly logger: ILogger;
@@ -73,7 +73,7 @@ export class Uploader {
 
   public constructor(
     getCopyWorker: () => Worker,
-    fss: FSSConnection,
+    fss: FSSClient,
     jobStatusClient: JobStatusClient,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
   ) {

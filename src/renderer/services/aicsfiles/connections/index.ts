@@ -1,4 +1,4 @@
-import { FSSConnection } from "./fss-connection";
+import { FSSClient } from "./fss-client";
 import { LabKeyConnection } from "./lk-connection";
 
-export { FSSConnection, LabKeyConnection };
+export { FSSClient, LabKeyConnection };

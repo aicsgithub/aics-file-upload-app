@@ -22,6 +22,7 @@ import {
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
 import { FileManagementSystem } from "../../services/aicsfiles";
+import { FSSClient } from "../../services/aicsfiles/connections";
 import { LocalStorage } from "../../types";
 import { State } from "../types";
 
@@ -71,8 +72,6 @@ export interface ReduxLogicDependencies {
   writeFile: SinonStub;
 }
 
-const host = "localhost";
-const port = "80";
 export const storage: LocalStorageStub = {
   clear: stub(),
   delete: stub(),
@@ -104,16 +103,19 @@ export const mmsClient = new MMSClient(
   (storage as any) as LocalStorage,
   false
 );
+export const fssClient = {
+  startUpload: stub(),
+  uploadComplete: stub(),
+};
 export const fms = new FileManagementSystem({
   getCopyWorker: stub().returns({
     postMessage: stub(),
     onerror: stub(),
     onmessage: stub(),
   }),
-  host,
+  fssClient: (fssClient as any) as FSSClient,
   jobStatusClient: jssClient,
   mmsClient,
-  port,
 });
 
 export const switchEnvMenuItem = {

@@ -45,10 +45,6 @@ export const updateSettingsLogic = createLogic({
     const mountPoint = getMountPoint(state);
 
     if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
-      fms.host = host;
-      fms.port = port;
-      fms.username = username;
-
       dispatch(requestMetadata());
       dispatch(handleAbandonedJobs());
       dispatch(retrieveJobs());
@@ -126,7 +122,7 @@ const gatherSettingsLogic = createLogic({
         return;
       }
 
-      const { limsHost, limsPort, username } = userSettings;
+      const { limsHost, limsPort } = userSettings;
       // Template ID is environment-dependent (staging and production could have different sets of template ids)
       // so we need to get it from another place and add it manually.
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
@@ -136,10 +132,6 @@ const gatherSettingsLogic = createLogic({
 
       if (limsPort) {
         fms.port = limsPort;
-      }
-
-      if (username) {
-        fms.username = username;
       }
 
       next({

@@ -3,7 +3,7 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
-import { FSSConnection } from "../connections";
+import { FSSClient } from "../connections";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { Job, Step, StepName, UploadContext } from "../types";
@@ -13,13 +13,13 @@ import { Job, Step, StepName, UploadContext } from "../types";
 export class AddMetadataStep implements Step {
   public readonly job: Job;
   public readonly name: StepName = StepName.AddMetadata;
-  private readonly fss: FSSConnection;
+  private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
   private readonly logger: ILogger;
 
   public constructor(
     job: Job,
-    fss: FSSConnection,
+    fss: FSSClient,
     jss: JobStatusClient,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
   ) {

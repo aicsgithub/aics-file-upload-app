@@ -38,21 +38,12 @@ describe("Setting logics", () => {
   const stagingHost = "staging";
   const sandbox = createSandbox();
 
-  let fmsHostSetterSpy: SinonSpy;
-  let fmsPortSetterSpy: SinonSpy;
-  let fmsUsernameSetterSpy: SinonSpy;
   let fmsMountPointSetterSpy: SinonSpy;
 
   beforeEach(() => {
-    fmsHostSetterSpy = spy();
-    fmsPortSetterSpy = spy();
-    fmsUsernameSetterSpy = spy();
     fmsMountPointSetterSpy = spy();
 
     const { fms } = mockReduxLogicDeps;
-    stub(fms, "host").set(fmsHostSetterSpy);
-    stub(fms, "port").set(fmsPortSetterSpy);
-    stub(fms, "username").set(fmsUsernameSetterSpy);
 
     const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
     const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
@@ -105,30 +96,6 @@ describe("Setting logics", () => {
 
       // after
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
-    });
-
-    it("sets host and port on all LIMS clients", () => {
-      // before
-      expect(fmsHostSetterSpy.called).to.be.false;
-      expect(fmsPortSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(updateSettings({ limsHost: stagingHost, limsPort: "90" }));
-
-      // after
-      expect(fmsHostSetterSpy.called).to.be.true;
-      expect(fmsPortSetterSpy.called).to.be.true;
-    });
-
-    it("sets username on all LIMS clients", () => {
-      // before
-      expect(fmsUsernameSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(updateSettings({ username: "bar" }));
-
-      // after
-      expect(fmsUsernameSetterSpy.called).to.be.true;
     });
 
     it("sets mount point on FMS", () => {
@@ -210,9 +177,11 @@ describe("Setting logics", () => {
     });
 
     it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
+      const { actions } = createMockReduxStore(mockState, undefined, [
+        updateSettingsLogic,
+      ]);
       store.dispatch(updateSettings({ associateByWorkflow: true }));
-      expect(fmsHostSetterSpy.called).to.be.false;
-      expect(fmsPortSetterSpy.called).to.be.false;
+      expect(actions.includesMatch(requestMetadata())).to.be.false;
     });
 
     it("updates settings in memory and sets warning alert if data persistence failure", () => {
@@ -275,36 +244,6 @@ describe("Setting logics", () => {
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
       expect(getAlert(store.getState())).to.be.undefined;
       expect(getTemplateId(store.getState())).to.equal(1);
-    });
-
-    it("updates various lims clients", async () => {
-      const deps = {
-        ...mockReduxLogicDeps,
-        storage: {
-          ...mockReduxLogicDeps.storage,
-          get: sinon.stub().returns({
-            limsHost: stagingHost,
-            limsPort: "80",
-            username: "foo",
-          }),
-        },
-      };
-      const { logicMiddleware, store } = createMockReduxStore(mockState, deps);
-
-      // before
-      expect(fmsHostSetterSpy.called).to.be.false;
-      expect(fmsPortSetterSpy.called).to.be.false;
-      expect(fmsUsernameSetterSpy.called).to.be.false;
-      // labkey client currently doesn't need a username
-
-      // apply
-      store.dispatch(gatherSettings());
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(fmsHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(fmsPortSetterSpy.calledWith("80")).to.be.true;
-      expect(fmsUsernameSetterSpy.calledWith("foo")).to.be.true;
     });
 
     it("sets alert if error in getting storage settings", () => {

@@ -156,10 +156,6 @@ describe("Job logics", () => {
     beforeEach(() => {
       jssStub = createStubInstance(JobStatusClient);
       fmsStub = createStubInstance(FileManagementSystem);
-      // Stub out the getters for the FMS stub
-      stub(fmsStub, "host").get(() => "test_host");
-      stub(fmsStub, "port").get(() => "test_port");
-      stub(fmsStub, "username").get(() => "test_username");
 
       logicDeps = {
         ...mockReduxLogicDeps,

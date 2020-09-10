@@ -10,7 +10,7 @@ import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import MMSClient from "../../mms-client";
-import { FSSConnection, LabKeyConnection } from "../connections";
+import { FSSClient, LabKeyConnection } from "../connections";
 import {
   CustomFileMetadata,
   LabKeyFileMetadata,
@@ -184,11 +184,10 @@ export const jobStatusClient = new JobStatusClient(
   false
 );
 
-export const fss: FSSConnection = new FSSConnection(
-  "localhost",
-  "80",
-  "fake_user"
-);
+export const fss: FSSClient = ({
+  startUpload: stub(),
+  uploadComplete: stub(),
+} as any) as FSSClient;
 
 export const lk: LabKeyConnection = new LabKeyConnection(
   "localhost",

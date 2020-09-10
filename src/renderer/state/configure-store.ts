@@ -15,14 +15,10 @@ import {
 import { createLogicMiddleware } from "redux-logic";
 import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
 
-import {
-  DEFAULT_USERNAME,
-  LIMS_HOST,
-  LIMS_PORT,
-  TEMP_UPLOAD_STORAGE_KEY,
-} from "../../shared/constants";
+import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
+import { FSSClient } from "../services/aicsfiles/connections";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -66,7 +62,6 @@ const logics = [
   ...upload.logics,
 ];
 
-const username: string = DEFAULT_USERNAME;
 const storage = new EnvironmentAwareStorage();
 // Configure Axios to use the `XMLHttpRequest` adapter. Axios uses either
 // `XMLHttpRequest` or Node's `http` module, depending on the environment it is
@@ -87,16 +82,14 @@ const mmsClient = new MMSClient(httpClient, storage, useCache);
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
+    fssClient: new FSSClient(httpClient, storage, useCache),
     // We need to define a getter here for testing purposes. WebWorkers are not defined
     // in the mocha testing environment. It is also easier to unit test components with
     // the copy portion mocked
     getCopyWorker: () => new CopyWorker(),
-    host: LIMS_HOST,
     jobStatusClient: jssClient,
     logLevel: "trace",
     mmsClient,
-    port: LIMS_PORT,
-    username,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   ipcRenderer,
