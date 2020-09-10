@@ -115,6 +115,7 @@ export const fms = new FileManagementSystem({
   }),
   fssClient: (fssClient as any) as FSSClient,
   jobStatusClient: jssClient,
+  labkeyClient,
   mmsClient,
 });
 

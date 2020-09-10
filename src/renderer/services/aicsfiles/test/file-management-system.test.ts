@@ -12,7 +12,11 @@ import {
   stub,
 } from "sinon";
 
-import { fssClient, mmsClient } from "../../../state/test/configure-mock-store";
+import {
+  fssClient,
+  labkeyClient,
+  mmsClient,
+} from "../../../state/test/configure-mock-store";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import { FSSClient } from "../connections";
@@ -81,6 +85,7 @@ describe("FileManagementSystem", () => {
       fssClient: (fssClient as any) as FSSClient,
       getCopyWorker: getCopyWorkerStub,
       jobStatusClient,
+      labkeyClient,
       mmsClient,
     });
     it("Throws an error if mount point is an empty string", () => {
@@ -110,6 +115,7 @@ describe("FileManagementSystem", () => {
       fssClient: (fssClient as any) as FSSClient,
       getCopyWorker: getCopyWorkerStub,
       jobStatusClient,
+      labkeyClient,
       mmsClient,
     });
     const goodMetadata = {
@@ -231,6 +237,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -249,6 +256,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -271,6 +279,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -293,6 +302,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -317,6 +327,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -334,6 +345,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -357,6 +369,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
         mmsClient,
       });
@@ -380,6 +393,7 @@ describe("FileManagementSystem", () => {
       fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
         fssClient: fss,
+        labkeyClient,
         uploader,
         // Assert that the stub is of the correct type when calling the
         // constructor

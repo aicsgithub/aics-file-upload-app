@@ -1,9 +1,9 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
 
+import LabkeyClient from "../labkey-client";
 import MMSClient from "../mms-client";
 
-import { LabKeyConnection } from "./connections";
 import { FILE_METADATA, FMS, UPLOADER } from "./constants";
 import {
   CustomFileMetadata,
@@ -15,7 +15,7 @@ import {
   LabKeyFileMetadata,
 } from "./types";
 
-const { createFilter } = LabKeyConnection;
+const { createFilter } = LabkeyClient;
 
 const RELEVANT_FILE_COLUMNS = [
   "FileName",
@@ -48,7 +48,7 @@ interface AnnotationLookup {
 export class CustomMetadataQuerier {
   private readonly logger: ILogger;
   private readonly mms: MMSClient;
-  public readonly lk: LabKeyConnection;
+  public readonly lk: LabkeyClient;
 
   /*
         This returns the shared FileMetadata between the two given FileMetadata objects
@@ -76,7 +76,7 @@ export class CustomMetadataQuerier {
 
   public constructor(
     mms: MMSClient,
-    labkeyClient: LabKeyConnection,
+    labkeyClient: LabkeyClient,
     logger: ILogger
   ) {
     this.mms = mms;

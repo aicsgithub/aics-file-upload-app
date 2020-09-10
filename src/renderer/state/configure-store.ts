@@ -79,6 +79,7 @@ const httpClient = axios;
 const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
 const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
 const mmsClient = new MMSClient(httpClient, storage, useCache);
+const labkeyClient = new LabkeyClient(httpClient, storage, useCache);
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
@@ -88,13 +89,14 @@ export const reduxLogicDependencies = {
     // the copy portion mocked
     getCopyWorker: () => new CopyWorker(),
     jobStatusClient: jssClient,
+    labkeyClient,
     logLevel: "trace",
     mmsClient,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   ipcRenderer,
   jssClient,
-  labkeyClient: new LabkeyClient(httpClient, storage, useCache),
+  labkeyClient,
   logger: Logger,
   mmsClient,
   readFile,

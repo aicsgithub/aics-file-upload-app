@@ -7,10 +7,11 @@ import {
   LocalStorageStub,
 } from "../../../state/test/configure-mock-store";
 import { LocalStorage } from "../../../types";
+import { LabkeyClient } from "../../index";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import MMSClient from "../../mms-client";
-import { FSSClient, LabKeyConnection } from "../connections";
+import { FSSClient } from "../connections";
 import {
   CustomFileMetadata,
   LabKeyFileMetadata,
@@ -189,10 +190,10 @@ export const fss: FSSClient = ({
   uploadComplete: stub(),
 } as any) as FSSClient;
 
-export const lk: LabKeyConnection = new LabKeyConnection(
-  "localhost",
-  "80",
-  "fake_user"
+export const lk: LabkeyClient = new LabkeyClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
 );
 
 export const mms: MMSClient = ({

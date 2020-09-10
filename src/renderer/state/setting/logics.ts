@@ -108,7 +108,7 @@ export const updateSettingsLogic = createLogic({
 
 const gatherSettingsLogic = createLogic({
   validate: (
-    { action, fms, logger, storage }: ReduxLogicTransformDependencies,
+    { action, logger, storage }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -122,17 +122,9 @@ const gatherSettingsLogic = createLogic({
         return;
       }
 
-      const { limsHost, limsPort } = userSettings;
       // Template ID is environment-dependent (staging and production could have different sets of template ids)
       // so we need to get it from another place and add it manually.
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
-      if (limsHost) {
-        fms.host = limsHost;
-      }
-
-      if (limsPort) {
-        fms.port = limsPort;
-      }
 
       next({
         ...action,

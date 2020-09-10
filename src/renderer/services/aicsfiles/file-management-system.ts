@@ -7,11 +7,12 @@ import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 import { isEmpty, noop, trim } from "lodash";
 
+import { LabkeyClient } from "../index";
 import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
-import { FSSClient, LabKeyConnection } from "./connections";
+import { FSSClient } from "./connections";
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
 import { CustomMetadataQuerier } from "./custom-metadata-querier";
 import { InvalidMetadataError } from "./errors";
@@ -45,11 +46,13 @@ export interface FileManagementSystemConfig {
   // Client for interacting with JSS.
   jobStatusClient: JobStatusClient;
 
+  // Client for LabKey
+  labkeyClient: LabkeyClient;
+
   // Client for interacting with MMS
   mmsClient: MMSClient;
 
-  // todo update comment
-  // Uploads files. Only required if host/port not provided. Only useful for testing.
+  // Uploads files. Only useful for testing.
   uploader?: Uploader;
 }
 
@@ -84,7 +87,7 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
 export class FileManagementSystem {
   public readonly fss: FSSClient;
   public readonly mms: MMSClient;
-  public readonly lk: LabKeyConnection;
+  public readonly lk: LabkeyClient;
   public readonly jobStatusClient: JobStatusClient;
   private readonly logger: ILogger;
   public readonly uploader: Uploader;
@@ -103,14 +106,6 @@ export class FileManagementSystem {
     fileMetadata2: FileToFileMetadata
   ): FileToFileMetadata {
     return CustomMetadataQuerier.innerJoinResults(fileMetadata1, fileMetadata2);
-  }
-
-  public set port(port: string) {
-    this.lk.port = port;
-  }
-
-  public set host(host: string) {
-    this.lk.host = host;
   }
 
   public get mountPoint(): string {
@@ -139,6 +134,7 @@ export class FileManagementSystem {
       jobStatusClient,
       fssClient,
       getCopyWorker,
+      labkeyClient,
       logger,
       mmsClient,
       uploader,
@@ -147,6 +143,7 @@ export class FileManagementSystem {
 
     this.getCopyWorker = getCopyWorker;
     this.jobStatusClient = jobStatusClient;
+    this.lk = labkeyClient;
     this.uploader =
       uploader || new Uploader(getCopyWorker, fssClient, jobStatusClient);
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -155,7 +152,6 @@ export class FileManagementSystem {
 
     this.fss = fssClient;
     this.mms = mmsClient;
-    this.lk = new LabKeyConnection("foo", "foo", "foo");
     this.customMetadataQuerier = new CustomMetadataQuerier(
       mmsClient,
       this.lk,
