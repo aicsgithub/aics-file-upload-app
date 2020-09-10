@@ -6,9 +6,9 @@ import { expect } from "chai";
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 import * as rimraf from "rimraf";
-import { createSandbox, SinonStub, stub } from "sinon";
+import { createSandbox, match, SinonStub, stub } from "sinon";
 
-import { AICSFILES_LOGGER } from "../constants";
+import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import {
   ADD_METADATA_TYPE,
   COPY_CHILD_TYPE,
@@ -17,6 +17,7 @@ import {
 } from "../uploader";
 
 import {
+  copyWorkerStub,
   fss,
   jobStatusClient,
   mockCompleteUploadJob,
@@ -84,7 +85,12 @@ describe("Uploader", () => {
     );
     logger = Logger.get(AICSFILES_LOGGER);
     sandbox.replace(logger, "error", stub());
-    uploader = new Uploader(fss, jobStatusClient, logger);
+    uploader = new Uploader(
+      stub().returns(copyWorkerStub),
+      fss,
+      jobStatusClient,
+      logger
+    );
     uploader.defaultMountPoint = targetDir;
     uploader.mountPoint = targetDir;
   });
@@ -95,8 +101,21 @@ describe("Uploader", () => {
     rimraf.sync(differentTargetDir);
   });
 
+  // Here we fake a successful copy by calling onmessage right after postMessage is called off of the copy worker stub
+  // Without this, onmessage would never get called and the tests would timeout
+  const fakeSuccessfulCopy = () => {
+    const postMessageStub = stub().callsFake(() => {
+      copyWorkerStub.onmessage({
+        data: `${UPLOAD_WORKER_SUCCEEDED}:somemd5`,
+      });
+    });
+    sandbox.replace(copyWorkerStub, "postMessage", postMessageStub);
+    return postMessageStub;
+  };
+
   describe("uploadFiles", () => {
     it("Creates new upload child jobs and copy jobs, and returns expected result", async () => {
+      fakeSuccessfulCopy();
       const result = await uploader.uploadFiles(
         startUploadResponse,
         uploads,
@@ -133,7 +152,11 @@ describe("Uploader", () => {
 
     it("Doesn't start copying files if creating upload jobs fails", async () => {
       jobStatusClient.createJob = stub().rejects();
-      const uploader2 = new Uploader(fss, jobStatusClient);
+      const uploader2 = new Uploader(
+        stub().returns(copyWorkerStub),
+        fss,
+        jobStatusClient
+      );
 
       await expect(
         uploader2.uploadFiles(startUploadResponse, uploads, "jobName")
@@ -143,12 +166,14 @@ describe("Uploader", () => {
     });
 
     it("Replaces the default mount point with the new mount point if specified", async () => {
+      const postMessageStub = fakeSuccessfulCopy();
       uploader.mountPoint = differentTargetDir;
       await uploader.uploadFiles(startUploadResponse, uploads, "jobName");
-      expect(await exists(targetFile1)).to.be.false;
-      expect(await exists(targetFile2)).to.be.false;
-      expect(await exists(differentTargetFile1)).to.be.true;
-      expect(await exists(differentTargetFile2)).to.be.true;
+      expect(
+        postMessageStub.calledWith(
+          match.array.contains([differentTargetFile1, differentTargetFile2])
+        )
+      );
     });
   });
 
@@ -199,6 +224,7 @@ describe("Uploader", () => {
     // it("Retries upload if failed upload job provided", () => {});
     // it("Runs upload if waiting upload job provided", () => {});
     it("Does not create new jobs", async () => {
+      fakeSuccessfulCopy();
       await uploader.retryUpload(uploads, mockRetryableUploadJob);
       expect(updateJobStub).to.have.been.calledWithMatch("uploadJobId", {
         status: "RETRYING",
@@ -207,6 +233,7 @@ describe("Uploader", () => {
       expect(getJobsStub.called).to.be.true;
     });
     it("Creates new upload child jobs if uploadJob.childIds is not defined", async () => {
+      fakeSuccessfulCopy();
       await uploader.retryUpload(uploads, {
         ...mockRetryableUploadJob,
         childIds: undefined,
@@ -227,7 +254,12 @@ describe("Uploader", () => {
         .onSecondCall()
         .resolves([mockCopyJobChild1]);
       jobStatusClient.getJobs = getJobsStub;
-      const uploader2 = new Uploader(fss, jobStatusClient, logger);
+      const uploader2 = new Uploader(
+        stub().returns(copyWorkerStub),
+        fss,
+        jobStatusClient,
+        logger
+      );
       return expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
       ).to.be.rejectedWith(Error);
@@ -250,7 +282,12 @@ describe("Uploader", () => {
         .onSecondCall()
         .resolves([mockCopyJobChild1, mockCopyJobChild2]);
       jobStatusClient.getJobs = getJobsStub;
-      const uploader2 = new Uploader(fss, jobStatusClient, logger);
+      const uploader2 = new Uploader(
+        stub().returns(copyWorkerStub),
+        fss,
+        jobStatusClient,
+        logger
+      );
       return expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
       ).to.be.rejectedWith(Error);
@@ -273,7 +310,11 @@ describe("Uploader", () => {
         .onSecondCall()
         .resolves([mockCopyJobChild1]);
       jobStatusClient.getJobs = getJobsStub;
-      const uploader2 = new Uploader(fss, jobStatusClient);
+      const uploader2 = new Uploader(
+        stub().returns(copyWorkerStub),
+        fss,
+        jobStatusClient
+      );
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
       ).to.be.rejectedWith("Could not find the parent copy job.");
@@ -305,18 +346,14 @@ describe("Uploader", () => {
           },
         ]);
       jobStatusClient.getJobs = getJobsStub;
-      const uploader2 = new Uploader(fss, jobStatusClient);
+      const uploader2 = new Uploader(
+        stub().returns(copyWorkerStub),
+        fss,
+        jobStatusClient
+      );
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
       ).to.be.rejectedWith(Error);
     });
-  });
-  it("Replaces the default mount point with the new mount point if specified", async () => {
-    uploader.mountPoint = differentTargetDir;
-    await uploader.retryUpload(uploads, mockRetryableUploadJob);
-    expect(await exists(targetFile1)).to.be.false;
-    expect(await exists(targetFile2)).to.be.false;
-    expect(await exists(differentTargetFile1)).to.be.true;
-    expect(await exists(differentTargetFile2)).to.be.true;
   });
 });

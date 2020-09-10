@@ -1,5 +1,7 @@
 import * as path from "path";
 
+import { stub } from "sinon";
+
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import { FSSConnection, LabKeyConnection, MMSConnection } from "../connections";
@@ -49,7 +51,7 @@ export const uploads: Uploads = {
 export const sourceFiles: SourceFiles = {
   [upload1]: {
     fileName: "mock-file.txt",
-    md5hex: "6f5902ac237024bdd0c176cb93063dc4",
+    md5hex: "somemd5",
     fileType: "other",
     metadata: {
       ...metadata1,
@@ -65,7 +67,7 @@ export const sourceFiles: SourceFiles = {
   },
   [upload2]: {
     fileName: "mock-file2.txt",
-    md5hex: "250875675c980821315d6be07e55aea4",
+    md5hex: "somemd5",
     fileType: "other",
     metadata: {
       ...metadata2,
@@ -212,4 +214,10 @@ export const mockCustomFileMetadata: CustomFileMetadata = {
   fileId: "abc123",
   modified: "sometime",
   modifiedBy: "somebody",
+};
+
+export const copyWorkerStub = {
+  onmessage: stub(),
+  onerror: stub(),
+  postMessage: stub(),
 };

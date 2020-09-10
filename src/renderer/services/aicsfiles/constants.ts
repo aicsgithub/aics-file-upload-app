@@ -10,6 +10,10 @@ export const FILE_METADATA = "filemetadata";
 export const FMS = "FMS";
 export const UPLOADER = "uploader";
 
+// Worker constants
+export const UPLOAD_WORKER_SUCCEEDED = "worker-success";
+export const UPLOAD_WORKER_ON_PROGRESS = "upload-progress";
+
 // Misc.
 export const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 export const AICSFILES_LOGGER = "aicsfiles";

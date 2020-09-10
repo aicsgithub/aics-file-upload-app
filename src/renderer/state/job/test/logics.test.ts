@@ -10,7 +10,6 @@ import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
-import { UPLOAD_WORKER_SUCCEEDED } from "../../constants";
 import {
   setErrorAlert,
   setInfoAlert,
@@ -151,7 +150,6 @@ describe("Job logics", () => {
   describe("handleAbandonedJobsLogic", () => {
     let jssStub: SinonStubbedInstance<JobStatusClient>;
     let fmsStub: SinonStubbedInstance<FileManagementSystem>;
-    let workerStub: any;
     let logicDeps: ReduxLogicDependencies;
 
     beforeEach(() => {
@@ -161,21 +159,12 @@ describe("Job logics", () => {
       stub(fmsStub, "host").get(() => "test_host");
       stub(fmsStub, "port").get(() => "test_port");
       stub(fmsStub, "username").get(() => "test_username");
-      // `Worker` is not defined in the Node environment where these tests run,
-      // so we'll make our own mock.
-      workerStub = {
-        // `onmessage` and `onerror` will be overwritten in the actual logic
-        onmessage: (e: any) => e,
-        onerror: (e: any) => e,
-        postMessage: stub(),
-      };
 
       logicDeps = {
         ...mockReduxLogicDeps,
         // Assert that the stubs are of the correct types
         jssClient: (jssStub as unknown) as JobStatusClient,
         fms: (fmsStub as unknown) as FileManagementSystem,
-        getRetryUploadWorker: stub().returns(workerStub),
       };
     });
 
@@ -222,12 +211,7 @@ describe("Job logics", () => {
         .resolves([]);
 
       fmsStub.failUpload.onFirstCall().resolves([abandonedJob]);
-
-      workerStub.postMessage
-        .onFirstCall()
-        .callsFake(() =>
-          workerStub.onmessage({ data: UPLOAD_WORKER_SUCCEEDED })
-        );
+      fmsStub.retryUpload.resolves();
 
       store.dispatch(handleAbandonedJobs());
 
@@ -240,7 +224,6 @@ describe("Job logics", () => {
         ),
         setSuccessAlert('Retry for upload "abandoned_job" succeeded!'),
       ]);
-      expect(workerStub.postMessage).to.have.been.calledOnce;
     });
 
     it("finds and retries one abandoned job with children", async () => {
@@ -276,11 +259,7 @@ describe("Job logics", () => {
 
       fmsStub.failUpload.onFirstCall().resolves([abandonedJob]);
 
-      workerStub.postMessage
-        .onFirstCall()
-        .callsFake(() =>
-          workerStub.onmessage({ data: UPLOAD_WORKER_SUCCEEDED })
-        );
+      fmsStub.retryUpload.resolves();
 
       store.dispatch(handleAbandonedJobs());
 
@@ -293,7 +272,6 @@ describe("Job logics", () => {
         ),
         setSuccessAlert('Retry for upload "abandoned_job" succeeded!'),
       ]);
-      expect(workerStub.postMessage).to.have.been.calledOnce;
     });
 
     it("encounters an error while querying", async () => {
@@ -317,7 +295,7 @@ describe("Job logics", () => {
       expect(jssStub.getJobs).to.have.been.calledOnce;
     });
 
-    it("encounters an error in the worker", async () => {
+    it("dispatches setErrorAlert if fms.retryUpload fails", async () => {
       const {
         actions,
         logicMiddleware,
@@ -342,10 +320,7 @@ describe("Job logics", () => {
         .resolves([]);
 
       fmsStub.failUpload.onFirstCall().resolves([abandonedJob]);
-
-      workerStub.postMessage
-        .onFirstCall()
-        .callsFake(() => workerStub.onerror({ message: "Error in worker" }));
+      fmsStub.retryUpload.rejects(new Error("Error in worker"));
 
       store.dispatch(handleAbandonedJobs());
 
@@ -360,7 +335,6 @@ describe("Job logics", () => {
           'Retry for upload "abandoned_job" failed: Error in worker'
         ),
       ]);
-      expect(workerStub.postMessage).to.have.been.calledOnce;
     });
   });
 });

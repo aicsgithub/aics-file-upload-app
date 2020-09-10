@@ -6,5 +6,5 @@ export const IN_PROGRESS_STATUSES = [
   "WAITING",
   "BLOCKED",
 ];
-export const UPLOAD_WORKER_SUCCEEDED = "worker-success";
-export const UPLOAD_WORKER_ON_PROGRESS = "upload-progress";
+// Minimum amount of time between reports from the copy worker on how much has been copied
+export const COPY_PROGRESS_THROTTLE_MS = 2000;

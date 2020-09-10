@@ -37,10 +37,7 @@ import {
   splitTrimAndFilter,
 } from "../../util";
 import { requestFailed } from "../actions";
-import {
-  UPLOAD_WORKER_SUCCEEDED,
-  UPLOAD_WORKER_ON_PROGRESS,
-} from "../constants";
+import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import { setAlert, setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
@@ -78,13 +75,12 @@ import {
   ReduxLogicTransformDependenciesWithAction,
   UploadFile,
   UploadMetadata,
+  UploadProgressInfo,
   UploadRowId,
   UploadStateBranch,
   UploadSummaryTableRow,
-  Logger,
-  UploadProgressInfo,
 } from "../types";
-import { batchActions } from "../util";
+import { batchActions, handleUploadProgress } from "../util";
 
 import {
   cancelUploadFailed,
@@ -275,32 +271,6 @@ const applyTemplateLogic = createLogic({
   type: APPLY_TEMPLATE,
 });
 
-const handleUploadProgressUpdate = (
-  e: MessageEvent,
-  logger: Logger,
-  dispatch: ReduxLogicNextCb,
-  jobId: string
-) => {
-  logger.info(e.data);
-  const info = e.data.split(":");
-  // worker messages for uploads will look like "upload-progress:111:223" where upload-progress
-  // tells us what kind of message this is, 111 is the number of copied bytes and 223 is the total number
-  // of bytes to copy for a batch of files
-  if (info.length === 3) {
-    try {
-      const progress: UploadProgressInfo = {
-        completedBytes: parseInt(info[1], 10),
-        totalBytes: parseInt(info[2]),
-      };
-      dispatch(updateUploadProgressInfo(jobId, progress));
-    } catch (e) {
-      logger.error("Could not parse JSON progress info", e);
-    }
-  } else {
-    logger.error("progress info contains insufficient amount of information");
-  }
-};
-
 const initiateUploadLogic = createLogic({
   process: async (
     {
@@ -308,7 +278,6 @@ const initiateUploadLogic = createLogic({
       fms,
       getApplicationMenu,
       getState,
-      getUploadWorker,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<InitiateUploadAction>,
     dispatch: ReduxLogicNextCb,
@@ -357,30 +326,29 @@ const initiateUploadLogic = createLogic({
       );
       dispatch(batchActions(actions));
     }
-    const worker = getUploadWorker();
-    worker.onmessage = (e: MessageEvent) => {
-      const lowerCaseMessage: string = (e.data || "").toLowerCase();
-      if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
-        dispatch(
-          uploadSucceeded(
-            jobName,
-            startUploadResponse.jobId,
-            getIncompleteJobIds(getState())
-          )
-        );
-        done();
-      } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
-        handleUploadProgressUpdate(
-          e,
-          logger,
-          dispatch,
-          startUploadResponse.jobId
-        );
-      } else {
-        logger.info(e.data);
-      }
-    };
-    worker.onerror = (e: ErrorEvent) => {
+    try {
+      await fms.uploadFiles(
+        startUploadResponse,
+        payload,
+        jobName,
+        handleUploadProgress(
+          Object.keys(payload),
+          (progress: UploadProgressInfo) =>
+            dispatch(
+              updateUploadProgressInfo(startUploadResponse.jobId, progress)
+            )
+        ),
+        COPY_PROGRESS_THROTTLE_MS
+      );
+      dispatch(
+        uploadSucceeded(
+          jobName,
+          startUploadResponse.jobId,
+          getIncompleteJobIds(getState())
+        )
+      );
+      done();
+    } catch (e) {
       const error = `Upload ${jobName} failed: ${e.message}`;
       logger.error(`Upload failed`, e);
       dispatch(
@@ -392,15 +360,7 @@ const initiateUploadLogic = createLogic({
         )
       );
       done();
-    };
-    worker.postMessage([
-      startUploadResponse,
-      payload,
-      jobName,
-      fms.host,
-      fms.port,
-      fms.username,
-    ]);
+    }
   },
   type: INITIATE_UPLOAD,
   validate: (
@@ -499,11 +459,10 @@ const cancelUploadLogic = createLogic({
 });
 
 const retryUploadLogic = createLogic({
-  process: (
+  process: async (
     {
       action,
       fms,
-      getRetryUploadWorker,
       getState,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<RetryUploadAction>,
@@ -511,39 +470,30 @@ const retryUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
-    const worker = getRetryUploadWorker();
-    worker.onmessage = (e: MessageEvent) => {
-      const lowerCaseMessage = e?.data.toLowerCase();
-      if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
-        logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
-        dispatch(
-          retryUploadSucceeded(uploadJob, getIncompleteJobIds(getState()))
-        );
-        done();
-      } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
-        handleUploadProgressUpdate(e, logger, dispatch, uploadJob.jobId);
-      } else {
-        logger.info(e.data);
-      }
-    };
-    worker.onerror = (e: ErrorEvent) => {
+    const fileNames = uploadJob.serviceFields.files.map(
+      ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
+    );
+    try {
+      await fms.retryUpload(
+        uploadJob,
+        handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
+          dispatch(updateUploadProgressInfo(uploadJob.jobId, progress))
+        ),
+        COPY_PROGRESS_THROTTLE_MS
+      );
+      logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
+      dispatch(
+        retryUploadSucceeded(uploadJob, getIncompleteJobIds(getState()))
+      );
+      done();
+    } catch (e) {
       const error = `Retry upload ${uploadJob.jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
       dispatch(
         retryUploadFailed(uploadJob, error, getIncompleteJobIds(getState()))
       );
       done();
-    };
-    const fileNames = uploadJob.serviceFields.files.map(
-      ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
-    );
-    worker.postMessage([
-      uploadJob,
-      fileNames,
-      fms.host,
-      fms.port,
-      fms.username,
-    ]);
+    }
   },
   validate: (
     { action }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,

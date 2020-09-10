@@ -75,8 +75,15 @@ export const storage: LocalStorageStub = {
   reset: stub(),
   set: stub(),
 };
-
-export const fms = new FileManagementSystem({ host, port });
+export const fms = new FileManagementSystem({
+  getCopyWorker: stub().returns({
+    postMessage: stub(),
+    onerror: stub(),
+    onmessage: stub(),
+  }),
+  host,
+  port,
+});
 export const jssClient = new JobStatusClient({ host, port, username });
 export const labkeyClient = new LabkeyClient({
   host,
