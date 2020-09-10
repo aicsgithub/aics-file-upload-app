@@ -1,4 +1,4 @@
-import { exists as fsExists, mkdir as fsMkdir } from "fs";
+import { mkdir as fsMkdir } from "fs";
 import * as path from "path";
 import { promisify } from "util";
 
@@ -17,7 +17,6 @@ import {
 } from "../uploader";
 
 import {
-  copyWorkerStub,
   fss,
   jobStatusClient,
   mockCompleteUploadJob,
@@ -31,15 +30,12 @@ import {
   resultFiles,
   startUploadResponse,
   targetDir,
-  targetFile1,
-  targetFile2,
   upload1,
   upload2,
   uploadJobId,
   uploads,
 } from "./mocks";
 
-const exists = promisify(fsExists);
 const mkdir = promisify(fsMkdir);
 
 export const differentTargetDir = path.resolve("./aics");
@@ -59,10 +55,20 @@ describe("Uploader", () => {
     getJobsStub: SinonStub;
   const uploadJobName = "Upload job name";
   let logger: ILogger;
+  let copyWorkerStub: {
+    postMessage: SinonStub;
+    onmessage: SinonStub;
+    onerror: SinonStub;
+  };
 
   beforeEach(async () => {
     await mkdir(targetDir);
     await mkdir(differentTargetDir);
+    copyWorkerStub = {
+      onmessage: stub(),
+      onerror: stub(),
+      postMessage: stub(),
+    };
     updateJobStub = stub().resolves();
     createJobStub = stub().resolves();
     getJobsStub = stub()
@@ -151,6 +157,7 @@ describe("Uploader", () => {
     });
 
     it("Doesn't start copying files if creating upload jobs fails", async () => {
+      expect(copyWorkerStub.postMessage.called).to.be.false;
       jobStatusClient.createJob = stub().rejects();
       const uploader2 = new Uploader(
         stub().returns(copyWorkerStub),
@@ -161,8 +168,7 @@ describe("Uploader", () => {
       await expect(
         uploader2.uploadFiles(startUploadResponse, uploads, "jobName")
       ).to.be.rejectedWith("Failed to create child upload job");
-      await expect(exists(targetFile1)).to.eventually.be.false;
-      await expect(exists(targetFile2)).to.eventually.be.false;
+      expect(copyWorkerStub.postMessage.called).to.be.false;
     });
 
     it("Replaces the default mount point with the new mount point if specified", async () => {
