@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Store } from "redux";
-import { createSandbox, SinonSpy, spy, stub } from "sinon";
+import { createSandbox, stub } from "sinon";
 import * as sinon from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
@@ -38,13 +38,7 @@ describe("Setting logics", () => {
   const stagingHost = "staging";
   const sandbox = createSandbox();
 
-  let fmsMountPointSetterSpy: SinonSpy;
-
   beforeEach(() => {
-    fmsMountPointSetterSpy = spy();
-
-    const { fms } = mockReduxLogicDeps;
-
     const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
     const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
     const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
@@ -66,7 +60,6 @@ describe("Setting logics", () => {
     sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
     sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
     sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
-    sandbox.replace(fms, "setMountPoint", fmsMountPointSetterSpy);
   });
 
   afterEach(() => {
@@ -96,17 +89,6 @@ describe("Setting logics", () => {
 
       // after
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
-    });
-
-    it("sets mount point on FMS", () => {
-      // before
-      expect(fmsMountPointSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(updateSettings({ mountPoint: "/test/aics" }));
-
-      // after
-      expect(fmsMountPointSetterSpy.called).to.be.true;
     });
 
     it("sets template id in settings", () => {

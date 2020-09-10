@@ -92,6 +92,7 @@ export const reduxLogicDependencies = {
     labkeyClient,
     logLevel: "trace",
     mmsClient,
+    storage,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   ipcRenderer,

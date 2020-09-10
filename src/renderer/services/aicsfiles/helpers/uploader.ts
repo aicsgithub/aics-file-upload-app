@@ -8,6 +8,8 @@ import { ILogger } from "js-logger/src/types";
 import { includes, keys, noop, pick } from "lodash";
 import * as uuid from "uuid";
 
+import { USER_SETTINGS_KEY } from "../../../../shared/constants";
+import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import {
   CreateJobRequest,
@@ -54,32 +56,47 @@ const getUUID = (): string => {
 export class Uploader {
   private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
-  private readonly username: string = userInfo().username;
+  private readonly storage: LocalStorage;
   private readonly logger: ILogger;
-  private readonly defaultJobInfo = {
-    currentHost: hostname(),
-    originationHost: hostname(),
-    service: "aicsfiles-js",
-    status: "WAITING" as JSSJobStatus,
-    updateParent: true,
-    user: this.username,
-  };
+
   private readonly getCopyWorker: () => Worker;
-  public defaultMountPoint = "/allen/aics"; // leaving this editable for testing purposes
-  public mountPoint: string = makePosixPathCompatibleWithPlatform(
-    this.defaultMountPoint,
-    platform()
-  );
+  private readonly defaultMountPoint = "/allen/aics";
+
+  private get defaultJobInfo() {
+    return {
+      currentHost: hostname(),
+      originationHost: hostname(),
+      service: "aicsfiles-js",
+      status: "WAITING" as JSSJobStatus,
+      updateParent: true,
+      user: this.username,
+    };
+  }
+
+  private get mountPoint() {
+    const userSettings = this.storage.get(USER_SETTINGS_KEY);
+    return makePosixPathCompatibleWithPlatform(
+      userSettings?.mountPoint || this.defaultMountPoint,
+      platform()
+    );
+  }
+
+  private get username() {
+    const userSettings = this.storage.get(USER_SETTINGS_KEY);
+    return userSettings?.username || userInfo().username;
+  }
 
   public constructor(
     getCopyWorker: () => Worker,
     fss: FSSClient,
     jobStatusClient: JobStatusClient,
+    storage: LocalStorage,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
   ) {
     this.getCopyWorker = getCopyWorker;
     this.fss = fss;
     this.jss = jobStatusClient;
+    this.storage = storage;
     this.logger = logger;
   }
 

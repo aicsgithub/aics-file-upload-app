@@ -33,8 +33,8 @@ import {
 } from "./selectors";
 
 export const updateSettingsLogic = createLogic({
-  process: async (
-    { ctx, fms, getState }: ReduxLogicProcessDependencies,
+  process: (
+    { ctx, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -51,22 +51,12 @@ export const updateSettingsLogic = createLogic({
     }
 
     if (mountPoint && mountPoint !== ctx.mountPoint) {
-      try {
-        await fms.setMountPoint(mountPoint);
-        dispatch(
-          setAlert({
-            message: "Mount point successfully set and saved to your settings",
-            type: AlertType.SUCCESS,
-          })
-        );
-      } catch (e) {
-        dispatch(
-          setAlert({
-            message: e.message || "Could not set mount point",
-            type: AlertType.ERROR,
-          })
-        );
-      }
+      dispatch(
+        setAlert({
+          message: "Mount point successfully set and saved to your settings",
+          type: AlertType.SUCCESS,
+        })
+      );
     }
 
     done();
@@ -157,7 +147,7 @@ const setMountPointLogic = createLogic({
       properties: ["openDirectory"],
       title: "Browse to the folder that is mounted to /allen/aics",
     });
-    if (folders?.length) {
+    if (folders?.length > 0) {
       const folder = basename(folders[0]);
       if (folder !== "aics") {
         dispatch(

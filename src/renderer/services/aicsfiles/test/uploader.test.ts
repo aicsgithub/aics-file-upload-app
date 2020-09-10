@@ -8,6 +8,7 @@ import { ILogger } from "js-logger/src/types";
 import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
+import { LocalStorage } from "../../../types";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import {
   ADD_METADATA_TYPE,
@@ -29,6 +30,7 @@ import {
   responseFile2,
   resultFiles,
   startUploadResponse,
+  storage,
   targetDir,
   upload1,
   upload2,
@@ -95,10 +97,9 @@ describe("Uploader", () => {
       stub().returns(copyWorkerStub),
       fss,
       jobStatusClient,
+      (storage as any) as LocalStorage,
       logger
     );
-    uploader.defaultMountPoint = targetDir;
-    uploader.mountPoint = targetDir;
   });
 
   afterEach(() => {
@@ -162,7 +163,8 @@ describe("Uploader", () => {
       const uploader2 = new Uploader(
         stub().returns(copyWorkerStub),
         fss,
-        jobStatusClient
+        jobStatusClient,
+        (storage as any) as LocalStorage
       );
 
       await expect(
@@ -173,7 +175,13 @@ describe("Uploader", () => {
 
     it("Replaces the default mount point with the new mount point if specified", async () => {
       const postMessageStub = fakeSuccessfulCopy();
-      uploader.mountPoint = differentTargetDir;
+      sandbox.replace(
+        storage,
+        "get",
+        stub().returns({
+          mountPoint: differentTargetDir,
+        })
+      );
       await uploader.uploadFiles(startUploadResponse, uploads, "jobName");
       expect(
         postMessageStub.calledWith(
@@ -264,6 +272,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
+        (storage as any) as LocalStorage,
         logger
       );
       return expect(
@@ -292,6 +301,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
+        (storage as any) as LocalStorage,
         logger
       );
       return expect(
@@ -319,7 +329,8 @@ describe("Uploader", () => {
       const uploader2 = new Uploader(
         stub().returns(copyWorkerStub),
         fss,
-        jobStatusClient
+        jobStatusClient,
+        (storage as any) as LocalStorage
       );
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
@@ -355,7 +366,8 @@ describe("Uploader", () => {
       const uploader2 = new Uploader(
         stub().returns(copyWorkerStub),
         fss,
-        jobStatusClient
+        jobStatusClient,
+        (storage as any) as LocalStorage
       );
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)

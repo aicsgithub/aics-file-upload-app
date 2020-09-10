@@ -117,6 +117,7 @@ export const fms = new FileManagementSystem({
   jobStatusClient: jssClient,
   labkeyClient,
   mmsClient,
+  storage: (storage as any) as LocalStorage,
 });
 
 export const switchEnvMenuItem = {

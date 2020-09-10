@@ -1,10 +1,7 @@
-import { exists as fsExists, mkdir as fsMkdir } from "fs";
 import * as path from "path";
-import { promisify } from "util";
 
 import { expect } from "chai";
 import * as Logger from "js-logger";
-import * as rimraf from "rimraf";
 import {
   createSandbox,
   createStubInstance,
@@ -17,6 +14,7 @@ import {
   labkeyClient,
   mmsClient,
 } from "../../../state/test/configure-mock-store";
+import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
@@ -38,16 +36,13 @@ import {
   metadata2,
   mockRetryableUploadJob,
   startUploadResponse,
-  targetDir,
   upload1,
   upload2,
   uploads,
   mockJob,
   copyWorkerStub,
+  storage,
 } from "./mocks";
-
-const exists = promisify(fsExists);
-const mkdir = promisify(fsMkdir);
 
 export const differentTargetDir = path.resolve("./aics");
 
@@ -58,56 +53,17 @@ describe("FileManagementSystem", () => {
   beforeEach(() => {
     const logger = Logger.get("test");
     sandbox.replace(logger, "error", stub());
-    uploader = new Uploader(getCopyWorkerStub, fss, jobStatusClient, logger);
+    uploader = new Uploader(
+      getCopyWorkerStub,
+      fss,
+      jobStatusClient,
+      (storage as any) as LocalStorage,
+      logger
+    );
   });
 
   afterEach(() => {
     sandbox.restore();
-  });
-
-  describe("setMountPoint", () => {
-    beforeEach(async () => {
-      if (!(await exists(targetDir))) {
-        await mkdir(targetDir);
-      }
-
-      if (!(await exists(differentTargetDir))) {
-        await mkdir(differentTargetDir);
-      }
-    });
-
-    afterEach(() => {
-      rimraf.sync(targetDir);
-      rimraf.sync(differentTargetDir);
-    });
-
-    const fms = new FileManagementSystem({
-      fssClient: (fssClient as any) as FSSClient,
-      getCopyWorker: getCopyWorkerStub,
-      jobStatusClient,
-      labkeyClient,
-      mmsClient,
-    });
-    it("Throws an error if mount point is an empty string", () => {
-      expect(fms.setMountPoint("")).to.be.rejectedWith(Error);
-    });
-    it("Throws an error if mount point is a string with no characters", () => {
-      expect(fms.setMountPoint("  ")).to.be.rejectedWith(Error);
-    });
-    it("Throws an error if mount point is not a directory", () => {
-      expect(fms.setMountPoint("/does/not/exist")).to.be.rejectedWith(Error);
-    });
-    it("Throws an error if mount point is not a directory named aics", () => {
-      expect(fms.setMountPoint(targetDir)).to.be.rejectedWith(Error);
-    });
-    it("Trims trailing forward slash", async () => {
-      await fms.setMountPoint(differentTargetDir + "/");
-      expect(fms.mountPoint).to.equal(differentTargetDir);
-    });
-    it("Trims trailing back slash", async () => {
-      await fms.setMountPoint(differentTargetDir + "\\");
-      expect(fms.mountPoint).to.equal(differentTargetDir);
-    });
   });
 
   describe("validateMetadataAndGetUploadDirectory", () => {
@@ -117,6 +73,7 @@ describe("FileManagementSystem", () => {
       jobStatusClient,
       labkeyClient,
       mmsClient,
+      storage: (storage as any) as LocalStorage,
     });
     const goodMetadata = {
       [upload1]: {
@@ -191,20 +148,18 @@ describe("FileManagementSystem", () => {
     });
 
     it("Throws error if it cannot get a start upload response from FSS", () => {
-      const fssStub = {
-        startUpload: stub().rejects(),
-      };
-      sandbox.replace(fms, "fss", (fssStub as any) as FSSClient);
+      sandbox.replace(fssClient, "startUpload", stub().rejects(new Error()));
       expect(
         fms.validateMetadataAndGetUploadDirectory(goodMetadata, "test_job_name")
       ).to.be.rejectedWith(Error);
     });
 
     it("Returns response from FSS if OK", async () => {
-      const fssStub = {
-        startUpload: stub().resolves(startUploadResponse),
-      };
-      sandbox.replace(fms, "fss", (fssStub as any) as FSSClient);
+      sandbox.replace(
+        fssClient,
+        "startUpload",
+        stub().resolves(startUploadResponse)
+      );
       expect(
         await fms.validateMetadataAndGetUploadDirectory(
           goodMetadata,
@@ -238,6 +193,7 @@ describe("FileManagementSystem", () => {
         fssClient: fss,
         jobStatusClient,
         labkeyClient,
+        storage: (storage as any) as LocalStorage,
         uploader,
         mmsClient,
       });
@@ -259,6 +215,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
       expect(
         fms.uploadFiles(startUploadResponse, uploads, "anything")
@@ -282,6 +239,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
       expect(
         fms.retryUpload({
@@ -305,6 +263,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -330,6 +289,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
       await fms.retryUpload(mockRetryableUploadJob);
       expect(retryUploadStub.getCall(0).args[0]).to.deep.equal(uploads);
@@ -348,6 +308,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
       expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(Error);
     });
@@ -372,6 +333,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -395,10 +357,9 @@ describe("FileManagementSystem", () => {
         fssClient: fss,
         labkeyClient,
         uploader,
-        // Assert that the stub is of the correct type when calling the
-        // constructor
-        jobStatusClient: (jssStub as unknown) as JobStatusClient,
+        jobStatusClient: (jssStub as any) as JobStatusClient,
         mmsClient,
+        storage: (storage as any) as LocalStorage,
       });
     });
 

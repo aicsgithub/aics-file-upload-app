@@ -1,12 +1,12 @@
-import { exists as fsExists, stat as fsStat, Stats } from "fs";
+import { exists as fsExists } from "fs";
 import * as path from "path";
-import { basename } from "path";
 import { promisify } from "util";
 
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
-import { isEmpty, noop, trim } from "lodash";
+import { isEmpty, noop } from "lodash";
 
+import { LocalStorage } from "../../types";
 import { LabkeyClient } from "../index";
 import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
@@ -52,6 +52,8 @@ export interface FileManagementSystemConfig {
   // Client for interacting with MMS
   mmsClient: MMSClient;
 
+  storage: LocalStorage;
+
   // Uploads files. Only useful for testing.
   uploader?: Uploader;
 }
@@ -73,7 +75,6 @@ export const getOriginalPathPropertyDoesntMatch = (
 ): string =>
   `metadata for file ${fullpath} has property file.originalPath set to ${originalPath} which doesn't match ${fullpath}`;
 const exists = promisify(fsExists);
-const stat = promisify(fsStat);
 
 const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   debug: Logger.DEBUG,
@@ -85,14 +86,12 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
 
 // Main class exported from library for interacting with the uploader
 export class FileManagementSystem {
-  public readonly fss: FSSClient;
-  public readonly mms: MMSClient;
-  public readonly lk: LabkeyClient;
-  public readonly jobStatusClient: JobStatusClient;
+  private readonly fss: FSSClient;
+  private readonly lk: LabkeyClient;
+  private readonly jobStatusClient: JobStatusClient;
   private readonly logger: ILogger;
-  public readonly uploader: Uploader;
-  public readonly customMetadataQuerier: CustomMetadataQuerier;
-  public readonly getCopyWorker: () => Worker;
+  private readonly uploader: Uploader;
+  private readonly customMetadataQuerier: CustomMetadataQuerier;
 
   /*
         This returns the shared FileMetadata between the two given FileMetadata objects
@@ -108,27 +107,6 @@ export class FileManagementSystem {
     return CustomMetadataQuerier.innerJoinResults(fileMetadata1, fileMetadata2);
   }
 
-  public get mountPoint(): string {
-    return this.uploader.mountPoint;
-  }
-
-  public setMountPoint = async (mountPoint: string): Promise<void> => {
-    mountPoint = mountPoint.replace(/(\/|\\)$/, "");
-
-    if (!mountPoint || !trim(mountPoint)) {
-      throw new Error("Mount point cannot be empty");
-    } else if (basename(mountPoint) !== "aics") {
-      throw new Error("Mount point directory must be named aics");
-    }
-
-    const stats: Stats = await stat(mountPoint);
-    if (!stats.isDirectory()) {
-      throw new Error("Mount point is not a directory");
-    }
-
-    this.uploader.mountPoint = mountPoint;
-  };
-
   public constructor(config: FileManagementSystemConfig) {
     const {
       jobStatusClient,
@@ -137,21 +115,21 @@ export class FileManagementSystem {
       labkeyClient,
       logger,
       mmsClient,
+      storage,
       uploader,
     } = config;
     const { logLevel = "error" } = config;
 
-    this.getCopyWorker = getCopyWorker;
     this.jobStatusClient = jobStatusClient;
     this.lk = labkeyClient;
     this.uploader =
-      uploader || new Uploader(getCopyWorker, fssClient, jobStatusClient);
+      uploader ||
+      new Uploader(getCopyWorker, fssClient, jobStatusClient, storage);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = logger || Logger.get(AICSFILES_LOGGER);
 
     this.fss = fssClient;
-    this.mms = mmsClient;
     this.customMetadataQuerier = new CustomMetadataQuerier(
       mmsClient,
       this.lk,
