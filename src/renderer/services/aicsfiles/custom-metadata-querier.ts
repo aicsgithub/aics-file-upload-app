@@ -1,7 +1,9 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
 
-import { LabKeyConnection, MMSConnection } from "./connections";
+import MMSClient from "../mms-client";
+
+import { LabKeyConnection } from "./connections";
 import { FILE_METADATA, FMS, UPLOADER } from "./constants";
 import {
   CustomFileMetadata,
@@ -45,7 +47,7 @@ interface AnnotationLookup {
  */
 export class CustomMetadataQuerier {
   private readonly logger: ILogger;
-  public readonly mms: MMSConnection;
+  private readonly mms: MMSClient;
   public readonly lk: LabKeyConnection;
 
   /*
@@ -73,7 +75,7 @@ export class CustomMetadataQuerier {
   }
 
   public constructor(
-    mms: MMSConnection,
+    mms: MMSClient,
     labkeyClient: LabKeyConnection,
     logger: ILogger
   ) {
@@ -125,7 +127,7 @@ export class CustomMetadataQuerier {
   }
 
   // Returns MMS GET File Metadata Response for given FileId
-  public async queryByFileId(fileId: string): Promise<FileMetadata> {
+  public queryByFileId = async (fileId: string): Promise<FileMetadata> => {
     const [labkeyFileMetadata, customFileMetadata] = await Promise.all([
       this.lk.selectFirst(FMS, "File", RELEVANT_FILE_COLUMNS, [
         createFilter("FileId", fileId),
@@ -136,10 +138,12 @@ export class CustomMetadataQuerier {
       ...labkeyFileMetadata,
       ...customFileMetadata,
     };
-  }
+  };
 
   // Returns MMS GET File Metadata Response for given FileIds
-  public async queryByFileIds(fileIds: string[]): Promise<FileToFileMetadata> {
+  public queryByFileIds = async (
+    fileIds: string[]
+  ): Promise<FileToFileMetadata> => {
     // Naive implementation to get us going
     const resolvedPromises = await Promise.all(
       fileIds.map((fileId) => this.queryByFileId(fileId))
@@ -155,7 +159,7 @@ export class CustomMetadataQuerier {
       }),
       {}
     );
-  }
+  };
 
   /*
         This method queries for all files that were uploaded by the given user.

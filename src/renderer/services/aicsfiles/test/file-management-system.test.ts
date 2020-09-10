@@ -12,7 +12,11 @@ import {
   stub,
 } from "sinon";
 
-import { httpClient, storage } from "../../../state/test/configure-mock-store";
+import {
+  httpClient,
+  mmsClient,
+  storage,
+} from "../../../state/test/configure-mock-store";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
@@ -74,12 +78,8 @@ describe("FileManagementSystem", () => {
       expect(fms.port).to.equal(PORT);
       expect(fms.lk.host).to.equal(HOST);
       expect(fms.lk.port).to.equal(PORT);
-      expect(fms.mms.host).to.equal(HOST);
-      expect(fms.mms.port).to.equal(PORT);
       expect(fms.customMetadataQuerier.lk.host).to.equal(HOST);
       expect(fms.customMetadataQuerier.lk.port).to.equal(PORT);
-      expect(fms.customMetadataQuerier.mms.host).to.equal(HOST);
-      expect(fms.customMetadataQuerier.mms.port).to.equal(PORT);
     };
 
     it("uses host and port if provided", () => {
@@ -87,6 +87,7 @@ describe("FileManagementSystem", () => {
         getCopyWorker: getCopyWorkerStub,
         host: HOST,
         jobStatusClient,
+        mmsClient,
         port: PORT,
       });
     });
@@ -101,6 +102,7 @@ describe("FileManagementSystem", () => {
           httpClient,
           (storage as any) as LocalStorage
         ),
+        mmsClient,
       });
     });
 
@@ -115,6 +117,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader: new Uploader(getCopyWorkerStub, fss, jobStatusClient),
+        mmsClient,
       });
     });
 
@@ -126,6 +129,7 @@ describe("FileManagementSystem", () => {
           new FileManagementSystem({
             getCopyWorker: getCopyWorkerStub,
             jobStatusClient,
+            mmsClient,
           })
       ).to.throw();
     });
@@ -137,6 +141,7 @@ describe("FileManagementSystem", () => {
       host: "localhost",
       jobStatusClient,
       port: "80",
+      mmsClient,
     });
     it("sets fss ports", () => {
       fms.port = "90";
@@ -150,6 +155,7 @@ describe("FileManagementSystem", () => {
       host: "localhost",
       jobStatusClient,
       port: "80",
+      mmsClient,
     });
     it("sets fss hosts", () => {
       fms.host = "foo";
@@ -178,6 +184,7 @@ describe("FileManagementSystem", () => {
       host: "localhost",
       jobStatusClient,
       port: "80",
+      mmsClient,
     });
     it("Throws an error if mount point is an empty string", () => {
       expect(fms.setMountPoint("")).to.be.rejectedWith(Error);
@@ -207,6 +214,7 @@ describe("FileManagementSystem", () => {
       host: "localhost",
       jobStatusClient,
       port: "80",
+      mmsClient,
     });
     const goodMetadata = {
       [upload1]: {
@@ -328,6 +336,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
       await fms.uploadFiles(startUploadResponse, uploads, "anything");
       sandbox.assert.calledWith(
@@ -345,6 +354,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
       expect(
         fms.uploadFiles(startUploadResponse, uploads, "anything")
@@ -366,6 +376,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
       expect(
         fms.retryUpload({
@@ -387,6 +398,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -410,6 +422,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
       await fms.retryUpload(mockRetryableUploadJob);
       expect(retryUploadStub.getCall(0).args[0]).to.deep.equal(uploads);
@@ -426,6 +439,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
       expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(Error);
     });
@@ -448,6 +462,7 @@ describe("FileManagementSystem", () => {
         fss,
         jobStatusClient,
         uploader,
+        mmsClient,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -473,6 +488,7 @@ describe("FileManagementSystem", () => {
         // Assert that the stub is of the correct type when calling the
         // constructor
         jobStatusClient: (jssStub as unknown) as JobStatusClient,
+        mmsClient,
       });
     });
 

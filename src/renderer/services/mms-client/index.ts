@@ -1,9 +1,12 @@
 import { decamelizeKeys } from "humps";
 
 import { LocalStorage } from "../../types";
-import { UploadMetadata as AicsFilesUploadMetadata } from "../aicsfiles/types";
+import {
+  FileMetadata,
+  UploadMetadata as AicsFilesUploadMetadata,
+} from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
-import { HttpClient } from "../types";
+import { AicsSuccessResponse, HttpClient } from "../types";
 
 import {
   GetPlateResponse,
@@ -92,5 +95,11 @@ export default class MMSClient extends HttpCacheClient {
   ): Promise<void> {
     const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
     await this.delete(url, { deleteFile });
+  }
+
+  public async getFileMetadata(fileId: string): Promise<FileMetadata> {
+    const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
+    const response = await this.get<AicsSuccessResponse<FileMetadata>>(url);
+    return response.data[0];
   }
 }

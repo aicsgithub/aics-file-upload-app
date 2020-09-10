@@ -83,6 +83,7 @@ axios.defaults.adapter = require("axios/lib/adapters/xhr");
 const httpClient = axios;
 const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
 const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
+const mmsClient = new MMSClient(httpClient, storage, useCache);
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
@@ -93,6 +94,7 @@ export const reduxLogicDependencies = {
     host: LIMS_HOST,
     jobStatusClient: jssClient,
     logLevel: "trace",
+    mmsClient,
     port: LIMS_PORT,
     username,
   }),
@@ -101,7 +103,7 @@ export const reduxLogicDependencies = {
   jssClient,
   labkeyClient: new LabkeyClient(httpClient, storage, useCache),
   logger: Logger,
-  mmsClient: new MMSClient(httpClient, storage, useCache),
+  mmsClient,
   readFile,
   storage,
   writeFile,

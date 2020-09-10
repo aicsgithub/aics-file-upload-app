@@ -10,8 +10,9 @@ import { isEmpty, noop, trim } from "lodash";
 
 import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
+import MMSClient from "../mms-client";
 
-import { FSSConnection, LabKeyConnection, MMSConnection } from "./connections";
+import { FSSConnection, LabKeyConnection } from "./connections";
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
 import { CustomMetadataQuerier } from "./custom-metadata-querier";
 import { IllegalArgumentError, InvalidMetadataError } from "./errors";
@@ -33,9 +34,11 @@ export interface FileManagementSystemConfig {
   // getter function for creating a copy worker
   getCopyWorker: () => Worker;
 
+  // todo remove
   // Host that FSS is running on
   host?: string;
 
+  // todo remove
   // Port that FSS is running on
   port?: string;
 
@@ -45,6 +48,7 @@ export interface FileManagementSystemConfig {
   // Only useful for testing. If not specified, will use logLevel to create a logger.
   logger?: ILogger;
 
+  // todo make required
   // contains connection info for FSS. Only required if host/port not provided
   // FMS will use currently logged in user.
   // Only useful for testing.
@@ -53,9 +57,14 @@ export interface FileManagementSystemConfig {
   // Client for interacting with JSS.
   jobStatusClient: JobStatusClient;
 
+  // Client for interacting with MMS
+  mmsClient: MMSClient;
+
+  // todo update comment
   // Uploads files. Only required if host/port not provided. Only useful for testing.
   uploader?: Uploader;
 
+  // todo remove
   username?: string;
 }
 
@@ -89,7 +98,7 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
 // Main class exported from library for interacting with the uploader
 export class FileManagementSystem {
   public readonly fss: FSSConnection;
-  public readonly mms: MMSConnection;
+  public readonly mms: MMSClient;
   public readonly lk: LabKeyConnection;
   public readonly jobStatusClient: JobStatusClient;
   private readonly logger: ILogger;
@@ -117,7 +126,6 @@ export class FileManagementSystem {
 
   public set port(port: string) {
     this.lk.port = port;
-    this.mms.port = port;
     this.fss.port = port;
   }
 
@@ -127,7 +135,6 @@ export class FileManagementSystem {
 
   public set host(host: string) {
     this.lk.host = host;
-    this.mms.host = host;
     this.fss.host = host;
   }
 
@@ -137,7 +144,6 @@ export class FileManagementSystem {
 
   public set username(username: string) {
     this.fss.user = username;
-    this.mms.user = username;
   }
 
   public get mountPoint(): string {
@@ -166,6 +172,7 @@ export class FileManagementSystem {
       jobStatusClient,
       getCopyWorker,
       logger,
+      mmsClient,
       port = "80",
       username = userInfo().username,
     } = config;
@@ -200,10 +207,10 @@ export class FileManagementSystem {
     this.logger = logger || Logger.get(AICSFILES_LOGGER);
 
     this.fss = fss;
-    this.mms = new MMSConnection(fss.host, fss.port, fss.user);
+    this.mms = mmsClient;
     this.lk = new LabKeyConnection(fss.host, fss.port, fss.user);
     this.customMetadataQuerier = new CustomMetadataQuerier(
-      this.mms,
+      mmsClient,
       this.lk,
       this.logger
     );

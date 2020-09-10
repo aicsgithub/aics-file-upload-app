@@ -112,6 +112,7 @@ export const fms = new FileManagementSystem({
   }),
   host,
   jobStatusClient: jssClient,
+  mmsClient,
   port,
 });
 

@@ -9,7 +9,8 @@ import {
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
-import { FSSConnection, LabKeyConnection, MMSConnection } from "../connections";
+import MMSClient from "../../mms-client";
+import { FSSConnection, LabKeyConnection } from "../connections";
 import {
   CustomFileMetadata,
   LabKeyFileMetadata,
@@ -195,11 +196,9 @@ export const lk: LabKeyConnection = new LabKeyConnection(
   "fake_user"
 );
 
-export const mms: MMSConnection = new MMSConnection(
-  "localhost",
-  "80",
-  "fake_user"
-);
+export const mms: MMSClient = ({
+  getFileMetadata: stub(),
+} as any) as MMSClient;
 
 // Used in most tests
 export const startUploadResponse: StartUploadResponse = {
