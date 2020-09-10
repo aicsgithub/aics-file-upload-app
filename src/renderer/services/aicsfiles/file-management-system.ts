@@ -30,6 +30,9 @@ import { Uploader } from "./uploader";
 // Configuration object for FMS. Either host and port have to be defined or fss needs
 // to be defined.
 export interface FileManagementSystemConfig {
+  // getter function for creating a copy worker
+  getCopyWorker: () => Worker;
+
   // Host that FSS is running on
   host?: string;
 
@@ -92,6 +95,7 @@ export class FileManagementSystem {
   private readonly logger: ILogger;
   public readonly uploader: Uploader;
   public readonly customMetadataQuerier: CustomMetadataQuerier;
+  public readonly getCopyWorker: () => Worker;
 
   /*
         This returns the shared FileMetadata between the two given FileMetadata objects
@@ -160,6 +164,7 @@ export class FileManagementSystem {
   public constructor(config: FileManagementSystemConfig) {
     const {
       jobStatusClient,
+      getCopyWorker,
       logger,
       port = "80",
       username = userInfo().username,
@@ -185,8 +190,9 @@ export class FileManagementSystem {
         );
       }
 
-      uploader = new Uploader(fss, jobStatusClient);
+      uploader = new Uploader(getCopyWorker, fss, jobStatusClient);
     }
+    this.getCopyWorker = getCopyWorker;
     this.jobStatusClient = jobStatusClient;
     this.uploader = uploader;
     // eslint-disable-next-line react-hooks/rules-of-hooks

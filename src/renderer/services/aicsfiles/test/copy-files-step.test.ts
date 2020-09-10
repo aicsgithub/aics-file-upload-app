@@ -1,14 +1,10 @@
-import { exists as fsExists, mkdir as fsMkdir } from "fs";
-import { promisify } from "util";
-
 import { expect } from "chai";
 import * as Logger from "js-logger";
 import { pick } from "lodash";
-import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
 import { JSSJobStatus } from "../../job-status-client/types";
-import { AICSFILES_LOGGER } from "../constants";
+import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyError } from "../errors";
 import { CopyFilesStep } from "../steps/copy-files-step";
 import { UploadContext } from "../types";
@@ -16,23 +12,18 @@ import { UploadContext } from "../types";
 import {
   copyChildJobId1,
   copyChildJobId2,
+  copyWorkerStub,
   jobStatusClient,
   mockCopyJobChild1,
   mockCopyJobChild2,
   mockJob,
   sourceFiles,
   startUploadResponse,
-  targetDir,
-  targetFile1,
-  targetFile2,
   upload1,
   upload2,
   uploadJobId,
   uploads,
 } from "./mocks";
-
-const exists = promisify(fsExists);
-const mkdir = promisify(fsMkdir);
 
 describe("CopyFilesStep", () => {
   const sandbox = createSandbox();
@@ -49,7 +40,12 @@ describe("CopyFilesStep", () => {
     sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
     const logger = Logger.get(AICSFILES_LOGGER);
     sandbox.replace(logger, "error", stub());
-    copyStep = new CopyFilesStep(mockJob, jobStatusClient, logger);
+    copyStep = new CopyFilesStep(
+      mockJob,
+      jobStatusClient,
+      stub().returns(copyWorkerStub),
+      logger
+    );
   });
 
   afterEach(() => {
@@ -57,26 +53,23 @@ describe("CopyFilesStep", () => {
   });
 
   describe("start", () => {
-    beforeEach(async () => {
-      // setup target directory for uploading files
-      // usually FSS does this but we are stubbing it
-      await mkdir(targetDir);
-    });
-
-    afterEach(() => {
-      rimraf.sync(targetDir);
-    });
+    // The copy step won't complete until onmessage is called off of the worker
+    // Since the worker is a stub, we need to fake its behavior by immediately calling onmessage once postMessage is called.
+    const fakeSuccessfulCopy = () => {
+      copyWorkerStub.postMessage.callsFake(() => {
+        copyWorkerStub.onmessage({
+          data: `${UPLOAD_WORKER_SUCCEEDED}:somemd5`,
+        });
+      });
+    };
 
     it("populates sourceFiles", async () => {
+      fakeSuccessfulCopy();
       const ctx = await copyStep.start(mockCtx);
       expect(ctx.sourceFiles).to.deep.equal(sourceFiles);
     });
-    it("copies files to uploadDirectory", async () => {
-      await copyStep.start(mockCtx);
-      expect(await exists(targetFile1)).to.be.true;
-      expect(await exists(targetFile2)).to.be.true;
-    });
     it("updates child copy job as succeeded if copied successfully", async () => {
+      fakeSuccessfulCopy();
       await copyStep.start(mockCtx);
       expect(
         updateJobStub.calledWith(
@@ -92,6 +85,10 @@ describe("CopyFilesStep", () => {
       ).to.be.true;
     });
     it("updates child copy job as failed if copy failed", async () => {
+      // Here we're faking a copy error by having our worker stub immediately call onerror once postMessage is called
+      copyWorkerStub.postMessage.callsFake(() => {
+        copyWorkerStub.onerror("random error");
+      });
       await expect(
         copyStep.start({
           ...mockCtx,
@@ -115,6 +112,7 @@ describe("CopyFilesStep", () => {
       ).to.be.rejectedWith(Error);
     });
     it("if retrying this step, picks up where it left off", async () => {
+      fakeSuccessfulCopy();
       const ctx = {
         ...mockCtx,
         copyChildJobs: [

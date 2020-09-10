@@ -1,9 +1,4 @@
-import {
-  exists as fsExists,
-  rmdir as fsRmdir,
-  unlink as fsUnlink,
-  mkdir as fsMkdir,
-} from "fs";
+import { exists as fsExists, rmdir as fsRmdir, mkdir as fsMkdir } from "fs";
 import { resolve } from "path";
 import { promisify } from "util";
 
@@ -13,18 +8,19 @@ import { pick } from "lodash";
 import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, spy, stub, SinonSpy } from "sinon";
 
+import { UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyStep } from "../steps/copy-step";
 import { UploadContext } from "../types";
 
 import {
   copyChildJobId1,
+  copyWorkerStub,
   jobStatusClient,
   mockCopyJobChild1,
   mockCopyJobChild2,
   sourceFiles,
   startUploadResponse,
   targetDir,
-  targetFile1,
   upload1,
   uploadJobId,
   uploads,
@@ -33,7 +29,6 @@ import {
 const exists: (path: string) => Promise<boolean> = promisify(fsExists);
 const mkdir = promisify(fsMkdir);
 const rmdir = promisify(fsRmdir);
-const unlink = promisify(fsUnlink);
 
 describe("CopyStep", () => {
   const sandbox = createSandbox();
@@ -42,13 +37,20 @@ describe("CopyStep", () => {
   let mockCtx: UploadContext;
   const rimrafSpy: SinonSpy = spy();
   const logger = Logger.get("test");
+  const getCopyWorkerStub = stub().returns(copyWorkerStub);
 
   beforeEach(() => {
     updateJobStub = stub().resolves(mockCopyJobChild1);
     sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
     sandbox.replace(logger, "error", stub());
     sandbox.replace(rimraf, "sync", rimrafSpy);
-    copyStep = new CopyStep(mockCopyJobChild1, jobStatusClient, logger, rimraf);
+    copyStep = new CopyStep(
+      mockCopyJobChild1,
+      jobStatusClient,
+      getCopyWorkerStub,
+      logger,
+      rimraf
+    );
     mockCtx = {
       copyChildJobs: [mockCopyJobChild1, mockCopyJobChild2],
       startUploadResponse: { ...startUploadResponse },
@@ -70,31 +72,34 @@ describe("CopyStep", () => {
     });
 
     afterEach(async () => {
-      if (await exists(targetFile1)) {
-        await unlink(targetFile1);
-      }
       if (await exists(targetDir)) {
         await rmdir(targetDir);
       }
     });
 
-    it("populates sourceFiles", async () => {
-      const ctx = await copyStep.start(mockCtx);
+    // The copy step won't complete until onmessage is called off of the worker
+    // Since the worker is a stub, we need to fake its behavior by immediately calling onmessage once postMessage is called.
+    const fakeSuccessfulCopy = () => {
+      copyWorkerStub.postMessage.callsFake(() => {
+        copyWorkerStub.onmessage({
+          data: `${UPLOAD_WORKER_SUCCEEDED}:somemd5`,
+        });
+      });
+    };
 
+    it("populates sourceFiles", async () => {
+      fakeSuccessfulCopy();
+      const ctx = await copyStep.start(mockCtx);
       expect(ctx.sourceFiles).to.deep.equal(pick(sourceFiles, upload1));
     });
 
-    it("copies file", async () => {
-      await copyStep.start(mockCtx);
-      const targetFileExists = await exists(targetFile1);
-      expect(targetFileExists).to.be.true;
-    });
-
     it("deletes garbage Mac files when on Mac", async () => {
+      fakeSuccessfulCopy();
       stub(process, "platform").get(() => "darwin");
       const copyStep2 = new CopyStep(
         mockCopyJobChild1,
         jobStatusClient,
+        getCopyWorkerStub,
         logger,
         rimraf,
         stub() // we want to stub copy in case the OS is not a Mac
@@ -105,10 +110,12 @@ describe("CopyStep", () => {
     });
 
     it("does not try to delete garbage files when on Windows", async () => {
+      fakeSuccessfulCopy();
       stub(process, "platform").get(() => "win32");
       const copyStep2 = new CopyStep(
         mockCopyJobChild1,
         jobStatusClient,
+        getCopyWorkerStub,
         logger,
         rimraf,
         stub() // we are testing rimraf not copy so this is a stub
@@ -119,10 +126,12 @@ describe("CopyStep", () => {
     });
 
     it("does not try to delete garbage files when on Linux", async () => {
+      fakeSuccessfulCopy();
       stub(process, "platform").get(() => "linux");
       const copyStep2 = new CopyStep(
         mockCopyJobChild1,
         jobStatusClient,
+        getCopyWorkerStub,
         logger,
         rimraf,
         stub() // we are testing rimraf not copy so this is a stub
@@ -133,6 +142,12 @@ describe("CopyStep", () => {
     });
 
     it("throws error if cannot copy", () => {
+      // Here we fake a copy error by calling onerror as soon as postMessage is called off of the worker
+      copyWorkerStub.postMessage.callsFake(() => {
+        copyWorkerStub.onerror({
+          data: "fake error",
+        });
+      });
       return expect(
         copyStep.start({
           ...mockCtx,
@@ -153,7 +168,8 @@ describe("CopyStep", () => {
             originalPath: undefined,
           },
         },
-        jobStatusClient
+        jobStatusClient,
+        getCopyWorkerStub
       );
       return expect(copyStep2.start(mockCtx)).to.be.rejectedWith(Error);
     });

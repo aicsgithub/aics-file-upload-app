@@ -13,8 +13,7 @@ import {
   createStore,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
-import RetryUploadWorker from "worker-loader!./retry-upload-worker";
-import UploadWorker from "worker-loader!./upload-worker";
+import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
 
 import {
   DEFAULT_USERNAME,
@@ -87,6 +86,10 @@ const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
+    // We need to define a getter here for testing purposes. WebWorkers are not defined
+    // in the mocha testing environment. It is also easier to unit test components with
+    // the copy portion mocked
+    getCopyWorker: () => new CopyWorker(),
     host: LIMS_HOST,
     jobStatusClient: jssClient,
     logLevel: "trace",
@@ -94,8 +97,6 @@ export const reduxLogicDependencies = {
     username,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
-  getRetryUploadWorker: () => new RetryUploadWorker(),
-  getUploadWorker: () => new UploadWorker(),
   ipcRenderer,
   jssClient,
   labkeyClient: new LabkeyClient(httpClient, storage, useCache),

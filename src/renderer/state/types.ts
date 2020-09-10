@@ -78,8 +78,6 @@ export interface ReduxLogicExtraDependencies {
   dialog: Dialog;
   fms: FileManagementSystem;
   getApplicationMenu: () => Menu | null;
-  getRetryUploadWorker: () => Worker;
-  getUploadWorker: () => Worker;
   ipcRenderer: typeof ipcRenderer;
   jssClient: JobStatusClient;
   labkeyClient: LabkeyClient;

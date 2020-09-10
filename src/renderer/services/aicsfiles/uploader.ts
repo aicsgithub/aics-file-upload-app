@@ -64,6 +64,7 @@ export class Uploader {
     updateParent: true,
     user: this.username,
   };
+  private readonly getCopyWorker: () => Worker;
   public defaultMountPoint = "/allen/aics"; // leaving this editable for testing purposes
   public mountPoint: string = makePosixPathCompatibleWithPlatform(
     this.defaultMountPoint,
@@ -71,10 +72,12 @@ export class Uploader {
   );
 
   public constructor(
+    getCopyWorker: () => Worker,
     fss: FSSConnection,
     jobStatusClient: JobStatusClient,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
   ) {
+    this.getCopyWorker = getCopyWorker;
     this.fss = fss;
     this.jss = jobStatusClient;
     this.logger = logger;
@@ -114,6 +117,7 @@ export class Uploader {
     });
     const steps: Step[] = this.getSteps(
       childJobs,
+      this.getCopyWorker,
       copyProgressCb,
       copyProgressCbThrottleMs
     );
@@ -164,6 +168,7 @@ export class Uploader {
 
     const steps: Step[] = this.getSteps(
       childJobs,
+      this.getCopyWorker,
       copyProgressCb,
       copyProgressCbThrottleMs
     );
@@ -418,6 +423,7 @@ export class Uploader {
 
   private getSteps(
     jobs: Job[],
+    getCopyWorker: () => Worker,
     copyProgressCb: (
       originalFilePath: string,
       bytesCopied: number,
@@ -433,8 +439,8 @@ export class Uploader {
       new CopyFilesStep(
         jobs[0],
         this.jss,
+        getCopyWorker,
         this.logger,
-        undefined,
         copyProgressCb,
         copyProgressCbThrottleMs
       ),

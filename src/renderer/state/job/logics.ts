@@ -10,10 +10,7 @@ import { JobStatusClient } from "../../services";
 import { UploadMetadata as AicsFilesUploadMetadata } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { LocalStorage } from "../../types";
-import {
-  UPLOAD_WORKER_ON_PROGRESS,
-  UPLOAD_WORKER_SUCCEEDED,
-} from "../constants";
+import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
   setAlert,
   setErrorAlert,
@@ -38,7 +35,7 @@ import {
   INITIATE_UPLOAD_SUCCEEDED,
   RETRY_UPLOAD,
 } from "../upload/constants";
-import { batchActions } from "../util";
+import { batchActions, handleUploadProgress } from "../util";
 
 import {
   receiveJobs,
@@ -46,6 +43,7 @@ import {
   startJobPoll,
   stopJobPoll,
   updateIncompleteJobIds,
+  updateUploadProgressInfo,
 } from "./actions";
 import {
   FAILED_STATUSES,
@@ -267,7 +265,6 @@ export const handleAbandonedJobsLogic = createLogic({
   async process(
     {
       logger,
-      getRetryUploadWorker,
       fms,
       jssClient,
       getState,
@@ -338,53 +335,33 @@ export const handleAbandonedJobsLogic = createLogic({
           // Use the most up to date version of the job, which is returned
           // after the upload is failed
           const [updatedJob] = await fms.failUpload(abandonedJob.jobId);
+          const fileNames = updatedJob.serviceFields.files.map(
+            ({ file: { originalPath } }: AicsFilesUploadMetadata) =>
+              originalPath
+          );
 
-          // Wait until the worker succeeds or encounters an error
-          await new Promise((resolve) => {
-            const worker = getRetryUploadWorker();
-
-            worker.onmessage = (e: MessageEvent) => {
-              const lowerCaseMessage = e?.data.toLowerCase();
-              if (lowerCaseMessage.includes(UPLOAD_WORKER_SUCCEEDED)) {
-                logger.info(`Retry upload "${updatedJob.jobName}" succeeded!`);
-                dispatch(
-                  setSuccessAlert(
-                    `Retry for upload "${updatedJob.jobName}" succeeded!`
-                  )
-                );
-                resolve();
-              } else if (lowerCaseMessage.includes(UPLOAD_WORKER_ON_PROGRESS)) {
-                logger.info(e.data);
-              } else {
-                logger.info(e.data);
-              }
-            };
-
-            worker.onerror = (e: ErrorEvent) => {
-              logger.error(
-                `Retry for upload "${updatedJob.jobName}" failed`,
-                e
-              );
-              dispatch(
-                setErrorAlert(
-                  `Retry for upload "${updatedJob.jobName}" failed: ${e.message}`
-                )
-              );
-              resolve();
-            };
-
-            const fileNames = updatedJob.serviceFields.files.map(
-              ({ file: { originalPath } }: AicsFilesUploadMetadata) =>
-                originalPath
-            );
-            worker.postMessage([
+          try {
+            await fms.retryUpload(
               updatedJob,
-              fileNames,
-              fms.host,
-              fms.port,
-              fms.username,
-            ]);
-          });
+              handleUploadProgress(fileNames, (progress) =>
+                dispatch(updateUploadProgressInfo(updatedJob.jobId, progress))
+              ),
+              COPY_PROGRESS_THROTTLE_MS
+            );
+            logger.info(`Retry upload "${updatedJob.jobName}" succeeded!`);
+            dispatch(
+              setSuccessAlert(
+                `Retry for upload "${updatedJob.jobName}" succeeded!`
+              )
+            );
+          } catch (e) {
+            logger.error(`Retry for upload "${updatedJob.jobName}" failed`, e);
+            dispatch(
+              setErrorAlert(
+                `Retry for upload "${updatedJob.jobName}" failed: ${e.message}`
+              )
+            );
+          }
         })
       );
     } catch (e) {

@@ -105,6 +105,11 @@ export const mmsClient = new MMSClient(
   false
 );
 export const fms = new FileManagementSystem({
+  getCopyWorker: stub().returns({
+    postMessage: stub(),
+    onerror: stub(),
+    onmessage: stub(),
+  }),
   host,
   jobStatusClient: jssClient,
   port,

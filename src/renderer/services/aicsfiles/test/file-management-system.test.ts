@@ -41,6 +41,7 @@ import {
   upload2,
   uploads,
   mockJob,
+  copyWorkerStub,
 } from "./mocks";
 
 const exists = promisify(fsExists);
@@ -51,10 +52,11 @@ export const differentTargetDir = path.resolve("./aics");
 describe("FileManagementSystem", () => {
   let uploader: Uploader;
   const sandbox = createSandbox();
+  const getCopyWorkerStub = stub().returns(copyWorkerStub);
   beforeEach(() => {
     const logger = Logger.get("test");
     sandbox.replace(logger, "error", stub());
-    uploader = new Uploader(fss, jobStatusClient, logger);
+    uploader = new Uploader(getCopyWorkerStub, fss, jobStatusClient, logger);
   });
 
   afterEach(() => {
@@ -81,11 +83,17 @@ describe("FileManagementSystem", () => {
     };
 
     it("uses host and port if provided", () => {
-      testConstructor({ host: HOST, jobStatusClient, port: PORT });
+      testConstructor({
+        getCopyWorker: getCopyWorkerStub,
+        host: HOST,
+        jobStatusClient,
+        port: PORT,
+      });
     });
 
     it("ignores host and port if fss connection and jobStatusClient provided", () => {
       testConstructor({
+        getCopyWorker: getCopyWorkerStub,
         host: "wronghost",
         port: "9090",
         fss: new FSSConnection(HOST, PORT, "foo"),
@@ -103,21 +111,29 @@ describe("FileManagementSystem", () => {
         (storage as any) as LocalStorage
       );
       testConstructor({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
-        uploader: new Uploader(fss, jobStatusClient),
+        uploader: new Uploader(getCopyWorkerStub, fss, jobStatusClient),
       });
     });
 
     it("throws an error if no connection info provided", () => {
       // can't test for specific error due to transpilation, i.e. this known error:
       // https://github.com/chaijs/chai/issues/596
-      expect(() => new FileManagementSystem({ jobStatusClient })).to.throw();
+      expect(
+        () =>
+          new FileManagementSystem({
+            getCopyWorker: getCopyWorkerStub,
+            jobStatusClient,
+          })
+      ).to.throw();
     });
   });
 
   describe("set port", () => {
     const fms = new FileManagementSystem({
+      getCopyWorker: getCopyWorkerStub,
       host: "localhost",
       jobStatusClient,
       port: "80",
@@ -130,6 +146,7 @@ describe("FileManagementSystem", () => {
 
   describe("set host", () => {
     const fms = new FileManagementSystem({
+      getCopyWorker: getCopyWorkerStub,
       host: "localhost",
       jobStatusClient,
       port: "80",
@@ -157,6 +174,7 @@ describe("FileManagementSystem", () => {
     });
 
     const fms = new FileManagementSystem({
+      getCopyWorker: getCopyWorkerStub,
       host: "localhost",
       jobStatusClient,
       port: "80",
@@ -185,6 +203,7 @@ describe("FileManagementSystem", () => {
 
   describe("validateMetadataAndGetUploadDirectory", () => {
     const fms = new FileManagementSystem({
+      getCopyWorker: getCopyWorkerStub,
       host: "localhost",
       jobStatusClient,
       port: "80",
@@ -305,6 +324,7 @@ describe("FileManagementSystem", () => {
       const uploadFilesStub = stub().resolves();
       sandbox.replace(uploader, "uploadFiles", uploadFilesStub);
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -321,6 +341,7 @@ describe("FileManagementSystem", () => {
     it("throws exception if uploader.uploadFiles throws", () => {
       sandbox.replace(uploader, "uploadFiles", stub().rejects());
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -341,6 +362,7 @@ describe("FileManagementSystem", () => {
     it("throws UnrecoverableJobError if the upload job doesn't have serviceFields.file", () => {
       sandbox.replace(jobStatusClient, "updateJob", stub());
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -361,6 +383,7 @@ describe("FileManagementSystem", () => {
       const updateJobStub = stub().resolves(failedJob);
       sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -383,6 +406,7 @@ describe("FileManagementSystem", () => {
       const retryUploadStub = stub().resolves();
       sandbox.replace(uploader, "retryUpload", retryUploadStub);
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -398,6 +422,7 @@ describe("FileManagementSystem", () => {
       sandbox.replace(uploader, "retryUpload", stub().rejects());
       sandbox.replace(jobStatusClient, "updateJob", stub());
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -419,6 +444,7 @@ describe("FileManagementSystem", () => {
       );
       sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
       const fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         jobStatusClient,
         uploader,
@@ -441,6 +467,7 @@ describe("FileManagementSystem", () => {
     beforeEach(() => {
       jssStub = createStubInstance(JobStatusClient);
       fms = new FileManagementSystem({
+        getCopyWorker: getCopyWorkerStub,
         fss,
         uploader,
         // Assert that the stub is of the correct type when calling the

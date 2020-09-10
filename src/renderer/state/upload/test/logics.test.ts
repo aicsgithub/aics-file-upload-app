@@ -13,13 +13,8 @@ import { StartUploadResponse } from "../../../services/aicsfiles/types";
 import { ColumnType } from "../../../services/labkey-client/types";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
-import {
-  UPLOAD_WORKER_ON_PROGRESS,
-  UPLOAD_WORKER_SUCCEEDED,
-} from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
-import { updateUploadProgressInfo } from "../../job/actions";
 import { getCurrentJobName } from "../../job/selectors";
 import { selectPage } from "../../route/actions";
 import {
@@ -87,6 +82,7 @@ import {
   INITIATE_UPLOAD,
   INITIATE_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT_SUCCESS,
+  UPLOAD_SUCCEEDED,
 } from "../constants";
 import uploadLogics from "../logics";
 import {
@@ -410,8 +406,11 @@ describe("Upload logics", () => {
       uploadDirectory: "/test",
     };
     const jobName = "file1, file2, file3";
-    let uploadWorker;
-    let getUploadWorker: SinonStub;
+    let uploadStub: SinonStub;
+
+    beforeEach(() => {
+      uploadStub = stub().resolves();
+    });
 
     const setUpSuccessStub = () => {
       sandbox.replace(
@@ -419,17 +418,7 @@ describe("Upload logics", () => {
         "validateMetadataAndGetUploadDirectory",
         stub().resolves(startUploadResponse)
       );
-      uploadWorker = {
-        postMessage: function () {
-          this.onmessage(({
-            data: UPLOAD_WORKER_SUCCEEDED,
-          } as any) as MessageEvent);
-        },
-        // eslint-disable-next-line
-        onmessage: function (e: MessageEvent) {},
-      };
-      getUploadWorker = stub().returns(uploadWorker);
-      sandbox.replace(mockReduxLogicDeps, "getUploadWorker", getUploadWorker);
+      sandbox.replace(fms, "uploadFiles", uploadStub);
     };
 
     it("prevents the user from uploading if we cannot name the upload", async () => {
@@ -502,22 +491,26 @@ describe("Upload logics", () => {
         .true;
     });
 
-    it("creates web worker given OK response from validateMetadataAndGetUploadDirectory", async () => {
+    it("initiates upload given OK response from validateMetadataAndGetUploadDirectory and dispatches upload succeeded", async () => {
       setUpSuccessStub();
-      const { logicMiddleware, store } = createMockReduxStore(
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         undefined,
         uploadLogics
       );
       // before
-      expect(getUploadWorker.called).to.be.false;
+      expect(uploadStub.called).to.be.false;
+      expect(actions.list.find((a) => a.type === UPLOAD_SUCCEEDED)).to.be
+        .undefined;
 
       // apply
       store.dispatch(initiateUpload());
 
       // after
       await logicMiddleware.whenComplete();
-      expect(getUploadWorker.called).to.be.true;
+      expect(uploadStub.called).to.be.true;
+      expect(actions.list.find((a) => a.type === UPLOAD_SUCCEEDED)).to.not.be
+        .undefined;
     });
     it("adds to list of incomplete job ids", async () => {
       setUpSuccessStub();
@@ -553,71 +546,17 @@ describe("Upload logics", () => {
         })
       ).to.not.be.undefined;
     });
-    it("dispatches updateUploadProgressInfo given that worker sends progress info", async () => {
+    it("dispatches uploadFailed if uploadFiles fails error", async () => {
       sandbox.replace(
         fms,
         "validateMetadataAndGetUploadDirectory",
         stub().resolves(startUploadResponse)
       );
-      uploadWorker = {
-        postMessage: function () {
-          this.onmessage(({
-            data: `${UPLOAD_WORKER_ON_PROGRESS}:1:10`,
-          } as any) as MessageEvent);
-          this.onmessage(({
-            data: UPLOAD_WORKER_SUCCEEDED,
-          } as any) as MessageEvent);
-        },
-        // eslint-disable-next-line
-        onmessage: function (e: MessageEvent) {},
-      };
-      getUploadWorker = stub().returns(uploadWorker);
-      sandbox.replace(mockReduxLogicDeps, "getUploadWorker", getUploadWorker);
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        {
-          ...nonEmptyStateForInitiatingUpload,
-        },
-        undefined,
-        uploadLogics,
-        false
-      );
-      expect(
-        actions.includesMatch(
-          updateUploadProgressInfo(startUploadResponse.jobId, {
-            completedBytes: 1,
-            totalBytes: 10,
-          })
-        )
-      ).to.be.false;
-
-      store.dispatch(initiateUpload());
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(
-        actions.includesMatch(
-          updateUploadProgressInfo(startUploadResponse.jobId, {
-            completedBytes: 1,
-            totalBytes: 10,
-          })
-        )
-      ).to.be.true;
-    });
-    it("dispatches uploadFailed if worker emits error", async () => {
       sandbox.replace(
         fms,
-        "validateMetadataAndGetUploadDirectory",
-        stub().resolves(startUploadResponse)
+        "uploadFiles",
+        stub().rejects(new Error("error message"))
       );
-      uploadWorker = {
-        postMessage: function () {
-          this.onerror(({ message: "error message" } as any) as MessageEvent);
-        },
-        // eslint-disable-next-line
-        onerror: function (e: ErrorEvent) {},
-      };
-      getUploadWorker = stub().returns(uploadWorker);
-      sandbox.replace(mockReduxLogicDeps, "getUploadWorker", getUploadWorker);
       const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         mockReduxLogicDeps,
@@ -663,22 +602,9 @@ describe("Upload logics", () => {
         )
       ).to.be.true;
     });
-    it("starts a retry upload worker and dispatches retryUploadSucceeded when worker sends message with 'success'", async () => {
-      const retryWorkerStub = {
-        postMessage: function () {
-          this.onmessage(({
-            data: UPLOAD_WORKER_SUCCEEDED,
-          } as any) as MessageEvent);
-        },
-        // eslint-disable-next-line
-        onmessage: function (e: MessageEvent) {},
-      };
-      const getRetryUploadWorker = stub().returns(retryWorkerStub);
-      sandbox.replace(
-        mockReduxLogicDeps,
-        "getRetryUploadWorker",
-        getRetryUploadWorker
-      );
+    it("calls fms.retryUpload and dispatches retryUploadSucceeded if no missing info on job", async () => {
+      const retryUploadStub = stub().resolves();
+      sandbox.replace(fms, "retryUpload", retryUploadStub);
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState,
         undefined,
@@ -694,22 +620,11 @@ describe("Upload logics", () => {
           retryUploadSucceeded(uploadJob, [mockFailedUploadJob.jobId])
         )
       ).to.be.true;
-      expect(getRetryUploadWorker.called).to.be.true;
+      expect(retryUploadStub.called).to.be.true;
     });
-    it("dispatches retryUploadFailed if worker emits error", async () => {
-      const retryWorkerStub = {
-        postMessage: function () {
-          this.onerror(({ message: "error" } as any) as MessageEvent);
-        },
-        // eslint-disable-next-line
-        onerror: function (e: MessageEvent) {},
-      };
-      const getRetryUploadWorker = stub().returns(retryWorkerStub);
-      sandbox.replace(
-        mockReduxLogicDeps,
-        "getRetryUploadWorker",
-        getRetryUploadWorker
-      );
+    it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
+      const retryUploadStub = stub().rejects(new Error("error"));
+      sandbox.replace(fms, "retryUpload", retryUploadStub);
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState,
         undefined,
@@ -729,7 +644,7 @@ describe("Upload logics", () => {
           )
         )
       ).to.be.true;
-      expect(getRetryUploadWorker.called).to.be.true;
+      expect(retryUploadStub.called).to.be.true;
     });
   });
   describe("updateSubImagesLogic", () => {
