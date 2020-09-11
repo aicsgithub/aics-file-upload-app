@@ -214,7 +214,6 @@ export class FileManagementSystem {
     ) => void = noop,
     copyProgressCbThrottleMs?: number
   ): Promise<UploadResponse> {
-    this.logger.info("using copy progress cb");
     this.logger.time("upload");
     try {
       const response = await this.uploader.uploadFiles(
