@@ -8,7 +8,6 @@ import { IllegalArgumentError } from "../errors";
 import { StepExecutor } from "../step-executor";
 import { Job, SourceFiles, Step, StepName, UploadContext } from "../types";
 
-import cpy from "./copy-and-calc-md5";
 import { CopyStep } from "./copy-step";
 
 // Step 1/2 in which files are copied to a location on the isilon
@@ -17,19 +16,19 @@ export class CopyFilesStep implements Step {
   public readonly name: StepName = StepName.CopyFiles;
   private readonly jss: JobStatusClient;
   private readonly logger: ILogger;
-  private readonly copyFiles: typeof cpy;
   private readonly onCopyFileProgress: (
     originalFilePath: string,
     bytesCopied: number,
     totalBytes: number
   ) => void;
   private readonly copyProgressCbThrottleMs: number | undefined;
+  private getCopyWorker: () => Worker;
 
   public constructor(
     job: Job,
     jss: JobStatusClient,
+    getCopyWorker: () => Worker,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
-    copyFiles: typeof cpy = cpy,
     onCopyProgressCb: (
       originalFilePath: string,
       bytesCopied: number,
@@ -39,8 +38,8 @@ export class CopyFilesStep implements Step {
   ) {
     this.job = job;
     this.jss = jss;
+    this.getCopyWorker = getCopyWorker;
     this.logger = logger;
-    this.copyFiles = copyFiles;
     this.onCopyFileProgress = onCopyProgressCb;
     this.copyProgressCbThrottleMs = copyProgressCbThrottleMs;
   }
@@ -55,9 +54,9 @@ export class CopyFilesStep implements Step {
         new CopyStep(
           j,
           this.jss,
+          this.getCopyWorker,
           this.logger,
           undefined,
-          this.copyFiles,
           this.onCopyFileProgress,
           this.copyProgressCbThrottleMs
         )

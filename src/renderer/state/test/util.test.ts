@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { AnyAction } from "redux";
-import { stub } from "sinon";
+import { match, stub } from "sinon";
 
 import { APP_ID } from "../../constants";
 import { TypeToDescriptionMap } from "../types";
 import {
   batchActions,
   enableBatching,
-  getCopyProgressCb,
+  handleUploadProgress,
   makeConstant,
   makeReducer,
 } from "../util";
@@ -156,21 +156,44 @@ describe("state utilities", () => {
       expect(result).to.deep.equal(expectedState);
     });
   });
-  describe("getCopyProgressCb", () => {
+  describe("handleUploadProgress", () => {
     it("returns a function that calls postMessage with the correct stats over time", () => {
-      const postMessageStub = stub();
-      const copyProgressCb = getCopyProgressCb(["a", "b"], postMessageStub);
+      const onProgress = stub();
+      const copyProgressCb = handleUploadProgress(["a", "b"], onProgress);
 
       copyProgressCb("a", 1, 12);
-      expect(postMessageStub.calledWith("upload-progress:1:12"));
-      postMessageStub.reset();
+      expect(
+        onProgress.calledWith(
+          match({
+            completedBytes: 1,
+            totalBytes: 12,
+          })
+        )
+      ).to.be.true;
+      onProgress.reset();
 
       copyProgressCb("b", 2, 12);
-      expect(postMessageStub.calledWith("upload-progress:3:12"));
-      postMessageStub.reset();
+      expect(
+        onProgress.calledWith(
+          match({
+            completedBytes: 3,
+            totalBytes: 12,
+          })
+        )
+      ).to.be.true;
+      onProgress.reset();
 
+      // a worker thread has reported that 2 bytes of file "a" have been copied in total
       copyProgressCb("a", 2, 12);
-      expect(postMessageStub.calledWith("upload-progress:5:12"));
+      // 2 bytes for file "a", 2 bytes for file "b" = 4 bytes total copied
+      expect(
+        onProgress.calledWith(
+          match({
+            completedBytes: 4,
+            totalBytes: 12,
+          })
+        )
+      ).to.be.true;
     });
   });
 });

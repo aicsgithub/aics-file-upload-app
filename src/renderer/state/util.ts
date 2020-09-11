@@ -3,8 +3,11 @@ import { FilterFunction, StateWithHistory } from "redux-undo";
 
 import { APP_ID } from "../constants";
 
-import { UPLOAD_WORKER_ON_PROGRESS } from "./constants";
-import { BatchedAction, TypeToDescriptionMap } from "./types";
+import {
+  BatchedAction,
+  TypeToDescriptionMap,
+  UploadProgressInfo,
+} from "./types";
 
 export function makeConstant(associatedReducer: string, actionType: string) {
   return `${APP_ID}/${associatedReducer.toUpperCase()}/${actionType.toUpperCase()}`;
@@ -77,26 +80,24 @@ export const getReduxUndoFilterFn = (
   );
 };
 
-export const getCopyProgressCb = (
+export const handleUploadProgress = (
   fileNames: string[],
-  postMessage: (message: string) => void
+  onProgress: (progress: UploadProgressInfo) => void
 ) => {
   const copyProgress = new Map();
   fileNames.forEach((fileName: string) => {
     copyProgress.set(fileName, 0);
   });
-  return (
-    originalFilePath: string,
-    bytesCopied: number,
-    totalBytes: number
-  ) => {
-    copyProgress.set(originalFilePath, bytesCopied);
-    let totalBytesCopied = 0;
+  return (originalPath: string, bytesCopied: number, totalBytes: number) => {
+    copyProgress.set(originalPath, bytesCopied);
+    let completedBytes = 0;
     copyProgress.forEach((value: number) => {
-      totalBytesCopied += value;
+      completedBytes += value;
     });
-    postMessage(
-      `${UPLOAD_WORKER_ON_PROGRESS}:${totalBytesCopied}:${totalBytes}`
-    );
+    const progress: UploadProgressInfo = {
+      completedBytes,
+      totalBytes,
+    };
+    onProgress(progress);
   };
 };
