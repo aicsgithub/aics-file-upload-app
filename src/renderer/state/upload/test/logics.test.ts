@@ -500,8 +500,7 @@ describe("Upload logics", () => {
       );
       // before
       expect(uploadStub.called).to.be.false;
-      expect(actions.list.find((a) => a.type === UPLOAD_SUCCEEDED)).to.be
-        .undefined;
+      expect(actions.list.map((a) => a.type)).to.not.include(UPLOAD_SUCCEEDED);
 
       // apply
       store.dispatch(initiateUpload());
@@ -509,8 +508,7 @@ describe("Upload logics", () => {
       // after
       await logicMiddleware.whenComplete();
       expect(uploadStub.called).to.be.true;
-      expect(actions.list.find((a) => a.type === UPLOAD_SUCCEEDED)).to.not.be
-        .undefined;
+      expect(actions.list.map((a) => a.type)).to.include(UPLOAD_SUCCEEDED);
     });
     it("adds to list of incomplete job ids", async () => {
       setUpSuccessStub();
