@@ -21,12 +21,17 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
   public host: string = LIMS_HOST;
   public port: string = LIMS_PORT;
   public user: string = DEFAULT_USERNAME;
-  public cache: WeakMap<any, any> = new WeakMap();
 
   constructor(options?: Store.Options<T>) {
     super(options);
   }
 
+  /**
+   * Sets key/value(s) in local storage file
+   * @param keyOrObject. If a Key (string) is provided, 2nd arg is required to define the value for the key.
+   * If an object, second arg is ignored.
+   * @param value. Corresponding value for key defined in first arg
+   */
   public set = <Key extends keyof T>(
     keyOrObject: Key | Partial<T>,
     value?: T[Key]
@@ -52,9 +57,15 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
         "Expected first argument to be an object, string, or number."
       );
     }
+    // Setting a key will invalidate (delete) the cached value
     prefixedKeys.forEach((key: Key) => this.get.cache.delete(key));
   };
 
+  /**
+   * Gets the value corresponding to a key. Results are cached until invalidated by set method.
+   * @param key. key of local storage JSON object. Can use dot notation to access nested properties.
+   * @param defaultValue. optional default value if key is not found
+   */
   public get = memoize(
     <Key extends keyof T>(key: Key, defaultValue?: T[Key]): T[Key] => {
       if (defaultValue) {

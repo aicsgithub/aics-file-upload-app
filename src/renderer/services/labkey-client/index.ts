@@ -365,7 +365,7 @@ export default class LabkeyClient extends HttpCacheClient {
     return [];
   }
 
-  // todo: make generic
+  // todo: FUA-106 make generic
   // Returns the LabKey query
   public async selectRows(
     schema: string,
