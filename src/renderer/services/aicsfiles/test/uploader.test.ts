@@ -8,7 +8,7 @@ import { ILogger } from "js-logger/src/types";
 import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
-import { LocalStorage } from "../../../types";
+import { LocalStorageStub } from "../../../state/test/configure-mock-store";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import {
   ADD_METADATA_TYPE,
@@ -97,7 +97,7 @@ describe("Uploader", () => {
       stub().returns(copyWorkerStub),
       fss,
       jobStatusClient,
-      (storage as any) as LocalStorage,
+      storage,
       logger
     );
   });
@@ -164,7 +164,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
-        (storage as any) as LocalStorage
+        storage
       );
 
       await expect(
@@ -176,7 +176,7 @@ describe("Uploader", () => {
     it("Replaces the default mount point with the new mount point if specified", async () => {
       const postMessageStub = fakeSuccessfulCopy();
       sandbox.replace(
-        storage,
+        (storage as any) as LocalStorageStub,
         "get",
         stub().returns({
           mountPoint: differentTargetDir,
@@ -272,7 +272,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
-        (storage as any) as LocalStorage,
+        storage,
         logger
       );
       return expect(
@@ -301,7 +301,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
-        (storage as any) as LocalStorage,
+        storage,
         logger
       );
       return expect(
@@ -330,7 +330,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
-        (storage as any) as LocalStorage
+        storage
       );
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)
@@ -367,7 +367,7 @@ describe("Uploader", () => {
         stub().returns(copyWorkerStub),
         fss,
         jobStatusClient,
-        (storage as any) as LocalStorage
+        storage
       );
       expect(
         uploader2.retryUpload(uploads, mockRetryableUploadJob)

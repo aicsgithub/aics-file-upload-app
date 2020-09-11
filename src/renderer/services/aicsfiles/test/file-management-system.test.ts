@@ -14,7 +14,6 @@ import {
   labkeyClient,
   mmsClient,
 } from "../../../state/test/configure-mock-store";
-import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
@@ -57,7 +56,7 @@ describe("FileManagementSystem", () => {
       getCopyWorkerStub,
       fss,
       jobStatusClient,
-      (storage as any) as LocalStorage,
+      storage,
       logger
     );
   });
@@ -73,7 +72,7 @@ describe("FileManagementSystem", () => {
       jobStatusClient,
       labkeyClient,
       mmsClient,
-      storage: (storage as any) as LocalStorage,
+      storage,
     });
     const goodMetadata = {
       [upload1]: {
@@ -193,7 +192,7 @@ describe("FileManagementSystem", () => {
         fssClient: fss,
         jobStatusClient,
         labkeyClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
         uploader,
         mmsClient,
       });
@@ -215,7 +214,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
       expect(
         fms.uploadFiles(startUploadResponse, uploads, "anything")
@@ -239,7 +238,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
       expect(
         fms.retryUpload({
@@ -263,7 +262,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -289,7 +288,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
       await fms.retryUpload(mockRetryableUploadJob);
       expect(retryUploadStub.getCall(0).args[0]).to.deep.equal(uploads);
@@ -308,7 +307,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
       expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(Error);
     });
@@ -333,7 +332,7 @@ describe("FileManagementSystem", () => {
         labkeyClient,
         uploader,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -359,7 +358,7 @@ describe("FileManagementSystem", () => {
         uploader,
         jobStatusClient: (jssStub as any) as JobStatusClient,
         mmsClient,
-        storage: (storage as any) as LocalStorage,
+        storage,
       });
     });
 

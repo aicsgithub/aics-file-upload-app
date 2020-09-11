@@ -1,8 +1,7 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
 
-import LabkeyClient from "../../labkey-client";
-import MMSClient from "../../mms-client";
+import { LabkeyClient, MMSClient } from "../../";
 import { FILE_METADATA, FMS, UPLOADER } from "../constants";
 import {
   CustomFileMetadata,
@@ -47,7 +46,7 @@ interface AnnotationLookup {
 export class CustomMetadataQuerier {
   private readonly logger: ILogger;
   private readonly mms: MMSClient;
-  public readonly lk: LabkeyClient;
+  private readonly lk: LabkeyClient;
 
   /*
         This returns the shared FileMetadata between the two given FileMetadata objects
