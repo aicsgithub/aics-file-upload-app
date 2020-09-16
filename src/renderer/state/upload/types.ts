@@ -57,9 +57,6 @@ export interface UploadJobTableRow extends UploadRowId {
   // custom annotations
   [key: string]: any;
 
-  // plate barcode associated with well and file
-  barcode?: string;
-
   // Keeps track of all channelIds - used only on the top-level row
   [CHANNEL_ANNOTATION_NAME]: string[];
 
