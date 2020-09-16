@@ -253,7 +253,6 @@ const applyTemplateLogic = createLogic({
         getUpload(getState()),
         getAppliedTemplate(getState())
       );
-      console.log(uploads);
       dispatch(setAppliedTemplate(template, uploads));
     } catch (e) {
       dispatch(
