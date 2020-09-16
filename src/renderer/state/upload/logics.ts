@@ -165,10 +165,9 @@ const associateFilesAndWellsLogic = createLogic({
     }
 
     const state = getState();
-    const barcode = getSelectedBarcode(state);
     const wellIds = getSelectedWellIds(state);
 
-    if (!barcode) {
+    if (!getSelectedBarcode(state)) {
       reject(
         setErrorAlert("Cannot associate files and wells: No plate selected")
       );
@@ -184,8 +183,7 @@ const associateFilesAndWellsLogic = createLogic({
 
     action.payload = {
       ...action.payload,
-      barcode,
-      wellIds: getSelectedWellIds(state),
+      wellIds,
     };
     next(batchActions([action, deselectFiles()]));
   },
@@ -253,7 +251,6 @@ const applyTemplateLogic = createLogic({
         getUpload(getState()),
         getAppliedTemplate(getState())
       );
-      console.log(uploads);
       dispatch(setAppliedTemplate(template, uploads));
     } catch (e) {
       dispatch(
@@ -644,7 +641,6 @@ const updateSubImagesLogic = createLogic({
           channelId,
         });
         update[key] = {
-          barcode: fileRow.barcode,
           channelId,
           file: fileRow.file,
           key,
@@ -670,7 +666,6 @@ const updateSubImagesLogic = createLogic({
           [subImageKey]: subImageValue,
         });
         update[subImageOnlyRowKey] = {
-          barcode: fileRow.barcode,
           channelId: undefined,
           file: fileRow.file,
           key: subImageOnlyRowKey,
@@ -697,7 +692,6 @@ const updateSubImagesLogic = createLogic({
             [subImageKey]: subImageValue,
           });
           update[key] = {
-            barcode: fileRow.barcode,
             channelId,
             file: fileRow.file,
             key,

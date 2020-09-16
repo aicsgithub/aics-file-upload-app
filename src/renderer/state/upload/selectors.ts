@@ -116,7 +116,6 @@ export const getCanUndoUpload = createSelector(
 );
 
 const EXCLUDED_UPLOAD_FIELDS = [
-  "barcode",
   "channel",
   "file",
   "key",

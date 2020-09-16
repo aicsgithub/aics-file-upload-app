@@ -102,7 +102,6 @@ export interface UploadJobTableRow extends UploadRowId {
 
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {
   payload: {
-    barcode: string;
     rowIds: UploadRowId[];
     wellIds: number[];
   };
