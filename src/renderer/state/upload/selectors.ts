@@ -92,14 +92,6 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-export const getAppliedTemplateId = createSelector(
-  [getUpload],
-  (uploads: UploadStateBranch): number | undefined =>
-    Object.keys(uploads).length
-      ? uploads[Object.keys(uploads)[0]].templateId
-      : undefined
-);
-
 export const getCanRedoUpload = createSelector(
   [getUploadFuture],
   (future: UploadStateBranch[]) => {
@@ -134,7 +126,6 @@ const EXCLUDED_UPLOAD_FIELDS = [
   "shouldBeInArchive",
   "shouldBeInLocal",
   "subImageName",
-  "templateId",
   "wellLabels",
 ];
 
