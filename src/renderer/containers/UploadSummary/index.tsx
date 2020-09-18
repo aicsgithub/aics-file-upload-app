@@ -21,6 +21,7 @@ import { ActionCreator } from "redux";
 import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
+import { FSSResponseFile } from "../../services/aicsfiles/types";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
 import {
@@ -79,7 +80,6 @@ import {
   SearchResultRow,
   State,
   UploadFile,
-  UploadMetadata,
   UploadProgressInfo,
   UploadSummaryTableRow,
 } from "../../state/types";
@@ -397,7 +397,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
       !isEmpty(job.serviceFields.result)
     ) {
       const fileIds = job.serviceFields.result.map(
-        (fileInfo: UploadMetadata) => {
+        (fileInfo: FSSResponseFile) => {
           return fileInfo.fileId;
         }
       );

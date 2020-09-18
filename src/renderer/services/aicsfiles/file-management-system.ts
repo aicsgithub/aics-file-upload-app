@@ -246,8 +246,7 @@ export class FileManagementSystem {
       await this.failUpload(
         uploadJob.jobId,
         "Missing serviceFields.files",
-        "UNRECOVERABLE",
-        true
+        "UNRECOVERABLE"
       );
       throw new UnrecoverableJobError(
         "Upload job is missing serviceFields.files"
@@ -276,12 +275,7 @@ export class FileManagementSystem {
     } catch (e) {
       this.logger.timeEnd("upload");
       if (e.name === UNRECOVERABLE_JOB_ERROR) {
-        await this.failUpload(
-          uploadJob.jobId,
-          e.message,
-          "UNRECOVERABLE",
-          true
-        );
+        await this.failUpload(uploadJob.jobId, e.message, "UNRECOVERABLE");
       } else {
         await this.failUpload(uploadJob.jobId, e.message);
       }
@@ -293,26 +287,21 @@ export class FileManagementSystem {
    * Marks a job and its children as failed in JSS.
    * @param jobId - ID of the JSS Job to fail.
    * @param failureMessage - Optional message that will be written to
-   * `serviceFields.mostRecentFailure`. Defaults to "Job failed".
+   * `serviceFields.error`. Defaults to "Job failed".
    * @param failureStatus - Optional status to fail the job with. Defaults to
    * "FAILED".
-   * @param setError - Also set `serviceFields.error` to `failureMessage`.
    */
   public async failUpload(
     jobId: string,
     failureMessage = "Job failed",
-    failureStatus: "FAILED" | "UNRECOVERABLE" = "FAILED",
-    setError = false
+    failureStatus: "FAILED" | "UNRECOVERABLE" = "FAILED"
   ): Promise<JSSJob[]> {
     const failedJobs: JSSJob[] = [];
 
     const failJob = async (id: string) => {
       const serviceFields: any = {
-        mostRecentFailure: failureMessage,
+        error: failureMessage,
       };
-      if (setError) {
-        serviceFields.error = failureMessage;
-      }
       const failedJob = await this.jobStatusClient.updateJob(id, {
         status: failureStatus,
         serviceFields,

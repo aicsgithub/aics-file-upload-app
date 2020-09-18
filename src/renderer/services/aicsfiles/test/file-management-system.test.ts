@@ -273,7 +273,6 @@ describe("FileManagementSystem", () => {
         status: "UNRECOVERABLE",
         serviceFields: {
           error: "Missing serviceFields.files",
-          mostRecentFailure: "Missing serviceFields.files",
         },
       });
     });
@@ -340,7 +339,7 @@ describe("FileManagementSystem", () => {
       );
       expect(updateJobStub).to.have.been.calledWith(failedJob.jobId, {
         status: "UNRECOVERABLE",
-        serviceFields: { error: "mock error", mostRecentFailure: "mock error" },
+        serviceFields: { error: "mock error" },
       });
     });
   });

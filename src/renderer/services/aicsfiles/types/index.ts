@@ -103,15 +103,24 @@ export interface Step {
 }
 
 export interface UploadServiceFields {
+  // populated by app when an exception is thrown during an upload
+  error?: string;
+
+  // populated by FSS
   files: UploadMetadata[];
-  mostRecentFailure?: string;
+
+  // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
+  // This points to the jobId of the new upload job in case user tries to retry job and
   replacementJobId?: string;
-  result?: Array<{
-    fileId: string;
-    fileName: string;
-    readPath: string;
-  }>;
-  type: string; // will be equal to "upload"
+
+  // populated by FSS: https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/file-storage-service-java/browse/src/main/java/org/alleninstitute/aics/filestorage/service/UploadJobProcessingService.java#266
+  result?: FSSResponseFile[];
+
+  // will be equal to "upload"
+  type: string;
+
+  // directory where all files of this upload are copied to by this app
+  // populated by FSS
   uploadDirectory: string;
 }
 

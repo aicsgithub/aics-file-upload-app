@@ -37,14 +37,14 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
   onFileRowClick,
 }: UploadJobDisplayProps) => {
   const alerts: JSX.Element[] = [];
-  if (job.serviceFields && job.serviceFields.mostRecentFailure) {
+  if (job.serviceFields && job.serviceFields.error) {
     alerts.push(
       <Alert
         className={styles.alert}
         type="error"
         message="Error"
         key="errorAlert"
-        description={determineError(job.serviceFields.mostRecentFailure)}
+        description={determineError(job.serviceFields.error)}
         showIcon={true}
       />
     );
