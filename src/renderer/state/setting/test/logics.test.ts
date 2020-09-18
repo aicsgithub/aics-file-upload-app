@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Store } from "redux";
-import { createSandbox, SinonSpy, spy, stub } from "sinon";
+import { createSandbox, stub } from "sinon";
 import * as sinon from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
@@ -38,49 +38,7 @@ describe("Setting logics", () => {
   const stagingHost = "staging";
   const sandbox = createSandbox();
 
-  let fmsHostSetterSpy: SinonSpy;
-  let fmsPortSetterSpy: SinonSpy;
-  let fmsUsernameSetterSpy: SinonSpy;
-  let fmsMountPointSetterSpy: SinonSpy;
-  let jssHostSetterSpy: SinonSpy;
-  let jssPortSetterSpy: SinonSpy;
-  let jssUsernameSetterSpy: SinonSpy;
-  let labkeyClientHostSetterSpy: SinonSpy;
-  let labkeyClientPortSetterSpy: SinonSpy;
-  let mmsClientHostSetterSpy: SinonSpy;
-  let mmsClientPortSetterSpy: SinonSpy;
-  let mmsClientUsernameSetterSpy: SinonSpy;
-
   beforeEach(() => {
-    fmsHostSetterSpy = spy();
-    fmsPortSetterSpy = spy();
-    fmsUsernameSetterSpy = spy();
-    fmsMountPointSetterSpy = spy();
-    jssHostSetterSpy = spy();
-    jssPortSetterSpy = spy();
-    jssUsernameSetterSpy = spy();
-    labkeyClientHostSetterSpy = spy();
-    labkeyClientPortSetterSpy = spy();
-    mmsClientHostSetterSpy = spy();
-    mmsClientPortSetterSpy = spy();
-    mmsClientUsernameSetterSpy = spy();
-
-    const { fms, jssClient, mmsClient } = mockReduxLogicDeps;
-    stub(fms, "host").set(fmsHostSetterSpy);
-    stub(fms, "port").set(fmsPortSetterSpy);
-    stub(fms, "username").set(fmsUsernameSetterSpy);
-
-    stub(jssClient, "host").set(jssHostSetterSpy);
-    stub(jssClient, "port").set(jssPortSetterSpy);
-    stub(jssClient, "username").set(jssUsernameSetterSpy);
-
-    stub(labkeyClient, "host").set(labkeyClientHostSetterSpy);
-    stub(labkeyClient, "port").set(labkeyClientPortSetterSpy);
-
-    stub(mmsClient, "host").set(mmsClientHostSetterSpy);
-    stub(mmsClient, "port").set(mmsClientPortSetterSpy);
-    stub(mmsClient, "username").set(mmsClientUsernameSetterSpy);
-
     const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
     const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
     const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
@@ -102,7 +60,6 @@ describe("Setting logics", () => {
     sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
     sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
     sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
-    sandbox.replace(fms, "setMountPoint", fmsMountPointSetterSpy);
   });
 
   afterEach(() => {
@@ -132,53 +89,6 @@ describe("Setting logics", () => {
 
       // after
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
-    });
-
-    it("sets host and port on all LIMS clients", () => {
-      // before
-      expect(fmsHostSetterSpy.called).to.be.false;
-      expect(fmsPortSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
-      expect(jssPortSetterSpy.called).to.be.false;
-      expect(mmsClientHostSetterSpy.called).to.be.false;
-      expect(mmsClientPortSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(updateSettings({ limsHost: stagingHost, limsPort: "90" }));
-
-      // after
-      expect(fmsHostSetterSpy.called).to.be.true;
-      expect(fmsPortSetterSpy.called).to.be.true;
-      expect(jssHostSetterSpy.called).to.be.true;
-      expect(jssPortSetterSpy.called).to.be.true;
-      expect(mmsClientHostSetterSpy.called).to.be.true;
-      expect(mmsClientPortSetterSpy.called).to.be.true;
-    });
-
-    it("sets username on all LIMS clients", () => {
-      // before
-      expect(fmsUsernameSetterSpy.called).to.be.false;
-      expect(jssUsernameSetterSpy.called).to.be.false;
-      expect(mmsClientUsernameSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(updateSettings({ username: "bar" }));
-
-      // after
-      expect(fmsUsernameSetterSpy.called).to.be.true;
-      expect(jssUsernameSetterSpy.called).to.be.true;
-      expect(mmsClientUsernameSetterSpy.called).to.be.true;
-    });
-
-    it("sets mount point on FMS", () => {
-      // before
-      expect(fmsMountPointSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(updateSettings({ mountPoint: "/test/aics" }));
-
-      // after
-      expect(fmsMountPointSetterSpy.called).to.be.true;
     });
 
     it("sets template id in settings", () => {
@@ -249,11 +159,11 @@ describe("Setting logics", () => {
     });
 
     it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
+      const { actions } = createMockReduxStore(mockState, undefined, [
+        updateSettingsLogic,
+      ]);
       store.dispatch(updateSettings({ associateByWorkflow: true }));
-      expect(fmsHostSetterSpy.called).to.be.false;
-      expect(fmsPortSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
-      expect(jssPortSetterSpy.called).to.be.false;
+      expect(actions.includesMatch(requestMetadata())).to.be.false;
     });
 
     it("updates settings in memory and sets warning alert if data persistence failure", () => {
@@ -316,56 +226,6 @@ describe("Setting logics", () => {
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
       expect(getAlert(store.getState())).to.be.undefined;
       expect(getTemplateId(store.getState())).to.equal(1);
-    });
-
-    it("updates various lims clients", async () => {
-      const deps = {
-        ...mockReduxLogicDeps,
-        storage: {
-          ...mockReduxLogicDeps.storage,
-          get: sinon.stub().returns({
-            limsHost: stagingHost,
-            limsPort: "80",
-            username: "foo",
-          }),
-        },
-      };
-      const { logicMiddleware, store } = createMockReduxStore(mockState, deps);
-
-      // before
-      expect(fmsHostSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
-      expect(labkeyClientHostSetterSpy.called).to.be.false;
-      expect(mmsClientHostSetterSpy.called).to.be.false;
-
-      expect(fmsPortSetterSpy.called).to.be.false;
-      expect(jssHostSetterSpy.called).to.be.false;
-      expect(labkeyClientPortSetterSpy.called).to.be.false;
-      expect(mmsClientPortSetterSpy.called).to.be.false;
-
-      expect(fmsUsernameSetterSpy.called).to.be.false;
-      expect(jssUsernameSetterSpy.called).to.be.false;
-      // labkey client currently doesn't need a username
-      expect(mmsClientUsernameSetterSpy.called).to.be.false;
-
-      // apply
-      store.dispatch(gatherSettings());
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(fmsHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(jssHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(labkeyClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
-      expect(mmsClientHostSetterSpy.calledWith(stagingHost)).to.be.true;
-
-      expect(fmsPortSetterSpy.calledWith("80")).to.be.true;
-      expect(jssPortSetterSpy.calledWith("80")).to.be.true;
-      expect(labkeyClientPortSetterSpy.calledWith("80")).to.be.true;
-      expect(mmsClientPortSetterSpy.calledWith("80")).to.be.true;
-
-      expect(fmsUsernameSetterSpy.calledWith("foo")).to.be.true;
-      expect(jssUsernameSetterSpy.calledWith("foo")).to.be.true;
-      expect(mmsClientUsernameSetterSpy.calledWith("foo")).to.be.true;
     });
 
     it("sets alert if error in getting storage settings", () => {

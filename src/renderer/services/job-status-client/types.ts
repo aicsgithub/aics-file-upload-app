@@ -1,23 +1,3 @@
-import { JSSHttpClient } from "./jss-connection";
-
-export interface JobStatusClientConfig {
-  // Host that JSS is running on
-  host?: string;
-
-  // Port that JSS is running on
-  port?: string;
-
-  // minimum level to output logs at
-  logLevel?: "debug" | "error" | "info" | "trace" | "warn";
-
-  // contains connection info for JSS. Only required if host/port not provided
-  // client will use currently logged in user.
-  jss?: JSSHttpClient;
-
-  // username for user making request
-  username?: string;
-}
-
 export interface JobBase {
   // Array of child ids of this job.  Optional, supplied by client
   childIds?: string[];

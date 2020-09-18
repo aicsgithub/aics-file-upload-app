@@ -1,21 +1,23 @@
-import { exists as fsExists, stat as fsStat, Stats } from "fs";
-import { userInfo } from "os";
+import { exists as fsExists } from "fs";
 import * as path from "path";
-import { basename } from "path";
 import { promisify } from "util";
 
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
-import { isEmpty, noop, trim } from "lodash";
+import { isEmpty, noop } from "lodash";
 
+import { LocalStorage } from "../../types";
+import { LabkeyClient } from "../index";
 import JobStatusClient from "../job-status-client";
 import { JSSJob } from "../job-status-client/types";
+import MMSClient from "../mms-client";
 
-import { FSSConnection, LabKeyConnection, MMSConnection } from "./connections";
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
-import { CustomMetadataQuerier } from "./custom-metadata-querier";
-import { IllegalArgumentError, InvalidMetadataError } from "./errors";
+import { InvalidMetadataError } from "./errors";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
+import { CustomMetadataQuerier } from "./helpers/custom-metadata-querier";
+import { FSSClient } from "./helpers/fss-client";
+import { Uploader } from "./helpers/uploader";
 import {
   FileMetadata,
   FileToFileMetadata,
@@ -25,7 +27,6 @@ import {
   UploadResponse,
   Uploads,
 } from "./types";
-import { Uploader } from "./uploader";
 
 // Configuration object for FMS. Either host and port have to be defined or fss needs
 // to be defined.
@@ -33,31 +34,28 @@ export interface FileManagementSystemConfig {
   // getter function for creating a copy worker
   getCopyWorker: () => Worker;
 
-  // Host that FSS is running on
-  host?: string;
-
-  // Port that FSS is running on
-  port?: string;
-
   // minimum level to output logs at
   logLevel?: "debug" | "error" | "info" | "trace" | "warn";
 
   // Only useful for testing. If not specified, will use logLevel to create a logger.
   logger?: ILogger;
 
-  // contains connection info for FSS. Only required if host/port not provided
-  // FMS will use currently logged in user.
-  // Only useful for testing.
-  fss?: FSSConnection;
+  // Client for interacting with FSS
+  fssClient: FSSClient;
 
-  // Client for interacting with JSS.  Only required if host/port not provided
-  // Only useful for testing.
-  jobStatusClient?: JobStatusClient;
+  // Client for interacting with JSS.
+  jobStatusClient: JobStatusClient;
 
-  // Uploads files. Only required if host/port not provided. Only useful for testing.
+  // Client for LabKey
+  labkeyClient: LabkeyClient;
+
+  // Client for interacting with MMS
+  mmsClient: MMSClient;
+
+  storage: LocalStorage;
+
+  // Uploads files. Only useful for testing.
   uploader?: Uploader;
-
-  username?: string;
 }
 
 export const getDuplicateFilesError = (name: string): string =>
@@ -77,7 +75,6 @@ export const getOriginalPathPropertyDoesntMatch = (
 ): string =>
   `metadata for file ${fullpath} has property file.originalPath set to ${originalPath} which doesn't match ${fullpath}`;
 const exists = promisify(fsExists);
-const stat = promisify(fsStat);
 
 const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   debug: Logger.DEBUG,
@@ -89,14 +86,12 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
 
 // Main class exported from library for interacting with the uploader
 export class FileManagementSystem {
-  public readonly fss: FSSConnection;
-  public readonly mms: MMSConnection;
-  public readonly lk: LabKeyConnection;
-  public readonly jobStatusClient: JobStatusClient;
+  private readonly fss: FSSClient;
+  private readonly lk: LabkeyClient;
+  private readonly jobStatusClient: JobStatusClient;
   private readonly logger: ILogger;
-  public readonly uploader: Uploader;
-  public readonly customMetadataQuerier: CustomMetadataQuerier;
-  public readonly getCopyWorker: () => Worker;
+  private readonly uploader: Uploader;
+  private readonly customMetadataQuerier: CustomMetadataQuerier;
 
   /*
         This returns the shared FileMetadata between the two given FileMetadata objects
@@ -112,117 +107,31 @@ export class FileManagementSystem {
     return CustomMetadataQuerier.innerJoinResults(fileMetadata1, fileMetadata2);
   }
 
-  public get port(): string {
-    return this.fss.port;
-  }
-
-  public set port(port: string) {
-    this.lk.port = port;
-    this.mms.port = port;
-    this.fss.port = port;
-    this.jobStatusClient.port = port;
-  }
-
-  public get host(): string {
-    return this.fss.host;
-  }
-
-  public set host(host: string) {
-    this.lk.host = host;
-    this.mms.host = host;
-    this.fss.host = host;
-    this.jobStatusClient.host = host;
-  }
-
-  public get username(): string {
-    return this.fss.user;
-  }
-
-  public set username(username: string) {
-    this.fss.user = username;
-    this.mms.user = username;
-    this.jobStatusClient.username = username;
-  }
-
-  public get mountPoint(): string {
-    return this.uploader.mountPoint;
-  }
-
-  public setMountPoint = async (mountPoint: string): Promise<void> => {
-    mountPoint = mountPoint.replace(/(\/|\\)$/, "");
-
-    if (!mountPoint || !trim(mountPoint)) {
-      throw new Error("Mount point cannot be empty");
-    } else if (basename(mountPoint) !== "aics") {
-      throw new Error("Mount point directory must be named aics");
-    }
-
-    const stats: Stats = await stat(mountPoint);
-    if (!stats.isDirectory()) {
-      throw new Error("Mount point is not a directory");
-    }
-
-    this.uploader.mountPoint = mountPoint;
-  };
-
   public constructor(config: FileManagementSystemConfig) {
     const {
+      jobStatusClient,
+      fssClient,
       getCopyWorker,
+      labkeyClient,
       logger,
-      port = "80",
-      username = userInfo().username,
+      mmsClient,
+      storage,
+      uploader,
     } = config;
-    let { fss, host, jobStatusClient, logLevel, uploader } = config;
-    logLevel = logLevel || "error";
+    const { logLevel = "error" } = config;
 
-    if (!fss) {
-      if (!host) {
-        throw new IllegalArgumentError(
-          "Host must be defined if fss is not defined"
-        );
-      }
-
-      fss = new FSSConnection(host, port, username);
-    }
-
-    if (!jobStatusClient) {
-      host = fss.host || host;
-      if (!host) {
-        throw new IllegalArgumentError(
-          "Host must be defined if jss is not defined"
-        );
-      }
-
-      jobStatusClient = new JobStatusClient({
-        host,
-        port,
-        username,
-        logLevel,
-      });
-    }
-
-    if (!uploader) {
-      host = fss.host || host;
-      if (!host) {
-        throw new IllegalArgumentError(
-          "Host must be defined if uploader is not defined"
-        );
-      }
-
-      uploader = new Uploader(getCopyWorker, fss, jobStatusClient);
-    }
-    this.getCopyWorker = getCopyWorker;
     this.jobStatusClient = jobStatusClient;
-    this.uploader = uploader;
+    this.lk = labkeyClient;
+    this.uploader =
+      uploader ||
+      new Uploader(getCopyWorker, fssClient, jobStatusClient, storage);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = logger || Logger.get(AICSFILES_LOGGER);
 
-    this.fss = fss;
-    this.mms = new MMSConnection(fss.host, fss.port, fss.user);
-    this.lk = new LabKeyConnection(fss.host, fss.port, fss.user);
+    this.fss = fssClient;
     this.customMetadataQuerier = new CustomMetadataQuerier(
-      this.mms,
+      mmsClient,
       this.lk,
       this.logger
     );
@@ -305,7 +214,6 @@ export class FileManagementSystem {
     ) => void = noop,
     copyProgressCbThrottleMs?: number
   ): Promise<UploadResponse> {
-    this.logger.info("using copy progress cb");
     this.logger.time("upload");
     try {
       const response = await this.uploader.uploadFiles(

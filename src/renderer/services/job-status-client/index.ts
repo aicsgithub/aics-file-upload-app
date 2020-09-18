@@ -1,23 +1,16 @@
+import axios, { AxiosRequestConfig } from "axios";
+import { camelizeKeys, decamelizeKeys } from "humps";
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
+import { castArray } from "lodash";
 
-import {
-  DEFAULT_USERNAME,
-  LIMS_HOST,
-  LIMS_PORT,
-} from "../../../shared/constants";
+import { LocalStorage } from "../../types";
+import HttpCacheClient from "../http-cache-client";
+import { AicsSuccessResponse, HttpClient } from "../types";
 
-import { IllegalArgumentError } from "./errors/IllegalArgumentError";
-import { JSSConnection, JSSHttpClient } from "./jss-connection";
 import JSSRequestMapper from "./jss-request-mapper";
 import JSSResponseMapper from "./jss-response-mapper";
-import {
-  CreateJobRequest,
-  JobStatusClientConfig,
-  JobQuery,
-  JSSJob,
-  UpdateJobRequest,
-} from "./types";
+import { CreateJobRequest, JobQuery, JSSJob, UpdateJobRequest } from "./types";
 
 const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   debug: Logger.DEBUG,
@@ -26,100 +19,66 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   trace: Logger.TRACE,
   warn: Logger.WARN,
 });
-
+// Timeout was chosen to match timeout used by aicsfiles-python
+const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 const JOB_STATUS_CLIENT_LOGGER = "job-status-client";
 
 /***
  * Main class used by clients of this library to interact with JSS. Provides job create/read/update functionality.
  */
-export default class JobStatusClient {
-  private _host: string = LIMS_HOST;
-  private _port: string = LIMS_PORT;
-  private _username: string = DEFAULT_USERNAME;
+export default class JobStatusClient extends HttpCacheClient {
   private readonly logger: ILogger;
-  private readonly jss: JSSHttpClient;
-
-  public get port(): string {
-    return this._port;
-  }
-
-  public set port(port: string) {
-    this._port = port;
-    this.jss.port = port;
-  }
-
-  public get host(): string {
-    return this._host;
-  }
-
-  public set host(host: string) {
-    this._host = host;
-    this.jss.host = host;
-  }
-
-  public get username(): string {
-    return this._username;
-  }
-
-  public set username(username: string) {
-    this._username = username;
-    this.jss.username = username;
-  }
 
   /***
    * Create a JobStatusClient instance.
-   * @param config Provides configurations necessary for the client
+   * @param httpClient
+   * @param storage
+   * @param useCache
+   * @param logLevel minimum severity to log at
    */
-  public constructor(config: JobStatusClientConfig) {
-    const { logLevel = "error" } = config;
-    let { jss, host, port = "80", username } = config;
-
-    if (!jss) {
-      if (!host) {
-        throw new IllegalArgumentError("Host must be defined");
-      }
-
-      if (!username) {
-        throw new IllegalArgumentError("Username must be defined");
-      }
-      jss = new JSSConnection(host, port, username);
-    } else {
-      host = jss.host;
-      port = jss.port;
-      username = jss.username;
-    }
-
-    this.jss = jss;
-    this._host = host;
-    this._port = port;
-    this._username = username;
+  public constructor(
+    httpClient: HttpClient,
+    storage: LocalStorage,
+    useCache = false,
+    logLevel: "debug" | "error" | "info" | "trace" | "warn" = "error"
+  ) {
+    super(httpClient, storage, useCache);
     /* eslint-disable react-hooks/rules-of-hooks */
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = Logger.get(JOB_STATUS_CLIENT_LOGGER);
   }
 
+  /**
+   * Creates a job and returns created job
+   * @param job
+   */
   public async createJob(job: CreateJobRequest): Promise<JSSJob> {
     this.logger.debug("Received create job request", job);
-    const response = await this.jss.post<JSSJob>("/1.0/job/", job);
+    const response = await this.post<AicsSuccessResponse<JSSJob>>(
+      "/jss/1.0/job/",
+      job,
+      JobStatusClient.getHttpRequestConfig()
+    );
     return response.data[0];
   }
 
   /***
-   * Update Job in stored in JSS
+   * Update Job in stored in JSS and returns updated job
    * @param jobId job to update
    * @param job partial job object with values to set
-   * @param isPatch indicates the update to perform. If true, this method will only replace properties
-   * that are listed. Otherwise, the entire property will be replaced.
+   * @param patchUpdateServiceFields indicates whether to patch update serviceFields of the job or replace the entire
+   * serviceFields object in db with serviceFields provided in request.
    */
   public async updateJob(
     jobId: string,
     job: UpdateJobRequest,
-    isPatch = true
+    patchUpdateServiceFields = true
   ): Promise<JSSJob> {
     this.logger.debug(`Received update job request for jobId=${jobId}`, job);
-    const response = await this.jss.patch<JSSJob>(
-      `/1.0/job/${jobId}`,
-      JSSRequestMapper.map(job, isPatch)
+    const response = await this.patch<AicsSuccessResponse<JSSJob>>(
+      `/jss/1.0/job/${jobId}`,
+      JSSRequestMapper.map(job, patchUpdateServiceFields),
+      JobStatusClient.getHttpRequestConfig()
     );
     return response.data[0];
   }
@@ -130,7 +89,10 @@ export default class JobStatusClient {
    */
   public async getJob(jobId: string): Promise<JSSJob> {
     this.logger.debug(`Received get job request for jobId=${jobId}`);
-    const response = await this.jss.get<JSSJob>(`/1.0/job/${jobId}`);
+    const response = await this.get<AicsSuccessResponse<JSSJob>>(
+      `/jss/1.0/job/${jobId}`,
+      JobStatusClient.getHttpRequestConfig()
+    );
     return JSSResponseMapper.map(response.data[0]);
   }
 
@@ -140,10 +102,26 @@ export default class JobStatusClient {
    */
   public async getJobs(query: JobQuery): Promise<JSSJob[]> {
     this.logger.debug(`Received get jobs request with query`, query);
-    const response = await this.jss.post<JSSJob>(
-      `/1.0/job/query`,
-      JSSRequestMapper.map(query, true)
+    const response = await this.post<AicsSuccessResponse<JSSJob>>(
+      `/jss/1.0/job/query`,
+      JSSRequestMapper.map(query, true),
+      JobStatusClient.getHttpRequestConfig()
     );
-    return response.data.map((job) => JSSResponseMapper.map(job));
+    return response.data.map((job: JSSJob) => JSSResponseMapper.map(job));
+  }
+
+  // JSS expects properties of requests to be in snake_case format and returns responses in snake_case format as well
+  private static getHttpRequestConfig(): AxiosRequestConfig {
+    return {
+      timeout: DEFAULT_TIMEOUT,
+      transformResponse: [
+        ...castArray(axios.defaults.transformResponse),
+        (data) => camelizeKeys(data),
+      ],
+      transformRequest: [
+        (data) => decamelizeKeys(data),
+        ...castArray(axios.defaults.transformRequest),
+      ],
+    };
   }
 }

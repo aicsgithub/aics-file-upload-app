@@ -1,5 +1,5 @@
 import * as Store from "electron-store";
-import { isNil, isPlainObject } from "lodash";
+import { isNil, isPlainObject, memoize } from "lodash";
 import * as hash from "object-hash";
 
 import {
@@ -26,14 +26,23 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
     super(options);
   }
 
+  /**
+   * Sets key/value(s) in local storage file
+   * @param keyOrObject. If a Key (string) is provided, 2nd arg is required to define the value for the key.
+   * If an object, second arg is ignored.
+   * @param value. Corresponding value for key defined in first arg
+   */
   public set = <Key extends keyof T>(
     keyOrObject: Key | Partial<T>,
     value?: T[Key]
   ) => {
+    const prefixedKeys = new Set<Key>();
     if (isPlainObject(keyOrObject)) {
       const objectWithPrefixes: any = {};
       for (const [key, value] of Object.entries(keyOrObject)) {
-        objectWithPrefixes[this.getPrefixedKey<Key>(key as Key)] = value;
+        const prefixedKey = this.getPrefixedKey<Key>(key as Key);
+        prefixedKeys.add(prefixedKey);
+        objectWithPrefixes[prefixedKey] = value;
       }
       super.set(objectWithPrefixes);
     } else if (
@@ -41,23 +50,30 @@ export class EnvironmentAwareStorage<T = any> extends Store<T>
       (typeof keyOrObject === "string" || typeof keyOrObject === "number")
     ) {
       const prefixedKey = this.getPrefixedKey<Key>(keyOrObject);
+      prefixedKeys.add(prefixedKey);
       super.set(prefixedKey, value);
     } else {
       throw new Error(
         "Expected first argument to be an object, string, or number."
       );
     }
+    // Setting a key will invalidate (delete) the cached value
+    prefixedKeys.forEach((key: Key) => this.get.cache.delete(key));
   };
 
-  public get = <Key extends keyof T>(
-    key: Key,
-    defaultValue?: T[Key]
-  ): T[Key] => {
-    if (defaultValue) {
-      return super.get<Key>(this.getPrefixedKey<Key>(key), defaultValue);
+  /**
+   * Gets the value corresponding to a key. Results are cached until invalidated by set method.
+   * @param key. key of local storage JSON object. Can use dot notation to access nested properties.
+   * @param defaultValue. optional default value if key is not found
+   */
+  public get = memoize(
+    <Key extends keyof T>(key: Key, defaultValue?: T[Key]): T[Key] => {
+      if (defaultValue) {
+        return super.get<Key>(this.getPrefixedKey<Key>(key), defaultValue);
+      }
+      return super.get<Key>(this.getPrefixedKey<Key>(key));
     }
-    return super.get<Key>(this.getPrefixedKey<Key>(key));
-  };
+  );
 
   public delete = <Key extends keyof T>(key: Key): void => {
     super.delete<Key>(this.getPrefixedKey<Key>(key));

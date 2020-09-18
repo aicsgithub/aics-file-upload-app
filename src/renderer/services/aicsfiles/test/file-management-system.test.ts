@@ -1,10 +1,7 @@
-import { exists as fsExists, mkdir as fsMkdir } from "fs";
 import * as path from "path";
-import { promisify } from "util";
 
 import { expect } from "chai";
 import * as Logger from "js-logger";
-import * as rimraf from "rimraf";
 import {
   createSandbox,
   createStubInstance,
@@ -12,20 +9,24 @@ import {
   stub,
 } from "sinon";
 
+import {
+  fssClient,
+  labkeyClient,
+  mmsClient,
+} from "../../../state/test/configure-mock-store";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
-import { FSSConnection } from "../connections";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import {
   FileManagementSystem,
-  FileManagementSystemConfig,
   getDuplicateFilesError,
   getFileDoesNotExistError,
   getFilePropertyMissingError,
   getOriginalPathPropertyDoesntMatch,
   noFilesError,
 } from "../file-management-system";
-import { Uploader } from "../uploader";
+import { FSSClient } from "../helpers/fss-client";
+import { Uploader } from "../helpers/uploader";
 
 import {
   fss,
@@ -34,16 +35,13 @@ import {
   metadata2,
   mockRetryableUploadJob,
   startUploadResponse,
-  targetDir,
   upload1,
   upload2,
   uploads,
   mockJob,
   copyWorkerStub,
+  storage,
 } from "./mocks";
-
-const exists = promisify(fsExists);
-const mkdir = promisify(fsMkdir);
 
 export const differentTargetDir = path.resolve("./aics");
 
@@ -54,154 +52,27 @@ describe("FileManagementSystem", () => {
   beforeEach(() => {
     const logger = Logger.get("test");
     sandbox.replace(logger, "error", stub());
-    uploader = new Uploader(getCopyWorkerStub, fss, jobStatusClient, logger);
+    uploader = new Uploader(
+      getCopyWorkerStub,
+      fss,
+      jobStatusClient,
+      storage,
+      logger
+    );
   });
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  describe("constructor", () => {
-    const HOST = "localhost";
-    const PORT = "8080";
-    const testConstructor = (config: FileManagementSystemConfig): void => {
-      const fms = new FileManagementSystem(config);
-      expect(fms.fss.host).to.equal(HOST);
-      expect(fms.fss.port).to.equal(PORT);
-      expect(fms.host).to.equal(HOST);
-      expect(fms.port).to.equal(PORT);
-      expect(fms.jobStatusClient.host).to.equal(HOST);
-      expect(fms.jobStatusClient.port).to.equal(PORT);
-      expect(fms.lk.host).to.equal(HOST);
-      expect(fms.lk.port).to.equal(PORT);
-      expect(fms.mms.host).to.equal(HOST);
-      expect(fms.mms.port).to.equal(PORT);
-      expect(fms.customMetadataQuerier.lk.host).to.equal(HOST);
-      expect(fms.customMetadataQuerier.lk.port).to.equal(PORT);
-      expect(fms.customMetadataQuerier.mms.host).to.equal(HOST);
-      expect(fms.customMetadataQuerier.mms.port).to.equal(PORT);
-    };
-
-    it("uses host and port if provided", () => {
-      testConstructor({
-        getCopyWorker: getCopyWorkerStub,
-        host: HOST,
-        port: PORT,
-      });
-    });
-
-    it("ignores host and port if fss connection and jobStatusClient provided", () => {
-      testConstructor({
-        getCopyWorker: getCopyWorkerStub,
-        host: "wronghost",
-        port: "9090",
-        fss: new FSSConnection(HOST, PORT, "foo"),
-        jobStatusClient: new JobStatusClient({
-          host: HOST,
-          port: PORT,
-          username: "foo",
-        }),
-      });
-    });
-
-    it("allows host and port to be optional", () => {
-      const fss = new FSSConnection(HOST, PORT, "foo");
-      const jobStatusClient = new JobStatusClient({
-        host: HOST,
-        port: PORT,
-        username: "foo",
-      });
-      testConstructor({
-        getCopyWorker: getCopyWorkerStub,
-        fss,
-        jobStatusClient,
-        uploader: new Uploader(getCopyWorkerStub, fss, jobStatusClient),
-      });
-    });
-
-    it("throws an error if no connection info provided", () => {
-      // can't test for specific error due to transpilation, i.e. this known error:
-      // https://github.com/chaijs/chai/issues/596
-      expect(
-        () => new FileManagementSystem({ getCopyWorker: getCopyWorkerStub })
-      ).to.throw();
-    });
-  });
-
-  describe("set port", () => {
-    const fms = new FileManagementSystem({
-      getCopyWorker: getCopyWorkerStub,
-      host: "localhost",
-      port: "80",
-    });
-    it("sets jobStatusClient and fss ports", () => {
-      fms.port = "90";
-      expect(fms.jobStatusClient.port).to.equal("90");
-      expect(fms.fss.port).to.equal("90");
-    });
-  });
-
-  describe("set host", () => {
-    const fms = new FileManagementSystem({
-      getCopyWorker: getCopyWorkerStub,
-      host: "localhost",
-      port: "80",
-    });
-    it("sets jobStatusClient and fss hosts", () => {
-      fms.host = "foo";
-      expect(fms.jobStatusClient.host).to.equal("foo");
-      expect(fms.fss.host).to.equal("foo");
-    });
-  });
-
-  describe("setMountPoint", () => {
-    beforeEach(async () => {
-      if (!(await exists(targetDir))) {
-        await mkdir(targetDir);
-      }
-
-      if (!(await exists(differentTargetDir))) {
-        await mkdir(differentTargetDir);
-      }
-    });
-
-    afterEach(() => {
-      rimraf.sync(targetDir);
-      rimraf.sync(differentTargetDir);
-    });
-
-    const fms = new FileManagementSystem({
-      getCopyWorker: getCopyWorkerStub,
-      host: "localhost",
-      port: "80",
-    });
-    it("Throws an error if mount point is an empty string", () => {
-      expect(fms.setMountPoint("")).to.be.rejectedWith(Error);
-    });
-    it("Throws an error if mount point is a string with no characters", () => {
-      expect(fms.setMountPoint("  ")).to.be.rejectedWith(Error);
-    });
-    it("Throws an error if mount point is not a directory", () => {
-      expect(fms.setMountPoint("/does/not/exist")).to.be.rejectedWith(Error);
-    });
-    it("Throws an error if mount point is not a directory named aics", () => {
-      expect(fms.setMountPoint(targetDir)).to.be.rejectedWith(Error);
-    });
-    it("Trims trailing forward slash", async () => {
-      await fms.setMountPoint(differentTargetDir + "/");
-      expect(fms.mountPoint).to.equal(differentTargetDir);
-    });
-    it("Trims trailing back slash", async () => {
-      await fms.setMountPoint(differentTargetDir + "\\");
-      expect(fms.mountPoint).to.equal(differentTargetDir);
-    });
-  });
-
   describe("validateMetadataAndGetUploadDirectory", () => {
     const fms = new FileManagementSystem({
+      fssClient: (fssClient as any) as FSSClient,
       getCopyWorker: getCopyWorkerStub,
-      host: "localhost",
-      port: "80",
+      jobStatusClient,
+      labkeyClient,
+      mmsClient,
+      storage,
     });
     const goodMetadata = {
       [upload1]: {
@@ -276,20 +147,18 @@ describe("FileManagementSystem", () => {
     });
 
     it("Throws error if it cannot get a start upload response from FSS", () => {
-      const fssStub = {
-        startUpload: stub().rejects(),
-      };
-      sandbox.replace(fms, "fss", (fssStub as any) as FSSConnection);
+      sandbox.replace(fssClient, "startUpload", stub().rejects(new Error()));
       expect(
         fms.validateMetadataAndGetUploadDirectory(goodMetadata, "test_job_name")
       ).to.be.rejectedWith(Error);
     });
 
     it("Returns response from FSS if OK", async () => {
-      const fssStub = {
-        startUpload: stub().resolves(startUploadResponse),
-      };
-      sandbox.replace(fms, "fss", (fssStub as any) as FSSConnection);
+      sandbox.replace(
+        fssClient,
+        "startUpload",
+        stub().resolves(startUploadResponse)
+      );
       expect(
         await fms.validateMetadataAndGetUploadDirectory(
           goodMetadata,
@@ -320,9 +189,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(uploader, "uploadFiles", uploadFilesStub);
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
+        storage,
         uploader,
+        mmsClient,
       });
       await fms.uploadFiles(startUploadResponse, uploads, "anything");
       sandbox.assert.calledWith(
@@ -337,9 +209,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(uploader, "uploadFiles", stub().rejects());
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
+        mmsClient,
+        storage,
       });
       expect(
         fms.uploadFiles(startUploadResponse, uploads, "anything")
@@ -358,9 +233,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(jobStatusClient, "updateJob", stub());
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
+        mmsClient,
+        storage,
       });
       expect(
         fms.retryUpload({
@@ -379,9 +257,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
+        mmsClient,
+        storage,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -402,9 +283,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(uploader, "retryUpload", retryUploadStub);
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
+        mmsClient,
+        storage,
       });
       await fms.retryUpload(mockRetryableUploadJob);
       expect(retryUploadStub.getCall(0).args[0]).to.deep.equal(uploads);
@@ -418,9 +302,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(jobStatusClient, "updateJob", stub());
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
+        mmsClient,
+        storage,
       });
       expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(Error);
     });
@@ -440,9 +327,12 @@ describe("FileManagementSystem", () => {
       sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
       const fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
         jobStatusClient,
+        labkeyClient,
         uploader,
+        mmsClient,
+        storage,
       });
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
@@ -463,11 +353,12 @@ describe("FileManagementSystem", () => {
       jssStub = createStubInstance(JobStatusClient);
       fms = new FileManagementSystem({
         getCopyWorker: getCopyWorkerStub,
-        fss,
+        fssClient: fss,
+        labkeyClient,
         uploader,
-        // Assert that the stub is of the correct type when calling the
-        // constructor
-        jobStatusClient: (jssStub as unknown) as JobStatusClient,
+        jobStatusClient: (jssStub as any) as JobStatusClient,
+        mmsClient,
+        storage,
       });
     });
 

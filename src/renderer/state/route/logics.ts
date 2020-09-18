@@ -413,7 +413,6 @@ const convertImageModelMetadataToUploadStateBranch = (
         ...accum,
         [key]: {
           ...curr,
-          barcode: curr.barcode ? `${curr.barcode}` : undefined,
           file,
         },
       };

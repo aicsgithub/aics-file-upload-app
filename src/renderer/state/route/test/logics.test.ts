@@ -28,6 +28,7 @@ import {
   getSelectedPlate,
 } from "../../selection/selectors";
 import { getAssociateByWorkflow } from "../../setting/selectors";
+import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
   createMockReduxStore,
@@ -53,11 +54,7 @@ import {
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
-import {
-  getAppliedTemplateId,
-  getCurrentUploadIndex,
-  getUpload,
-} from "../../upload/selectors";
+import { getCurrentUploadIndex, getUpload } from "../../upload/selectors";
 import {
   closeUploadTab,
   goBack,
@@ -748,7 +745,7 @@ describe("Route logics", () => {
       expect(getView(state)).to.equal(Page.UploadSummary);
       expect(getFileMetadataForJob(state)).to.be.undefined;
       expect(getUpload(state)).to.be.empty;
-      expect(getAppliedTemplateId(state)).to.be.undefined;
+      expect(getAppliedTemplate(state)).to.be.undefined;
 
       store.dispatch(openEditFileMetadataTab(mockSuccessfulUploadJob));
       await logicMiddleware.whenComplete();
@@ -760,11 +757,10 @@ describe("Route logics", () => {
         [getUploadRowKey({ file: "/localFilePath" })]: {
           ...fileMetadata[0],
           "Favorite Color": [],
-          barcode: undefined,
           file: "/localFilePath",
         },
       });
-      expect(getAppliedTemplateId(state)).to.not.be.undefined;
+      expect(getAppliedTemplate(state)).to.not.be.undefined;
     });
     it("dispatches requestFailed if boolean annotation type id is not defined", async () => {
       stubMethods({});

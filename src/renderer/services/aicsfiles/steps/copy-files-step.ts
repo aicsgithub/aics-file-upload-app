@@ -5,7 +5,7 @@ import { isEmpty, noop } from "lodash";
 import JobStatusClient from "../../job-status-client";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
-import { StepExecutor } from "../step-executor";
+import { StepExecutor } from "../helpers/step-executor";
 import { Job, SourceFiles, Step, StepName, UploadContext } from "../types";
 
 import { CopyStep } from "./copy-step";

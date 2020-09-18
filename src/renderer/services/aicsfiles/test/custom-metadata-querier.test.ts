@@ -2,7 +2,7 @@ import { expect } from "chai";
 import * as Logger from "js-logger";
 import { createSandbox, stub } from "sinon";
 
-import { CustomMetadataQuerier } from "../custom-metadata-querier";
+import { CustomMetadataQuerier } from "../helpers/custom-metadata-querier";
 import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "../types";
 
 import {

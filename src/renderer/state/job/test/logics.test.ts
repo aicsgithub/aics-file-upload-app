@@ -10,6 +10,7 @@ import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
+import { LocalStorage } from "../../../types";
 import {
   setErrorAlert,
   setInfoAlert,
@@ -50,14 +51,14 @@ describe("Job logics", () => {
     const uploadJobs = [mockSuccessfulUploadJob];
     const recentlyFailedJobNames = ["jobName"];
     const recentlySucceededJobNames = ["jobName2"];
-    const storage = {
+    const storage = ({
       clear: stub(),
       delete: stub(),
       get: stub().returns(["abc"]),
       has: stub(),
       reset: stub(),
       set: stub(),
-    };
+    } as any) as LocalStorage;
 
     it("Returns retrieveJobsFailed if error is present", () => {
       const action = mapJobsToActions(
@@ -155,10 +156,6 @@ describe("Job logics", () => {
     beforeEach(() => {
       jssStub = createStubInstance(JobStatusClient);
       fmsStub = createStubInstance(FileManagementSystem);
-      // Stub out the getters for the FMS stub
-      stub(fmsStub, "host").get(() => "test_host");
-      stub(fmsStub, "port").get(() => "test_port");
-      stub(fmsStub, "username").get(() => "test_username");
 
       logicDeps = {
         ...mockReduxLogicDeps,

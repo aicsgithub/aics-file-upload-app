@@ -1,6 +1,7 @@
 import { readFile as fsReadFile, writeFile as fsWriteFile } from "fs";
 import { promisify } from "util";
 
+import axios from "axios";
 import { ipcRenderer, remote } from "electron";
 import * as Logger from "js-logger";
 import { forEach, isNil } from "lodash";
@@ -14,15 +15,10 @@ import {
 import { createLogicMiddleware } from "redux-logic";
 import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
 
-import {
-  DEFAULT_USERNAME,
-  LIMS_HOST,
-  LIMS_PORT,
-  LIMS_PROTOCOL,
-  TEMP_UPLOAD_STORAGE_KEY,
-} from "../../shared/constants";
+import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
+import { FSSClient } from "../services/aicsfiles/helpers/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
@@ -66,43 +62,44 @@ const logics = [
   ...upload.logics,
 ];
 
-const username: string = DEFAULT_USERNAME;
 const storage = new EnvironmentAwareStorage();
-
+// Configure Axios to use the `XMLHttpRequest` adapter. Axios uses either
+// `XMLHttpRequest` or Node's `http` module, depending on the environment it is
+// running in. See more info here: https://github.com/axios/axios/issues/552.
+// In our case, Axios was using Node's `http` module. Due to this, network
+// requests were not visible in the "Network" tab of the Chromium dev tools,
+// because the requests were happening in the Node layer, rather than the
+// Chromium layer. Additionally, we had seen cases for many months where the app
+// would hang after making network requests. This issue completely disappears
+// when using the `XMLHttpRequest` adapter. This may be due to some unresolved
+// issues with Electron and/or Node running on
+// Linux (https://github.com/electron/electron/issues/10570).
+axios.defaults.adapter = require("axios/lib/adapters/xhr");
+const httpClient = axios;
+const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
+const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
+const mmsClient = new MMSClient(httpClient, storage, useCache);
+const labkeyClient = new LabkeyClient(httpClient, storage, useCache);
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
+    fssClient: new FSSClient(httpClient, storage, useCache),
     // We need to define a getter here for testing purposes. WebWorkers are not defined
     // in the mocha testing environment. It is also easier to unit test components with
     // the copy portion mocked
     getCopyWorker: () => new CopyWorker(),
-    host: LIMS_HOST,
+    jobStatusClient: jssClient,
+    labkeyClient,
     logLevel: "trace",
-    port: LIMS_PORT,
-    username,
+    mmsClient,
+    storage,
   }),
   getApplicationMenu: () => remote.Menu.getApplicationMenu(),
   ipcRenderer,
-  jssClient: new JobStatusClient({
-    host: LIMS_HOST,
-    logLevel: "debug",
-    port: LIMS_PORT,
-    username,
-  }),
-  labkeyClient: new LabkeyClient({
-    host: LIMS_HOST,
-    localStorage: storage,
-    port: LIMS_PORT,
-    protocol: LIMS_PROTOCOL,
-  }),
+  jssClient,
+  labkeyClient,
   logger: Logger,
-  mmsClient: new MMSClient({
-    host: LIMS_HOST,
-    localStorage: storage,
-    port: LIMS_PORT,
-    protocol: LIMS_PROTOCOL,
-    username,
-  }),
+  mmsClient,
   readFile,
   storage,
   writeFile,

@@ -22,6 +22,8 @@ import {
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
 import { FileManagementSystem } from "../../services/aicsfiles";
+import { FSSClient } from "../../services/aicsfiles/helpers/fss-client";
+import { LocalStorage } from "../../types";
 import { State } from "../types";
 
 import { Actions, default as ActionTracker } from "./action-tracker";
@@ -45,6 +47,13 @@ export interface ReduxLogicDependencies {
   getApplicationMenu: SinonStub;
   getRetryUploadWorker: SinonStub;
   getUploadWorker: SinonStub;
+  httpClient: {
+    get: SinonStub;
+    post: SinonStub;
+    put: SinonStub;
+    patch: SinonStub;
+    delete: SinonStub;
+  };
   ipcRenderer: {
     on: SinonStub;
     send: SinonStub;
@@ -63,10 +72,6 @@ export interface ReduxLogicDependencies {
   writeFile: SinonStub;
 }
 
-const host = "localhost";
-const port = "80";
-const protocol = "http";
-const username = "foo";
 export const storage: LocalStorageStub = {
   clear: stub(),
   delete: stub(),
@@ -75,28 +80,44 @@ export const storage: LocalStorageStub = {
   reset: stub(),
   set: stub(),
 };
+export const httpClient = {
+  get: stub(),
+  post: stub(),
+  put: stub(),
+  patch: stub(),
+  delete: stub(),
+};
+
+export const jssClient = new JobStatusClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
+export const labkeyClient = new LabkeyClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
+export const mmsClient = new MMSClient(
+  httpClient,
+  (storage as any) as LocalStorage,
+  false
+);
+export const fssClient = {
+  startUpload: stub(),
+  uploadComplete: stub(),
+};
 export const fms = new FileManagementSystem({
   getCopyWorker: stub().returns({
     postMessage: stub(),
     onerror: stub(),
     onmessage: stub(),
   }),
-  host,
-  port,
-});
-export const jssClient = new JobStatusClient({ host, port, username });
-export const labkeyClient = new LabkeyClient({
-  host,
-  localStorage: storage,
-  port,
-  protocol,
-});
-export const mmsClient = new MMSClient({
-  host,
-  localStorage: storage,
-  port,
-  protocol,
-  username,
+  fssClient: (fssClient as any) as FSSClient,
+  jobStatusClient: jssClient,
+  labkeyClient,
+  mmsClient,
+  storage: (storage as any) as LocalStorage,
 });
 
 export const switchEnvMenuItem = {
@@ -146,6 +167,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
   getApplicationMenu,
   getRetryUploadWorker: stub(),
   getUploadWorker: stub(),
+  httpClient,
   ipcRenderer,
   jssClient,
   labkeyClient,

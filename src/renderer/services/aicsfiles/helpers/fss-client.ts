@@ -2,6 +2,9 @@ import axios, { AxiosRequestConfig } from "axios";
 import * as humps from "humps";
 import { values, castArray } from "lodash";
 
+import { LocalStorage } from "../../../types";
+import HttpCacheClient from "../../http-cache-client";
+import { AicsSuccessResponse, HttpClient } from "../../types";
 import {
   SourceFiles,
   StartUploadResponse,
@@ -10,24 +13,20 @@ import {
   Uploads,
 } from "../types";
 
-import { ConnectionBase } from "./connection-base";
-
 const UPLOAD_TYPE = "upload";
+
+const fssURL = "/fss";
 
 /**
  * Provides interface with FSS endpoints.
  */
-export class FSSConnection extends ConnectionBase {
-  private static readonly servicePath = "fss";
-
-  /**
-   * Construct FSSConnection instance
-   * @param host Host that FSS is running on (does not include protocol)
-   * @param port Port that FSS is running on
-   * @param user User to run requests as
-   */
-  public constructor(host: string, port = "80", user: string) {
-    super(host, port, user, FSSConnection.servicePath);
+export class FSSClient extends HttpCacheClient {
+  constructor(
+    httpClient: HttpClient,
+    localStorage: LocalStorage,
+    useCache = false
+  ) {
+    super(httpClient, localStorage, useCache);
   }
 
   public async startUpload(
@@ -41,29 +40,35 @@ export class FSSConnection extends ConnectionBase {
         type: UPLOAD_TYPE,
       },
     };
-    const response = await this.post<StartUploadResponse>(
-      "1.0/file/upload",
-      requestBody
+    const response = await this.post<AicsSuccessResponse<StartUploadResponse>>(
+      `${fssURL}/1.0/file/upload`,
+      requestBody,
+      FSSClient.getHttpRequestConfig()
     );
 
     return response.data[0];
   }
 
-  public uploadComplete(
+  public uploadComplete = async (
     jobId: string,
     sourceFiles: SourceFiles
-  ): Promise<UploadMetadataResponse> {
+  ): Promise<UploadMetadataResponse> => {
     const request: UploadMetadataRequest = {
       files: values(sourceFiles),
       jobId,
     };
-    return this.post<UploadMetadataResponse>(
-      "1.0/file/uploadComplete",
-      request
-    ).then(({ data }) => data[0]);
-  }
+    const response = await this.post<
+      AicsSuccessResponse<UploadMetadataResponse>
+    >(
+      `${fssURL}/1.0/file/uploadComplete`,
+      request,
+      FSSClient.getHttpRequestConfig()
+    );
+    return response.data[0];
+  };
 
-  protected get extraAxiosConfig(): AxiosRequestConfig {
+  // FSS expects properties of requests to be in snake_case format and returns responses in snake_case format as well
+  private static getHttpRequestConfig(): AxiosRequestConfig {
     return {
       transformResponse: [
         ...castArray(axios.defaults.transformResponse),

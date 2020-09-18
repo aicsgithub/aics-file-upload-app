@@ -62,7 +62,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
     ) => {
       const nextState = { ...state };
 
-      const { barcode, wellIds, rowIds } = action.payload;
+      const { wellIds, rowIds } = action.payload;
 
       return rowIds.reduce((accum: UploadStateBranch, id) => {
         const key = getUploadRowKey(id);
@@ -70,7 +70,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
           ...accum,
           [key]: {
             ...accum[key],
-            barcode,
             file: id.file,
             positionIndex: id.positionIndex,
             scene: id.scene,

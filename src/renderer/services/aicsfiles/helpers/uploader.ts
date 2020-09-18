@@ -8,19 +8,18 @@ import { ILogger } from "js-logger/src/types";
 import { includes, keys, noop, pick } from "lodash";
 import * as uuid from "uuid";
 
-import JobStatusClient from "../job-status-client";
+import { USER_SETTINGS_KEY } from "../../../../shared/constants";
+import { LocalStorage } from "../../../types";
+import JobStatusClient from "../../job-status-client";
 import {
   CreateJobRequest,
   JSSJob,
   JSSJobStatus,
-} from "../job-status-client/types";
-
-import { FSSConnection } from "./connections";
-import { AICSFILES_LOGGER } from "./constants";
-import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
-import { StepExecutor } from "./step-executor";
-import { AddMetadataStep } from "./steps/add-metadata-step";
-import { CopyFilesStep } from "./steps/copy-files-step";
+} from "../../job-status-client/types";
+import { AICSFILES_LOGGER } from "../constants";
+import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
+import { AddMetadataStep } from "../steps/add-metadata-step";
+import { CopyFilesStep } from "../steps/copy-files-step";
 import {
   FSSResponseFile,
   Job,
@@ -30,8 +29,11 @@ import {
   UploadContext,
   UploadResponse,
   Uploads,
-} from "./types";
-import { makePosixPathCompatibleWithPlatform } from "./util";
+} from "../types";
+import { makePosixPathCompatibleWithPlatform } from "../util";
+
+import { FSSClient } from "./fss-client";
+import { StepExecutor } from "./step-executor";
 
 const EXPECTED_NUMBER_UPLOAD_STEPS = 2;
 export const COPY_TYPE = "copy";
@@ -52,34 +54,49 @@ const getUUID = (): string => {
  * This class is responsible for uploading files through FSS.
  */
 export class Uploader {
-  private readonly fss: FSSConnection;
+  private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
-  private readonly username: string = userInfo().username;
+  private readonly storage: LocalStorage;
   private readonly logger: ILogger;
-  private readonly defaultJobInfo = {
-    currentHost: hostname(),
-    originationHost: hostname(),
-    service: "aicsfiles-js",
-    status: "WAITING" as JSSJobStatus,
-    updateParent: true,
-    user: this.username,
-  };
+
   private readonly getCopyWorker: () => Worker;
-  public defaultMountPoint = "/allen/aics"; // leaving this editable for testing purposes
-  public mountPoint: string = makePosixPathCompatibleWithPlatform(
-    this.defaultMountPoint,
-    platform()
-  );
+  private readonly defaultMountPoint = "/allen/aics";
+
+  private get defaultJobInfo() {
+    return {
+      currentHost: hostname(),
+      originationHost: hostname(),
+      service: "aicsfiles-js",
+      status: "WAITING" as JSSJobStatus,
+      updateParent: true,
+      user: this.username,
+    };
+  }
+
+  private get mountPoint() {
+    const userSettings = this.storage.get(USER_SETTINGS_KEY);
+    return makePosixPathCompatibleWithPlatform(
+      userSettings?.mountPoint || this.defaultMountPoint,
+      platform()
+    );
+  }
+
+  private get username() {
+    const userSettings = this.storage.get(USER_SETTINGS_KEY);
+    return userSettings?.username || userInfo().username;
+  }
 
   public constructor(
     getCopyWorker: () => Worker,
-    fss: FSSConnection,
+    fss: FSSClient,
     jobStatusClient: JobStatusClient,
+    storage: LocalStorage,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
   ) {
     this.getCopyWorker = getCopyWorker;
     this.fss = fss;
     this.jss = jobStatusClient;
+    this.storage = storage;
     this.logger = logger;
   }
 

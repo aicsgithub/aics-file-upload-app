@@ -33,15 +33,8 @@ import {
 } from "./selectors";
 
 export const updateSettingsLogic = createLogic({
-  process: async (
-    {
-      ctx,
-      fms,
-      getState,
-      jssClient,
-      labkeyClient,
-      mmsClient,
-    }: ReduxLogicProcessDependencies,
+  process: (
+    { ctx, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -52,42 +45,18 @@ export const updateSettingsLogic = createLogic({
     const mountPoint = getMountPoint(state);
 
     if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
-      fms.host = host;
-      jssClient.host = host;
-      labkeyClient.host = host;
-      mmsClient.host = host;
-
-      fms.port = port;
-      jssClient.port = port;
-      labkeyClient.port = port;
-      mmsClient.port = port;
-
-      fms.username = username;
-      jssClient.username = username;
-      mmsClient.username = username;
-
       dispatch(requestMetadata());
       dispatch(handleAbandonedJobs());
       dispatch(retrieveJobs());
     }
 
     if (mountPoint && mountPoint !== ctx.mountPoint) {
-      try {
-        await fms.setMountPoint(mountPoint);
-        dispatch(
-          setAlert({
-            message: "Mount point successfully set and saved to your settings",
-            type: AlertType.SUCCESS,
-          })
-        );
-      } catch (e) {
-        dispatch(
-          setAlert({
-            message: e.message || "Could not set mount point",
-            type: AlertType.ERROR,
-          })
-        );
-      }
+      dispatch(
+        setAlert({
+          message: "Mount point successfully set and saved to your settings",
+          type: AlertType.SUCCESS,
+        })
+      );
     }
 
     done();
@@ -129,15 +98,7 @@ export const updateSettingsLogic = createLogic({
 
 const gatherSettingsLogic = createLogic({
   validate: (
-    {
-      action,
-      fms,
-      jssClient,
-      labkeyClient,
-      logger,
-      mmsClient,
-      storage,
-    }: ReduxLogicTransformDependencies,
+    { action, logger, storage }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -151,29 +112,9 @@ const gatherSettingsLogic = createLogic({
         return;
       }
 
-      const { limsHost, limsPort, username } = userSettings;
       // Template ID is environment-dependent (staging and production could have different sets of template ids)
       // so we need to get it from another place and add it manually.
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
-      if (limsHost) {
-        fms.host = limsHost;
-        jssClient.host = limsHost;
-        labkeyClient.host = limsHost;
-        mmsClient.host = limsHost;
-      }
-
-      if (limsPort) {
-        fms.port = limsPort;
-        jssClient.port = limsPort;
-        labkeyClient.port = limsPort;
-        mmsClient.port = limsPort;
-      }
-
-      if (username) {
-        fms.username = username;
-        jssClient.username = username;
-        mmsClient.username = username;
-      }
 
       next({
         ...action,
@@ -206,7 +147,7 @@ const setMountPointLogic = createLogic({
       properties: ["openDirectory"],
       title: "Browse to the folder that is mounted to /allen/aics",
     });
-    if (folders?.length) {
+    if (folders?.length > 0) {
       const folder = basename(folders[0]);
       if (folder !== "aics") {
         dispatch(
