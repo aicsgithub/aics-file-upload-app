@@ -116,17 +116,13 @@ export const getCanUndoUpload = createSelector(
 );
 
 const EXCLUDED_UPLOAD_FIELDS = [
-  "barcode",
-  "channel",
   "file",
   "key",
-  "plateId",
   "positionIndex",
   "scene",
   "shouldBeInArchive",
   "shouldBeInLocal",
   "subImageName",
-  "wellLabels",
 ];
 
 // this matches the metadata annotations to the ones in the database and removes

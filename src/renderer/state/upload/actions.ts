@@ -101,7 +101,6 @@ export function associateFilesAndWells(
   return {
     autoSave: true,
     payload: {
-      barcode: "",
       rowIds,
       wellIds: [], // this gets populated with the wells that are selected in logics
     },

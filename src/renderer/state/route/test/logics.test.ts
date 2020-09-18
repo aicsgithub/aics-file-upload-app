@@ -757,7 +757,6 @@ describe("Route logics", () => {
         [getUploadRowKey({ file: "/localFilePath" })]: {
           ...fileMetadata[0],
           "Favorite Color": [],
-          barcode: undefined,
           file: "/localFilePath",
         },
       });

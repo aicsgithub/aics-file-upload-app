@@ -1,4 +1,4 @@
-import { get, isNil } from "lodash";
+import { isNil } from "lodash";
 import * as moment from "moment";
 
 import { LONG_DATETIME_FORMAT } from "../../constants";
@@ -142,9 +142,9 @@ export const getUploadRowKey = ({
 export const getUploadRowKeyFromUploadTableRow = (
   upload: UploadJobTableRow
 ): string => {
-  const { channel, file, positionIndex, scene, subImageName } = upload;
+  const { channelId, file, positionIndex, scene, subImageName } = upload;
   return getUploadRowKey({
-    channelId: get(channel, ["channelId"]),
+    channelId,
     file,
     positionIndex,
     scene,

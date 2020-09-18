@@ -17,10 +17,7 @@ import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { getCurrentJobName } from "../../job/selectors";
 import { selectPage } from "../../route/actions";
-import {
-  getSelectedBarcode,
-  getSelectedFiles,
-} from "../../selection/selectors";
+import { getSelectedFiles } from "../../selection/selectors";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -113,11 +110,8 @@ describe("Upload logics", () => {
       const state = store.getState();
       expect(getSelectedFiles(state)).to.be.empty;
       const upload = getUpload(store.getState());
-      const selectedBarcode = getSelectedBarcode(state);
       expect(get(upload, [file1, WELL_ANNOTATION_NAME, 0])).to.equal(wellId);
-      expect(get(upload, [file1, "barcode"])).to.equal(selectedBarcode);
       expect(get(upload, [file2, WELL_ANNOTATION_NAME, 0])).to.equal(wellId);
-      expect(get(upload, [file2, "barcode"])).to.equal(selectedBarcode);
     });
 
     it("sets error alert when rowIds is empty", () => {
@@ -218,12 +212,10 @@ describe("Upload logics", () => {
       const state = store.getState();
       expect(getSelectedFiles(state)).to.be.empty;
       const upload = getUpload(store.getState());
-      const selectedBarcode = getSelectedBarcode(state);
       const uploadRowKey = getUploadRowKey({ file: file1, positionIndex: 1 });
       expect(get(upload, [uploadRowKey, WELL_ANNOTATION_NAME, 0])).to.equal(
         wellId
       );
-      expect(get(upload, [uploadRowKey, "barcode"])).to.equal(selectedBarcode);
     });
   });
 
@@ -366,7 +358,6 @@ describe("Upload logics", () => {
         ...nonEmptyStateForInitiatingUpload,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
-            barcode: "1234",
             file: "/path/to/file1",
             key: getUploadRowKey({ file: "/path/to/file" }),
             shouldBeInArchive: true,
@@ -378,7 +369,6 @@ describe("Upload logics", () => {
       const expectedAction = setAppliedTemplate(mockMMSTemplate, {
         [getUploadRowKey({ file: "/path/to/file1" })]: {
           ["Favorite Color"]: [],
-          barcode: "1234",
           file: "/path/to/file1",
           key: getUploadRowKey({ file: "/path/to/file" }),
           shouldBeInArchive: true,
@@ -657,7 +647,6 @@ describe("Upload logics", () => {
         ...nonEmptyStateForInitiatingUpload,
         upload: getMockStateWithHistory({
           [fileRowKey]: {
-            barcode: "1234",
             file: "/path/to/file1",
             key: fileRowKey,
             shouldBeInArchive: true,
@@ -693,7 +682,6 @@ describe("Upload logics", () => {
       expect(filePositionMetadata).to.not.be.undefined;
       expect(filePositionMetadata).to.deep.equal({
         "Favorite Color": [],
-        barcode: "1234",
         channelId: undefined,
         file: "/path/to/file1",
         key: getUploadRowKey({ file, positionIndex: 0 }),
@@ -724,7 +712,6 @@ describe("Upload logics", () => {
       expect(filePositionMetadata).to.not.be.undefined;
       expect(filePositionMetadata).to.deep.equal({
         "Favorite Color": [],
-        barcode: "1234",
         channelId: undefined,
         file: "/path/to/file1",
         key: getUploadRowKey({ file, scene: 0 }),
@@ -834,7 +821,6 @@ describe("Upload logics", () => {
       const channelUpload = getUpload(state)[channelOnlyRowKey];
       expect(channelUpload).to.not.be.undefined;
       expect(channelUpload).to.deep.equal({
-        barcode: "1234",
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -868,7 +854,6 @@ describe("Upload logics", () => {
       ];
       expect(positionUpload).to.not.be.undefined;
       expect(positionUpload).to.deep.equal({
-        barcode: "1234",
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -898,7 +883,6 @@ describe("Upload logics", () => {
       const sceneUpload = getUpload(state)[getUploadRowKey({ file, scene: 1 })];
       expect(sceneUpload).to.not.be.undefined;
       expect(sceneUpload).to.deep.equal({
-        barcode: "1234",
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -930,7 +914,6 @@ describe("Upload logics", () => {
       ];
       expect(subImageUpload).to.not.be.undefined;
       expect(subImageUpload).to.deep.equal({
-        barcode: "1234",
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1113,7 +1096,6 @@ describe("Upload logics", () => {
       const positionUpload =
         uploads[getUploadRowKey({ file, positionIndex: 1 })];
       expect(positionUpload).to.deep.equal({
-        barcode: "1234",
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1132,7 +1114,6 @@ describe("Upload logics", () => {
       const positionAndChannelUpload = uploads[positionAndChannelKey];
       expect(positionAndChannelUpload).to.not.be.undefined;
       expect(positionAndChannelUpload).to.deep.equal({
-        barcode: "1234",
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1164,7 +1145,6 @@ describe("Upload logics", () => {
       expect(keys(uploads).length).to.equal(4);
       const sceneUpload = uploads[getUploadRowKey({ file, scene: 1 })];
       expect(sceneUpload).to.deep.equal({
-        barcode: "1234",
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1183,7 +1163,6 @@ describe("Upload logics", () => {
       const sceneAndChannelUpload = uploads[sceneAndChannelKey];
       expect(sceneAndChannelUpload).to.not.be.undefined;
       expect(sceneAndChannelUpload).to.deep.equal({
-        barcode: "1234",
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1219,7 +1198,6 @@ describe("Upload logics", () => {
       const positionUpload =
         uploads[getUploadRowKey({ file, subImageName: "foo" })];
       expect(positionUpload).to.deep.equal({
-        barcode: "1234",
         channelId: undefined,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1238,7 +1216,6 @@ describe("Upload logics", () => {
       const positionAndChannelUpload = uploads[positionAndChannelKey];
       expect(positionAndChannelUpload).to.not.be.undefined;
       expect(positionAndChannelUpload).to.deep.equal({
-        barcode: "1234",
         channelId: mockChannel,
         ["Favorite Color"]: [],
         file: "/path/to/file1",
@@ -1268,33 +1245,28 @@ describe("Upload logics", () => {
           ...nonEmptyStateForInitiatingUpload,
           upload: getMockStateWithHistory({
             [fileRowKey]: {
-              barcode: "1234",
               channelIds: [mockChannel],
               file: "/path/to/file1",
               positionIndexes: [1, 2],
               [WELL_ANNOTATION_NAME]: [],
             },
             [position1Key]: {
-              barcode: "1234",
               file: "/path/to/file1",
               positionIndex: 1,
               [WELL_ANNOTATION_NAME]: [1],
             },
             [position1Channel1Key]: {
-              barcode: "1234",
               channelId: mockChannel,
               file: "/path/to/file1",
               positionIndex: 1,
               [WELL_ANNOTATION_NAME]: [],
             },
             [position2Key]: {
-              barcode: "1234",
               file: "/path/to/file1",
               positionIndex: 2,
               [WELL_ANNOTATION_NAME]: [2],
             },
             [position2Channel1Key]: {
-              barcode: "1234",
               channelId: mockChannel,
               file: "/path/to/file1",
               positionIndex: 2,
@@ -1419,7 +1391,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Birth Date": [],
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1455,7 +1426,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Birth Date": [],
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1492,7 +1462,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Another Garbage Text Annotation": [],
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1529,7 +1498,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1565,7 +1533,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1603,7 +1570,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1640,7 +1606,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             [mockTextAnnotation.name]: [],
-            barcode: "",
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
             shouldBeInArchive: true,
@@ -1681,21 +1646,22 @@ describe("Upload logics", () => {
         }),
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
-            barcode: "",
             file: "/path/to/file1",
             [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
 
-      const barcode = "123456";
+      const favoriteColor = "Red";
 
       // act
-      store.dispatch(updateUploadRows([uploadRowKey], { barcode }));
+      store.dispatch(
+        updateUploadRows([uploadRowKey], { "Favorite Color": favoriteColor })
+      );
 
       // assert
       const upload = getUpload(store.getState());
-      expect(upload[uploadRowKey].barcode).to.equal(barcode);
+      expect(upload[uploadRowKey]["Favorite Color"]).to.equal(favoriteColor);
     });
 
     it("updates multiple uploads", () => {
@@ -1714,29 +1680,29 @@ describe("Upload logics", () => {
         }),
         upload: getMockStateWithHistory({
           [uploadRowKey1]: {
-            barcode: "",
             file: "/path/to/file1",
             [WELL_ANNOTATION_NAME]: [],
           },
           [uploadRowKey2]: {
-            barcode: "",
             file: "/path/to/file2",
             [WELL_ANNOTATION_NAME]: [],
           },
         }),
       });
 
-      const barcode = "123456";
+      const favoriteColor = "123456";
 
       // act
       store.dispatch(
-        updateUploadRows([uploadRowKey1, uploadRowKey2], { barcode })
+        updateUploadRows([uploadRowKey1, uploadRowKey2], {
+          "Favorite Color": favoriteColor,
+        })
       );
 
       // assert
       const upload = getUpload(store.getState());
-      expect(upload[uploadRowKey1].barcode).to.equal(barcode);
-      expect(upload[uploadRowKey2].barcode).to.equal(barcode);
+      expect(upload[uploadRowKey1]["Favorite Color"]).to.equal(favoriteColor);
+      expect(upload[uploadRowKey2]["Favorite Color"]).to.equal(favoriteColor);
     });
 
     it("converts moment objects to dates", () => {
@@ -1760,7 +1726,6 @@ describe("Upload logics", () => {
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Birth Date": undefined,
-            barcode: "",
             file: "/path/to/file1",
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
