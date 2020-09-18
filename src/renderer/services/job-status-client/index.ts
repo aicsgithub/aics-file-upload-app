@@ -52,9 +52,9 @@ export default class JobStatusClient extends HttpCacheClient {
    * Creates a job and returns created job
    * @param job
    */
-  public async createJob(job: CreateJobRequest): Promise<JSSJob> {
+  public async createJob<T = any>(job: CreateJobRequest<T>): Promise<JSSJob> {
     this.logger.debug("Received create job request", job);
-    const response = await this.post<AicsSuccessResponse<JSSJob>>(
+    const response = await this.post<AicsSuccessResponse<JSSJob<T>>>(
       "/jss/1.0/job/",
       job,
       JobStatusClient.getHttpRequestConfig()

@@ -462,6 +462,7 @@ const retryUploadLogic = createLogic({
   process: async (
     {
       action,
+      ctx,
       fms,
       getState,
       logger,
@@ -470,7 +471,7 @@ const retryUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
-    const fileNames = uploadJob.serviceFields.files.map(
+    const fileNames = ctx.files.map(
       ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
     );
     try {
@@ -496,7 +497,10 @@ const retryUploadLogic = createLogic({
     }
   },
   validate: (
-    { action }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
+    {
+      action,
+      ctx,
+    }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -508,6 +512,7 @@ const retryUploadLogic = createLogic({
         )
       );
     } else {
+      ctx.files = uploadJob.serviceFields?.files;
       next(action);
     }
   },

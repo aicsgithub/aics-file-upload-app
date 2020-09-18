@@ -64,6 +64,7 @@ describe("AddMetadataStep", () => {
         ...mockJob,
         serviceFields: {
           output: resultFiles,
+          type: "add-metadata",
         },
       });
       const ctx = await addMetadataStep.skip(mockCtx);

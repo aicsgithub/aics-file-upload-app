@@ -3,16 +3,23 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty, noop } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
+import { JSSJob } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { StepExecutor } from "../helpers/step-executor";
-import { Job, SourceFiles, Step, StepName, UploadContext } from "../types";
+import {
+  CopyFilesServiceFields,
+  SourceFiles,
+  Step,
+  StepName,
+  UploadContext,
+} from "../types";
 
 import { CopyStep } from "./copy-step";
 
 // Step 1/2 in which files are copied to a location on the isilon
 export class CopyFilesStep implements Step {
-  public readonly job: Job;
+  public readonly job: JSSJob<CopyFilesServiceFields>;
   public readonly name: StepName = StepName.CopyFiles;
   private readonly jss: JobStatusClient;
   private readonly logger: ILogger;
@@ -25,7 +32,7 @@ export class CopyFilesStep implements Step {
   private getCopyWorker: () => Worker;
 
   public constructor(
-    job: Job,
+    job: JSSJob<CopyFilesServiceFields>,
     jss: JobStatusClient,
     getCopyWorker: () => Worker,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
@@ -100,7 +107,7 @@ export class CopyFilesStep implements Step {
     return {
       ...ctx,
       sourceFiles: childJobs.reduce(
-        (sourceFiles: SourceFiles, job: Job) => ({
+        (sourceFiles: SourceFiles, job: JSSJob) => ({
           ...sourceFiles,
           ...job.serviceFields.output,
         }),
@@ -115,12 +122,16 @@ export class CopyFilesStep implements Step {
     }
 
     try {
-      await this.jss.updateJob(this.job.jobId, {
-        serviceFields: {
-          output: ctx.sourceFiles,
+      await this.jss.updateJob(
+        this.job.jobId,
+        {
+          serviceFields: {
+            output: ctx.sourceFiles,
+          },
+          status: "SUCCEEDED",
         },
-        status: "SUCCEEDED",
-      });
+        true
+      );
     } catch (e) {
       const error = `Could not update the copy files job ${this.job.jobId} while ending the copy files step`;
       this.logger.error(error, e.response);

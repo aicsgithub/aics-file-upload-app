@@ -7,7 +7,7 @@ import { JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyError } from "../errors";
 import { CopyFilesStep } from "../steps/copy-files-step";
-import { UploadContext } from "../types";
+import { UploadContext, UploadMetadata } from "../types";
 
 import {
   copyChildJobId1,
@@ -16,6 +16,7 @@ import {
   jobStatusClient,
   mockCopyJobChild1,
   mockCopyJobChild2,
+  mockCopyJobParent,
   mockJob,
   sourceFiles,
   startUploadResponse,
@@ -41,7 +42,7 @@ describe("CopyFilesStep", () => {
     const logger = Logger.get(AICSFILES_LOGGER);
     sandbox.replace(logger, "error", stub());
     copyStep = new CopyFilesStep(
-      mockJob,
+      mockCopyJobParent,
       jobStatusClient,
       stub().returns(copyWorkerStub),
       logger
@@ -113,44 +114,62 @@ describe("CopyFilesStep", () => {
     });
     it("if retrying this step, picks up where it left off", async () => {
       fakeSuccessfulCopy();
-      const ctx = {
+      const ctx: UploadContext = {
         ...mockCtx,
         copyChildJobs: [
           {
+            ...mockJob,
             jobId: "copyJobChildId1",
             serviceFields: {
               originalPath: "/fake/path1",
               output: {
                 "/fake/path1": {
-                  name: "anything",
+                  fileName: "anything",
+                  md5hex: "string",
+                  fileType: "image",
+                  metadata: {} as UploadMetadata,
                 },
               },
+              totalBytes: 1,
+              type: "copy",
             },
             status: "SUCCEEDED" as JSSJobStatus,
           },
           {
+            ...mockJob,
             jobId: "copyJobChildId2",
             serviceFields: {
               originalPath: upload1,
+              totalBytes: 1,
+              type: "copy",
             },
             status: "FAILED" as JSSJobStatus,
           },
           {
+            ...mockJob,
             jobId: "copyJobChildId3",
             serviceFields: {
               originalPath: upload1,
               output: {
                 "/fake/path2": {
-                  name: "anything",
+                  fileName: "anything",
+                  md5hex: "string",
+                  fileType: "image",
+                  metadata: {} as UploadMetadata,
                 },
               },
+              totalBytes: 1,
+              type: "copy",
             },
             status: "SUCCEEDED" as JSSJobStatus,
           },
           {
+            ...mockJob,
             jobId: "copyJobChildId4",
             serviceFields: {
               originalPath: upload2,
+              totalBytes: 1,
+              type: "copy",
             },
             status: "WAITING" as JSSJobStatus,
           },
@@ -181,6 +200,8 @@ describe("CopyFilesStep", () => {
             serviceFields: {
               originalPath: upload1,
               output: pick(sourceFiles, upload1),
+              totalBytes: 1,
+              type: "copy",
             },
           },
           {
@@ -190,6 +211,8 @@ describe("CopyFilesStep", () => {
             serviceFields: {
               originalPath: upload2,
               output: pick(sourceFiles, upload2),
+              totalBytes: 1,
+              type: "copy",
             },
           },
         ],
@@ -203,23 +226,23 @@ describe("CopyFilesStep", () => {
 
   describe("end", () => {
     it("updates the job for copy", async () => {
-      sandbox.replace(copyStep, "job", mockCopyJobChild1);
       await copyStep.end({
         ...mockCtx,
         sourceFiles,
       });
       expect(
         updateJobStub.calledWith(
-          mockCopyJobChild1.jobId,
+          mockCopyJobParent.jobId,
           match
             .has("status", "SUCCEEDED")
-            .and(match.has("serviceFields", match.has("output", sourceFiles)))
+            .and(match.has("serviceFields", match.has("output", sourceFiles))),
+          true
         )
       ).to.be.true;
     });
 
     it("throws error if sourceFiles is missing from context", () => {
-      sandbox.replace(copyStep, "job", mockCopyJobChild1);
+      sandbox.replace(copyStep, "job", mockCopyJobParent);
       return expect(copyStep.end(mockCtx)).to.be.rejectedWith(Error);
     });
   });

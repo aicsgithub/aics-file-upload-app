@@ -1,4 +1,4 @@
-import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
+import { JSSJob } from "../../job-status-client/types";
 
 export interface Uploads {
   [filePath: string]: UploadMetadata;
@@ -76,12 +76,6 @@ export interface FSSResponseFile {
   readPath: string;
 }
 
-export interface Job {
-  jobId: string;
-  status: JSSJobStatus;
-  serviceFields?: any;
-}
-
 export enum StepName {
   AddMetadata = "Add metadata about file and complete upload",
   CopyFilesChild = "Copy file",
@@ -98,7 +92,7 @@ export interface Step {
   end: (ctx: UploadContext) => Promise<void>;
 
   // Job associated with step
-  job: Job;
+  job: JSSJob;
 
   // Human readable name for step
   name: StepName;
@@ -108,16 +102,55 @@ export interface Step {
   start: (ctx: UploadContext) => Promise<UploadContext>;
 }
 
+export interface UploadServiceFields {
+  files: UploadMetadata[];
+  mostRecentFailure?: string;
+  replacementJobId?: string;
+  result?: Array<{
+    fileId: string;
+    fileName: string;
+    readPath: string;
+  }>;
+  type: string; // will be equal to "upload"
+  uploadDirectory: string;
+}
+
+export interface CopyFilesServiceFields {
+  error?: string;
+  output?: SourceFiles; // populated after step completes
+  totalBytesToCopy: number;
+  type: string;
+}
+
+export interface CopyFileServiceFields {
+  error?: string;
+  originalPath: string;
+  output?: SourceFiles; // populated after step completes
+  totalBytes: number;
+  type: string;
+}
+
+export interface AddMetadataServiceFields {
+  error?: string;
+  output?: FSSResponseFile[]; // populated after step completes
+  type: string;
+}
+
+export type UploadChildJobServiceFields =
+  | AddMetadataServiceFields
+  | CopyFilesServiceFields
+  | CopyFileServiceFields;
+
 export interface UploadContext {
   uploadChildJobIds?: string[];
-  copyChildJobs?: Job[];
+  copyChildJobs?: JSSJob<CopyFileServiceFields>[];
   resultFiles?: FSSResponseFile[];
   sourceFiles?: SourceFiles;
   startUploadResponse: StartUploadResponse;
   totalBytesToCopy?: number;
   uploadJobName: string;
   uploads: Uploads;
-  uploadJob?: JSSJob;
+  uploadJob?: JSSJob<UploadServiceFields>;
 }
 
 export interface SourceFiles {

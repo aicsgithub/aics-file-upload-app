@@ -58,7 +58,10 @@ describe("<UploadProgress/>", () => {
           row={{
             ...row,
             serviceFields: {
+              files: [],
               replacementJobId: "abc",
+              type: "upload",
+              uploadDirectory: "/tmp",
             },
             status: "FAILED",
           }}

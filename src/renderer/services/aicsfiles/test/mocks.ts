@@ -10,6 +10,8 @@ import { JSSJob } from "../../job-status-client/types";
 import MMSClient from "../../mms-client";
 import { FSSClient } from "../helpers/fss-client";
 import {
+  CopyFileServiceFields,
+  CopyFilesServiceFields,
   CustomFileMetadata,
   LabKeyFileMetadata,
   SourceFiles,
@@ -134,35 +136,38 @@ export const mockCompleteUploadJob: JSSJob = {
   },
   status: "SUCCEEDED",
 };
-export const mockCopyJobParent: JSSJob = {
+export const mockCopyJobParent: JSSJob<CopyFilesServiceFields> = {
   ...mockJob,
   childIds: [copyChildJobId1, copyChildJobId2],
   jobId: mockCopyJobParentId,
   jobName: "Copy Job Parent",
   serviceFields: {
+    totalBytesToCopy: 1,
     type: "copy",
   },
   updateParent: true,
 };
-export const mockCopyJobChild1: JSSJob = {
+export const mockCopyJobChild1: JSSJob<CopyFileServiceFields> = {
   ...mockJob,
   jobId: copyChildJobId1,
   jobName: "Copy job child1",
   parentId: mockCopyJobParentId,
   serviceFields: {
     originalPath: upload1,
-    uploadDirectory: targetDir,
+    totalBytes: 1200,
+    type: "copy",
   },
   updateParent: true,
 };
-export const mockCopyJobChild2: JSSJob = {
+export const mockCopyJobChild2: JSSJob<CopyFileServiceFields> = {
   ...mockJob,
   jobId: copyChildJobId2,
   jobName: "Copy job child2",
   parentId: mockCopyJobParentId,
   serviceFields: {
     originalPath: upload2,
-    uploadDirectory: targetDir,
+    totalBytes: 1200,
+    type: "copy",
   },
   updateParent: true,
 };

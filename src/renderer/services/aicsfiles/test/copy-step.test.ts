@@ -1,6 +1,4 @@
-import { exists as fsExists, rmdir as fsRmdir, mkdir as fsMkdir } from "fs";
 import { resolve } from "path";
-import { promisify } from "util";
 
 import { expect } from "chai";
 import * as Logger from "js-logger";
@@ -8,9 +6,10 @@ import { pick } from "lodash";
 import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, spy, stub, SinonSpy } from "sinon";
 
+import { JSSJob } from "../../job-status-client/types";
 import { UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyStep } from "../steps/copy-step";
-import { UploadContext } from "../types";
+import { CopyFileServiceFields, UploadContext } from "../types";
 
 import {
   copyChildJobId1,
@@ -25,10 +24,6 @@ import {
   uploadJobId,
   uploads,
 } from "./mocks";
-
-const exists: (path: string) => Promise<boolean> = promisify(fsExists);
-const mkdir = promisify(fsMkdir);
-const rmdir = promisify(fsRmdir);
 
 describe("CopyStep", () => {
   const sandbox = createSandbox();
@@ -65,18 +60,6 @@ describe("CopyStep", () => {
   });
 
   describe("start", () => {
-    beforeEach(async () => {
-      // setup target directory for uploading files
-      // usually FSS does this but we are stubbing it
-      await mkdir(targetDir);
-    });
-
-    afterEach(async () => {
-      if (await exists(targetDir)) {
-        await rmdir(targetDir);
-      }
-    });
-
     // The copy step won't complete until onmessage is called off of the worker
     // Since the worker is a stub, we need to fake its behavior by immediately calling onmessage once postMessage is called.
     const fakeSuccessfulCopy = () => {
@@ -161,13 +144,15 @@ describe("CopyStep", () => {
 
     it("throws error if job does not contain enough information", () => {
       const copyStep2 = new CopyStep(
-        {
+        ({
           ...mockCopyJobChild1,
           serviceFields: {
             ...mockCopyJobChild1.serviceFields,
+            totalBytes: 1200,
+            type: "copy",
             originalPath: undefined,
           },
-        },
+        } as any) as JSSJob<CopyFileServiceFields>,
         jobStatusClient,
         getCopyWorkerStub
       );
@@ -181,6 +166,9 @@ describe("CopyStep", () => {
         ...mockCopyJobChild1,
         serviceFields: {
           ...mockCopyJobChild1.serviceFields,
+          originalPath: upload1,
+          totalBytes: 1200,
+          type: "copy",
           output: sourceFiles,
         },
       });
@@ -205,13 +193,15 @@ describe("CopyStep", () => {
     });
 
     it("throws error if job is missing information", () => {
-      sandbox.replace(copyStep, "job", {
+      sandbox.replace(copyStep, "job", ({
         ...mockCopyJobChild1,
         serviceFields: {
           ...mockCopyJobChild1.serviceFields,
+          totalBytes: 1200,
+          type: "copy",
           originalPath: undefined,
         },
-      });
+      } as any) as JSSJob<CopyFileServiceFields>);
       return expect(
         copyStep.end({ ...mockCtx, sourceFiles })
       ).to.be.rejectedWith(Error);
