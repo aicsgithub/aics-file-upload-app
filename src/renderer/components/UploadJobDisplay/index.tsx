@@ -37,7 +37,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
   onFileRowClick,
 }: UploadJobDisplayProps) => {
   const alerts: JSX.Element[] = [];
-  if (job.serviceFields && job.serviceFields.error) {
+  if (job.serviceFields?.error) {
     alerts.push(
       <Alert
         className={styles.alert}

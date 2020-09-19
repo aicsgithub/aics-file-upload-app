@@ -1,26 +1,31 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { stub } from "sinon";
 
-import { CreateJobRequest, JSSJob, UpdateJobRequest } from "../types";
+import {
+  CreateJobRequest,
+  JSSJob,
+  JSSJobStatus,
+  UpdateJobRequest,
+} from "../types";
 
 export const mockCreateJobRequest: CreateJobRequest = {
   jobName: "Dinner",
   user: "demo",
   originationHost: "kitchen",
-  status: "WAITING",
+  status: JSSJobStatus.WAITING,
   currentStage: "started",
 };
 
 export const mockUpdateJobRequest: UpdateJobRequest = {
   currentStage: "queuing for SLURM",
-  status: "WAITING",
+  status: JSSJobStatus.WAITING,
 };
 
 export const mockJSSJob: JSSJob = {
   created: new Date("2019-06-18T15:31:45.610+0000"),
   jobId: "ae64e5c79d244d93a962aac50159ecc0",
   modified: new Date("2019-06-18T15:31:45.610+0000"),
-  status: "WAITING",
+  status: JSSJobStatus.WAITING,
   user: "demo",
 };
 

@@ -75,13 +75,13 @@ describe("CopyFilesStep", () => {
       expect(
         updateJobStub.calledWith(
           copyChildJobId1,
-          match.has("status", "SUCCEEDED")
+          match.has("status", JSSJobStatus.SUCCEEDED)
         )
       ).to.be.true;
       expect(
         updateJobStub.calledWith(
           copyChildJobId2,
-          match.has("status", "SUCCEEDED")
+          match.has("status", JSSJobStatus.SUCCEEDED)
         )
       ).to.be.true;
     });
@@ -101,7 +101,7 @@ describe("CopyFilesStep", () => {
       ).to.be.rejectedWith(CopyError);
 
       expect(updateJobStub).to.have.been.calledWithMatch("copyChildJobId1", {
-        status: "FAILED",
+        status: JSSJobStatus.FAILED,
       });
     });
     it("throws error if copyChildJobs is missing from context", () => {
@@ -133,7 +133,7 @@ describe("CopyFilesStep", () => {
               totalBytes: 1,
               type: "copy",
             },
-            status: "SUCCEEDED" as JSSJobStatus,
+            status: JSSJobStatus.SUCCEEDED,
           },
           {
             ...mockJob,
@@ -143,7 +143,7 @@ describe("CopyFilesStep", () => {
               totalBytes: 1,
               type: "copy",
             },
-            status: "FAILED" as JSSJobStatus,
+            status: JSSJobStatus.FAILED,
           },
           {
             ...mockJob,
@@ -161,7 +161,7 @@ describe("CopyFilesStep", () => {
               totalBytes: 1,
               type: "copy",
             },
-            status: "SUCCEEDED" as JSSJobStatus,
+            status: JSSJobStatus.SUCCEEDED,
           },
           {
             ...mockJob,
@@ -171,7 +171,7 @@ describe("CopyFilesStep", () => {
               totalBytes: 1,
               type: "copy",
             },
-            status: "WAITING" as JSSJobStatus,
+            status: JSSJobStatus.WAITING,
           },
         ],
       };
@@ -195,7 +195,7 @@ describe("CopyFilesStep", () => {
         copyChildJobs: [
           {
             ...mockCopyJobChild1,
-            status: "SUCCEEDED" as JSSJobStatus,
+            status: JSSJobStatus.SUCCEEDED,
             jobId: copyChildJobId1,
             serviceFields: {
               originalPath: upload1,
@@ -207,7 +207,7 @@ describe("CopyFilesStep", () => {
           {
             ...mockCopyJobChild1,
             jobId: copyChildJobId2,
-            status: "SUCCEEDED" as JSSJobStatus,
+            status: JSSJobStatus.SUCCEEDED,
             serviceFields: {
               originalPath: upload2,
               output: pick(sourceFiles, upload2),
@@ -234,7 +234,7 @@ describe("CopyFilesStep", () => {
         updateJobStub.calledWith(
           mockCopyJobParent.jobId,
           match
-            .has("status", "SUCCEEDED")
+            .has("status", JSSJobStatus.SUCCEEDED)
             .and(match.has("serviceFields", match.has("output", sourceFiles))),
           true
         )

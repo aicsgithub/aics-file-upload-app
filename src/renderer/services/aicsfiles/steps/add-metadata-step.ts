@@ -3,7 +3,7 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
-import { JSSJob } from "../../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { FSSClient } from "../helpers/fss-client";
@@ -86,7 +86,7 @@ export class AddMetadataStep implements Step {
       await this.jss.updateJob(
         this.job.jobId,
         {
-          status: "SUCCEEDED",
+          status: JSSJobStatus.SUCCEEDED,
           serviceFields: {
             output: ctx.resultFiles,
           },

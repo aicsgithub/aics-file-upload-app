@@ -9,7 +9,7 @@ import { isEmpty, noop } from "lodash";
 import { LocalStorage } from "../../types";
 import { LabkeyClient } from "../index";
 import JobStatusClient from "../job-status-client";
-import { JSSJob } from "../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
@@ -246,7 +246,7 @@ export class FileManagementSystem {
       await this.failUpload(
         uploadJob.jobId,
         "Missing serviceFields.files",
-        "UNRECOVERABLE"
+        JSSJobStatus.UNRECOVERABLE
       );
       throw new UnrecoverableJobError(
         "Upload job is missing serviceFields.files"
@@ -275,7 +275,11 @@ export class FileManagementSystem {
     } catch (e) {
       this.logger.timeEnd("upload");
       if (e.name === UNRECOVERABLE_JOB_ERROR) {
-        await this.failUpload(uploadJob.jobId, e.message, "UNRECOVERABLE");
+        await this.failUpload(
+          uploadJob.jobId,
+          e.message,
+          JSSJobStatus.UNRECOVERABLE
+        );
       } else {
         await this.failUpload(uploadJob.jobId, e.message);
       }
@@ -289,12 +293,14 @@ export class FileManagementSystem {
    * @param failureMessage - Optional message that will be written to
    * `serviceFields.error`. Defaults to "Job failed".
    * @param failureStatus - Optional status to fail the job with. Defaults to
-   * "FAILED".
+   * JSSJobStatus.FAILED.
    */
   public async failUpload(
     jobId: string,
     failureMessage = "Job failed",
-    failureStatus: "FAILED" | "UNRECOVERABLE" = "FAILED"
+    failureStatus:
+      | JSSJobStatus.FAILED
+      | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED
   ): Promise<JSSJob[]> {
     const failedJobs: JSSJob[] = [];
 

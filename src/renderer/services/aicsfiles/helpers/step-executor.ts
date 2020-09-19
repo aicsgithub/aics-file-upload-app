@@ -6,7 +6,11 @@ import { JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { Step, UploadContext } from "../types";
 
-const VALID_STEP_STATUSES = ["SUCCEEDED", "WAITING", "FAILED"];
+const VALID_STEP_STATUSES = [
+  JSSJobStatus.SUCCEEDED,
+  JSSJobStatus.WAITING,
+  JSSJobStatus.FAILED,
+];
 
 // Executes steps in series or in parallel. Utilizes a upload context that stores the state of that upload.
 // The context gets updated by step.start() and step.skip(). step.end() is always ran asychronously and is used
@@ -69,7 +73,7 @@ export class StepExecutor {
     ctx: UploadContext,
     jss: JobStatusClient
   ): Promise<UploadContext> {
-    if (step.job.status === "SUCCEEDED") {
+    if (step.job.status === JSSJobStatus.SUCCEEDED) {
       Logger.get(AICSFILES_LOGGER).info(
         `Skipping step: "${step.name}" as it is complete`
       );
@@ -78,7 +82,9 @@ export class StepExecutor {
 
     try {
       const newStatus: JSSJobStatus =
-        step.job.status === "WAITING" ? "WORKING" : "RETRYING";
+        step.job.status === JSSJobStatus.WAITING
+          ? JSSJobStatus.WORKING
+          : JSSJobStatus.RETRYING;
       if (ctx.uploadJob) {
         await jss.updateJob(ctx.uploadJob.jobId, {
           currentStage: step.name,
@@ -112,7 +118,7 @@ export class StepExecutor {
         .updateJob(
           step.job.jobId,
           {
-            status: "FAILED",
+            status: JSSJobStatus.FAILED,
             serviceFields: {
               error: e.message,
             },

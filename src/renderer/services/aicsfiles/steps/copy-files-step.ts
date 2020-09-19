@@ -3,7 +3,7 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty, noop } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
-import { JSSJob } from "../../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { StepExecutor } from "../helpers/step-executor";
@@ -94,7 +94,9 @@ export class CopyFilesStep implements Step {
     const childJobs = ctx.copyChildJobs;
     const incompleteChildJobs = childJobs.filter(
       (j) =>
-        j.status !== "SUCCEEDED" || !j.serviceFields || !j.serviceFields.output
+        j.status !== JSSJobStatus.SUCCEEDED ||
+        !j.serviceFields ||
+        !j.serviceFields.output
     );
     if (incompleteChildJobs.length > 0) {
       this.logger.error("Found incomplete child jobs", incompleteChildJobs);
@@ -128,7 +130,7 @@ export class CopyFilesStep implements Step {
           serviceFields: {
             output: ctx.sourceFiles,
           },
-          status: "SUCCEEDED",
+          status: JSSJobStatus.SUCCEEDED,
         },
         true
       );

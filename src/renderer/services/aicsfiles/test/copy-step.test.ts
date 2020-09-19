@@ -6,7 +6,7 @@ import { pick } from "lodash";
 import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, spy, stub, SinonSpy } from "sinon";
 
-import { JSSJob } from "../../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyStep } from "../steps/copy-step";
 import { CopyFileServiceFields, UploadContext } from "../types";
@@ -218,7 +218,7 @@ describe("CopyStep", () => {
               "serviceFields",
               match.has("output", pick(sourceFiles, upload1))
             )
-            .and(match.has("status", "SUCCEEDED")),
+            .and(match.has("status", JSSJobStatus.SUCCEEDED)),
           true
         )
       ).to.be.true;

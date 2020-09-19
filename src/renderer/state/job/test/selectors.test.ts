@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
   getMockStateWithHistory,
   mockFailedAddMetadataJob,
@@ -47,7 +48,7 @@ describe("Job selectors", () => {
             job.status === jobTableRow.status
           );
         });
-        if (jobTableRow.status === "WORKING") {
+        if (jobTableRow.status === JSSJobStatus.WORKING) {
           expect(jobTableRow.progress).to.not.be.undefined;
           foundWorkingJob = true;
         }

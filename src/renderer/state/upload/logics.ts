@@ -26,6 +26,7 @@ import {
   StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
 } from "../../services/aicsfiles/types";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
@@ -408,7 +409,7 @@ const cancelUploadLogic = createLogic({
         serviceFields: {
           error: "Cancelled by user",
         },
-        status: "UNRECOVERABLE",
+        status: JSSJobStatus.UNRECOVERABLE,
       });
       dispatch(cancelUploadSucceeded(uploadJob));
     } catch (e) {

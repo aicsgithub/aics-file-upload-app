@@ -63,7 +63,7 @@ export class Uploader {
       currentHost: hostname(),
       originationHost: hostname(),
       service: "aicsfiles-js",
-      status: "WAITING" as JSSJobStatus,
+      status: JSSJobStatus.WAITING,
       updateParent: true,
       user: this.username,
     };
@@ -157,13 +157,13 @@ export class Uploader {
   ): Promise<UploadResponse> {
     this.validateUploadJob(uploadJob);
 
-    if (uploadJob.status === "SUCCEEDED") {
+    if (uploadJob.status === JSSJobStatus.SUCCEEDED) {
       // if upload job already succeeded, we'll just return what is stored as output on the job
       return uploadJob.serviceFields?.output ?? {};
     }
 
     await this.jss.updateJob(uploadJob.jobId, {
-      status: "RETRYING",
+      status: JSSJobStatus.RETRYING,
     });
 
     const originalUploadResponse: StartUploadResponse = {
@@ -187,10 +187,10 @@ export class Uploader {
     );
     const jobCompleted = steps.every(
       ({ job: { status }, name }) =>
-        status === "SUCCEEDED" || name === StepName.AddMetadata
+        status === JSSJobStatus.SUCCEEDED || name === StepName.AddMetadata
     );
 
-    if (jobCompleted && uploadJob.status === "FAILED") {
+    if (jobCompleted && uploadJob.status === JSSJobStatus.FAILED) {
       this.logger.info(
         "Current upload failed too late in the process to retry, replacing with new job"
       );
@@ -219,7 +219,15 @@ export class Uploader {
 
   private validateUploadJob(job: JSSJob): void {
     if (
-      includes(["UNRECOVERABLE", "WORKING", "RETRYING", "BLOCKED"], job.status)
+      includes(
+        [
+          JSSJobStatus.UNRECOVERABLE,
+          JSSJobStatus.WORKING,
+          JSSJobStatus.RETRYING,
+          JSSJobStatus.BLOCKED,
+        ],
+        job.status
+      )
     ) {
       throw new Error(
         `Can't retry this upload job because the status is ${job.status}.`
@@ -416,7 +424,7 @@ export class Uploader {
               totalBytes: fileToSizeMap.get(originalPath),
               type: COPY_CHILD_TYPE,
             },
-            status: "WAITING" as JSSJobStatus,
+            status: JSSJobStatus.WAITING,
             updateParent: true,
           })
         )

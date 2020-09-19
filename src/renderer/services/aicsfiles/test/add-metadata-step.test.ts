@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
+import { JSSJobStatus } from "../../job-status-client/types";
 import { IllegalArgumentError } from "../errors";
 import { AddMetadataStep } from "../steps/add-metadata-step";
 import { UploadContext } from "../types";
@@ -87,7 +88,7 @@ describe("AddMetadataStep", () => {
         updateJobStub.calledWith(
           mockJob.jobId,
           match
-            .has("status", "SUCCEEDED")
+            .has("status", JSSJobStatus.SUCCEEDED)
             .and(match.has("serviceFields", match.has("output", match.array)))
         )
       ).to.be.true;

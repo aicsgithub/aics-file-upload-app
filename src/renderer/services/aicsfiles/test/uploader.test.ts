@@ -8,6 +8,7 @@ import { createSandbox, match, SinonStub, stub } from "sinon";
 
 import { LocalStorageStub } from "../../../state/test/configure-mock-store";
 import { mockWorkingAddMetadataJob } from "../../../state/test/mocks";
+import { JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { StepExecutor } from "../helpers/step-executor";
 import {
@@ -215,26 +216,32 @@ describe("Uploader", () => {
       expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
-          status: "UNRECOVERABLE",
+          status: JSSJobStatus.UNRECOVERABLE,
         })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if working upload job provided", () => {
       expect(
-        uploader.retryUpload(uploads, { ...mockJob, status: "WORKING" })
+        uploader.retryUpload(uploads, {
+          ...mockJob,
+          status: JSSJobStatus.WORKING,
+        })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if retrying upload job provided", () => {
       expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
-          status: "RETRYING",
+          status: JSSJobStatus.RETRYING,
         })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if blocked upload job provided", () => {
       expect(
-        uploader.retryUpload(uploads, { ...mockJob, status: "BLOCKED" })
+        uploader.retryUpload(uploads, {
+          ...mockJob,
+          status: JSSJobStatus.BLOCKED,
+        })
       ).to.be.rejectedWith(Error);
     });
     it("Returns previous output stored on upload job if upload job provided succeeded", async () => {
@@ -253,7 +260,7 @@ describe("Uploader", () => {
       fakeSuccessfulCopy();
       await uploader.retryUpload(uploads, mockRetryableUploadJob);
       expect(updateJobStub).to.have.been.calledWithMatch("uploadJobId", {
-        status: "RETRYING",
+        status: JSSJobStatus.RETRYING,
       });
       expect(createJobStub.called).to.be.false;
       expect(getJobsStub.called).to.be.true;

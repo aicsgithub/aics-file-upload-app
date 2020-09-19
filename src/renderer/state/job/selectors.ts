@@ -3,8 +3,10 @@ import { basename } from "path";
 import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { JSSJob } from "../../services/job-status-client/types";
-import { IN_PROGRESS_STATUSES } from "../constants";
+import {
+  IN_PROGRESS_STATUSES,
+  JSSJob,
+} from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {

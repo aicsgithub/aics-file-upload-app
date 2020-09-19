@@ -5,6 +5,7 @@ import { createSandbox, SinonStub, stub } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { ImageModelMetadata } from "../../../services/aicsfiles/types";
+import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
   CANCEL_BUTTON_INDEX,
   SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
@@ -677,7 +678,7 @@ describe("Route logics", () => {
       store.dispatch(
         openEditFileMetadataTab({
           ...mockSuccessfulUploadJob,
-          status: "FAILED",
+          status: JSSJobStatus.FAILED,
         })
       );
       await logicMiddleware.whenComplete();

@@ -6,7 +6,7 @@ import { noop } from "lodash";
 import * as rimraf from "rimraf";
 
 import JobStatusClient from "../../job-status-client";
-import { JSSJob } from "../../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import {
   AICSFILES_LOGGER,
   UPLOAD_WORKER_ON_PROGRESS,
@@ -185,7 +185,7 @@ export class CopyStep implements Step {
               [originalPath]: ctx.sourceFiles[originalPath],
             },
           },
-          status: "SUCCEEDED",
+          status: JSSJobStatus.SUCCEEDED,
         },
         true
       );

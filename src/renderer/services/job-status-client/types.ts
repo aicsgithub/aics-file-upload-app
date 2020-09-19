@@ -107,14 +107,27 @@ export interface MongoFieldQuery {
   $nin?: any;
 }
 
-export type JSSJobStatus =
-  | "UNRECOVERABLE"
-  | "FAILED"
-  | "WORKING"
-  | "RETRYING"
-  | "WAITING"
-  | "BLOCKED"
-  | "SUCCEEDED";
+export enum JSSJobStatus {
+  UNRECOVERABLE = "UNRECOVERABLE",
+  FAILED = "FAILED",
+  WORKING = "WORKING",
+  RETRYING = "RETRYING",
+  WAITING = "WAITING",
+  BLOCKED = "BLOCKED",
+  SUCCEEDED = "SUCCEEDED",
+}
+
+export const SUCCESSFUL_STATUS = JSSJobStatus.SUCCEEDED;
+export const FAILED_STATUSES = [
+  JSSJobStatus.FAILED,
+  JSSJobStatus.UNRECOVERABLE,
+];
+export const IN_PROGRESS_STATUSES = [
+  JSSJobStatus.BLOCKED,
+  JSSJobStatus.RETRYING,
+  JSSJobStatus.WAITING,
+  JSSJobStatus.WORKING,
+];
 
 export type BasicType = boolean | number | string | Date | undefined | null;
 export interface JSSServiceFields {
