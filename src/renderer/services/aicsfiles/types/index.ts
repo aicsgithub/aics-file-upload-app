@@ -158,7 +158,7 @@ export interface CopyFileServiceFields extends BaseServiceFields {
 }
 
 // Represents the job of reporting to FSS
-export interface AddMetadataServiceFields {
+export interface AddMetadataServiceFields extends BaseServiceFields {
   output?: FSSResponseFile[]; // populated after step completes
 }
 

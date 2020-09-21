@@ -39,7 +39,7 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
-import { setAlert, setErrorAlert } from "../feedback/actions";
+import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
@@ -65,7 +65,6 @@ import { getLoggedInUser } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
-  AlertType,
   AsyncRequest,
   HTTP_STATUS,
   Page,
@@ -391,7 +390,7 @@ const initiateUploadLogic = createLogic({
   warnTimeout: 0,
 });
 
-const cancelUploadLogic = createLogic({
+export const cancelUploadLogic = createLogic({
   process: async (
     {
       action,
@@ -436,12 +435,7 @@ const cancelUploadLogic = createLogic({
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
     if (!uploadJob) {
-      next(
-        setAlert({
-          message: "Cannot cancel undefined upload job",
-          type: AlertType.ERROR,
-        })
-      );
+      reject(setErrorAlert("Cannot cancel undefined upload job"));
     } else {
       const { response: buttonIndex } = await dialog.showMessageBox({
         buttons: ["Cancel", "Yes"],

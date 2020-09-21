@@ -5,6 +5,7 @@ import * as Logger from "js-logger";
 import {
   createSandbox,
   createStubInstance,
+  match,
   SinonStubbedInstance,
   stub,
 } from "sinon";
@@ -362,13 +363,39 @@ describe("FileManagementSystem", () => {
     });
 
     it("fails an upload with no children", async () => {
+      const error = "some error";
       const parentJobId = "parent-job-id";
-      const failedParentJob = { ...mockJob, jobId: parentJobId };
+      const serviceFields = { cancelled: true };
+      const failedParentJob = {
+        ...mockJob,
+        jobId: parentJobId,
+        serviceFields: {
+          error,
+          ...serviceFields,
+        },
+      };
       jssStub.updateJob.onFirstCall().resolves(failedParentJob);
 
-      const failedJobs = await fms.failUpload(parentJobId);
+      const failedJobs = await fms.failUpload(
+        parentJobId,
+        error,
+        JSSJobStatus.FAILED,
+        serviceFields
+      );
 
       expect(failedJobs).to.deep.equal([failedParentJob]);
+      expect(
+        jssStub.updateJob.calledWith(
+          parentJobId,
+          match({
+            status: JSSJobStatus.FAILED,
+            serviceFields: {
+              ...serviceFields,
+              error,
+            },
+          })
+        )
+      );
     });
 
     it("fails an upload and its direct children", async () => {
