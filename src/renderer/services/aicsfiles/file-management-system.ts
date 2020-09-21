@@ -294,23 +294,25 @@ export class FileManagementSystem {
    * `serviceFields.error`. Defaults to "Job failed".
    * @param failureStatus - Optional status to fail the job with. Defaults to
    * JSSJobStatus.FAILED.
+   * @param serviceFields - Optional service fields to update the job with in addition to the error
    */
   public async failUpload(
     jobId: string,
     failureMessage = "Job failed",
     failureStatus:
       | JSSJobStatus.FAILED
-      | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED
+      | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED,
+    serviceFields: any = {}
   ): Promise<JSSJob[]> {
     const failedJobs: JSSJob[] = [];
 
     const failJob = async (id: string) => {
-      const serviceFields: any = {
-        error: failureMessage,
-      };
       const failedJob = await this.jobStatusClient.updateJob(id, {
         status: failureStatus,
-        serviceFields,
+        serviceFields: {
+          error: failureMessage,
+          ...serviceFields,
+        },
       });
       failedJobs.push(failedJob);
       return failedJob;

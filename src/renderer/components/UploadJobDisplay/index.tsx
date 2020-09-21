@@ -41,7 +41,7 @@ const UploadJobDisplay: React.FunctionComponent<UploadJobDisplayProps> = ({
     alerts.push(
       <Alert
         className={styles.alert}
-        type="error"
+        type={job.serviceFields?.cancelled ? "warning" : "error"}
         message="Error"
         key="errorAlert"
         description={determineError(job.serviceFields.error)}

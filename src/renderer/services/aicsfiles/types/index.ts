@@ -102,48 +102,69 @@ export interface Step {
   start: (ctx: UploadContext) => Promise<UploadContext>;
 }
 
-export interface UploadServiceFields {
+// properties that belong to both parent and child jobs created through FMS
+export interface BaseServiceFields {
+  // if user decides to cancel an upload, the app sets this value to true.
+  // This will be true only for uploads after 9/21/20 when this heuristic was created. Otherwise, check the error
+  // field of serviceFields to see if the upload was cancelled.
+  cancelled?: boolean;
+
   // populated by app when an exception is thrown during an upload
   error?: string;
 
-  // populated by FSS
+  // represents the type job this object is representing. It will be equal to the name property of the step or "upload"
+  // which is the parent job. See enum StepName for possible values.
+  type: string;
+}
+
+export interface UploadServiceFields extends BaseServiceFields {
+  // populated by FSS when the app requests to start an upload.
   files: UploadMetadata[];
 
   // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
-  // This points to the jobId of the new upload job in case user tries to retry job and
+  // This points to the jobId of the new upload job in case user tries to retry job and the previous jobId is no longer
+  // being tracked by FSS. This is populated by the app.
   replacementJobId?: string;
 
   // populated by FSS: https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/file-storage-service-java/browse/src/main/java/org/alleninstitute/aics/filestorage/service/UploadJobProcessingService.java#266
+  // when the app requests to start an upload.
   result?: FSSResponseFile[];
 
-  // will be equal to "upload"
-  type: string;
-
   // directory where all files of this upload are copied to by this app
-  // populated by FSS
+  // populated by FSS when the app requests to start an upload.
   uploadDirectory: string;
 }
 
-export interface CopyFilesServiceFields {
-  error?: string;
-  output?: SourceFiles; // populated after step completes
+// Represents the job of copying a batch of files
+export interface CopyFilesServiceFields extends BaseServiceFields {
+  // populated after step completes
+  output?: SourceFiles;
+
+  // number of bytes total in this upload (that potentially spans multiple files)
+  // used by app for showing upload progress.
   totalBytesToCopy: number;
-  type: string;
 }
 
-export interface CopyFileServiceFields {
-  error?: string;
+// Represents the job of copying a single files
+export interface CopyFileServiceFields extends BaseServiceFields {
+  // source destination of file being copied
   originalPath: string;
-  output?: SourceFiles; // populated after step completes
+
+  // populated after step completes
+  output?: SourceFiles;
+
+  // size of the file being copied
   totalBytes: number;
-  type: string;
 }
 
+// Represents the job of reporting to FSS
 export interface AddMetadataServiceFields {
-  error?: string;
   output?: FSSResponseFile[]; // populated after step completes
-  type: string;
 }
+
+// TODO: FUA-97 lisah there are other steps that are not being in JSS past the add metadata step.
+// These will need to be created in FMS in order to produce more accurate upload progress reporting.
+// One step that the app currently does not use when calculating upload progress is a step representing the ETL step.
 
 export type UploadChildJobServiceFields =
   | AddMetadataServiceFields

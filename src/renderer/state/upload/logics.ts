@@ -395,7 +395,7 @@ const cancelUploadLogic = createLogic({
   process: async (
     {
       action,
-      jssClient,
+      fms,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
     dispatch: ReduxLogicNextCb,
@@ -405,12 +405,14 @@ const cancelUploadLogic = createLogic({
 
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
-      await jssClient.updateJob(uploadJob.jobId, {
-        serviceFields: {
-          error: "Cancelled by user",
-        },
-        status: JSSJobStatus.UNRECOVERABLE,
-      });
+      await fms.failUpload(
+        uploadJob.jobId,
+        "Cancelled by user",
+        JSSJobStatus.UNRECOVERABLE,
+        {
+          cancelled: true,
+        }
+      );
       dispatch(cancelUploadSucceeded(uploadJob));
     } catch (e) {
       logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
