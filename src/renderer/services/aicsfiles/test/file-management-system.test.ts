@@ -5,6 +5,7 @@ import * as Logger from "js-logger";
 import {
   createSandbox,
   createStubInstance,
+  match,
   SinonStubbedInstance,
   stub,
 } from "sinon";
@@ -15,7 +16,7 @@ import {
   mmsClient,
 } from "../../../state/test/configure-mock-store";
 import JobStatusClient from "../../job-status-client";
-import { JSSJob } from "../../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import {
   FileManagementSystem,
@@ -29,18 +30,18 @@ import { FSSClient } from "../helpers/fss-client";
 import { Uploader } from "../helpers/uploader";
 
 import {
+  copyWorkerStub,
   fss,
   jobStatusClient,
   metadata1,
   metadata2,
+  mockJob,
   mockRetryableUploadJob,
   startUploadResponse,
+  storage,
   upload1,
   upload2,
   uploads,
-  mockJob,
-  copyWorkerStub,
-  storage,
 } from "./mocks";
 
 export const differentTargetDir = path.resolve("./aics");
@@ -251,7 +252,7 @@ describe("FileManagementSystem", () => {
     it("Sets upload status to UNRECOVERABLE if the upload job doesn't have serviceFields.files", async () => {
       const failedJob: JSSJob = {
         ...mockJob,
-        status: "FAILED",
+        status: JSSJobStatus.FAILED,
       };
       const updateJobStub = stub().resolves(failedJob);
       sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
@@ -270,10 +271,9 @@ describe("FileManagementSystem", () => {
       );
 
       expect(updateJobStub).to.have.been.calledWith(failedJob.jobId, {
-        status: "UNRECOVERABLE",
+        status: JSSJobStatus.UNRECOVERABLE,
         serviceFields: {
           error: "Missing serviceFields.files",
-          mostRecentFailure: "Missing serviceFields.files",
         },
       });
     });
@@ -315,7 +315,7 @@ describe("FileManagementSystem", () => {
     it("updates upload job with UNRECOVERABLE status if UnrecoverableJobError is thrown", async () => {
       const failedJob: JSSJob = {
         ...mockRetryableUploadJob,
-        status: "FAILED",
+        status: JSSJobStatus.FAILED,
         childIds: [],
       };
       const updateJobStub = stub().resolves(failedJob);
@@ -339,8 +339,8 @@ describe("FileManagementSystem", () => {
         UnrecoverableJobError
       );
       expect(updateJobStub).to.have.been.calledWith(failedJob.jobId, {
-        status: "UNRECOVERABLE",
-        serviceFields: { error: "mock error", mostRecentFailure: "mock error" },
+        status: JSSJobStatus.UNRECOVERABLE,
+        serviceFields: { error: "mock error" },
       });
     });
   });
@@ -363,13 +363,39 @@ describe("FileManagementSystem", () => {
     });
 
     it("fails an upload with no children", async () => {
+      const error = "some error";
       const parentJobId = "parent-job-id";
-      const failedParentJob = { ...mockJob, jobId: parentJobId };
+      const serviceFields = { cancelled: true };
+      const failedParentJob = {
+        ...mockJob,
+        jobId: parentJobId,
+        serviceFields: {
+          error,
+          ...serviceFields,
+        },
+      };
       jssStub.updateJob.onFirstCall().resolves(failedParentJob);
 
-      const failedJobs = await fms.failUpload(parentJobId);
+      const failedJobs = await fms.failUpload(
+        parentJobId,
+        error,
+        JSSJobStatus.FAILED,
+        serviceFields
+      );
 
       expect(failedJobs).to.deep.equal([failedParentJob]);
+      expect(
+        jssStub.updateJob.calledWith(
+          parentJobId,
+          match({
+            status: JSSJobStatus.FAILED,
+            serviceFields: {
+              ...serviceFields,
+              error,
+            },
+          })
+        )
+      );
     });
 
     it("fails an upload and its direct children", async () => {

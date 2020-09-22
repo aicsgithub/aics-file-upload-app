@@ -1,6 +1,4 @@
-import { mkdir as fsMkdir } from "fs";
 import * as path from "path";
-import { promisify } from "util";
 
 import { expect } from "chai";
 import * as Logger from "js-logger";
@@ -9,7 +7,10 @@ import * as rimraf from "rimraf";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
 import { LocalStorageStub } from "../../../state/test/configure-mock-store";
+import { mockWorkingAddMetadataJob } from "../../../state/test/mocks";
+import { JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
+import { StepExecutor } from "../helpers/step-executor";
 import {
   ADD_METADATA_TYPE,
   COPY_CHILD_TYPE,
@@ -38,8 +39,6 @@ import {
   uploads,
 } from "./mocks";
 
-const mkdir = promisify(fsMkdir);
-
 export const differentTargetDir = path.resolve("./aics");
 export const differentTargetFile1 = path.resolve(
   differentTargetDir,
@@ -51,10 +50,7 @@ export const differentTargetFile2 = path.resolve(
 );
 describe("Uploader", () => {
   const sandbox = createSandbox();
-  let updateJobStub: SinonStub,
-    createJobStub: SinonStub,
-    uploader: Uploader,
-    getJobsStub: SinonStub;
+  let updateJobStub: SinonStub, uploader: Uploader, getJobsStub: SinonStub;
   const uploadJobName = "Upload job name";
   let logger: ILogger;
   let copyWorkerStub: {
@@ -63,16 +59,18 @@ describe("Uploader", () => {
     onerror: SinonStub;
   };
 
-  beforeEach(async () => {
-    await mkdir(targetDir);
-    await mkdir(differentTargetDir);
+  beforeEach(() => {
     copyWorkerStub = {
       onmessage: stub(),
       onerror: stub(),
       postMessage: stub(),
     };
+    sandbox.replace(
+      StepExecutor,
+      "executeSteps",
+      stub().resolves({ resultFiles })
+    );
     updateJobStub = stub().resolves();
-    createJobStub = stub().resolves();
     getJobsStub = stub()
       .onFirstCall()
       // upload job children
@@ -80,7 +78,6 @@ describe("Uploader", () => {
       // copy job children
       .onSecondCall()
       .resolves([mockCopyJobChild1, mockCopyJobChild2]);
-    sandbox.replace(jobStatusClient, "createJob", createJobStub);
     sandbox.replace(jobStatusClient, "getJobs", getJobsStub);
     sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
     sandbox.replace(
@@ -123,6 +120,8 @@ describe("Uploader", () => {
   describe("uploadFiles", () => {
     it("Creates new upload child jobs and copy jobs, and returns expected result", async () => {
       fakeSuccessfulCopy();
+      const createJobStub = stub().resolves();
+      sandbox.replace(jobStatusClient, "createJob", createJobStub);
       const result = await uploader.uploadFiles(
         startUploadResponse,
         uploads,
@@ -174,6 +173,16 @@ describe("Uploader", () => {
     });
 
     it("Replaces the default mount point with the new mount point if specified", async () => {
+      const createUploadStub = stub()
+        .onFirstCall()
+        .resolves(mockCopyJobParent)
+        .onSecondCall()
+        .resolves(mockWorkingAddMetadataJob)
+        .onThirdCall()
+        .resolves(mockCopyJobChild1)
+        .onCall(4)
+        .resolves(mockCopyJobChild2);
+      sandbox.replace(jobStatusClient, "createJob", createUploadStub);
       const postMessageStub = fakeSuccessfulCopy();
       sandbox.replace(
         (storage as any) as LocalStorageStub,
@@ -207,29 +216,37 @@ describe("Uploader", () => {
       expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
-          status: "UNRECOVERABLE",
+          status: JSSJobStatus.UNRECOVERABLE,
         })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if working upload job provided", () => {
       expect(
-        uploader.retryUpload(uploads, { ...mockJob, status: "WORKING" })
+        uploader.retryUpload(uploads, {
+          ...mockJob,
+          status: JSSJobStatus.WORKING,
+        })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if retrying upload job provided", () => {
       expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
-          status: "RETRYING",
+          status: JSSJobStatus.RETRYING,
         })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if blocked upload job provided", () => {
       expect(
-        uploader.retryUpload(uploads, { ...mockJob, status: "BLOCKED" })
+        uploader.retryUpload(uploads, {
+          ...mockJob,
+          status: JSSJobStatus.BLOCKED,
+        })
       ).to.be.rejectedWith(Error);
     });
     it("Returns previous output stored on upload job if upload job provided succeeded", async () => {
+      const createJobStub = stub();
+      sandbox.replace(jobStatusClient, "createJob", createJobStub);
       const result = await uploader.retryUpload(uploads, mockCompleteUploadJob);
       expect(createJobStub.called).to.be.false;
       expect(getJobsStub.called).to.be.false;
@@ -238,16 +255,24 @@ describe("Uploader", () => {
     // it("Retries upload if failed upload job provided", () => {});
     // it("Runs upload if waiting upload job provided", () => {});
     it("Does not create new jobs", async () => {
+      const createJobStub = stub();
+      sandbox.replace(jobStatusClient, "createJob", createJobStub);
       fakeSuccessfulCopy();
       await uploader.retryUpload(uploads, mockRetryableUploadJob);
       expect(updateJobStub).to.have.been.calledWithMatch("uploadJobId", {
-        status: "RETRYING",
+        status: JSSJobStatus.RETRYING,
       });
       expect(createJobStub.called).to.be.false;
       expect(getJobsStub.called).to.be.true;
     });
     it("Creates new upload child jobs if uploadJob.childIds is not defined", async () => {
       fakeSuccessfulCopy();
+      const createJobStub = stub()
+        .onFirstCall()
+        .resolves(mockCopyJobParent)
+        .onSecondCall()
+        .resolves(mockWorkingAddMetadataJob);
+      sandbox.replace(jobStatusClient, "createJob", createJobStub);
       await uploader.retryUpload(uploads, {
         ...mockRetryableUploadJob,
         childIds: undefined,

@@ -3,6 +3,7 @@ import { shallow } from "enzyme";
 import * as React from "react";
 
 import UploadProgress from "../";
+import { JSSJobStatus } from "../../../../services/job-status-client/types";
 import { mockWorkingUploadJob } from "../../../../state/test/mocks";
 import { UploadSummaryTableRow } from "../../../../state/types";
 
@@ -21,7 +22,7 @@ describe("<UploadProgress/>", () => {
           isPolling={true}
           row={{
             ...row,
-            status: "SUCCEEDED",
+            status: JSSJobStatus.SUCCEEDED,
           }}
         />
       );
@@ -33,7 +34,7 @@ describe("<UploadProgress/>", () => {
           isPolling={true}
           row={{
             ...row,
-            status: "UNRECOVERABLE",
+            status: JSSJobStatus.UNRECOVERABLE,
           }}
         />
       );
@@ -45,7 +46,7 @@ describe("<UploadProgress/>", () => {
           isPolling={true}
           row={{
             ...row,
-            status: "FAILED",
+            status: JSSJobStatus.FAILED,
           }}
         />
       );
@@ -58,9 +59,12 @@ describe("<UploadProgress/>", () => {
           row={{
             ...row,
             serviceFields: {
+              files: [],
               replacementJobId: "abc",
+              type: "upload",
+              uploadDirectory: "/tmp",
             },
-            status: "FAILED",
+            status: JSSJobStatus.FAILED,
           }}
         />
       );

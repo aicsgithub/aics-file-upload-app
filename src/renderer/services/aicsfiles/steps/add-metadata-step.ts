@@ -3,22 +3,28 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { FSSClient } from "../helpers/fss-client";
-import { Job, Step, StepName, UploadContext } from "../types";
+import {
+  AddMetadataServiceFields,
+  Step,
+  StepName,
+  UploadContext,
+} from "../types";
 
 // Step 2/2 of an upload in which we notify FSS that the upload is complete for a job and send metadata
 // to be stored in the database for each file
 export class AddMetadataStep implements Step {
-  public readonly job: Job;
+  public readonly job: JSSJob<AddMetadataServiceFields>;
   public readonly name: StepName = StepName.AddMetadata;
   private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
   private readonly logger: ILogger;
 
   public constructor(
-    job: Job,
+    job: JSSJob<AddMetadataServiceFields>,
     fss: FSSClient,
     jss: JobStatusClient,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
@@ -77,12 +83,16 @@ export class AddMetadataStep implements Step {
     }
 
     try {
-      await this.jss.updateJob(this.job.jobId, {
-        status: "SUCCEEDED",
-        serviceFields: {
-          output: ctx.resultFiles,
+      await this.jss.updateJob(
+        this.job.jobId,
+        {
+          status: JSSJobStatus.SUCCEEDED,
+          serviceFields: {
+            output: ctx.resultFiles,
+          },
         },
-      });
+        true
+      );
     } catch (e) {
       const error = `Could not update the add metadata job ${this.job.jobId} after ending add metadata step`;
       this.logger.error(error, e.response);

@@ -23,12 +23,3 @@ export const RETRIEVE_JOBS_FAILED = makeConstant(
 export const SELECT_JOB_FILTER = makeConstant(BRANCH_NAME, "select-job-filter");
 export const START_JOB_POLL = makeConstant(BRANCH_NAME, "start-job-poll");
 export const STOP_JOB_POLL = makeConstant(BRANCH_NAME, "stop-job-poll");
-
-export const SUCCESSFUL_STATUS = "SUCCEEDED";
-export const FAILED_STATUSES = ["FAILED", "UNRECOVERABLE"];
-export const IN_PROGRESS_STATUSES = [
-  "BLOCKED",
-  "RETRYING",
-  "WAITING",
-  "WORKING",
-];

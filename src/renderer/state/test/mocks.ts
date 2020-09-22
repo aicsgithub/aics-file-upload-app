@@ -7,7 +7,7 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { ImageModelMetadata } from "../../services/aicsfiles/types";
-import { JSSJob } from "../../services/job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   Annotation,
   AnnotationLookup,
@@ -509,7 +509,7 @@ export const mockSuccessfulUploadJob: JSSJob = {
     result: [{ fileId: "cat" }, { fileId: "dog" }],
     type: "upload",
   },
-  status: "SUCCEEDED",
+  status: JSSJobStatus.SUCCEEDED,
   user: "test_user",
 };
 
@@ -522,13 +522,13 @@ export const mockWorkingUploadJob: JSSJob = {
   serviceFields: {
     copyJobId: "copyJobId2",
   },
-  status: "WORKING",
+  status: JSSJobStatus.WORKING,
   user: "test_user",
 };
 
 export const mockWaitingUploadJob: JSSJob = {
   ...mockWorkingUploadJob,
-  status: "WAITING",
+  status: JSSJobStatus.WAITING,
 };
 
 export const mockFailedUploadJob: JSSJob = {
@@ -547,7 +547,7 @@ export const mockFailedUploadJob: JSSJob = {
       },
     ],
   },
-  status: "FAILED",
+  status: JSSJobStatus.FAILED,
   user: "test_user",
 };
 
@@ -557,26 +557,26 @@ const mockAddMetadataJob: JSSJob = {
   jobId: "addMetadataJobId",
   jobName: "Add Metadata job 1",
   modified: new Date(),
-  status: "WAITING",
+  status: JSSJobStatus.WAITING,
   user: "test_user",
 };
 
 export const mockSuccessfulAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
   parentId: "123434234",
-  status: "SUCCEEDED",
+  status: JSSJobStatus.SUCCEEDED,
 };
 
 export const mockWorkingAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
   parentId: "2222222222",
-  status: "WORKING",
+  status: JSSJobStatus.WORKING,
 };
 
 export const mockFailedAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
   parentId: "3333333333",
-  status: "FAILED",
+  status: JSSJobStatus.FAILED,
 };
 
 export const mockAnnotationTypes: AnnotationType[] = [

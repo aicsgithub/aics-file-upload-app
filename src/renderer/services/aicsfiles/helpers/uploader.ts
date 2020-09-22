@@ -2,10 +2,9 @@ import { stat as fsStat } from "fs";
 import { hostname, platform, userInfo } from "os";
 import { promisify } from "util";
 
-import { AxiosError } from "axios";
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
-import { includes, keys, noop, pick } from "lodash";
+import { includes, keys, noop } from "lodash";
 import * as uuid from "uuid";
 
 import { USER_SETTINGS_KEY } from "../../../../shared/constants";
@@ -13,6 +12,7 @@ import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import {
   CreateJobRequest,
+  JobBase,
   JSSJob,
   JSSJobStatus,
 } from "../../job-status-client/types";
@@ -22,10 +22,10 @@ import { AddMetadataStep } from "../steps/add-metadata-step";
 import { CopyFilesStep } from "../steps/copy-files-step";
 import {
   FSSResponseFile,
-  Job,
   StartUploadResponse,
   Step,
   StepName,
+  UploadChildJobServiceFields,
   UploadContext,
   UploadResponse,
   Uploads,
@@ -40,10 +40,6 @@ export const COPY_TYPE = "copy";
 export const COPY_CHILD_TYPE = "copy_child";
 export const ADD_METADATA_TYPE = "add_metadata";
 const stat = promisify(fsStat);
-
-interface CreateJobRequestWithJobId extends CreateJobRequest {
-  jobId: string;
-}
 
 const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
@@ -62,12 +58,12 @@ export class Uploader {
   private readonly getCopyWorker: () => Worker;
   private readonly defaultMountPoint = "/allen/aics";
 
-  private get defaultJobInfo() {
+  private get defaultJobInfo(): JobBase {
     return {
       currentHost: hostname(),
       originationHost: hostname(),
       service: "aicsfiles-js",
-      status: "WAITING" as JSSJobStatus,
+      status: JSSJobStatus.WAITING,
       updateParent: true,
       user: this.username,
     };
@@ -161,13 +157,13 @@ export class Uploader {
   ): Promise<UploadResponse> {
     this.validateUploadJob(uploadJob);
 
-    if (uploadJob.status === "SUCCEEDED") {
+    if (uploadJob.status === JSSJobStatus.SUCCEEDED) {
       // if upload job already succeeded, we'll just return what is stored as output on the job
       return uploadJob.serviceFields?.output ?? {};
     }
 
     await this.jss.updateJob(uploadJob.jobId, {
-      status: "RETRYING",
+      status: JSSJobStatus.RETRYING,
     });
 
     const originalUploadResponse: StartUploadResponse = {
@@ -191,10 +187,10 @@ export class Uploader {
     );
     const jobCompleted = steps.every(
       ({ job: { status }, name }) =>
-        status === "SUCCEEDED" || name === StepName.AddMetadata
+        status === JSSJobStatus.SUCCEEDED || name === StepName.AddMetadata
     );
 
-    if (jobCompleted && uploadJob.status === "FAILED") {
+    if (jobCompleted && uploadJob.status === JSSJobStatus.FAILED) {
       this.logger.info(
         "Current upload failed too late in the process to retry, replacing with new job"
       );
@@ -223,7 +219,15 @@ export class Uploader {
 
   private validateUploadJob(job: JSSJob): void {
     if (
-      includes(["UNRECOVERABLE", "WORKING", "RETRYING", "BLOCKED"], job.status)
+      includes(
+        [
+          JSSJobStatus.UNRECOVERABLE,
+          JSSJobStatus.WORKING,
+          JSSJobStatus.RETRYING,
+          JSSJobStatus.BLOCKED,
+        ],
+        job.status
+      )
     ) {
       throw new Error(
         `Can't retry this upload job because the status is ${job.status}.`
@@ -239,7 +243,7 @@ export class Uploader {
 
   private async getUploadChildJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: Job[]; ctx: UploadContext }> {
+  ): Promise<{ jobs: JSSJob[]; ctx: UploadContext }> {
     if (ctx.uploadJob) {
       this.logger.info("Getting existing upload jobs");
       return this.getExistingUploadJobs(ctx);
@@ -251,7 +255,10 @@ export class Uploader {
 
   private async getExistingUploadJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: Job[]; ctx: UploadContext }> {
+  ): Promise<{
+    jobs: JSSJob<UploadChildJobServiceFields>[];
+    ctx: UploadContext;
+  }> {
     const { uploadJob, uploads } = ctx;
     if (!uploadJob) {
       throw new Error("No upload job provided");
@@ -313,9 +320,7 @@ export class Uploader {
       return {
         ctx: {
           ...ctx,
-          copyChildJobs: copyChildJobs.map((j) =>
-            pick(j, ["jobId", "status", "serviceFields"])
-          ),
+          copyChildJobs,
           totalBytesToCopy: this.getTotalBytesToCopy(fileToSizeMap),
           uploadChildJobIds: uploadJob.childIds,
         },
@@ -346,13 +351,13 @@ export class Uploader {
 
   private async createUploadJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: Job[]; ctx: UploadContext }> {
+  ): Promise<{ jobs: JSSJob[]; ctx: UploadContext }> {
     const { startUploadResponse, uploads } = ctx;
     const parentId = startUploadResponse.jobId;
     const uploadChildJobIds = [getUUID(), getUUID()];
     const fileToSizeMap = await this.getFileSizes(uploads);
     const totalBytesToCopy = this.getTotalBytesToCopy(fileToSizeMap);
-    const createUploadChildJobRequests: CreateJobRequestWithJobId[] = [
+    const createUploadChildJobRequests: CreateJobRequest[] = [
       {
         ...this.defaultJobInfo,
         jobId: uploadChildJobIds[0],
@@ -376,70 +381,63 @@ export class Uploader {
       },
     ];
 
-    await Promise.all(
-      createUploadChildJobRequests.map((r) => this.jss.createJob(r))
-    ).catch((e: AxiosError) => {
+    try {
+      const childJobs = await Promise.all(
+        createUploadChildJobRequests.map((r) => this.jss.createJob(r))
+      );
+      return {
+        ctx: {
+          ...ctx,
+          copyChildJobs: await this.createCopyJobs(
+            uploads,
+            uploadChildJobIds[0],
+            fileToSizeMap
+          ),
+          totalBytesToCopy,
+          uploadChildJobIds: uploadChildJobIds,
+        },
+        jobs: childJobs,
+      };
+    } catch (e) {
       const error = `Failed to create child upload job`;
       this.logger.error(error, e.response);
       throw new Error(error);
-    });
-    return {
-      ctx: {
-        ...ctx,
-        copyChildJobs: await this.createCopyJobs(
-          uploads,
-          uploadChildJobIds[0],
-          fileToSizeMap
-        ),
-        totalBytesToCopy,
-        uploadChildJobIds: uploadChildJobIds,
-      },
-      jobs: createUploadChildJobRequests.map((r) =>
-        pick(r, ["status", "serviceFields", "jobId"])
-      ),
-    };
+    }
   }
 
   private async createCopyJobs(
     uploads: Uploads,
     parentCopyJobId: string,
     fileToSizeMap: Map<string, number>
-  ): Promise<Job[]> {
-    const copyJobs = keys(uploads).map((originalPath: string) => {
-      const jobId = getUUID();
-      return {
-        jobId,
-        serviceFields: { originalPath },
-        status: "WAITING" as JSSJobStatus,
-      };
-    });
-
-    await Promise.all(
-      copyJobs.map((job: Job) =>
-        this.jss.createJob({
-          ...this.defaultJobInfo,
-          ...job,
-          jobName: `Upload job for ${job.serviceFields.originalPath}`,
-          parentId: parentCopyJobId,
-          serviceFields: {
-            ...job.serviceFields,
-            totalBytes: fileToSizeMap.get(job.serviceFields.originalPath),
-            type: COPY_CHILD_TYPE,
-          },
-          updateParent: true,
-        })
-      )
-    ).catch((e: AxiosError) => {
+  ): Promise<JSSJob[]> {
+    try {
+      return await Promise.all(
+        keys(uploads).map((originalPath: string) =>
+          this.jss.createJob({
+            ...this.defaultJobInfo,
+            jobId: getUUID(),
+            jobName: `Upload job for ${originalPath}`,
+            parentId: parentCopyJobId,
+            serviceFields: {
+              ...this.defaultJobInfo.serviceFields,
+              originalPath,
+              totalBytes: fileToSizeMap.get(originalPath),
+              type: COPY_CHILD_TYPE,
+            },
+            status: JSSJobStatus.WAITING,
+            updateParent: true,
+          })
+        )
+      );
+    } catch (e) {
       const error = "Could not create copy child jobs!";
       this.logger.error(error, e.response);
       throw new Error("Could not create copy child jobs!");
-    });
-
-    return copyJobs;
+    }
   }
 
   private getSteps(
-    jobs: Job[],
+    jobs: JSSJob[],
     getCopyWorker: () => Worker,
     copyProgressCb: (
       originalFilePath: string,

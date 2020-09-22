@@ -8,6 +8,7 @@ import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { ImageModelMetadata } from "../../services/aicsfiles/types";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";
 import {
@@ -601,7 +602,7 @@ const openEditFileMetadataTabLogic = createLogic({
 
     // Validate the job passed in as the action payload
     const { payload: job } = action;
-    if (job.status !== "SUCCEEDED") {
+    if (job.status !== JSSJobStatus.SUCCEEDED) {
       reject(
         setErrorAlert(
           "Cannot update file metadata because upload has not succeeded"

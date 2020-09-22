@@ -9,7 +9,7 @@ import { isEmpty, noop } from "lodash";
 import { LocalStorage } from "../../types";
 import { LabkeyClient } from "../index";
 import JobStatusClient from "../job-status-client";
-import { JSSJob } from "../job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
 import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
@@ -246,8 +246,7 @@ export class FileManagementSystem {
       await this.failUpload(
         uploadJob.jobId,
         "Missing serviceFields.files",
-        "UNRECOVERABLE",
-        true
+        JSSJobStatus.UNRECOVERABLE
       );
       throw new UnrecoverableJobError(
         "Upload job is missing serviceFields.files"
@@ -279,8 +278,7 @@ export class FileManagementSystem {
         await this.failUpload(
           uploadJob.jobId,
           e.message,
-          "UNRECOVERABLE",
-          true
+          JSSJobStatus.UNRECOVERABLE
         );
       } else {
         await this.failUpload(uploadJob.jobId, e.message);
@@ -293,29 +291,28 @@ export class FileManagementSystem {
    * Marks a job and its children as failed in JSS.
    * @param jobId - ID of the JSS Job to fail.
    * @param failureMessage - Optional message that will be written to
-   * `serviceFields.mostRecentFailure`. Defaults to "Job failed".
+   * `serviceFields.error`. Defaults to "Job failed".
    * @param failureStatus - Optional status to fail the job with. Defaults to
-   * "FAILED".
-   * @param setError - Also set `serviceFields.error` to `failureMessage`.
+   * JSSJobStatus.FAILED.
+   * @param serviceFields - Optional service fields to update the job with in addition to the error
    */
   public async failUpload(
     jobId: string,
     failureMessage = "Job failed",
-    failureStatus: "FAILED" | "UNRECOVERABLE" = "FAILED",
-    setError = false
+    failureStatus:
+      | JSSJobStatus.FAILED
+      | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED,
+    serviceFields: any = {}
   ): Promise<JSSJob[]> {
     const failedJobs: JSSJob[] = [];
 
     const failJob = async (id: string) => {
-      const serviceFields: any = {
-        mostRecentFailure: failureMessage,
-      };
-      if (setError) {
-        serviceFields.error = failureMessage;
-      }
       const failedJob = await this.jobStatusClient.updateJob(id, {
         status: failureStatus,
-        serviceFields,
+        serviceFields: {
+          error: failureMessage,
+          ...serviceFields,
+        },
       });
       failedJobs.push(failedJob);
       return failedJob;

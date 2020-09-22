@@ -1,4 +1,4 @@
-export interface JobBase {
+export interface JobBase<T = any> {
   // Array of child ids of this job.  Optional, supplied by client
   childIds?: string[];
 
@@ -22,7 +22,7 @@ export interface JobBase {
   service?: string;
 
   // Additional properties required by a specific job or job type.  Optional, supplied by client
-  serviceFields?: any;
+  serviceFields?: T;
 
   // The status of this job.  Required, supplied by client.
   status: JSSJobStatus;
@@ -36,7 +36,7 @@ export interface JobBase {
   user: string;
 }
 
-export interface CreateJobRequest extends JobBase {
+export interface CreateJobRequest<T = any> extends JobBase<T> {
   // Unique ID of the job. May be supplied by the client, or will be created by JSS
   jobId?: string;
 }
@@ -68,7 +68,7 @@ export interface JSSUpdateJobRequest extends JSSServiceFields {
   status?: JSSJobStatus;
 }
 
-export interface JSSJob extends JobBase {
+export interface JSSJob<T = any> extends JobBase<T> {
   // Datestamp for when the job was originally created.  Required, created by JSS
   created: Date;
 
@@ -107,14 +107,27 @@ export interface MongoFieldQuery {
   $nin?: any;
 }
 
-export type JSSJobStatus =
-  | "UNRECOVERABLE"
-  | "FAILED"
-  | "WORKING"
-  | "RETRYING"
-  | "WAITING"
-  | "BLOCKED"
-  | "SUCCEEDED";
+export enum JSSJobStatus {
+  UNRECOVERABLE = "UNRECOVERABLE",
+  FAILED = "FAILED",
+  WORKING = "WORKING",
+  RETRYING = "RETRYING",
+  WAITING = "WAITING",
+  BLOCKED = "BLOCKED",
+  SUCCEEDED = "SUCCEEDED",
+}
+
+export const SUCCESSFUL_STATUS = JSSJobStatus.SUCCEEDED;
+export const FAILED_STATUSES = [
+  JSSJobStatus.FAILED,
+  JSSJobStatus.UNRECOVERABLE,
+];
+export const IN_PROGRESS_STATUSES = [
+  JSSJobStatus.BLOCKED,
+  JSSJobStatus.RETRYING,
+  JSSJobStatus.WAITING,
+  JSSJobStatus.WORKING,
+];
 
 export type BasicType = boolean | number | string | Date | undefined | null;
 export interface JSSServiceFields {

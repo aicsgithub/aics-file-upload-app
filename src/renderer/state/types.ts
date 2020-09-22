@@ -13,6 +13,7 @@ import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
+import { UploadServiceFields } from "../services/aicsfiles/types";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {
@@ -187,7 +188,7 @@ export interface UploadProgressInfo {
 
 export interface JobStateBranch {
   // Parent job representing an upload of a batch of files
-  uploadJobs: JSSJob[];
+  uploadJobs: JSSJob<UploadServiceFields>[];
   // Child job representing the add metadata step of an upload job
   // These are requested only for in progress upload jobs
   // And are only used to determine if it is safe to exit the app
@@ -303,7 +304,7 @@ export interface UploadTabSelections {
   expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
-  job?: JSSJob;
+  job?: JSSJob<UploadServiceFields>;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
@@ -439,7 +440,7 @@ export interface DragAndDropFile {
 }
 
 // Matches a Job but the created date is represented as a string
-export interface UploadSummaryTableRow extends JSSJob {
+export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
   // used by antd's Table component to uniquely identify rows
   key: string;
   progress?: UploadProgressInfo;

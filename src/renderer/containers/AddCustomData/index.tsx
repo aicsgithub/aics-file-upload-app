@@ -9,6 +9,7 @@ import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import {
   AnnotationType,
@@ -112,7 +113,7 @@ interface Props {
   savedTemplateId?: number;
   selectBarcode: typeof selectBarcode;
   selectedBarcode?: string;
-  selectedJob?: JSSJob;
+  selectedJob?: JSSJob<UploadServiceFields>;
   setAlert: ActionCreator<SetAlertAction>;
   showUploadHint: boolean;
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
