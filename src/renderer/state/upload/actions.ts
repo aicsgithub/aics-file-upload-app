@@ -5,6 +5,7 @@ import {
   PREFERRED_TEMPLATE_ID,
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../../shared/constants";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import { Workflow } from "../../services/labkey-client/types";
 import {
   State,
@@ -27,6 +28,8 @@ import {
   EDIT_FILE_METADATA_FAILED,
   EDIT_FILE_METADATA_SUCCEEDED,
   INITIATE_UPLOAD,
+  INITIATE_UPLOAD_FAILED,
+  INITIATE_UPLOAD_SUCCEEDED,
   JUMP_TO_PAST_UPLOAD,
   JUMP_TO_UPLOAD,
   OPEN_UPLOAD_DRAFT,
@@ -37,8 +40,8 @@ import {
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT,
-  SUBMIT_FILE_METADATA_UPDATE,
   SAVE_UPLOAD_DRAFT_SUCCESS,
+  SUBMIT_FILE_METADATA_UPDATE,
   UNDO_FILE_WELL_ASSOCIATION,
   UNDO_FILE_WORKFLOW_ASSOCIATION,
   UPDATE_FILES_TO_ARCHIVE,
@@ -47,10 +50,8 @@ import {
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
   UPDATE_UPLOADS,
-  INITIATE_UPLOAD_FAILED,
-  UPLOAD_SUCCEEDED,
-  INITIATE_UPLOAD_SUCCEEDED,
   UPLOAD_FAILED,
+  UPLOAD_SUCCEEDED,
 } from "./constants";
 import {
   ApplyTemplateAction,
@@ -101,7 +102,6 @@ export function associateFilesAndWells(
   return {
     autoSave: true,
     payload: {
-      barcode: "",
       rowIds,
       wellIds: [], // this gets populated with the wells that are selected in logics
     },
@@ -208,7 +208,7 @@ export function initiateUploadSucceeded(
         jobId,
         jobName,
         modified: new Date(),
-        status: "WORKING",
+        status: JSSJobStatus.WORKING,
         user: currentUser,
       },
       recentJobs: [...recentJobs, jobId],

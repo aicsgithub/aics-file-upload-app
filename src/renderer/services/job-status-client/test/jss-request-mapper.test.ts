@@ -1,13 +1,13 @@
 import { expect } from "chai";
 
 import JSSRequestMapper from "../jss-request-mapper";
-import { JSSUpdateJobRequest } from "../types";
+import { JSSJobStatus, JSSUpdateJobRequest } from "../types";
 
 describe("JSSRequestMapper", () => {
   describe("map", () => {
     it("does not modify request if no service fields", () => {
       const input: JSSUpdateJobRequest = {
-        status: "WAITING",
+        status: JSSJobStatus.WAITING,
       };
       const result = JSSRequestMapper.map(input);
       expect(result).to.deep.equal(input);

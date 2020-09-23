@@ -1,6 +1,7 @@
 import { Icon, Progress, Tooltip } from "antd";
 import * as React from "react";
 
+import { JSSJobStatus } from "../../../services/job-status-client/types";
 import { UploadSummaryTableRow } from "../../../state/types";
 import { getPowerOf1000 } from "../../../util";
 
@@ -46,7 +47,11 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
 
   const { progress } = row;
   if (
-    ["SUCCEEDED", "UNRECOVERABLE", "FAILED"].includes(row.status) ||
+    [
+      JSSJobStatus.SUCCEEDED,
+      JSSJobStatus.UNRECOVERABLE,
+      JSSJobStatus.FAILED,
+    ].includes(row.status) ||
     !progress
   ) {
     return null;

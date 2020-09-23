@@ -26,6 +26,7 @@ import {
   StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
 } from "../../services/aicsfiles/types";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
@@ -38,7 +39,7 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
-import { setAlert, setErrorAlert } from "../feedback/actions";
+import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
 import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
 import {
@@ -64,7 +65,6 @@ import { getLoggedInUser } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
-  AlertType,
   AsyncRequest,
   HTTP_STATUS,
   Page,
@@ -165,10 +165,9 @@ const associateFilesAndWellsLogic = createLogic({
     }
 
     const state = getState();
-    const barcode = getSelectedBarcode(state);
     const wellIds = getSelectedWellIds(state);
 
-    if (!barcode) {
+    if (!getSelectedBarcode(state)) {
       reject(
         setErrorAlert("Cannot associate files and wells: No plate selected")
       );
@@ -184,8 +183,7 @@ const associateFilesAndWellsLogic = createLogic({
 
     action.payload = {
       ...action.payload,
-      barcode,
-      wellIds: getSelectedWellIds(state),
+      wellIds,
     };
     next(batchActions([action, deselectFiles()]));
   },
@@ -390,11 +388,11 @@ const initiateUploadLogic = createLogic({
   warnTimeout: 0,
 });
 
-const cancelUploadLogic = createLogic({
+export const cancelUploadLogic = createLogic({
   process: async (
     {
       action,
-      jssClient,
+      fms,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
     dispatch: ReduxLogicNextCb,
@@ -404,12 +402,14 @@ const cancelUploadLogic = createLogic({
 
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
-      await jssClient.updateJob(uploadJob.jobId, {
-        serviceFields: {
-          error: "Cancelled by user",
-        },
-        status: "UNRECOVERABLE",
-      });
+      await fms.failUpload(
+        uploadJob.jobId,
+        "Cancelled by user",
+        JSSJobStatus.UNRECOVERABLE,
+        {
+          cancelled: true,
+        }
+      );
       dispatch(cancelUploadSucceeded(uploadJob));
     } catch (e) {
       logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
@@ -433,12 +433,7 @@ const cancelUploadLogic = createLogic({
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
     if (!uploadJob) {
-      next(
-        setAlert({
-          message: "Cannot cancel undefined upload job",
-          type: AlertType.ERROR,
-        })
-      );
+      reject(setErrorAlert("Cannot cancel undefined upload job"));
     } else {
       const { response: buttonIndex } = await dialog.showMessageBox({
         buttons: ["Cancel", "Yes"],
@@ -462,6 +457,7 @@ const retryUploadLogic = createLogic({
   process: async (
     {
       action,
+      ctx,
       fms,
       getState,
       logger,
@@ -470,7 +466,7 @@ const retryUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload.job;
-    const fileNames = uploadJob.serviceFields.files.map(
+    const fileNames = ctx.files.map(
       ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
     );
     try {
@@ -496,7 +492,10 @@ const retryUploadLogic = createLogic({
     }
   },
   validate: (
-    { action }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
+    {
+      action,
+      ctx,
+    }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -508,6 +507,7 @@ const retryUploadLogic = createLogic({
         )
       );
     } else {
+      ctx.files = uploadJob.serviceFields?.files;
       next(action);
     }
   },
@@ -643,7 +643,6 @@ const updateSubImagesLogic = createLogic({
           channelId,
         });
         update[key] = {
-          barcode: fileRow.barcode,
           channelId,
           file: fileRow.file,
           key,
@@ -669,7 +668,6 @@ const updateSubImagesLogic = createLogic({
           [subImageKey]: subImageValue,
         });
         update[subImageOnlyRowKey] = {
-          barcode: fileRow.barcode,
           channelId: undefined,
           file: fileRow.file,
           key: subImageOnlyRowKey,
@@ -696,7 +694,6 @@ const updateSubImagesLogic = createLogic({
             [subImageKey]: subImageValue,
           });
           update[key] = {
-            barcode: fileRow.barcode,
             channelId,
             file: fileRow.file,
             key,

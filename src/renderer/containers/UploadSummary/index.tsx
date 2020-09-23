@@ -21,8 +21,11 @@ import { ActionCreator } from "redux";
 import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
-import { JSSJobStatus } from "../../services/job-status-client/types";
-import { FAILED_STATUS, IN_PROGRESS_STATUSES } from "../../state/constants";
+import { FSSResponseFile } from "../../services/aicsfiles/types";
+import {
+  IN_PROGRESS_STATUSES,
+  JSSJobStatus,
+} from "../../services/job-status-client/types";
 import {
   getRequestsInProgress,
   getRequestsInProgressContains,
@@ -79,7 +82,6 @@ import {
   SearchResultRow,
   State,
   UploadFile,
-  UploadMetadata,
   UploadProgressInfo,
   UploadSummaryTableRow,
 } from "../../state/types";
@@ -169,12 +171,12 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             <a className={styles.action} onClick={this.viewJob(row)}>
               View
             </a>
-            {row.status === "SUCCEEDED" && (
+            {row.status === JSSJobStatus.SUCCEEDED && (
               <a className={styles.action} onClick={this.editJob(row)}>
                 Edit
               </a>
             )}
-            {row.status === FAILED_STATUS && (
+            {row.status === JSSJobStatus.FAILED && (
               <a
                 className={classNames(styles.action, {
                   [styles.disabled]: this.props.requestsInProgress.includes(
@@ -397,7 +399,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
       !isEmpty(job.serviceFields.result)
     ) {
       const fileIds = job.serviceFields.result.map(
-        (fileInfo: UploadMetadata) => {
+        (fileInfo: FSSResponseFile) => {
           return fileInfo.fileId;
         }
       );

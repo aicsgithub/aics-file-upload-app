@@ -92,14 +92,6 @@ export const getCurrentUploadIndex = (state: State) => state.upload.index;
 export const getUploadPast = (state: State) => state.upload.past;
 export const getUploadFuture = (state: State) => state.upload.future;
 
-export const getAppliedTemplateId = createSelector(
-  [getUpload],
-  (uploads: UploadStateBranch): number | undefined =>
-    Object.keys(uploads).length
-      ? uploads[Object.keys(uploads)[0]].templateId
-      : undefined
-);
-
 export const getCanRedoUpload = createSelector(
   [getUploadFuture],
   (future: UploadStateBranch[]) => {
@@ -124,18 +116,13 @@ export const getCanUndoUpload = createSelector(
 );
 
 const EXCLUDED_UPLOAD_FIELDS = [
-  "barcode",
-  "channel",
   "file",
   "key",
-  "plateId",
   "positionIndex",
   "scene",
   "shouldBeInArchive",
   "shouldBeInLocal",
   "subImageName",
-  "templateId",
-  "wellLabels",
 ];
 
 // this matches the metadata annotations to the ones in the database and removes

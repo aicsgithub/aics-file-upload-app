@@ -6,13 +6,14 @@ import { noop } from "lodash";
 import * as rimraf from "rimraf";
 
 import JobStatusClient from "../../job-status-client";
+import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
 import {
   AICSFILES_LOGGER,
   UPLOAD_WORKER_ON_PROGRESS,
   UPLOAD_WORKER_SUCCEEDED,
 } from "../constants";
 import { CopyError, IllegalArgumentError } from "../errors";
-import { Job, Step, StepName, UploadContext } from "../types";
+import { CopyFileServiceFields, Step, StepName, UploadContext } from "../types";
 import { makePosixPathCompatibleWithPlatform } from "../util";
 
 const getCopyFileTimerName = (jobId: string, originalPath: string): string =>
@@ -20,7 +21,7 @@ const getCopyFileTimerName = (jobId: string, originalPath: string): string =>
 
 // Child step of the CopyFilesStep in which a file is copied to the isilon
 export class CopyStep implements Step {
-  public readonly job: Job;
+  public readonly job: JSSJob<CopyFileServiceFields>;
   public readonly name = StepName.CopyFilesChild;
   private readonly logger: ILogger;
   private readonly forceRemoveRecursive: typeof rimraf;
@@ -35,7 +36,7 @@ export class CopyStep implements Step {
   private readonly jss: JobStatusClient;
 
   public constructor(
-    job: Job,
+    job: JSSJob<CopyFileServiceFields>,
     jss: JobStatusClient,
     getCopyWorker: () => Worker,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
@@ -184,7 +185,7 @@ export class CopyStep implements Step {
               [originalPath]: ctx.sourceFiles[originalPath],
             },
           },
-          status: "SUCCEEDED",
+          status: JSSJobStatus.SUCCEEDED,
         },
         true
       );

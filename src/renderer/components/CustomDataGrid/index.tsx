@@ -59,7 +59,7 @@ const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [
 const DEFAULT_COLUMN_WIDTH = 170;
 const GRID_ROW_HEIGHT = 35;
 const GRID_BOTTOM_PADDING = 60;
-type SortableColumns = "barcode" | "file" | "wellLabels";
+type SortableColumns = "file" | "wellLabels";
 type SortDirections = "ASC" | "DESC" | "NONE";
 
 interface Props {
@@ -422,7 +422,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     return basicColumns.concat(schemaColumns);
   };
 
-  // This method currently only supports file, barcode, and wellLabels due to typescript constraints on allowing
+  // This method currently only supports file and wellLabels due to typescript constraints on allowing
   // indexing of objects with a key of type: string since TS7017: Element implicitly has an 'any' type because type
   // 'UploadJobTableRow' has no index signature. Can update this to include more columns or search inside an array
   // of "editableColumns"
@@ -430,11 +430,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     sortColumn: string,
     sortDirection: SortDirections
   ) => {
-    if (
-      sortColumn !== "barcode" &&
-      sortColumn !== "file" &&
-      sortColumn !== "wellLabels"
-    ) {
+    if (sortColumn !== "file" && sortColumn !== "wellLabels") {
       Logger.error(`Invalid column sort attempted with column: ${sortColumn}`);
     } else {
       this.setState({ sortColumn, sortDirection });

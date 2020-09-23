@@ -8,7 +8,13 @@ import { map, mergeMap, takeUntil } from "rxjs/operators";
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { JobStatusClient } from "../../services";
 import { UploadMetadata as AicsFilesUploadMetadata } from "../../services/aicsfiles/types";
-import { JSSJob } from "../../services/job-status-client/types";
+import {
+  FAILED_STATUSES,
+  IN_PROGRESS_STATUSES,
+  JSSJob,
+  JSSJobStatus,
+  SUCCESSFUL_STATUS,
+} from "../../services/job-status-client/types";
 import { LocalStorage } from "../../types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
@@ -46,14 +52,11 @@ import {
   updateUploadProgressInfo,
 } from "./actions";
 import {
-  FAILED_STATUSES,
   GATHER_STORED_INCOMPLETE_JOB_IDS,
   HANDLE_ABANDONED_JOBS,
-  IN_PROGRESS_STATUSES,
   RETRIEVE_JOBS,
   START_JOB_POLL,
   STOP_JOB_POLL,
-  SUCCESSFUL_STATUS,
 } from "./constants";
 import { getIncompleteJobIds, getJobFilter } from "./selectors";
 import { HandleAbandonedJobsAction } from "./types";
@@ -96,7 +99,7 @@ export const fetchJobs = async (
   > = previouslyIncompleteJobIds.length
     ? jssClient.getJobs({
         jobId: { $in: previouslyIncompleteJobIds },
-        status: SUCCESSFUL_STATUS,
+        status: JSSJobStatus.SUCCEEDED,
         user,
       })
     : Promise.resolve([]);

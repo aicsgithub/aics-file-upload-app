@@ -1,6 +1,4 @@
-import { mkdir as fsMkdir } from "fs";
 import * as path from "path";
-import { promisify } from "util";
 
 import { expect } from "chai";
 import * as Logger from "js-logger";
@@ -18,8 +16,10 @@ import {
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
+import { JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { FSSClient } from "../helpers/fss-client";
+import { StepExecutor } from "../helpers/step-executor";
 import {
   ADD_METADATA_TYPE,
   COPY_CHILD_TYPE,
@@ -45,8 +45,6 @@ import {
   uploads,
 } from "./mocks";
 
-const mkdir = promisify(fsMkdir);
-
 export const differentTargetDir = path.resolve("./aics");
 export const differentTargetFile1 = path.resolve(
   differentTargetDir,
@@ -70,14 +68,17 @@ describe("Uploader", () => {
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
   let uploader: Uploader;
 
-  beforeEach(async () => {
-    await mkdir(targetDir);
-    await mkdir(differentTargetDir);
+  beforeEach(() => {
     copyWorkerStub = {
       onmessage: stub(),
       onerror: stub(),
       postMessage: stub(),
     };
+    sandbox.replace(
+      StepExecutor,
+      "executeSteps",
+      stub().resolves({ resultFiles })
+    );
     jobStatusClient = createStubInstance(JobStatusClient);
     fss = createStubInstance(FSSClient);
     storage = createStubInstance(EnvironmentAwareStorage);
@@ -197,26 +198,32 @@ describe("Uploader", () => {
       expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
-          status: "UNRECOVERABLE",
+          status: JSSJobStatus.UNRECOVERABLE,
         })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if working upload job provided", () => {
       expect(
-        uploader.retryUpload(uploads, { ...mockJob, status: "WORKING" })
+        uploader.retryUpload(uploads, {
+          ...mockJob,
+          status: JSSJobStatus.WORKING,
+        })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if retrying upload job provided", () => {
       expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
-          status: "RETRYING",
+          status: JSSJobStatus.RETRYING,
         })
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if blocked upload job provided", () => {
       expect(
-        uploader.retryUpload(uploads, { ...mockJob, status: "BLOCKED" })
+        uploader.retryUpload(uploads, {
+          ...mockJob,
+          status: JSSJobStatus.BLOCKED,
+        })
       ).to.be.rejectedWith(Error);
     });
     it("Returns previous output stored on upload job if upload job provided succeeded", async () => {
@@ -233,7 +240,7 @@ describe("Uploader", () => {
       expect(jobStatusClient.updateJob).to.have.been.calledWithMatch(
         "uploadJobId",
         {
-          status: "RETRYING",
+          status: JSSJobStatus.RETRYING,
         }
       );
       expect(jobStatusClient.createJob.called).to.be.false;
@@ -241,6 +248,7 @@ describe("Uploader", () => {
     });
     it("Creates new upload child jobs if uploadJob.childIds is not defined", async () => {
       fakeSuccessfulCopy();
+      jobStatusClient.createJob.resolves(mockJob);
       await uploader.retryUpload(uploads, {
         ...mockRetryableUploadJob,
         childIds: undefined,

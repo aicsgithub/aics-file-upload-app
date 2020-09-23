@@ -7,6 +7,7 @@ import {
 } from "sinon";
 
 import JobStatusClient from "../../job-status-client";
+import { JSSJobStatus } from "../../job-status-client/types";
 import { IllegalArgumentError } from "../errors";
 import { FSSClient } from "../helpers/fss-client";
 import { AddMetadataStep } from "../steps/add-metadata-step";
@@ -69,6 +70,7 @@ describe("AddMetadataStep", () => {
         ...mockJob,
         serviceFields: {
           output: resultFiles,
+          type: "add-metadata",
         },
       });
       const ctx = await addMetadataStep.skip(mockCtx);
@@ -91,7 +93,7 @@ describe("AddMetadataStep", () => {
         jobStatusClient.updateJob.calledWith(
           mockJob.jobId,
           match
-            .has("status", "SUCCEEDED")
+            .has("status", JSSJobStatus.SUCCEEDED)
             .and(match.has("serviceFields", match.has("output", match.array)))
         )
       ).to.be.true;
