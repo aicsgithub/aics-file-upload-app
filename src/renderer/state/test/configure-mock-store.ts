@@ -7,7 +7,12 @@ import {
 } from "redux";
 import { createLogicMiddleware, LogicMiddleware } from "redux-logic";
 import { Logic } from "redux-logic/definitions/logic";
-import { SinonStub, stub } from "sinon";
+import {
+  createStubInstance,
+  SinonStub,
+  SinonStubbedInstance,
+  stub,
+} from "sinon";
 
 import {
   enableBatching,
@@ -22,8 +27,7 @@ import {
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
 import { FileManagementSystem } from "../../services/aicsfiles";
-import { FSSClient } from "../../services/aicsfiles/helpers/fss-client";
-import { LocalStorage } from "../../types";
+import EnvironmentAwareStorage from "../EnvironmentAwareStorage";
 import { State } from "../types";
 
 import { Actions, default as ActionTracker } from "./action-tracker";
@@ -43,82 +47,33 @@ export interface ReduxLogicDependencies {
     showMessageBox: SinonStub;
     showOpenDialog: SinonStub;
   };
-  fms: FileManagementSystem;
+  fms: SinonStubbedInstance<FileManagementSystem>;
   getApplicationMenu: SinonStub;
   getRetryUploadWorker: SinonStub;
   getUploadWorker: SinonStub;
-  httpClient: {
-    get: SinonStub;
-    post: SinonStub;
-    put: SinonStub;
-    patch: SinonStub;
-    delete: SinonStub;
-  };
   ipcRenderer: {
     on: SinonStub;
     send: SinonStub;
   };
-  jssClient: JobStatusClient;
-  labkeyClient: LabkeyClient;
+  jssClient: SinonStubbedInstance<JobStatusClient>;
+  labkeyClient: SinonStubbedInstance<LabkeyClient>;
   logger: {
     debug: SinonStub;
     error: SinonStub;
     info: SinonStub;
     warn: SinonStub;
   };
-  mmsClient: MMSClient;
+  mmsClient: SinonStubbedInstance<MMSClient>;
   readFile: SinonStub;
-  storage: LocalStorageStub;
+  storage: SinonStubbedInstance<EnvironmentAwareStorage>;
   writeFile: SinonStub;
 }
 
-export const storage: LocalStorageStub = {
-  clear: stub(),
-  delete: stub(),
-  get: stub(),
-  has: stub(),
-  reset: stub(),
-  set: stub(),
-};
-export const httpClient = {
-  get: stub(),
-  post: stub(),
-  put: stub(),
-  patch: stub(),
-  delete: stub(),
-};
-
-export const jssClient = new JobStatusClient(
-  httpClient,
-  (storage as any) as LocalStorage,
-  false
-);
-export const labkeyClient = new LabkeyClient(
-  httpClient,
-  (storage as any) as LocalStorage,
-  false
-);
-export const mmsClient = new MMSClient(
-  httpClient,
-  (storage as any) as LocalStorage,
-  false
-);
-export const fssClient = {
-  startUpload: stub(),
-  uploadComplete: stub(),
-};
-export const fms = new FileManagementSystem({
-  getCopyWorker: stub().returns({
-    postMessage: stub(),
-    onerror: stub(),
-    onmessage: stub(),
-  }),
-  fssClient: (fssClient as any) as FSSClient,
-  jobStatusClient: jssClient,
-  labkeyClient,
-  mmsClient,
-  storage: (storage as any) as LocalStorage,
-});
+const storage = createStubInstance(EnvironmentAwareStorage);
+const jssClient = createStubInstance(JobStatusClient);
+const labkeyClient = createStubInstance(LabkeyClient);
+const mmsClient = createStubInstance(MMSClient);
+const fms = createStubInstance(FileManagementSystem);
 
 export const switchEnvMenuItem = {
   enabled: true,
@@ -167,7 +122,6 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
   getApplicationMenu,
   getRetryUploadWorker: stub(),
   getUploadWorker: stub(),
-  httpClient,
   ipcRenderer,
   jssClient,
   labkeyClient,

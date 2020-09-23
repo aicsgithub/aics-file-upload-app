@@ -271,7 +271,7 @@ export const getPlateInfo = async (
  * @param {FileManagementSystem} fms
  * @param {boolean} transformDates whether to convert annotation values for date annotations to dates or
  * leave them as strings
- * @returns {AnyAction} actions to dispatch
+ * @returns {Promise<ImageModelMetadata[]>} actions to dispatch
  */
 export const retrieveFileMetadata = async (
   fileIds: string[],

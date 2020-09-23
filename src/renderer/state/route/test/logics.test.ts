@@ -1,10 +1,18 @@
 import { expect } from "chai";
-import { omit } from "lodash";
 import { ActionCreator, Store } from "redux";
-import { createSandbox, SinonStub, stub } from "sinon";
+import {
+  createSandbox,
+  SinonStub,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { FileManagementSystem } from "../../../services/aicsfiles";
 import { ImageModelMetadata } from "../../../services/aicsfiles/types";
+import LabkeyClient from "../../../services/labkey-client";
+import MMSClient from "../../../services/mms-client";
 import {
   CANCEL_BUTTON_INDEX,
   SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
@@ -27,14 +35,11 @@ import {
   getCurrentSelectionIndex,
   getSelectedPlate,
 } from "../../selection/selectors";
-import { getAssociateByWorkflow } from "../../setting/selectors";
+import { associateByWorkflow } from "../../setting/actions";
 import { Actions } from "../../test/action-tracker";
 import {
   createMockReduxStore,
   dialog,
-  fms,
-  labkeyClient,
-  mmsClient,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -71,6 +76,19 @@ import Menu = Electron.Menu;
 
 describe("Route logics", () => {
   const sandbox = createSandbox();
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
+  let fms: SinonStubbedInstance<FileManagementSystem>;
+
+  beforeEach(() => {
+    mmsClient = createStubInstance(MMSClient);
+    labkeyClient = createStubInstance(LabkeyClient);
+    fms = createStubInstance(FileManagementSystem);
+    sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
+    sandbox.replace(mockReduxLogicDeps, "fms", fms);
+  });
+
   afterEach(() => {
     sandbox.restore();
   });
@@ -497,22 +515,10 @@ describe("Route logics", () => {
       showMessageBox,
       showSaveDialog,
       writeFile,
-      getCustomMetadataForFile,
-      transformFileMetadataIntoTable,
-      getPlateBarcodeAndAllImagingSessionIdsFromWellId,
-      getImagingSessionIdsForBarcode,
-      getPlate,
-      getTemplate,
     }: {
       showMessageBox?: SinonStub;
       showSaveDialog?: SinonStub;
       writeFile?: SinonStub;
-      getCustomMetadataForFile?: SinonStub;
-      transformFileMetadataIntoTable?: SinonStub;
-      getPlateBarcodeAndAllImagingSessionIdsFromWellId?: SinonStub;
-      getImagingSessionIdsForBarcode?: SinonStub;
-      getPlate?: SinonStub;
-      getTemplate?: SinonStub;
     }) => {
       sandbox.replace(
         dialog,
@@ -530,47 +536,34 @@ describe("Route logics", () => {
         "writeFile",
         writeFile || stub().resolves()
       );
-      sandbox.replace(
-        fms,
-        "getCustomMetadataForFile",
-        getCustomMetadataForFile || stub().resolves([])
+      fms.getCustomMetadataForFile.resolves({
+        annotations: [],
+        fileId: "abcdefg",
+        filename: "name",
+        fileSize: 1,
+        fileType: "image",
+        modified: "",
+        modifiedBy: "foo",
+      });
+      fms.transformFileMetadataIntoTable.resolves(fileMetadata);
+      labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId.resolves(
+        "abc"
       );
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        transformFileMetadataIntoTable || stub().resolves(fileMetadata)
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getPlateBarcodeAndAllImagingSessionIdsFromWellId",
-        getPlateBarcodeAndAllImagingSessionIdsFromWellId ||
-          stub().resolves("abc")
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getImagingSessionIdsForBarcode",
-        getImagingSessionIdsForBarcode || stub().resolves([null, 1])
-      );
-      sandbox.replace(
-        mmsClient,
-        "getPlate",
-        getPlate ||
-          stub().resolves({
-            ...mockAuditInfo,
-            barcode: "123456",
-            comments: "",
-            imagingSessionId: undefined,
-            plateGeometryId: 1,
-            plateId: 1,
-            plateStatusId: 1,
-            seededOn: "2018-02-14 23:03:52",
-          })
-      );
-      sandbox.replace(
-        mmsClient,
-        "getTemplate",
-        getTemplate || stub().resolves(mockMMSTemplate)
-      );
+      labkeyClient.getImagingSessionIdsForBarcode.resolves([null, 1]);
+      mmsClient.getPlate.resolves({
+        plate: {
+          ...mockAuditInfo,
+          barcode: "123456",
+          comments: "",
+          imagingSessionId: undefined,
+          plateGeometryId: 1,
+          plateId: 1,
+          plateStatusId: 1,
+          seededOn: "2018-02-14 23:03:52",
+        },
+        wells: [],
+      });
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
     };
 
     let mockStateWithMetadata: State;
@@ -783,9 +776,7 @@ describe("Route logics", () => {
       ).to.be.true;
     });
     it("dispatches requestFailed given not OK response when getting file metadata", async () => {
-      stubMethods({
-        transformFileMetadataIntoTable: stub().rejects(new Error("error!")),
-      });
+      fms.getCustomMetadataForFile.rejects(new Error("error!"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState
       );
@@ -803,15 +794,18 @@ describe("Route logics", () => {
       ).to.be.true;
     });
     it("does not dispatch setPlate action if file metadata does not contain well annotation", async () => {
-      stubMethods({
-        transformFileMetadataIntoTable: stub().resolves([
-          {
-            ...omit(fileMetadata, ["Well"]),
-            Workflow: ["Pipeline 5"],
-          },
-        ]),
-      });
-      const { logicMiddleware, store } = createMockReduxStore(
+      fms.transformFileMetadataIntoTable.resolves([
+        {
+          filename: "foo",
+          fileId: "abc",
+          fileSize: 100,
+          fileType: "image",
+          modified: "foo",
+          modifiedBy: "bar",
+          Workflow: ["Pipeline 5"],
+        },
+      ]);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
 
@@ -819,12 +813,11 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(getSelectedPlate(store.getState())).to.be.undefined;
-      expect(getAssociateByWorkflow(store.getState())).to.be.true;
+      expect(actions.includesMatch(associateByWorkflow(true)));
     });
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
-      stubMethods({
-        getPlate: stub().rejects(new Error("foo")),
-      });
+      stubMethods({});
+      mmsClient.getPlate.rejects(new Error("foo"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -850,9 +843,8 @@ describe("Route logics", () => {
       ).to.be.true;
     });
     it("dispatches requestFailed if getting template fails", async () => {
-      stubMethods({
-        getTemplate: stub().rejects(new Error("foo")),
-      });
+      stubMethods({});
+      mmsClient.getTemplate.rejects(new Error("foo"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );

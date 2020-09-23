@@ -1,7 +1,11 @@
-/* tslint:disable:max-classes-per-file */
-
 import { expect } from "chai";
-import { createSandbox, spy, stub } from "sinon";
+import {
+  createSandbox,
+  SinonStubbedInstance,
+  spy,
+  stub,
+  createStubInstance,
+} from "sinon";
 
 import {
   alphaOrderComparator,
@@ -15,7 +19,9 @@ import {
   splitTrimAndFilter,
   titleCase,
 } from "../";
+import { FileManagementSystem } from "../../services/aicsfiles";
 import { ImageModelMetadata } from "../../services/aicsfiles/types";
+import MMSClient from "../../services/mms-client";
 import {
   GetPlateResponse,
   PlateResponse,
@@ -24,8 +30,6 @@ import {
 import { Well } from "../../state/selection/types";
 import {
   dialog,
-  fms,
-  mmsClient,
   mockReduxLogicDeps,
 } from "../../state/test/configure-mock-store";
 import {
@@ -44,6 +48,13 @@ import { getWellLabel } from "../index";
 
 describe("General utilities", () => {
   const sandbox = createSandbox();
+  let fms: SinonStubbedInstance<FileManagementSystem>;
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+  beforeEach(() => {
+    fms = createStubInstance(FileManagementSystem);
+    mmsClient = createStubInstance(MMSClient);
+  });
+
   afterEach(() => {
     sandbox.restore();
   });
@@ -213,17 +224,17 @@ describe("General utilities", () => {
         plate: { ...mockPlate, imagingSessionId: 4, plateId: 2 },
         wells: [{ ...mockEmptyWell, plateId: 2, wellId: 2 }],
       };
-      const getPlateStub = stub();
-      getPlateStub.withArgs(barcode, undefined).resolves(mockGetPlateResponse1);
-      getPlateStub.withArgs(barcode, 4).resolves(mockGetPlateResponse2);
-      sandbox.replace(mmsClient, "getPlate", getPlateStub);
+      mmsClient.getPlate
+        .withArgs(barcode, undefined)
+        .resolves(mockGetPlateResponse1);
+      mmsClient.getPlate.withArgs(barcode, 4).resolves(mockGetPlateResponse2);
       const dispatchSpy = spy();
       const imagingSessionIds = [null, 4];
 
       const { plate, wells } = await getPlateInfo(
         barcode,
         imagingSessionIds,
-        mmsClient,
+        (mmsClient as any) as MMSClient,
         dispatchSpy
       );
       expect(plate).to.deep.equal({
@@ -238,31 +249,22 @@ describe("General utilities", () => {
   });
   describe("retrieveFileMetadata", () => {
     it("returns result of fms.transformFileMetadataIntoTable", async () => {
-      const expected: ImageModelMetadata[] = [
-        {
-          fileId: "abc123",
-          fileSize: 100,
-          fileType: "image",
-          filename: "my file",
-          modified: "",
-          modifiedBy: "foo",
-          template: "my template",
-          templateId: 1,
-        },
-      ];
-      const getCustomMetadataForFileStub = stub().resolves([]);
-      const transformFileMetadataIntoTableStub = stub().resolves(expected);
-      sandbox.replace(
-        fms,
-        "getCustomMetadataForFile",
-        getCustomMetadataForFileStub
+      const beforePivot = {
+        annotations: [],
+        fileId: "abc123",
+        filename: "bar",
+        fileSize: 0,
+        fileType: "image",
+        modified: "",
+        modifiedBy: "foo",
+      };
+      const expected = [] as ImageModelMetadata[];
+      fms.getCustomMetadataForFile.resolves(beforePivot);
+      fms.transformFileMetadataIntoTable.resolves(expected);
+      const result = await retrieveFileMetadata(
+        ["abc123"],
+        (fms as any) as FileManagementSystem
       );
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        transformFileMetadataIntoTableStub
-      );
-      const result = await retrieveFileMetadata(["abc123"], fms);
       expect(result).to.equal(expected);
     });
   });
@@ -302,15 +304,11 @@ describe("General utilities", () => {
     });
 
     it("throws error if getTemplate request fails", () => {
-      sandbox.replace(
-        mmsClient,
-        "getTemplate",
-        stub().rejects(new Error("Oops"))
-      );
+      mmsClient.getTemplate.rejects(new Error("Oops"));
       expect(
         getApplyTemplateInfo(
           1,
-          mmsClient,
+          (mmsClient as any) as MMSClient,
           stub(),
           mockBooleanAnnotation.annotationTypeId,
           uploads,
@@ -319,13 +317,13 @@ describe("General utilities", () => {
       ).to.be.rejectedWith(Error);
     });
     it("returns setAppliedTemplate action with template returned from MMS and expected upload", async () => {
-      sandbox.replace(mmsClient, "getTemplate", stub().resolves(template));
+      mmsClient.getTemplate.resolves(template);
       const {
         template: resultTemplate,
         uploads: uploadsResult,
       } = await getApplyTemplateInfo(
         1,
-        mmsClient,
+        (mmsClient as any) as MMSClient,
         stub(),
         mockBooleanAnnotation.annotationTypeId,
         uploads,

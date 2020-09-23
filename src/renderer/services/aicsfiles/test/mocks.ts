@@ -2,13 +2,7 @@ import * as path from "path";
 
 import { stub } from "sinon";
 
-import { httpClient } from "../../../state/test/configure-mock-store";
-import { LocalStorage } from "../../../types";
-import { LabkeyClient } from "../../index";
-import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
-import MMSClient from "../../mms-client";
-import { FSSClient } from "../helpers/fss-client";
 import {
   CustomFileMetadata,
   LabKeyFileMetadata,
@@ -166,28 +160,6 @@ export const mockCopyJobChild2: JSSJob = {
   },
   updateParent: true,
 };
-
-// Mock clients
-export const storage: LocalStorage = ({
-  clear: stub(),
-  delete: stub(),
-  get: stub(),
-  has: stub(),
-  reset: stub(),
-  set: stub(),
-} as any) as LocalStorage;
-export const jobStatusClient = new JobStatusClient(httpClient, storage, false);
-
-export const fss: FSSClient = ({
-  startUpload: stub(),
-  uploadComplete: stub(),
-} as any) as FSSClient;
-
-export const lk: LabkeyClient = new LabkeyClient(httpClient, storage, false);
-
-export const mms: MMSClient = ({
-  getFileMetadata: stub(),
-} as any) as MMSClient;
 
 // Used in most tests
 export const startUploadResponse: StartUploadResponse = {

@@ -85,15 +85,15 @@ export class StepExecutor {
         });
       }
 
-      await jss
-        .updateJob(step.job.jobId, {
+      try {
+        await jss.updateJob(step.job.jobId, {
           status: newStatus,
-        })
-        .catch((e) => {
-          const error = `Could not update status for job ${step.job.jobId} from ${step.job.status} to ${newStatus}`;
-          Logger.get(AICSFILES_LOGGER).error(error, e.response);
-          throw new Error(error);
         });
+      } catch (e) {
+        const error = `Could not update status for job ${step.job.jobId} from ${step.job.status} to ${newStatus}`;
+        Logger.get(AICSFILES_LOGGER).error(error, e.response);
+        throw new Error(error);
+      }
 
       Logger.get(AICSFILES_LOGGER).info(
         `Starting step "${step.name}" for jobId=${step.job.jobId} with ctx:`,
@@ -108,8 +108,8 @@ export class StepExecutor {
       await step.end(ctx);
       return ctx;
     } catch (e) {
-      await jss
-        .updateJob(
+      try {
+        await jss.updateJob(
           step.job.jobId,
           {
             status: "FAILED",
@@ -118,12 +118,12 @@ export class StepExecutor {
             },
           },
           true
-        )
-        .catch((e) => {
-          const error = `Could not update status for job ${step.job.jobId} from ${step.job.status} to FAILED`;
-          Logger.get(AICSFILES_LOGGER).error(error, e.response);
-          throw new Error(error);
-        });
+        );
+      } catch (e) {
+        const error = `Could not update status for job ${step.job.jobId} from ${step.job.status} to FAILED`;
+        Logger.get(AICSFILES_LOGGER).error(error, e.response);
+        throw new Error(error);
+      }
       throw e;
     }
   }

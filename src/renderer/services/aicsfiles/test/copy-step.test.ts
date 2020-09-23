@@ -6,8 +6,17 @@ import { expect } from "chai";
 import * as Logger from "js-logger";
 import { pick } from "lodash";
 import * as rimraf from "rimraf";
-import { createSandbox, match, SinonStub, spy, stub, SinonSpy } from "sinon";
+import {
+  createSandbox,
+  match,
+  spy,
+  stub,
+  SinonSpy,
+  SinonStubbedInstance,
+  createStubInstance,
+} from "sinon";
 
+import JobStatusClient from "../../job-status-client";
 import { UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyStep } from "../steps/copy-step";
 import { UploadContext } from "../types";
@@ -15,7 +24,6 @@ import { UploadContext } from "../types";
 import {
   copyChildJobId1,
   copyWorkerStub,
-  jobStatusClient,
   mockCopyJobChild1,
   mockCopyJobChild2,
   sourceFiles,
@@ -32,21 +40,21 @@ const rmdir = promisify(fsRmdir);
 
 describe("CopyStep", () => {
   const sandbox = createSandbox();
-  let updateJobStub: SinonStub;
   let copyStep: CopyStep;
   let mockCtx: UploadContext;
   const rimrafSpy: SinonSpy = spy();
   const logger = Logger.get("test");
   const getCopyWorkerStub = stub().returns(copyWorkerStub);
+  let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
 
   beforeEach(() => {
-    updateJobStub = stub().resolves(mockCopyJobChild1);
-    sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
+    jobStatusClient = createStubInstance(JobStatusClient);
+    jobStatusClient.updateJob.resolves(mockCopyJobChild1);
     sandbox.replace(logger, "error", stub());
     sandbox.replace(rimraf, "sync", rimrafSpy);
     copyStep = new CopyStep(
       mockCopyJobChild1,
-      jobStatusClient,
+      (jobStatusClient as any) as JobStatusClient,
       getCopyWorkerStub,
       logger,
       rimraf
@@ -98,7 +106,7 @@ describe("CopyStep", () => {
       stub(process, "platform").get(() => "darwin");
       const copyStep2 = new CopyStep(
         mockCopyJobChild1,
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         getCopyWorkerStub,
         logger,
         rimraf,
@@ -114,7 +122,7 @@ describe("CopyStep", () => {
       stub(process, "platform").get(() => "win32");
       const copyStep2 = new CopyStep(
         mockCopyJobChild1,
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         getCopyWorkerStub,
         logger,
         rimraf,
@@ -130,7 +138,7 @@ describe("CopyStep", () => {
       stub(process, "platform").get(() => "linux");
       const copyStep2 = new CopyStep(
         mockCopyJobChild1,
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         getCopyWorkerStub,
         logger,
         rimraf,
@@ -168,7 +176,7 @@ describe("CopyStep", () => {
             originalPath: undefined,
           },
         },
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         getCopyWorkerStub
       );
       return expect(copyStep2.start(mockCtx)).to.be.rejectedWith(Error);
@@ -221,7 +229,7 @@ describe("CopyStep", () => {
       sandbox.replace(copyStep, "job", mockCopyJobChild1);
       await copyStep.end({ ...mockCtx, sourceFiles });
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           copyChildJobId1,
           match
             .has(

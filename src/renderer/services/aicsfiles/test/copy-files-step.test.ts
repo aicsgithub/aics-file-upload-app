@@ -1,8 +1,15 @@
 import { expect } from "chai";
 import * as Logger from "js-logger";
 import { pick } from "lodash";
-import { createSandbox, match, SinonStub, stub } from "sinon";
+import {
+  createSandbox,
+  match,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
+import JobStatusClient from "../../job-status-client";
 import { JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { CopyError } from "../errors";
@@ -13,7 +20,6 @@ import {
   copyChildJobId1,
   copyChildJobId2,
   copyWorkerStub,
-  jobStatusClient,
   mockCopyJobChild1,
   mockCopyJobChild2,
   mockJob,
@@ -27,7 +33,8 @@ import {
 
 describe("CopyFilesStep", () => {
   const sandbox = createSandbox();
-  let updateJobStub: SinonStub, copyStep: CopyFilesStep, mockCtx: UploadContext;
+  let copyStep: CopyFilesStep, mockCtx: UploadContext;
+  let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
 
   beforeEach(() => {
     mockCtx = {
@@ -36,13 +43,12 @@ describe("CopyFilesStep", () => {
       uploadJobName: "arbitrary name",
       uploads,
     };
-    updateJobStub = stub().resolves();
-    sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
+    jobStatusClient = createStubInstance(JobStatusClient);
     const logger = Logger.get(AICSFILES_LOGGER);
     sandbox.replace(logger, "error", stub());
     copyStep = new CopyFilesStep(
       mockJob,
-      jobStatusClient,
+      (jobStatusClient as any) as JobStatusClient,
       stub().returns(copyWorkerStub),
       logger
     );
@@ -72,13 +78,13 @@ describe("CopyFilesStep", () => {
       fakeSuccessfulCopy();
       await copyStep.start(mockCtx);
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           copyChildJobId1,
           match.has("status", "SUCCEEDED")
         )
       ).to.be.true;
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           copyChildJobId2,
           match.has("status", "SUCCEEDED")
         )
@@ -99,9 +105,12 @@ describe("CopyFilesStep", () => {
         })
       ).to.be.rejectedWith(CopyError);
 
-      expect(updateJobStub).to.have.been.calledWithMatch("copyChildJobId1", {
-        status: "FAILED",
-      });
+      expect(jobStatusClient.updateJob).to.have.been.calledWithMatch(
+        "copyChildJobId1",
+        {
+          status: "FAILED",
+        }
+      );
     });
     it("throws error if copyChildJobs is missing from context", () => {
       return expect(
@@ -209,7 +218,7 @@ describe("CopyFilesStep", () => {
         sourceFiles,
       });
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           mockCopyJobChild1.jobId,
           match
             .has("status", "SUCCEEDED")

@@ -1,18 +1,25 @@
 import { expect } from "chai";
-import { match, SinonStub, stub } from "sinon";
+import {
+  match,
+  SinonStub,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
+import JobStatusClient from "../../job-status-client";
 import { JSSJobStatus } from "../../job-status-client/types";
 import { StepExecutor } from "../helpers/step-executor";
 import { Step, StepName, UploadContext } from "../types";
 
-import { jobStatusClient, mockJob, targetDir, uploadJobId } from "./mocks";
+import { mockJob, targetDir, uploadJobId } from "./mocks";
 
 describe("StepExecutor", () => {
-  let updateJobStub: SinonStub, mockCtx: UploadContext;
+  let mockCtx: UploadContext;
+  let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
 
   beforeEach(() => {
-    updateJobStub = stub().resolves();
-    jobStatusClient.updateJob = updateJobStub;
+    jobStatusClient = createStubInstance(JobStatusClient);
     mockCtx = {
       startUploadResponse: {
         jobId: uploadJobId,
@@ -69,7 +76,7 @@ describe("StepExecutor", () => {
         stub().resolves(mockCtx3)
       );
       const ctx = await StepExecutor.executeSteps(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [step1, step2, step3],
         mockCtx
       );
@@ -85,21 +92,36 @@ describe("StepExecutor", () => {
         stub().resolves(mockCtx3)
       );
       const { startStub, step: step2 } = getStepAndStubs("WAITING");
-      await StepExecutor.executeSteps(jobStatusClient, [step1, step2], mockCtx);
+      await StepExecutor.executeSteps(
+        (jobStatusClient as any) as JobStatusClient,
+        [step1, step2],
+        mockCtx
+      );
       expect(startStub.calledWith(mockCtx3)).to.be.true;
     });
     it("updates status of step's job to WORKING if the status was previously WAITING", async () => {
       const { step } = getStepAndStubs("WAITING");
-      await StepExecutor.executeSteps(jobStatusClient, [step], mockCtx);
+      await StepExecutor.executeSteps(
+        (jobStatusClient as any) as JobStatusClient,
+        [step],
+        mockCtx
+      );
       expect(
-        updateJobStub.calledWith(mockJob.jobId, match.has("status", "WORKING"))
+        jobStatusClient.updateJob.calledWith(
+          mockJob.jobId,
+          match.has("status", "WORKING")
+        )
       ).to.be.true;
     });
     it("updates upload job's current stage with name of the current step if step is WAITING", async () => {
       const { step } = getStepAndStubs("WAITING");
-      await StepExecutor.executeSteps(jobStatusClient, [step], mockCtx);
+      await StepExecutor.executeSteps(
+        (jobStatusClient as any) as JobStatusClient,
+        [step],
+        mockCtx
+      );
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           uploadJobId,
           match.has("currentStage", step.name)
         )
@@ -107,9 +129,13 @@ describe("StepExecutor", () => {
     });
     it("updates upload job's current stage with name of the current step if step is FAILED", async () => {
       const { step } = getStepAndStubs("FAILED");
-      await StepExecutor.executeSteps(jobStatusClient, [step], mockCtx);
+      await StepExecutor.executeSteps(
+        (jobStatusClient as any) as JobStatusClient,
+        [step],
+        mockCtx
+      );
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           uploadJobId,
           match.has("currentStage", step.name)
         )
@@ -117,9 +143,16 @@ describe("StepExecutor", () => {
     });
     it("updates status of step's job to RETRYING if the status was previously FAILED", async () => {
       const { step } = getStepAndStubs("FAILED");
-      await StepExecutor.executeSteps(jobStatusClient, [step], mockCtx);
+      await StepExecutor.executeSteps(
+        (jobStatusClient as any) as JobStatusClient,
+        [step],
+        mockCtx
+      );
       expect(
-        updateJobStub.calledWith(mockJob.jobId, match.has("status", "RETRYING"))
+        jobStatusClient.updateJob.calledWith(
+          mockJob.jobId,
+          match.has("status", "RETRYING")
+        )
       ).to.be.true;
     });
     it("updates status of step's job to FAILED if the step throws an exception", async () => {
@@ -128,14 +161,22 @@ describe("StepExecutor", () => {
         stub().rejects(new Error("Mock error"))
       );
       expect(
-        StepExecutor.executeSteps(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
 
       await expect(
-        StepExecutor.executeSteps(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith("Mock error");
 
-      expect(updateJobStub).to.have.been.calledWith(mockJob.jobId, {
+      expect(jobStatusClient.updateJob).to.have.been.calledWith(mockJob.jobId, {
         status: "FAILED",
         serviceFields: {
           error: "Mock error",
@@ -144,25 +185,41 @@ describe("StepExecutor", () => {
     });
     it("executes step.end if step.start resolves", async () => {
       const { endStub, step } = getStepAndStubs("WAITING");
-      await StepExecutor.executeSteps(jobStatusClient, [step], mockCtx);
+      await StepExecutor.executeSteps(
+        (jobStatusClient as any) as JobStatusClient,
+        [step],
+        mockCtx
+      );
       expect(endStub.calledOnce).to.be.true;
     });
     it("throws error if a step is blocked", () => {
       const { step } = getStepAndStubs("BLOCKED");
       expect(
-        StepExecutor.executeSteps(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
     });
     it("throws error if a step is retrying", () => {
       const { step } = getStepAndStubs("RETRYING");
       expect(
-        StepExecutor.executeSteps(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
     });
     it("throws error if a step is working", () => {
       const { step } = getStepAndStubs("WORKING");
       expect(
-        StepExecutor.executeSteps(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
     });
     it("Does not execute next step if last step was not ended properly", async () => {
@@ -182,7 +239,7 @@ describe("StepExecutor", () => {
 
       await expect(
         StepExecutor.executeSteps(
-          jobStatusClient,
+          (jobStatusClient as any) as JobStatusClient,
           [waitingStep1, waitingStep2],
           mockCtx
         )
@@ -207,10 +264,8 @@ describe("StepExecutor", () => {
         step: failedStep,
       } = getStepAndStubs("FAILED");
 
-      jobStatusClient.updateJob = stub().resolves();
-
       await StepExecutor.executeSteps(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [suceededStep, waitingStep, failedStep],
         mockCtx
       );
@@ -227,8 +282,13 @@ describe("StepExecutor", () => {
         stub().rejects()
       );
 
-      await expect(StepExecutor.executeSteps(jobStatusClient, [step], mockCtx))
-        .to.have.been.rejected;
+      await expect(
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
+      ).to.have.been.rejected;
       expect(startStub).to.have.been.called;
       expect(endStub).not.to.have.been.called;
     });
@@ -258,7 +318,7 @@ describe("StepExecutor", () => {
         stub().resolves(mockCtx3)
       );
       const uploadContexts = await StepExecutor.executeStepsInParallel(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [step1, step2, step3],
         mockCtx
       );
@@ -270,24 +330,30 @@ describe("StepExecutor", () => {
     it("updates status of step's job to WORKING if the status was previously WAITING", async () => {
       const { step } = getStepAndStubs("WAITING");
       await StepExecutor.executeStepsInParallel(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [step],
         mockCtx
       );
       expect(
-        updateJobStub.calledWith(mockJob.jobId, match.has("status", "WORKING"))
+        jobStatusClient.updateJob.calledWith(
+          mockJob.jobId,
+          match.has("status", "WORKING")
+        )
       ).to.be.true;
     });
 
     it("updates status of step's job to RETRYING if the status was previously FAILED", async () => {
       const { step } = getStepAndStubs("FAILED");
       await StepExecutor.executeStepsInParallel(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [step],
         mockCtx
       );
       expect(
-        updateJobStub.calledWith(mockJob.jobId, match.has("status", "RETRYING"))
+        jobStatusClient.updateJob.calledWith(
+          mockJob.jobId,
+          match.has("status", "RETRYING")
+        )
       ).to.be.true;
     });
 
@@ -297,13 +363,21 @@ describe("StepExecutor", () => {
         stub().rejects(new Error("Mock error"))
       );
       await expect(
-        StepExecutor.executeStepsInParallel(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeStepsInParallel(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
 
       await expect(
-        StepExecutor.executeSteps(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeSteps(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith("Mock error");
-      expect(updateJobStub).to.have.been.calledWith(mockJob.jobId, {
+      expect(jobStatusClient.updateJob).to.have.been.calledWith(mockJob.jobId, {
         status: "FAILED",
         serviceFields: { error: "Mock error" },
       });
@@ -312,7 +386,7 @@ describe("StepExecutor", () => {
     it("executes step.end if step.start resolves", async () => {
       const { endStub, step } = getStepAndStubs("WAITING");
       await StepExecutor.executeStepsInParallel(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [step],
         mockCtx
       );
@@ -322,21 +396,33 @@ describe("StepExecutor", () => {
     it("throws error if a step is blocked", () => {
       const { step } = getStepAndStubs("BLOCKED");
       expect(
-        StepExecutor.executeStepsInParallel(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeStepsInParallel(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
     });
 
     it("throws error if a step is retrying", () => {
       const { step } = getStepAndStubs("RETRYING");
       expect(
-        StepExecutor.executeStepsInParallel(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeStepsInParallel(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
     });
 
     it("throws error if a step is working", () => {
       const { step } = getStepAndStubs("WORKING");
       expect(
-        StepExecutor.executeStepsInParallel(jobStatusClient, [step], mockCtx)
+        StepExecutor.executeStepsInParallel(
+          (jobStatusClient as any) as JobStatusClient,
+          [step],
+          mockCtx
+        )
       ).to.be.rejectedWith(Error);
     });
 
@@ -356,10 +442,8 @@ describe("StepExecutor", () => {
         step: failedStep,
       } = getStepAndStubs("FAILED");
 
-      jobStatusClient.updateJob = stub().resolves();
-
       await StepExecutor.executeStepsInParallel(
-        jobStatusClient,
+        (jobStatusClient as any) as JobStatusClient,
         [suceededStep, waitingStep, failedStep],
         mockCtx
       );

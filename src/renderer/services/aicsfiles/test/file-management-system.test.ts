@@ -9,13 +9,12 @@ import {
   stub,
 } from "sinon";
 
-import {
-  fssClient,
-  labkeyClient,
-  mmsClient,
-} from "../../../state/test/configure-mock-store";
+import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
+import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJob } from "../../job-status-client/types";
+import LabkeyClient from "../../labkey-client";
+import MMSClient from "../../mms-client";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import {
   FileManagementSystem,
@@ -29,8 +28,6 @@ import { FSSClient } from "../helpers/fss-client";
 import { Uploader } from "../helpers/uploader";
 
 import {
-  fss,
-  jobStatusClient,
   metadata1,
   metadata2,
   mockRetryableUploadJob,
@@ -40,25 +37,40 @@ import {
   uploads,
   mockJob,
   copyWorkerStub,
-  storage,
+  addMetadataResponse,
 } from "./mocks";
 
 export const differentTargetDir = path.resolve("./aics");
 
 describe("FileManagementSystem", () => {
-  let uploader: Uploader;
+  let uploader: SinonStubbedInstance<Uploader>;
   const sandbox = createSandbox();
   const getCopyWorkerStub = stub().returns(copyWorkerStub);
+  let fms: FileManagementSystem;
+  let fssClient: SinonStubbedInstance<FSSClient>;
+  let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
+  let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+
   beforeEach(() => {
+    fssClient = createStubInstance(FSSClient);
+    jobStatusClient = createStubInstance(JobStatusClient);
+    storage = createStubInstance(EnvironmentAwareStorage);
+    labkeyClient = createStubInstance(LabkeyClient);
+    mmsClient = createStubInstance(MMSClient);
     const logger = Logger.get("test");
     sandbox.replace(logger, "error", stub());
-    uploader = new Uploader(
-      getCopyWorkerStub,
-      fss,
-      jobStatusClient,
-      storage,
-      logger
-    );
+    uploader = createStubInstance(Uploader);
+    fms = new FileManagementSystem({
+      fssClient: (fssClient as any) as FSSClient,
+      getCopyWorker: getCopyWorkerStub,
+      jobStatusClient: (jobStatusClient as any) as JobStatusClient,
+      labkeyClient: (labkeyClient as any) as LabkeyClient,
+      mmsClient: (mmsClient as any) as MMSClient,
+      storage: (storage as any) as LocalStorage,
+      uploader: (uploader as any) as Uploader,
+    });
   });
 
   afterEach(() => {
@@ -66,14 +78,6 @@ describe("FileManagementSystem", () => {
   });
 
   describe("validateMetadataAndGetUploadDirectory", () => {
-    const fms = new FileManagementSystem({
-      fssClient: (fssClient as any) as FSSClient,
-      getCopyWorker: getCopyWorkerStub,
-      jobStatusClient,
-      labkeyClient,
-      mmsClient,
-      storage,
-    });
     const goodMetadata = {
       [upload1]: {
         ...metadata1,
@@ -147,18 +151,14 @@ describe("FileManagementSystem", () => {
     });
 
     it("Throws error if it cannot get a start upload response from FSS", () => {
-      sandbox.replace(fssClient, "startUpload", stub().rejects(new Error()));
+      fssClient.startUpload.rejects(new Error());
       expect(
         fms.validateMetadataAndGetUploadDirectory(goodMetadata, "test_job_name")
       ).to.be.rejectedWith(Error);
     });
 
     it("Returns response from FSS if OK", async () => {
-      sandbox.replace(
-        fssClient,
-        "startUpload",
-        stub().resolves(startUploadResponse)
-      );
+      fssClient.startUpload.resolves(startUploadResponse);
       expect(
         await fms.validateMetadataAndGetUploadDirectory(
           goodMetadata,
@@ -169,53 +169,23 @@ describe("FileManagementSystem", () => {
   });
 
   describe("uploadFiles", () => {
-    const sandbox = createSandbox();
-
     beforeEach(() => {
-      sandbox.replace(
-        fss,
-        "uploadComplete",
-        stub().resolves(startUploadResponse)
-      );
-      sandbox.replace(jobStatusClient, "updateJob", stub().resolves());
-    });
-
-    afterEach(() => {
-      sandbox.restore();
+      fssClient.uploadComplete.resolves(addMetadataResponse);
     });
 
     it("calls uploader.uploadFiles with uploads and jobName passed in", async () => {
-      const uploadFilesStub = stub().resolves();
-      sandbox.replace(uploader, "uploadFiles", uploadFilesStub);
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        storage,
-        uploader,
-        mmsClient,
-      });
       await fms.uploadFiles(startUploadResponse, uploads, "anything");
-      sandbox.assert.calledWith(
-        uploadFilesStub,
-        startUploadResponse,
-        uploads,
-        "anything"
+      expect(
+        uploader.uploadFiles.calledWith(
+          startUploadResponse,
+          uploads,
+          "anything"
+        )
       );
     });
 
     it("throws exception if uploader.uploadFiles throws", () => {
-      sandbox.replace(uploader, "uploadFiles", stub().rejects());
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        uploader,
-        mmsClient,
-        storage,
-      });
+      uploader.uploadFiles.rejects();
       expect(
         fms.uploadFiles(startUploadResponse, uploads, "anything")
       ).to.be.rejectedWith(Error);
@@ -223,23 +193,7 @@ describe("FileManagementSystem", () => {
   });
 
   describe("retryUpload", () => {
-    const sandbox = createSandbox();
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it("throws UnrecoverableJobError if the upload job doesn't have serviceFields.file", () => {
-      sandbox.replace(jobStatusClient, "updateJob", stub());
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        uploader,
-        mmsClient,
-        storage,
-      });
       expect(
         fms.retryUpload({
           ...mockRetryableUploadJob,
@@ -253,62 +207,34 @@ describe("FileManagementSystem", () => {
         ...mockJob,
         status: "FAILED",
       };
-      const updateJobStub = stub().resolves(failedJob);
-      sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        uploader,
-        mmsClient,
-        storage,
-      });
+      jobStatusClient.updateJob.resolves(failedJob);
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
         UnrecoverableJobError
       );
 
-      expect(updateJobStub).to.have.been.calledWith(failedJob.jobId, {
-        status: "UNRECOVERABLE",
-        serviceFields: {
-          error: "Missing serviceFields.files",
-          mostRecentFailure: "Missing serviceFields.files",
-        },
-      });
+      expect(jobStatusClient.updateJob).to.have.been.calledWith(
+        failedJob.jobId,
+        {
+          status: "UNRECOVERABLE",
+          serviceFields: {
+            error: "Missing serviceFields.files",
+            mostRecentFailure: "Missing serviceFields.files",
+          },
+        }
+      );
     });
 
     it("transforms data stored on uploadJob to call retry upload on uploader", async () => {
-      const retryUploadStub = stub().resolves();
-      sandbox.replace(uploader, "retryUpload", retryUploadStub);
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        uploader,
-        mmsClient,
-        storage,
-      });
       await fms.retryUpload(mockRetryableUploadJob);
-      expect(retryUploadStub.getCall(0).args[0]).to.deep.equal(uploads);
-      expect(retryUploadStub.getCall(0).args[1]).to.deep.equal(
+      expect(uploader.retryUpload.getCall(0).args[0]).to.deep.equal(uploads);
+      expect(uploader.retryUpload.getCall(0).args[1]).to.deep.equal(
         mockRetryableUploadJob
       );
     });
 
     it("throws error if uploader.retryUpload throws", () => {
-      sandbox.replace(uploader, "retryUpload", stub().rejects());
-      sandbox.replace(jobStatusClient, "updateJob", stub());
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        uploader,
-        mmsClient,
-        storage,
-      });
+      uploader.retryUpload.rejects();
       expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(Error);
     });
 
@@ -318,54 +244,30 @@ describe("FileManagementSystem", () => {
         status: "FAILED",
         childIds: [],
       };
-      const updateJobStub = stub().resolves(failedJob);
-      sandbox.replace(
-        uploader,
-        "retryUpload",
-        stub().rejects(new UnrecoverableJobError("mock error"))
-      );
-      sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
-      const fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        jobStatusClient,
-        labkeyClient,
-        uploader,
-        mmsClient,
-        storage,
-      });
+      uploader.retryUpload.rejects(new UnrecoverableJobError("mock error"));
+      jobStatusClient.updateJob.resolves(failedJob);
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
         UnrecoverableJobError
       );
-      expect(updateJobStub).to.have.been.calledWith(failedJob.jobId, {
-        status: "UNRECOVERABLE",
-        serviceFields: { error: "mock error", mostRecentFailure: "mock error" },
-      });
+      expect(jobStatusClient.updateJob).to.have.been.calledWith(
+        failedJob.jobId,
+        {
+          status: "UNRECOVERABLE",
+          serviceFields: {
+            error: "mock error",
+            mostRecentFailure: "mock error",
+          },
+        }
+      );
     });
   });
 
   describe("failUpload", () => {
-    let jssStub: SinonStubbedInstance<JobStatusClient>;
-    let fms: FileManagementSystem;
-
-    beforeEach(() => {
-      jssStub = createStubInstance(JobStatusClient);
-      fms = new FileManagementSystem({
-        getCopyWorker: getCopyWorkerStub,
-        fssClient: fss,
-        labkeyClient,
-        uploader,
-        jobStatusClient: (jssStub as any) as JobStatusClient,
-        mmsClient,
-        storage,
-      });
-    });
-
     it("fails an upload with no children", async () => {
       const parentJobId = "parent-job-id";
       const failedParentJob = { ...mockJob, jobId: parentJobId };
-      jssStub.updateJob.onFirstCall().resolves(failedParentJob);
+      jobStatusClient.updateJob.onFirstCall().resolves(failedParentJob);
 
       const failedJobs = await fms.failUpload(parentJobId);
 
@@ -383,7 +285,7 @@ describe("FileManagementSystem", () => {
       };
       const failedChild1Job: JSSJob = { ...mockJob, jobId: child1JobId };
       const failedChild2Job: JSSJob = { ...mockJob, jobId: child2JobId };
-      jssStub.updateJob
+      jobStatusClient.updateJob
         .onFirstCall()
         .resolves(failedParentJob)
         .onSecondCall()
@@ -417,7 +319,7 @@ describe("FileManagementSystem", () => {
       };
       const failedChild2Job: JSSJob = { ...mockJob, jobId: child2JobId };
       const failedChild3Job: JSSJob = { ...mockJob, jobId: child3JobId };
-      jssStub.updateJob
+      jobStatusClient.updateJob
         .onFirstCall()
         .resolves(failedParentJob)
         .onSecondCall()
