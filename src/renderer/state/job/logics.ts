@@ -1,21 +1,13 @@
-import { isEmpty, uniq, without } from "lodash";
-import { AnyAction } from "redux";
+import { uniq } from "lodash";
 import { createLogic } from "redux-logic";
-import { Observable } from "rxjs";
-import { interval } from "rxjs/internal/observable/interval";
-import { map, mergeMap, takeUntil } from "rxjs/operators";
 
 import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
-import { JobStatusClient } from "../../services";
 import { UploadMetadata as AicsFilesUploadMetadata } from "../../services/aicsfiles/types";
 import {
-  FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
   JSSJob,
-  JSSJobStatus,
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
-import { LocalStorage } from "../../types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
   setAlert,
@@ -27,240 +19,19 @@ import { getWithRetry } from "../feedback/util";
 import { getLoggedInUser } from "../setting/selectors";
 import {
   AlertType,
-  JobFilter,
-  Logger,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
-  ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicTransformDependencies,
-  State,
 } from "../types";
-import {
-  CANCEL_UPLOAD,
-  INITIATE_UPLOAD_SUCCEEDED,
-  RETRY_UPLOAD,
-} from "../upload/constants";
-import { batchActions, handleUploadProgress } from "../util";
+import { handleUploadProgress } from "../util";
 
-import {
-  receiveJobs,
-  retrieveJobsFailed,
-  startJobPoll,
-  stopJobPoll,
-  updateIncompleteJobIds,
-  updateUploadProgressInfo,
-} from "./actions";
+import { updateIncompleteJobIds, updateUploadProgressInfo } from "./actions";
 import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
   HANDLE_ABANDONED_JOBS,
-  RETRIEVE_JOBS,
-  START_JOB_POLL,
-  STOP_JOB_POLL,
 } from "./constants";
-import { getIncompleteJobIds, getJobFilter } from "./selectors";
 import { HandleAbandonedJobsAction } from "./types";
-
-interface Jobs {
-  actualIncompleteJobIds?: string[];
-  addMetadataJobs?: JSSJob[];
-  error?: Error;
-  recentlySucceededJobNames?: string[];
-  recentlyFailedJobNames?: string[];
-  uploadJobs?: JSSJob[];
-}
-
-const getJobStatusesToInclude = (jobFilter: JobFilter): string[] => {
-  switch (jobFilter) {
-    case JobFilter.Successful:
-      return [SUCCESSFUL_STATUS];
-    case JobFilter.Failed:
-      return [...FAILED_STATUSES];
-    case JobFilter.InProgress:
-      return [...IN_PROGRESS_STATUSES];
-    default:
-      return [...FAILED_STATUSES, SUCCESSFUL_STATUS, ...IN_PROGRESS_STATUSES];
-  }
-};
-
-export const fetchJobs = async (
-  getStateFn: () => State,
-  jssClient: JobStatusClient,
-  jobFilter?: JobFilter
-): Promise<Jobs> => {
-  const statusesToInclude = getJobStatusesToInclude(
-    jobFilter || getJobFilter(getStateFn())
-  );
-
-  const previouslyIncompleteJobIds = getIncompleteJobIds(getStateFn());
-  const user = getLoggedInUser(getStateFn());
-  const recentlySucceededJobsPromise: Promise<
-    JSSJob[]
-  > = previouslyIncompleteJobIds.length
-    ? jssClient.getJobs({
-        jobId: { $in: previouslyIncompleteJobIds },
-        status: JSSJobStatus.SUCCEEDED,
-        user,
-      })
-    : Promise.resolve([]);
-  const recentlyFailedJobsPromise: Promise<
-    JSSJob[]
-  > = previouslyIncompleteJobIds.length
-    ? jssClient.getJobs({
-        jobId: { $in: previouslyIncompleteJobIds },
-        status: { $in: FAILED_STATUSES },
-        user,
-      })
-    : Promise.resolve([]);
-  const getUploadJobsPromise: Promise<JSSJob[]> = jssClient.getJobs({
-    serviceFields: {
-      type: "upload",
-    },
-    status: { $in: statusesToInclude },
-    user,
-  });
-
-  try {
-    const [
-      recentlySucceededJobs,
-      recentlyFailedJobs,
-      uploadJobs,
-    ] = await Promise.all([
-      recentlySucceededJobsPromise,
-      recentlyFailedJobsPromise,
-      getUploadJobsPromise,
-    ]);
-    const recentlyFailedJobIds: string[] = (recentlyFailedJobs || []).map(
-      ({ jobId }: JSSJob) => jobId
-    );
-    const recentlySucceededJobIds: string[] = (recentlySucceededJobs || []).map(
-      ({ jobId }: JSSJob) => jobId
-    );
-    const actualIncompleteJobIds = without(
-      previouslyIncompleteJobIds,
-      ...recentlySucceededJobIds,
-      ...recentlyFailedJobIds
-    );
-
-    const result = {
-      actualIncompleteJobIds,
-      addMetadataJobs: [],
-      recentlyFailedJobNames: recentlyFailedJobIds,
-      recentlySucceededJobNames: recentlySucceededJobIds,
-      uploadJobs,
-    };
-
-    if (actualIncompleteJobIds.length === 0) {
-      return result;
-    }
-
-    // only get child jobs for the incomplete jobs
-    const addMetadataJobs = await jssClient.getJobs({
-      parentId: { $in: actualIncompleteJobIds },
-      serviceFields: {
-        type: "add_metadata",
-      },
-      user,
-    });
-
-    return {
-      ...result,
-      addMetadataJobs,
-    };
-  } catch (error) {
-    return { error };
-  }
-};
-
-export const mapJobsToActions = (storage: LocalStorage, logger: Logger) => (
-  jobs: Jobs
-) => {
-  const {
-    actualIncompleteJobIds,
-    addMetadataJobs,
-    error,
-    recentlyFailedJobNames,
-    recentlySucceededJobNames,
-    uploadJobs,
-  } = jobs;
-  if (error) {
-    logger.error(error);
-    return retrieveJobsFailed(`Could not retrieve jobs: ${error.message}`);
-  }
-
-  const actions: AnyAction[] = [];
-
-  let updates: { [jobName: string]: undefined } = {};
-
-  // report the status of jobs that have recently failed and succeeded
-  // since we can only set one alert at a time, we will leave anything remaining for the next job poll
-  if (recentlyFailedJobNames?.length) {
-    const jobName = recentlyFailedJobNames.shift();
-    actions.push(setErrorAlert(`${jobName} Failed`));
-    (actualIncompleteJobIds || []).push(...recentlyFailedJobNames);
-  } else if (recentlySucceededJobNames?.length) {
-    const jobName = recentlySucceededJobNames.shift();
-    actions.push(setSuccessAlert(`${jobName} Succeeded`));
-    (actualIncompleteJobIds || []).push(...recentlySucceededJobNames);
-  }
-
-  // Only update the state if the current incompleteJobs are different than the existing ones
-  const potentiallyIncompleteJobIdsStored = storage.get(INCOMPLETE_JOB_IDS_KEY);
-  if (
-    actualIncompleteJobIds &&
-    potentiallyIncompleteJobIdsStored.length !== actualIncompleteJobIds.length
-  ) {
-    try {
-      storage.set(INCOMPLETE_JOB_IDS_KEY, actualIncompleteJobIds);
-    } catch (e) {
-      logger.warn(
-        `Failed to update incomplete job names: ${actualIncompleteJobIds.join(
-          ", "
-        )}`
-      );
-    }
-    updates = {
-      ...updates,
-      ...updateIncompleteJobIds(actualIncompleteJobIds).updates, // write incomplete job names to store
-    };
-    if (actualIncompleteJobIds.length === 0) {
-      actions.push(stopJobPoll());
-    }
-  }
-  actions.push(
-    receiveJobs(uploadJobs, addMetadataJobs, actualIncompleteJobIds)
-  );
-  let nextAction: AnyAction = batchActions(actions);
-  if (!isEmpty(updates)) {
-    // delete drafts that are no longer pending
-    nextAction = {
-      ...nextAction,
-      updates,
-      writeToStore: true,
-    };
-  }
-  return nextAction;
-};
-
-const retrieveJobsLogic = createLogic({
-  debounce: 500,
-  latest: true,
-  process: async (
-    deps: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    const { getState, jssClient, logger, storage } = deps;
-    const jobs = await getWithRetry(
-      () => fetchJobs(getState, jssClient),
-      dispatch
-    );
-    dispatch(mapJobsToActions(storage, logger)(jobs));
-    done();
-  },
-  type: RETRIEVE_JOBS,
-  warnTimeout: 0,
-});
 
 export const handleAbandonedJobsLogic = createLogic({
   type: HANDLE_ABANDONED_JOBS,
@@ -319,10 +90,6 @@ export const handleAbandonedJobsLogic = createLogic({
         return incompleteChildrenForJob.length > 0;
       });
 
-      if (abandonedJobs.length > 0) {
-        dispatch(startJobPoll());
-      }
-
       // Wait for every abandoned job to be processed
       await Promise.all(
         abandonedJobs.map(async (abandonedJob) => {
@@ -376,36 +143,6 @@ export const handleAbandonedJobsLogic = createLogic({
   },
 });
 
-// Based on https://codesandbox.io/s/j36jvpn8rv?file=/src/index.js
-const pollJobsLogic = createLogic({
-  cancelType: STOP_JOB_POLL,
-  debounce: 500,
-  latest: true,
-  // Redux Logic's type definitions do not include dispatching observable actions so we are setting
-  // the type of dispatch to any
-  process: (deps: ReduxLogicProcessDependencies, dispatch: any) => {
-    const { cancelled$, getState, jssClient, logger, storage } = deps;
-    dispatch(
-      interval(1000).pipe(
-        mergeMap(() => {
-          return fetchJobs(getState, jssClient);
-        }),
-        map(mapJobsToActions(storage, logger)),
-        // CancelType doesn't seem to prevent polling the server even though the logics stops dispatching
-        // haven't figured out why but this seems to stop the interval
-        takeUntil((cancelled$ as any) as Observable<any>)
-      )
-    );
-  },
-  type: [
-    START_JOB_POLL,
-    INITIATE_UPLOAD_SUCCEEDED,
-    CANCEL_UPLOAD,
-    RETRY_UPLOAD,
-  ],
-  warnTimeout: 0,
-});
-
 const gatherStoredIncompleteJobIdsLogic = createLogic({
   transform: (
     { storage }: ReduxLogicTransformDependencies,
@@ -426,9 +163,4 @@ const gatherStoredIncompleteJobIdsLogic = createLogic({
   type: GATHER_STORED_INCOMPLETE_JOB_IDS,
 });
 
-export default [
-  retrieveJobsLogic,
-  pollJobsLogic,
-  handleAbandonedJobsLogic,
-  gatherStoredIncompleteJobIdsLogic,
-];
+export default [handleAbandonedJobsLogic, gatherStoredIncompleteJobIdsLogic];

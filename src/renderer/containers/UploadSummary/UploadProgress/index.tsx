@@ -1,4 +1,4 @@
-import { Icon, Progress, Tooltip } from "antd";
+import { Progress } from "antd";
 import * as React from "react";
 
 import { JSSJobStatus } from "../../../services/job-status-client/types";
@@ -27,12 +27,10 @@ const getBytesDisplay = (bytes: number) => {
 };
 
 interface UploadProgressProps {
-  isPolling: boolean;
   row: UploadSummaryTableRow;
 }
 
 const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
-  isPolling,
   row,
 }: UploadProgressProps) => {
   if (row?.serviceFields?.replacementJobId) {
@@ -75,14 +73,6 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
         </div>
         {completedBytes === totalBytes && <div>Finishing up</div>}
       </div>
-      {!isPolling && (
-        <Tooltip
-          mouseLeaveDelay={0}
-          title="Polling is not turned on - progress might not be accurate."
-        >
-          <Icon className={styles.warningIcon} type="warning" />
-        </Tooltip>
-      )}
     </div>
   );
 };

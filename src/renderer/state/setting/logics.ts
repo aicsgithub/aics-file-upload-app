@@ -11,7 +11,7 @@ import {
 import { LimsUrl } from "../../../shared/types";
 import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
-import { handleAbandonedJobs, retrieveJobs } from "../job/actions";
+import { handleAbandonedJobs } from "../job/actions";
 import { requestMetadata } from "../metadata/actions";
 import {
   AlertType,
@@ -47,7 +47,6 @@ export const updateSettingsLogic = createLogic({
     if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
       dispatch(requestMetadata());
       dispatch(handleAbandonedJobs());
-      dispatch(retrieveJobs());
     }
 
     if (mountPoint && mountPoint !== ctx.mountPoint) {

@@ -201,8 +201,6 @@ export interface JobStateBranch {
   };
   // Represents which filter has been selected on the Upload Summary page
   jobFilter: JobFilter;
-  // Whether the app is polling for jobs
-  polling: boolean;
 }
 
 export interface UploadStateBranch {

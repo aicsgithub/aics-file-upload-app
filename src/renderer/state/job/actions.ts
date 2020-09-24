@@ -7,38 +7,17 @@ import {
   GATHER_STORED_INCOMPLETE_JOB_IDS,
   HANDLE_ABANDONED_JOBS,
   RECEIVE_JOBS,
-  RETRIEVE_JOBS,
-  RETRIEVE_JOBS_FAILED,
   SELECT_JOB_FILTER,
-  START_JOB_POLL,
-  STOP_JOB_POLL,
   UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
   GatherIncompleteJobIdsAction,
   HandleAbandonedJobsAction,
   ReceiveJobsAction,
-  RetrieveJobsAction,
-  RetrieveJobsFailedAction,
   SelectJobFilterAction,
-  StartJobPollAction,
-  StopJobPollAction,
   UpdateIncompleteJobIdsAction,
   UpdateUploadProgressInfoAction,
 } from "./types";
-
-export function retrieveJobs(): RetrieveJobsAction {
-  return {
-    type: RETRIEVE_JOBS,
-  };
-}
-
-export function retrieveJobsFailed(error: string): RetrieveJobsFailedAction {
-  return {
-    payload: error,
-    type: RETRIEVE_JOBS_FAILED,
-  };
-}
 
 export function receiveJobs(
   uploadJobs: JSSJob[] = [],
@@ -84,18 +63,6 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
   return {
     payload: jobFilter,
     type: SELECT_JOB_FILTER,
-  };
-}
-
-export function startJobPoll(): StartJobPollAction {
-  return {
-    type: START_JOB_POLL,
-  };
-}
-
-export function stopJobPoll(): StopJobPollAction {
-  return {
-    type: STOP_JOB_POLL,
   };
 }
 

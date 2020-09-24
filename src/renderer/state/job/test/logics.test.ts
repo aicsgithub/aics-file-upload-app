@@ -6,33 +6,23 @@ import {
   stub,
 } from "sinon";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import { mockJob } from "../../../services/aicsfiles/test/mocks";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
-import { LocalStorage } from "../../../types";
 import {
   setErrorAlert,
   setInfoAlert,
   setSuccessAlert,
 } from "../../feedback/actions";
-import { SET_ALERT } from "../../feedback/constants";
 import {
   createMockReduxStore,
   dialog,
   fms,
-  logger,
   mockReduxLogicDeps,
   ReduxLogicDependencies,
 } from "../../test/configure-mock-store";
-import {
-  mockState,
-  mockSuccessfulAddMetadataJob,
-  mockSuccessfulUploadJob,
-  mockWaitingUploadJob,
-} from "../../test/mocks";
-import { AlertType } from "../../types";
+import { mockState, mockWaitingUploadJob } from "../../test/mocks";
 import {
   cancelUpload,
   cancelUploadFailed,
@@ -40,122 +30,14 @@ import {
 } from "../../upload/actions";
 import { CANCEL_UPLOAD } from "../../upload/constants";
 import { cancelUploadLogic } from "../../upload/logics";
-import { getActionFromBatch } from "../../util";
-import {
-  handleAbandonedJobs,
-  retrieveJobsFailed,
-  startJobPoll,
-} from "../actions";
-import { RECEIVE_JOBS } from "../constants";
-import { mapJobsToActions, handleAbandonedJobsLogic } from "../logics";
+import { handleAbandonedJobs } from "../actions";
+import { handleAbandonedJobsLogic } from "../logics";
 
 describe("Job logics", () => {
   const sandbox = createSandbox();
 
   afterEach(() => {
     sandbox.restore();
-  });
-
-  describe("mapJobsToActions", () => {
-    const addMetadataJobs = [mockSuccessfulAddMetadataJob];
-    const uploadJobs = [mockSuccessfulUploadJob];
-    const recentlyFailedJobNames = ["jobName"];
-    const recentlySucceededJobNames = ["jobName2"];
-    const storage = ({
-      clear: stub(),
-      delete: stub(),
-      get: stub().returns(["abc"]),
-      has: stub(),
-      reset: stub(),
-      set: stub(),
-    } as any) as LocalStorage;
-
-    it("Returns retrieveJobsFailed if error is present", () => {
-      const action = mapJobsToActions(
-        storage,
-        logger
-      )({ error: new Error("boo") });
-      expect(action).to.deep.equal(
-        retrieveJobsFailed("Could not retrieve jobs: boo")
-      );
-    });
-
-    it("Sets jobs passed in", () => {
-      const actualIncompleteJobIds = ["imActuallyIncomplete"];
-      const actions = mapJobsToActions(
-        storage,
-        logger
-      )({
-        actualIncompleteJobIds,
-        addMetadataJobs,
-        recentlyFailedJobNames,
-        recentlySucceededJobNames,
-        uploadJobs,
-      });
-      const receiveJobsAction = getActionFromBatch(actions, RECEIVE_JOBS);
-
-      expect(receiveJobsAction).to.deep.equal({
-        payload: {
-          addMetadataJobs,
-          incompleteJobIds: actualIncompleteJobIds,
-          uploadJobs,
-        },
-        type: RECEIVE_JOBS,
-      });
-    });
-
-    it("Sends alert for successful upload job given incomplete job", () => {
-      const actions = mapJobsToActions(
-        storage,
-        logger
-      )({
-        actualIncompleteJobIds: [],
-        addMetadataJobs,
-        recentlySucceededJobNames: ["mockJob1"],
-        uploadJobs,
-      });
-
-      const receivedJobsAction = getActionFromBatch(actions, RECEIVE_JOBS);
-      expect(receivedJobsAction).to.not.be.undefined;
-      expect(receivedJobsAction?.payload.incompleteJobIds).to.be.empty;
-
-      const setAlertAction = getActionFromBatch(actions, SET_ALERT);
-      expect(setAlertAction).to.not.be.undefined;
-      expect(actions.updates).to.not.be.undefined;
-      expect(actions?.updates[INCOMPLETE_JOB_IDS_KEY]).to.deep.equal([]);
-      if (setAlertAction) {
-        expect(setAlertAction.payload.type).to.equal(AlertType.SUCCESS);
-        expect(setAlertAction.payload.message).to.equal("mockJob1 Succeeded");
-      }
-    });
-
-    it("Sends alert for failed upload job given incomplete job", () => {
-      const setStub = stub();
-      sandbox.replace(storage, "set", setStub);
-      const actions = mapJobsToActions(
-        storage,
-        logger
-      )({
-        actualIncompleteJobIds: [],
-        addMetadataJobs,
-        recentlyFailedJobNames: ["mockFailedUploadJob"],
-        uploadJobs,
-      });
-
-      const receiveJobsAction = getActionFromBatch(actions, RECEIVE_JOBS);
-      expect(receiveJobsAction).to.not.be.undefined;
-      expect(receiveJobsAction?.payload.incompleteJobIds).to.be.empty;
-
-      const setAlertAction = getActionFromBatch(actions, SET_ALERT);
-      expect(setAlertAction).to.not.be.undefined;
-      expect(setStub.calledWith(INCOMPLETE_JOB_IDS_KEY, [])).to.be.true;
-      if (setAlertAction) {
-        expect(setAlertAction.payload.type).to.equal(AlertType.ERROR);
-        expect(setAlertAction.payload.message).to.equal(
-          "mockFailedUploadJob Failed"
-        );
-      }
-    });
   });
 
   describe("handleAbandonedJobsLogic", () => {
@@ -225,7 +107,6 @@ describe("Job logics", () => {
       await logicMiddleware.whenComplete();
       expect(actions.list).to.deep.equal([
         handleAbandonedJobs(),
-        startJobPoll(),
         setInfoAlert(
           'Upload "abandoned_job" was abandoned and will now be retried.'
         ),
@@ -273,7 +154,6 @@ describe("Job logics", () => {
       await logicMiddleware.whenComplete();
       expect(actions.list).to.deep.equal([
         handleAbandonedJobs(),
-        startJobPoll(),
         setInfoAlert(
           'Upload "abandoned_job" was abandoned and will now be retried.'
         ),
@@ -334,7 +214,6 @@ describe("Job logics", () => {
       await logicMiddleware.whenComplete();
       expect(actions.list).to.deep.equal([
         handleAbandonedJobs(),
-        startJobPoll(),
         setInfoAlert(
           'Upload "abandoned_job" was abandoned and will now be retried.'
         ),

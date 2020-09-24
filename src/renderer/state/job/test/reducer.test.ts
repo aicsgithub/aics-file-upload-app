@@ -18,8 +18,6 @@ import {
 import {
   receiveJobs,
   selectJobFilter,
-  startJobPoll,
-  stopJobPoll,
   updateIncompleteJobIds,
   updateUploadProgressInfo,
 } from "../actions";
@@ -54,26 +52,13 @@ describe("job reducer", () => {
       expect(result.jobFilter).to.equal(JobFilter.Failed);
     });
   });
-  describe("startJobPoll", () => {
-    it("sets polling to true", () => {
-      const result = reducer(initialState, startJobPoll());
-      expect(result.polling).to.be.true;
-    });
-  });
-  describe("stopJobPoll", () => {
-    it("sets polling to false", () => {
-      const result = reducer({ ...initialState, polling: true }, stopJobPoll());
-      expect(result.polling).to.be.false;
-    });
-  });
   describe("retryUpload", () => {
-    it("sets incompleteJobIds and sets polling to true", () => {
+    it("sets incompleteJobIds", () => {
       const result = reducer(
         initialState,
         retryUpload({ ...mockFailedUploadJob, key: "key" }, [])
       );
       expect(result.incompleteJobIds).to.include(mockFailedUploadJob.jobId);
-      expect(result.polling).to.be.true;
     });
   });
   describe("retryUploadSucceeded", () => {
@@ -135,7 +120,7 @@ describe("job reducer", () => {
     });
   });
   describe("cancelUpload", () => {
-    it("sets incompleteJobIds and sets polling to true", () => {
+    it("sets incompleteJobIds", () => {
       const result = reducer(
         { ...initialState, incompleteJobIds: ["foo"] },
         cancelUpload({ ...mockFailedUploadJob, jobId: "foo", key: "bar" }, [
@@ -143,7 +128,6 @@ describe("job reducer", () => {
         ])
       );
       expect(result.incompleteJobIds).to.be.empty;
-      expect(result.polling).to.be.true;
     });
   });
   describe("updateUploadProgressInfo", () => {

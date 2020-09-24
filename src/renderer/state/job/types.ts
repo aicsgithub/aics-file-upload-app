@@ -1,15 +1,6 @@
 import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, UploadProgressInfo, WriteToStoreAction } from "../types";
 
-export interface RetrieveJobsAction {
-  type: string;
-}
-
-export interface RetrieveJobsFailedAction {
-  payload: string;
-  type: string;
-}
-
 export interface ReceiveJobsAction {
   payload: {
     addMetadataJobs: JSSJob[];
@@ -34,15 +25,6 @@ export interface UpdateIncompleteJobIdsAction extends WriteToStoreAction {
 
 export interface SelectJobFilterAction {
   payload: JobFilter;
-  type: string;
-}
-
-export interface StopJobPollAction {
-  type: string;
-}
-
-export interface StartJobPollAction {
-  payload?: JobFilter;
   type: string;
 }
 

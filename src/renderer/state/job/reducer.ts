@@ -26,15 +26,11 @@ import { makeReducer } from "../util";
 import {
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
-  START_JOB_POLL,
-  STOP_JOB_POLL,
   UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
   ReceiveJobsAction,
   SelectJobFilterAction,
-  StartJobPollAction,
-  StopJobPollAction,
   UpdateIncompleteJobIdsAction,
   UpdateUploadProgressInfoAction,
 } from "./types";
@@ -44,7 +40,6 @@ export const initialState: JobStateBranch = {
   copyProgress: {},
   incompleteJobIds: [],
   jobFilter: JobFilter.All,
-  polling: false,
   uploadJobs: [],
 };
 
@@ -86,22 +81,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
       };
     },
   },
-  [START_JOB_POLL]: {
-    accepts: (action: AnyAction): action is StartJobPollAction =>
-      action.type === START_JOB_POLL,
-    perform: (state: JobStateBranch) => ({
-      ...state,
-      polling: true,
-    }),
-  },
-  [STOP_JOB_POLL]: {
-    accepts: (action: AnyAction): action is StopJobPollAction =>
-      action.type === STOP_JOB_POLL,
-    perform: (state: JobStateBranch) => ({
-      ...state,
-      polling: false,
-    }),
-  },
   [RETRY_UPLOAD]: {
     accepts: (action: AnyAction): action is RetryUploadAction =>
       action.type === RETRY_UPLOAD,
@@ -111,7 +90,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
     ) => ({
       ...state,
       incompleteJobIds: recentJobs,
-      polling: true,
     }),
   },
   [RETRY_UPLOAD_SUCCEEDED]: {
@@ -164,7 +142,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
     perform: (state: JobStateBranch, action: CancelUploadAction) => ({
       ...state,
       incompleteJobIds: action.payload.recentJobs,
-      polling: true,
     }),
   },
   [INITIATE_UPLOAD_SUCCEEDED]: {
@@ -177,7 +154,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       uploadJobs: [...state.uploadJobs, job],
       incompleteJobIds: recentJobs,
-      polling: true,
     }),
   },
   [UPDATE_UPLOAD_PROGRESS_INFO]: {

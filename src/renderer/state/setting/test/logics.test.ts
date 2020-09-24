@@ -4,7 +4,6 @@ import { createSandbox, stub } from "sinon";
 import * as sinon from "sinon";
 
 import { getAlert } from "../../feedback/selectors";
-import { retrieveJobs } from "../../job/actions";
 import { requestMetadata } from "../../metadata/actions";
 import {
   createMockReduxStore,
@@ -139,11 +138,9 @@ describe("Setting logics", () => {
         settingsLogics
       );
       expect(actions.includesMatch(requestMetadata())).to.be.false;
-      expect(actions.includesMatch(retrieveJobs())).to.be.false;
       store.dispatch(updateSettings(updateSettingsParam));
       await logicMiddleware.whenComplete();
       expect(actions.includesMatch(requestMetadata())).to.be.true;
-      expect(actions.includesMatch(retrieveJobs())).to.be.true;
     };
 
     it("requests metadata and jobs again if host changes", async () => {
