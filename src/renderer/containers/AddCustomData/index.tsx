@@ -221,7 +221,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             showIcon={true}
           />
         )}
-        {validationErrors.length > 0 && (
+        {!showLoading && validationErrors.length > 0 && (
           <Alert
             className={styles.alert}
             message={validationErrors.map((e) => (
