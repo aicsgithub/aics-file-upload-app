@@ -10,7 +10,7 @@ import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
 import { UploadServiceFields } from "../../services/aicsfiles/types";
-import { JSSJob } from "../../services/job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   AnnotationType,
   Channel,
@@ -178,6 +178,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
+    // todo FUA-52 show save button if upload is failed, with the text "Retry"
+    // We need to implement updating the job first if the user makes any changes
+    const hideSaveButton =
+      selectedJob?.status !== JSSJobStatus.SUCCEEDED || !selectedJob;
     return (
       <FormPage
         backButtonDisabled={!!selectedJob}
@@ -189,6 +193,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         saveInProgress={uploadInProgress || updateInProgress}
         saveButtonName={selectedJob ? "Update" : "Upload"}
         hideProgressBar={!!selectedJob}
+        hideBackButton={!!selectedJob}
+        hideSaveButton={hideSaveButton}
         onBack={this.props.goBack}
         page={Page.AddCustomData}
       >
@@ -291,7 +297,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   };
 
   private submit = (): void => {
-    if (this.props.selectedJob) {
+    const { selectedJob } = this.props;
+    if (selectedJob?.status === JSSJobStatus.SUCCEEDED) {
       this.props.submitFileMetadataUpdate();
     } else {
       this.props.initiateUpload();
