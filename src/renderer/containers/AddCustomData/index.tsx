@@ -148,6 +148,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     };
   }
 
+  public get isReadOnly() {
+    // todo FUA-52 this will no longer be the case for failed uploads in the future
+    return (
+      !!this.props.selectedJob &&
+      this.props.selectedJob.status !== JSSJobStatus.SUCCEEDED
+    );
+  }
+
   public componentDidMount() {
     const templateId = this.props.appliedTemplate
       ? this.props.appliedTemplate.templateId
@@ -178,10 +186,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
-    // todo FUA-52 show save button if upload is failed, with the text "Retry"
-    // We need to implement updating the job first if the user makes any changes
-    const hideSaveButton =
-      selectedJob?.status !== JSSJobStatus.SUCCEEDED || !selectedJob;
     return (
       <FormPage
         backButtonDisabled={!!selectedJob}
@@ -194,7 +198,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         saveButtonName={selectedJob ? "Update" : "Upload"}
         hideProgressBar={!!selectedJob}
         hideBackButton={!!selectedJob}
-        hideSaveButton={hideSaveButton}
+        // todo FUA-52 show save button if upload is failed, with the text "Retry"
+        // We need to implement updating the job first if the user makes any changes
+        hideSaveButton={this.isReadOnly}
         onBack={this.props.goBack}
         page={Page.AddCustomData}
       >
@@ -225,16 +231,19 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             type="error"
           />
         )}
-        {!showLoading && appliedTemplate && showUploadHint && (
-          <Alert
-            afterClose={this.hideHint}
-            className={styles.alert}
-            closable={true}
-            message="Hint: You can add multiple values for Text and Number annotations using commas!"
-            showIcon={true}
-            type="info"
-          />
-        )}
+        {!showLoading &&
+          appliedTemplate &&
+          showUploadHint &&
+          !this.isReadOnly && (
+            <Alert
+              afterClose={this.hideHint}
+              className={styles.alert}
+              closable={true}
+              message="Hint: You can add multiple values for Text and Number annotations using commas!"
+              showIcon={true}
+              type="info"
+            />
+          )}
         {!showLoading && appliedTemplate && (
           <CustomDataGrid
             allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
@@ -243,6 +252,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canRedo={canRedo}
             canUndo={canUndo}
             channels={this.props.channels}
+            editable={!this.isReadOnly}
             expandedRows={this.props.expandedRows}
             fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
             redo={this.redo}
