@@ -659,7 +659,7 @@ describe("Route logics", () => {
 
       expect(showSaveDialog.called).to.be.true;
     });
-    it("sets error alert if job passed is not succeeded", async () => {
+    it("sets error alert if job passed is missing information", async () => {
       stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload
@@ -677,9 +677,7 @@ describe("Route logics", () => {
       const alert = getAlert(store.getState());
       expect(alert).to.not.be.undefined;
       expect(alert?.type).to.equal(AlertType.ERROR);
-      expect(alert?.message).to.equal(
-        "Cannot update file metadata because upload has not succeeded"
-      );
+      expect(alert?.message).to.equal("upload has missing information");
     });
     it("sets error alert if something fails while showing the warning dialog", async () => {
       const showMessageBox = stub().resolves({

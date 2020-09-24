@@ -13,7 +13,7 @@ import {
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
-import { isEmpty, map } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
@@ -21,7 +21,6 @@ import { ActionCreator } from "redux";
 import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
 import UploadJobDisplay from "../../components/UploadJobDisplay";
-import { FSSResponseFile } from "../../services/aicsfiles/types";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,
@@ -171,11 +170,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             <a className={styles.action} onClick={this.viewJob(row)}>
               View
             </a>
-            {row.status === JSSJobStatus.SUCCEEDED && (
-              <a className={styles.action} onClick={this.editJob(row)}>
-                Edit
-              </a>
-            )}
             {row.status === JSSJobStatus.FAILED && (
               <a
                 className={classNames(styles.action, {
@@ -388,30 +382,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
   };
 
-  private requestFileMetadataForJob = (jobId: string): void => {
-    const { jobs } = this.props;
-    const job = jobs.find((j) => j.jobId === jobId);
-    if (
-      job &&
-      job.serviceFields &&
-      job.serviceFields.files &&
-      Array.isArray(job.serviceFields.result) &&
-      !isEmpty(job.serviceFields.result)
-    ) {
-      const fileIds = job.serviceFields.result.map(
-        (fileInfo: FSSResponseFile) => {
-          return fileInfo.fileId;
-        }
-      );
-      this.props.requestFileMetadataForJob(fileIds);
-    }
-  };
-
-  private viewJob = (row: UploadSummaryTableRow) => () => {
-    this.requestFileMetadataForJob(row.jobId);
-    this.setState({ selectedJobId: row.jobId });
-  };
-
   private retryJob = (row: UploadSummaryTableRow) => () => {
     if (
       !this.props.requestsInProgress.includes(
@@ -432,7 +402,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
   };
 
-  private editJob = (row: UploadSummaryTableRow) => () => {
+  private viewJob = (row: UploadSummaryTableRow) => () => {
     this.props.openEditFileMetadataTab(row);
   };
 

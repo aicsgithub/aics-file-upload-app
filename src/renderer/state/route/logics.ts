@@ -7,16 +7,20 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
-import { ImageModelMetadata } from "../../services/aicsfiles/types";
+import {
+  FSSResponseFile,
+  ImageModelMetadata,
+} from "../../services/aicsfiles/types";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";
 import {
-  getApplyTemplateInfo,
+  convertUploadPayloadToImageModelMetadata,
   ensureDraftGetsSaved,
+  getApplyTemplateInfo,
+  getPlateInfo,
   makePosixPathCompatibleWithPlatform,
   retrieveFileMetadata,
-  getPlateInfo,
 } from "../../util";
 import { requestFailed } from "../actions";
 import {
@@ -50,18 +54,17 @@ import {
 import { getCurrentTemplateIndex } from "../template/selectors";
 import {
   AsyncRequest,
-  Page,
-  UploadMetadata,
-  UploadStateBranch,
-} from "../types";
-import {
   Logger,
+  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
+  ReduxLogicTransformDependenciesWithAction,
   State,
+  UploadStateBranch,
 } from "../types";
 import {
   clearUploadDraft,
@@ -93,7 +96,7 @@ import {
   SELECT_PAGE,
 } from "./constants";
 import { getPage } from "./selectors";
-import { SelectPageAction } from "./types";
+import { OpenEditFileMetadataTabAction, SelectPageAction } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
 const getFileMenu = (menu: Menu): MenuItem | undefined =>
@@ -458,6 +461,7 @@ const getPlateRelatedActions = async (
 const openEditFileMetadataTabLogic = createLogic({
   process: async (
     {
+      action,
       ctx,
       fms,
       getApplicationMenu,
@@ -465,7 +469,7 @@ const openEditFileMetadataTabLogic = createLogic({
       labkeyClient,
       logger,
       mmsClient,
-    }: ReduxLogicProcessDependencies,
+    }: ReduxLogicProcessDependenciesWithAction<OpenEditFileMetadataTabAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -482,18 +486,35 @@ const openEditFileMetadataTabLogic = createLogic({
       )
     );
 
-    // Second, we fetch the file metadata for the fileIds acquired in the validate phase
-    const { fileIds } = ctx;
+    // Second, we fetch the file metadata
     let fileMetadataForJob: ImageModelMetadata[];
-    const request = () => retrieveFileMetadata(fileIds, fms);
-    try {
-      fileMetadataForJob = await getWithRetry(request, dispatch);
-    } catch (e) {
-      const error = `Could not retrieve file metadata for fileIds=${fileIds.join(
-        ", "
-      )}: ${e.message}`;
-      logger.error(error);
-      dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
+    if (ctx.fileIds) {
+      // acquired during validate phase
+      const { fileIds } = ctx;
+      const request = () => retrieveFileMetadata(fileIds, fms);
+      try {
+        fileMetadataForJob = await getWithRetry(request, dispatch);
+      } catch (e) {
+        const error = `Could not retrieve file metadata for fileIds=${fileIds.join(
+          ", "
+        )}: ${e.message}`;
+        logger.error(error);
+        dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
+        done();
+        return;
+      }
+    } else if (action.payload.serviceFields?.files) {
+      fileMetadataForJob = await convertUploadPayloadToImageModelMetadata(
+        action.payload.serviceFields?.files,
+        fms
+      );
+    } else {
+      dispatch(
+        requestFailed(
+          "job is missing information",
+          AsyncRequest.GET_FILE_METADATA_FOR_JOB
+        )
+      );
       done();
       return;
     }
@@ -580,11 +601,13 @@ const openEditFileMetadataTabLogic = createLogic({
   },
   type: OPEN_EDIT_FILE_METADATA_TAB,
   validate: async (
-    deps: ReduxLogicTransformDependencies,
+    deps: ReduxLogicTransformDependenciesWithAction<
+      OpenEditFileMetadataTabAction
+    >,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action, ctx, getState, logger } = deps;
+    const { action, ctx, getState } = deps;
     try {
       const { cancelled } = await ensureDraftGetsSaved(
         deps,
@@ -602,18 +625,14 @@ const openEditFileMetadataTabLogic = createLogic({
 
     // Validate the job passed in as the action payload
     const { payload: job } = action;
-    if (job.status !== JSSJobStatus.SUCCEEDED) {
-      reject(
-        setErrorAlert(
-          "Cannot update file metadata because upload has not succeeded"
-        )
-      );
-    } else if (
+    if (
+      job.status === JSSJobStatus.SUCCEEDED &&
+      job.serviceFields?.result &&
       Array.isArray(job?.serviceFields?.result) &&
       !isEmpty(job?.serviceFields?.result)
     ) {
       const originalFileIds = job.serviceFields.result.map(
-        ({ fileId }: UploadMetadata) => fileId
+        ({ fileId }: FSSResponseFile) => fileId
       );
       const deletedFileIds = job.serviceFields.deletedFileIds
         ? castArray(job.serviceFields.deletedFileIds)
@@ -624,9 +643,12 @@ const openEditFileMetadataTabLogic = createLogic({
       } else {
         next(action);
       }
+    } else if (job.serviceFields?.replacementJobId) {
+      // todo request job, validate, replace job on action.payload
+    } else if (job.serviceFields?.files && !isEmpty(job.serviceFields?.files)) {
+      next(action);
     } else {
-      logger.error("No fileIds found in selected Job:", job);
-      reject(setErrorAlert("No fileIds found in selected Job."));
+      reject(setErrorAlert("upload has missing information"));
     }
   },
 });

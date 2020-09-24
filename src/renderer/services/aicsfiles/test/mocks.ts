@@ -189,9 +189,6 @@ export const mockLabKeyFileMetadata: LabKeyFileMetadata = {
 };
 export const mockCustomFileMetadata: CustomFileMetadata = {
   annotations: [{ annotationId: 1, values: ["AICS-0", "AICS-11"] }],
-  fileId: "abc123",
-  modified: "sometime",
-  modifiedBy: "somebody",
 };
 
 export const copyWorkerStub = {
