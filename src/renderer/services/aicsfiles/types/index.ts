@@ -222,6 +222,9 @@ export interface LabKeyFileMetadata {
 
 export interface CustomFileMetadata {
   annotations: Annotation[];
+  originalPath?: string;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
   templateId?: number;
 }
 
@@ -238,8 +241,11 @@ export interface FileToFileMetadata<T extends CustomFileMetadata = any> {
 // a file.
 export interface ImageModelMetadata extends ImageModelBase, LabKeyFileMetadata {
   channel?: string;
+  originalPath?: string;
   templateId?: number;
   template?: string;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
   [key: string]: any;
 }
 

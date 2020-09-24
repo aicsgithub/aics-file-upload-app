@@ -291,8 +291,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const files = this.props.uploads.map(({ file }) => file);
     return [
       {
-        formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
-          this.renderFormat(
+        formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
+          console.log(row);
+          return this.renderFormat(
             row,
             "file",
             value,
@@ -304,7 +305,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               row={row}
               value={value}
             />
-          ),
+          );
+        },
         key: "file",
         name: "File",
         resizable: true,

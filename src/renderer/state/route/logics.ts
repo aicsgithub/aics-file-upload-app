@@ -401,11 +401,12 @@ const convertImageModelMetadataToUploadStateBranch = (
         archiveFilePath,
         channelId,
         localFilePath,
+        originalPath,
         positionIndex,
         scene,
         subImageName,
       } = curr;
-      const file = localFilePath || archiveFilePath || "";
+      const file = originalPath || localFilePath || archiveFilePath || "";
       const key: string = getUploadRowKey({
         channelId,
         file,

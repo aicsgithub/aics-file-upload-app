@@ -318,6 +318,9 @@ export const convertUploadPayloadToImageModelMetadata = async (
   for (const file of files) {
     fileMetadataForFiles[file.file.originalPath] = {
       annotations: file.customMetadata.annotations,
+      originalPath: file.file.originalPath,
+      shouldBeInArchive: file.file.shouldBeInArchive,
+      shouldBeInLocal: file.file.shouldBeInLocal,
       templateId: file.customMetadata.templateId,
     };
   }
