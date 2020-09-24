@@ -287,10 +287,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     return (
       <div className={styles.selectors}>
-        <LabeledInput
-          className={styles.schemaSelector}
-          label={`Select a ${SCHEMA_SYNONYM}`}
-        >
+        <LabeledInput className={styles.schemaSelector} label={SCHEMA_SYNONYM}>
           <TemplateSearch
             allowCreate={true}
             className={styles.schemaSelector}

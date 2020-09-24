@@ -38,7 +38,8 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
       <Descriptions
         className={className}
         size="small"
-        column={{ xxl: 3, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
+        column={{ xs: 1 }}
+        layout="vertical"
       >
         <Item label="Job Id">{jobId}</Item>
         <Item label="Created">{created.toLocaleString()}</Item>
