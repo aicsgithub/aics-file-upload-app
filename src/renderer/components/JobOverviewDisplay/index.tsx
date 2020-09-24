@@ -1,4 +1,4 @@
-import { Descriptions } from "antd";
+import { Alert, Descriptions } from "antd";
 import * as React from "react";
 
 import { JSSJob } from "../../services/job-status-client/types";
@@ -10,22 +10,41 @@ interface Props {
   job: JSSJob;
 }
 
+const determineError = (error: string): string => {
+  if (error.toLowerCase().includes("chmod")) {
+    return `Error while uploading, you and/or FMS did not have permission to read one of these files.
+                The full error was: ${error}`;
+  }
+  return error;
+};
+
 const JobOverviewDisplay: React.FunctionComponent<Props> = ({
   className,
   job,
 }: Props) => {
   const { created, jobId, user } = job;
   return (
-    <Descriptions
-      className={className}
-      size="small"
-      title={<div>Job Overview</div>}
-      column={{ xxl: 3, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
-    >
-      <Item label="Job Id">{jobId}</Item>
-      <Item label="Created">{created.toLocaleString()}</Item>
-      <Item label="Created By">{user}</Item>
-    </Descriptions>
+    <>
+      {job.serviceFields?.error && (
+        <Alert
+          type={job.serviceFields?.cancelled ? "warning" : "error"}
+          message="Error"
+          key="errorAlert"
+          description={determineError(job.serviceFields.error)}
+          showIcon={true}
+          style={{ marginBottom: "0.5em" }}
+        />
+      )}
+      <Descriptions
+        className={className}
+        size="small"
+        column={{ xxl: 3, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
+      >
+        <Item label="Job Id">{jobId}</Item>
+        <Item label="Created">{created.toLocaleString()}</Item>
+        <Item label="Created By">{user}</Item>
+      </Descriptions>
+    </>
   );
 };
 
