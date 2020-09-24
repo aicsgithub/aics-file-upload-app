@@ -186,12 +186,22 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
+    let title = "ADD ADDITIONAL DATA";
+    let prompt =
+      "Review and add information to the files below and click Upload to submit the job.";
+    if (selectedJob) {
+      title = "UPLOAD DETAILS";
+      prompt =
+        selectedJob.status === JSSJobStatus.SUCCEEDED
+          ? "Make any changes necessary and click Update to update the upload"
+          : "";
+    }
     return (
       <FormPage
         backButtonDisabled={!!selectedJob}
         className={className}
-        formTitle="ADD ADDITIONAL DATA"
-        formPrompt="Review and add information to the files below and click Upload to submit the job."
+        formTitle={title}
+        formPrompt={prompt}
         onSave={this.submit}
         saveButtonDisabled={!canSubmit}
         saveInProgress={uploadInProgress || updateInProgress}
