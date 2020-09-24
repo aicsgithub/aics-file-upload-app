@@ -3,8 +3,7 @@ import { message, notification, Tabs } from "antd";
 import * as classNames from "classnames";
 import { ipcRenderer, remote } from "electron";
 import * as React from "react";
-import { connect } from "react-redux";
-import { ActionCreator } from "redux";
+import { connect, ConnectedProps } from "react-redux";
 
 import {
   OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
@@ -27,22 +26,12 @@ import {
   getRecentEvent,
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
-import {
-  ClearAlertAction,
-  SetAlertAction,
-  ToggleFolderTreeAction,
-} from "../../state/feedback/types";
 import { handleAbandonedJobs } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { RequestMetadataAction } from "../../state/metadata/types";
 import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
-import {
-  AppPageConfig,
-  CloseUploadTabAction,
-  SelectViewAction,
-} from "../../state/route/types";
+import { AppPageConfig } from "../../state/route/types";
 import {
   clearStagedFiles,
   loadFilesFromDragAndDrop,
@@ -53,33 +42,13 @@ import {
   getStagedFiles,
 } from "../../state/selection/selectors";
 import {
-  ClearStagedFilesAction,
-  GetFilesInFolderAction,
-  LoadFilesFromDragAndDropAction,
-  LoadFilesFromOpenDialogAction,
-  SelectFileAction,
-} from "../../state/selection/types";
-import {
   gatherSettings,
   setMountPoint,
   switchEnvironment,
   updateSettings,
 } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
-import {
-  GatherSettingsAction,
-  SetMountPointAction,
-  SwitchEnvironmentAction,
-  UpdateSettingsAction,
-} from "../../state/setting/types";
-import {
-  AlertType,
-  AppAlert,
-  AppEvent,
-  Page,
-  State,
-  UploadFile,
-} from "../../state/types";
+import { AlertType, Page, State } from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,
@@ -88,12 +57,6 @@ import {
   undoFileWellAssociation,
   undoFileWorkflowAssociation,
 } from "../../state/upload/actions";
-import {
-  FileTag,
-  RemoveFileFromArchiveAction,
-  UndoFileWellAssociationAction,
-  UndoFileWorkflowAssociationAction,
-} from "../../state/upload/types";
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
@@ -112,44 +75,6 @@ const styles = require("./styles.pcss");
 const { TabPane } = Tabs;
 
 const ALERT_DURATION = 2;
-
-interface AppProps {
-  alert?: AppAlert;
-  clearAlert: ActionCreator<ClearAlertAction>;
-  clearStagedFiles: ActionCreator<ClearStagedFilesAction>;
-  closeUploadTab: ActionCreator<CloseUploadTabAction>;
-  copyInProgress: boolean;
-  fileToTags: Map<string, FileTag[]>;
-  files: UploadFile[];
-  folderTreeOpen: boolean;
-  gatherSettings: ActionCreator<GatherSettingsAction>;
-  getFilesInFolder: ActionCreator<GetFilesInFolderAction>;
-  handleAbandonedJobs: typeof handleAbandonedJobs;
-  limsUrl: string;
-  loadFilesFromDragAndDrop: ActionCreator<LoadFilesFromDragAndDropAction>;
-  openFilesFromDialog: ActionCreator<LoadFilesFromOpenDialogAction>;
-  openUploadDraft: typeof openUploadDraft;
-  loading: boolean;
-  recentEvent?: AppEvent;
-  removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
-  removeFileFromIsilon: ActionCreator<RemoveFileFromArchiveAction>;
-  requestMetadata: ActionCreator<RequestMetadataAction>;
-  saveUploadDraft: typeof saveUploadDraft;
-  selectFile: ActionCreator<SelectFileAction>;
-  selectedFiles: string[];
-  setAlert: ActionCreator<SetAlertAction>;
-  selectView: ActionCreator<SelectViewAction>;
-  setMountPoint: ActionCreator<SetMountPointAction>;
-  setMountPointNotificationVisible: boolean;
-  switchEnvironment: ActionCreator<SwitchEnvironmentAction>;
-  page: Page;
-  toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
-  undoFileWellAssociation: ActionCreator<UndoFileWellAssociationAction>;
-  undoFileWorkflowAssociation: ActionCreator<UndoFileWorkflowAssociationAction>;
-  updateSettings: ActionCreator<UpdateSettingsAction>;
-  uploadTabName: string;
-  view: Page;
-}
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
   [
@@ -194,7 +119,56 @@ message.config({
   maxCount: 1,
 });
 
-class App extends React.Component<AppProps, {}> {
+function mapStateToProps(state: State) {
+  return {
+    alert: getAlert(state),
+    copyInProgress: !getIsSafeToExit(state),
+    fileToTags: getFileToTags(state),
+    files: getStagedFiles(state),
+    folderTreeOpen: getFolderTreeOpen(state),
+    limsUrl: getLimsUrl(state),
+    loading: getIsLoading(state),
+    page: getPage(state),
+    recentEvent: getRecentEvent(state),
+    selectedFiles: getSelectedFiles(state),
+    setMountPointNotificationVisible: getSetMountPointNotificationVisible(
+      state
+    ),
+    uploadTabName: getUploadTabName(state),
+    view: getView(state),
+  };
+}
+
+const dispatchToPropsMap = {
+  clearAlert,
+  clearStagedFiles,
+  closeUploadTab,
+  gatherSettings,
+  getFilesInFolder: selection.actions.getFilesInFolder,
+  handleAbandonedJobs,
+  loadFilesFromDragAndDrop,
+  openFilesFromDialog,
+  openUploadDraft,
+  removeFileFromArchive,
+  removeFileFromIsilon,
+  requestMetadata,
+  saveUploadDraft,
+  selectFile: selection.actions.selectFile,
+  selectView,
+  setAlert,
+  setMountPoint,
+  switchEnvironment,
+  toggleFolderTree,
+  undoFileWellAssociation,
+  undoFileWorkflowAssociation,
+  updateSettings,
+};
+
+const connector = connect(mapStateToProps, dispatchToPropsMap);
+
+type Props = ConnectedProps<typeof connector>;
+
+class App extends React.Component<Props, {}> {
   public componentDidMount() {
     this.props.requestMetadata();
     this.props.gatherSettings();
@@ -234,7 +208,7 @@ class App extends React.Component<AppProps, {}> {
     );
   }
 
-  public componentDidUpdate(prevProps: AppProps) {
+  public componentDidUpdate(prevProps: Props) {
     const {
       alert,
       clearAlert: dispatchClearAlert,
@@ -392,49 +366,4 @@ class App extends React.Component<AppProps, {}> {
   };
 }
 
-function mapStateToProps(state: State) {
-  return {
-    alert: getAlert(state),
-    copyInProgress: !getIsSafeToExit(state),
-    fileToTags: getFileToTags(state),
-    files: getStagedFiles(state),
-    folderTreeOpen: getFolderTreeOpen(state),
-    limsUrl: getLimsUrl(state),
-    loading: getIsLoading(state),
-    page: getPage(state),
-    recentEvent: getRecentEvent(state),
-    selectedFiles: getSelectedFiles(state),
-    setMountPointNotificationVisible: getSetMountPointNotificationVisible(
-      state
-    ),
-    uploadTabName: getUploadTabName(state),
-    view: getView(state),
-  };
-}
-
-const dispatchToPropsMap = {
-  clearAlert,
-  clearStagedFiles,
-  closeUploadTab,
-  gatherSettings,
-  getFilesInFolder: selection.actions.getFilesInFolder,
-  handleAbandonedJobs,
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
-  openUploadDraft,
-  removeFileFromArchive,
-  removeFileFromIsilon,
-  requestMetadata,
-  saveUploadDraft,
-  selectFile: selection.actions.selectFile,
-  selectView,
-  setAlert,
-  setMountPoint,
-  switchEnvironment,
-  toggleFolderTree,
-  undoFileWellAssociation,
-  undoFileWorkflowAssociation,
-  updateSettings,
-};
-
-export default connect(mapStateToProps, dispatchToPropsMap)(App);
+export default connector(App);
