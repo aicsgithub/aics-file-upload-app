@@ -28,9 +28,18 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
       {job.serviceFields?.error && (
         <Alert
           type={job.serviceFields?.cancelled ? "warning" : "error"}
-          message="Error"
+          message={job.serviceFields?.cancelled ? "Warning" : "Error"}
           key="errorAlert"
           description={determineError(job.serviceFields.error)}
+          showIcon={true}
+          style={{ marginBottom: "0.5em" }}
+        />
+      )}
+      {job.serviceFields?.replacementJobId && (
+        <Alert
+          message="Warning"
+          type="warning"
+          description={`This upload was replaced by job id ${job.serviceFields.replacementJobId}`}
           showIcon={true}
           style={{ marginBottom: "0.5em" }}
         />

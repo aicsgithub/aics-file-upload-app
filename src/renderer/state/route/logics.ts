@@ -608,7 +608,7 @@ const openEditFileMetadataTabLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const { action, ctx, getState } = deps;
+    const { action, ctx, getState, jssClient, logger } = deps;
     try {
       const { cancelled } = await ensureDraftGetsSaved(
         deps,
@@ -645,7 +645,42 @@ const openEditFileMetadataTabLogic = createLogic({
         next(action);
       }
     } else if (job.serviceFields?.replacementJobId) {
-      // todo request job, validate, replace job on action.payload
+      try {
+        const replacementJob = await jssClient.getJob(
+          job.serviceFields.replacementJobId
+        );
+        if (isEmpty(replacementJob.serviceFields.files)) {
+          logger.warn(
+            `selected job ${job.jobId} has replacementJobId but that job is missing serviceFields.files. Displaying original job`
+          );
+
+          if (isEmpty(job.serviceFields?.files)) {
+            // We cannot show either the original job or the replacement job
+            reject(setErrorAlert("upload has missing information"));
+          } else {
+            // If we cannot display the replacement job, attempt to show the original job
+            next(action);
+          }
+        } else {
+          // Happy path - replacementJob exists and has enough information to be displayed
+          next({
+            ...action,
+            payload: replacementJob,
+          });
+        }
+      } catch (e) {
+        logger.error(
+          `selected job ${job.jobId} had replacementJobId but could not retrieve the job`
+        );
+        if (isEmpty(job.serviceFields?.files)) {
+          // We failed to get the replacement and the current upload is missing information
+          reject(setErrorAlert("upload has missing information"));
+        } else {
+          // Show original job even since we lost the replacement
+          // a warning will show up on the job details page
+          next(action);
+        }
+      }
     } else if (job.serviceFields?.files && !isEmpty(job.serviceFields?.files)) {
       next(action);
     } else {
