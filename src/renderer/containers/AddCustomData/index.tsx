@@ -284,7 +284,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <TemplateSearch
             allowCreate={true}
             className={styles.schemaSelector}
-            disabled={loading}
+            disabled={loading || this.isReadOnly}
             value={appliedTemplate ? appliedTemplate.templateId : undefined}
             onSelect={this.props.applyTemplate}
           />

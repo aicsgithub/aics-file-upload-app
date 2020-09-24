@@ -291,9 +291,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const files = this.props.uploads.map(({ file }) => file);
     return [
       {
-        formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
-          console.log(row);
-          return this.renderFormat(
+        formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+          this.renderFormat(
             row,
             "file",
             value,
@@ -305,8 +304,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               row={row}
               value={value}
             />
-          );
-        },
+          ),
         key: "file",
         name: "File",
         resizable: true,
@@ -323,11 +321,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             )}
             onDrop={this.onDrop(row)}
           >
-            <NoteIcon
-              handleError={this.handleError}
-              notes={row[NOTES_ANNOTATION_NAME]}
-              saveNotes={this.saveNotesByRow(row)}
-            />
+            {(this.props.editable || !!row[NOTES_ANNOTATION_NAME]) && (
+              <NoteIcon
+                editable={this.props.editable}
+                handleError={this.handleError}
+                notes={row[NOTES_ANNOTATION_NAME]}
+                saveNotes={this.saveNotesByRow(row)}
+              />
+            )}
           </div>
         ),
         key: NOTES_ANNOTATION_NAME,
