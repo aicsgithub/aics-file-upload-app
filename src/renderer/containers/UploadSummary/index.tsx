@@ -47,19 +47,6 @@ import {
   StopJobPollAction,
 } from "../../state/job/types";
 import {
-  clearFileMetadataForJob,
-  requestFileMetadataForJob,
-} from "../../state/metadata/actions";
-import {
-  getFileMetadataForJob,
-  getFileMetadataForJobHeader,
-} from "../../state/metadata/selectors";
-import {
-  ClearFileMetadataForJobAction,
-  RequestFileMetadataForJobAction,
-  SearchResultsHeader,
-} from "../../state/metadata/types";
-import {
   openEditFileMetadataTab,
   selectPage,
   selectView,
@@ -75,7 +62,6 @@ import {
   AsyncRequest,
   JobFilter,
   Page,
-  SearchResultRow,
   State,
   UploadFile,
   UploadProgressInfo,
@@ -105,10 +91,6 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
 interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
   className?: string;
-  clearFileMetadataForJob: ActionCreator<ClearFileMetadataForJobAction>;
-  fileMetadataForJob?: SearchResultRow[];
-  fileMetadataForJobHeader?: SearchResultsHeader[];
-  fileMetadataForJobLoading: boolean;
   files: UploadFile[];
   gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
   incompleteJobIds: string[];
@@ -117,7 +99,6 @@ interface Props {
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
   page: Page;
-  requestFileMetadataForJob: ActionCreator<RequestFileMetadataForJobAction>;
   requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
   retrieveJobs: ActionCreator<RetrieveJobsAction>;
@@ -361,12 +342,6 @@ class UploadSummary extends React.Component<Props, {}> {
 
 function mapStateToProps(state: State) {
   return {
-    fileMetadataForJob: getFileMetadataForJob(state),
-    fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
-    fileMetadataForJobLoading: getRequestsInProgressContains(
-      state,
-      AsyncRequest.GET_FILE_METADATA_FOR_JOB
-    ),
     files: getStagedFiles(state),
     incompleteJobIds: getIncompleteJobIds(state),
     isPolling: getIsPolling(state),
@@ -380,10 +355,8 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   cancelUpload,
-  clearFileMetadataForJob,
   gatherIncompleteJobIds,
   openEditFileMetadataTab,
-  requestFileMetadataForJob,
   retrieveJobs,
   retryUpload,
   selectJobFilter,

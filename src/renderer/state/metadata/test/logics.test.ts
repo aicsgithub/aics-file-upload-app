@@ -47,7 +47,6 @@ import {
   receiveMetadata,
   requestAnnotations,
   requestBarcodeSearchResults,
-  requestFileMetadataForJob,
   requestMetadata,
   requestTemplates,
   retrieveOptionsForLookup,
@@ -55,7 +54,6 @@ import {
 } from "../actions";
 import {
   getBarcodeSearchResults,
-  getFileMetadataForJob,
   getFileMetadataSearchResults,
 } from "../selectors";
 
@@ -347,50 +345,6 @@ describe("Metadata logics", () => {
       state = store.getState();
       expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
       expect(fms.getFilesByTemplate.called).to.be.true;
-    });
-  });
-  describe("retrieveFileMetadataForJob", () => {
-    it("sets fileMetadataForJob given OK response", async () => {
-      fms.getCustomMetadataForFile.resolves({
-        annotations: [],
-        fileId: "abcdefg",
-        filename: "name",
-        fileSize: 1,
-        fileType: "image",
-        modified: "",
-        modifiedBy: "foo",
-      });
-      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getFileMetadataForJob(state)).to.be.undefined;
-
-      store.dispatch(requestFileMetadataForJob(["1", "2"]));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getFileMetadataForJob(state)).to.not.be.undefined;
-    });
-    it("sets alert given not OK response", async () => {
-      fms.getCustomMetadataForFile.rejects();
-      fms.transformFileMetadataIntoTable.rejects();
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(requestFileMetadataForJob(["1", "2"]));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
     });
   });
   describe("getBarcodeSearchResults", () => {
