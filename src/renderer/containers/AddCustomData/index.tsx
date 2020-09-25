@@ -314,8 +314,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   };
 
   private submit = (): void => {
-    const { selectedJob } = this.props;
-    if (selectedJob?.status === JSSJobStatus.SUCCEEDED) {
+    if (this.props.selectedJob) {
       this.props.submitFileMetadataUpdate();
     } else {
       this.props.initiateUpload();
