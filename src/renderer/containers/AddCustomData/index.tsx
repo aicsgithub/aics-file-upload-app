@@ -61,6 +61,7 @@ import {
   jumpToUpload,
   removeUploads,
   submitFileMetadataUpdate,
+  updateAndRetryUpload,
   updateSubImages,
   updateUpload,
   updateUploadRows,
@@ -79,6 +80,7 @@ import {
   JumpToUploadAction,
   RemoveUploadsAction,
   SubmitFileMetadataUpdateAction,
+  UpdateAndRetryUploadAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
@@ -119,6 +121,7 @@ interface Props {
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
   templates: LabkeyTemplate[];
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
+  updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
   updateInProgress: boolean;
   updateSettings: ActionCreator<UpdateSettingsAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
@@ -149,10 +152,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   }
 
   public get isReadOnly() {
-    // todo FUA-52 this will no longer be the case for failed uploads in the future
     return (
       !!this.props.selectedJob &&
-      this.props.selectedJob.status !== JSSJobStatus.SUCCEEDED
+      ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(
+        this.props.selectedJob.status
+      )
     );
   }
 
@@ -186,15 +190,23 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
+    let saveButtonText = "Upload";
     let title = "ADD ADDITIONAL DATA";
     let prompt =
       "Review and add information to the files below and click Upload to submit the job.";
     if (selectedJob) {
       title = "UPLOAD DETAILS";
-      prompt =
-        selectedJob.status === JSSJobStatus.SUCCEEDED
-          ? "Make any changes necessary and click Update to update the upload"
-          : "";
+      if (this.isReadOnly) {
+        prompt = "";
+      } else {
+        prompt =
+          "Make any changes necessary and click Update to update the upload";
+        if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
+          saveButtonText = "Update";
+        } else {
+          saveButtonText = "Retry";
+        }
+      }
     }
     return (
       <FormPage
@@ -205,11 +217,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         onSave={this.submit}
         saveButtonDisabled={!canSubmit}
         saveInProgress={uploadInProgress || updateInProgress}
-        saveButtonName={selectedJob ? "Update" : "Upload"}
+        saveButtonName={saveButtonText}
         hideProgressBar={!!selectedJob}
         hideBackButton={!!selectedJob}
-        // todo FUA-52 show save button if upload is failed, with the text "Retry"
-        // We need to implement updating the job first if the user makes any changes
         hideSaveButton={this.isReadOnly}
         onBack={this.props.goBack}
         page={Page.AddCustomData}
@@ -315,7 +325,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
   private submit = (): void => {
     if (this.props.selectedJob) {
-      this.props.submitFileMetadataUpdate();
+      if (this.props.selectedJob.status === JSSJobStatus.SUCCEEDED) {
+        this.props.submitFileMetadataUpdate();
+      }
+      if (this.props.selectedJob.status === JSSJobStatus.FAILED) {
+        this.props.updateAndRetryUpload();
+      }
     } else {
       this.props.initiateUpload();
     }
@@ -374,6 +389,7 @@ const dispatchToPropsMap = {
   setAlert,
   submitFileMetadataUpdate,
   toggleRowExpanded: toggleExpandedUploadJobRow,
+  updateAndRetryUpload,
   updateSettings,
   updateSubImages,
   updateUpload,

@@ -329,6 +329,10 @@ export interface SaveUploadDraftSuccessAction extends WriteToStoreAction {
   type: string;
 }
 
+export interface UpdateAndRetryUploadAction {
+  type: string;
+}
+
 export enum FileTagType {
   WELL = "well",
   WORKFLOW = "workflow",
