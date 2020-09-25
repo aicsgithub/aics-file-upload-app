@@ -743,19 +743,15 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(
-        fms.transformFileMetadataIntoTable.calledWithMatch(
-          {
-            "/some/filepath": {
-              annotations:
-                mockFailedUploadJob.serviceFields.files[0].annotations,
-              originalPath: "/some/filepath",
-              shouldBeInArchive: true,
-              shouldBeInLocal: true,
-              templateId: 1,
-            },
+        fms.transformFileMetadataIntoTable.calledWithMatch({
+          "/some/filepath": {
+            annotations: mockFailedUploadJob.serviceFields.files[0].annotations,
+            originalPath: "/some/filepath",
+            shouldBeInArchive: true,
+            shouldBeInLocal: true,
+            templateId: 1,
           },
-          true
-        )
+        })
       );
       expect(actions.list.map(({ type }) => type)).includes(
         OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED

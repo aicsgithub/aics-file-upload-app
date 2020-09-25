@@ -54,9 +54,9 @@ import { pageOrder } from "../route/constants";
 import { getPage } from "../route/selectors";
 import {
   getAllPlates,
-  getAllWells,
   getExpandedUploadJobRows,
   getSelectedJob,
+  getWellIdToWellMap,
 } from "../selection/selectors";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
@@ -142,9 +142,9 @@ export const getWellLabelAndImagingSessionName = (
   wellId: number,
   imagingSessions: ImagingSession[],
   selectedPlates: PlateResponse[],
-  wells: WellResponse[]
+  wellIdToWell: Map<number, WellResponse>
 ) => {
-  const well = wells.find((w) => w.wellId === wellId);
+  const well = wellIdToWell.get(wellId);
   let label = "ERROR";
   if (well) {
     label = getWellLabel({ col: well.col, row: well.row });
@@ -163,12 +163,12 @@ export const getWellLabelAndImagingSessionName = (
 };
 
 export const getUploadWithCalculatedData = createSelector(
-  [getUpload, getImagingSessions, getAllPlates, getAllWells],
+  [getUpload, getImagingSessions, getAllPlates, getWellIdToWellMap],
   (
     uploads: UploadStateBranch,
     imagingSessions: ImagingSession[],
     selectedPlates: PlateResponse[],
-    wells: WellResponse[]
+    wellIdToWell: Map<number, WellResponse>
   ): DisplayUploadStateBranch => {
     return reduce(
       uploads,
@@ -183,7 +183,7 @@ export const getUploadWithCalculatedData = createSelector(
             wellId,
             imagingSessions,
             selectedPlates,
-            wells
+            wellIdToWell
           )
         );
         return {

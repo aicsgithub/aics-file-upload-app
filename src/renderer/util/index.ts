@@ -271,14 +271,11 @@ export const getPlateInfo = async (
  * Helper for logics that need to retrieve file metadata
  * @param {string[]} fileIds
  * @param {FileManagementSystem} fms
- * @param {boolean} transformDates whether to convert annotation values for date annotations to dates or
- * leave them as strings
  * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
  */
 export const retrieveFileMetadata = async (
   fileIds: string[],
-  fms: FileManagementSystem,
-  transformDates = true
+  fms: FileManagementSystem
 ): Promise<ImageModelMetadata[]> => {
   const resolvedPromises: FileMetadata[] = await Promise.all(
     fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
@@ -294,10 +291,7 @@ export const retrieveFileMetadata = async (
     }),
     {}
   );
-  return await fms.transformFileMetadataIntoTable(
-    fileMetadataForFileIds,
-    transformDates
-  );
+  return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
 };
 
 /***
@@ -305,14 +299,11 @@ export const retrieveFileMetadata = async (
  * similar to the upload state branch
  * @param files the request used to start an upload through FSS
  * @param fms
- * @param transformDates whether to convert annotation values for date annotations to dates or
- * leave them as strings
  * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
  */
 export const convertUploadPayloadToImageModelMetadata = async (
   files: FMSUploadMetadata[],
-  fms: FileManagementSystem,
-  transformDates = true
+  fms: FileManagementSystem
 ): Promise<ImageModelMetadata[]> => {
   const fileMetadataForFiles: FileToFileMetadata<CustomFileMetadata> = {};
   for (const file of files) {
@@ -324,10 +315,7 @@ export const convertUploadPayloadToImageModelMetadata = async (
       templateId: file.customMetadata.templateId,
     };
   }
-  return await fms.transformFileMetadataIntoTable(
-    fileMetadataForFiles,
-    transformDates
-  );
+  return await fms.transformFileMetadataIntoTable(fileMetadataForFiles);
 };
 
 export interface ApplyTemplateInfo {
