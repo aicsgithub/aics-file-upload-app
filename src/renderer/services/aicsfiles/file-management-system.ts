@@ -387,16 +387,13 @@ export class FileManagementSystem {
         separated value sets.
 
         :param filesToFileMetadata: Object mapping File Ids to MMS GET File Metadata responses
-        :param transformDates: boolean whether to transform annotation values to date objects when appropriate
         :return: Array of ImageModels to their metadata
      */
   public transformFileMetadataIntoTable(
-    fileToFileMetadata: FileToFileMetadata,
-    transformDates = false
+    fileToFileMetadata: FileToFileMetadata
   ): Promise<ImageModelMetadata[]> {
     return this.customMetadataQuerier.transformFileMetadataIntoTable(
-      fileToFileMetadata,
-      transformDates
+      fileToFileMetadata
     );
   }
 
