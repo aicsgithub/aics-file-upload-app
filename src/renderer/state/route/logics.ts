@@ -676,7 +676,7 @@ const openEditFileMetadataTabLogic = createLogic({
           // We failed to get the replacement and the current upload is missing information
           reject(setErrorAlert("upload has missing information"));
         } else {
-          // Show original job even since we lost the replacement
+          // Show original job since we lost the replacement
           // a warning will show up on the job details page
           next(action);
         }
