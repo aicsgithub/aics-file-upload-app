@@ -113,8 +113,8 @@ export interface BaseServiceFields {
   error?: string;
 
   // represents the type job this object is representing. It will be equal to the name property of the step or "upload"
-  // which is the parent job. See enum StepName for possible values.
-  type: string;
+  // which is the parent job.
+  type: "upload" | "copy" | "copy_child" | "add_metadata";
 }
 
 export interface UploadServiceFields extends BaseServiceFields {
