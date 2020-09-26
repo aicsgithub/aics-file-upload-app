@@ -2,6 +2,7 @@ import "@aics/aics-react-labkey/dist/styles.css";
 import { message, notification, Tabs } from "antd";
 import * as classNames from "classnames";
 import { ipcRenderer, remote } from "electron";
+import { camelizeKeys } from "humps";
 import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
@@ -13,6 +14,8 @@ import {
 } from "../../../shared/constants";
 import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
+import { BaseServiceFields } from "../../services/aicsfiles/types";
+import { JSSJob } from "../../services/job-status-client/types";
 import { selection } from "../../state";
 import {
   clearAlert,
@@ -26,7 +29,12 @@ import {
   getRecentEvent,
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
-import { handleAbandonedJobs } from "../../state/job/actions";
+import {
+  handleAbandonedJobs,
+  receiveJobInsert,
+  receiveJobs,
+  receiveJobUpdate,
+} from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
 import { closeUploadTab, selectView } from "../../state/route/actions";
@@ -149,6 +157,9 @@ const dispatchToPropsMap = {
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
   openUploadDraft,
+  receiveJobs,
+  receiveJobInsert,
+  receiveJobUpdate,
   removeFileFromArchive,
   removeFileFromIsilon,
   requestMetadata,
@@ -173,6 +184,36 @@ class App extends React.Component<Props, {}> {
     this.props.requestMetadata();
     this.props.gatherSettings();
     this.props.handleAbandonedJobs();
+
+    const eventSource = new EventSource(
+      "https://localhost:9061/jss/1.0/job/subscribe/matteb",
+      { withCredentials: true }
+    );
+
+    eventSource.addEventListener("initialJobs", ((event: MessageEvent) => {
+      const jobs = camelizeKeys(JSON.parse(event.data)) as JSSJob<
+        BaseServiceFields
+      >[];
+      const uploadJobs = jobs.filter(
+        (job) => job.serviceFields?.type === "upload"
+      );
+      this.props.receiveJobs(uploadJobs);
+    }) as EventListener);
+
+    eventSource.addEventListener("jobInsert", ((event: MessageEvent) => {
+      const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
+        BaseServiceFields
+      >;
+      this.props.receiveJobInsert(jobChange);
+    }) as EventListener);
+
+    eventSource.addEventListener("jobUpdate", ((event: MessageEvent) => {
+      const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
+        BaseServiceFields
+      >;
+      this.props.receiveJobUpdate(jobChange);
+    }) as EventListener);
+
     ipcRenderer.on(
       SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
       this.props.switchEnvironment

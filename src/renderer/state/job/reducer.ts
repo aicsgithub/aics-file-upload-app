@@ -1,6 +1,8 @@
 import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
+import { UploadServiceFields } from "../../services/aicsfiles/types";
+import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
 import {
   CANCEL_UPLOAD,
@@ -24,15 +26,19 @@ import {
 import { makeReducer } from "../util";
 
 import {
+  RECEIVE_JOB_INSERT,
+  RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
   UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
   ReceiveJobsAction,
+  ReceiveJobInsertAction,
   SelectJobFilterAction,
   UpdateIncompleteJobIdsAction,
   UpdateUploadProgressInfoAction,
+  ReceiveJobUpdateAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
@@ -59,6 +65,66 @@ const actionToConfigMap: TypeToDescriptionMap = {
         incompleteJobIds: uniq(incompleteJobIds),
         uploadJobs,
       };
+    },
+  },
+  [RECEIVE_JOB_INSERT]: {
+    accepts: (action: AnyAction): action is ReceiveJobInsertAction =>
+      action.type === RECEIVE_JOB_INSERT,
+    perform: (
+      state: JobStateBranch,
+      { payload: updatedJob }: ReceiveJobInsertAction
+    ): JobStateBranch => {
+      const jobType = updatedJob.serviceFields?.type;
+      if (jobType === "upload") {
+        return {
+          ...state,
+          uploadJobs: [
+            updatedJob as JSSJob<UploadServiceFields>,
+            ...state.uploadJobs,
+          ],
+        };
+      }
+
+      if (jobType === "add_metadata") {
+        return {
+          ...state,
+          addMetadataJobs: [updatedJob, ...state.addMetadataJobs],
+        };
+      }
+
+      return state;
+    },
+  },
+  [RECEIVE_JOB_UPDATE]: {
+    accepts: (action: AnyAction): action is ReceiveJobUpdateAction =>
+      action.type === RECEIVE_JOB_UPDATE,
+    perform: (
+      state: JobStateBranch,
+      { payload: updatedJob }: ReceiveJobUpdateAction
+    ): JobStateBranch => {
+      const jobType = updatedJob.serviceFields?.type;
+      if (jobType === "upload") {
+        // Replace job with changed job
+        return {
+          ...state,
+          uploadJobs: state.uploadJobs.map((job) =>
+            job.jobId === updatedJob.jobId
+              ? (updatedJob as JSSJob<UploadServiceFields>)
+              : job
+          ),
+        };
+      }
+
+      if (jobType === "add_metadata") {
+        return {
+          ...state,
+          addMetadataJobs: state.addMetadataJobs.map((job) =>
+            job.jobId === updatedJob.jobId ? (updatedJob as JSSJob) : job
+          ),
+        };
+      }
+
+      return state;
     },
   },
   [UPDATE_INCOMPLETE_JOB_IDS]: {
@@ -149,10 +215,9 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (
       state: JobStateBranch,
-      { payload: { job, recentJobs } }: InitiateUploadSucceededAction
+      { payload: { recentJobs } }: InitiateUploadSucceededAction
     ) => ({
       ...state,
-      uploadJobs: [...state.uploadJobs, job],
       incompleteJobIds: recentJobs,
     }),
   },
