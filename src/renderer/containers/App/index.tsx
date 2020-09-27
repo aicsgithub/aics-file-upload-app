@@ -4,7 +4,8 @@ import * as classNames from "classnames";
 import { ipcRenderer, remote } from "electron";
 import { camelizeKeys } from "humps";
 import * as React from "react";
-import { connect, ConnectedProps } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
@@ -16,7 +17,6 @@ import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
-import { selection } from "../../state";
 import {
   clearAlert,
   setAlert,
@@ -42,8 +42,10 @@ import { getPage, getView } from "../../state/route/selectors";
 import { AppPageConfig } from "../../state/route/types";
 import {
   clearStagedFiles,
+  getFilesInFolder,
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
+  selectFile,
 } from "../../state/selection/actions";
 import {
   getSelectedFiles,
@@ -53,10 +55,9 @@ import {
   gatherSettings,
   setMountPoint,
   switchEnvironment,
-  updateSettings,
 } from "../../state/setting/actions";
 import { getLimsUrl } from "../../state/setting/selectors";
-import { AlertType, Page, State } from "../../state/types";
+import { AlertType, Page } from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,
@@ -127,64 +128,34 @@ message.config({
   maxCount: 1,
 });
 
-function mapStateToProps(state: State) {
-  return {
-    alert: getAlert(state),
-    copyInProgress: !getIsSafeToExit(state),
-    fileToTags: getFileToTags(state),
-    files: getStagedFiles(state),
-    folderTreeOpen: getFolderTreeOpen(state),
-    limsUrl: getLimsUrl(state),
-    loading: getIsLoading(state),
-    page: getPage(state),
-    recentEvent: getRecentEvent(state),
-    selectedFiles: getSelectedFiles(state),
-    setMountPointNotificationVisible: getSetMountPointNotificationVisible(
-      state
-    ),
-    uploadTabName: getUploadTabName(state),
-    view: getView(state),
-  };
-}
+export default function App() {
+  const dispatch = useDispatch();
 
-const dispatchToPropsMap = {
-  clearAlert,
-  clearStagedFiles,
-  closeUploadTab,
-  gatherSettings,
-  getFilesInFolder: selection.actions.getFilesInFolder,
-  handleAbandonedJobs,
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
-  openUploadDraft,
-  receiveJobs,
-  receiveJobInsert,
-  receiveJobUpdate,
-  removeFileFromArchive,
-  removeFileFromIsilon,
-  requestMetadata,
-  saveUploadDraft,
-  selectFile: selection.actions.selectFile,
-  selectView,
-  setAlert,
-  setMountPoint,
-  switchEnvironment,
-  toggleFolderTree,
-  undoFileWellAssociation,
-  undoFileWorkflowAssociation,
-  updateSettings,
-};
+  const alert = useSelector(getAlert);
+  const copyInProgress = !useSelector(getIsSafeToExit);
+  const fileToTags = useSelector(getFileToTags);
+  const files = useSelector(getStagedFiles);
+  const folderTreeOpen = useSelector(getFolderTreeOpen);
+  const limsUrl = useSelector(getLimsUrl);
+  const loading = useSelector(getIsLoading);
+  const page = useSelector(getPage);
+  const recentEvent = useSelector(getRecentEvent);
+  const selectedFiles = useSelector(getSelectedFiles);
+  const setMountPointNotificationVisible = useSelector(
+    getSetMountPointNotificationVisible
+  );
+  const uploadTabName = useSelector(getUploadTabName);
+  const view = useSelector(getView);
 
-const connector = connect(mapStateToProps, dispatchToPropsMap);
+  // Request initial data
+  useEffect(() => {
+    dispatch(requestMetadata());
+    dispatch(gatherSettings());
+    dispatch(handleAbandonedJobs());
+  }, [dispatch]);
 
-type Props = ConnectedProps<typeof connector>;
-
-class App extends React.Component<Props, {}> {
-  public componentDidMount() {
-    this.props.requestMetadata();
-    this.props.gatherSettings();
-    this.props.handleAbandonedJobs();
-
+  // Subscribe to job changes
+  useEffect(() => {
     const eventSource = new EventSource(
       "https://localhost:9061/jss/1.0/job/subscribe/matteb",
       { withCredentials: true }
@@ -197,32 +168,51 @@ class App extends React.Component<Props, {}> {
       const uploadJobs = jobs.filter(
         (job) => job.serviceFields?.type === "upload"
       );
-      this.props.receiveJobs(uploadJobs);
+      dispatch(receiveJobs(uploadJobs));
     }) as EventListener);
 
     eventSource.addEventListener("jobInsert", ((event: MessageEvent) => {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
-      this.props.receiveJobInsert(jobChange);
+      dispatch(receiveJobInsert(jobChange));
     }) as EventListener);
 
     eventSource.addEventListener("jobUpdate", ((event: MessageEvent) => {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
-      this.props.receiveJobUpdate(jobChange);
+      dispatch(receiveJobUpdate(jobChange));
     }) as EventListener);
+  }, [dispatch]);
 
-    ipcRenderer.on(
-      SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
-      this.props.switchEnvironment
+  // Event handlers for menu events
+  useEffect(() => {
+    ipcRenderer.on(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED, () =>
+      dispatch(switchEnvironment())
     );
+    ipcRenderer.on(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
+      dispatch(saveUploadDraft(true))
+    );
+    ipcRenderer.on(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
+      dispatch(openUploadDraft())
+    );
+
+    return function cleanUp() {
+      ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED);
+      ipcRenderer.removeAllListeners(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
+      ipcRenderer.removeAllListeners(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
+    };
+  }, [dispatch]);
+
+  // This one needs a special event handler that will be recreated whenever
+  // `copyInProgress` changes, since it is reliant on that value.
+  useEffect(() => {
     ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
       const warning =
         "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
         " will need to be manually cancelled. Are you sure?";
-      if (this.props.copyInProgress) {
+      if (copyInProgress) {
         remote.dialog
           .showMessageBox({
             buttons: ["Cancel", "Close Anyways"],
@@ -240,21 +230,13 @@ class App extends React.Component<Props, {}> {
         remote.app.exit();
       }
     });
-    ipcRenderer.on(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
-      this.props.saveUploadDraft(true)
-    );
-    ipcRenderer.on(
-      OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
-      this.props.openUploadDraft
-    );
-  }
 
-  public componentDidUpdate(prevProps: Props) {
-    const {
-      alert,
-      clearAlert: dispatchClearAlert,
-      setMountPointNotificationVisible,
-    } = this.props;
+    return function cleanUp() {
+      ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
+    };
+  }, [copyInProgress, dispatch]);
+
+  useEffect(() => {
     if (alert) {
       const { message: alertText, manualClear, type } = alert;
       const alertBody = <div>{alertText}</div>;
@@ -275,13 +257,12 @@ class App extends React.Component<Props, {}> {
           break;
       }
 
-      dispatchClearAlert();
+      dispatch(clearAlert());
     }
-    if (
-      setMountPointNotificationVisible &&
-      setMountPointNotificationVisible !==
-        prevProps.setMountPointNotificationVisible
-    ) {
+  }, [alert, dispatch]);
+
+  useEffect(() => {
+    if (setMountPointNotificationVisible) {
       notification.open({
         description:
           "Click this notification to manually set the allen mount point",
@@ -289,122 +270,108 @@ class App extends React.Component<Props, {}> {
         message: "Could not find allen mount point (/allen/aics).",
         onClick: () => {
           notification.destroy();
-          this.props.setMountPoint();
+          dispatch(setMountPoint());
         },
       });
     }
+  }, [setMountPointNotificationVisible, dispatch]);
+
+  const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
+  const uploadSummaryConfig = APP_PAGE_TO_CONFIG_MAP.get(Page.UploadSummary);
+
+  if (!pageConfig || !uploadSummaryConfig) {
+    return null;
   }
 
-  public componentWillUnmount(): void {
-    ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED);
-    ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
-    ipcRenderer.removeAllListeners(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
-  }
-
-  public render() {
-    const {
-      fileToTags,
-      files,
-      folderTreeOpen,
-      getFilesInFolder,
-      limsUrl,
-      loading,
-      recentEvent,
-      selectFile,
-      selectedFiles,
-      page,
-      uploadTabName,
-      view,
-    } = this.props;
-    const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
-    const uploadSummaryConfig = APP_PAGE_TO_CONFIG_MAP.get(Page.UploadSummary);
-
-    if (!pageConfig || !uploadSummaryConfig) {
-      return null;
-    }
-
-    return (
-      <div className={styles.container}>
-        <div className={styles.mainContentContainer}>
-          <FolderTree
-            className={styles.folderTree}
-            clearStagedFiles={this.props.clearStagedFiles}
-            files={files}
-            folderTreeOpen={folderTreeOpen}
-            getFilesInFolder={getFilesInFolder}
-            isLoading={loading}
-            loadFilesFromDragAndDropAction={this.props.loadFilesFromDragAndDrop}
-            loadFilesFromOpenDialogAction={this.props.openFilesFromDialog}
-            onCheck={selectFile}
-            removeFileFromArchive={this.props.removeFileFromArchive}
-            removeFileFromIsilon={this.props.removeFileFromIsilon}
-            selectedKeys={selectedFiles}
-            setAlert={setAlert}
-            fileToTags={fileToTags}
-            toggleFolderTree={this.props.toggleFolderTree}
-            undoFileWellAssociation={this.props.undoFileWellAssociation}
-            undoFileWorkflowAssociation={this.props.undoFileWorkflowAssociation}
-          />
-          <div className={styles.mainContent}>
-            <Tabs
-              activeKey={view}
-              className={styles.tabContainer}
-              hideAdd={true}
-              onChange={this.props.selectView}
-              onEdit={this.onTabChange}
-              type="editable-card"
-            >
-              <TabPane
-                className={styles.tabContent}
-                tab="Summary"
-                key={Page.UploadSummary}
-                closable={false}
-              >
-                {uploadSummaryConfig.container}
-              </TabPane>
-              <TabPane
-                className={styles.tabContent}
-                tab="Search Files"
-                key={Page.SearchFiles}
-                closable={false}
-              >
-                <SearchFiles key="searchFiles" />
-              </TabPane>
-              {page !== Page.UploadSummary && (
-                <TabPane
-                  className={classNames(styles.uploadTab, styles.tabContent)}
-                  tab={uploadTabName}
-                  key={page}
-                  closable={true}
-                >
-                  {pageConfig.container}
-                </TabPane>
-              )}
-            </Tabs>
-          </div>
-        </div>
-        <StatusBar
-          className={styles.statusBar}
-          event={recentEvent}
-          limsUrl={limsUrl}
-        />
-        <TemplateEditorModal />
-        <OpenTemplateModal />
-        <SettingsEditorModal />
-      </div>
-    );
-  }
-
-  private onTabChange = (
+  function onTabChange(
     targetKey: string | React.MouseEvent<HTMLElement>,
     action: "add" | "remove"
-  ): void => {
-    // currently only one tab is closable so we are not checking targetKey. If this changes, we'll need to
-    // add a check here
+  ): void {
+    // Currently only one tab is closable, so we are not checking targetKey. If
+    // this changes, we'll need to add a check here.
     if (action === "remove") {
-      this.props.closeUploadTab();
+      dispatch(closeUploadTab());
     }
-  };
-}
+  }
 
-export default connector(App);
+  return (
+    <div className={styles.container}>
+      <div className={styles.mainContentContainer}>
+        <FolderTree
+          className={styles.folderTree}
+          clearStagedFiles={() => dispatch(clearStagedFiles())}
+          files={files}
+          folderTreeOpen={folderTreeOpen}
+          getFilesInFolder={(folder) => dispatch(getFilesInFolder(folder))}
+          isLoading={loading}
+          loadFilesFromDragAndDropAction={(files) =>
+            dispatch(loadFilesFromDragAndDrop(files))
+          }
+          loadFilesFromOpenDialogAction={(files) =>
+            dispatch(openFilesFromDialog(files))
+          }
+          onCheck={(files) => dispatch(selectFile(files))}
+          removeFileFromArchive={(file) =>
+            dispatch(removeFileFromArchive(file))
+          }
+          removeFileFromIsilon={(file) => dispatch(removeFileFromIsilon(file))}
+          selectedKeys={selectedFiles}
+          setAlert={setAlert}
+          fileToTags={fileToTags}
+          toggleFolderTree={() => dispatch(toggleFolderTree())}
+          undoFileWellAssociation={(rowId, deleteUpload, wellIds) =>
+            dispatch(undoFileWellAssociation(rowId, deleteUpload, wellIds))
+          }
+          undoFileWorkflowAssociation={(fullPath, workflowNames) =>
+            dispatch(undoFileWorkflowAssociation(fullPath, workflowNames))
+          }
+        />
+        <div className={styles.mainContent}>
+          <Tabs
+            activeKey={view}
+            className={styles.tabContainer}
+            hideAdd={true}
+            onChange={(view) => dispatch(selectView(view))}
+            onEdit={onTabChange}
+            type="editable-card"
+          >
+            <TabPane
+              className={styles.tabContent}
+              tab="Summary"
+              key={Page.UploadSummary}
+              closable={false}
+            >
+              {uploadSummaryConfig.container}
+            </TabPane>
+            <TabPane
+              className={styles.tabContent}
+              tab="Search Files"
+              key={Page.SearchFiles}
+              closable={false}
+            >
+              <SearchFiles key="searchFiles" />
+            </TabPane>
+            {page !== Page.UploadSummary && (
+              <TabPane
+                className={classNames(styles.uploadTab, styles.tabContent)}
+                tab={uploadTabName}
+                key={page}
+                closable={true}
+              >
+                {pageConfig.container}
+              </TabPane>
+            )}
+          </Tabs>
+        </div>
+      </div>
+      <StatusBar
+        className={styles.statusBar}
+        event={recentEvent}
+        limsUrl={limsUrl}
+      />
+      <TemplateEditorModal />
+      <OpenTemplateModal />
+      <SettingsEditorModal />
+    </div>
+  );
+}
