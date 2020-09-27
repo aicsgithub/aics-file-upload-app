@@ -56,7 +56,7 @@ import {
   setMountPoint,
   switchEnvironment,
 } from "../../state/setting/actions";
-import { getLimsUrl } from "../../state/setting/selectors";
+import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, Page } from "../../state/types";
 import {
   openUploadDraft,
@@ -137,6 +137,7 @@ export default function App() {
   const files = useSelector(getStagedFiles);
   const folderTreeOpen = useSelector(getFolderTreeOpen);
   const limsUrl = useSelector(getLimsUrl);
+  const user = useSelector(getLoggedInUser);
   const loading = useSelector(getIsLoading);
   const page = useSelector(getPage);
   const recentEvent = useSelector(getRecentEvent);
@@ -154,10 +155,10 @@ export default function App() {
     dispatch(handleAbandonedJobs());
   }, [dispatch]);
 
-  // Subscribe to job changes
+  // Subscribe to job changes for current `limsUrl` and `user`
   useEffect(() => {
     const eventSource = new EventSource(
-      "https://localhost:9061/jss/1.0/job/subscribe/matteb",
+      `${limsUrl}/jss/1.0/job/subscribe/${user}`,
       { withCredentials: true }
     );
 
@@ -184,7 +185,11 @@ export default function App() {
       >;
       dispatch(receiveJobUpdate(jobChange));
     }) as EventListener);
-  }, [dispatch]);
+
+    return function cleanUp() {
+      eventSource.close();
+    };
+  }, [limsUrl, user, dispatch]);
 
   // Event handlers for menu events
   useEffect(() => {
