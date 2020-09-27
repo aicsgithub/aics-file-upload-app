@@ -4,13 +4,16 @@ import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import {
+  FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
   JSSJob,
+  SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
   AsyncRequest,
+  JobFilter,
   State,
   UploadProgressInfo,
   UploadStateBranch,
@@ -24,8 +27,29 @@ export const getIncompleteJobIds = (state: State) => state.job.incompleteJobIds;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
 
+function getStatusesFromFilter(jobFilter: JobFilter): string[] {
+  switch (jobFilter) {
+    case JobFilter.Successful:
+      return [SUCCESSFUL_STATUS];
+    case JobFilter.Failed:
+      return FAILED_STATUSES;
+    case JobFilter.InProgress:
+      return IN_PROGRESS_STATUSES;
+    default:
+      return [...FAILED_STATUSES, SUCCESSFUL_STATUS, ...IN_PROGRESS_STATUSES];
+  }
+}
+
+export const getFilteredJobs = createSelector(
+  [getUploadJobs, getJobFilter],
+  (uploadJobs, jobFilter): JSSJob[] => {
+    const statuses = getStatusesFromFilter(jobFilter);
+    return uploadJobs.filter((job) => statuses.includes(job.status));
+  }
+);
+
 export const getJobsForTable = createSelector(
-  [getUploadJobs, getCopyProgress],
+  [getFilteredJobs, getCopyProgress],
   (
     uploadJobs: JSSJob[],
     copyProgress: { [jobId: string]: UploadProgressInfo }
