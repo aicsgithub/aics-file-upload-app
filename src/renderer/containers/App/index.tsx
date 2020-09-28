@@ -18,7 +18,9 @@ import StatusBar from "../../components/StatusBar";
 import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import {
+  addRequestToInProgress,
   clearAlert,
+  removeRequestFromInProgress,
   setAlert,
   toggleFolderTree,
 } from "../../state/feedback/actions";
@@ -57,7 +59,7 @@ import {
   switchEnvironment,
 } from "../../state/setting/actions";
 import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
-import { AlertType, Page } from "../../state/types";
+import { AlertType, AsyncRequest, Page } from "../../state/types";
 import {
   openUploadDraft,
   removeFileFromArchive,
@@ -157,12 +159,14 @@ export default function App() {
 
   // Subscribe to job changes for current `limsUrl` and `user`
   useEffect(() => {
+    dispatch(addRequestToInProgress(AsyncRequest.GET_JOBS));
     const eventSource = new EventSource(
       `${limsUrl}/jss/1.0/job/subscribe/${user}`,
       { withCredentials: true }
     );
 
     eventSource.addEventListener("initialJobs", ((event: MessageEvent) => {
+      dispatch(removeRequestFromInProgress(AsyncRequest.GET_JOBS));
       const jobs = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >[];
