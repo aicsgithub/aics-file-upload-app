@@ -114,19 +114,19 @@ describe("Setting logics", () => {
       expect(actions.includesMatch(requestMetadata())).to.be.true;
     };
 
-    it("requests metadata and jobs again if host changes", async () => {
+    it("requests metadata again if host changes", async () => {
       await testActionsDispatched({ limsHost: "foo" });
     });
 
-    it("requests metadata and jobs again if port changes", async () => {
+    it("requests metadata again if port changes", async () => {
       await testActionsDispatched({ limsPort: "500" });
     });
 
-    it("requests metadata and jobs again if username changes", async () => {
+    it("requests metadata again if username changes", async () => {
       await testActionsDispatched({ username: "bar" });
     });
 
-    it("Doesn't retrieve metadata and jobs if neither host or port changed", () => {
+    it("Doesn't retrieve metadata if neither host or port changed", () => {
       const { actions } = createMockReduxStore(mockState, undefined, [
         updateSettingsLogic,
       ]);
