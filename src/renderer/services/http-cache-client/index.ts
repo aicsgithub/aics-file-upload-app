@@ -21,30 +21,41 @@ export default class HttpCacheClient {
   ) {
     this.httpClient = httpClient;
     this.localStorage = localStorage;
+    this.get = this.get.bind(this);
+    this.post = this.post.bind(this);
+    this.put = this.put.bind(this);
+    this.patch = this.patch.bind(this);
+    this.delete = this.delete.bind(this);
+
+    this.getAndReturnCache = this.getAndReturnCache.bind(this);
+    this.postAndReturnCache = this.postAndReturnCache.bind(this);
+    this.putAndReturnCache = this.putAndReturnCache.bind(this);
+    this.patchAndReturnCache = this.patchAndReturnCache.bind(this);
+    this.deleteAndReturnCache = this.deleteAndReturnCache.bind(this);
 
     if (useCache) {
-      this.get = this.getAndReturnCache;
-      this.post = this.postAndReturnCache;
-      this.put = this.putAndReturnCache;
-      this.patch = this.patchAndReturnCache;
-      this.delete = this.deleteAndReturnCache;
+      this.get = this.getAndReturnCache.bind(this);
+      this.post = this.postAndReturnCache.bind(this);
+      this.put = this.putAndReturnCache.bind(this);
+      this.patch = this.patchAndReturnCache.bind(this);
+      this.delete = this.deleteAndReturnCache.bind(this);
     }
   }
 
-  public get = async <T = any>(url: string, config?: AxiosRequestConfig) => {
+  public async get<T = any>(url: string, config?: AxiosRequestConfig) {
     url = this.getFullUrl(url);
     const response: AxiosResponse<T> = await this.httpClient.get(url, {
       ...this.getHttpRequestConfig(),
       ...config,
     });
     return response.data;
-  };
+  }
 
-  public post = async <T = any>(
+  public async post<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ) => {
+  ) {
     url = this.getFullUrl(url);
     const response: AxiosResponse<T> = await this.httpClient.post(
       url,
@@ -55,26 +66,26 @@ export default class HttpCacheClient {
       }
     );
     return response.data;
-  };
+  }
 
-  public put = async <T = any>(
+  public async put<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ) => {
+  ) {
     url = this.getFullUrl(url);
     const response: AxiosResponse<T> = await this.httpClient.put(url, request, {
       ...this.getHttpRequestConfig(),
       ...config,
     });
     return response.data;
-  };
+  }
 
-  public patch = async <T = any>(
+  public async patch<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ) => {
+  ) {
     url = this.getFullUrl(url);
     const response: AxiosResponse<T> = await this.httpClient.patch(
       url,
@@ -85,13 +96,13 @@ export default class HttpCacheClient {
       }
     );
     return response.data;
-  };
+  }
 
-  public delete = async <T = any>(
+  public async delete<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ) => {
+  ) {
     url = this.getFullUrl(url);
     const response: AxiosResponse<T> = await this.httpClient.delete(url, {
       ...this.getHttpRequestConfig(),
@@ -99,52 +110,52 @@ export default class HttpCacheClient {
       data: request,
     });
     return response.data;
-  };
+  }
 
-  private getAndReturnCache = async <T = any>(
+  private async getAndReturnCache<T = any>(
     url: string,
     config?: AxiosRequestConfig
-  ): Promise<T> => {
+  ): Promise<T> {
     const key = `GET ${this.getFullUrl(url)}`;
     const action = () => this.httpClient.get(url, config);
     return this.checkCache(key, action);
-  };
+  }
 
-  private postAndReturnCache = async <T = any>(
+  private async postAndReturnCache<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ): Promise<T> => {
+  ): Promise<T> {
     const key = `POST ${this.getFullUrl(url)}`;
     const action = () => this.httpClient.post(url, request, config);
     return this.checkCache(key, action);
-  };
+  }
 
-  private putAndReturnCache = async <T = any>(
+  private async putAndReturnCache<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ): Promise<T> => {
+  ): Promise<T> {
     const key = `PUT ${this.getFullUrl(url)}`;
     const action = () => this.httpClient.put(url, request, config);
     return this.checkCache(key, action);
-  };
+  }
 
-  private patchAndReturnCache = async <T = any>(
+  private async patchAndReturnCache<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ): Promise<T> => {
+  ): Promise<T> {
     const key = `PATCH ${this.getFullUrl(url)}`;
     const action = () => this.httpClient.patch(url, request, config);
     return this.checkCache(key, action);
-  };
+  }
 
-  private deleteAndReturnCache = async <T = any>(
+  private async deleteAndReturnCache<T = any>(
     url: string,
     request: any,
     config?: AxiosRequestConfig
-  ): Promise<T> => {
+  ): Promise<T> {
     const key = `DELETE ${this.getFullUrl(url)}`;
     const action = () =>
       this.httpClient.delete(this.getFullUrl(url), {
@@ -152,7 +163,7 @@ export default class HttpCacheClient {
         data: request,
       });
     return this.checkCache(key, action);
-  };
+  }
 
   private getHttpRequestConfig = (): AxiosRequestConfig => {
     const userSettings = this.localStorage.get(USER_SETTINGS_KEY);

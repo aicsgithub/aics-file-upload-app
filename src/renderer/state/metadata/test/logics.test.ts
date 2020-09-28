@@ -1,20 +1,26 @@
 import { expect } from "chai";
 import { AnyAction } from "redux";
-import { createSandbox, SinonStub, stub } from "sinon";
+import {
+  createSandbox,
+  SinonStub,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { FileManagementSystem } from "../../../services/aicsfiles";
+import LabkeyClient from "../../../services/labkey-client";
 import {
   LabkeyPlateResponse,
   LabkeyTemplate,
 } from "../../../services/labkey-client/types";
+import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
 import { getAlert } from "../../feedback/selectors";
 import {
   createMockReduxStore,
-  fms,
   ipcRenderer,
-  labkeyClient,
-  mmsClient,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -41,7 +47,6 @@ import {
   receiveMetadata,
   requestAnnotations,
   requestBarcodeSearchResults,
-  requestFileMetadataForJob,
   requestMetadata,
   requestTemplates,
   retrieveOptionsForLookup,
@@ -49,7 +54,6 @@ import {
 } from "../actions";
 import {
   getBarcodeSearchResults,
-  getFileMetadataForJob,
   getFileMetadataSearchResults,
 } from "../selectors";
 
@@ -59,6 +63,19 @@ describe("Metadata logics", () => {
     description: "some prefix",
     prefixId: 1,
     prefix: "AD",
+  });
+
+  let fms: SinonStubbedInstance<FileManagementSystem>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+
+  beforeEach(() => {
+    fms = createStubInstance(FileManagementSystem);
+    labkeyClient = createStubInstance(LabkeyClient);
+    mmsClient = createStubInstance(MMSClient);
+    sandbox.replace(mockReduxLogicDeps, "fms", fms);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
+    sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
   });
 
   afterEach(() => {
@@ -100,8 +117,7 @@ describe("Metadata logics", () => {
       sandbox.replace(ipcRenderer, "send", sendStub);
     });
     it("sends a event on the OPEN_CREATE_PLATE_STANDALONE channel if it successfully creates a barcode", async () => {
-      const createBarcodeStub = stub().resolves("fake");
-      sandbox.replace(mmsClient, "createBarcode", createBarcodeStub);
+      mmsClient.createBarcode.resolves("fake");
       const { logicMiddleware, store } = createMockReduxStore();
       store.dispatch(createBarcode(prefix));
       await logicMiddleware.whenComplete();
@@ -109,8 +125,7 @@ describe("Metadata logics", () => {
       expect(sendStub.called).to.be.true;
     });
     it("dispatches requestFailed if request fails", async () => {
-      const createBarcodeStub = stub().rejects(new Error("foo"));
-      sandbox.replace(mmsClient, "createBarcode", createBarcodeStub);
+      mmsClient.createBarcode.rejects(new Error("foo"));
       await runRequestFailedTest(
         createBarcode(prefix),
         "Could not create barcode: foo",
@@ -122,41 +137,15 @@ describe("Metadata logics", () => {
   describe("requestMetadata", () => {
     it("sets metadata given OK response", async () => {
       const channels = [mockChannel];
-      const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
-      const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
-      const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
-      const getChannelsStub = stub().resolves(channels);
-      const getImagingSessionsStub = stub().resolves(mockImagingSessions);
-      const getLookupsStub = stub().resolves(mockLookups);
-      const getUnitsStub = stub().resolves([mockUnit]);
-      const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
-      const getUsersStub = stub().resolves(mockUsers);
-
-      sandbox.replace(
-        labkeyClient,
-        "getAnnotationLookups",
-        getAnnotationLookupsStub
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getAnnotationTypes",
-        getAnnotationTypesStub
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getBarcodePrefixes",
-        getBarcodePrefixesStub
-      );
-      sandbox.replace(labkeyClient, "getChannels", getChannelsStub);
-      sandbox.replace(
-        labkeyClient,
-        "getImagingSessions",
-        getImagingSessionsStub
-      );
-      sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
-      sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
-      sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
-      sandbox.replace(labkeyClient, "getUsers", getUsersStub);
+      labkeyClient.getAnnotationLookups.resolves(mockAnnotationLookups);
+      labkeyClient.getAnnotationTypes.resolves(mockAnnotationTypes);
+      labkeyClient.getBarcodePrefixes.resolves(mockBarcodePrefixes);
+      labkeyClient.getChannels.resolves(channels);
+      labkeyClient.getImagingSessions.resolves(mockImagingSessions);
+      labkeyClient.getLookups.resolves(mockLookups);
+      labkeyClient.getUnits.resolves([mockUnit]);
+      labkeyClient.getWorkflows.resolves(mockSelectedWorkflows);
+      labkeyClient.getUsers.resolves(mockUsers);
 
       const expectedAction = receiveMetadata({
         annotationLookups: mockAnnotationLookups,
@@ -172,20 +161,7 @@ describe("Metadata logics", () => {
       await runRequestSucceededTest(requestMetadata(), expectedAction);
     });
     it("dispatches requestFailed given non-OK response", async () => {
-      const getImagingSessionsStub = stub().rejects(new Error("foo"));
-      sandbox.replace(
-        labkeyClient,
-        "getImagingSessions",
-        getImagingSessionsStub
-      );
-      sandbox.replace(labkeyClient, "getAnnotationLookups", stub());
-      sandbox.replace(labkeyClient, "getAnnotationTypes", stub());
-      sandbox.replace(labkeyClient, "getBarcodePrefixes", stub());
-      sandbox.replace(labkeyClient, "getChannels", stub());
-      sandbox.replace(labkeyClient, "getLookups", stub());
-      sandbox.replace(labkeyClient, "getUnits", stub());
-      sandbox.replace(labkeyClient, "getWorkflows", stub());
-      sandbox.replace(labkeyClient, "getUsers", stub());
+      labkeyClient.getImagingSessions.rejects(new Error("foo"));
       await runRequestFailedTest(
         requestMetadata(),
         "Failed to retrieve metadata: foo",
@@ -195,14 +171,8 @@ describe("Metadata logics", () => {
   });
   describe("requestAnnotations", () => {
     it("sets annotations given OK response", async () => {
-      const getAnnotationsStub = stub().resolves(mockAnnotations);
-      const getAnnotationOptionsStub = stub().resolves(mockAnnotationOptions);
-      sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
-      sandbox.replace(
-        labkeyClient,
-        "getAnnotationOptions",
-        getAnnotationOptionsStub
-      );
+      labkeyClient.getAnnotations.resolves(mockAnnotations);
+      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
       await runRequestSucceededTest(
         requestAnnotations(),
         receiveMetadata(
@@ -215,9 +185,7 @@ describe("Metadata logics", () => {
       );
     });
     it("dispatches requestFailed given not OK response", async () => {
-      const getAnnotationsStub = stub().rejects(new Error("foo"));
-      sandbox.replace(labkeyClient, "getAnnotations", getAnnotationsStub);
-      sandbox.replace(labkeyClient, "getAnnotationOptions", stub());
+      labkeyClient.getAnnotations.rejects(new Error("foo"));
       await runRequestFailedTest(
         requestAnnotations(),
         "Could not retrieve annotations: foo",
@@ -228,16 +196,14 @@ describe("Metadata logics", () => {
   describe("requestTemplates", () => {
     it("sets templates given OK response", async () => {
       const templates: LabkeyTemplate[] = [];
-      const getTemplatesStub = stub().resolves(mockAnnotations);
-      sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
+      labkeyClient.getTemplates.resolves([]);
       await runRequestSucceededTest(
         requestTemplates(),
         receiveMetadata({ templates }, AsyncRequest.GET_TEMPLATES)
       );
     });
     it("dispatches requestFailed given non-ok response", async () => {
-      const getTemplatesStub = stub().rejects(new Error("foo"));
-      sandbox.replace(labkeyClient, "getTemplates", getTemplatesStub);
+      labkeyClient.getTemplates.rejects(new Error("foo"));
       await runRequestFailedTest(
         requestTemplates(),
         "Could not retrieve templates: foo",
@@ -267,8 +233,7 @@ describe("Metadata logics", () => {
       },
     };
     it("sets lookupOptions given OK response", async () => {
-      const getOptionsStub = stub().resolves(mockLookupOptions);
-      sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+      labkeyClient.getOptionsForLookup.resolves(mockLookupOptions);
       await runRequestSucceededTest(
         retrieveOptionsForLookup(WELL_ANNOTATION_NAME),
         receiveMetadata(
@@ -279,8 +244,7 @@ describe("Metadata logics", () => {
       );
     });
     it("dispatches requestFailed given not OK response", async () => {
-      const getOptionsStub = stub().rejects(new Error("foo"));
-      sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+      labkeyClient.getOptionsForLookup.rejects(new Error("foo"));
       await runRequestFailedTest(
         retrieveOptionsForLookup("Well"),
         "Could not retrieve options for lookup annotation: foo",
@@ -289,8 +253,7 @@ describe("Metadata logics", () => {
       );
     });
     it("dispatches requestFailed if annotation's lookup not found", async () => {
-      const getOptionsStub = stub().resolves([]);
-      sandbox.replace(labkeyClient, "getOptionsForLookup", getOptionsStub);
+      labkeyClient.getOptionsForLookup.resolves([]);
       await runRequestFailedTest(
         retrieveOptionsForLookup("Well"),
         "Could not retrieve options for lookup: could not find lookup. Contact Software.",
@@ -307,14 +270,8 @@ describe("Metadata logics", () => {
   });
   describe("searchFileMetadataLogic", () => {
     it("sets searchResults given annotation and searchValue to search for", async () => {
-      const getSearchResultsAsMapStub = stub().resolves({});
-      sandbox.replace(fms, "getFilesByAnnotation", getSearchResultsAsMapStub);
-      const getSearchResultsStub = stub().resolves(mockSearchResults);
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        getSearchResultsStub
-      );
+      fms.getFilesByAnnotation.resolves({});
+      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -332,14 +289,8 @@ describe("Metadata logics", () => {
       expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
     });
     it("sets searchResults given user to search for", async () => {
-      const getSearchResultsAsMapStub = stub().resolves({});
-      sandbox.replace(fms, "getFilesByUser", getSearchResultsAsMapStub);
-      const getSearchResultsStub = stub().resolves(mockSearchResults);
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        getSearchResultsStub
-      );
+      fms.getFilesByUser.resolves({});
+      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -355,14 +306,8 @@ describe("Metadata logics", () => {
       expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
     });
     it("sets searchResults given not OK response", async () => {
-      const getSearchResultsAsMapStub = stub().resolves({});
-      sandbox.replace(fms, "getFilesByAnnotation", getSearchResultsAsMapStub);
-      const getSearchResultsStub = stub().rejects();
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        getSearchResultsStub
-      );
+      fms.getFilesByAnnotation.resolves({});
+      fms.transformFileMetadataIntoTable.rejects();
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -383,14 +328,8 @@ describe("Metadata logics", () => {
       expect(getAlert(state)).to.not.be.undefined;
     });
     it("sets search results given template id", async () => {
-      const getSearchResultsAsMapStub = stub().resolves({});
-      sandbox.replace(fms, "getFilesByTemplate", getSearchResultsAsMapStub);
-      const getSearchResultsStub = stub().resolves(mockSearchResults);
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        getSearchResultsStub
-      );
+      fms.getFilesByTemplate.resolves({});
+      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -398,81 +337,20 @@ describe("Metadata logics", () => {
 
       let state = store.getState();
       expect(getFileMetadataSearchResults(state)).to.be.undefined;
-      expect(getSearchResultsAsMapStub.called).to.be.false;
+      expect(fms.getFilesByTemplate.called).to.be.false;
 
       store.dispatch(searchFileMetadata({ templateId: 1 }));
 
       await logicMiddleware.whenComplete();
       state = store.getState();
       expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
-      expect(getSearchResultsAsMapStub.called).to.be.true;
-    });
-  });
-  describe("retrieveFileMetadataForJob", () => {
-    it("sets fileMetadataForJob given OK response", async () => {
-      const getSearchResultsAsMapStub = stub().resolves({ abc123: "blah" });
-      sandbox.replace(
-        fms,
-        "getCustomMetadataForFile",
-        getSearchResultsAsMapStub
-      );
-      const getSearchResultsStub = stub().resolves(mockSearchResults);
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        getSearchResultsStub
-      );
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getFileMetadataForJob(state)).to.be.undefined;
-
-      store.dispatch(requestFileMetadataForJob(["1", "2"]));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getFileMetadataForJob(state)).to.not.be.undefined;
-    });
-    it("sets alert given not OK response", async () => {
-      const getSearchResultsAsMapStub = stub().rejects();
-      sandbox.replace(
-        fms,
-        "getCustomMetadataForFile",
-        getSearchResultsAsMapStub
-      );
-      const getSearchResultsStub = stub().rejects();
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        getSearchResultsStub
-      );
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(requestFileMetadataForJob(["1", "2"]));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
+      expect(fms.getFilesByTemplate.called).to.be.true;
     });
   });
   describe("getBarcodeSearchResults", () => {
     it("dispatches receiveMetadata given good request", async () => {
       const barcodeSearchResults: LabkeyPlateResponse[] = [];
-      const getPlatesByBarcodeStub = stub().resolves(barcodeSearchResults);
-      sandbox.replace(
-        labkeyClient,
-        "getPlatesByBarcode",
-        getPlatesByBarcodeStub
-      );
+      labkeyClient.getPlatesByBarcode.resolves(barcodeSearchResults);
       const expectedAction = receiveMetadata(
         { barcodeSearchResults },
         AsyncRequest.GET_BARCODE_SEARCH_RESULTS
@@ -483,12 +361,7 @@ describe("Metadata logics", () => {
       );
     });
     it("dispatches requestFailed given bad request", async () => {
-      const getPlatesByBarcodeStub = stub().rejects(new Error("foo"));
-      sandbox.replace(
-        labkeyClient,
-        "getPlatesByBarcode",
-        getPlatesByBarcodeStub
-      );
+      labkeyClient.getPlatesByBarcode.rejects(new Error("foo"));
       await runRequestFailedTest(
         requestBarcodeSearchResults("35"),
         "Could not retrieve barcode search results: foo",
@@ -496,12 +369,7 @@ describe("Metadata logics", () => {
       );
     });
     it("doesn't request data if payload is empty", async () => {
-      const getPlatesByBarcodeStub = stub().rejects();
-      sandbox.replace(
-        labkeyClient,
-        "getPlatesByBarcode",
-        getPlatesByBarcodeStub
-      );
+      labkeyClient.getPlatesByBarcode.rejects();
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -509,7 +377,7 @@ describe("Metadata logics", () => {
 
       // before
       expect(getBarcodeSearchResults(store.getState())).to.be.empty;
-      expect(getPlatesByBarcodeStub.called).to.be.false;
+      expect(labkeyClient.getPlatesByBarcode.called).to.be.false;
 
       // apply
       store.dispatch(requestBarcodeSearchResults("  "));
@@ -517,7 +385,7 @@ describe("Metadata logics", () => {
 
       // after
       expect(getBarcodeSearchResults(store.getState())).to.be.empty;
-      expect(getPlatesByBarcodeStub.called).to.be.false;
+      expect(labkeyClient.getPlatesByBarcode.called).to.be.false;
     });
   });
 });

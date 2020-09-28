@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import * as Logger from "js-logger";
-import { createSandbox, stub } from "sinon";
+import { SinonStubbedInstance, createStubInstance, createSandbox } from "sinon";
 
+import { WELL_ANNOTATION_NAME } from "../../../constants";
+import LabkeyClient from "../../labkey-client";
+import MMSClient from "../../mms-client";
 import { CustomMetadataQuerier } from "../helpers/custom-metadata-querier";
 import { FileMetadata, FileToFileMetadata, ImageModelMetadata } from "../types";
 
 import {
-  lk,
-  mms,
   mockCustomFileMetadata,
   mockFiles,
   mockLabKeyFileMetadata,
@@ -17,8 +18,20 @@ describe("CustomMetadataQuerier", () => {
   let mockFileMetadata: FileMetadata;
   let mockFileToFileMetadata: FileToFileMetadata;
   let mockImageModelMetadata: ImageModelMetadata;
+  const wellAnnotationId = 5;
+  const cloneAnnotationId = 6;
+  let lk: SinonStubbedInstance<LabkeyClient>;
+  let mms: SinonStubbedInstance<MMSClient>;
+  let querier: CustomMetadataQuerier;
 
   beforeEach(() => {
+    lk = createStubInstance(LabkeyClient);
+    mms = createStubInstance(MMSClient);
+    querier = new CustomMetadataQuerier(
+      (mms as any) as MMSClient,
+      (lk as any) as LabkeyClient,
+      Logger
+    );
     const Words = ["peas", "carrots", "celery"];
     mockFileMetadata = {
       fileId: "abc123",
@@ -53,17 +66,12 @@ describe("CustomMetadataQuerier", () => {
       positionIndex: undefined,
       scene: undefined,
       subImageName: undefined,
-      "Seeded Date": ["2020-02-03"],
-      "Seeded Datetime": ["2020-02-03 12:04:10"],
+      "Seeded Date": [new Date("2020-02-03")],
+      "Seeded Datetime": [new Date("2020-02-03 12:04:10")],
       Words,
     };
   });
   describe("transformTableIntoCSV", () => {
-    const querier: CustomMetadataQuerier = new CustomMetadataQuerier(
-      mms,
-      lk,
-      Logger
-    );
     it("transforms metadata to CSV with matching columns", () => {
       const header = ["fileId", "fileTYPE", "WoRkFlOw", "words"];
       const rows = [mockImageModelMetadata];
@@ -143,27 +151,11 @@ describe("CustomMetadataQuerier", () => {
   });
 
   describe("queryByUser", () => {
-    const querier: CustomMetadataQuerier = new CustomMetadataQuerier(
-      mms,
-      lk,
-      Logger
-    );
-    const sandbox = createSandbox();
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it("returns files found", async () => {
-      sandbox.replace(lk, "selectRowsAsList", stub().resolves(mockFiles));
-      sandbox.replace(
-        lk,
-        "selectFirst",
-        stub().resolves(mockLabKeyFileMetadata)
-      );
-      sandbox.replace(
-        mms,
-        "getFileMetadata",
-        stub().resolves(mockCustomFileMetadata)
+      lk.selectRowsAsList.resolves(mockFiles);
+      lk.selectFirst.resolves(mockLabKeyFileMetadata);
+      mms.getFileMetadata.resolves(
+        (mockCustomFileMetadata as any) as FileMetadata
       );
 
       const response = await querier.queryByUser("fake_user");
@@ -175,7 +167,7 @@ describe("CustomMetadataQuerier", () => {
       });
     });
     it("returns empty array", async () => {
-      sandbox.replace(lk, "selectRowsAsList", stub().resolves([]));
+      lk.selectRowsAsList.resolves([]);
 
       const response = await querier.queryByUser("fake_user");
       expect(response).to.be.empty;
@@ -183,27 +175,11 @@ describe("CustomMetadataQuerier", () => {
   });
 
   describe("queryByTemplate", () => {
-    const querier: CustomMetadataQuerier = new CustomMetadataQuerier(
-      mms,
-      lk,
-      Logger
-    );
-    const sandbox = createSandbox();
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it("returns files found", async () => {
-      sandbox.replace(lk, "selectRowsAsList", stub().resolves(mockFiles));
-      sandbox.replace(
-        lk,
-        "selectFirst",
-        stub().resolves(mockLabKeyFileMetadata)
-      );
-      sandbox.replace(
-        mms,
-        "getFileMetadata",
-        stub().resolves(mockCustomFileMetadata)
+      lk.selectRowsAsList.resolves(mockFiles);
+      lk.selectFirst.resolves(mockLabKeyFileMetadata);
+      mms.getFileMetadata.resolves(
+        (mockCustomFileMetadata as any) as FileMetadata
       );
 
       const response = await querier.queryByTemplate(1);
@@ -215,7 +191,7 @@ describe("CustomMetadataQuerier", () => {
       });
     });
     it("returns empty array", async () => {
-      sandbox.replace(lk, "selectRowsAsList", stub().resolves([]));
+      lk.selectRowsAsList.resolves([]);
 
       const response = await querier.queryByTemplate(1);
       expect(response).to.be.empty;
@@ -224,10 +200,7 @@ describe("CustomMetadataQuerier", () => {
 
   describe("transformFileMetadataIntoTable", () => {
     const sandbox = createSandbox();
-    let querier: CustomMetadataQuerier;
-
     beforeEach(() => {
-      const selectRowsAsListStub = stub();
       const mockTemplates: any[] = [
         { templateId: 1, name: "Not this" },
         { templateId: 2, name: "special template" },
@@ -253,11 +226,22 @@ describe("CustomMetadataQuerier", () => {
           "annotationTypeId/Name": "DateTime",
           name: "Seeded Datetime",
         },
+        {
+          annotationId: cloneAnnotationId,
+          "annotationTypeId/Name": "Number",
+          name: "Clones",
+        },
+        {
+          annotationId: wellAnnotationId,
+          "annotationTypeId/Name": "Lookup",
+          name: WELL_ANNOTATION_NAME,
+        },
       ];
-      selectRowsAsListStub.onCall(0).returns(mockTemplates);
-      selectRowsAsListStub.onCall(1).returns(mockAnnotations);
-      sandbox.replace(lk, "selectRowsAsList", selectRowsAsListStub);
-      querier = new CustomMetadataQuerier(mms, lk, Logger);
+      lk.selectRowsAsList
+        .onCall(0)
+        .resolves(mockTemplates)
+        .onCall(1)
+        .resolves(mockAnnotations);
     });
 
     afterEach(() => {
@@ -308,22 +292,76 @@ describe("CustomMetadataQuerier", () => {
       expect(response).to.deep.equal([
         {
           ...mockImageModelMetadata,
-          "Seeded Datetime": ["2020-02-03 12:04:10", "2020-02-04 12:04:10"],
+          "Seeded Datetime": [
+            new Date("2020-02-03 12:04:10"),
+            new Date("2020-02-04 12:04:10"),
+          ],
           template: "special template",
           templateId: 2,
         },
       ]);
     });
-    it("transforms date strings to dates if transformDates=true", async () => {
+    it("transforms date strings to dates", async () => {
       const response = await querier.transformFileMetadataIntoTable(
-        mockFileToFileMetadata,
-        true
+        mockFileToFileMetadata
       );
       expect(response).to.deep.equal([
         {
           ...mockImageModelMetadata,
           "Seeded Date": [new Date("2020-02-03")],
           "Seeded Datetime": [new Date("2020-02-03 12:04:10")],
+          template: "special template",
+          templateId: 2,
+        },
+      ]);
+    });
+    it("ensures values for Well annotation are integers", async () => {
+      sandbox.replace(mockFileMetadata, "annotations", [
+        { annotationId: wellAnnotationId, values: ["1", "2"] },
+      ]);
+      const response = await querier.transformFileMetadataIntoTable(
+        mockFileToFileMetadata
+      );
+      expect(response).to.deep.equal([
+        {
+          channelId: undefined,
+          fileId: "abc123",
+          fovId: undefined,
+          modified: "sometime",
+          modifiedBy: "seanm",
+          fileSize: 1,
+          fileType: "image",
+          filename: "example.txt",
+          positionIndex: undefined,
+          scene: undefined,
+          subImageName: undefined,
+          template: "special template",
+          templateId: 2,
+          [WELL_ANNOTATION_NAME]: [1, 2],
+        },
+      ]);
+    });
+    it("ensures values for number annotations are numbers", async () => {
+      sandbox.replace(mockFileMetadata, "annotations", [
+        { annotationId: cloneAnnotationId, values: ["2", "4"] },
+      ]);
+      const response = await querier.transformFileMetadataIntoTable(
+        mockFileToFileMetadata
+      );
+      expect(response).to.deep.equal([
+        {
+          channelId: undefined,
+          Clones: [2, 4],
+          fileId: "abc123",
+          fovId: undefined,
+          modified: "sometime",
+          modifiedBy: "seanm",
+          fileSize: 1,
+          fileType: "image",
+          filename: "example.txt",
+          positionIndex: undefined,
+          scene: undefined,
+          subImageName: undefined,
           template: "special template",
           templateId: 2,
         },

@@ -1,9 +1,10 @@
 import { expect } from "chai";
-import { createSandbox, stub } from "sinon";
+import { createStubInstance, createSandbox, stub } from "sinon";
 
 import JobStatusClient from "../";
-import { httpClient, storage } from "../../../state/test/configure-mock-store";
+import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
 import { LocalStorage } from "../../../types";
+import HttpCacheClient from "../../http-cache-client";
 import { JobQuery } from "../types";
 
 import {
@@ -15,6 +16,13 @@ import {
   mockUpdateJobRequest,
   makeAxiosResponse,
 } from "./mocks";
+
+const storage = (createStubInstance(
+  EnvironmentAwareStorage
+) as any) as LocalStorage;
+const httpClient = (createStubInstance(
+  HttpCacheClient
+) as any) as HttpCacheClient;
 
 describe("JobStatusClient", () => {
   const sandbox = createSandbox();

@@ -56,6 +56,31 @@ export default class LabkeyClient extends HttpCacheClient {
     useCache: boolean
   ) {
     super(httpClient, localStorage, useCache);
+    this.getAnnotationTypes = this.getAnnotationTypes.bind(this);
+    this.getAnnotations = this.getAnnotations.bind(this);
+    this.getAnnotationLookups = this.getAnnotationLookups.bind(this);
+    this.getAnnotationOptions = this.getAnnotationOptions.bind(this);
+    this.getOptionsForLookup = this.getOptionsForLookup.bind(this);
+    this.getPlatesByBarcode = this.getPlatesByBarcode.bind(this);
+    this.getImagingSessions = this.getImagingSessions.bind(this);
+    this.getBarcodePrefixes = this.getBarcodePrefixes.bind(this);
+    this.getLookups = this.getLookups.bind(this);
+    this.getTemplates = this.getTemplates.bind(this);
+    this.getUnits = this.getUnits.bind(this);
+    this.getUsers = this.getUsers.bind(this);
+    this.getColumnValues = this.getColumnValues.bind(this);
+    this.getWorkflows = this.getWorkflows.bind(this);
+    this.getChannels = this.getChannels.bind(this);
+    this.getTemplateHasBeenUsed = this.getTemplateHasBeenUsed.bind(this);
+    this.getPlateBarcodeAndAllImagingSessionIdsFromWellId = this.getPlateBarcodeAndAllImagingSessionIdsFromWellId.bind(
+      this
+    );
+    this.getImagingSessionIdsForBarcode = this.getImagingSessionIdsForBarcode.bind(
+      this
+    );
+    this.selectRows = this.selectRows.bind(this);
+    this.selectFirst = this.selectFirst.bind(this);
+    this.selectRowsAsList = this.selectRowsAsList.bind(this);
   }
   private static getSelectRowsURL = (
     schema: string,

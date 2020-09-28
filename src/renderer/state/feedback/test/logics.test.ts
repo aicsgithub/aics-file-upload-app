@@ -1,7 +1,9 @@
 import { expect } from "chai";
 import { AnyAction } from "redux";
-import { createSandbox, SinonStub, stub } from "sinon";
+import { SinonStubbedInstance, createStubInstance, createSandbox } from "sinon";
 
+import LabkeyClient from "../../../services/labkey-client";
+import MMSClient from "../../../services/mms-client";
 import { openTemplateEditor } from "../../selection/actions";
 import {
   startTemplateDraft,
@@ -11,8 +13,7 @@ import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
 import { getTemplateDraft } from "../../template/selectors";
 import {
   createMockReduxStore,
-  labkeyClient,
-  mmsClient,
+  mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
@@ -27,6 +28,21 @@ import { closeModal } from "../actions";
 import { getTemplateEditorVisible } from "../selectors";
 
 describe("Feedback logics", () => {
+  let mmsClient: SinonStubbedInstance<MMSClient>,
+    labkeyClient: SinonStubbedInstance<LabkeyClient>;
+  const sandbox = createSandbox();
+
+  beforeEach(() => {
+    mmsClient = createStubInstance(MMSClient);
+    labkeyClient = createStubInstance(LabkeyClient);
+    sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
   describe("closeModalLogic", () => {
     const templateEditorOpenState: State = {
       ...mockState,
@@ -76,27 +92,10 @@ describe("Feedback logics", () => {
     });
   });
   describe("openTemplateEditorLogic", () => {
-    const sandbox = createSandbox();
-
     afterEach(() => {
-      sandbox.restore();
+      mmsClient.getTemplate.restore();
+      labkeyClient.getTemplateHasBeenUsed.restore();
     });
-
-    const stubMethods = (
-      getTemplateOverride?: SinonStub,
-      getTemplateHasBeenUsedOverride?: SinonStub
-    ) => {
-      sandbox.replace(
-        mmsClient,
-        "getTemplate",
-        getTemplateOverride || stub().resolves(mockMMSTemplate)
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getTemplateHasBeenUsed",
-        getTemplateHasBeenUsedOverride || stub().resolves(true)
-      );
-    };
 
     const runTest = async (expectedAction: AnyAction) => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
@@ -111,7 +110,8 @@ describe("Feedback logics", () => {
     };
 
     it("dispatches startTemplateDraft given OK requests", async () => {
-      stubMethods();
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
+      labkeyClient.getTemplateHasBeenUsed.resolves(true);
       const expectedAction = startTemplateDraft(
         mockMMSTemplate,
         {
@@ -130,7 +130,8 @@ describe("Feedback logics", () => {
     });
 
     it("dispatches startTemplateDraftFailed if getting template fails", async () => {
-      stubMethods(stub().rejects(new Error("foo")));
+      mmsClient.getTemplate.rejects(new Error("foo"));
+      labkeyClient.getTemplateHasBeenUsed.resolves(true);
       const expectedAction = startTemplateDraftFailed(
         "Could not retrieve template: foo"
       );
@@ -138,7 +139,8 @@ describe("Feedback logics", () => {
     });
 
     it("dispatches startTemplateDraftFailed if getting template is used fails", async () => {
-      stubMethods(undefined, stub().rejects(new Error("foo")));
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
+      labkeyClient.getTemplateHasBeenUsed.rejects(new Error("foo"));
       const expectedAction = startTemplateDraftFailed(
         "Could not retrieve template: foo"
       );

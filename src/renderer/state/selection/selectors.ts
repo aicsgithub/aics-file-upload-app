@@ -212,6 +212,19 @@ export const getAllWells = createSelector(
   }
 );
 
+export const getWellIdToWellMap = createSelector(
+  [getAllWells],
+  (wells: WellResponse[]) => {
+    return wells.reduce(
+      (accum: Map<number, WellResponse>, well: WellResponse) => {
+        accum.set(well.wellId, well);
+        return accum;
+      },
+      new Map<number, WellResponse>()
+    );
+  }
+);
+
 export const getAllPlates = createSelector(
   [getSelectedPlates],
   (selectedPlates: ImagingSessionIdToPlateMap) => {

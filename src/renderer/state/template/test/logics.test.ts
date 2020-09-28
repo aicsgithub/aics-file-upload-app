@@ -1,6 +1,13 @@
 import { expect } from "chai";
-import { createSandbox, SinonStub, stub } from "sinon";
+import {
+  createSandbox,
+  SinonStub,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
+import { MMSClient } from "../../../services";
 import { ColumnType } from "../../../services/labkey-client/types";
 import { Template } from "../../../services/mms-client/types";
 import { requestFailed } from "../../actions";
@@ -8,8 +15,7 @@ import { getAlert } from "../../feedback/selectors";
 import {
   createMockReduxStore,
   dialog,
-  mmsClient,
-  labkeyClient,
+  mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
@@ -34,6 +40,12 @@ import { getTemplateDraftAnnotations } from "../selectors";
 
 describe("Template Logics", () => {
   const sandbox = createSandbox();
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+
+  beforeEach(() => {
+    mmsClient = createStubInstance(MMSClient);
+    sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+  });
 
   afterEach(() => {
     sandbox.restore();
@@ -201,41 +213,33 @@ describe("Template Logics", () => {
         }),
       };
     });
-    const stubMethods = (
-      showMessageBoxOverride?: SinonStub,
-      editTemplateOverride?: SinonStub,
-      createTemplateOverride?: SinonStub
-    ) => {
+    const stubMethods = (showMessageBoxOverride?: SinonStub) => {
       const showMessageBoxStub =
         showMessageBoxOverride || stub().resolves({ response: 1 });
-      const editTemplateStub = editTemplateOverride || stub().resolves([1]);
-      const createTemplateStub = createTemplateOverride || stub().resolves([1]);
       sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-      sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
-      sandbox.replace(mmsClient, "createTemplate", createTemplateStub);
-      sandbox.replace(mmsClient, "getTemplate", stub());
-      sandbox.replace(labkeyClient, "getTemplates", stub());
-      return { showMessageBoxStub, editTemplateStub, createTemplateStub };
+      mmsClient.editTemplate.resolves(1);
+      mmsClient.createTemplate.resolves(1);
+      return { showMessageBoxStub };
     };
 
     it("shows a dialog if user should be warned about a versioning change and continues saving if user clicks Continue", async () => {
-      const { editTemplateStub, showMessageBoxStub } = stubMethods();
+      const { showMessageBoxStub } = stubMethods();
       const { logicMiddleware, store } = createMockReduxStore(
         stateWithChangedTemplateDraft
       );
 
       expect(showMessageBoxStub.called).to.be.false;
-      expect(editTemplateStub.called).to.be.false;
+      expect(mmsClient.editTemplate.called).to.be.false;
 
       store.dispatch(saveTemplate());
       await logicMiddleware.whenComplete();
 
       expect(showMessageBoxStub.called).to.be.true;
-      expect(editTemplateStub.called).to.be.true;
+      expect(mmsClient.editTemplate.called).to.be.true;
     });
 
     it("allows users to cancel saving template if they click cancel in the warning dialog", async () => {
-      const { editTemplateStub, showMessageBoxStub } = stubMethods(
+      const { showMessageBoxStub } = stubMethods(
         stub().resolves({ response: 0 })
       );
       const { logicMiddleware, store } = createMockReduxStore(
@@ -243,13 +247,13 @@ describe("Template Logics", () => {
       );
 
       expect(showMessageBoxStub.called).to.be.false;
-      expect(editTemplateStub.called).to.be.false;
+      expect(mmsClient.editTemplate.called).to.be.false;
 
       store.dispatch(saveTemplate());
       await logicMiddleware.whenComplete();
 
       expect(showMessageBoxStub.called).to.be.true;
-      expect(editTemplateStub.called).to.be.false;
+      expect(mmsClient.editTemplate.called).to.be.false;
     });
 
     it("doesn't show warning dialog if user is creating a template", async () => {
@@ -287,19 +291,19 @@ describe("Template Logics", () => {
       expect(showMessageBoxStub.called).to.be.false;
     });
     it("calls editTemplate endpoint if draft has template id", async () => {
-      const { editTemplateStub } = stubMethods();
+      stubMethods();
       const { logicMiddleware, store } = createMockReduxStore(
         stateWithChangedTemplateDraft
       );
 
-      expect(editTemplateStub.called).to.be.false;
+      expect(mmsClient.editTemplate.called).to.be.false;
       store.dispatch(saveTemplate());
 
       await logicMiddleware.whenComplete();
-      expect(editTemplateStub.called).to.be.true;
+      expect(mmsClient.editTemplate.called).to.be.true;
     });
     it("calls createTemplate endpoint if draft does not have template id", async () => {
-      const { createTemplateStub } = stubMethods();
+      stubMethods();
       const { logicMiddleware, store } = createMockReduxStore({
         ...startState,
         template: getMockStateWithHistory({
@@ -311,22 +315,21 @@ describe("Template Logics", () => {
         }),
       });
 
-      expect(createTemplateStub.called).to.be.false;
+      expect(mmsClient.createTemplate.called).to.be.false;
       store.dispatch(saveTemplate());
 
       await logicMiddleware.whenComplete();
-      expect(createTemplateStub.called).to.be.true;
+      expect(mmsClient.createTemplate.called).to.be.true;
     });
     it("dispatches requestFailed if saving template fails", async () => {
       const error = "Bad credentials";
-      const editTemplateStub = stub().rejects({
+      mmsClient.editTemplate.rejects({
         response: {
           data: {
             error,
           },
         },
       });
-      sandbox.replace(mmsClient, "editTemplate", editTemplateStub);
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...startState,
         template: getMockStateWithHistory({
@@ -352,13 +355,12 @@ describe("Template Logics", () => {
       ).to.be.true;
     });
     it("dispatches saveTemplateSucceeded if template was saved successfully", async () => {
-      sandbox.replace(labkeyClient, "getTemplates", stub());
       sandbox.replace(
         dialog,
         "showMessageBox",
         stub().resolves({ response: 1 })
       );
-      sandbox.replace(mmsClient, "editTemplate", stub().resolves(1));
+      mmsClient.editTemplate.resolves(1);
       const { actions, logicMiddleware, store } = createMockReduxStore(
         stateWithChangedTemplateDraft
       );
@@ -369,13 +371,12 @@ describe("Template Logics", () => {
       expect(actions.includesMatch(saveTemplateSucceeded(1))).to.be.true;
     });
     it("dispatches requestFailed if booleanAnnotationTypeId is not defined", async () => {
-      sandbox.replace(labkeyClient, "getTemplates", stub());
       sandbox.replace(
         dialog,
         "showMessageBox",
         stub().resolves({ response: 1 })
       );
-      sandbox.replace(mmsClient, "editTemplate", stub().resolves(1));
+      mmsClient.editTemplate.resolves(1);
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...stateWithChangedTemplateDraft,
         metadata: {
@@ -397,24 +398,19 @@ describe("Template Logics", () => {
       );
     });
     it("dispatches requestFailed if getTemplate fails", async () => {
-      sandbox.replace(labkeyClient, "getTemplates", stub());
       sandbox.replace(
         dialog,
         "showMessageBox",
         stub().resolves({ response: 1 })
       );
-      sandbox.replace(mmsClient, "editTemplate", stub().resolves(1));
-      sandbox.replace(
-        mmsClient,
-        "getTemplate",
-        stub().rejects({
-          response: {
-            data: {
-              error: "foo",
-            },
+      mmsClient.editTemplate.resolves(1);
+      mmsClient.getTemplate.rejects({
+        response: {
+          data: {
+            error: "foo",
           },
-        })
-      );
+        },
+      });
       const { actions, logicMiddleware, store } = createMockReduxStore(
         stateWithChangedTemplateDraft
       );

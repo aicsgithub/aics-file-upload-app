@@ -11,7 +11,6 @@ import {
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
   RECEIVE_METADATA,
-  REQUEST_FILE_METADATA_FOR_JOB,
   REQUEST_METADATA,
   RESET_HISTORY,
   SEARCH_FILE_METADATA,
@@ -28,7 +27,6 @@ import {
   GetOptionsForLookupAction,
   GetTemplatesAction,
   ReceiveMetadataAction,
-  RequestFileMetadataForJobAction,
   RequestMetadataAction,
   ResetHistoryAction,
   SearchConfig,
@@ -141,15 +139,6 @@ export function searchFileMetadata(
   return {
     payload: searchConfig,
     type: SEARCH_FILE_METADATA,
-  };
-}
-
-export function requestFileMetadataForJob(
-  fileIds: string[]
-): RequestFileMetadataForJobAction {
-  return {
-    payload: fileIds,
-    type: REQUEST_FILE_METADATA_FOR_JOB,
   };
 }
 

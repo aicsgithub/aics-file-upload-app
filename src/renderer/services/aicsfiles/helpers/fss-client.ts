@@ -27,6 +27,8 @@ export class FSSClient extends HttpCacheClient {
     useCache = false
   ) {
     super(httpClient, localStorage, useCache);
+    this.startUpload = this.startUpload.bind(this);
+    this.uploadComplete = this.uploadComplete.bind(this);
   }
 
   public async startUpload(
@@ -49,10 +51,10 @@ export class FSSClient extends HttpCacheClient {
     return response.data[0];
   }
 
-  public uploadComplete = async (
+  public async uploadComplete(
     jobId: string,
     sourceFiles: SourceFiles
-  ): Promise<UploadMetadataResponse> => {
+  ): Promise<UploadMetadataResponse> {
     const request: UploadMetadataRequest = {
       files: values(sourceFiles),
       jobId,
@@ -65,7 +67,7 @@ export class FSSClient extends HttpCacheClient {
       FSSClient.getHttpRequestConfig()
     );
     return response.data[0];
-  };
+  }
 
   // FSS expects properties of requests to be in snake_case format and returns responses in snake_case format as well
   private static getHttpRequestConfig(): AxiosRequestConfig {
