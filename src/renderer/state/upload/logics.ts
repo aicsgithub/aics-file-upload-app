@@ -94,6 +94,7 @@ import {
   retryUploadFailed,
   retryUploadSucceeded,
   saveUploadDraftSuccess,
+  updateAndRetryUploadSucceeded,
   updateUpload,
   updateUploads,
   uploadFailed,
@@ -111,6 +112,7 @@ import {
   SAVE_UPLOAD_DRAFT,
   SUBMIT_FILE_METADATA_UPDATE,
   UNDO_FILE_WELL_ASSOCIATION,
+  UPDATE_AND_RETRY_UPLOAD,
   UPDATE_FILES_TO_ARCHIVE,
   UPDATE_FILES_TO_STORE_ON_ISILON,
   UPDATE_SUB_IMAGES,
@@ -134,6 +136,7 @@ import {
   SaveUploadDraftAction,
   SubmitFileMetadataUpdateAction,
   UndoFileWellAssociationAction,
+  UpdateAndRetryUploadAction,
   UpdateFilesToArchive,
   UpdateFilesToStoreOnIsilon,
   UpdateSubImagesAction,
@@ -1152,6 +1155,100 @@ const submitFileMetadataUpdateLogic = createLogic({
   },
 });
 
+const updateAndRetryUploadLogic = createLogic({
+  process: async (
+    {
+      fms,
+      getApplicationMenu,
+      getState,
+      jssClient,
+      logger,
+    }: ReduxLogicProcessDependenciesWithAction<UpdateAndRetryUploadAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    let selectedJob = getSelectedJob(getState());
+    if (!selectedJob) {
+      dispatch(setErrorAlert("No upload selected"));
+      done();
+      return;
+    }
+    const requestType = `${AsyncRequest.RETRY_UPLOAD}-${getCurrentJobName(
+      getState()
+    )}`;
+
+    // close the tab to let user watch progress from upload summary page
+    const actions = [];
+    const currentPage = getPage(getState());
+    const nextPage = findNextPage(currentPage, 1);
+    if (nextPage) {
+      actions.push(
+        ...getSelectPageActions(
+          logger,
+          getState(),
+          getApplicationMenu,
+          selectPage(currentPage, nextPage)
+        )
+      );
+      dispatch(batchActions(actions));
+    }
+
+    try {
+      selectedJob = await jssClient.updateJob(
+        selectedJob.jobId,
+        {
+          serviceFields: {
+            files: getUploadPayload(getState()),
+          },
+        },
+        true
+      );
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          `Could not update and retry upload: ${e.message}`,
+          requestType
+        )
+      );
+    }
+
+    try {
+      await fms.retryUpload(selectedJob);
+      dispatch(updateAndRetryUploadSucceeded());
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          `Retry upload ${getCurrentJobName(getState())} failed: ${e.message}`,
+          requestType
+        )
+      );
+    } finally {
+      done();
+    }
+  },
+  validate: (
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<UpdateAndRetryUploadAction>,
+    next: ReduxLogicNextCb,
+    reject: ReduxLogicRejectCb
+  ) => {
+    const selectedJob = getSelectedJob(getState());
+    if (selectedJob?.status === JSSJobStatus.FAILED) {
+      next({
+        ...action,
+        payload: getCurrentJobName(getState()),
+      });
+    } else if (selectedJob) {
+      reject(setErrorAlert("Selected job is not retryable"));
+    } else {
+      reject(setErrorAlert("No upload selected"));
+    }
+  },
+  type: UPDATE_AND_RETRY_UPLOAD,
+});
+
 export default [
   applyTemplateLogic,
   associateFilesAndWellsLogic,
@@ -1162,6 +1259,7 @@ export default [
   saveUploadDraftLogic,
   submitFileMetadataUpdateLogic,
   undoFileWellAssociationLogic,
+  updateAndRetryUploadLogic,
   updateSubImagesLogic,
   updateUploadLogic,
   updateUploadRowsLogic,

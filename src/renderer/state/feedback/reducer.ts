@@ -87,6 +87,7 @@ import {
   RETRY_UPLOAD_FAILED,
   RETRY_UPLOAD_SUCCEEDED,
   SUBMIT_FILE_METADATA_UPDATE,
+  UPDATE_AND_RETRY_UPLOAD,
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
 } from "../upload/constants";
@@ -104,6 +105,7 @@ import {
   RetryUploadFailedAction,
   RetryUploadSucceededAction,
   SubmitFileMetadataUpdateAction,
+  UpdateAndRetryUploadAction,
   UploadFailedAction,
   UploadSucceededAction,
 } from "../upload/types";
@@ -864,6 +866,20 @@ const actionToConfigMap: TypeToDescriptionMap = {
         AsyncRequest.SAVE_TEMPLATE
       ),
       visibleModals: without(state.visibleModals, "templateEditor"),
+    }),
+  },
+  [UPDATE_AND_RETRY_UPLOAD]: {
+    accepts: (action: AnyAction): action is UpdateAndRetryUploadAction =>
+      action.type === UPDATE_AND_RETRY_UPLOAD,
+    perform: (
+      state: FeedbackStateBranch,
+      action: UpdateAndRetryUploadAction
+    ) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        `${AsyncRequest.RETRY_UPLOAD}-${action.payload}`
+      ),
     }),
   },
 };

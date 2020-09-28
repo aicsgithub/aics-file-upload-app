@@ -1,4 +1,4 @@
-import { stat as fsStat } from "fs";
+import { exists as fsExists, stat as fsStat } from "fs";
 import { hostname, platform, userInfo } from "os";
 import { promisify } from "util";
 
@@ -40,6 +40,7 @@ export const COPY_TYPE = "copy";
 export const COPY_CHILD_TYPE = "copy_child";
 export const ADD_METADATA_TYPE = "add_metadata";
 const stat = promisify(fsStat);
+const exists = promisify(fsExists);
 
 const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
@@ -189,11 +190,24 @@ export class Uploader {
       ({ job: { status }, name }) =>
         status === JSSJobStatus.SUCCEEDED || name === StepName.AddMetadata
     );
+    const uploadDirectoryExists =
+      uploadJob?.serviceFields?.uploadDirectory &&
+      (await exists(uploadJob.serviceFields.uploadDirectory));
 
-    if (jobCompleted && uploadJob.status === JSSJobStatus.FAILED) {
-      this.logger.info(
-        "Current upload failed too late in the process to retry, replacing with new job"
-      );
+    if (
+      (jobCompleted && uploadJob.status === JSSJobStatus.FAILED) ||
+      !uploadDirectoryExists
+    ) {
+      if (!uploadDirectoryExists) {
+        this.logger.info(
+          "Current upload target directory has already been cleaned up, replacing with new job"
+        );
+      } else {
+        this.logger.info(
+          "Current upload failed too late in the process to retry, replacing with new job"
+        );
+      }
+
       // Start new upload job that will replace the current one
       const newUploadResponse = await this.fss.startUpload(
         uploads,

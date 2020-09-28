@@ -330,6 +330,11 @@ export interface SaveUploadDraftSuccessAction extends WriteToStoreAction {
 }
 
 export interface UpdateAndRetryUploadAction {
+  payload?: string; // job name
+  type: string;
+}
+
+export interface UpdateAndRetryUploadSucceededAction {
   type: string;
 }
 
