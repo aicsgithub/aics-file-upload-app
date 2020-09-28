@@ -41,7 +41,7 @@ import { requestFailed } from "../actions";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
-import { getCurrentJobName, getIncompleteJobIds } from "../job/selectors";
+import { getCurrentJobName } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -306,7 +306,6 @@ const initiateUploadLogic = createLogic({
       initiateUploadSucceeded(
         jobName,
         startUploadResponse.jobId,
-        getIncompleteJobIds(getState()),
         getLoggedInUser(getState())
       )
     );
@@ -338,25 +337,12 @@ const initiateUploadLogic = createLogic({
         ),
         COPY_PROGRESS_THROTTLE_MS
       );
-      dispatch(
-        uploadSucceeded(
-          jobName,
-          startUploadResponse.jobId,
-          getIncompleteJobIds(getState())
-        )
-      );
+      dispatch(uploadSucceeded(jobName));
       done();
     } catch (e) {
       const error = `Upload ${jobName} failed: ${e.message}`;
       logger.error(`Upload failed`, e);
-      dispatch(
-        uploadFailed(
-          error,
-          jobName,
-          startUploadResponse.jobId,
-          getIncompleteJobIds(getState())
-        )
-      );
+      dispatch(uploadFailed(error, jobName));
       done();
     }
   },
@@ -398,7 +384,7 @@ export const cancelUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const uploadJob: UploadSummaryTableRow = action.payload.job;
+    const uploadJob: UploadSummaryTableRow = action.payload;
 
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
@@ -431,7 +417,7 @@ export const cancelUploadLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const uploadJob: UploadSummaryTableRow = action.payload.job;
+    const uploadJob: UploadSummaryTableRow = action.payload;
     if (!uploadJob) {
       reject(setErrorAlert("Cannot cancel undefined upload job"));
     } else {
@@ -459,13 +445,12 @@ const retryUploadLogic = createLogic({
       action,
       ctx,
       fms,
-      getState,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<RetryUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const uploadJob: UploadSummaryTableRow = action.payload.job;
+    const uploadJob: UploadSummaryTableRow = action.payload;
     const fileNames = ctx.files.map(
       ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
     );
@@ -478,16 +463,12 @@ const retryUploadLogic = createLogic({
         COPY_PROGRESS_THROTTLE_MS
       );
       logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
-      dispatch(
-        retryUploadSucceeded(uploadJob, getIncompleteJobIds(getState()))
-      );
+      dispatch(retryUploadSucceeded(uploadJob));
       done();
     } catch (e) {
       const error = `Retry upload ${uploadJob.jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-      dispatch(
-        retryUploadFailed(uploadJob, error, getIncompleteJobIds(getState()))
-      );
+      dispatch(retryUploadFailed(uploadJob, error));
       done();
     }
   },
@@ -499,7 +480,7 @@ const retryUploadLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const uploadJob: UploadSummaryTableRow = action.payload.job;
+    const uploadJob: UploadSummaryTableRow = action.payload;
     if (isEmpty(uploadJob.serviceFields?.files)) {
       reject(
         setErrorAlert(

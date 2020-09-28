@@ -251,7 +251,7 @@ describe("Job logics", () => {
       dialog.showMessageBox = stub().resolves({ response: 0 }); // cancel button
       fms.failUpload = stub().resolves();
 
-      store.dispatch(cancelUpload({ ...mockJob, key: "key" }, []));
+      store.dispatch(cancelUpload({ ...mockJob, key: "key" }));
       await logicMiddleware.whenComplete();
 
       expect(dialog.showMessageBox.called).to.be.true;
@@ -266,11 +266,11 @@ describe("Job logics", () => {
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
       const job = { ...mockJob, key: "key" };
 
-      store.dispatch(cancelUpload(job, []));
+      store.dispatch(cancelUpload(job));
       await logicMiddleware.whenComplete();
 
       expect(dialog.showMessageBox.called).to.be.true;
-      expect(actions.includesMatch(cancelUpload(job, []))).to.be.true;
+      expect(actions.includesMatch(cancelUpload(job))).to.be.true;
       expect(actions.includesMatch(cancelUploadSucceeded(job))).to.be.true;
     });
     it("dispatches cancelUploadFailed if cancelling the upload failed", async () => {
@@ -283,11 +283,11 @@ describe("Job logics", () => {
       const job = { ...mockJob, key: "key" };
       sandbox.replace(fms, "failUpload", stub().rejects(new Error("foo")));
 
-      store.dispatch(cancelUpload(job, []));
+      store.dispatch(cancelUpload(job));
       await logicMiddleware.whenComplete();
 
       expect(dialog.showMessageBox.called).to.be.true;
-      expect(actions.includesMatch(cancelUpload(job, []))).to.be.true;
+      expect(actions.includesMatch(cancelUpload(job))).to.be.true;
       expect(
         actions.includesMatch(
           cancelUploadFailed(job, `Cancel upload ${job.jobName} failed: foo`)

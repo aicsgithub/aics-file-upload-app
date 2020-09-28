@@ -19,19 +19,9 @@ import {
   getRequestsInProgress,
   getRequestsInProgressContains,
 } from "../../state/feedback/selectors";
-import {
-  gatherIncompleteJobIds,
-  selectJobFilter,
-} from "../../state/job/actions";
-import {
-  getIncompleteJobIds,
-  getJobFilter,
-  getJobsForTable,
-} from "../../state/job/selectors";
-import {
-  GatherIncompleteJobIdsAction,
-  SelectJobFilterAction,
-} from "../../state/job/types";
+import { selectJobFilter } from "../../state/job/actions";
+import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
+import { SelectJobFilterAction } from "../../state/job/types";
 import {
   clearFileMetadataForJob,
   requestFileMetadataForJob,
@@ -96,8 +86,6 @@ interface Props {
   fileMetadataForJobHeader?: SearchResultsHeader[];
   fileMetadataForJobLoading: boolean;
   files: UploadFile[];
-  gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
-  incompleteJobIds: string[];
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
@@ -202,12 +190,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
   constructor(props: Props) {
     super(props);
     this.state = {};
-  }
-
-  public componentDidMount(): void {
-    // this gathers jobs that are stored in "local storage" for all uploads that have been initiated and/or retried.
-    // this is solely for reporting purposes in case an upload succeeded or failed while the app was not running
-    this.props.gatherIncompleteJobIds();
   }
 
   public render() {
@@ -376,7 +358,7 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
         `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
       )
     ) {
-      this.props.retryUpload(row, this.props.incompleteJobIds);
+      this.props.retryUpload(row);
     }
   };
 
@@ -409,7 +391,6 @@ function mapStateToProps(state: State) {
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
     files: getStagedFiles(state),
-    incompleteJobIds: getIncompleteJobIds(state),
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),
     page: getPage(state),
@@ -421,7 +402,6 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
   cancelUpload,
   clearFileMetadataForJob,
-  gatherIncompleteJobIds,
   openEditFileMetadataTab,
   requestFileMetadataForJob,
   retryUpload,

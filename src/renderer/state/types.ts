@@ -193,9 +193,7 @@ export interface JobStateBranch {
   // These are requested only for in progress upload jobs and are only used to
   // determine if it is safe to exit the app.
   addMetadataJobs: JSSJob[];
-  // List of upload jobs that may or may not be in-progress - used for reporting
-  // on jobs that succeed or failed on app startup
-  incompleteJobIds: string[];
+  // mapping between  jobIds and their upload progress
   copyProgress: {
     [jobId: string]: UploadProgressInfo;
   };

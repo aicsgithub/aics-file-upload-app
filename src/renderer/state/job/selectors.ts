@@ -23,7 +23,6 @@ import { getUpload, getUploadFileNames } from "../upload/selectors";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
-export const getIncompleteJobIds = (state: State) => state.job.incompleteJobIds;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
 

@@ -1,7 +1,5 @@
-import { uniq } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
 import { UploadMetadata as AicsFilesUploadMetadata } from "../../services/aicsfiles/types";
 import {
   IN_PROGRESS_STATUSES,
@@ -10,7 +8,6 @@ import {
 } from "../../services/job-status-client/types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
-  setAlert,
   setErrorAlert,
   setInfoAlert,
   setSuccessAlert,
@@ -18,19 +15,14 @@ import {
 import { getWithRetry } from "../feedback/util";
 import { getLoggedInUser } from "../setting/selectors";
 import {
-  AlertType,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
-  ReduxLogicTransformDependencies,
 } from "../types";
 import { handleUploadProgress } from "../util";
 
-import { updateIncompleteJobIds, updateUploadProgressInfo } from "./actions";
-import {
-  GATHER_STORED_INCOMPLETE_JOB_IDS,
-  HANDLE_ABANDONED_JOBS,
-} from "./constants";
+import { updateUploadProgressInfo } from "./actions";
+import { HANDLE_ABANDONED_JOBS } from "./constants";
 import { HandleAbandonedJobsAction } from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
@@ -143,24 +135,4 @@ export const handleAbandonedJobsLogic = createLogic({
   },
 });
 
-const gatherStoredIncompleteJobIdsLogic = createLogic({
-  transform: (
-    { storage }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb
-  ) => {
-    try {
-      const incompleteJobIds = storage.get(INCOMPLETE_JOB_IDS_KEY) || [];
-      next(updateIncompleteJobIds(uniq(incompleteJobIds)));
-    } catch (e) {
-      next(
-        setAlert({
-          message: "Failed to get saved incomplete jobs",
-          type: AlertType.WARN,
-        })
-      );
-    }
-  },
-  type: GATHER_STORED_INCOMPLETE_JOB_IDS,
-});
-
-export default [handleAbandonedJobsLogic, gatherStoredIncompleteJobIdsLogic];
+export default [handleAbandonedJobsLogic];

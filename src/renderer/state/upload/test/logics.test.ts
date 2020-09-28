@@ -3,7 +3,6 @@ import { get, keys } from "lodash";
 import * as moment from "moment";
 import { createSandbox, match, SinonStub, stub } from "sinon";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
@@ -458,8 +457,7 @@ describe("Upload logics", () => {
           selectPage(Page.AddCustomData, Page.UploadSummary)
         )
       );
-      expect(actions.includesMatch(uploadSucceeded(jobName, jobId, []))).to.be
-        .true;
+      expect(actions.includesMatch(uploadSucceeded(jobName))).to.be.true;
     });
 
     it("sets error alert given validation error", async () => {
@@ -500,40 +498,6 @@ describe("Upload logics", () => {
       expect(uploadStub.called).to.be.true;
       expect(actions.list.map((a) => a.type)).to.include(UPLOAD_SUCCEEDED);
     });
-    it("adds to list of incomplete job ids", async () => {
-      setUpSuccessStub();
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        {
-          ...nonEmptyStateForInitiatingUpload,
-          job: {
-            ...nonEmptyStateForInitiatingUpload.job,
-            incompleteJobIds: ["existingIncompleteJob"],
-          },
-        },
-        undefined,
-        uploadLogics,
-        false
-      );
-      expect(
-        actions.list.find((a) => {
-          return (
-            a.writeToStore && a.updates && a.updates[INCOMPLETE_JOB_IDS_KEY]
-          );
-        })
-      ).to.be.undefined;
-
-      store.dispatch(initiateUpload());
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(
-        actions.list.find((a) => {
-          return (
-            a.writeToStore && a.updates && a.updates[INCOMPLETE_JOB_IDS_KEY]
-          );
-        })
-      ).to.not.be.undefined;
-    });
     it("dispatches uploadFailed if uploadFiles fails error", async () => {
       sandbox.replace(
         fms,
@@ -556,12 +520,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          uploadFailed(
-            `Upload ${jobName} failed: error message`,
-            jobName,
-            jobId,
-            []
-          )
+          uploadFailed(`Upload ${jobName} failed: error message`, jobName)
         )
       ).to.be.true;
     });
@@ -579,7 +538,7 @@ describe("Upload logics", () => {
         serviceFields: undefined,
         key: "foo",
       };
-      store.dispatch(retryUpload(uploadJob, []));
+      store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
       expect(
@@ -600,14 +559,10 @@ describe("Upload logics", () => {
       );
 
       const uploadJob = { ...mockFailedUploadJob, key: "foo" };
-      store.dispatch(retryUpload(uploadJob, []));
+      store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
-      expect(
-        actions.includesMatch(
-          retryUploadSucceeded(uploadJob, [mockFailedUploadJob.jobId])
-        )
-      ).to.be.true;
+      expect(actions.includesMatch(retryUploadSucceeded(uploadJob))).to.be.true;
       expect(retryUploadStub.called).to.be.true;
     });
     it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
@@ -620,15 +575,14 @@ describe("Upload logics", () => {
       );
 
       const uploadJob = { ...mockFailedUploadJob, key: "foo" };
-      store.dispatch(retryUpload(uploadJob, []));
+      store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
       expect(
         actions.includesMatch(
           retryUploadFailed(
             uploadJob,
-            `Retry upload ${mockFailedUploadJob.jobName} failed: error`,
-            [mockFailedUploadJob.jobId]
+            `Retry upload ${mockFailedUploadJob.jobName} failed: error`
           )
         )
       ).to.be.true;
