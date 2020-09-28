@@ -10,7 +10,7 @@ import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
 import { UploadServiceFields } from "../../services/aicsfiles/types";
-import { JSSJob } from "../../services/job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   AnnotationType,
   Channel,
@@ -148,6 +148,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     };
   }
 
+  public get isReadOnly() {
+    // todo FUA-52 this will no longer be the case for failed uploads in the future
+    return (
+      !!this.props.selectedJob &&
+      this.props.selectedJob.status !== JSSJobStatus.SUCCEEDED
+    );
+  }
+
   public componentDidMount() {
     const templateId = this.props.appliedTemplate
       ? this.props.appliedTemplate.templateId
@@ -178,17 +186,31 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
+    let title = "ADD ADDITIONAL DATA";
+    let prompt =
+      "Review and add information to the files below and click Upload to submit the job.";
+    if (selectedJob) {
+      title = "UPLOAD DETAILS";
+      prompt =
+        selectedJob.status === JSSJobStatus.SUCCEEDED
+          ? "Make any changes necessary and click Update to update the upload"
+          : "";
+    }
     return (
       <FormPage
         backButtonDisabled={!!selectedJob}
         className={className}
-        formTitle="ADD ADDITIONAL DATA"
-        formPrompt="Review and add information to the files below and click Upload to submit the job."
+        formTitle={title}
+        formPrompt={prompt}
         onSave={this.submit}
         saveButtonDisabled={!canSubmit}
         saveInProgress={uploadInProgress || updateInProgress}
         saveButtonName={selectedJob ? "Update" : "Upload"}
         hideProgressBar={!!selectedJob}
+        hideBackButton={!!selectedJob}
+        // todo FUA-52 show save button if upload is failed, with the text "Retry"
+        // We need to implement updating the job first if the user makes any changes
+        hideSaveButton={this.isReadOnly}
         onBack={this.props.goBack}
         page={Page.AddCustomData}
       >
@@ -209,7 +231,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             showIcon={true}
           />
         )}
-        {validationErrors.length > 0 && (
+        {!showLoading && validationErrors.length > 0 && (
           <Alert
             className={styles.alert}
             message={validationErrors.map((e) => (
@@ -219,16 +241,19 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             type="error"
           />
         )}
-        {!showLoading && appliedTemplate && showUploadHint && (
-          <Alert
-            afterClose={this.hideHint}
-            className={styles.alert}
-            closable={true}
-            message="Hint: You can add multiple values for Text and Number annotations using commas!"
-            showIcon={true}
-            type="info"
-          />
-        )}
+        {!showLoading &&
+          appliedTemplate &&
+          showUploadHint &&
+          !this.isReadOnly && (
+            <Alert
+              afterClose={this.hideHint}
+              className={styles.alert}
+              closable={true}
+              message="Hint: You can add multiple values for Text and Number annotations using commas!"
+              showIcon={true}
+              type="info"
+            />
+          )}
         {!showLoading && appliedTemplate && (
           <CustomDataGrid
             allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
@@ -237,6 +262,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             canRedo={canRedo}
             canUndo={canUndo}
             channels={this.props.channels}
+            editable={!this.isReadOnly}
             expandedRows={this.props.expandedRows}
             fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
             redo={this.redo}
@@ -261,14 +287,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
     return (
       <div className={styles.selectors}>
-        <LabeledInput
-          className={styles.schemaSelector}
-          label={`Select a ${SCHEMA_SYNONYM}`}
-        >
+        <LabeledInput className={styles.schemaSelector} label={SCHEMA_SYNONYM}>
           <TemplateSearch
             allowCreate={true}
             className={styles.schemaSelector}
-            disabled={loading}
+            disabled={loading || this.isReadOnly}
             value={appliedTemplate ? appliedTemplate.templateId : undefined}
             onSelect={this.props.applyTemplate}
           />

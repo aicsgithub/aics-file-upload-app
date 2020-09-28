@@ -118,6 +118,9 @@ export interface BaseServiceFields {
 }
 
 export interface UploadServiceFields extends BaseServiceFields {
+  // populated by app if a file from this upload was deleted
+  deletedFileIds?: string[];
+
   // populated by FSS when the app requests to start an upload.
   files: UploadMetadata[];
 
@@ -219,16 +222,16 @@ export interface LabKeyFileMetadata {
 
 export interface CustomFileMetadata {
   annotations: Annotation[];
-  fileId: string;
+  originalPath?: string;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
   templateId?: number;
-  modified: string;
-  modifiedBy: string;
 }
 
 export interface FileMetadata extends CustomFileMetadata, LabKeyFileMetadata {}
 
-export interface FileToFileMetadata {
-  [FileId: string]: FileMetadata;
+export interface FileToFileMetadata<T extends CustomFileMetadata = any> {
+  [FileId: string]: T;
 }
 
 // This object represents the notion of an ImageModel as a row of metadata, ImageModels are meant to represent
@@ -238,8 +241,11 @@ export interface FileToFileMetadata {
 // a file.
 export interface ImageModelMetadata extends ImageModelBase, LabKeyFileMetadata {
   channel?: string;
+  originalPath?: string;
   templateId?: number;
   template?: string;
+  shouldBeInArchive?: boolean;
+  shouldBeInLocal?: boolean;
   [key: string]: any;
 }
 

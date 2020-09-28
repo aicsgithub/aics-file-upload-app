@@ -36,8 +36,21 @@ const getLocalFilePath = (filePath: string) => {
   }
 };
 
-const renderValue = (key: string, value: string | number) =>
-  titleCase(key) === "Local File Path" ? getLocalFilePath(`${value}`) : value;
+const renderValue = (key: string, value: any): string => {
+  if (titleCase(key) === "Local File Path") {
+    return getLocalFilePath(`${value}`);
+  }
+  if (value === true) {
+    return "Yes";
+  }
+  if (value === false) {
+    return "No";
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => renderValue(key, v)).join(", ");
+  }
+  return value.toString();
+};
 
 const listItemRenderer = ({ key, value }: ListItem): JSX.Element => (
   // Had to use inline style to override List.Item's border rules
@@ -79,6 +92,7 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
     const downloadPath = getLocalFilePath(filePath);
     shell.showItemInFolder(downloadPath);
   };
+  console.log(fileMetadataCategories.annotations);
   return (
     <Modal
       footer={null}

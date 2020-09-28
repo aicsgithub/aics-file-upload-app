@@ -1,7 +1,6 @@
 import { expect } from "chai";
 
 import { receiveJobs } from "../../job/actions";
-import { requestFileMetadataForJob } from "../../metadata/actions";
 import {
   closeUploadTab,
   openEditFileMetadataTab,
@@ -295,19 +294,6 @@ describe("feedback reducer", () => {
       );
     });
   });
-  describe("requestFileMetadataForJob", () => {
-    it("adds request in progress for GET_FILE_METADATA_FOR_JOB", () => {
-      const result = reducer(
-        initialState,
-        requestFileMetadataForJob(["jobId"])
-      );
-      expect(
-        result.requestsInProgress.includes(
-          AsyncRequest.GET_FILE_METADATA_FOR_JOB
-        )
-      );
-    });
-  });
   describe("selectBarcode", () => {
     it("adds GET_PLATE from requestsInProgress", () => {
       const result = reducer(initialState, selectBarcode("foo"));
@@ -323,16 +309,6 @@ describe("feedback reducer", () => {
       );
       expect(result.requestsInProgress.includes(AsyncRequest.GET_PLATE)).to.be
         .false;
-    });
-  });
-  describe("requestFileMetadataForJob", () => {
-    it("adds GET_FILE_METADATA_FOR_JOB to requestsInProgress", () => {
-      const result = reducer(initialState, requestFileMetadataForJob(["abc"]));
-      expect(
-        result.requestsInProgress.includes(
-          AsyncRequest.GET_FILE_METADATA_FOR_JOB
-        )
-      ).to.be.true;
     });
   });
   describe("applyTemplate", () => {

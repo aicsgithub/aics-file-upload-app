@@ -13,7 +13,6 @@ import {
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
   RECEIVE_METADATA,
-  REQUEST_FILE_METADATA_FOR_JOB,
   REQUEST_METADATA,
   SEARCH_FILE_METADATA,
 } from "../metadata/constants";
@@ -25,7 +24,6 @@ import {
   GetOptionsForLookupAction,
   GetTemplatesAction,
   ReceiveMetadataAction,
-  RequestFileMetadataForJobAction,
   RequestMetadataAction,
   SearchFileMetadataAction,
 } from "../metadata/types";
@@ -398,17 +396,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         ...state.requestsInProgress,
         AsyncRequest.GET_FILE_METADATA_FOR_JOB,
       ]),
-    }),
-  },
-  [REQUEST_FILE_METADATA_FOR_JOB]: {
-    accepts: (action: AnyAction): action is RequestFileMetadataForJobAction =>
-      action.type === REQUEST_FILE_METADATA_FOR_JOB,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        AsyncRequest.GET_FILE_METADATA_FOR_JOB
-      ),
     }),
   },
   [APPLY_TEMPLATE]: {

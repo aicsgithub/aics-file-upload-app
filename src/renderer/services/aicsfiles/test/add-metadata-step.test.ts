@@ -1,15 +1,20 @@
 import { expect } from "chai";
-import { createSandbox, match, SinonStub, stub } from "sinon";
+import {
+  createSandbox,
+  createStubInstance,
+  match,
+  SinonStubbedInstance,
+} from "sinon";
 
+import JobStatusClient from "../../job-status-client";
 import { JSSJobStatus } from "../../job-status-client/types";
 import { IllegalArgumentError } from "../errors";
+import { FSSClient } from "../helpers/fss-client";
 import { AddMetadataStep } from "../steps/add-metadata-step";
 import { UploadContext } from "../types";
 
 import {
   addMetadataResponse,
-  fss,
-  jobStatusClient,
   mockJob,
   resultFiles,
   sourceFiles,
@@ -19,20 +24,24 @@ import {
 
 describe("AddMetadataStep", () => {
   const sandbox = createSandbox();
-  let mockCtx: UploadContext,
-    updateJobStub: SinonStub,
-    addMetadataStep: AddMetadataStep;
+  let mockCtx: UploadContext, addMetadataStep: AddMetadataStep;
+  let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
+  let fss: SinonStubbedInstance<FSSClient>;
 
   beforeEach(() => {
-    updateJobStub = stub().resolves();
-    sandbox.replace(jobStatusClient, "updateJob", updateJobStub);
+    jobStatusClient = createStubInstance(JobStatusClient);
+    fss = createStubInstance(FSSClient);
     mockCtx = {
       sourceFiles,
       startUploadResponse,
       uploadJobName: "arbitrary name",
       uploads,
     };
-    addMetadataStep = new AddMetadataStep(mockJob, fss, jobStatusClient);
+    addMetadataStep = new AddMetadataStep(
+      mockJob,
+      (fss as any) as FSSClient,
+      (jobStatusClient as any) as JobStatusClient
+    );
   });
 
   afterEach(() => {
@@ -49,11 +58,7 @@ describe("AddMetadataStep", () => {
       ).to.be.rejectedWith(IllegalArgumentError);
     });
     it("populates resultFiles", async () => {
-      sandbox.replace(
-        fss,
-        "uploadComplete",
-        stub().resolves(addMetadataResponse)
-      );
+      fss.uploadComplete.resolves(addMetadataResponse);
       const ctx = await addMetadataStep.start(mockCtx);
       expect(ctx.resultFiles).to.equal(addMetadataResponse.files);
     });
@@ -85,7 +90,7 @@ describe("AddMetadataStep", () => {
       sandbox.replace(addMetadataStep, "job", mockJob);
       await addMetadataStep.end({ ...mockCtx, resultFiles: resultFiles });
       expect(
-        updateJobStub.calledWith(
+        jobStatusClient.updateJob.calledWith(
           mockJob.jobId,
           match
             .has("status", JSSJobStatus.SUCCEEDED)

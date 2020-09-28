@@ -1,26 +1,15 @@
 import { expect } from "chai";
 import { Store } from "redux";
-import { createSandbox, stub } from "sinon";
-import * as sinon from "sinon";
+import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
+import EnvironmentAwareStorage from "../../EnvironmentAwareStorage";
 import { getAlert } from "../../feedback/selectors";
 import { requestMetadata } from "../../metadata/actions";
 import {
   createMockReduxStore,
-  labkeyClient,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
-import {
-  mockAnnotationLookups,
-  mockAnnotationTypes,
-  mockBarcodePrefixes,
-  mockChannels,
-  mockImagingSessions,
-  mockLookups,
-  mockSelectedWorkflows,
-  mockState,
-  mockUnit,
-} from "../../test/mocks";
+import { mockState } from "../../test/mocks";
 import { SettingStateBranch } from "../../types";
 import { gatherSettings, updateSettings } from "../actions";
 import settingsLogics, { updateSettingsLogic } from "../logics";
@@ -36,29 +25,11 @@ describe("Setting logics", () => {
   const localhost = "localhost";
   const stagingHost = "staging";
   const sandbox = createSandbox();
+  let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
 
   beforeEach(() => {
-    const getAnnotationLookupsStub = stub().resolves(mockAnnotationLookups);
-    const getAnnotationTypesStub = stub().resolves(mockAnnotationTypes);
-    const getBarcodePrefixesStub = stub().resolves(mockBarcodePrefixes);
-    const getChannelsStub = stub().resolves(mockChannels);
-    const getImagingSessionsStub = stub().resolves(mockImagingSessions);
-    const getLookupsStub = stub().resolves(mockLookups);
-    const getUnitsStub = stub().resolves([mockUnit]);
-    const getWorkflowsStub = stub().resolves(mockSelectedWorkflows);
-
-    sandbox.replace(
-      labkeyClient,
-      "getAnnotationLookups",
-      getAnnotationLookupsStub
-    );
-    sandbox.replace(labkeyClient, "getAnnotationTypes", getAnnotationTypesStub);
-    sandbox.replace(labkeyClient, "getBarcodePrefixes", getBarcodePrefixesStub);
-    sandbox.replace(labkeyClient, "getChannels", getChannelsStub);
-    sandbox.replace(labkeyClient, "getImagingSessions", getImagingSessionsStub);
-    sandbox.replace(labkeyClient, "getLookups", getLookupsStub);
-    sandbox.replace(labkeyClient, "getUnits", getUnitsStub);
-    sandbox.replace(labkeyClient, "getWorkflows", getWorkflowsStub);
+    storage = createStubInstance(EnvironmentAwareStorage);
+    sandbox.replace(mockReduxLogicDeps, "storage", storage);
   });
 
   afterEach(() => {
@@ -164,14 +135,8 @@ describe("Setting logics", () => {
     });
 
     it("updates settings in memory and sets warning alert if data persistence failure", () => {
-      const deps = {
-        ...mockReduxLogicDeps,
-        storage: {
-          ...mockReduxLogicDeps.storage,
-          set: sinon.stub().throwsException(),
-        },
-      };
-      const { store } = createMockReduxStore(mockState, deps, [
+      storage.set.throwsException();
+      const { store } = createMockReduxStore(mockState, undefined, [
         updateSettingsLogic,
       ]);
 
@@ -197,21 +162,14 @@ describe("Setting logics", () => {
       expect(actions.includesMatch(gatherSettings())).to.be.false;
     });
     it("updates settings to what is saved in storage and doesn't set alert", () => {
-      const deps = {
-        ...mockReduxLogicDeps,
-        storage: {
-          ...mockReduxLogicDeps.storage,
-          get: sinon
-            .stub()
-            .onFirstCall()
-            .returns({
-              limsHost: stagingHost,
-            })
-            .onSecondCall()
-            .returns(1),
-        },
-      };
-      const { store } = createMockReduxStore(mockState, deps);
+      storage.get
+        .onFirstCall()
+        .returns({
+          limsHost: stagingHost,
+        })
+        .onSecondCall()
+        .returns(1);
+      const { store } = createMockReduxStore(mockState);
 
       // before
       expect(getLimsHost(store.getState())).to.equal(localhost);
@@ -226,14 +184,8 @@ describe("Setting logics", () => {
     });
 
     it("sets alert if error in getting storage settings", () => {
-      const deps = {
-        ...mockReduxLogicDeps,
-        storage: {
-          ...mockReduxLogicDeps.storage,
-          get: sinon.stub().throwsException(),
-        },
-      };
-      const { store } = createMockReduxStore(mockState, deps);
+      storage.get.throwsException();
+      const { store } = createMockReduxStore(mockState);
 
       // apply
       store.dispatch(gatherSettings());

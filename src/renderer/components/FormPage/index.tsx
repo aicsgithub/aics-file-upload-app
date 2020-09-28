@@ -14,6 +14,8 @@ interface FormPageProps {
   className?: string;
   formTitle: string;
   formPrompt: string;
+  hideBackButton?: boolean;
+  hideSaveButton?: boolean;
   saveButtonName?: string;
   saveButtonDisabled?: boolean;
   saveInProgress?: boolean;
@@ -31,7 +33,9 @@ class FormPage extends React.Component<FormPageProps, {}> {
   public static defaultProps = {
     backButtonDisabled: false,
     backButtonName: "Back",
+    hideBackButton: false,
     hideProgressBar: false,
+    hideSaveButton: false,
     saveButtonDisabled: false,
     saveButtonName: "Next",
     saveInProgress: false,
@@ -57,6 +61,8 @@ class FormPage extends React.Component<FormPageProps, {}> {
       className,
       formPrompt,
       formTitle,
+      hideBackButton,
+      hideSaveButton,
       page,
       saveInProgress,
       saveButtonDisabled,
@@ -75,25 +81,29 @@ class FormPage extends React.Component<FormPageProps, {}> {
           <div className={styles.form}>{children}</div>
         </div>
         <div className={styles.buttons}>
-          <Button
-            className={styles.backButton}
-            size="large"
-            type="link"
-            onClick={this.onBack}
-            disabled={backButtonDisabled}
-          >
-            {backButtonName}
-          </Button>
-          <Button
-            className={styles.saveButton}
-            type="primary"
-            size="large"
-            onClick={this.onSave}
-            disabled={saveButtonDisabled || saveInProgress}
-          >
-            {saveInProgress ? "Loading" : saveButtonName}
-            {FormPage.renderSpinner(saveInProgress)}
-          </Button>
+          {!hideBackButton && (
+            <Button
+              className={styles.backButton}
+              size="large"
+              type="link"
+              onClick={this.onBack}
+              disabled={backButtonDisabled}
+            >
+              {backButtonName}
+            </Button>
+          )}
+          {!hideSaveButton && (
+            <Button
+              className={styles.saveButton}
+              type="primary"
+              size="large"
+              onClick={this.onSave}
+              disabled={saveButtonDisabled || saveInProgress}
+            >
+              {saveInProgress ? "Loading" : saveButtonName}
+              {FormPage.renderSpinner(saveInProgress)}
+            </Button>
+          )}
         </div>
       </div>
     );

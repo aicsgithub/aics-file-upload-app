@@ -1,17 +1,27 @@
 import { expect } from "chai";
-import { omit } from "lodash";
 import { ActionCreator, Store } from "redux";
-import { createSandbox, SinonStub, stub } from "sinon";
+import {
+  createSandbox,
+  SinonStub,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { FileManagementSystem } from "../../../services/aicsfiles";
 import { ImageModelMetadata } from "../../../services/aicsfiles/types";
+import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
+import LabkeyClient from "../../../services/labkey-client";
+import MMSClient from "../../../services/mms-client";
 import {
   CANCEL_BUTTON_INDEX,
   SAVE_UPLOAD_DRAFT_BUTTON_INDEX,
 } from "../../../util";
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
+import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import {
   getFileMetadataForJob,
@@ -28,15 +38,13 @@ import {
   getCurrentSelectionIndex,
   getSelectedPlate,
 } from "../../selection/selectors";
-import { getAssociateByWorkflow } from "../../setting/selectors";
+import { associateByWorkflow } from "../../setting/actions";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
   createMockReduxStore,
   dialog,
-  fms,
-  labkeyClient,
-  mmsClient,
+  logger,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -45,6 +53,7 @@ import {
   mockAnnotations,
   mockAnnotationTypes,
   mockAuditInfo,
+  mockFailedUploadJob,
   mockMMSTemplate,
   mockSelectedWorkflows,
   mockState,
@@ -69,6 +78,22 @@ import Menu = Electron.Menu;
 
 describe("Route logics", () => {
   const sandbox = createSandbox();
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
+  let fms: SinonStubbedInstance<FileManagementSystem>;
+  let jssClient: SinonStubbedInstance<JobStatusClient>;
+
+  beforeEach(() => {
+    mmsClient = createStubInstance(MMSClient);
+    labkeyClient = createStubInstance(LabkeyClient);
+    fms = createStubInstance(FileManagementSystem);
+    jssClient = createStubInstance(JobStatusClient);
+    sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
+    sandbox.replace(mockReduxLogicDeps, "fms", fms);
+    sandbox.replace(mockReduxLogicDeps, "jssClient", jssClient);
+  });
+
   afterEach(() => {
     sandbox.restore();
   });
@@ -495,22 +520,10 @@ describe("Route logics", () => {
       showMessageBox,
       showSaveDialog,
       writeFile,
-      getCustomMetadataForFile,
-      transformFileMetadataIntoTable,
-      getPlateBarcodeAndAllImagingSessionIdsFromWellId,
-      getImagingSessionIdsForBarcode,
-      getPlate,
-      getTemplate,
     }: {
       showMessageBox?: SinonStub;
       showSaveDialog?: SinonStub;
       writeFile?: SinonStub;
-      getCustomMetadataForFile?: SinonStub;
-      transformFileMetadataIntoTable?: SinonStub;
-      getPlateBarcodeAndAllImagingSessionIdsFromWellId?: SinonStub;
-      getImagingSessionIdsForBarcode?: SinonStub;
-      getPlate?: SinonStub;
-      getTemplate?: SinonStub;
     }) => {
       sandbox.replace(
         dialog,
@@ -528,47 +541,34 @@ describe("Route logics", () => {
         "writeFile",
         writeFile || stub().resolves()
       );
-      sandbox.replace(
-        fms,
-        "getCustomMetadataForFile",
-        getCustomMetadataForFile || stub().resolves([])
+      fms.getCustomMetadataForFile.resolves({
+        annotations: [],
+        fileId: "abcdefg",
+        filename: "name",
+        fileSize: 1,
+        fileType: "image",
+        modified: "",
+        modifiedBy: "foo",
+      });
+      fms.transformFileMetadataIntoTable.resolves(fileMetadata);
+      labkeyClient.getPlateBarcodeAndAllImagingSessionIdsFromWellId.resolves(
+        "abc"
       );
-      sandbox.replace(
-        fms,
-        "transformFileMetadataIntoTable",
-        transformFileMetadataIntoTable || stub().resolves(fileMetadata)
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getPlateBarcodeAndAllImagingSessionIdsFromWellId",
-        getPlateBarcodeAndAllImagingSessionIdsFromWellId ||
-          stub().resolves("abc")
-      );
-      sandbox.replace(
-        labkeyClient,
-        "getImagingSessionIdsForBarcode",
-        getImagingSessionIdsForBarcode || stub().resolves([null, 1])
-      );
-      sandbox.replace(
-        mmsClient,
-        "getPlate",
-        getPlate ||
-          stub().resolves({
-            ...mockAuditInfo,
-            barcode: "123456",
-            comments: "",
-            imagingSessionId: undefined,
-            plateGeometryId: 1,
-            plateId: 1,
-            plateStatusId: 1,
-            seededOn: "2018-02-14 23:03:52",
-          })
-      );
-      sandbox.replace(
-        mmsClient,
-        "getTemplate",
-        getTemplate || stub().resolves(mockMMSTemplate)
-      );
+      labkeyClient.getImagingSessionIdsForBarcode.resolves([null, 1]);
+      mmsClient.getPlate.resolves({
+        plate: {
+          ...mockAuditInfo,
+          barcode: "123456",
+          comments: "",
+          imagingSessionId: undefined,
+          plateGeometryId: 1,
+          plateId: 1,
+          plateStatusId: 1,
+          seededOn: "2018-02-14 23:03:52",
+        },
+        wells: [],
+      });
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
     };
 
     let mockStateWithMetadata: State;
@@ -666,7 +666,7 @@ describe("Route logics", () => {
 
       expect(showSaveDialog.called).to.be.true;
     });
-    it("sets error alert if job passed is not succeeded", async () => {
+    it("sets error alert if job passed is missing information", async () => {
       stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload
@@ -684,9 +684,7 @@ describe("Route logics", () => {
       const alert = getAlert(store.getState());
       expect(alert).to.not.be.undefined;
       expect(alert?.type).to.equal(AlertType.ERROR);
-      expect(alert?.message).to.equal(
-        "Cannot update file metadata because upload has not succeeded"
-      );
+      expect(alert?.message).to.equal("upload has missing information");
     });
     it("sets error alert if something fails while showing the warning dialog", async () => {
       const showMessageBox = stub().resolves({
@@ -735,6 +733,129 @@ describe("Route logics", () => {
         type: AlertType.ERROR,
       });
     });
+    it("allows users to open a failed upload", async () => {
+      stubMethods({});
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+
+      store.dispatch(openEditFileMetadataTab(mockFailedUploadJob));
+      await logicMiddleware.whenComplete();
+
+      expect(
+        fms.transformFileMetadataIntoTable.calledWithMatch({
+          "/some/filepath": {
+            annotations: mockFailedUploadJob.serviceFields.files[0].annotations,
+            originalPath: "/some/filepath",
+            shouldBeInArchive: true,
+            shouldBeInLocal: true,
+            templateId: 1,
+          },
+        })
+      );
+      expect(actions.list.map(({ type }) => type)).includes(
+        OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED
+      );
+    });
+    it("gets replacement job if present and displays that instead", async () => {
+      stubMethods({});
+      const originalJob = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          replacementJobId: "replacement",
+        },
+      };
+      const replacementJob = {
+        ...mockFailedUploadJob,
+        jobId: "replacement",
+      };
+      jssClient.getJob.resolves(replacementJob);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+
+      store.dispatch(openEditFileMetadataTab(originalJob));
+      await logicMiddleware.whenComplete();
+
+      expect(jssClient.getJob.called).to.be.true;
+      expect(actions.includesMatch(openEditFileMetadataTab(replacementJob))).to
+        .be.true;
+    });
+    it("gets replacement job if present but displays selected job if there was an issue getting the replacement", async () => {
+      stubMethods({});
+      const originalJob = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          replacementJobId: "replacement",
+        },
+      };
+      jssClient.getJob.rejects(new Error("foo"));
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+
+      store.dispatch(openEditFileMetadataTab(originalJob));
+      await logicMiddleware.whenComplete();
+
+      expect(jssClient.getJob.called).to.be.true;
+      expect(actions.includesMatch(openEditFileMetadataTab(originalJob))).to.be
+        .true;
+    });
+    it("gets replacement job if present but displays selected job if replacement job doesn't contain enough information", async () => {
+      stubMethods({});
+      const originalJob = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          replacementJobId: "replacement",
+        },
+      };
+      const replacementJob = {
+        ...mockFailedUploadJob,
+        jobId: "replacement",
+        serviceFields: {},
+      };
+      jssClient.getJob.resolves(replacementJob);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+
+      store.dispatch(openEditFileMetadataTab(originalJob));
+      await logicMiddleware.whenComplete();
+
+      expect(jssClient.getJob.called).to.be.true;
+      expect(actions.includesMatch(openEditFileMetadataTab(originalJob))).to.be
+        .true;
+    });
+    it("sets error alert if replacement and original jobs are missing serviceFields.files", async () => {
+      stubMethods({});
+      const originalJob = {
+        ...mockFailedUploadJob,
+        serviceFields: {
+          replacementJobId: "replacement",
+        },
+      };
+      const replacementJob = {
+        ...mockFailedUploadJob,
+        jobId: "replacement",
+        serviceFields: {},
+      };
+      jssClient.getJob.resolves(replacementJob);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithMetadata
+      );
+
+      store.dispatch(openEditFileMetadataTab(originalJob));
+      await logicMiddleware.whenComplete();
+
+      expect(jssClient.getJob.called).to.be.true;
+      expect(
+        actions.includesMatch(setErrorAlert("upload has missing information"))
+      ).to.be.true;
+      expect(logger.warn).called;
+    });
     it("handles case where upload tab is not open yet", async () => {
       stubMethods({});
       const { logicMiddleware, store } = createMockReduxStore(
@@ -780,9 +901,7 @@ describe("Route logics", () => {
       ).to.be.true;
     });
     it("dispatches requestFailed given not OK response when getting file metadata", async () => {
-      stubMethods({
-        transformFileMetadataIntoTable: stub().rejects(new Error("error!")),
-      });
+      fms.getCustomMetadataForFile.rejects(new Error("error!"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState
       );
@@ -800,15 +919,18 @@ describe("Route logics", () => {
       ).to.be.true;
     });
     it("does not dispatch setPlate action if file metadata does not contain well annotation", async () => {
-      stubMethods({
-        transformFileMetadataIntoTable: stub().resolves([
-          {
-            ...omit(fileMetadata, ["Well"]),
-            Workflow: ["Pipeline 5"],
-          },
-        ]),
-      });
-      const { logicMiddleware, store } = createMockReduxStore(
+      fms.transformFileMetadataIntoTable.resolves([
+        {
+          filename: "foo",
+          fileId: "abc",
+          fileSize: 100,
+          fileType: "image",
+          modified: "foo",
+          modifiedBy: "bar",
+          Workflow: ["Pipeline 5"],
+        },
+      ]);
+      const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
 
@@ -816,12 +938,11 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(getSelectedPlate(store.getState())).to.be.undefined;
-      expect(getAssociateByWorkflow(store.getState())).to.be.true;
+      expect(actions.includesMatch(associateByWorkflow(true)));
     });
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
-      stubMethods({
-        getPlate: stub().rejects(new Error("foo")),
-      });
+      stubMethods({});
+      mmsClient.getPlate.rejects(new Error("foo"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );
@@ -847,9 +968,8 @@ describe("Route logics", () => {
       ).to.be.true;
     });
     it("dispatches requestFailed if getting template fails", async () => {
-      stubMethods({
-        getTemplate: stub().rejects(new Error("foo")),
-      });
+      stubMethods({});
+      mmsClient.getTemplate.rejects(new Error("foo"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockStateWithMetadata
       );

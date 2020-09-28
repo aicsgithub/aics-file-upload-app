@@ -16,6 +16,7 @@ import {
   mockSelection,
   mockState,
   mockUnits,
+  mockWell,
   mockWells,
 } from "../../test/mocks";
 import { State } from "../../types";
@@ -29,6 +30,7 @@ import {
   getSelectedWellIds,
   getSelectedWellLabels,
   getSelectedWellsWithData,
+  getWellIdToWellMap,
   getWellsWithModified,
   getWellsWithUnitsAndModified,
   NO_UNIT,
@@ -452,6 +454,54 @@ describe("Selections selectors", () => {
         selection: getMockStateWithHistory(mockSelection),
       });
       expect(result.length).to.equal(2);
+    });
+  });
+
+  describe("getWellIdToWellMap", () => {
+    it("converts a list of wells to a wellId to well map", () => {
+      const result = getWellIdToWellMap({
+        ...mockState,
+        selection: getMockStateWithHistory(mockSelection),
+      });
+      expect(result.get(1)).to.deep.equal(mockWell);
+      expect(result.get(2)).to.deep.equal({
+        ...mockWell,
+        col: 1,
+        row: 0,
+        wellId: 2,
+      });
+      expect(result.get(3)).to.deep.equal({
+        ...mockWell,
+        col: 0,
+        row: 1,
+        wellId: 3,
+      });
+      expect(result.get(4)).to.deep.equal({
+        ...mockWell,
+        col: 1,
+        row: 1,
+        wellId: 4,
+      });
+      expect(result.get(5)).to.deep.equal({
+        ...mockWell,
+        cellPopulations: [],
+        col: 2,
+        row: 0,
+        wellId: 5,
+      });
+      expect(result.get(6)).to.deep.equal({
+        ...mockWell,
+        cellPopulations: [],
+        col: 2,
+        row: 1,
+        wellId: 6,
+      });
+      expect(result.get(10)).to.deep.equal({
+        ...mockWell,
+        plateId: 2,
+        wellId: 10,
+      });
+      expect(result.size).to.equal(7);
     });
   });
 });

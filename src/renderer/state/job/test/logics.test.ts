@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import {
   createSandbox,
-  createStubInstance,
   SinonStubbedInstance,
   stub,
+  createStubInstance,
 } from "sinon";
 
 import { FileManagementSystem } from "../../../services/aicsfiles";
@@ -18,7 +18,6 @@ import {
 import {
   createMockReduxStore,
   dialog,
-  fms,
   mockReduxLogicDeps,
   ReduxLogicDependencies,
 } from "../../test/configure-mock-store";
@@ -35,27 +34,22 @@ import { handleAbandonedJobsLogic } from "../logics";
 
 describe("Job logics", () => {
   const sandbox = createSandbox();
+  let jssClient: SinonStubbedInstance<JobStatusClient>;
+  let fms: SinonStubbedInstance<FileManagementSystem>;
+
+  beforeEach(() => {
+    jssClient = createStubInstance(JobStatusClient);
+    fms = createStubInstance(FileManagementSystem);
+    sandbox.replace(mockReduxLogicDeps, "jssClient", jssClient);
+    sandbox.replace(mockReduxLogicDeps, "fms", fms);
+  });
 
   afterEach(() => {
     sandbox.restore();
   });
 
   describe("handleAbandonedJobsLogic", () => {
-    let jssStub: SinonStubbedInstance<JobStatusClient>;
-    let fmsStub: SinonStubbedInstance<FileManagementSystem>;
     let logicDeps: ReduxLogicDependencies;
-
-    beforeEach(() => {
-      jssStub = createStubInstance(JobStatusClient);
-      fmsStub = createStubInstance(FileManagementSystem);
-
-      logicDeps = {
-        ...mockReduxLogicDeps,
-        // Assert that the stubs are of the correct types
-        jssClient: (jssStub as unknown) as JobStatusClient,
-        fms: (fmsStub as unknown) as FileManagementSystem,
-      };
-    });
 
     it("does not find any abandoned jobs", async () => {
       const {
@@ -66,13 +60,13 @@ describe("Job logics", () => {
         handleAbandonedJobsLogic,
       ]);
 
-      jssStub.getJobs.onFirstCall().resolves([]);
+      jssClient.getJobs.onFirstCall().resolves([]);
 
       store.dispatch(handleAbandonedJobs());
 
       await logicMiddleware.whenComplete();
       expect(actions.list).to.deep.equal([handleAbandonedJobs()]);
-      expect(jssStub.getJobs).to.have.been.calledOnce;
+      expect(jssClient.getJobs).to.have.been.calledOnce;
     });
 
     it("finds and retries one abandoned job with no children", async () => {
@@ -93,14 +87,14 @@ describe("Job logics", () => {
         },
       };
 
-      jssStub.getJobs
+      jssClient.getJobs
         .onFirstCall()
         .resolves([abandonedJob])
         .onSecondCall()
         .resolves([]);
 
-      fmsStub.failUpload.onFirstCall().resolves([abandonedJob]);
-      fmsStub.retryUpload.resolves();
+      fms.failUpload.onFirstCall().resolves([abandonedJob]);
+      fms.retryUpload.resolves();
 
       store.dispatch(handleAbandonedJobs());
 
@@ -139,15 +133,15 @@ describe("Job logics", () => {
         parentId: "abandoned_job_id",
       };
 
-      jssStub.getJobs
+      jssClient.getJobs
         .onFirstCall()
         .resolves([abandonedJob])
         .onSecondCall()
         .resolves([childJob]);
 
-      fmsStub.failUpload.onFirstCall().resolves([abandonedJob]);
+      fms.failUpload.onFirstCall().resolves([abandonedJob]);
 
-      fmsStub.retryUpload.resolves();
+      fms.retryUpload.resolves();
 
       store.dispatch(handleAbandonedJobs());
 
@@ -170,7 +164,9 @@ describe("Job logics", () => {
         handleAbandonedJobsLogic,
       ]);
 
-      jssStub.getJobs.onFirstCall().rejects(new Error("Error while querying"));
+      jssClient.getJobs
+        .onFirstCall()
+        .rejects(new Error("Error while querying"));
 
       store.dispatch(handleAbandonedJobs());
 
@@ -179,7 +175,7 @@ describe("Job logics", () => {
         handleAbandonedJobs(),
         setErrorAlert("Could not retry abandoned jobs: Error while querying"),
       ]);
-      expect(jssStub.getJobs).to.have.been.calledOnce;
+      expect(jssClient.getJobs).to.have.been.calledOnce;
     });
 
     it("dispatches setErrorAlert if fms.retryUpload fails", async () => {
@@ -200,14 +196,14 @@ describe("Job logics", () => {
         },
       };
 
-      jssStub.getJobs
+      jssClient.getJobs
         .onFirstCall()
         .resolves([abandonedJob])
         .onSecondCall()
         .resolves([]);
 
-      fmsStub.failUpload.onFirstCall().resolves([abandonedJob]);
-      fmsStub.retryUpload.rejects(new Error("Error in worker"));
+      fms.failUpload.onFirstCall().resolves([abandonedJob]);
+      fms.retryUpload.rejects(new Error("Error in worker"));
 
       store.dispatch(handleAbandonedJobs());
 
@@ -249,7 +245,6 @@ describe("Job logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 0 }); // cancel button
-      fms.failUpload = stub().resolves();
 
       store.dispatch(cancelUpload({ ...mockJob, key: "key" }));
       await logicMiddleware.whenComplete();
@@ -281,7 +276,7 @@ describe("Job logics", () => {
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
       const job = { ...mockJob, key: "key" };
-      sandbox.replace(fms, "failUpload", stub().rejects(new Error("foo")));
+      fms.failUpload.rejects(new Error("foo"));
 
       store.dispatch(cancelUpload(job));
       await logicMiddleware.whenComplete();

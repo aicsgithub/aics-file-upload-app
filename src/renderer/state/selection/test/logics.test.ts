@@ -3,12 +3,17 @@ import { dirname, resolve } from "path";
 import { expect } from "chai";
 import { isEmpty } from "lodash";
 import { StateWithHistory } from "redux-undo";
-import * as sinon from "sinon";
-import { createSandbox, stub } from "sinon";
+import {
+  createSandbox,
+  SinonStubbedInstance,
+  stub,
+  createStubInstance,
+} from "sinon";
 
 import selections from "../";
 import { feedback } from "../../";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import MMSClient from "../../../services/mms-client";
 import {
   GetPlateResponse,
   PlateResponse,
@@ -20,7 +25,6 @@ import { getPage } from "../../route/selectors";
 import {
   createMockReduxStore,
   dialog,
-  mmsClient,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -77,6 +81,12 @@ describe("Selection logics", () => {
     expect(folder.fullPath).to.equal(FOLDER_FULL_PATH);
     expect(folder.files.length).to.equal(2);
   };
+  let mmsClient: SinonStubbedInstance<MMSClient>;
+
+  beforeEach(() => {
+    mmsClient = createStubInstance(MMSClient);
+    sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+  });
 
   afterEach(() => {
     sandbox.restore();
@@ -414,13 +424,9 @@ describe("Selection logics", () => {
     });
 
     it("Sets wells, page, barcode, and plateId if GET wells is OK", async () => {
-      const getStub = sinon
-        .stub()
-        .onFirstCall()
-        .callsFake(() => {
-          return Promise.resolve(mockOkGetPlateResponse);
-        });
-      sandbox.replace(mmsClient, "getPlate", getStub);
+      mmsClient.getPlate.onFirstCall().callsFake(() => {
+        return Promise.resolve(mockOkGetPlateResponse);
+      });
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -439,10 +445,7 @@ describe("Selection logics", () => {
     });
 
     it("Builds map of imaging session ids to plate responses on OK response", async () => {
-      const getStub = sinon
-        .stub()
-        .onFirstCall()
-        .resolves(mockOkGetPlateResponse);
+      mmsClient.getPlate.onFirstCall().resolves(mockOkGetPlateResponse);
       const mockPlateResponse2 = {
         plate: {
           ...mockPlate,
@@ -456,8 +459,7 @@ describe("Selection logics", () => {
           },
         ],
       };
-      getStub.onSecondCall().resolves(mockPlateResponse2);
-      sandbox.replace(mmsClient, "getPlate", getStub);
+      mmsClient.getPlate.onSecondCall().resolves(mockPlateResponse2);
       const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         mockReduxLogicDeps
@@ -482,7 +484,7 @@ describe("Selection logics", () => {
       expect(getSelectedPlateId(state)).to.equal(plateId);
     });
     it("dispatches requestFailed if request fails", async () => {
-      sandbox.replace(mmsClient, "getPlate", stub().rejects(new Error("foo")));
+      mmsClient.getPlate.rejects(new Error("foo"));
       const { actions, logicMiddleware, store } = createMockReduxStore();
 
       store.dispatch(selectBarcode(barcode, [null]));

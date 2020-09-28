@@ -24,9 +24,11 @@ import {
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
 import { FileManagementSystem } from "../services/aicsfiles";
 import {
+  CustomFileMetadata,
   FileMetadata,
   FileToFileMetadata,
   ImageModelMetadata,
+  UploadMetadata as FMSUploadMetadata,
 } from "../services/aicsfiles/types";
 import MMSClient from "../services/mms-client";
 import {
@@ -269,30 +271,51 @@ export const getPlateInfo = async (
  * Helper for logics that need to retrieve file metadata
  * @param {string[]} fileIds
  * @param {FileManagementSystem} fms
- * @param {boolean} transformDates whether to convert annotation values for date annotations to dates or
- * leave them as strings
- * @returns {AnyAction} actions to dispatch
+ * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
  */
 export const retrieveFileMetadata = async (
   fileIds: string[],
-  fms: FileManagementSystem,
-  transformDates = true
+  fms: FileManagementSystem
 ): Promise<ImageModelMetadata[]> => {
   const resolvedPromises: FileMetadata[] = await Promise.all(
     fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
   );
   const fileMetadataForFileIds = reduce(
     resolvedPromises,
-    (filesToFileMetadata: FileToFileMetadata, fileMetadata: FileMetadata) => ({
+    (
+      filesToFileMetadata: FileToFileMetadata<FileMetadata>,
+      fileMetadata: FileMetadata
+    ) => ({
       ...filesToFileMetadata,
       [fileMetadata.fileId]: fileMetadata,
     }),
     {}
   );
-  return await fms.transformFileMetadataIntoTable(
-    fileMetadataForFileIds,
-    transformDates
-  );
+  return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
+};
+
+/***
+ * Takes the input for starting an upload with FMS and converts it back to a format more
+ * similar to the upload state branch
+ * @param files the request used to start an upload through FSS
+ * @param fms
+ * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
+ */
+export const convertUploadPayloadToImageModelMetadata = async (
+  files: FMSUploadMetadata[],
+  fms: FileManagementSystem
+): Promise<ImageModelMetadata[]> => {
+  const fileMetadataForFiles: FileToFileMetadata<CustomFileMetadata> = {};
+  for (const file of files) {
+    fileMetadataForFiles[file.file.originalPath] = {
+      annotations: file.customMetadata.annotations,
+      originalPath: file.file.originalPath,
+      shouldBeInArchive: file.file.shouldBeInArchive,
+      shouldBeInLocal: file.file.shouldBeInLocal,
+      templateId: file.customMetadata.templateId,
+    };
+  }
+  return await fms.transformFileMetadataIntoTable(fileMetadataForFiles);
 };
 
 export interface ApplyTemplateInfo {

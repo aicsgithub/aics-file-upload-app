@@ -15,7 +15,6 @@ import {
   AnnotationLookup,
   Lookup,
 } from "../../services/labkey-client/types";
-import { retrieveFileMetadata } from "../../util";
 import { requestFailed } from "../actions";
 import { setErrorAlert } from "../feedback/actions";
 import { getWithRetry } from "../feedback/util";
@@ -37,7 +36,6 @@ import {
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
-  REQUEST_FILE_METADATA_FOR_JOB,
   REQUEST_METADATA,
   SEARCH_FILE_METADATA,
 } from "./constants";
@@ -409,32 +407,6 @@ const searchFileMetadataLogic = createLogic({
   type: SEARCH_FILE_METADATA,
 });
 
-const retrieveFileMetadataForJobLogic = createLogic({
-  process: async (
-    { action, fms, logger }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    const fileIds: string[] = action.payload;
-    const request = () => retrieveFileMetadata(fileIds, fms);
-    try {
-      const fileMetadataForJob = await getWithRetry(request, dispatch);
-      dispatch(
-        receiveMetadata(
-          { fileMetadataForJob },
-          AsyncRequest.GET_FILE_METADATA_FOR_JOB
-        )
-      );
-    } catch (e) {
-      const error = `Could retrieve metadata for job: ${e.message}`;
-      logger.error(error);
-      dispatch(requestFailed(error, AsyncRequest.GET_FILE_METADATA_FOR_JOB));
-    }
-    done();
-  },
-  type: REQUEST_FILE_METADATA_FOR_JOB,
-});
-
 const exportFileMetadataLogic = createLogic({
   process: (
     { action, fms, getState }: ReduxLogicProcessDependencies,
@@ -476,7 +448,6 @@ export default [
   exportFileMetadataLogic,
   requestAnnotationsLogic,
   getBarcodeSearchResultsLogic,
-  retrieveFileMetadataForJobLogic,
   requestMetadataLogic,
   requestOptionsForLookupLogic,
   requestTemplatesLogicLogic,
