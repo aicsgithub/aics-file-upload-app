@@ -1,6 +1,9 @@
 import { AnyAction } from "redux";
 
-import { UploadServiceFields } from "../../services/aicsfiles/types";
+import {
+  AddMetadataServiceFields,
+  UploadServiceFields,
+} from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
@@ -12,6 +15,10 @@ import {
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
 } from "./constants";
+import {
+  getJobIdToAddMetadataJobMap,
+  getJobIdToUploadJobMap,
+} from "./selectors";
 import {
   ReceiveJobsAction,
   ReceiveJobInsertAction,
@@ -78,7 +85,11 @@ const actionToConfigMap: TypeToDescriptionMap = {
       { payload: updatedJob }: ReceiveJobUpdateAction
     ): JobStateBranch => {
       const jobType = updatedJob.serviceFields?.type;
-      if (jobType === "upload") {
+      const jobIdToUploadJobMap: Map<
+        string,
+        JSSJob<UploadServiceFields>
+      > = getJobIdToUploadJobMap(state);
+      if (jobType === "upload" && jobIdToUploadJobMap.has(updatedJob.jobId)) {
         // Replace job with changed job
         return {
           ...state,
@@ -90,7 +101,14 @@ const actionToConfigMap: TypeToDescriptionMap = {
         };
       }
 
-      if (jobType === "add_metadata") {
+      const jobIdToAddMetadataMap: Map<
+        string,
+        JSSJob<AddMetadataServiceFields>
+      > = getJobIdToAddMetadataJobMap(state);
+      if (
+        jobType === "add_metadata" &&
+        jobIdToAddMetadataMap.has(updatedJob.jobId)
+      ) {
         return {
           ...state,
           addMetadataJobs: state.addMetadataJobs.map((job) =>
