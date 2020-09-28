@@ -4,6 +4,10 @@ import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import {
+  AddMetadataServiceFields,
+  UploadServiceFields,
+} from "../../services/aicsfiles/types";
+import {
   FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
   JSSJob,
@@ -14,6 +18,7 @@ import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
   AsyncRequest,
   JobFilter,
+  JobStateBranch,
   State,
   UploadProgressInfo,
   UploadStateBranch,
@@ -103,5 +108,34 @@ export const getUploadInProgress = createSelector(
         `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`
       )
     );
+  }
+);
+
+// "Local" selectors: selecting off of job state branch as input
+export type JobIdToJobMap<T> = Map<string, JSSJob<T>>;
+const getUploadJobsFromLocalState = (state: JobStateBranch) => state.uploadJobs;
+export const getJobIdToUploadJobMap = createSelector(
+  [getUploadJobsFromLocalState],
+  (jobs: JSSJob<UploadServiceFields>[]): JobIdToJobMap<UploadServiceFields> => {
+    const map = new Map<string, JSSJob<UploadServiceFields>>();
+    for (const job of jobs) {
+      map.set(job.jobId, job);
+    }
+    return map;
+  }
+);
+
+const getAddMetadataJobsFromLocalState = (state: JobStateBranch) =>
+  state.addMetadataJobs;
+export const getJobIdToAddMetadataJobMap = createSelector(
+  [getAddMetadataJobsFromLocalState],
+  (
+    jobs: JSSJob<AddMetadataServiceFields>[]
+  ): JobIdToJobMap<AddMetadataServiceFields> => {
+    const map = new Map<string, JSSJob<AddMetadataServiceFields>>();
+    for (const job of jobs) {
+      map.set(job.jobId, job);
+    }
+    return map;
   }
 );

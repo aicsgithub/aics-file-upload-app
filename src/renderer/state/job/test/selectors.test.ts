@@ -1,20 +1,26 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { JSSJobStatus } from "../../../services/job-status-client/types";
+import {
+  JSSJob,
+  JSSJobStatus,
+} from "../../../services/job-status-client/types";
 import {
   getMockStateWithHistory,
   mockFailedAddMetadataJob,
+  mockFailedUploadJob,
   mockState,
   mockSuccessfulAddMetadataJob,
+  mockSuccessfulUploadJob,
   mockWellUpload,
   mockWorkingAddMetadataJob,
   mockWorkingUploadJob,
   nonEmptyJobStateBranch,
 } from "../../test/mocks";
-import { AsyncRequest } from "../../types";
+import { AsyncRequest, JobFilter, State } from "../../types";
 import {
   getCurrentJobName,
+  getFilteredJobs,
   getIsSafeToExit,
   getJobsForTable,
   getUploadInProgress,
@@ -203,6 +209,87 @@ describe("Job selectors", () => {
         }),
       });
       expect(inProgress).to.be.false;
+    });
+  });
+  describe("getFilteredJobs", () => {
+    let state: State;
+    let mockRetryingUploadJob: JSSJob,
+      mockUnrecoverableUploadJob: JSSJob,
+      mockBlockedUploadJob: JSSJob;
+    beforeEach(() => {
+      mockRetryingUploadJob = {
+        ...mockWorkingUploadJob,
+        status: JSSJobStatus.RETRYING,
+      };
+      mockUnrecoverableUploadJob = {
+        ...mockFailedUploadJob,
+        status: JSSJobStatus.UNRECOVERABLE,
+      };
+      mockBlockedUploadJob = {
+        ...mockFailedUploadJob,
+        status: JSSJobStatus.BLOCKED,
+      };
+      state = {
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [
+            mockWorkingUploadJob,
+            mockSuccessfulUploadJob,
+            mockFailedUploadJob,
+            mockRetryingUploadJob,
+            mockUnrecoverableUploadJob,
+            mockBlockedUploadJob,
+          ],
+        },
+      };
+    });
+    it("returns succeeded jobs if succeeded job filter selected", () => {
+      const jobs = getFilteredJobs({
+        ...state,
+        job: {
+          ...state.job,
+          jobFilter: JobFilter.Successful,
+        },
+      });
+      expect(jobs).to.deep.equal([mockSuccessfulUploadJob]);
+    });
+    it("returns failed and unrecoverable jobs if failed job filter selected", () => {
+      const jobs = getFilteredJobs({
+        ...state,
+        job: {
+          ...state.job,
+          jobFilter: JobFilter.Failed,
+        },
+      });
+      expect(jobs).to.deep.equal([
+        mockFailedUploadJob,
+        mockUnrecoverableUploadJob,
+      ]);
+    });
+    it("returns working and retrying jobs if in progress job filter selected", () => {
+      const jobs = getFilteredJobs({
+        ...state,
+        job: {
+          ...state.job,
+          jobFilter: JobFilter.InProgress,
+        },
+      });
+      expect(jobs).to.deep.equal([
+        mockWorkingUploadJob,
+        mockRetryingUploadJob,
+        mockBlockedUploadJob,
+      ]);
+    });
+    it("does not filter out any jobs if All job filter selected", () => {
+      const jobs = getFilteredJobs({
+        ...state,
+        job: {
+          ...state.job,
+          jobFilter: JobFilter.All,
+        },
+      });
+      expect(jobs).to.deep.equal(state.job.uploadJobs);
     });
   });
 });
