@@ -32,10 +32,6 @@ export const SEARCH_FILE_METADATA = makeConstant(
   BRANCH_NAME,
   "search-file-metadata"
 );
-export const REQUEST_FILE_METADATA_FOR_JOB = makeConstant(
-  BRANCH_NAME,
-  "request-file-metadata-for-job"
-);
 export const CLEAR_FILE_METADATA_FOR_JOB = makeConstant(
   BRANCH_NAME,
   "clear-file-metadata-for-job"

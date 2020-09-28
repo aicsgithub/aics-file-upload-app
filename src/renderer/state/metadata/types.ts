@@ -28,11 +28,6 @@ export interface GetOptionsForLookupAction {
   type: string;
 }
 
-export interface RequestFileMetadataForJobAction {
-  payload: string[];
-  type: string;
-}
-
 export interface ClearOptionsForLookupAction {
   payload: keyof MetadataStateBranch; // lookupAnnotationName
   type: string;

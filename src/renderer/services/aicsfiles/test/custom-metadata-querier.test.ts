@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import * as Logger from "js-logger";
-import { SinonStubbedInstance, createStubInstance } from "sinon";
+import { SinonStubbedInstance, createStubInstance, createSandbox } from "sinon";
 
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import LabkeyClient from "../../labkey-client";
 import MMSClient from "../../mms-client";
 import { CustomMetadataQuerier } from "../helpers/custom-metadata-querier";
@@ -17,6 +18,8 @@ describe("CustomMetadataQuerier", () => {
   let mockFileMetadata: FileMetadata;
   let mockFileToFileMetadata: FileToFileMetadata;
   let mockImageModelMetadata: ImageModelMetadata;
+  const wellAnnotationId = 5;
+  const cloneAnnotationId = 6;
   let lk: SinonStubbedInstance<LabkeyClient>;
   let mms: SinonStubbedInstance<MMSClient>;
   let querier: CustomMetadataQuerier;
@@ -63,8 +66,8 @@ describe("CustomMetadataQuerier", () => {
       positionIndex: undefined,
       scene: undefined,
       subImageName: undefined,
-      "Seeded Date": ["2020-02-03"],
-      "Seeded Datetime": ["2020-02-03 12:04:10"],
+      "Seeded Date": [new Date("2020-02-03")],
+      "Seeded Datetime": [new Date("2020-02-03 12:04:10")],
       Words,
     };
   });
@@ -196,6 +199,7 @@ describe("CustomMetadataQuerier", () => {
   });
 
   describe("transformFileMetadataIntoTable", () => {
+    const sandbox = createSandbox();
     beforeEach(() => {
       const mockTemplates: any[] = [
         { templateId: 1, name: "Not this" },
@@ -222,12 +226,26 @@ describe("CustomMetadataQuerier", () => {
           "annotationTypeId/Name": "DateTime",
           name: "Seeded Datetime",
         },
+        {
+          annotationId: cloneAnnotationId,
+          "annotationTypeId/Name": "Number",
+          name: "Clones",
+        },
+        {
+          annotationId: wellAnnotationId,
+          "annotationTypeId/Name": "Lookup",
+          name: WELL_ANNOTATION_NAME,
+        },
       ];
       lk.selectRowsAsList
         .onCall(0)
         .resolves(mockTemplates)
         .onCall(1)
         .resolves(mockAnnotations);
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     it("transforms metadata into more useful table form", async () => {
@@ -274,22 +292,76 @@ describe("CustomMetadataQuerier", () => {
       expect(response).to.deep.equal([
         {
           ...mockImageModelMetadata,
-          "Seeded Datetime": ["2020-02-03 12:04:10", "2020-02-04 12:04:10"],
+          "Seeded Datetime": [
+            new Date("2020-02-03 12:04:10"),
+            new Date("2020-02-04 12:04:10"),
+          ],
           template: "special template",
           templateId: 2,
         },
       ]);
     });
-    it("transforms date strings to dates if transformDates=true", async () => {
+    it("transforms date strings to dates", async () => {
       const response = await querier.transformFileMetadataIntoTable(
-        mockFileToFileMetadata,
-        true
+        mockFileToFileMetadata
       );
       expect(response).to.deep.equal([
         {
           ...mockImageModelMetadata,
           "Seeded Date": [new Date("2020-02-03")],
           "Seeded Datetime": [new Date("2020-02-03 12:04:10")],
+          template: "special template",
+          templateId: 2,
+        },
+      ]);
+    });
+    it("ensures values for Well annotation are integers", async () => {
+      sandbox.replace(mockFileMetadata, "annotations", [
+        { annotationId: wellAnnotationId, values: ["1", "2"] },
+      ]);
+      const response = await querier.transformFileMetadataIntoTable(
+        mockFileToFileMetadata
+      );
+      expect(response).to.deep.equal([
+        {
+          channelId: undefined,
+          fileId: "abc123",
+          fovId: undefined,
+          modified: "sometime",
+          modifiedBy: "seanm",
+          fileSize: 1,
+          fileType: "image",
+          filename: "example.txt",
+          positionIndex: undefined,
+          scene: undefined,
+          subImageName: undefined,
+          template: "special template",
+          templateId: 2,
+          [WELL_ANNOTATION_NAME]: [1, 2],
+        },
+      ]);
+    });
+    it("ensures values for number annotations are numbers", async () => {
+      sandbox.replace(mockFileMetadata, "annotations", [
+        { annotationId: cloneAnnotationId, values: ["2", "4"] },
+      ]);
+      const response = await querier.transformFileMetadataIntoTable(
+        mockFileToFileMetadata
+      );
+      expect(response).to.deep.equal([
+        {
+          channelId: undefined,
+          Clones: [2, 4],
+          fileId: "abc123",
+          fovId: undefined,
+          modified: "sometime",
+          modifiedBy: "seanm",
+          fileSize: 1,
+          fileType: "image",
+          filename: "example.txt",
+          positionIndex: undefined,
+          scene: undefined,
+          subImageName: undefined,
           template: "special template",
           templateId: 2,
         },

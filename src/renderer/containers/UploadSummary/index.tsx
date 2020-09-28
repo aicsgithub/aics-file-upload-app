@@ -3,7 +3,6 @@ import {
   Col,
   Empty,
   Icon,
-  Modal,
   Radio,
   Row,
   Spin,
@@ -13,15 +12,12 @@ import {
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
-import { isEmpty, map } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import FileMetadataModal from "../../components/FileMetadataModal";
 import StatusCircle from "../../components/StatusCircle";
-import UploadJobDisplay from "../../components/UploadJobDisplay";
-import { FSSResponseFile } from "../../services/aicsfiles/types";
 import {
   IN_PROGRESS_STATUSES,
   JSSJobStatus,
@@ -51,19 +47,6 @@ import {
   StopJobPollAction,
 } from "../../state/job/types";
 import {
-  clearFileMetadataForJob,
-  requestFileMetadataForJob,
-} from "../../state/metadata/actions";
-import {
-  getFileMetadataForJob,
-  getFileMetadataForJobHeader,
-} from "../../state/metadata/selectors";
-import {
-  ClearFileMetadataForJobAction,
-  RequestFileMetadataForJobAction,
-  SearchResultsHeader,
-} from "../../state/metadata/types";
-import {
   openEditFileMetadataTab,
   selectPage,
   selectView,
@@ -79,7 +62,6 @@ import {
   AsyncRequest,
   JobFilter,
   Page,
-  SearchResultRow,
   State,
   UploadFile,
   UploadProgressInfo,
@@ -109,10 +91,6 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
 interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
   className?: string;
-  clearFileMetadataForJob: ActionCreator<ClearFileMetadataForJobAction>;
-  fileMetadataForJob?: SearchResultRow[];
-  fileMetadataForJobHeader?: SearchResultsHeader[];
-  fileMetadataForJobLoading: boolean;
   files: UploadFile[];
   gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
   incompleteJobIds: string[];
@@ -121,7 +99,6 @@ interface Props {
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
   page: Page;
-  requestFileMetadataForJob: ActionCreator<RequestFileMetadataForJobAction>;
   requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
   retrieveJobs: ActionCreator<RetrieveJobsAction>;
@@ -133,12 +110,7 @@ interface Props {
   stopJobPoll: ActionCreator<StopJobPollAction>;
 }
 
-interface UploadSummaryState {
-  selectedJobId?: string;
-  selectedRowInJob?: SearchResultRow;
-}
-
-class UploadSummary extends React.Component<Props, UploadSummaryState> {
+class UploadSummary extends React.Component<Props, {}> {
   private get columns(): ColumnProps<UploadSummaryTableRow>[] {
     const columns: ColumnProps<UploadSummaryTableRow>[] = [
       {
@@ -171,11 +143,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
             <a className={styles.action} onClick={this.viewJob(row)}>
               View
             </a>
-            {row.status === JSSJobStatus.SUCCEEDED && (
-              <a className={styles.action} onClick={this.editJob(row)}>
-                Edit
-              </a>
-            )}
             {row.status === JSSJobStatus.FAILED && (
               <a
                 className={classNames(styles.action, {
@@ -241,17 +208,12 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
   public render() {
     const {
       className,
-      fileMetadataForJob,
-      fileMetadataForJobHeader,
-      fileMetadataForJobLoading,
       isPolling,
       jobFilter,
       jobs,
       page,
       requestingJobs,
     } = this.props;
-    const { selectedRowInJob } = this.state;
-    const selectedJob = this.getSelectedJob();
     const buttonLabel =
       page !== Page.UploadSummary ? (
         <>Resume Upload</>
@@ -328,39 +290,10 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
               )}
             </div>
           )}
-          {selectedJob && (
-            <Modal
-              title="Upload Job"
-              width="90%"
-              visible={!!selectedJob}
-              footer={null}
-              onCancel={this.closeModal}
-            >
-              <UploadJobDisplay
-                job={selectedJob}
-                fileMetadataForJob={fileMetadataForJob}
-                fileMetadataForJobHeader={fileMetadataForJobHeader}
-                fileMetadataForJobLoading={fileMetadataForJobLoading}
-                onFileRowClick={this.openFileDetailModal}
-              />
-              <FileMetadataModal
-                fileMetadata={selectedRowInJob}
-                closeFileDetailModal={this.closeFileDetailModal}
-              />
-            </Modal>
-          )}
         </div>
       </div>
     );
   }
-
-  private openFileDetailModal = (selectedRowInJob: SearchResultRow): void => {
-    this.setState({ selectedRowInJob });
-  };
-
-  private closeFileDetailModal = (): void => {
-    this.setState({ selectedRowInJob: undefined });
-  };
 
   private selectJobFilter = (e: RadioChangeEvent): void => {
     this.props.selectJobFilter(e.target.value);
@@ -369,12 +302,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
 
   private togglePoll = () =>
     this.props.isPolling ? this.props.stopJobPoll() : this.props.startJobPoll();
-
-  private getSelectedJob = (): UploadSummaryTableRow | undefined => {
-    const { jobs } = this.props;
-    const { selectedJobId } = this.state;
-    return jobs.find((j) => j.jobId === selectedJobId);
-  };
 
   private startNewUpload = (): void => {
     // If the current page is UploadSummary we must just be a view
@@ -386,30 +313,6 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     } else {
       this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
     }
-  };
-
-  private requestFileMetadataForJob = (jobId: string): void => {
-    const { jobs } = this.props;
-    const job = jobs.find((j) => j.jobId === jobId);
-    if (
-      job &&
-      job.serviceFields &&
-      job.serviceFields.files &&
-      Array.isArray(job.serviceFields.result) &&
-      !isEmpty(job.serviceFields.result)
-    ) {
-      const fileIds = job.serviceFields.result.map(
-        (fileInfo: FSSResponseFile) => {
-          return fileInfo.fileId;
-        }
-      );
-      this.props.requestFileMetadataForJob(fileIds);
-    }
-  };
-
-  private viewJob = (row: UploadSummaryTableRow) => () => {
-    this.requestFileMetadataForJob(row.jobId);
-    this.setState({ selectedJobId: row.jobId });
   };
 
   private retryJob = (row: UploadSummaryTableRow) => () => {
@@ -432,24 +335,13 @@ class UploadSummary extends React.Component<Props, UploadSummaryState> {
     }
   };
 
-  private editJob = (row: UploadSummaryTableRow) => () => {
+  private viewJob = (row: UploadSummaryTableRow) => () => {
     this.props.openEditFileMetadataTab(row);
-  };
-
-  private closeModal = () => {
-    this.props.clearFileMetadataForJob();
-    this.setState({ selectedJobId: undefined, selectedRowInJob: undefined });
   };
 }
 
 function mapStateToProps(state: State) {
   return {
-    fileMetadataForJob: getFileMetadataForJob(state),
-    fileMetadataForJobHeader: getFileMetadataForJobHeader(state),
-    fileMetadataForJobLoading: getRequestsInProgressContains(
-      state,
-      AsyncRequest.GET_FILE_METADATA_FOR_JOB
-    ),
     files: getStagedFiles(state),
     incompleteJobIds: getIncompleteJobIds(state),
     isPolling: getIsPolling(state),
@@ -463,10 +355,8 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   cancelUpload,
-  clearFileMetadataForJob,
   gatherIncompleteJobIds,
   openEditFileMetadataTab,
-  requestFileMetadataForJob,
   retrieveJobs,
   retryUpload,
   selectJobFilter,

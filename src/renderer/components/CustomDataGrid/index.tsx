@@ -70,6 +70,7 @@ interface Props {
   canRedo: boolean;
   channels: Channel[];
   className?: string;
+  editable: boolean;
   expandedRows: ExpandedRows;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
   redo: () => void;
@@ -121,7 +122,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private get wellUploadColumns(): UploadJobColumn[] {
     return [
       {
-        editor: WellsEditor,
+        editable: this.props.editable,
+        ...(this.props.editable ? { editor: WellsEditor } : {}),
         formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
           if (
             row.channelId ||
@@ -144,20 +146,22 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     ];
   }
 
-  private readonly WORKFLOW_UPLOAD_COLUMNS: UploadJobColumn[] = [
-    {
-      cellClass: styles.formatterContainer,
-      editable: true,
-      editor: Editor,
-      formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
-        this.renderFormat(row, WORKFLOW_ANNOTATION_NAME, value),
-      key: WORKFLOW_ANNOTATION_NAME,
-      name: WORKFLOW_ANNOTATION_NAME,
-      resizable: true,
-      width: DEFAULT_COLUMN_WIDTH,
-      type: ColumnType.LOOKUP,
-    },
-  ];
+  private get workflowUploadColumns(): UploadJobColumn[] {
+    return [
+      {
+        cellClass: styles.formatterContainer,
+        editable: this.props.editable,
+        ...(this.props.editable ? { editor: Editor } : {}),
+        formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+          this.renderFormat(row, WORKFLOW_ANNOTATION_NAME, value),
+        key: WORKFLOW_ANNOTATION_NAME,
+        name: WORKFLOW_ANNOTATION_NAME,
+        resizable: true,
+        width: DEFAULT_COLUMN_WIDTH,
+        type: ColumnType.LOOKUP,
+      },
+    ];
+  }
 
   constructor(props: Props) {
     super(props);
@@ -317,11 +321,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             )}
             onDrop={this.onDrop(row)}
           >
-            <NoteIcon
-              handleError={this.handleError}
-              notes={row[NOTES_ANNOTATION_NAME]}
-              saveNotes={this.saveNotesByRow(row)}
-            />
+            {(this.props.editable || !!row[NOTES_ANNOTATION_NAME]) && (
+              <NoteIcon
+                editable={this.props.editable}
+                handleError={this.handleError}
+                notes={row[NOTES_ANNOTATION_NAME]}
+                saveNotes={this.saveNotesByRow(row)}
+              />
+            )}
           </div>
         ),
         key: NOTES_ANNOTATION_NAME,
@@ -339,7 +346,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     if (!this.props.associateByWorkflow) {
       basicColumns = this.uploadColumns(this.wellUploadColumns);
     } else {
-      basicColumns = this.uploadColumns(this.WORKFLOW_UPLOAD_COLUMNS);
+      basicColumns = this.uploadColumns(this.workflowUploadColumns);
     }
     if (!this.props.template) {
       return basicColumns;
@@ -370,7 +377,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         const column: UploadJobColumn = {
           cellClass: styles.formatterContainer,
           dropdownValues: annotationOptions,
-          editable: true,
+          editable: this.props.editable,
           key: name,
           name,
           resizable: true,
@@ -379,7 +386,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
         // dates are handled completely differently from other data types because right now the best
         // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
-        column.editor = formatterNeedsModal ? DatesEditor : Editor;
+        if (this.props.editable) {
+          column.editor = formatterNeedsModal ? DatesEditor : Editor;
+        }
 
         const headerTextWidth: number =
           getTextWidth("18px Nunito", column.name) + 3 * MAIN_FONT_WIDTH;

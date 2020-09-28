@@ -2,6 +2,7 @@ import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
 
 import { LabkeyClient, MMSClient } from "../../";
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { FILE_METADATA, FMS, UPLOADER } from "../constants";
 import {
   CustomFileMetadata,
@@ -296,12 +297,10 @@ export class CustomMetadataQuerier {
         separated value sets.
 
         :param filesToFileMetadata: Object mapping File Ids to MMS GET File Metadata responses
-        :param transformDates: boolean Whether to transform values to dates if the annotation type is date or datetime
         :return: Array of ImageModels to their metadata
      */
   public transformFileMetadataIntoTable = async (
-    filesToFileMetadata: FileToFileMetadata,
-    transformDates = false
+    filesToFileMetadata: FileToFileMetadata
   ): Promise<ImageModelMetadata[]> => {
     const [possibleTemplates, possibleAnnotations] = await Promise.all([
       this.lk.selectRowsAsList(UPLOADER, "Template", ["TemplateId", "Name"]),
@@ -365,12 +364,33 @@ export class CustomMetadataQuerier {
             const annotationTypeName = annotation["annotationTypeId/Name"]
               ? annotation["annotationTypeId/Name"].toLowerCase()
               : undefined;
-            if (
-              transformDates &&
-              ["date", "datetime"].includes(annotationTypeName)
-            ) {
-              values = values.map((v) => new Date(`${v}`));
+            // The well annotation is treated differently from other lookups. The display value is the well label (i.e. A1)
+            // which is does not uniquely identify a well in the DB so the wellId is stored as a value instead.
+            if (annotationName === WELL_ANNOTATION_NAME) {
+              values = values.map((v) => parseInt(v, 10));
             }
+            switch (annotationTypeName) {
+              case "date":
+              case "datetime":
+                values = values.map((v) => new Date(`${v}`));
+                break;
+              case "number":
+                values = values.map((v) => {
+                  try {
+                    return parseFloat(v);
+                  } catch (e) {
+                    this.logger.error(
+                      `Annotation ${annotation.name} for file ${fileId} has a value that is not a number`
+                    );
+                    return v;
+                  }
+                });
+                break;
+              case "yesno":
+                values = values.map((v) => Boolean(v));
+                break;
+            }
+
             if (keyToImageModel[key][annotationName] === undefined) {
               keyToImageModel[key][annotationName] = values;
             } else if (Array.isArray(keyToImageModel[key][annotationName])) {

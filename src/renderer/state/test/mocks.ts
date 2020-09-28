@@ -540,9 +540,21 @@ export const mockFailedUploadJob: JSSJob = {
   serviceFields: {
     files: [
       {
+        customMetadata: {
+          annotations: [
+            {
+              annotationId: 1,
+              values: ["test", "1"],
+              channelId: 2,
+            },
+          ],
+          templateId: 1,
+        },
         file: {
           originalPath: "/some/filepath",
           fileType: "other",
+          shouldBeInArchive: true,
+          shouldBeInLocal: true,
         },
       },
     ],

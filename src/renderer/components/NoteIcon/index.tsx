@@ -10,6 +10,7 @@ import DragAndDrop from "../DragAndDrop";
 const styles = require("./styles.pcss");
 
 interface NoteIconProps {
+  editable: boolean;
   handleError: (error: string) => void;
   notes?: string;
   saveNotes: (notes: string | undefined) => void;
@@ -103,6 +104,9 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
           onOk={this.saveAndClose}
           onCancel={this.closeModal}
           okText={this.state.editing ? "Save" : "Done"}
+          okButtonProps={{
+            disabled: !this.props.editable,
+          }}
         >
           {this.renderNotes()}
         </Modal>
@@ -141,11 +145,13 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
     }
     return (
       <>
-        <Icon
-          onClick={this.startEditing}
-          style={{ float: "right" }}
-          type="form"
-        />
+        {this.props.editable && (
+          <Icon
+            onClick={this.startEditing}
+            style={{ float: "right" }}
+            type="form"
+          />
+        )}
         {/* New line formatting might be important for viewing, so preserve it in view */}
         {this.state.notes.split("\n").map((line, i) => (
           // Using an index as a key is not recommended, but it is safe in this

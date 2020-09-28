@@ -17,8 +17,8 @@ import {
 import { getPage } from "../../state/route/selectors";
 import {
   getAllPlates,
-  getAllWells,
   getSelectedJob,
+  getWellIdToWellMap,
 } from "../../state/selection/selectors";
 import { Page, UploadMetadata, UploadStateBranch } from "../../state/types";
 import { isFileRow } from "../../state/upload/constants";
@@ -30,12 +30,12 @@ import { FileTag, FileTagType } from "../../state/upload/types";
 
 // Result used by the FolderTree to display tags by each file with associated metadata
 export const getFileToTags = createSelector(
-  [getUpload, getImagingSessions, getAllPlates, getAllWells, getPage],
+  [getUpload, getImagingSessions, getAllPlates, getWellIdToWellMap, getPage],
   (
     upload: UploadStateBranch,
     imagingSessions: ImagingSession[],
     selectedPlates: PlateResponse[],
-    wells: WellResponse[],
+    wellIdToWellMap: Map<number, WellResponse>,
     page: Page
   ): Map<string, FileTag[]> => {
     const uploadsGroupedByFile = groupBy(upload, "file");
@@ -54,7 +54,7 @@ export const getFileToTags = createSelector(
             wellId,
             imagingSessions,
             selectedPlates,
-            wells
+            wellIdToWellMap
           );
           wellTags.push({ label, wellId });
         });
