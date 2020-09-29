@@ -584,18 +584,21 @@ const mockAddMetadataJob: JSSJob<AddMetadataServiceFields> = {
 
 export const mockSuccessfulAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
+  jobId: "addMetadataJobId2",
   parentId: "123434234",
   status: JSSJobStatus.SUCCEEDED,
 };
 
 export const mockWorkingAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
+  jobId: "addMetadataJobId3",
   parentId: "2222222222",
   status: JSSJobStatus.WORKING,
 };
 
 export const mockFailedAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
+  jobId: "addMetadataJobId4",
   parentId: "3333333333",
   status: JSSJobStatus.FAILED,
 };

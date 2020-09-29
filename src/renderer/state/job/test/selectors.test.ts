@@ -22,6 +22,8 @@ import {
   getCurrentJobName,
   getFilteredJobs,
   getIsSafeToExit,
+  getJobIdToAddMetadataJobMap,
+  getJobIdToUploadJobMap,
   getJobsForTable,
   getUploadInProgress,
 } from "../selectors";
@@ -290,6 +292,36 @@ describe("Job selectors", () => {
         },
       });
       expect(jobs).to.deep.equal(state.job.uploadJobs);
+    });
+  });
+  describe("getJobIdToUploadJobMap", () => {
+    it("converts a list of jobs to a map of jobId's to jobs", () => {
+      const map = getJobIdToUploadJobMap({
+        ...mockState.job,
+        uploadJobs: [mockWorkingUploadJob, mockSuccessfulUploadJob],
+      });
+      expect(map.size).to.equal(2);
+      expect(map.get(mockWorkingUploadJob.jobId)).to.equal(
+        mockWorkingUploadJob
+      );
+      expect(map.get(mockSuccessfulUploadJob.jobId)).to.equal(
+        mockSuccessfulUploadJob
+      );
+    });
+  });
+  describe("getJobIdToAddMetadataJobMap", () => {
+    it("converts a list of jobs to a map of jobId's to jobs", () => {
+      const map = getJobIdToAddMetadataJobMap({
+        ...mockState.job,
+        addMetadataJobs: [mockWorkingAddMetadataJob, mockFailedAddMetadataJob],
+      });
+      expect(map.size).to.equal(2);
+      expect(map.get(mockWorkingAddMetadataJob.jobId)).to.equal(
+        mockWorkingAddMetadataJob
+      );
+      expect(map.get(mockFailedAddMetadataJob.jobId)).to.equal(
+        mockFailedAddMetadataJob
+      );
     });
   });
 });
