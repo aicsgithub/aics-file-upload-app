@@ -1,9 +1,6 @@
 import { AnyAction } from "redux";
 
-import {
-  AddMetadataServiceFields,
-  UploadServiceFields,
-} from "../../services/aicsfiles/types";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
@@ -15,10 +12,7 @@ import {
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
 } from "./constants";
-import {
-  getJobIdToAddMetadataJobMap,
-  getJobIdToUploadJobMap,
-} from "./selectors";
+import { getJobIdToUploadJobMap } from "./selectors";
 import {
   ReceiveJobsAction,
   ReceiveJobInsertAction,
@@ -28,7 +22,6 @@ import {
 } from "./types";
 
 export const initialState: JobStateBranch = {
-  addMetadataJobs: [],
   copyProgress: {},
   jobFilter: JobFilter.All,
   uploadJobs: [],
@@ -40,11 +33,10 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === RECEIVE_JOBS,
     perform: (
       state: JobStateBranch,
-      { payload: { addMetadataJobs, uploadJobs } }: ReceiveJobsAction
+      { payload: uploadJobs }: ReceiveJobsAction
     ) => {
       return {
         ...state,
-        addMetadataJobs,
         uploadJobs,
       };
     },
@@ -64,13 +56,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
             updatedJob as JSSJob<UploadServiceFields>,
             ...state.uploadJobs,
           ],
-        };
-      }
-
-      if (jobType === "add_metadata") {
-        return {
-          ...state,
-          addMetadataJobs: [updatedJob, ...state.addMetadataJobs],
         };
       }
 
@@ -100,23 +85,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
           ),
         };
       }
-
-      const jobIdToAddMetadataMap: Map<
-        string,
-        JSSJob<AddMetadataServiceFields>
-      > = getJobIdToAddMetadataJobMap(state);
-      if (
-        jobType === "add_metadata" &&
-        jobIdToAddMetadataMap.has(updatedJob.jobId)
-      ) {
-        return {
-          ...state,
-          addMetadataJobs: state.addMetadataJobs.map((job) =>
-            job.jobId === updatedJob.jobId ? (updatedJob as JSSJob) : job
-          ),
-        };
-      }
-
       return state;
     },
   },

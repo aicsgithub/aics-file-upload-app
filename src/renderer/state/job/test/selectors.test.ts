@@ -1,19 +1,17 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
+import { StepName } from "../../../services/aicsfiles/types";
 import {
   JSSJob,
   JSSJobStatus,
 } from "../../../services/job-status-client/types";
 import {
   getMockStateWithHistory,
-  mockFailedAddMetadataJob,
   mockFailedUploadJob,
   mockState,
-  mockSuccessfulAddMetadataJob,
   mockSuccessfulUploadJob,
   mockWellUpload,
-  mockWorkingAddMetadataJob,
   mockWorkingUploadJob,
   nonEmptyJobStateBranch,
 } from "../../test/mocks";
@@ -22,7 +20,6 @@ import {
   getCurrentJobName,
   getFilteredJobs,
   getIsSafeToExit,
-  getJobIdToAddMetadataJobMap,
   getJobIdToUploadJobMap,
   getJobsForTable,
   getUploadInProgress,
@@ -72,52 +69,84 @@ describe("Job selectors", () => {
       expect(isSafeToExit).to.be.true;
     });
 
-    it("returns true if addMetadataJobs only contains a successful job", () => {
+    it("returns false if a upload job's current stage is at the add metadata step and is in progress", () => {
       const isSafeToExit = getIsSafeToExit({
         ...mockState,
         job: {
           ...mockState.job,
-          addMetadataJobs: [
+          uploadJobs: [
             {
-              ...mockSuccessfulAddMetadataJob,
-              parentId: mockWorkingUploadJob.jobId,
-            },
-          ],
-        },
-      });
-      expect(isSafeToExit).to.be.true;
-    });
-
-    it("returns true if addMetadataJobs only contains a failed job", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          addMetadataJobs: [
-            {
-              ...mockFailedAddMetadataJob,
-              parentId: mockWorkingUploadJob.jobId,
-            },
-          ],
-        },
-      });
-      expect(isSafeToExit).to.be.true;
-    });
-
-    it("returns addMetadataJobs contains a working job", () => {
-      const isSafeToExit = getIsSafeToExit({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          addMetadataJobs: [
-            {
-              ...mockWorkingAddMetadataJob,
-              parentId: mockWorkingUploadJob.jobId,
+              ...mockWorkingUploadJob,
+              currentStage: StepName.AddMetadata.toString(),
             },
           ],
         },
       });
       expect(isSafeToExit).to.be.false;
+    });
+
+    it("returns false if a upload job's current stage is at the copy files step and is in progress", () => {
+      const isSafeToExit = getIsSafeToExit({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [
+            {
+              ...mockWorkingUploadJob,
+              currentStage: StepName.CopyFiles.toString(),
+            },
+          ],
+        },
+      });
+      expect(isSafeToExit).to.be.false;
+    });
+
+    it("returns false if a upload job's current stage is at the copy file step and is in progress", () => {
+      const isSafeToExit = getIsSafeToExit({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [
+            {
+              ...mockWorkingUploadJob,
+              currentStage: StepName.CopyFilesChild.toString(),
+            },
+          ],
+        },
+      });
+      expect(isSafeToExit).to.be.false;
+    });
+
+    it("returns true if a upload job's current stage is not equal to any of the steps performed by this app", () => {
+      const isSafeToExit = getIsSafeToExit({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [{ ...mockWorkingUploadJob, currentStage: "etl" }],
+        },
+      });
+      expect(isSafeToExit).to.be.true;
+    });
+
+    it("returns true if there are no upload jobs", () => {
+      const isSafeToExit = getIsSafeToExit({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [],
+        },
+      });
+      expect(isSafeToExit).to.be.true;
+    });
+    it("returns true if there are no in progress jobs", () => {
+      const isSafeToExit = getIsSafeToExit({
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [mockFailedUploadJob, mockSuccessfulUploadJob],
+        },
+      });
+      expect(isSafeToExit).to.be.true;
     });
   });
 
@@ -306,21 +335,6 @@ describe("Job selectors", () => {
       );
       expect(map.get(mockSuccessfulUploadJob.jobId)).to.equal(
         mockSuccessfulUploadJob
-      );
-    });
-  });
-  describe("getJobIdToAddMetadataJobMap", () => {
-    it("converts a list of jobs to a map of jobId's to jobs", () => {
-      const map = getJobIdToAddMetadataJobMap({
-        ...mockState.job,
-        addMetadataJobs: [mockWorkingAddMetadataJob, mockFailedAddMetadataJob],
-      });
-      expect(map.size).to.equal(2);
-      expect(map.get(mockWorkingAddMetadataJob.jobId)).to.equal(
-        mockWorkingAddMetadataJob
-      );
-      expect(map.get(mockFailedAddMetadataJob.jobId)).to.equal(
-        mockFailedAddMetadataJob
       );
     });
   });

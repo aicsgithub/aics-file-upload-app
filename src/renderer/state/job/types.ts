@@ -3,10 +3,7 @@ import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, UploadProgressInfo } from "../types";
 
 export interface ReceiveJobsAction {
-  payload: {
-    addMetadataJobs: JSSJob[];
-    uploadJobs: JSSJob[];
-  };
+  payload: JSSJob[];
   type: string;
 }
 

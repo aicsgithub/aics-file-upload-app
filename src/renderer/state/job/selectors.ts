@@ -3,10 +3,7 @@ import { basename } from "path";
 import { isEmpty, orderBy } from "lodash";
 import { createSelector } from "reselect";
 
-import {
-  AddMetadataServiceFields,
-  UploadServiceFields,
-} from "../../services/aicsfiles/types";
+import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
 import {
   FAILED_STATUSES,
   IN_PROGRESS_STATUSES,
@@ -27,10 +24,24 @@ import {
 import { getUpload, getUploadFileNames } from "../upload/selectors";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
-export const getAddMetadataJobs = (state: State) => state.job.addMetadataJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
 export const getCopyProgress = (state: State) => state.job.copyProgress;
 
+// "Local" selectors: selecting off of job state branch as input
+export type JobIdToJobMap<T> = Map<string, JSSJob<T>>;
+const getUploadJobsFromLocalState = (state: JobStateBranch) => state.uploadJobs;
+export const getJobIdToUploadJobMap = createSelector(
+  [getUploadJobsFromLocalState],
+  (jobs: JSSJob<UploadServiceFields>[]): JobIdToJobMap<UploadServiceFields> => {
+    const map = new Map<string, JSSJob<UploadServiceFields>>();
+    for (const job of jobs) {
+      map.set(job.jobId, job);
+    }
+    return map;
+  }
+);
+
+// "Global" selectors
 function getStatusesFromFilter(jobFilter: JobFilter): string[] {
   switch (jobFilter) {
     case JobFilter.Successful:
@@ -73,11 +84,19 @@ export const getJobsForTable = createSelector(
 // The app is only safe to exit after the add metadata step has been completed
 // The add metadata step represents sending a request to FSS's /uploadComplete endpoint which delegates
 // The last steps of the upload to FSS
-// addMetadataJobs only contains add metadata child jobs for actual in progress uploads
 export const getIsSafeToExit = createSelector(
-  [getAddMetadataJobs],
-  (addMetadataJobs: JSSJob[]): boolean =>
-    !addMetadataJobs.some((j) => IN_PROGRESS_STATUSES.includes(j.status))
+  [getUploadJobs],
+  (uploadJobs: JSSJob<UploadServiceFields>[]): boolean => {
+    return !uploadJobs.some(
+      (job) =>
+        IN_PROGRESS_STATUSES.includes(job.status) &&
+        [
+          StepName.AddMetadata.toString(),
+          StepName.CopyFiles.toString(),
+          StepName.CopyFilesChild.toString(),
+        ].includes(job.currentStage || "")
+    );
+  }
 );
 
 export const getCurrentJobName = createSelector(
@@ -108,34 +127,5 @@ export const getUploadInProgress = createSelector(
         `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`
       )
     );
-  }
-);
-
-// "Local" selectors: selecting off of job state branch as input
-export type JobIdToJobMap<T> = Map<string, JSSJob<T>>;
-const getUploadJobsFromLocalState = (state: JobStateBranch) => state.uploadJobs;
-export const getJobIdToUploadJobMap = createSelector(
-  [getUploadJobsFromLocalState],
-  (jobs: JSSJob<UploadServiceFields>[]): JobIdToJobMap<UploadServiceFields> => {
-    const map = new Map<string, JSSJob<UploadServiceFields>>();
-    for (const job of jobs) {
-      map.set(job.jobId, job);
-    }
-    return map;
-  }
-);
-
-const getAddMetadataJobsFromLocalState = (state: JobStateBranch) =>
-  state.addMetadataJobs;
-export const getJobIdToAddMetadataJobMap = createSelector(
-  [getAddMetadataJobsFromLocalState],
-  (
-    jobs: JSSJob<AddMetadataServiceFields>[]
-  ): JobIdToJobMap<AddMetadataServiceFields> => {
-    const map = new Map<string, JSSJob<AddMetadataServiceFields>>();
-    for (const job of jobs) {
-      map.set(job.jobId, job);
-    }
-    return map;
   }
 );

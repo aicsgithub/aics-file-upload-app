@@ -19,15 +19,9 @@ import {
   ReceiveJobUpdateAction,
 } from "./types";
 
-export function receiveJobs(
-  uploadJobs: JSSJob[] = [],
-  addMetadataJobs: JSSJob[] = []
-): ReceiveJobsAction {
+export function receiveJobs(uploadJobs: JSSJob[] = []): ReceiveJobsAction {
   return {
-    payload: {
-      addMetadataJobs,
-      uploadJobs,
-    },
+    payload: uploadJobs,
     type: RECEIVE_JOBS,
   };
 }
