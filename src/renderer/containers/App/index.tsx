@@ -4,8 +4,9 @@ import * as classNames from "classnames";
 import { ipcRenderer, remote } from "electron";
 import { camelizeKeys } from "humps";
 import * as React from "react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import * as uuid from "uuid";
 
 import {
   OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
@@ -22,6 +23,8 @@ import {
   clearAlert,
   removeRequestFromInProgress,
   setAlert,
+  setSuccessAlert,
+  setWarningAlert,
   toggleFolderTree,
 } from "../../state/feedback/actions";
 import {
@@ -31,6 +34,7 @@ import {
   getRecentEvent,
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
+import { timeout } from "../../state/feedback/util";
 import {
   handleAbandonedJobs,
   receiveJobInsert,
@@ -149,6 +153,8 @@ export default function App() {
   );
   const uploadTabName = useSelector(getUploadTabName);
   const view = useSelector(getView);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const prevConnectionErrorRef = useRef<string | null>(null);
 
   // Request initial data
   useEffect(() => {
@@ -157,7 +163,7 @@ export default function App() {
     dispatch(handleAbandonedJobs());
   }, [dispatch]);
 
-  // Subscribe to job changes for current `limsUrl` and `user`
+  // Subscribe to job changes for current `limsUrl` and `user` and connectionError
   useEffect(() => {
     dispatch(addRequestToInProgress(AsyncRequest.GET_JOBS));
     const eventSource = new EventSource(
@@ -166,6 +172,10 @@ export default function App() {
     );
 
     eventSource.addEventListener("initialJobs", ((event: MessageEvent) => {
+      if (connectionError) {
+        setConnectionError(null);
+        dispatch(setSuccessAlert("Reconnected successfully!"));
+      }
       dispatch(removeRequestFromInProgress(AsyncRequest.GET_JOBS));
       const jobs = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
@@ -190,10 +200,26 @@ export default function App() {
       dispatch(receiveJobUpdate(jobChange));
     }) as EventListener);
 
+    eventSource.onerror = async () => {
+      // Wait 5 sec before reconnecting
+      await timeout(5000);
+      // Set to a guuid so that this value changes for every new error and to get the app to retry creating the EventSource
+      setConnectionError(uuid.v1());
+      if (!prevConnectionErrorRef.current) {
+        dispatch(
+          setWarningAlert("Ran into error while listening for job updates")
+        );
+      }
+    };
+
+    // We keep track of the previous connection error so that we don't show the warning alert more than once while trying
+    // to reconnect
+    prevConnectionErrorRef.current = connectionError;
+
     return function cleanUp() {
       eventSource.close();
     };
-  }, [limsUrl, user, dispatch]);
+  }, [limsUrl, user, connectionError, dispatch]);
 
   // Event handlers for menu events
   useEffect(() => {
