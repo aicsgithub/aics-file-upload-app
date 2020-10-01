@@ -4,14 +4,12 @@ import { JobFilter, UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
 import {
-  HANDLE_ABANDONED_JOBS,
   RECEIVE_JOB_INSERT,
   RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
 } from "./constants";
 import {
-  HandleAbandonedJobsAction,
   ReceiveJobsAction,
   ReceiveJobInsertAction,
   SelectJobFilterAction,
@@ -41,12 +39,6 @@ export function receiveJobUpdate(
   return {
     payload: job,
     type: RECEIVE_JOB_UPDATE,
-  };
-}
-
-export function handleAbandonedJobs(): HandleAbandonedJobsAction {
-  return {
-    type: HANDLE_ABANDONED_JOBS,
   };
 }
 

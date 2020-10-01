@@ -11,8 +11,4 @@ export const RECEIVE_JOB_UPDATE = makeConstant(
   BRANCH_NAME,
   "receive-job-update"
 );
-export const HANDLE_ABANDONED_JOBS = makeConstant(
-  BRANCH_NAME,
-  "handle-abandoned-jobs"
-);
 export const SELECT_JOB_FILTER = makeConstant(BRANCH_NAME, "select-job-filter");

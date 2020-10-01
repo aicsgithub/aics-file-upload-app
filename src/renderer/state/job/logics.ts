@@ -1,19 +1,16 @@
 import { createLogic } from "redux-logic";
 
-import { UploadMetadata as AicsFilesUploadMetadata } from "../../services/aicsfiles/types";
 import {
-  IN_PROGRESS_STATUSES,
-  JSSJob,
-  SUCCESSFUL_STATUS,
-} from "../../services/job-status-client/types";
+  StepName,
+  UploadMetadata as AicsFilesUploadMetadata,
+} from "../../services/aicsfiles/types";
+import { IN_PROGRESS_STATUSES } from "../../services/job-status-client/types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
   setErrorAlert,
   setInfoAlert,
   setSuccessAlert,
 } from "../feedback/actions";
-import { getWithRetry } from "../feedback/util";
-import { getLoggedInUser } from "../setting/selectors";
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -22,66 +19,38 @@ import {
 import { handleUploadProgress } from "../util";
 
 import { updateUploadProgressInfo } from "./actions";
-import { HANDLE_ABANDONED_JOBS } from "./constants";
-import { HandleAbandonedJobsAction } from "./types";
+import { RECEIVE_JOBS } from "./constants";
+import { ReceiveJobsAction } from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
-  type: HANDLE_ABANDONED_JOBS,
-  warnTimeout: 0,
-  async process(
+  process: async (
     {
-      logger,
+      action,
       fms,
-      jssClient,
-      getState,
-    }: ReduxLogicProcessDependenciesWithAction<HandleAbandonedJobsAction>,
+      logger,
+    }: ReduxLogicProcessDependenciesWithAction<ReceiveJobsAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
-  ) {
+  ) => {
+    const abandonedJobs = action.payload.filter(
+      ({ currentStage, serviceFields, status }) =>
+        serviceFields?.type === "upload" &&
+        IN_PROGRESS_STATUSES.includes(status) &&
+        [
+          StepName.CopyFilesChild.toString(),
+          StepName.AddMetadata.toString(),
+          StepName.CopyFiles.toString(),
+          StepName.Waiting.toString(),
+          "", // if no currentStage, it is probably worth retrying this job
+        ].includes(currentStage || "")
+    );
+
+    if (abandonedJobs.length < 1) {
+      done();
+      return;
+    }
+
     try {
-      const state = getState();
-      const user = getLoggedInUser(state);
-
-      const inProgressJobs = await getWithRetry(
-        () =>
-          jssClient.getJobs({
-            status: { $in: IN_PROGRESS_STATUSES },
-            serviceFields: { type: "upload" },
-            user,
-          }),
-        dispatch
-      );
-
-      let incompleteChildren: JSSJob[] = [];
-      if (inProgressJobs.length > 0) {
-        incompleteChildren = await getWithRetry(
-          () =>
-            jssClient.getJobs({
-              parentId: { $in: inProgressJobs.map((job) => job.jobId) },
-              status: { $ne: SUCCESSFUL_STATUS },
-              user,
-            }),
-          dispatch
-        );
-      }
-
-      const abandonedJobs = inProgressJobs.filter((job) => {
-        // If an in progress upload has no children, it must have been abandoned
-        // before the child jobs could have been created.
-        if (!job.childIds) {
-          return true;
-        }
-
-        const incompleteChildrenForJob = incompleteChildren.filter(
-          (childJob) => childJob.parentId === job.jobId
-        );
-
-        // HEURISTIC:
-        // If any of the child jobs of an in progress upload have not
-        // completed, then it is very likely that the job is abandoned.
-        return incompleteChildrenForJob.length > 0;
-      });
-
       // Wait for every abandoned job to be processed
       await Promise.all(
         abandonedJobs.map(async (abandonedJob) => {
@@ -133,6 +102,8 @@ export const handleAbandonedJobsLogic = createLogic({
       done();
     }
   },
+  type: RECEIVE_JOBS,
+  warnTimeout: 0,
 });
 
 export default [handleAbandonedJobsLogic];

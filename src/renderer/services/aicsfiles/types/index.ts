@@ -80,6 +80,7 @@ export enum StepName {
   AddMetadata = "Add metadata about file and complete upload",
   CopyFilesChild = "Copy file",
   CopyFiles = "Copy files in parallel",
+  Waiting = "Waiting for file copy",
 }
 
 export interface Step {

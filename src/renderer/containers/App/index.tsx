@@ -36,7 +36,6 @@ import {
 } from "../../state/feedback/selectors";
 import { timeout } from "../../state/feedback/util";
 import {
-  handleAbandonedJobs,
   receiveJobInsert,
   receiveJobs,
   receiveJobUpdate,
@@ -160,7 +159,6 @@ export default function App() {
   useEffect(() => {
     dispatch(requestMetadata());
     dispatch(gatherSettings());
-    dispatch(handleAbandonedJobs());
   }, [dispatch]);
 
   // Subscribe to job changes for current `limsUrl` and `user` and connectionError

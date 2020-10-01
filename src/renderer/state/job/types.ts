@@ -17,10 +17,6 @@ export interface ReceiveJobUpdateAction {
   type: string;
 }
 
-export interface HandleAbandonedJobsAction {
-  type: string;
-}
-
 export interface SelectJobFilterAction {
   payload: JobFilter;
   type: string;
