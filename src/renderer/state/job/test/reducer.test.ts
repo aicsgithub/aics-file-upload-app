@@ -1,26 +1,17 @@
 import { expect } from "chai";
 
+import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
-  mockFailedUploadJob,
   mockSuccessfulUploadJob,
   mockWorkingAddMetadataJob,
+  mockWorkingUploadJob,
 } from "../../test/mocks";
-import { AsyncRequest, JobFilter } from "../../types";
+import { JobFilter } from "../../types";
 import {
-  cancelUpload,
-  initiateUploadSucceeded,
-  retryUpload,
-  retryUploadFailed,
-  retryUploadSucceeded,
-  uploadFailed,
-  uploadSucceeded,
-} from "../../upload/actions";
-import {
+  receiveJobInsert,
   receiveJobs,
+  receiveJobUpdate,
   selectJobFilter,
-  startJobPoll,
-  stopJobPoll,
-  updateIncompleteJobIds,
   updateUploadProgressInfo,
 } from "../actions";
 import reducer from "../reducer";
@@ -28,122 +19,62 @@ import { initialState } from "../reducer";
 
 describe("job reducer", () => {
   describe("receiveJobs", () => {
-    it("sets addMetadataJobs, copyJobs, incompleteJobIds, uploadJobs, and inProgressJobs", () => {
-      const addMetadataJobs = [mockWorkingAddMetadataJob];
-      const incompleteJobIds = ["job1"];
+    it("sets uploadJobs", () => {
       const uploadJobs = [mockSuccessfulUploadJob];
-      const result = reducer(
-        initialState,
-        receiveJobs(uploadJobs, addMetadataJobs, incompleteJobIds)
-      );
-      expect(result.addMetadataJobs).to.equal(addMetadataJobs);
-      expect(result.incompleteJobIds).to.deep.equal(incompleteJobIds);
+      const result = reducer(initialState, receiveJobs(uploadJobs));
       expect(result.uploadJobs).to.equal(uploadJobs);
     });
   });
-  describe("updateIncompleteJobIds", () => {
-    it("sets incompleteJobIds", () => {
-      const jobIds = ["abc"];
-      const result = reducer(initialState, updateIncompleteJobIds(jobIds));
-      expect(result.incompleteJobIds).to.equal(jobIds);
+  describe("receiveJobInsert", () => {
+    it("adds job to front of upload job list if serviceFields.type = 'upload'", () => {
+      const result = reducer(
+        initialState,
+        receiveJobInsert(mockWorkingUploadJob)
+      );
+      expect(result.uploadJobs[0]).to.equal(mockWorkingUploadJob);
+    });
+    it("returns original state if serviceFields.type != 'upload' and != 'add_metadata'", () => {
+      const result = reducer(
+        initialState,
+        receiveJobInsert({
+          ...mockWorkingAddMetadataJob,
+          serviceFields: { type: "copy" },
+        })
+      );
+      expect(result).to.equal(initialState);
+    });
+  });
+  describe("receiveJobUpdate", () => {
+    it("replaces job with matching jobId in uploadJobs if serviceFields.type = 'upload", () => {
+      const updatedJob = {
+        ...mockWorkingUploadJob,
+        status: JSSJobStatus.SUCCEEDED,
+      };
+      const result = reducer(
+        {
+          ...initialState,
+          uploadJobs: [mockWorkingUploadJob, mockSuccessfulUploadJob],
+        },
+        receiveJobUpdate(updatedJob)
+      );
+      expect(result.uploadJobs[0]).to.equal(updatedJob);
+    });
+    it("returns original state if job with matching jobId is not found", () => {
+      const state = {
+        ...initialState,
+        uploadJobs: [mockWorkingUploadJob],
+      };
+      const result = reducer(
+        state,
+        receiveJobUpdate(mockWorkingAddMetadataJob)
+      );
+      expect(result).to.equal(state);
     });
   });
   describe("selectJobFilter", () => {
     it("sets jobFilter", () => {
       const result = reducer(initialState, selectJobFilter(JobFilter.Failed));
       expect(result.jobFilter).to.equal(JobFilter.Failed);
-    });
-  });
-  describe("startJobPoll", () => {
-    it("sets polling to true", () => {
-      const result = reducer(initialState, startJobPoll());
-      expect(result.polling).to.be.true;
-    });
-  });
-  describe("stopJobPoll", () => {
-    it("sets polling to false", () => {
-      const result = reducer({ ...initialState, polling: true }, stopJobPoll());
-      expect(result.polling).to.be.false;
-    });
-  });
-  describe("retryUpload", () => {
-    it("sets incompleteJobIds and sets polling to true", () => {
-      const result = reducer(
-        initialState,
-        retryUpload({ ...mockFailedUploadJob, key: "key" }, [])
-      );
-      expect(result.incompleteJobIds).to.include(mockFailedUploadJob.jobId);
-      expect(result.polling).to.be.true;
-    });
-  });
-  describe("retryUploadSucceeded", () => {
-    it("sets incompleteJobIds", () => {
-      const result = reducer(
-        initialState,
-        retryUploadSucceeded(
-          { ...mockFailedUploadJob, jobId: "foo", key: "key" },
-          ["foo"]
-        )
-      );
-      expect(result.incompleteJobIds).to.not.include("foo");
-    });
-  });
-  describe("retryUploadFailed", () => {
-    it("sets incompleteJobIds", () => {
-      const requestType = `${AsyncRequest.RETRY_UPLOAD}-jobName`;
-      const result = reducer(
-        { ...initialState, incompleteJobIds: ["foo"] },
-        retryUploadFailed(
-          {
-            ...mockFailedUploadJob,
-            jobId: "foo",
-            jobName: "jobName",
-            key: "key",
-          },
-          "error",
-          [requestType]
-        )
-      );
-      expect(result.incompleteJobIds).to.not.include("foo");
-    });
-  });
-  describe("initiateUploadSucceeded", () => {
-    it("sets incompleteJobIds", () => {
-      const result = reducer(
-        initialState,
-        initiateUploadSucceeded("foo", "jobId", [], "foo")
-      );
-      expect(result.incompleteJobIds.length).to.equal(1);
-    });
-  });
-  describe("uploadSucceeded", () => {
-    it("sets incompleteJobIds", () => {
-      const result = reducer(
-        { ...initialState, incompleteJobIds: ["jobId"] },
-        uploadSucceeded("foo", "jobId", [])
-      );
-      expect(result.incompleteJobIds).to.be.empty;
-    });
-  });
-  describe("uploadFailed", () => {
-    it("sets incompleteJobIds", () => {
-      const result = reducer(
-        { ...initialState, incompleteJobIds: ["jobId"] },
-        uploadFailed("error", "foo", "jobId", [])
-      );
-      expect(result.incompleteJobIds).to.be.empty;
-    });
-  });
-  describe("cancelUpload", () => {
-    it("sets incompleteJobIds and sets polling to true", () => {
-      const result = reducer(
-        { ...initialState, incompleteJobIds: ["foo"] },
-        cancelUpload({ ...mockFailedUploadJob, jobId: "foo", key: "bar" }, [
-          "foo",
-        ])
-      );
-      expect(result.incompleteJobIds).to.be.empty;
-      expect(result.polling).to.be.true;
     });
   });
   describe("updateUploadProgressInfo", () => {
