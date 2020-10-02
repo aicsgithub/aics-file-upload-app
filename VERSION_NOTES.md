@@ -1,4 +1,7 @@
 # Version Notes
+## 1.0.51 (10/2/20)
+- Bugfix: improved upload status change tracking and removed polling switch
+- Feature: view upload metadata in same tab regardless of the upload status
 
 ## 1.0.50 (8/20/20)
 - Bugfix: fix issue that was preventing progress information from displaying
