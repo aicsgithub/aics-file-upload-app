@@ -1,6 +1,6 @@
 {
   "name": "file-upload-app",
-  "version": "1.0.50",
+  "version": "1.0.51-snapshot",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
     "files": [
