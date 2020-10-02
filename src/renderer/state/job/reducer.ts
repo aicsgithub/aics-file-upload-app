@@ -1,50 +1,29 @@
-import { uniq } from "lodash";
 import { AnyAction } from "redux";
 
+import { UploadServiceFields } from "../../services/aicsfiles/types";
+import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, JobStateBranch, TypeToDescriptionMap } from "../types";
-import {
-  CANCEL_UPLOAD,
-  INITIATE_UPLOAD_SUCCEEDED,
-  RETRY_UPLOAD,
-  RETRY_UPLOAD_FAILED,
-  RETRY_UPLOAD_SUCCEEDED,
-  UPDATE_UPLOAD_PROGRESS_INFO,
-  UPLOAD_FAILED,
-  UPLOAD_SUCCEEDED,
-} from "../upload/constants";
-import {
-  CancelUploadAction,
-  InitiateUploadSucceededAction,
-  RetryUploadAction,
-  RetryUploadFailedAction,
-  RetryUploadSucceededAction,
-  UploadFailedAction,
-  UploadSucceededAction,
-} from "../upload/types";
+import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 import { makeReducer } from "../util";
 
 import {
+  RECEIVE_JOB_INSERT,
+  RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
   SELECT_JOB_FILTER,
-  START_JOB_POLL,
-  STOP_JOB_POLL,
-  UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
+import { getJobIdToUploadJobMap } from "./selectors";
 import {
   ReceiveJobsAction,
+  ReceiveJobInsertAction,
   SelectJobFilterAction,
-  StartJobPollAction,
-  StopJobPollAction,
-  UpdateIncompleteJobIdsAction,
   UpdateUploadProgressInfoAction,
+  ReceiveJobUpdateAction,
 } from "./types";
 
 export const initialState: JobStateBranch = {
-  addMetadataJobs: [],
   copyProgress: {},
-  incompleteJobIds: [],
   jobFilter: JobFilter.All,
-  polling: false,
   uploadJobs: [],
 };
 
@@ -54,26 +33,59 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === RECEIVE_JOBS,
     perform: (
       state: JobStateBranch,
-      {
-        payload: { addMetadataJobs, incompleteJobIds, uploadJobs },
-      }: ReceiveJobsAction
+      { payload: uploadJobs }: ReceiveJobsAction
     ) => {
       return {
         ...state,
-        addMetadataJobs,
-        incompleteJobIds: uniq(incompleteJobIds),
         uploadJobs,
       };
     },
   },
-  [UPDATE_INCOMPLETE_JOB_IDS]: {
-    accepts: (action: AnyAction): action is UpdateIncompleteJobIdsAction =>
-      action.type === UPDATE_INCOMPLETE_JOB_IDS,
-    perform: (state: JobStateBranch, action: UpdateIncompleteJobIdsAction) => {
-      return {
-        ...state,
-        incompleteJobIds: action.payload,
-      };
+  [RECEIVE_JOB_INSERT]: {
+    accepts: (action: AnyAction): action is ReceiveJobInsertAction =>
+      action.type === RECEIVE_JOB_INSERT,
+    perform: (
+      state: JobStateBranch,
+      { payload: updatedJob }: ReceiveJobInsertAction
+    ): JobStateBranch => {
+      const jobType = updatedJob.serviceFields?.type;
+      if (jobType === "upload") {
+        return {
+          ...state,
+          uploadJobs: [
+            updatedJob as JSSJob<UploadServiceFields>,
+            ...state.uploadJobs,
+          ],
+        };
+      }
+
+      return state;
+    },
+  },
+  [RECEIVE_JOB_UPDATE]: {
+    accepts: (action: AnyAction): action is ReceiveJobUpdateAction =>
+      action.type === RECEIVE_JOB_UPDATE,
+    perform: (
+      state: JobStateBranch,
+      { payload: updatedJob }: ReceiveJobUpdateAction
+    ): JobStateBranch => {
+      const jobType = updatedJob.serviceFields?.type;
+      const jobIdToUploadJobMap: Map<
+        string,
+        JSSJob<UploadServiceFields>
+      > = getJobIdToUploadJobMap(state);
+      if (jobType === "upload" && jobIdToUploadJobMap.has(updatedJob.jobId)) {
+        // Replace job with changed job
+        return {
+          ...state,
+          uploadJobs: state.uploadJobs.map((job) =>
+            job.jobId === updatedJob.jobId
+              ? (updatedJob as JSSJob<UploadServiceFields>)
+              : job
+          ),
+        };
+      }
+      return state;
     },
   },
   [SELECT_JOB_FILTER]: {
@@ -85,100 +97,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         jobFilter: action.payload,
       };
     },
-  },
-  [START_JOB_POLL]: {
-    accepts: (action: AnyAction): action is StartJobPollAction =>
-      action.type === START_JOB_POLL,
-    perform: (state: JobStateBranch) => ({
-      ...state,
-      polling: true,
-    }),
-  },
-  [STOP_JOB_POLL]: {
-    accepts: (action: AnyAction): action is StopJobPollAction =>
-      action.type === STOP_JOB_POLL,
-    perform: (state: JobStateBranch) => ({
-      ...state,
-      polling: false,
-    }),
-  },
-  [RETRY_UPLOAD]: {
-    accepts: (action: AnyAction): action is RetryUploadAction =>
-      action.type === RETRY_UPLOAD,
-    perform: (
-      state: JobStateBranch,
-      { payload: { recentJobs } }: RetryUploadAction
-    ) => ({
-      ...state,
-      incompleteJobIds: recentJobs,
-      polling: true,
-    }),
-  },
-  [RETRY_UPLOAD_SUCCEEDED]: {
-    accepts: (action: AnyAction): action is RetryUploadSucceededAction =>
-      action.type === RETRY_UPLOAD_SUCCEEDED,
-    perform: (
-      state: JobStateBranch,
-      { payload: { recentJobs } }: RetryUploadSucceededAction
-    ) => ({
-      ...state,
-      incompleteJobIds: recentJobs,
-    }),
-  },
-  [RETRY_UPLOAD_FAILED]: {
-    accepts: (action: AnyAction): action is RetryUploadFailedAction =>
-      action.type === RETRY_UPLOAD_FAILED,
-    perform: (
-      state: JobStateBranch,
-      { payload: { recentJobs } }: RetryUploadFailedAction
-    ) => ({
-      ...state,
-      incompleteJobIds: recentJobs,
-    }),
-  },
-  [UPLOAD_SUCCEEDED]: {
-    accepts: (action: AnyAction): action is UploadSucceededAction =>
-      action.type === UPLOAD_SUCCEEDED,
-    perform: (
-      state: JobStateBranch,
-      { payload: { recentJobs } }: UploadSucceededAction
-    ) => ({
-      ...state,
-      incompleteJobIds: recentJobs,
-    }),
-  },
-  [UPLOAD_FAILED]: {
-    accepts: (action: AnyAction): action is UploadFailedAction =>
-      action.type === UPLOAD_FAILED,
-    perform: (
-      state: JobStateBranch,
-      { payload: { recentJobs } }: UploadFailedAction
-    ) => ({
-      ...state,
-      incompleteJobIds: recentJobs,
-    }),
-  },
-  [CANCEL_UPLOAD]: {
-    accepts: (action: AnyAction): action is CancelUploadAction =>
-      action.type === CANCEL_UPLOAD,
-    perform: (state: JobStateBranch, action: CancelUploadAction) => ({
-      ...state,
-      incompleteJobIds: action.payload.recentJobs,
-      polling: true,
-    }),
-  },
-  [INITIATE_UPLOAD_SUCCEEDED]: {
-    accepts: (action: AnyAction): action is InitiateUploadSucceededAction =>
-      action.type === INITIATE_UPLOAD_SUCCEEDED,
-    perform: (
-      state: JobStateBranch,
-      { payload: { job, recentJobs } }: InitiateUploadSucceededAction
-    ) => ({
-      ...state,
-      uploadJobs: [...state.uploadJobs, job],
-      incompleteJobIds: recentJobs,
-      polling: true,
-    }),
   },
   [UPDATE_UPLOAD_PROGRESS_INFO]: {
     accepts: (action: AnyAction): action is UpdateUploadProgressInfoAction =>

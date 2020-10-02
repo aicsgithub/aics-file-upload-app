@@ -1,48 +1,24 @@
+import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
-import { JobFilter, UploadProgressInfo, WriteToStoreAction } from "../types";
-
-export interface RetrieveJobsAction {
-  type: string;
-}
-
-export interface RetrieveJobsFailedAction {
-  payload: string;
-  type: string;
-}
+import { JobFilter, UploadProgressInfo } from "../types";
 
 export interface ReceiveJobsAction {
-  payload: {
-    addMetadataJobs: JSSJob[];
-    incompleteJobIds: string[];
-    uploadJobs: JSSJob[];
-  };
+  payload: JSSJob[];
   type: string;
 }
 
-export interface HandleAbandonedJobsAction {
+export interface ReceiveJobInsertAction {
+  payload: JSSJob<BaseServiceFields>;
   type: string;
 }
 
-export interface GatherIncompleteJobIdsAction {
-  type: string;
-}
-
-export interface UpdateIncompleteJobIdsAction extends WriteToStoreAction {
-  payload: string[];
+export interface ReceiveJobUpdateAction {
+  payload: JSSJob<BaseServiceFields>;
   type: string;
 }
 
 export interface SelectJobFilterAction {
   payload: JobFilter;
-  type: string;
-}
-
-export interface StopJobPollAction {
-  type: string;
-}
-
-export interface StartJobPollAction {
-  payload?: JobFilter;
   type: string;
 }
 

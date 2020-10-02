@@ -1,14 +1,4 @@
-import {
-  Button,
-  Col,
-  Empty,
-  Icon,
-  Radio,
-  Row,
-  Spin,
-  Switch,
-  Table,
-} from "antd";
+import { Button, Col, Empty, Icon, Radio, Row, Spin, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
@@ -26,26 +16,9 @@ import {
   getRequestsInProgress,
   getRequestsInProgressContains,
 } from "../../state/feedback/selectors";
-import {
-  gatherIncompleteJobIds,
-  retrieveJobs,
-  selectJobFilter,
-  startJobPoll,
-  stopJobPoll,
-} from "../../state/job/actions";
-import {
-  getIncompleteJobIds,
-  getIsPolling,
-  getJobFilter,
-  getJobsForTable,
-} from "../../state/job/selectors";
-import {
-  GatherIncompleteJobIdsAction,
-  RetrieveJobsAction,
-  SelectJobFilterAction,
-  StartJobPollAction,
-  StopJobPollAction,
-} from "../../state/job/types";
+import { selectJobFilter } from "../../state/job/actions";
+import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
+import { SelectJobFilterAction } from "../../state/job/types";
 import {
   openEditFileMetadataTab,
   selectPage,
@@ -92,22 +65,16 @@ interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
   className?: string;
   files: UploadFile[];
-  gatherIncompleteJobIds: ActionCreator<GatherIncompleteJobIdsAction>;
-  incompleteJobIds: string[];
-  isPolling: boolean;
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
   page: Page;
   requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
-  retrieveJobs: ActionCreator<RetrieveJobsAction>;
   retryUpload: ActionCreator<RetryUploadAction>;
   selectPage: ActionCreator<SelectPageAction>;
   selectView: ActionCreator<SelectViewAction>;
   selectJobFilter: ActionCreator<SelectJobFilterAction>;
-  startJobPoll: ActionCreator<StartJobPollAction>;
-  stopJobPoll: ActionCreator<StopJobPollAction>;
 }
 
 class UploadSummary extends React.Component<Props, {}> {
@@ -179,7 +146,7 @@ class UploadSummary extends React.Component<Props, {}> {
         dataIndex: "progress",
         key: "progress",
         render: (progress: UploadProgressInfo, row: UploadSummaryTableRow) => (
-          <UploadProgress isPolling={this.props.isPolling} row={row} />
+          <UploadProgress row={row} />
         ),
         title: "Progress",
         width: "350px",
@@ -193,27 +160,8 @@ class UploadSummary extends React.Component<Props, {}> {
     this.state = {};
   }
 
-  public componentDidMount(): void {
-    // this retrieves jobs to display on table (no polling; one-time call.)
-    this.props.retrieveJobs();
-    // this gathers jobs that are stored in "local storage" for all uploads that have been initiated and/or retried.
-    // this is solely for reporting purposes in case an upload succeeded or failed while the app was not running
-    this.props.gatherIncompleteJobIds();
-  }
-
-  public componentWillUnmount(): void {
-    this.props.stopJobPoll();
-  }
-
   public render() {
-    const {
-      className,
-      isPolling,
-      jobFilter,
-      jobs,
-      page,
-      requestingJobs,
-    } = this.props;
+    const { className, jobFilter, jobs, page, requestingJobs } = this.props;
     const buttonLabel =
       page !== Page.UploadSummary ? (
         <>Resume Upload</>
@@ -260,15 +208,6 @@ class UploadSummary extends React.Component<Props, {}> {
                   ))}
                 </Radio.Group>
               </Col>
-              <Col>
-                Polling for Uploads is&nbsp;
-                <Switch
-                  checkedChildren="ON"
-                  unCheckedChildren="OFF"
-                  checked={isPolling}
-                  onClick={this.togglePoll}
-                />
-              </Col>
             </Row>
           </div>
           {jobs.length ? (
@@ -297,11 +236,7 @@ class UploadSummary extends React.Component<Props, {}> {
 
   private selectJobFilter = (e: RadioChangeEvent): void => {
     this.props.selectJobFilter(e.target.value);
-    this.props.retrieveJobs();
   };
-
-  private togglePoll = () =>
-    this.props.isPolling ? this.props.stopJobPoll() : this.props.startJobPoll();
 
   private startNewUpload = (): void => {
     // If the current page is UploadSummary we must just be a view
@@ -321,7 +256,7 @@ class UploadSummary extends React.Component<Props, {}> {
         `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
       )
     ) {
-      this.props.retryUpload(row, this.props.incompleteJobIds);
+      this.props.retryUpload(row);
     }
   };
 
@@ -343,8 +278,6 @@ class UploadSummary extends React.Component<Props, {}> {
 function mapStateToProps(state: State) {
   return {
     files: getStagedFiles(state),
-    incompleteJobIds: getIncompleteJobIds(state),
-    isPolling: getIsPolling(state),
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),
     page: getPage(state),
@@ -355,15 +288,11 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   cancelUpload,
-  gatherIncompleteJobIds,
   openEditFileMetadataTab,
-  retrieveJobs,
   retryUpload,
   selectJobFilter,
   selectPage,
   selectView,
-  startJobPoll,
-  stopJobPoll,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);

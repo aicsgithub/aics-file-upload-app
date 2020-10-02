@@ -9,13 +9,13 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../../shared/constants";
 import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
+import { mockJob } from "../../../services/aicsfiles/test/mocks";
 import { StartUploadResponse } from "../../../services/aicsfiles/types";
 import JobStatusClient from "../../../services/job-status-client";
 import { ColumnType } from "../../../services/labkey-client/types";
@@ -79,15 +79,19 @@ import {
   uploadFailed,
   retryUploadSucceeded,
   retryUploadFailed,
+  cancelUpload,
+  cancelUploadSucceeded,
+  cancelUploadFailed,
 } from "../actions";
 import {
+  CANCEL_UPLOAD,
   getUploadRowKey,
   INITIATE_UPLOAD,
   INITIATE_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   UPLOAD_SUCCEEDED,
 } from "../constants";
-import uploadLogics from "../logics";
+import uploadLogics, { cancelUploadLogic } from "../logics";
 import {
   getFileToArchive,
   getFileToStoreOnIsilon,
@@ -454,8 +458,7 @@ describe("Upload logics", () => {
           selectPage(Page.AddCustomData, Page.UploadSummary)
         )
       );
-      expect(actions.includesMatch(uploadSucceeded(jobName, jobId, []))).to.be
-        .true;
+      expect(actions.includesMatch(uploadSucceeded(jobName))).to.be.true;
     });
 
     it("sets error alert given validation error", async () => {
@@ -492,40 +495,6 @@ describe("Upload logics", () => {
       expect(fms.uploadFiles.called).to.be.true;
       expect(actions.list.map((a) => a.type)).to.include(UPLOAD_SUCCEEDED);
     });
-    it("adds to list of incomplete job ids", async () => {
-      fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        {
-          ...nonEmptyStateForInitiatingUpload,
-          job: {
-            ...nonEmptyStateForInitiatingUpload.job,
-            incompleteJobIds: ["existingIncompleteJob"],
-          },
-        },
-        undefined,
-        uploadLogics,
-        false
-      );
-      expect(
-        actions.list.find((a) => {
-          return (
-            a.writeToStore && a.updates && a.updates[INCOMPLETE_JOB_IDS_KEY]
-          );
-        })
-      ).to.be.undefined;
-
-      store.dispatch(initiateUpload());
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(
-        actions.list.find((a) => {
-          return (
-            a.writeToStore && a.updates && a.updates[INCOMPLETE_JOB_IDS_KEY]
-          );
-        })
-      ).to.not.be.undefined;
-    });
     it("dispatches uploadFailed if uploadFiles fails error", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
       fms.uploadFiles.rejects(new Error("error message"));
@@ -540,12 +509,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          uploadFailed(
-            `Upload ${jobName} failed: error message`,
-            jobName,
-            jobId,
-            []
-          )
+          uploadFailed(`Upload ${jobName} failed: error message`, jobName)
         )
       ).to.be.true;
     });
@@ -563,7 +527,7 @@ describe("Upload logics", () => {
         serviceFields: undefined,
         key: "foo",
       };
-      store.dispatch(retryUpload(uploadJob, []));
+      store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
       expect(
@@ -582,14 +546,10 @@ describe("Upload logics", () => {
       );
 
       const uploadJob = { ...mockFailedUploadJob, key: "foo" };
-      store.dispatch(retryUpload(uploadJob, []));
+      store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
-      expect(
-        actions.includesMatch(
-          retryUploadSucceeded(uploadJob, [mockFailedUploadJob.jobId])
-        )
-      ).to.be.true;
+      expect(actions.includesMatch(retryUploadSucceeded(uploadJob))).to.be.true;
       expect(fms.retryUpload.called).to.be.true;
     });
     it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
@@ -601,15 +561,14 @@ describe("Upload logics", () => {
       );
 
       const uploadJob = { ...mockFailedUploadJob, key: "foo" };
-      store.dispatch(retryUpload(uploadJob, []));
+      store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
       expect(
         actions.includesMatch(
           retryUploadFailed(
             uploadJob,
-            `Retry upload ${mockFailedUploadJob.jobName} failed: error`,
-            [mockFailedUploadJob.jobId]
+            `Retry upload ${mockFailedUploadJob.jobName} failed: error`
           )
         )
       ).to.be.true;
@@ -2050,6 +2009,76 @@ describe("Upload logics", () => {
           editFileMetadataFailed("Could not edit files: foo", jobName)
         )
       );
+    });
+  });
+  describe("cancelUpload", () => {
+    it("sets alert if job is not defined", async () => {
+      const {
+        actions,
+        logicMiddleware,
+        store,
+      } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
+      store.dispatch({
+        type: CANCEL_UPLOAD,
+      });
+      await logicMiddleware.whenComplete();
+
+      expect(
+        actions.includesMatch(
+          setErrorAlert("Cannot cancel undefined upload job")
+        )
+      ).to.be.true;
+    });
+    it("shows dialog and allows user to cancel if they change their mind", async () => {
+      const {
+        actions,
+        logicMiddleware,
+        store,
+      } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
+      dialog.showMessageBox = stub().resolves({ response: 0 }); // cancel button
+
+      store.dispatch(cancelUpload({ ...mockJob, key: "key" }));
+      await logicMiddleware.whenComplete();
+
+      expect(dialog.showMessageBox.called).to.be.true;
+      expect(actions.list).to.deep.equal([{ type: "ignore" }]);
+    });
+    it("shows dialog and allows user to continue and dispatches cancelUploadSucceeded if cancelling the upload succeeded", async () => {
+      const {
+        actions,
+        logicMiddleware,
+        store,
+      } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
+      dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
+      const job = { ...mockJob, key: "key" };
+
+      store.dispatch(cancelUpload(job));
+      await logicMiddleware.whenComplete();
+
+      expect(dialog.showMessageBox.called).to.be.true;
+      expect(actions.includesMatch(cancelUpload(job))).to.be.true;
+      expect(actions.includesMatch(cancelUploadSucceeded(job))).to.be.true;
+    });
+    it("dispatches cancelUploadFailed if cancelling the upload failed", async () => {
+      const {
+        actions,
+        logicMiddleware,
+        store,
+      } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
+      dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
+      const job = { ...mockJob, key: "key" };
+      fms.failUpload.rejects(new Error("foo"));
+
+      store.dispatch(cancelUpload(job));
+      await logicMiddleware.whenComplete();
+
+      expect(dialog.showMessageBox.called).to.be.true;
+      expect(actions.includesMatch(cancelUpload(job))).to.be.true;
+      expect(
+        actions.includesMatch(
+          cancelUploadFailed(job, `Cancel upload ${job.jobName} failed: foo`)
+        )
+      ).to.be.true;
     });
   });
 });

@@ -189,20 +189,12 @@ export interface UploadProgressInfo {
 export interface JobStateBranch {
   // Parent job representing an upload of a batch of files
   uploadJobs: JSSJob<UploadServiceFields>[];
-  // Child job representing the add metadata step of an upload job
-  // These are requested only for in progress upload jobs
-  // And are only used to determine if it is safe to exit the app
-  addMetadataJobs: JSSJob[];
-  // List of upload jobs that may or may not be in-progress - used for reporting on jobs that succeed or failed on app
-  // startup
-  incompleteJobIds: string[];
+  // mapping between  jobIds and their upload progress
   copyProgress: {
     [jobId: string]: UploadProgressInfo;
   };
   // Represents which filter has been selected on the Upload Summary page
   jobFilter: JobFilter;
-  // Whether the app is polling for jobs
-  polling: boolean;
 }
 
 export interface UploadStateBranch {
