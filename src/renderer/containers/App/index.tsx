@@ -4,9 +4,8 @@ import * as classNames from "classnames";
 import { ipcRenderer, remote } from "electron";
 import { camelizeKeys } from "humps";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import * as uuid from "uuid";
 
 import {
   OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
@@ -23,8 +22,8 @@ import {
   clearAlert,
   removeRequestFromInProgress,
   setAlert,
+  setErrorAlert,
   setSuccessAlert,
-  setWarningAlert,
   toggleFolderTree,
 } from "../../state/feedback/actions";
 import {
@@ -34,7 +33,6 @@ import {
   getRecentEvent,
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
-import { timeout } from "../../state/feedback/util";
 import {
   receiveJobInsert,
   receiveJobs,
@@ -82,6 +80,7 @@ import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
+import AutoReconnectingEventSource from "./AutoReconnectingEventSource";
 import { getFileToTags, getUploadTabName } from "./selectors";
 
 const styles = require("./styles.pcss");
@@ -152,8 +151,6 @@ export default function App() {
   );
   const uploadTabName = useSelector(getUploadTabName);
   const view = useSelector(getView);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-  const prevConnectionErrorRef = useRef<string | null>(null);
 
   // Request initial data
   useEffect(() => {
@@ -161,19 +158,15 @@ export default function App() {
     dispatch(gatherSettings());
   }, [dispatch]);
 
-  // Subscribe to job changes for current `limsUrl` and `user` and connectionError
+  // Subscribe to job changes for current `limsUrl` and `user`
   useEffect(() => {
     dispatch(addRequestToInProgress(AsyncRequest.GET_JOBS));
-    const eventSource = new EventSource(
+    const eventSource = new AutoReconnectingEventSource(
       `${limsUrl}/jss/1.0/job/subscribe/${user}`,
       { withCredentials: true }
     );
 
-    eventSource.addEventListener("initialJobs", ((event: MessageEvent) => {
-      if (connectionError) {
-        setConnectionError(null);
-        dispatch(setSuccessAlert("Reconnected successfully!"));
-      }
+    eventSource.addEventListener("initialJobs", (event: MessageEvent) => {
       dispatch(removeRequestFromInProgress(AsyncRequest.GET_JOBS));
       const jobs = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
@@ -182,42 +175,38 @@ export default function App() {
         (job) => job.serviceFields?.type === "upload"
       );
       dispatch(receiveJobs(uploadJobs));
-    }) as EventListener);
+    });
 
-    eventSource.addEventListener("jobInsert", ((event: MessageEvent) => {
+    eventSource.addEventListener("jobInsert", (event: MessageEvent) => {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
       dispatch(receiveJobInsert(jobChange));
-    }) as EventListener);
+    });
 
-    eventSource.addEventListener("jobUpdate", ((event: MessageEvent) => {
+    eventSource.addEventListener("jobUpdate", (event: MessageEvent) => {
       const jobChange = camelizeKeys(JSON.parse(event.data)) as JSSJob<
         BaseServiceFields
       >;
       dispatch(receiveJobUpdate(jobChange));
-    }) as EventListener);
+    });
 
-    eventSource.onerror = async () => {
-      // Wait 5 sec before reconnecting
-      await timeout(5000);
-      // Set to a guuid so that this value changes for every new error and to get the app to retry creating the EventSource
-      setConnectionError(uuid.v1());
-      if (!prevConnectionErrorRef.current) {
-        dispatch(
-          setWarningAlert("Ran into error while listening for job updates")
-        );
-      }
-    };
+    eventSource.onDisconnect(() =>
+      dispatch(
+        setErrorAlert(
+          "Lost connection to the server, attempting to reconnect..."
+        )
+      )
+    );
 
-    // We keep track of the previous connection error so that we don't show the warning alert more than once while trying
-    // to reconnect
-    prevConnectionErrorRef.current = connectionError;
+    eventSource.onReconnect(() =>
+      dispatch(setSuccessAlert("Reconnected successfully!"))
+    );
 
     return function cleanUp() {
       eventSource.close();
     };
-  }, [limsUrl, user, connectionError, dispatch]);
+  }, [limsUrl, user, dispatch]);
 
   // Event handlers for menu events
   useEffect(() => {
