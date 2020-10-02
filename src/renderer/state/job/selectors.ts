@@ -42,6 +42,8 @@ export const getJobIdToUploadJobMap = createSelector(
 );
 
 // "Global" selectors
+export const getJobIdToUploadJobMapGlobal = (state: State) =>
+  getJobIdToUploadJobMap(state.job);
 function getStatusesFromFilter(jobFilter: JobFilter): string[] {
   switch (jobFilter) {
     case JobFilter.Successful:
@@ -64,20 +66,60 @@ export const getFilteredJobs = createSelector(
 );
 
 export const getJobsForTable = createSelector(
-  [getFilteredJobs, getCopyProgress],
+  [getFilteredJobs, getCopyProgress, getJobIdToUploadJobMapGlobal],
   (
-    uploadJobs: JSSJob[],
-    copyProgress: { [jobId: string]: UploadProgressInfo }
+    uploadJobs: JSSJob<UploadServiceFields>[],
+    copyProgress: { [jobId: string]: UploadProgressInfo },
+    jobIdToUploadJobMap: Map<string, JSSJob<UploadServiceFields>>
   ): UploadSummaryTableRow[] => {
-    return orderBy(uploadJobs, ["modified"], ["desc"]).map((job) => {
-      return {
-        ...job,
-        created: new Date(job.created),
-        key: job.jobId,
-        modified: new Date(job.modified),
-        progress: copyProgress[job.jobId],
-      };
-    });
+    uploadJobs = orderBy(uploadJobs, ["modified"], ["desc"]);
+    const jobIdsToFilterOut: string[] = [];
+    for (const uploadJob of uploadJobs) {
+      // legacy way
+      if (uploadJob?.serviceFields?.replacementJobId) {
+        jobIdsToFilterOut.push(uploadJob?.serviceFields?.replacementJobId);
+
+        // new way
+      } else if (uploadJob?.serviceFields?.replacementJobIds) {
+        jobIdsToFilterOut.push(...uploadJob?.serviceFields?.replacementJobIds);
+      }
+    }
+
+    return orderBy(uploadJobs, ["modified"], ["desc"])
+      .filter(({ jobId }) => !jobIdsToFilterOut.includes(jobId))
+      .map((job) => {
+        const replacementJobId = job?.serviceFields?.replacementJobId;
+        const replacementJobIds = job?.serviceFields?.replacementJobIds || [];
+        if (replacementJobId) {
+          replacementJobIds.push(replacementJobId);
+        }
+        let representativeJob = job;
+        for (const jobId of replacementJobIds) {
+          const replacementJob = jobIdToUploadJobMap.get(jobId);
+          if (replacementJob) {
+            if (
+              new Date(replacementJob.created) >
+              new Date(representativeJob.created)
+            ) {
+              representativeJob = replacementJob;
+            }
+          }
+        }
+
+        const originalModified = new Date(job.modified);
+        const representativeModified = new Date(representativeJob.modified);
+        return {
+          ...representativeJob,
+          created: new Date(job.created),
+          key: job.jobId,
+          modified:
+            originalModified < representativeModified
+              ? representativeModified
+              : originalModified,
+          progress: copyProgress[representativeJob.jobId],
+          status: representativeJob.status,
+        };
+      });
   }
 );
 

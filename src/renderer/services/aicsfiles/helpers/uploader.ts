@@ -4,6 +4,7 @@ import { promisify } from "util";
 
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
+import { uniq } from "lodash";
 import { includes, keys, noop } from "lodash";
 import * as uuid from "uuid";
 
@@ -205,7 +206,10 @@ export class Uploader {
         {
           serviceFields: {
             error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
-            replacementJobId: newUploadResponse.jobId,
+            replacementJobIds: uniq([
+              ...uploadJob?.serviceFields?.replacementJobIds,
+              newUploadResponse.jobId,
+            ]),
           },
         },
         true
