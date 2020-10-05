@@ -745,7 +745,8 @@ describe("Route logics", () => {
       expect(
         fms.transformFileMetadataIntoTable.calledWithMatch({
           "/some/filepath": {
-            annotations: mockFailedUploadJob.serviceFields.files[0].annotations,
+            annotations:
+              mockFailedUploadJob.serviceFields?.files[0].annotations,
             originalPath: "/some/filepath",
             shouldBeInArchive: true,
             shouldBeInLocal: true,
