@@ -4,7 +4,10 @@ import {
   StepName,
   UploadMetadata as AicsFilesUploadMetadata,
 } from "../../services/aicsfiles/types";
-import { IN_PROGRESS_STATUSES } from "../../services/job-status-client/types";
+import {
+  IN_PROGRESS_STATUSES,
+  JSSJobStatus,
+} from "../../services/job-status-client/types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
   setErrorAlert,
@@ -15,12 +18,15 @@ import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
+  ReduxLogicTransformDependenciesWithAction,
 } from "../types";
-import { handleUploadProgress } from "../util";
+import { uploadFailed, uploadSucceeded } from "../upload/actions";
+import { batchActions, handleUploadProgress } from "../util";
 
 import { updateUploadProgressInfo } from "./actions";
-import { RECEIVE_JOBS } from "./constants";
-import { ReceiveJobsAction } from "./types";
+import { RECEIVE_JOB_UPDATE, RECEIVE_JOBS } from "./constants";
+import { getJobIdToUploadJobMapGlobal } from "./selectors";
+import { ReceiveJobsAction, ReceiveJobUpdateAction } from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
   process: async (
@@ -106,4 +112,39 @@ export const handleAbandonedJobsLogic = createLogic({
   warnTimeout: 0,
 });
 
-export default [handleAbandonedJobsLogic];
+const receiveJobUpdateLogics = createLogic({
+  transform: (
+    {
+      action,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<ReceiveJobUpdateAction>,
+    next: ReduxLogicNextCb
+  ) => {
+    const { payload: updatedJob } = action;
+    if (
+      updatedJob.serviceFields?.type !== "upload" ||
+      IN_PROGRESS_STATUSES.includes(updatedJob.status)
+    ) {
+      next(action);
+    } else {
+      const prevJob = getJobIdToUploadJobMapGlobal(getState()).get(
+        updatedJob.jobId
+      );
+      if (!prevJob || prevJob.status === updatedJob.status) {
+        next(action);
+      } else if (updatedJob.status === JSSJobStatus.SUCCEEDED) {
+        next(batchActions([action, uploadSucceeded(updatedJob.jobName || "")]));
+      } else {
+        const error = updatedJob?.serviceFields?.error
+          ? `Upload ${updatedJob.jobName} Failed: ${updatedJob?.serviceFields?.error}`
+          : `Upload ${updatedJob.jobName} Failed`;
+        next(
+          batchActions([action, uploadFailed(updatedJob.jobName || "", error)])
+        );
+      }
+    }
+  },
+  type: RECEIVE_JOB_UPDATE,
+});
+
+export default [handleAbandonedJobsLogic, receiveJobUpdateLogics];
