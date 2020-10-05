@@ -9,6 +9,7 @@ export default class AutoReconnectingEventSource {
   private eventListeners: { [type: string]: EventListener } = {};
   private disconnected = false;
   private manualReconnect = false;
+  private closed = false;
   private disconnectHandler: Function | undefined;
   private reconnectHandler: Function | undefined;
 
@@ -33,7 +34,9 @@ export default class AutoReconnectingEventSource {
         this.manualReconnect = true;
         this.eventSource.close();
         await timeout(5000);
-        this.createEventSource(url, eventSourceInitDict);
+        if (!this.closed) {
+          this.createEventSource(url, eventSourceInitDict);
+        }
       }
     };
 
@@ -46,7 +49,7 @@ export default class AutoReconnectingEventSource {
           this.eventSource.addEventListener(type, listener);
         });
       }
-      // Call the reconnect handler if we previous lost connection
+      // Call the reconnect handler if we previously lost connection
       if (this.disconnected) {
         this.disconnected = false;
         if (this.reconnectHandler) {
@@ -76,8 +79,13 @@ export default class AutoReconnectingEventSource {
     this.reconnectHandler = handler;
   }
 
-  // Mirrors functionality of the `close` method on `EventSource`
+  // Mirrors functionality of the `close` method on `EventSource`, and also
+  // cleans out saved handlers
   close() {
+    this.closed = true;
+    this.eventListeners = {};
+    this.disconnectHandler = undefined;
+    this.reconnectHandler = undefined;
     this.eventSource.close();
   }
 }
