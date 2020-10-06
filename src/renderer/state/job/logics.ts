@@ -121,6 +121,7 @@ export const handleAbandonedJobsLogic = createLogic({
 
 const isUploadJob = (job: JSSJob): job is JSSJob<UploadServiceFields> =>
   job.serviceFields?.type === "upload";
+// When the app receives a job update, it will also alert the user if the job update means that a upload succeeded or failed.
 const receiveJobUpdateLogics = createLogic({
   process: (
     {
