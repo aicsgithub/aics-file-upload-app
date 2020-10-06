@@ -446,11 +446,7 @@ describe("feedback reducer", () => {
     it("removes RETRY_UPLOAD from requestsInProgress and sets success alert", () => {
       const result = reducer(
         { ...initialState, requestsInProgress: [AsyncRequest.RETRY_UPLOAD] },
-        retryUploadSucceeded({
-          ...mockSuccessfulUploadJob,
-          jobId: "foo",
-          key: "cat",
-        })
+        retryUploadSucceeded(mockSuccessfulUploadJob.jobName || "cat")
       );
       expect(
         result.requestsInProgress.includes(`${AsyncRequest.RETRY_UPLOAD}-foo`)
@@ -466,15 +462,7 @@ describe("feedback reducer", () => {
       const requestType = `${AsyncRequest.RETRY_UPLOAD}-jobName`;
       const result = reducer(
         { ...initialState, requestsInProgress: [requestType] },
-        retryUploadFailed(
-          {
-            ...mockFailedUploadJob,
-            jobId: "foo",
-            jobName: "jobName",
-            key: "cat",
-          },
-          "error"
-        )
+        retryUploadFailed("jobName", "error")
       );
       expect(result.requestsInProgress.includes(requestType)).to.be.false;
       expect(result.alert).to.deep.equal({

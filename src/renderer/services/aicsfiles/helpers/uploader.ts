@@ -200,16 +200,27 @@ export class Uploader {
         uploadJobName
       );
       // Update the current job with information about the replacement
-      await this.jss.updateJob(
-        uploadJob.jobId,
-        {
-          serviceFields: {
-            error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
-            replacementJobId: newUploadResponse.jobId,
+      await Promise.all([
+        this.jss.updateJob(
+          uploadJob.jobId,
+          {
+            serviceFields: {
+              error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
+              replacementJobId: newUploadResponse.jobId,
+            },
           },
-        },
-        true
-      );
+          true
+        ),
+        this.jss.updateJob(
+          newUploadResponse.jobId,
+          {
+            serviceFields: {
+              originalJobId: uploadJob.jobId,
+            },
+          },
+          true
+        ),
+      ]);
       // Perform upload with new job and current job's metadata, forgoing the current job
       return this.uploadFiles(newUploadResponse, uploads, uploadJobName);
     }

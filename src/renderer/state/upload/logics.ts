@@ -92,12 +92,10 @@ import {
   removeUploads,
   replaceUpload,
   retryUploadFailed,
-  retryUploadSucceeded,
   saveUploadDraftSuccess,
   updateUpload,
   updateUploads,
   uploadFailed,
-  uploadSucceeded,
 } from "./actions";
 import {
   APPLY_TEMPLATE,
@@ -337,7 +335,6 @@ const initiateUploadLogic = createLogic({
         ),
         COPY_PROGRESS_THROTTLE_MS
       );
-      dispatch(uploadSucceeded(jobName));
       done();
     } catch (e) {
       const error = `Upload ${jobName} failed: ${e.message}`;
@@ -451,6 +448,7 @@ const retryUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const uploadJob: UploadSummaryTableRow = action.payload;
+    const jobName = uploadJob.jobName || "";
     const fileNames = ctx.files.map(
       ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
     );
@@ -462,13 +460,11 @@ const retryUploadLogic = createLogic({
         ),
         COPY_PROGRESS_THROTTLE_MS
       );
-      logger.info(`Retry upload ${uploadJob.jobName} succeeded!`);
-      dispatch(retryUploadSucceeded(uploadJob));
       done();
     } catch (e) {
-      const error = `Retry upload ${uploadJob.jobName} failed: ${e.message}`;
+      const error = `Retry upload ${jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-      dispatch(retryUploadFailed(uploadJob, error));
+      dispatch(retryUploadFailed(jobName, error));
       done();
     }
   },
