@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createSandbox, SinonStubbedInstance, createStubInstance } from "sinon";
+import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import {
@@ -7,7 +7,10 @@ import {
   UploadServiceFields,
 } from "../../../services/aicsfiles/types";
 import JobStatusClient from "../../../services/job-status-client";
-import { JSSJob } from "../../../services/job-status-client/types";
+import {
+  JSSJob,
+  JSSJobStatus,
+} from "../../../services/job-status-client/types";
 import {
   setErrorAlert,
   setInfoAlert,
@@ -27,8 +30,11 @@ import {
   mockWorkingUploadJob,
 } from "../../test/mocks";
 import { State } from "../../types";
-import { uploadFailed, uploadSucceeded } from "../../upload/actions";
-import { batchActions } from "../../util";
+import {
+  retryUploadFailed,
+  uploadFailed,
+  uploadSucceeded,
+} from "../../upload/actions";
 import { receiveJobs, receiveJobUpdate } from "../actions";
 import { handleAbandonedJobsLogic } from "../logics";
 
@@ -330,10 +336,8 @@ describe("Job logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(actions.list).to.deep.equal([
-        batchActions([
-          action,
-          uploadSucceeded(mockSuccessfulUploadJob.jobName || ""),
-        ]),
+        action,
+        uploadSucceeded(mockSuccessfulUploadJob.jobName || ""),
       ]);
     });
     it("dispatches uploadFailed if the job is an upload that failed and previously was in progress", async () => {
@@ -359,10 +363,60 @@ describe("Job logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(actions.list).to.deep.equal([
-        batchActions([
-          action,
-          uploadFailed("someJobName", "Upload someJobName Failed: foo"),
-        ]),
+        action,
+        uploadFailed("someJobName", "Upload someJobName failed: foo"),
+      ]);
+    });
+    it("dispatches retryUploadFailed if the job is a replacement job that failed", async () => {
+      const replacementJobId = "lisa";
+      const originalJobId = "original";
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        {
+          ...mockState,
+          job: {
+            ...mockState.job,
+            uploadJobs: [
+              {
+                ...mockWorkingUploadJob,
+                jobId: originalJobId,
+                serviceFields: {
+                  ...mockWorkingUploadJob.serviceFields,
+                  files: [],
+                  replacementJobId,
+                  type: "upload",
+                  uploadDirectory: "/tmp",
+                },
+                status: JSSJobStatus.RETRYING,
+              },
+            ],
+          },
+        },
+        undefined,
+        undefined,
+        false
+      );
+      const action = receiveJobUpdate({
+        ...mockFailedUploadJob,
+        jobId: replacementJobId,
+        jobName: "someJobName",
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          error: "foo",
+          originalJobId,
+          type: "upload",
+        },
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        action,
+        retryUploadFailed(
+          "someJobName",
+          "Retry upload someJobName failed: foo"
+        ),
       ]);
     });
   });

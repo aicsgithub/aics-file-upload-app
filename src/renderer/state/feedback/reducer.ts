@@ -518,13 +518,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === RETRY_UPLOAD_SUCCEEDED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: job }: RetryUploadSucceededAction
+      { payload: jobName }: RetryUploadSucceededAction
     ) => ({
       ...state,
-      alert: getSuccessAlert(`Retry upload ${job.jobName} succeeded!`),
+      alert: getSuccessAlert(`Retry upload ${jobName} succeeded!`),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        `${AsyncRequest.RETRY_UPLOAD}-${job.jobName}`
+        `${AsyncRequest.RETRY_UPLOAD}-${jobName}`
       ),
     }),
   },
@@ -533,13 +533,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === RETRY_UPLOAD_FAILED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { error, job } }: RetryUploadFailedAction
+      { payload: { error, jobName } }: RetryUploadFailedAction
     ) => ({
       ...state,
       alert: getErrorAlert(error),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        `${AsyncRequest.RETRY_UPLOAD}-${job.jobName}`
+        `${AsyncRequest.RETRY_UPLOAD}-${jobName}`
       ),
     }),
   },

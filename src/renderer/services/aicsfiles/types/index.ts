@@ -127,6 +127,10 @@ export interface UploadServiceFields extends BaseServiceFields {
 
   // DEPRECATED in favor of using replacementJobIds
   // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
+  // This points to the original job id if this is a replacement job
+  originalJobId?: string;
+
+  // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
   // This points to the jobId of the new upload job in case user tries to retry job and the previous jobId is no longer
   // being tracked by FSS. This is populated by the app.
   replacementJobId?: string;

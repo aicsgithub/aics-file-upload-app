@@ -12,8 +12,8 @@ export interface ReceiveJobInsertAction {
   type: string;
 }
 
-export interface ReceiveJobUpdateAction {
-  payload: JSSJob<BaseServiceFields>;
+export interface ReceiveJobUpdateAction<T extends BaseServiceFields = any> {
+  payload: JSSJob<T>;
   type: string;
 }
 

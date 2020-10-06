@@ -33,8 +33,8 @@ export function receiveJobInsert(
   };
 }
 
-export function receiveJobUpdate(
-  job: JSSJob<BaseServiceFields>
+export function receiveJobUpdate<T extends BaseServiceFields = any>(
+  job: JSSJob<T>
 ): ReceiveJobUpdateAction {
   return {
     payload: job,
