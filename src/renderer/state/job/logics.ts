@@ -168,7 +168,7 @@ const receiveJobUpdateLogics = createLogic({
             ? `: ${updatedJob?.serviceFields?.error}`
             : ""
         }`;
-        dispatch(uploadFailed(jobName, error));
+        dispatch(uploadFailed(error, jobName));
       }
     }
 
