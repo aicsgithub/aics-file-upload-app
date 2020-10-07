@@ -213,7 +213,7 @@ export class Uploader {
               ]),
             },
           },
-          true
+          false
         ),
         this.jss.updateJob(
           newUploadResponse.jobId,
