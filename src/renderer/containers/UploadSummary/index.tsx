@@ -37,7 +37,6 @@ import {
   Page,
   State,
   UploadFile,
-  UploadProgressInfo,
   UploadSummaryTableRow,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
@@ -79,7 +78,7 @@ interface Props {
 
 class UploadSummary extends React.Component<Props, {}> {
   private get columns(): ColumnProps<UploadSummaryTableRow>[] {
-    const columns: ColumnProps<UploadSummaryTableRow>[] = [
+    return [
       {
         align: "center",
         dataIndex: "status",
@@ -94,6 +93,12 @@ class UploadSummary extends React.Component<Props, {}> {
         key: "fileName",
         title: "File Names",
         width: "100%",
+        render: (filename: string, row: UploadSummaryTableRow) => (
+          <>
+            {filename}
+            <UploadProgress row={row} />
+          </>
+        ),
       },
       {
         dataIndex: "modified",
@@ -140,19 +145,6 @@ class UploadSummary extends React.Component<Props, {}> {
         width: "200px",
       },
     ];
-
-    if ([JobFilter.All, JobFilter.InProgress].includes(this.props.jobFilter)) {
-      columns.splice(2, 0, {
-        dataIndex: "progress",
-        key: "progress",
-        render: (progress: UploadProgressInfo, row: UploadSummaryTableRow) => (
-          <UploadProgress row={row} />
-        ),
-        title: "Progress",
-        width: "350px",
-      });
-    }
-    return columns;
   }
 
   constructor(props: Props) {
