@@ -290,22 +290,22 @@ export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
 }
 
 export function cancelUploadSucceeded(
-  job: UploadSummaryTableRow
+  jobName: string
 ): CancelUploadSucceededAction {
   return {
-    payload: job,
+    payload: jobName,
     type: CANCEL_UPLOAD_SUCCEEDED,
   };
 }
 
 export function cancelUploadFailed(
-  job: UploadSummaryTableRow,
+  jobName: string,
   error: string
 ): CancelUploadFailedAction {
   return {
     payload: {
       error,
-      job,
+      jobName,
     },
     type: CANCEL_UPLOAD_FAILED,
   };

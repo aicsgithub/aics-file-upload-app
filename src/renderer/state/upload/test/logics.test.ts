@@ -2043,14 +2043,15 @@ describe("Upload logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
-      const job = { ...mockJob, key: "key" };
+      const jobName = "bar";
+      const job = { ...mockJob, jobName, key: "key" };
 
       store.dispatch(cancelUpload(job));
       await logicMiddleware.whenComplete();
 
       expect(dialog.showMessageBox.called).to.be.true;
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
-      expect(actions.includesMatch(cancelUploadSucceeded(job))).to.be.true;
+      expect(actions.includesMatch(cancelUploadSucceeded(jobName))).to.be.true;
     });
     it("dispatches cancelUploadFailed if cancelling the upload failed", async () => {
       const {
@@ -2059,7 +2060,7 @@ describe("Upload logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
-      const job = { ...mockJob, key: "key" };
+      const job = { ...mockJob, jobName: "jobName", key: "key" };
       fms.failUpload.rejects(new Error("foo"));
 
       store.dispatch(cancelUpload(job));
@@ -2069,7 +2070,10 @@ describe("Upload logics", () => {
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
       expect(
         actions.includesMatch(
-          cancelUploadFailed(job, `Cancel upload ${job.jobName} failed: foo`)
+          cancelUploadFailed(
+            "jobName",
+            `Cancel upload ${job.jobName} failed: foo`
+          )
         )
       ).to.be.true;
     });

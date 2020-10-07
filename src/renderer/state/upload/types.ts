@@ -4,9 +4,9 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { Workflow } from "../../services/labkey-client/types";
-import { UploadSummaryTableRow } from "../types";
 import {
   AutoSaveAction,
   State,
@@ -182,13 +182,17 @@ export interface UploadFailedAction {
   type: string;
 }
 
-export interface CancelUploadAction {
-  payload: UploadSummaryTableRow;
+export interface CancelUploadAction<
+  T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
+> {
+  payload: T;
   type: string;
 }
 
-export interface RetryUploadAction {
-  payload: UploadSummaryTableRow;
+export interface RetryUploadAction<
+  T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
+> {
+  payload: T;
   type: string;
 }
 
@@ -206,14 +210,14 @@ export interface RetryUploadFailedAction {
 }
 
 export interface CancelUploadSucceededAction {
-  payload: UploadSummaryTableRow;
+  payload: string;
   type: string;
 }
 
 export interface CancelUploadFailedAction {
   payload: {
     error: string;
-    job: UploadSummaryTableRow;
+    jobName: string;
   };
   type: string;
 }

@@ -490,11 +490,7 @@ describe("feedback reducer", () => {
       const requestType = `${AsyncRequest.CANCEL_UPLOAD}-foo`;
       const result = reducer(
         { ...initialState, requestsInProgress: [requestType] },
-        cancelUploadSucceeded({
-          ...mockSuccessfulUploadJob,
-          jobName: "foo",
-          key: "cat",
-        })
+        cancelUploadSucceeded("foo")
       );
       expect(result.requestsInProgress.includes(requestType)).to.be.false;
       expect(result.alert).to.deep.equal({
@@ -508,10 +504,7 @@ describe("feedback reducer", () => {
       const requestType = `${AsyncRequest.CANCEL_UPLOAD}-foo`;
       const result = reducer(
         { ...initialState, requestsInProgress: [AsyncRequest.CANCEL_UPLOAD] },
-        cancelUploadFailed(
-          { ...mockSuccessfulUploadJob, jobName: "foo", key: "cat" },
-          "foo"
-        )
+        cancelUploadFailed("jobName", "foo")
       );
       expect(result.requestsInProgress.includes(requestType)).to.be.false;
       expect(result.alert).to.deep.equal({

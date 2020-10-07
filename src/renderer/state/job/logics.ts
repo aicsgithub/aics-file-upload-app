@@ -152,7 +152,8 @@ const receiveJobUpdateLogics = createLogic({
         dispatch(uploadSucceeded(jobName));
       }
     } else if (
-      !updatedJob.serviceFields?.replacementJobId &&
+      (!updatedJob.serviceFields?.replacementJobIds ||
+        !updatedJob.serviceFields?.replacementJobId) &&
       !updatedJob.serviceFields?.cancelled
     ) {
       if (prevStatus === JSSJobStatus.RETRYING) {

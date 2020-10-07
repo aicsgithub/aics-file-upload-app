@@ -10,6 +10,7 @@ import {
   JSSJob,
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
+import { convertToArray } from "../../util";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
@@ -75,12 +76,7 @@ export const getJobsForTable = createSelector(
     uploadJobs = orderBy(uploadJobs, ["modified"], ["desc"]);
     const jobIdsToFilterOut: string[] = [];
     for (const uploadJob of uploadJobs) {
-      // legacy way
-      if (uploadJob?.serviceFields?.replacementJobId) {
-        jobIdsToFilterOut.push(uploadJob?.serviceFields?.replacementJobId);
-
-        // new way
-      } else if (uploadJob?.serviceFields?.replacementJobIds) {
+      if (uploadJob?.serviceFields?.replacementJobIds) {
         jobIdsToFilterOut.push(...uploadJob?.serviceFields?.replacementJobIds);
       }
     }
@@ -88,11 +84,9 @@ export const getJobsForTable = createSelector(
     return orderBy(uploadJobs, ["modified"], ["desc"])
       .filter(({ jobId }) => !jobIdsToFilterOut.includes(jobId))
       .map((job) => {
-        const replacementJobId = job?.serviceFields?.replacementJobId;
-        const replacementJobIds = job?.serviceFields?.replacementJobIds || [];
-        if (replacementJobId) {
-          replacementJobIds.push(replacementJobId);
-        }
+        const replacementJobIds = convertToArray(
+          job?.serviceFields?.replacementJobIds
+        );
         let representativeJob = job;
         for (const jobId of replacementJobIds) {
           const replacementJob = jobIdToUploadJobMap.get(jobId);
@@ -111,12 +105,12 @@ export const getJobsForTable = createSelector(
         return {
           ...representativeJob,
           created: new Date(job.created),
-          key: job.jobId,
+          key: representativeJob.jobId,
           modified:
             originalModified < representativeModified
               ? representativeModified
               : originalModified,
-          progress: copyProgress[representativeJob.jobId],
+          progress: copyProgress[job.jobId],
           status: representativeJob.status,
         };
       });

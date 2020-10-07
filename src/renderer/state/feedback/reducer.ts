@@ -563,7 +563,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === CANCEL_UPLOAD_SUCCEEDED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { jobName } }: CancelUploadSucceededAction
+      { payload: jobName }: CancelUploadSucceededAction
     ) => ({
       ...state,
       alert: getSuccessAlert(`Cancel upload ${jobName} succeeded`),
@@ -578,13 +578,13 @@ const actionToConfigMap: TypeToDescriptionMap = {
       action.type === CANCEL_UPLOAD_FAILED,
     perform: (
       state: FeedbackStateBranch,
-      { payload: { error, job } }: CancelUploadFailedAction
+      { payload: { error, jobName } }: CancelUploadFailedAction
     ) => ({
       ...state,
       alert: getErrorAlert(error),
       requestsInProgress: removeRequestFromInProgress(
         state,
-        `${AsyncRequest.CANCEL_UPLOAD}-${job.jobName}`
+        `${AsyncRequest.CANCEL_UPLOAD}-${jobName}`
       ),
     }),
   },

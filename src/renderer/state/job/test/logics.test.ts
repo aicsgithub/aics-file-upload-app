@@ -364,7 +364,7 @@ describe("Job logics", () => {
 
       expect(actions.list).to.deep.equal([
         action,
-        uploadFailed("someJobName", "Upload someJobName failed: foo"),
+        uploadFailed("Upload someJobName failed: foo", "someJobName"),
       ]);
     });
     it("dispatches retryUploadFailed if the job is a replacement job that failed", async () => {
