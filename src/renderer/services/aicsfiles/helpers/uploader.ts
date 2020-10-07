@@ -208,7 +208,7 @@ export class Uploader {
             serviceFields: {
               error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
               replacementJobIds: uniq([
-                ...uploadJob?.serviceFields?.replacementJobIds,
+                ...(uploadJob?.serviceFields?.replacementJobIds || []),
                 newUploadResponse.jobId,
               ]),
             },
