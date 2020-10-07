@@ -42,6 +42,8 @@ export const getJobIdToUploadJobMap = createSelector(
 );
 
 // "Global" selectors
+export const getJobIdToUploadJobMapGlobal = (state: State) =>
+  getJobIdToUploadJobMap(state.job);
 function getStatusesFromFilter(jobFilter: JobFilter): string[] {
   switch (jobFilter) {
     case JobFilter.Successful:

@@ -537,7 +537,7 @@ export const mockWaitingUploadJob: JSSJob = {
   status: JSSJobStatus.WAITING,
 };
 
-export const mockFailedUploadJob: JSSJob = {
+export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
   created: new Date(),
   currentStage: "Copy error",
   jobId: "3333333333",
@@ -551,7 +551,7 @@ export const mockFailedUploadJob: JSSJob = {
             {
               annotationId: 1,
               values: ["test", "1"],
-              channelId: 2,
+              channelId: "Raw 405nm",
             },
           ],
           templateId: 1,
@@ -564,6 +564,8 @@ export const mockFailedUploadJob: JSSJob = {
         },
       },
     ],
+    type: "upload",
+    uploadDirectory: "/foo",
   },
   status: JSSJobStatus.FAILED,
   user: "test_user",

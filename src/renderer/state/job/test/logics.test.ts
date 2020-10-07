@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createSandbox, SinonStubbedInstance, createStubInstance } from "sinon";
+import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import {
@@ -7,7 +7,10 @@ import {
   UploadServiceFields,
 } from "../../../services/aicsfiles/types";
 import JobStatusClient from "../../../services/job-status-client";
-import { JSSJob } from "../../../services/job-status-client/types";
+import {
+  JSSJob,
+  JSSJobStatus,
+} from "../../../services/job-status-client/types";
 import {
   setErrorAlert,
   setInfoAlert,
@@ -19,13 +22,20 @@ import {
   ReduxLogicDependencies,
 } from "../../test/configure-mock-store";
 import {
+  mockFailedAddMetadataJob,
   mockFailedUploadJob,
   mockState,
   mockSuccessfulUploadJob,
   mockWaitingUploadJob,
   mockWorkingUploadJob,
 } from "../../test/mocks";
-import { receiveJobs } from "../actions";
+import { State } from "../../types";
+import {
+  retryUploadFailed,
+  uploadFailed,
+  uploadSucceeded,
+} from "../../upload/actions";
+import { receiveJobs, receiveJobUpdate } from "../actions";
 import { handleAbandonedJobsLogic } from "../logics";
 
 describe("Job logics", () => {
@@ -239,6 +249,173 @@ describe("Job logics", () => {
         ),
         setErrorAlert(
           'Retry for upload "abandoned_job" failed: Error in worker'
+        ),
+      ]);
+    });
+  });
+  describe("receiveJobUpdateLogics", () => {
+    let mockStateWithNonEmptyUploadJobs: State;
+    beforeEach(() => {
+      mockStateWithNonEmptyUploadJobs = {
+        ...mockState,
+        job: {
+          ...mockState.job,
+          uploadJobs: [mockWorkingUploadJob],
+        },
+      };
+    });
+
+    it("dispatches no additional actions if the job is not an upload job", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs
+      );
+
+      store.dispatch(receiveJobUpdate(mockFailedAddMetadataJob));
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        receiveJobUpdate(mockFailedAddMetadataJob),
+      ]);
+    });
+    it("dispatches no additional actions if the job is in progress", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs
+      );
+
+      store.dispatch(receiveJobUpdate(mockWorkingUploadJob));
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        receiveJobUpdate(mockWorkingUploadJob),
+      ]);
+    });
+    it("dispatches no additional actions if the job is not tracked in state", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs
+      );
+      const action = receiveJobUpdate({
+        ...mockWorkingUploadJob,
+        jobId: "bert",
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([action]);
+    });
+    it("dispatches no additional actions if the job status did not change", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs
+      );
+
+      store.dispatch(receiveJobUpdate(mockWorkingUploadJob));
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        receiveJobUpdate(mockWorkingUploadJob),
+      ]);
+    });
+    it("dispatches uploadSucceeded if the job is an upload job that succeeded and previously was in progress", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs,
+        undefined,
+        undefined,
+        false
+      );
+      const action = receiveJobUpdate({
+        ...mockSuccessfulUploadJob,
+        jobId: mockWorkingUploadJob.jobId,
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        action,
+        uploadSucceeded(mockSuccessfulUploadJob.jobName || ""),
+      ]);
+    });
+    it("dispatches uploadFailed if the job is an upload that failed and previously was in progress", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        mockStateWithNonEmptyUploadJobs,
+        undefined,
+        undefined,
+        false
+      );
+      const action = receiveJobUpdate({
+        ...mockFailedUploadJob,
+        jobId: mockWorkingUploadJob.jobId,
+        jobName: "someJobName",
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          error: "foo",
+          type: "upload",
+        },
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        action,
+        uploadFailed("someJobName", "Upload someJobName failed: foo"),
+      ]);
+    });
+    it("dispatches retryUploadFailed if the job is a replacement job that failed", async () => {
+      const replacementJobId = "lisa";
+      const originalJobId = "original";
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        {
+          ...mockState,
+          job: {
+            ...mockState.job,
+            uploadJobs: [
+              {
+                ...mockWorkingUploadJob,
+                jobId: originalJobId,
+                serviceFields: {
+                  ...mockWorkingUploadJob.serviceFields,
+                  files: [],
+                  replacementJobId,
+                  type: "upload",
+                  uploadDirectory: "/tmp",
+                },
+                status: JSSJobStatus.RETRYING,
+              },
+            ],
+          },
+        },
+        undefined,
+        undefined,
+        false
+      );
+      const action = receiveJobUpdate({
+        ...mockFailedUploadJob,
+        jobId: replacementJobId,
+        jobName: "someJobName",
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          error: "foo",
+          originalJobId,
+          type: "upload",
+        },
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        action,
+        retryUploadFailed(
+          "someJobName",
+          "Retry upload someJobName failed: foo"
         ),
       ]);
     });

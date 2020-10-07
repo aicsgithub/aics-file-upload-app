@@ -193,14 +193,14 @@ export interface RetryUploadAction {
 }
 
 export interface RetryUploadSucceededAction {
-  payload: UploadSummaryTableRow;
+  payload: string;
   type: string;
 }
 
 export interface RetryUploadFailedAction {
   payload: {
     error: string;
-    job: UploadSummaryTableRow;
+    jobName: string;
   };
   type: string;
 }

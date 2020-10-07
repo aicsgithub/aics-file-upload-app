@@ -92,7 +92,6 @@ const FileMetadataModal: React.FunctionComponent<FileMetadataProps> = ({
     const downloadPath = getLocalFilePath(filePath);
     shell.showItemInFolder(downloadPath);
   };
-  console.log(fileMetadataCategories.annotations);
   return (
     <Modal
       footer={null}

@@ -319,22 +319,22 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
 }
 
 export function retryUploadSucceeded(
-  job: UploadSummaryTableRow
+  jobName: string
 ): RetryUploadSucceededAction {
   return {
-    payload: job,
+    payload: jobName,
     type: RETRY_UPLOAD_SUCCEEDED,
   };
 }
 
 export function retryUploadFailed(
-  job: UploadSummaryTableRow,
+  jobName: string,
   error: string
 ): RetryUploadFailedAction {
   return {
     payload: {
       error,
-      job,
+      jobName,
     },
     type: RETRY_UPLOAD_FAILED,
   };

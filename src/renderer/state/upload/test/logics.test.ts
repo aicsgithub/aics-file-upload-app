@@ -75,9 +75,7 @@ import {
   updateSubImages,
   updateUpload,
   updateUploadRows,
-  uploadSucceeded,
   uploadFailed,
-  retryUploadSucceeded,
   retryUploadFailed,
   cancelUpload,
   cancelUploadSucceeded,
@@ -89,7 +87,6 @@ import {
   INITIATE_UPLOAD,
   INITIATE_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT_SUCCESS,
-  UPLOAD_SUCCEEDED,
 } from "../constants";
 import uploadLogics, { cancelUploadLogic } from "../logics";
 import {
@@ -458,7 +455,6 @@ describe("Upload logics", () => {
           selectPage(Page.AddCustomData, Page.UploadSummary)
         )
       );
-      expect(actions.includesMatch(uploadSucceeded(jobName))).to.be.true;
     });
 
     it("sets error alert given validation error", async () => {
@@ -476,16 +472,15 @@ describe("Upload logics", () => {
         .true;
     });
 
-    it("initiates upload given OK response from validateMetadataAndGetUploadDirectory and dispatches upload succeeded", async () => {
+    it("initiates upload given OK response from validateMetadataAndGetUploadDirectory", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
-      const { actions, logicMiddleware, store } = createMockReduxStore(
+      const { logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
         undefined,
         uploadLogics
       );
       // before
       expect(fms.uploadFiles.called).to.be.false;
-      expect(actions.list.map((a) => a.type)).to.not.include(UPLOAD_SUCCEEDED);
 
       // apply
       store.dispatch(initiateUpload());
@@ -493,7 +488,6 @@ describe("Upload logics", () => {
       // after
       await logicMiddleware.whenComplete();
       expect(fms.uploadFiles.called).to.be.true;
-      expect(actions.list.map((a) => a.type)).to.include(UPLOAD_SUCCEEDED);
     });
     it("dispatches uploadFailed if uploadFiles fails error", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
@@ -538,18 +532,17 @@ describe("Upload logics", () => {
         )
       ).to.be.true;
     });
-    it("calls fms.retryUpload and dispatches retryUploadSucceeded if no missing info on job", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
+    it("calls fms.retryUpload if no missing info on job", async () => {
+      const { logicMiddleware, store } = createMockReduxStore(
         mockState,
         undefined,
         uploadLogics
       );
 
-      const uploadJob = { ...mockFailedUploadJob, key: "foo" };
+      const uploadJob = { ...mockFailedUploadJob, jobName: "bar", key: "foo" };
       store.dispatch(retryUpload(uploadJob));
       await logicMiddleware.whenComplete();
 
-      expect(actions.includesMatch(retryUploadSucceeded(uploadJob))).to.be.true;
       expect(fms.retryUpload.called).to.be.true;
     });
     it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
@@ -567,7 +560,7 @@ describe("Upload logics", () => {
       expect(
         actions.includesMatch(
           retryUploadFailed(
-            uploadJob,
+            mockFailedUploadJob.jobName || "",
             `Retry upload ${mockFailedUploadJob.jobName} failed: error`
           )
         )

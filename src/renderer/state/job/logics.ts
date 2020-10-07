@@ -3,8 +3,13 @@ import { createLogic } from "redux-logic";
 import {
   StepName,
   UploadMetadata as AicsFilesUploadMetadata,
+  UploadServiceFields,
 } from "../../services/aicsfiles/types";
-import { IN_PROGRESS_STATUSES } from "../../services/job-status-client/types";
+import {
+  IN_PROGRESS_STATUSES,
+  JSSJob,
+  JSSJobStatus,
+} from "../../services/job-status-client/types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import {
   setErrorAlert,
@@ -15,12 +20,20 @@ import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
+  ReduxLogicTransformDependenciesWithAction,
 } from "../types";
+import {
+  retryUploadFailed,
+  retryUploadSucceeded,
+  uploadFailed,
+  uploadSucceeded,
+} from "../upload/actions";
 import { handleUploadProgress } from "../util";
 
 import { updateUploadProgressInfo } from "./actions";
-import { RECEIVE_JOBS } from "./constants";
-import { ReceiveJobsAction } from "./types";
+import { RECEIVE_JOB_UPDATE, RECEIVE_JOBS } from "./constants";
+import { getJobIdToUploadJobMapGlobal } from "./selectors";
+import { ReceiveJobsAction, ReceiveJobUpdateAction } from "./types";
 
 export const handleAbandonedJobsLogic = createLogic({
   process: async (
@@ -106,4 +119,75 @@ export const handleAbandonedJobsLogic = createLogic({
   warnTimeout: 0,
 });
 
-export default [handleAbandonedJobsLogic];
+const isUploadJob = (job: JSSJob): job is JSSJob<UploadServiceFields> =>
+  job.serviceFields?.type === "upload";
+const receiveJobUpdateLogics = createLogic({
+  process: (
+    {
+      action,
+      ctx,
+    }: ReduxLogicProcessDependenciesWithAction<ReceiveJobUpdateAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { prevStatus } = ctx;
+    const { payload: updatedJob } = action;
+    const jobName = updatedJob.jobName || "";
+
+    if (
+      !isUploadJob(updatedJob) ||
+      IN_PROGRESS_STATUSES.includes(updatedJob.status) ||
+      !prevStatus ||
+      prevStatus === updatedJob.status
+    ) {
+      done();
+      return;
+    }
+
+    if (updatedJob.status === JSSJobStatus.SUCCEEDED) {
+      if (prevStatus === JSSJobStatus.RETRYING) {
+        dispatch(retryUploadSucceeded(jobName));
+      } else {
+        dispatch(uploadSucceeded(jobName));
+      }
+    } else if (
+      !updatedJob.serviceFields?.replacementJobId &&
+      !updatedJob.serviceFields?.cancelled
+    ) {
+      if (prevStatus === JSSJobStatus.RETRYING) {
+        const error = `Retry upload ${jobName} failed${
+          updatedJob?.serviceFields?.error
+            ? `: ${updatedJob?.serviceFields?.error}`
+            : ""
+        }`;
+        dispatch(retryUploadFailed(jobName, error));
+      } else {
+        const error = `Upload ${jobName} failed${
+          updatedJob?.serviceFields?.error
+            ? `: ${updatedJob?.serviceFields?.error}`
+            : ""
+        }`;
+        dispatch(uploadFailed(jobName, error));
+      }
+    }
+
+    done();
+  },
+  transform: (
+    {
+      action,
+      ctx,
+      getState,
+    }: ReduxLogicTransformDependenciesWithAction<ReceiveJobUpdateAction>,
+    next: ReduxLogicNextCb
+  ) => {
+    const { payload: updatedJob } = action;
+    const jobId = updatedJob.serviceFields?.originalJobId || updatedJob.jobId;
+    const prevJob = getJobIdToUploadJobMapGlobal(getState()).get(jobId);
+    ctx.prevStatus = prevJob?.status;
+    next(action);
+  },
+  type: RECEIVE_JOB_UPDATE,
+});
+
+export default [handleAbandonedJobsLogic, receiveJobUpdateLogics];
