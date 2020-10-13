@@ -82,6 +82,8 @@ describe("Uploader", () => {
     jobStatusClient = createStubInstance(JobStatusClient);
     fss = createStubInstance(FSSClient);
     storage = createStubInstance(EnvironmentAwareStorage);
+    // Stub `get` specifically, since it is a class property and not on the prototype
+    storage.get = sandbox.stub();
     jobStatusClient.getJobs
       .onFirstCall()
       // upload job children

@@ -32,6 +32,8 @@ describe("HttpCacheClient", () => {
 
   beforeEach(() => {
     storage = createStubInstance(EnvironmentAwareStorage);
+    // Stub `get` specifically, since it is a class property and not on the prototype
+    storage.get = stub();
   });
 
   it("doesn't use cache if useCache is false", async () => {

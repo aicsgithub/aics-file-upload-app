@@ -3,6 +3,7 @@ import { promisify } from "util";
 
 import axios from "axios";
 import { ipcRenderer, remote } from "electron";
+import * as Store from "electron-store";
 import * as Logger from "js-logger";
 import { forEach, isNil } from "lodash";
 import * as moment from "moment";
@@ -62,7 +63,7 @@ const logics = [
   ...upload.logics,
 ];
 
-const storage = new EnvironmentAwareStorage();
+const storage = new EnvironmentAwareStorage(new Store());
 // Configure Axios to use the `XMLHttpRequest` adapter. Axios uses either
 // `XMLHttpRequest` or Node's `http` module, depending on the environment it is
 // running in. See more info here: https://github.com/axios/axios/issues/552.
