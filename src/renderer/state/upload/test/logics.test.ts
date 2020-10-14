@@ -16,8 +16,15 @@ import {
 } from "../../../constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import { mockJob } from "../../../services/aicsfiles/test/mocks";
-import { StartUploadResponse } from "../../../services/aicsfiles/types";
+import {
+  StartUploadResponse,
+  UploadServiceFields,
+} from "../../../services/aicsfiles/types";
 import JobStatusClient from "../../../services/job-status-client";
+import {
+  JSSJob,
+  JSSJobStatus,
+} from "../../../services/job-status-client/types";
 import { ColumnType } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
@@ -2051,6 +2058,48 @@ describe("Upload logics", () => {
       expect(dialog.showMessageBox.called).to.be.true;
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
       expect(actions.includesMatch(cancelUploadSucceeded(jobName))).to.be.true;
+    });
+    it("cancels all replacement jobs related to upload", async () => {
+      const replacementJob: JSSJob<UploadServiceFields> = {
+        ...mockFailedUploadJob,
+        jobId: "replacement",
+        serviceFields: {
+          files: [],
+          originalJobId: "original",
+          type: "upload",
+          uploadDirectory: "/foo",
+        },
+        status: JSSJobStatus.RETRYING,
+      };
+      const originalJob: JSSJob<UploadServiceFields> = {
+        ...mockFailedUploadJob,
+        jobId: "original",
+        serviceFields: {
+          files: [],
+          replacementJobIds: ["replacement"],
+          type: "upload",
+          uploadDirectory: "/foo",
+        },
+      };
+      const { logicMiddleware, store } = createMockReduxStore(
+        {
+          ...mockState,
+          job: {
+            ...mockState.job,
+            uploadJobs: [originalJob, replacementJob],
+          },
+        },
+        undefined,
+        [cancelUploadLogic]
+      );
+      dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
+      const job = { ...replacementJob, key: "replacement" };
+
+      store.dispatch(cancelUpload(job));
+      await logicMiddleware.whenComplete();
+
+      expect(fms.failUpload.calledWith("replacement")).to.be.true;
+      expect(fms.failUpload.calledWith("original")).to.be.true;
     });
     it("dispatches cancelUploadFailed if cancelling the upload failed", async () => {
       const {

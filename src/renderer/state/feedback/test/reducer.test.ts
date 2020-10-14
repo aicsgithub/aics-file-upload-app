@@ -406,24 +406,34 @@ describe("feedback reducer", () => {
   });
   describe("uploadSucceeded", () => {
     it("sets success alert", () => {
-      const result = reducer(initialState, uploadSucceeded("jobName"));
+      const request = `${AsyncRequest.UPLOAD}-jobName`;
+      const result = reducer(
+        { ...initialState, requestsInProgress: [request] },
+        uploadSucceeded("jobName")
+      );
       expect(result.alert).to.deep.equal({
         message: "Upload jobName succeeded!",
         type: AlertType.SUCCESS,
       });
+      expect(result.requestsInProgress).to.not.include(request);
     });
   });
   describe("uploadFailed", () => {
     it("sets error alert", () => {
-      const result = reducer(initialState, uploadFailed("error", "jobName"));
+      const request = `${AsyncRequest.UPLOAD}-jobName`;
+      const result = reducer(
+        { ...initialState, requestsInProgress: [request] },
+        uploadFailed("error", "jobName")
+      );
       expect(result.alert).to.deep.equal({
         message: "error",
         type: AlertType.ERROR,
       });
+      expect(result.requestsInProgress).to.not.include(request);
     });
   });
   describe("retryUpload", () => {
-    it("adds RETRY_UPLOAD to requestsInProgress and sets info alert", () => {
+    it("adds UPLOAD to requestsInProgress and sets info alert", () => {
       const result = reducer(
         initialState,
         retryUpload({

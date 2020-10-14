@@ -6,11 +6,11 @@ import { ILogger } from "js-logger/src/types";
 import * as rimraf from "rimraf";
 import {
   createSandbox,
+  createStubInstance,
   match,
   SinonStub,
-  stub,
-  createStubInstance,
   SinonStubbedInstance,
+  stub,
 } from "sinon";
 
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
@@ -242,19 +242,46 @@ describe("Uploader", () => {
       expect(jobStatusClient.getJobs.called).to.be.false;
       expect(result).to.deep.equal(resultFiles);
     });
-    // it("Retries upload if failed upload job provided", () => {});
-    // it("Runs upload if waiting upload job provided", () => {});
-    it("Does not create new jobs if uploadDirectory still present", async () => {
+    it("Retries upload if waiting upload job provided", async () => {
+      fakeSuccessfulCopy();
+      await uploader.retryUpload(uploads, {
+        ...mockRetryableUploadJob,
+        status: JSSJobStatus.WAITING,
+      });
+      expect(jobStatusClient.updateJob.called).to.be.true;
+    });
+    it("Retries upload if failed upload job provided and does not create new jobs if uploadDirectory still present", async () => {
       fakeSuccessfulCopy();
       await uploader.retryUpload(uploads, mockRetryableUploadJob);
       expect(jobStatusClient.updateJob).to.have.been.calledWithMatch(
         "uploadJobId",
         {
           status: JSSJobStatus.RETRYING,
+          serviceFields: {
+            error: null,
+          },
         }
       );
       expect(jobStatusClient.createJob.called).to.be.false;
       expect(jobStatusClient.getJobs.called).to.be.true;
+    });
+    it("Starts upload over if uploadDirectory is not found", async () => {
+      fakeSuccessfulCopy();
+      fs.access = stub().rejects();
+      fss.startUpload.resolves({
+        jobId: "newUploadJobId",
+        uploadDirectory: "/foo",
+      });
+      await uploader.retryUpload(uploads, mockRetryableUploadJob);
+      // It is important that we do not set the status to retrying on the original job because it
+      // should get replaced if we do not have an upload directory
+      expect(jobStatusClient.updateJob).to.not.have.been.calledWithMatch(
+        "uploadJobId",
+        {
+          status: JSSJobStatus.RETRYING,
+        }
+      );
+      expect(fss.startUpload).to.have.been.called;
     });
     it("Creates new upload child jobs if uploadJob.childIds is not defined", async () => {
       fakeSuccessfulCopy();
