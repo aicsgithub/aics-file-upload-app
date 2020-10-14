@@ -27,7 +27,6 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
   job,
 }: Props) => {
   const { created, jobId, user } = job;
-  console.log(job);
   return (
     <>
       {(job.serviceFields?.error || FAILED_STATUSES.includes(job.status)) && (
