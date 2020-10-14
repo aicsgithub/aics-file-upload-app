@@ -203,7 +203,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             />
           </Tooltip>
           <Tooltip title="Edit" mouseLeaveDelay={0}>
-            <Button disabled={isEmpty(selectedRows)} icon="edit" type="link" />
+            <Button
+              onClick={() => {
+                console.log("requires implementation");
+              }}
+              disabled={isEmpty(selectedRows)}
+              icon="edit"
+              type="link"
+            />
           </Tooltip>
           <Tooltip title="Delete Selected Row" mouseLeaveDelay={0}>
             <Button
