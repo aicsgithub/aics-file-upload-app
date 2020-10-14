@@ -76,7 +76,6 @@ import {
   updateUpload,
   updateUploadRows,
   uploadFailed,
-  retryUploadFailed,
   cancelUpload,
   cancelUploadSucceeded,
   cancelUploadFailed,
@@ -545,7 +544,7 @@ describe("Upload logics", () => {
 
       expect(fms.retryUpload.called).to.be.true;
     });
-    it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
+    it("dispatches uploadFailed fms.retryUpload throws exception", async () => {
       fms.retryUpload.rejects(new Error("error"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState,
@@ -559,7 +558,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          retryUploadFailed(
+          uploadFailed(
             mockFailedUploadJob.jobName || "",
             `Retry upload ${mockFailedUploadJob.jobName} failed: error`
           )

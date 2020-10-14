@@ -196,19 +196,6 @@ export interface RetryUploadAction<
   type: string;
 }
 
-export interface RetryUploadSucceededAction {
-  payload: string;
-  type: string;
-}
-
-export interface RetryUploadFailedAction {
-  payload: {
-    error: string;
-    jobName: string;
-  };
-  type: string;
-}
-
 export interface CancelUploadSucceededAction {
   payload: string;
   type: string;

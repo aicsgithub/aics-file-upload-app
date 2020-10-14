@@ -24,6 +24,7 @@ import {
   ADD_METADATA_TYPE,
   COPY_CHILD_TYPE,
   COPY_TYPE,
+  FileSystemUtil,
   Uploader,
 } from "../helpers/uploader";
 
@@ -66,6 +67,10 @@ describe("Uploader", () => {
   let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
   let fss: SinonStubbedInstance<FSSClient>;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
+  let fs: {
+    access: SinonStub;
+    stat: SinonStub;
+  };
   let uploader: Uploader;
 
   beforeEach(() => {
@@ -95,12 +100,17 @@ describe("Uploader", () => {
     });
     logger = Logger.get(AICSFILES_LOGGER);
     sandbox.replace(logger, "error", stub());
+    fs = {
+      access: stub().resolves(),
+      stat: stub().resolves({ size: 100 }),
+    };
     uploader = new Uploader(
       stub().returns(copyWorkerStub),
       (fss as any) as FSSClient,
       (jobStatusClient as any) as JobStatusClient,
       (storage as any) as LocalStorage,
-      logger
+      logger,
+      (fs as any) as FileSystemUtil
     );
   });
 
@@ -234,7 +244,7 @@ describe("Uploader", () => {
     });
     // it("Retries upload if failed upload job provided", () => {});
     // it("Runs upload if waiting upload job provided", () => {});
-    it("Does not create new jobs", async () => {
+    it("Does not create new jobs if uploadDirectory still present", async () => {
       fakeSuccessfulCopy();
       await uploader.retryUpload(uploads, mockRetryableUploadJob);
       expect(jobStatusClient.updateJob).to.have.been.calledWithMatch(

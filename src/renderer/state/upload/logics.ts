@@ -96,7 +96,6 @@ import {
   initiateUploadSucceeded,
   removeUploads,
   replaceUpload,
-  retryUploadFailed,
   saveUploadDraftSuccess,
   updateUpload,
   updateUploads,
@@ -487,7 +486,7 @@ const retryUploadLogic = createLogic({
     } catch (e) {
       const error = `Retry upload ${jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-      dispatch(retryUploadFailed(jobName, error));
+      dispatch(uploadFailed(error, jobName));
       done();
     }
   },
