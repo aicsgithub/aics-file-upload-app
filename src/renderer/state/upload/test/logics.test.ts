@@ -559,8 +559,8 @@ describe("Upload logics", () => {
       expect(
         actions.includesMatch(
           uploadFailed(
-            mockFailedUploadJob.jobName || "",
-            `Retry upload ${mockFailedUploadJob.jobName} failed: error`
+            `Retry upload ${mockFailedUploadJob.jobName} failed: error`,
+            mockFailedUploadJob.jobName || ""
           )
         )
       ).to.be.true;
