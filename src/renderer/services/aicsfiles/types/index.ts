@@ -80,6 +80,7 @@ export enum StepName {
   AddMetadata = "Add metadata about file and complete upload",
   CopyFilesChild = "Copy file",
   CopyFiles = "Copy files in parallel",
+  Waiting = "Waiting for file copy",
 }
 
 export interface Step {
@@ -113,8 +114,8 @@ export interface BaseServiceFields {
   error?: string;
 
   // represents the type job this object is representing. It will be equal to the name property of the step or "upload"
-  // which is the parent job. See enum StepName for possible values.
-  type: string;
+  // which is the parent job.
+  type: "upload" | "copy" | "copy_child" | "add_metadata";
 }
 
 export interface UploadServiceFields extends BaseServiceFields {
@@ -125,9 +126,19 @@ export interface UploadServiceFields extends BaseServiceFields {
   files: UploadMetadata[];
 
   // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
+  // This points to the original job id if this is a replacement job
+  originalJobId?: string;
+
+  // DEPRECATED in favor of using replacementJobIds
+  // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
   // This points to the jobId of the new upload job in case user tries to retry job and the previous jobId is no longer
   // being tracked by FSS. This is populated by the app.
   replacementJobId?: string;
+
+  // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
+  // This points to the jobIds of the new upload job in case user tries to retry job and the previous jobId is no longer
+  // being tracked by FSS. This is populated by the app.
+  replacementJobIds?: string[];
 
   // populated by FSS: https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/file-storage-service-java/browse/src/main/java/org/alleninstitute/aics/filestorage/service/UploadJobProcessingService.java#266
   // when the app requests to start an upload.

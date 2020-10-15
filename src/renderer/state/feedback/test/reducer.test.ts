@@ -1,10 +1,6 @@
 import { expect } from "chai";
 
-import {
-  receiveJobs,
-  retrieveJobs,
-  retrieveJobsFailed,
-} from "../../job/actions";
+import { receiveJobs } from "../../job/actions";
 import {
   closeUploadTab,
   openEditFileMetadataTab,
@@ -50,8 +46,6 @@ import {
   initiateUploadFailed,
   initiateUploadSucceeded,
   retryUpload,
-  retryUploadFailed,
-  retryUploadSucceeded,
   submitFileMetadataUpdate,
   uploadFailed,
   uploadSucceeded,
@@ -359,13 +353,6 @@ describe("feedback reducer", () => {
       expect(result.visibleModals).to.not.include("templateEditor");
     });
   });
-  describe("retrieveJobs", () => {
-    it("adds GET_JOBS to requestsInProgress", () => {
-      const result = reducer(initialState, retrieveJobs());
-      expect(result.requestsInProgress.includes(AsyncRequest.GET_JOBS)).to.be
-        .true;
-    });
-  });
   describe("receiveJobs", () => {
     it("removes GET_JOBS from requestsInProgress", () => {
       const result = reducer(
@@ -397,7 +384,7 @@ describe("feedback reducer", () => {
     it("removes INITIATE_UPLOAD-jobName from requestsInProgress and clears uploadError", () => {
       const result = reducer(
         initialState,
-        initiateUploadSucceeded("jobName", "jobId", [], "foo")
+        initiateUploadSucceeded("jobName", "jobId", "foo")
       );
       expect(result.requestsInProgress).to.not.include(
         "INITIATE_UPLOAD-jobName"
@@ -419,87 +406,47 @@ describe("feedback reducer", () => {
   });
   describe("uploadSucceeded", () => {
     it("sets success alert", () => {
+      const request = `${AsyncRequest.UPLOAD}-jobName`;
       const result = reducer(
-        initialState,
-        uploadSucceeded("jobName", "jobId", ["jobId"])
+        { ...initialState, requestsInProgress: [request] },
+        uploadSucceeded("jobName")
       );
       expect(result.alert).to.deep.equal({
         message: "Upload jobName succeeded!",
         type: AlertType.SUCCESS,
       });
+      expect(result.requestsInProgress).to.not.include(request);
     });
   });
   describe("uploadFailed", () => {
     it("sets error alert", () => {
+      const request = `${AsyncRequest.UPLOAD}-jobName`;
       const result = reducer(
-        initialState,
-        uploadFailed("error", "jobName", "jobId", ["jobId"])
+        { ...initialState, requestsInProgress: [request] },
+        uploadFailed("error", "jobName")
       );
       expect(result.alert).to.deep.equal({
         message: "error",
         type: AlertType.ERROR,
       });
+      expect(result.requestsInProgress).to.not.include(request);
     });
   });
   describe("retryUpload", () => {
-    it("adds RETRY_UPLOAD to requestsInProgress and sets info alert", () => {
+    it("adds UPLOAD to requestsInProgress and sets info alert", () => {
       const result = reducer(
         initialState,
-        retryUpload(
-          {
-            ...mockFailedUploadJob,
-            key: "something",
-          },
-          []
-        )
+        retryUpload({
+          ...mockFailedUploadJob,
+          key: "something",
+        })
       );
       expect(result.requestsInProgress).includes(
-        `${AsyncRequest.RETRY_UPLOAD}-${mockFailedUploadJob.jobName}`
+        `${AsyncRequest.UPLOAD}-${mockFailedUploadJob.jobName}`
       );
       expect(result.alert).to.deep.equal({
         message: "Retrying upload mockFailedUploadJob",
         type: AlertType.INFO,
-      });
-    });
-  });
-  describe("retryUploadSucceeded", () => {
-    it("removes RETRY_UPLOAD from requestsInProgress and sets success alert", () => {
-      const result = reducer(
-        { ...initialState, requestsInProgress: [AsyncRequest.RETRY_UPLOAD] },
-        retryUploadSucceeded(
-          { ...mockSuccessfulUploadJob, jobId: "foo", key: "cat" },
-          ["foo"]
-        )
-      );
-      expect(
-        result.requestsInProgress.includes(`${AsyncRequest.RETRY_UPLOAD}-foo`)
-      ).to.be.false;
-      expect(result.alert).to.deep.equal({
-        message: "Retry upload mockJob1 succeeded!",
-        type: AlertType.SUCCESS,
-      });
-    });
-  });
-  describe("retryUploadFailed", () => {
-    it("removes RETRY_UPLOAD from requestsInProgress and sets error alert", () => {
-      const requestType = `${AsyncRequest.RETRY_UPLOAD}-jobName`;
-      const result = reducer(
-        { ...initialState, requestsInProgress: [requestType] },
-        retryUploadFailed(
-          {
-            ...mockFailedUploadJob,
-            jobId: "foo",
-            jobName: "jobName",
-            key: "cat",
-          },
-          "error",
-          ["foo"]
-        )
-      );
-      expect(result.requestsInProgress.includes(requestType)).to.be.false;
-      expect(result.alert).to.deep.equal({
-        message: "error",
-        type: AlertType.ERROR,
       });
     });
   });
@@ -508,9 +455,7 @@ describe("feedback reducer", () => {
       const requestType = `${AsyncRequest.CANCEL_UPLOAD}-foo`;
       const result = reducer(
         initialState,
-        cancelUpload({ ...mockSuccessfulUploadJob, jobId: "foo", key: "cat" }, [
-          "foo",
-        ])
+        cancelUpload({ ...mockSuccessfulUploadJob, jobId: "foo", key: "cat" })
       );
       expect(result.requestsInProgress.includes(requestType));
       expect(result.alert).to.deep.equal({
@@ -524,11 +469,7 @@ describe("feedback reducer", () => {
       const requestType = `${AsyncRequest.CANCEL_UPLOAD}-foo`;
       const result = reducer(
         { ...initialState, requestsInProgress: [requestType] },
-        cancelUploadSucceeded({
-          ...mockSuccessfulUploadJob,
-          jobName: "foo",
-          key: "cat",
-        })
+        cancelUploadSucceeded("foo")
       );
       expect(result.requestsInProgress.includes(requestType)).to.be.false;
       expect(result.alert).to.deep.equal({
@@ -542,10 +483,7 @@ describe("feedback reducer", () => {
       const requestType = `${AsyncRequest.CANCEL_UPLOAD}-foo`;
       const result = reducer(
         { ...initialState, requestsInProgress: [AsyncRequest.CANCEL_UPLOAD] },
-        cancelUploadFailed(
-          { ...mockSuccessfulUploadJob, jobName: "foo", key: "cat" },
-          "foo"
-        )
+        cancelUploadFailed("jobName", "foo")
       );
       expect(result.requestsInProgress.includes(requestType)).to.be.false;
       expect(result.alert).to.deep.equal({
@@ -680,24 +618,6 @@ describe("feedback reducer", () => {
           AsyncRequest.GET_FILE_METADATA_FOR_JOB
         )
       ).to.be.false;
-    });
-  });
-  describe("retrieveJobsFailed", () => {
-    it("removes GET_JOBS request from requestsInProgress and adds error event", () => {
-      const result = reducer(
-        {
-          ...initialState,
-          requestsInProgress: [AsyncRequest.GET_JOBS],
-        },
-        retrieveJobsFailed("foo")
-      );
-      expect(result.requestsInProgress.includes(AsyncRequest.GET_JOBS)).to.be
-        .false;
-      expect(
-        result.events.find(
-          (e) => e.type === AlertType.ERROR && e.message === "foo"
-        )
-      );
     });
   });
 });

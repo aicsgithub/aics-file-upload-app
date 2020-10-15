@@ -6,7 +6,11 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
-import { ImageModelMetadata } from "../../services/aicsfiles/types";
+import {
+  AddMetadataServiceFields,
+  ImageModelMetadata,
+  UploadServiceFields,
+} from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   Annotation,
@@ -513,14 +517,16 @@ export const mockSuccessfulUploadJob: JSSJob = {
   user: "test_user",
 };
 
-export const mockWorkingUploadJob: JSSJob = {
+export const mockWorkingUploadJob: JSSJob<UploadServiceFields> = {
   created: new Date(),
   currentStage: "Copying files",
   jobId: "2222222222",
   jobName: "mockWorkingUploadJob",
   modified: new Date(),
   serviceFields: {
-    copyJobId: "copyJobId2",
+    files: [],
+    type: "upload",
+    uploadDirectory: "/tmp/fss/asdf",
   },
   status: JSSJobStatus.WORKING,
   user: "test_user",
@@ -531,7 +537,7 @@ export const mockWaitingUploadJob: JSSJob = {
   status: JSSJobStatus.WAITING,
 };
 
-export const mockFailedUploadJob: JSSJob = {
+export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
   created: new Date(),
   currentStage: "Copy error",
   jobId: "3333333333",
@@ -545,7 +551,7 @@ export const mockFailedUploadJob: JSSJob = {
             {
               annotationId: 1,
               values: ["test", "1"],
-              channelId: 2,
+              channelId: "Raw 405nm",
             },
           ],
           templateId: 1,
@@ -558,35 +564,43 @@ export const mockFailedUploadJob: JSSJob = {
         },
       },
     ],
+    type: "upload",
+    uploadDirectory: "/foo",
   },
   status: JSSJobStatus.FAILED,
   user: "test_user",
 };
 
-const mockAddMetadataJob: JSSJob = {
+const mockAddMetadataJob: JSSJob<AddMetadataServiceFields> = {
   created: new Date(),
   currentStage: "Complete",
   jobId: "addMetadataJobId",
   jobName: "Add Metadata job 1",
   modified: new Date(),
+  serviceFields: {
+    type: "add_metadata",
+  },
   status: JSSJobStatus.WAITING,
   user: "test_user",
 };
 
 export const mockSuccessfulAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
+  jobId: "addMetadataJobId2",
   parentId: "123434234",
   status: JSSJobStatus.SUCCEEDED,
 };
 
 export const mockWorkingAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
+  jobId: "addMetadataJobId3",
   parentId: "2222222222",
   status: JSSJobStatus.WORKING,
 };
 
 export const mockFailedAddMetadataJob: JSSJob = {
   ...mockAddMetadataJob,
+  jobId: "addMetadataJobId4",
   parentId: "3333333333",
   status: JSSJobStatus.FAILED,
 };

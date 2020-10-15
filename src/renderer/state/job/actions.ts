@@ -1,82 +1,44 @@
-import { INCOMPLETE_JOB_IDS_KEY } from "../../../shared/constants";
+import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, UploadProgressInfo } from "../types";
 import { UPDATE_UPLOAD_PROGRESS_INFO } from "../upload/constants";
 
 import {
-  GATHER_STORED_INCOMPLETE_JOB_IDS,
-  HANDLE_ABANDONED_JOBS,
+  RECEIVE_JOB_INSERT,
+  RECEIVE_JOB_UPDATE,
   RECEIVE_JOBS,
-  RETRIEVE_JOBS,
-  RETRIEVE_JOBS_FAILED,
   SELECT_JOB_FILTER,
-  START_JOB_POLL,
-  STOP_JOB_POLL,
-  UPDATE_INCOMPLETE_JOB_IDS,
 } from "./constants";
 import {
-  GatherIncompleteJobIdsAction,
-  HandleAbandonedJobsAction,
   ReceiveJobsAction,
-  RetrieveJobsAction,
-  RetrieveJobsFailedAction,
+  ReceiveJobInsertAction,
   SelectJobFilterAction,
-  StartJobPollAction,
-  StopJobPollAction,
-  UpdateIncompleteJobIdsAction,
   UpdateUploadProgressInfoAction,
+  ReceiveJobUpdateAction,
 } from "./types";
 
-export function retrieveJobs(): RetrieveJobsAction {
+export function receiveJobs(uploadJobs: JSSJob[] = []): ReceiveJobsAction {
   return {
-    type: RETRIEVE_JOBS,
-  };
-}
-
-export function retrieveJobsFailed(error: string): RetrieveJobsFailedAction {
-  return {
-    payload: error,
-    type: RETRIEVE_JOBS_FAILED,
-  };
-}
-
-export function receiveJobs(
-  uploadJobs: JSSJob[] = [],
-  addMetadataJobs: JSSJob[] = [],
-  incompleteJobIds: string[] = []
-): ReceiveJobsAction {
-  return {
-    payload: {
-      addMetadataJobs,
-      incompleteJobIds,
-      uploadJobs,
-    },
+    payload: uploadJobs,
     type: RECEIVE_JOBS,
   };
 }
 
-export function handleAbandonedJobs(): HandleAbandonedJobsAction {
+export function receiveJobInsert(
+  job: JSSJob<BaseServiceFields>
+): ReceiveJobInsertAction {
   return {
-    type: HANDLE_ABANDONED_JOBS,
+    payload: job,
+    type: RECEIVE_JOB_INSERT,
   };
 }
 
-export function gatherIncompleteJobIds(): GatherIncompleteJobIdsAction {
+export function receiveJobUpdate<T extends BaseServiceFields = any>(
+  job: JSSJob<T>
+): ReceiveJobUpdateAction {
   return {
-    type: GATHER_STORED_INCOMPLETE_JOB_IDS,
-  };
-}
-
-export function updateIncompleteJobIds(
-  incompleteJobIds: string[]
-): UpdateIncompleteJobIdsAction {
-  return {
-    payload: incompleteJobIds,
-    type: UPDATE_INCOMPLETE_JOB_IDS,
-    updates: {
-      [INCOMPLETE_JOB_IDS_KEY]: incompleteJobIds,
-    },
-    writeToStore: true,
+    payload: job,
+    type: RECEIVE_JOB_UPDATE,
   };
 }
 
@@ -84,18 +46,6 @@ export function selectJobFilter(jobFilter: JobFilter): SelectJobFilterAction {
   return {
     payload: jobFilter,
     type: SELECT_JOB_FILTER,
-  };
-}
-
-export function startJobPoll(): StartJobPollAction {
-  return {
-    type: START_JOB_POLL,
-  };
-}
-
-export function stopJobPoll(): StopJobPollAction {
-  return {
-    type: STOP_JOB_POLL,
   };
 }
 

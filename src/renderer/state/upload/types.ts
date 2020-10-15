@@ -4,9 +4,9 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { Workflow } from "../../services/labkey-client/types";
-import { UploadSummaryTableRow } from "../types";
 import {
   AutoSaveAction,
   State,
@@ -156,11 +156,8 @@ export interface InitiateUploadAction extends AutoSaveAction {
   type: string;
 }
 
-export interface InitiateUploadSucceededAction extends WriteToStoreAction {
-  payload: {
-    job: JSSJob;
-    recentJobs: string[];
-  };
+export interface InitiateUploadSucceededAction {
+  payload: JSSJob;
   type: string;
 }
 
@@ -172,64 +169,42 @@ export interface InitiateUploadFailedAction {
   type: string;
 }
 
-export interface UploadSucceededAction extends WriteToStoreAction {
-  payload: {
-    jobName: string;
-    recentJobs: string[];
-  };
+export interface UploadSucceededAction {
+  payload: string;
+  type: string;
 }
 
-export interface UploadFailedAction extends WriteToStoreAction {
+export interface UploadFailedAction {
   payload: {
     jobName: string;
     error: string;
-    recentJobs: string[];
   };
   type: string;
 }
 
-export interface CancelUploadAction extends WriteToStoreAction {
-  payload: {
-    job: UploadSummaryTableRow;
-    recentJobs: string[];
-  };
+export interface CancelUploadAction<
+  T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
+> {
+  payload: T;
   type: string;
 }
 
-export interface RetryUploadAction extends WriteToStoreAction {
-  payload: {
-    job: UploadSummaryTableRow;
-    recentJobs: string[];
-  };
-  type: string;
-}
-
-export interface RetryUploadSucceededAction extends WriteToStoreAction {
-  payload: {
-    job: UploadSummaryTableRow;
-    recentJobs: string[];
-  };
-  type: string;
-}
-
-export interface RetryUploadFailedAction extends WriteToStoreAction {
-  payload: {
-    error: string;
-    job: UploadSummaryTableRow;
-    recentJobs: string[];
-  };
+export interface RetryUploadAction<
+  T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
+> {
+  payload: T;
   type: string;
 }
 
 export interface CancelUploadSucceededAction {
-  payload: UploadSummaryTableRow;
+  payload: string;
   type: string;
 }
 
 export interface CancelUploadFailedAction {
   payload: {
     error: string;
-    job: UploadSummaryTableRow;
+    jobName: string;
   };
   type: string;
 }

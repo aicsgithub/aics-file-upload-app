@@ -21,7 +21,6 @@ import {
 } from "../../../util";
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
-import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import {
   getFileMetadataForJob,
@@ -44,7 +43,6 @@ import { Actions } from "../../test/action-tracker";
 import {
   createMockReduxStore,
   dialog,
-  logger,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -745,7 +743,8 @@ describe("Route logics", () => {
       expect(
         fms.transformFileMetadataIntoTable.calledWithMatch({
           "/some/filepath": {
-            annotations: mockFailedUploadJob.serviceFields.files[0].annotations,
+            annotations:
+              mockFailedUploadJob.serviceFields?.files[0].annotations,
             originalPath: "/some/filepath",
             shouldBeInArchive: true,
             shouldBeInLocal: true,
@@ -756,105 +755,6 @@ describe("Route logics", () => {
       expect(actions.list.map(({ type }) => type)).includes(
         OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED
       );
-    });
-    it("gets replacement job if present and displays that instead", async () => {
-      stubMethods({});
-      const originalJob = {
-        ...mockFailedUploadJob,
-        serviceFields: {
-          ...mockFailedUploadJob.serviceFields,
-          replacementJobId: "replacement",
-        },
-      };
-      const replacementJob = {
-        ...mockFailedUploadJob,
-        jobId: "replacement",
-      };
-      jssClient.getJob.resolves(replacementJob);
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      store.dispatch(openEditFileMetadataTab(originalJob));
-      await logicMiddleware.whenComplete();
-
-      expect(jssClient.getJob.called).to.be.true;
-      expect(actions.includesMatch(openEditFileMetadataTab(replacementJob))).to
-        .be.true;
-    });
-    it("gets replacement job if present but displays selected job if there was an issue getting the replacement", async () => {
-      stubMethods({});
-      const originalJob = {
-        ...mockFailedUploadJob,
-        serviceFields: {
-          ...mockFailedUploadJob.serviceFields,
-          replacementJobId: "replacement",
-        },
-      };
-      jssClient.getJob.rejects(new Error("foo"));
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      store.dispatch(openEditFileMetadataTab(originalJob));
-      await logicMiddleware.whenComplete();
-
-      expect(jssClient.getJob.called).to.be.true;
-      expect(actions.includesMatch(openEditFileMetadataTab(originalJob))).to.be
-        .true;
-    });
-    it("gets replacement job if present but displays selected job if replacement job doesn't contain enough information", async () => {
-      stubMethods({});
-      const originalJob = {
-        ...mockFailedUploadJob,
-        serviceFields: {
-          ...mockFailedUploadJob.serviceFields,
-          replacementJobId: "replacement",
-        },
-      };
-      const replacementJob = {
-        ...mockFailedUploadJob,
-        jobId: "replacement",
-        serviceFields: {},
-      };
-      jssClient.getJob.resolves(replacementJob);
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      store.dispatch(openEditFileMetadataTab(originalJob));
-      await logicMiddleware.whenComplete();
-
-      expect(jssClient.getJob.called).to.be.true;
-      expect(actions.includesMatch(openEditFileMetadataTab(originalJob))).to.be
-        .true;
-    });
-    it("sets error alert if replacement and original jobs are missing serviceFields.files", async () => {
-      stubMethods({});
-      const originalJob = {
-        ...mockFailedUploadJob,
-        serviceFields: {
-          replacementJobId: "replacement",
-        },
-      };
-      const replacementJob = {
-        ...mockFailedUploadJob,
-        jobId: "replacement",
-        serviceFields: {},
-      };
-      jssClient.getJob.resolves(replacementJob);
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockStateWithMetadata
-      );
-
-      store.dispatch(openEditFileMetadataTab(originalJob));
-      await logicMiddleware.whenComplete();
-
-      expect(jssClient.getJob.called).to.be.true;
-      expect(
-        actions.includesMatch(setErrorAlert("upload has missing information"))
-      ).to.be.true;
-      expect(logger.warn).called;
     });
     it("handles case where upload tab is not open yet", async () => {
       stubMethods({});

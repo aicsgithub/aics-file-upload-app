@@ -19,7 +19,6 @@ describe("<UploadProgress/>", () => {
     it("returns null if status is SUCCEEDED", () => {
       const wrapper = shallow(
         <UploadProgress
-          isPolling={true}
           row={{
             ...row,
             status: JSSJobStatus.SUCCEEDED,
@@ -31,7 +30,6 @@ describe("<UploadProgress/>", () => {
     it("returns null if status is UNRECOVERABLE", () => {
       const wrapper = shallow(
         <UploadProgress
-          isPolling={true}
           row={{
             ...row,
             status: JSSJobStatus.UNRECOVERABLE,
@@ -43,7 +41,6 @@ describe("<UploadProgress/>", () => {
     it("returns null if status is FAILED and no replacementJobId", () => {
       const wrapper = shallow(
         <UploadProgress
-          isPolling={true}
           row={{
             ...row,
             status: JSSJobStatus.FAILED,
@@ -55,7 +52,6 @@ describe("<UploadProgress/>", () => {
     it("Returns <>Replaced</> if job was replaced", () => {
       const wrapper = shallow(
         <UploadProgress
-          isPolling={true}
           row={{
             ...row,
             serviceFields: {
@@ -73,7 +69,7 @@ describe("<UploadProgress/>", () => {
       expect(replacedInfo.text()).to.equal("Replaced with jobId abc");
     });
     it("Returns null if row is missing progress info", () => {
-      const wrapper = shallow(<UploadProgress isPolling={true} row={row} />);
+      const wrapper = shallow(<UploadProgress row={row} />);
       expect(wrapper.isEmptyRender()).to.be.true;
     });
 
@@ -84,7 +80,6 @@ describe("<UploadProgress/>", () => {
     ) => {
       const wrapper = shallow(
         <UploadProgress
-          isPolling={true}
           row={{
             ...row,
             progress: {

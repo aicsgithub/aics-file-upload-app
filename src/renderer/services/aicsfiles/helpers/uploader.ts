@@ -1,10 +1,17 @@
-import { exists as fsExists, stat as fsStat } from "fs";
+import {
+  access as fsAccess,
+  BigIntStats,
+  PathLike,
+  stat as fsStat,
+  StatOptions,
+  Stats,
+} from "fs";
 import { hostname, platform, userInfo } from "os";
 import { promisify } from "util";
 
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
-import { includes, keys, noop } from "lodash";
+import { includes, keys, noop, uniq } from "lodash";
 import * as uuid from "uuid";
 
 import { USER_SETTINGS_KEY } from "../../../../shared/constants";
@@ -24,7 +31,6 @@ import {
   FSSResponseFile,
   StartUploadResponse,
   Step,
-  StepName,
   UploadChildJobServiceFields,
   UploadContext,
   UploadResponse,
@@ -40,12 +46,24 @@ export const COPY_TYPE = "copy";
 export const COPY_CHILD_TYPE = "copy_child";
 export const ADD_METADATA_TYPE = "add_metadata";
 const stat = promisify(fsStat);
-const exists = promisify(fsExists);
+const access = promisify(fsAccess);
 
 const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
   return uuid.v1().replace(/-/g, "");
 };
+
+// These are mocked in the tests so they need to be constructor arguments
+// Bundling them into an object makes them easier to stub
+type AccessFn = (path: PathLike, mode?: number) => Promise<void>;
+type StatFn = (
+  path: PathLike,
+  options?: StatOptions
+) => Promise<Stats | BigIntStats>;
+export interface FileSystemUtil {
+  access: AccessFn;
+  stat: StatFn;
+}
 
 /**
  * This class is responsible for uploading files through FSS.
@@ -58,6 +76,7 @@ export class Uploader {
 
   private readonly getCopyWorker: () => Worker;
   private readonly defaultMountPoint = "/allen/aics";
+  private readonly fs: FileSystemUtil;
 
   private get defaultJobInfo(): JobBase {
     return {
@@ -88,13 +107,15 @@ export class Uploader {
     fss: FSSClient,
     jobStatusClient: JobStatusClient,
     storage: LocalStorage,
-    logger: ILogger = Logger.get(AICSFILES_LOGGER)
+    logger: ILogger = Logger.get(AICSFILES_LOGGER),
+    fs: FileSystemUtil = { access, stat }
   ) {
     this.getCopyWorker = getCopyWorker;
     this.fss = fss;
     this.jss = jobStatusClient;
     this.storage = storage;
     this.logger = logger;
+    this.fs = fs;
   }
 
   private async executeSteps(
@@ -163,10 +184,6 @@ export class Uploader {
       return uploadJob.serviceFields?.output ?? {};
     }
 
-    await this.jss.updateJob(uploadJob.jobId, {
-      status: JSSJobStatus.RETRYING,
-    });
-
     const originalUploadResponse: StartUploadResponse = {
       jobId: uploadJob.jobId,
       uploadDirectory: uploadJob.serviceFields.uploadDirectory,
@@ -186,48 +203,62 @@ export class Uploader {
       copyProgressCb,
       copyProgressCbThrottleMs
     );
-    const jobCompleted = steps.every(
-      ({ job: { status }, name }) =>
-        status === JSSJobStatus.SUCCEEDED || name === StepName.AddMetadata
+
+    const uploadDirectory = ctx.startUploadResponse.uploadDirectory.replace(
+      this.defaultMountPoint,
+      this.mountPoint
     );
-    const uploadDirectoryExists =
-      uploadJob?.serviceFields?.uploadDirectory &&
-      (await exists(uploadJob.serviceFields.uploadDirectory));
-
-    if (
-      (jobCompleted && uploadJob.status === JSSJobStatus.FAILED) ||
-      !uploadDirectoryExists
-    ) {
-      if (!uploadDirectoryExists) {
-        this.logger.info(
-          "Current upload target directory has already been cleaned up, replacing with new job"
-        );
-      } else {
-        this.logger.info(
-          "Current upload failed too late in the process to retry, replacing with new job"
-        );
-      }
-
+    let canAccessUploadDirectory = true;
+    try {
+      await this.fs.access(uploadDirectory);
+    } catch (e) {
+      this.logger.info(`Cannot access upload directory ${uploadDirectory}`, e);
+      canAccessUploadDirectory = false;
+    }
+    if (!canAccessUploadDirectory) {
+      this.logger.info(
+        "Current upload failed too late in the process to retry, replacing with new job"
+      );
       // Start new upload job that will replace the current one
       const newUploadResponse = await this.fss.startUpload(
         uploads,
         uploadJobName
       );
       // Update the current job with information about the replacement
-      await this.jss.updateJob(
-        uploadJob.jobId,
-        {
-          serviceFields: {
-            error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
-            replacementJobId: newUploadResponse.jobId,
+      await Promise.all([
+        this.jss.updateJob(
+          uploadJob.jobId,
+          {
+            serviceFields: {
+              error: `This job has been replaced with Job ID: ${newUploadResponse.jobId}`,
+              replacementJobIds: uniq([
+                ...(uploadJob?.serviceFields?.replacementJobIds || []),
+                newUploadResponse.jobId,
+              ]),
+            },
           },
-        },
-        true
-      );
+          false
+        ),
+        this.jss.updateJob(
+          newUploadResponse.jobId,
+          {
+            serviceFields: {
+              originalJobId: uploadJob.jobId,
+            },
+            status: JSSJobStatus.RETRYING,
+          },
+          false
+        ),
+      ]);
       // Perform upload with new job and current job's metadata, forgoing the current job
       return this.uploadFiles(newUploadResponse, uploads, uploadJobName);
     }
-
+    await this.jss.updateJob(uploadJob.jobId, {
+      status: JSSJobStatus.RETRYING,
+      serviceFields: {
+        error: null, // clear out previous error
+      },
+    });
     return this.executeSteps(ctx, steps);
   }
 
@@ -351,7 +382,7 @@ export class Uploader {
   private async getFileSizes(uploads: Uploads): Promise<Map<string, number>> {
     const fileToSizeMap = new Map();
     for (const [filePath] of Object.entries(uploads)) {
-      const stats = await stat(filePath);
+      const stats = await this.fs.stat(filePath);
       fileToSizeMap.set(filePath, stats.size);
     }
     return fileToSizeMap;
