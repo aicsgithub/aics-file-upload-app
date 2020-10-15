@@ -3,6 +3,7 @@ import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
 import { castArray, includes, isEmpty, isNil, without } from "lodash";
+import { cloneDeep } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -89,6 +90,7 @@ interface Props {
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
   selectedRows: string[];
+  showMassEditGrid: boolean;
   sortColumn?: SortableColumns;
   sortDirection?: SortDirections;
 }
@@ -167,6 +169,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     super(props);
     this.state = {
       selectedRows: [],
+      showMassEditGrid: false,
     };
   }
 
@@ -180,6 +183,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
+
+    const massEditRow = cloneDeep(uploads[0]);
+    massEditRow["file"] = "";
+    massEditRow["key"] = "massEdit";
+    const massEditRows = this.sortRows(
+      [massEditRow],
+      this.state.sortColumn,
+      this.state.sortDirection
+    );
+    const massEditRowGetter = (idx: number) => massEditRows[idx];
 
     return (
       <>
@@ -205,7 +218,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           <Tooltip title="Edit" mouseLeaveDelay={0}>
             <Button
               onClick={() => {
-                console.log("requires implementation");
+                this.setState({ showMassEditGrid: true });
               }}
               disabled={isEmpty(selectedRows)}
               icon="edit"
@@ -221,6 +234,37 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             />
           </Tooltip>
         </div>
+        {this.state.showMassEditGrid && (
+          <>
+            <div>Mass Editing</div>
+            <ReactDataGrid
+              cellNavigationMode="changeRow"
+              columns={this.getColumns()}
+              enableCellSelect={true}
+              enableDragAndDrop={true}
+              getSubRowDetails={this.getSubRowDetails}
+              minHeight={
+                sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
+              }
+              onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
+              onGridSort={this.determineSort}
+              rowGetter={massEditRowGetter}
+              rowsCount={massEditRows.length}
+              rowSelection={{
+                enableShiftSelect: true,
+                onRowsDeselected: this.deselectRows,
+                onRowsSelected: this.selectRows,
+                selectBy: {
+                  keys: {
+                    rowKey: "key",
+                    values: selectedRows,
+                  },
+                },
+              }}
+              onCellExpand={this.onCellExpand}
+            />
+          </>
+        )}
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (
             <ReactDataGrid
@@ -472,7 +516,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         `${b[sortColumn]}`.localeCompare(`${a[sortColumn]}`)
       );
     }
-    return this.props.uploads;
+    return rows;
   };
 
   private selectRows = (
