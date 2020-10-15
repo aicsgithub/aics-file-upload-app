@@ -59,6 +59,16 @@ describe("EnvironmentAwareStorage", () => {
     );
   });
 
+  it("memoizes the call to get", () => {
+    storage.get(USER_SETTINGS_KEY);
+    storage.get("foo");
+    storage.get(USER_SETTINGS_KEY);
+    // Since the call to `get` is memoized, the second call with
+    // `USER_SETTINGS_KEY` should not reach the underlying `get` method on the
+    // store.
+    expect(mockStore.get).to.have.been.calledTwice;
+  });
+
   it("doesn't prefix key if key starts with 'userSettings'", () => {
     storage.get("userSettings.username");
     expect(mockStore.get).to.have.been.calledWith("userSettings.username");
