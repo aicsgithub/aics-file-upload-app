@@ -83,7 +83,6 @@ import {
   updateUpload,
   updateUploadRows,
   uploadFailed,
-  retryUploadFailed,
   cancelUpload,
   cancelUploadSucceeded,
   cancelUploadFailed,
@@ -552,7 +551,7 @@ describe("Upload logics", () => {
 
       expect(fms.retryUpload.called).to.be.true;
     });
-    it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
+    it("dispatches uploadFailed fms.retryUpload throws exception", async () => {
       fms.retryUpload.rejects(new Error("error"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState,
@@ -566,9 +565,9 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          retryUploadFailed(
-            mockFailedUploadJob.jobName || "",
-            `Retry upload ${mockFailedUploadJob.jobName} failed: error`
+          uploadFailed(
+            `Retry upload ${mockFailedUploadJob.jobName} failed: error`,
+            mockFailedUploadJob.jobName || ""
           )
         )
       ).to.be.true;
@@ -2050,14 +2049,15 @@ describe("Upload logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
-      const job = { ...mockJob, key: "key" };
+      const jobName = "bar";
+      const job = { ...mockJob, jobName, key: "key" };
 
       store.dispatch(cancelUpload(job));
       await logicMiddleware.whenComplete();
 
       expect(dialog.showMessageBox.called).to.be.true;
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
-      expect(actions.includesMatch(cancelUploadSucceeded(job))).to.be.true;
+      expect(actions.includesMatch(cancelUploadSucceeded(jobName))).to.be.true;
     });
     it("cancels all replacement jobs related to upload", async () => {
       const replacementJob: JSSJob<UploadServiceFields> = {
@@ -2108,7 +2108,7 @@ describe("Upload logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
-      const job = { ...mockJob, key: "key" };
+      const job = { ...mockJob, jobName: "jobName", key: "key" };
       fms.failUpload.rejects(new Error("foo"));
 
       store.dispatch(cancelUpload(job));
@@ -2118,7 +2118,10 @@ describe("Upload logics", () => {
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
       expect(
         actions.includesMatch(
-          cancelUploadFailed(job, `Cancel upload ${job.jobName} failed: foo`)
+          cancelUploadFailed(
+            "jobName",
+            `Cancel upload ${job.jobName} failed: foo`
+          )
         )
       ).to.be.true;
     });

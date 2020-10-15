@@ -34,8 +34,6 @@ import {
   REMOVE_FILE_FROM_ISILON,
   REPLACE_UPLOAD,
   RETRY_UPLOAD,
-  RETRY_UPLOAD_FAILED,
-  RETRY_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   SUBMIT_FILE_METADATA_UPDATE,
@@ -74,8 +72,6 @@ import {
   RemoveUploadsAction,
   ReplaceUploadAction,
   RetryUploadAction,
-  RetryUploadFailedAction,
-  RetryUploadSucceededAction,
   SaveUploadDraftAction,
   SaveUploadDraftSuccessAction,
   SubmitFileMetadataUpdateAction,
@@ -290,22 +286,22 @@ export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
 }
 
 export function cancelUploadSucceeded(
-  job: UploadSummaryTableRow
+  jobName: string
 ): CancelUploadSucceededAction {
   return {
-    payload: job,
+    payload: jobName,
     type: CANCEL_UPLOAD_SUCCEEDED,
   };
 }
 
 export function cancelUploadFailed(
-  job: UploadSummaryTableRow,
+  jobName: string,
   error: string
 ): CancelUploadFailedAction {
   return {
     payload: {
       error,
-      job,
+      jobName,
     },
     type: CANCEL_UPLOAD_FAILED,
   };
@@ -315,28 +311,6 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
   return {
     payload: job,
     type: RETRY_UPLOAD,
-  };
-}
-
-export function retryUploadSucceeded(
-  jobName: string
-): RetryUploadSucceededAction {
-  return {
-    payload: jobName,
-    type: RETRY_UPLOAD_SUCCEEDED,
-  };
-}
-
-export function retryUploadFailed(
-  jobName: string,
-  error: string
-): RetryUploadFailedAction {
-  return {
-    payload: {
-      error,
-      jobName,
-    },
-    type: RETRY_UPLOAD_FAILED,
   };
 }
 
