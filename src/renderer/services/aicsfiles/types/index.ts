@@ -135,9 +135,6 @@ export interface UploadServiceFields extends BaseServiceFields {
   // being tracked by FSS. This is populated by the app.
   replacementJobId?: string;
 
-  // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
-  // This points to the jobIds of the new upload job in case user tries to retry job and the previous jobId is no longer
-  // being tracked by FSS. This is populated by the app.
   replacementJobIds?: string[];
 
   // populated by FSS: https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/file-storage-service-java/browse/src/main/java/org/alleninstitute/aics/filestorage/service/UploadJobProcessingService.java#266

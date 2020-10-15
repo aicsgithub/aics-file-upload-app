@@ -61,42 +61,6 @@ describe("Job selectors", () => {
       });
       expect(foundWorkingJob).to.be.true;
     });
-    it("hides any jobs that are duplicates of the original and displays latest upload job", () => {
-      const mockReplacementJob1 = {
-        ...mockFailedUploadJob,
-        created: new Date("Oct 2, 2020 03:24:00"),
-        jobId: "replacement1",
-      };
-      const mockReplacementJob2 = {
-        ...mockFailedUploadJob,
-        created: new Date("Oct 3, 2020 03:24:00"),
-        jobId: "replacement2",
-        status: JSSJobStatus.RETRYING,
-      };
-      const rows = getJobsForTable({
-        ...mockState,
-        job: {
-          ...mockState.job,
-          uploadJobs: [
-            {
-              ...mockFailedUploadJob,
-              created: new Date("Oct 1, 2020 03:24:00"),
-              serviceFields: {
-                files: [],
-                replacementJobIds: ["replacement1", "replacement2"],
-                type: "upload",
-                uploadDirectory: "/foo",
-              },
-            },
-            mockReplacementJob1,
-            mockReplacementJob2,
-          ],
-        },
-      });
-      expect(rows.length).to.equal(1);
-      expect(rows[0].status).to.equal(JSSJobStatus.RETRYING);
-      expect(rows[0].serviceFields).to.equal(mockReplacementJob2.serviceFields);
-    });
   });
 
   describe("getIsSafeToExit", () => {
