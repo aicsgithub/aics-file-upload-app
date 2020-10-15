@@ -1,10 +1,7 @@
 import { Alert, Descriptions } from "antd";
 import * as React from "react";
 
-import {
-  FAILED_STATUSES,
-  JSSJob,
-} from "../../services/job-status-client/types";
+import { JSSJob } from "../../services/job-status-client/types";
 
 const Item = Descriptions.Item;
 
@@ -13,8 +10,7 @@ interface Props {
   job: JSSJob;
 }
 
-const determineError = (job: JSSJob): string => {
-  const error = job?.serviceFields?.error || "Upload Failed";
+const determineError = (error: string): string => {
   if (error.toLowerCase().includes("chmod")) {
     return `Error while uploading, you and/or FMS did not have permission to read one of these files.
                 The full error was: ${error}`;
@@ -29,12 +25,12 @@ const JobOverviewDisplay: React.FunctionComponent<Props> = ({
   const { created, jobId, user } = job;
   return (
     <>
-      {(job.serviceFields?.error || FAILED_STATUSES.includes(job.status)) && (
+      {job.serviceFields?.error && (
         <Alert
           type={job.serviceFields?.cancelled ? "warning" : "error"}
           message={job.serviceFields?.cancelled ? "Warning" : "Error"}
           key="errorAlert"
-          description={determineError(job)}
+          description={determineError(job.serviceFields.error)}
           showIcon={true}
           style={{ marginBottom: "0.5em" }}
         />

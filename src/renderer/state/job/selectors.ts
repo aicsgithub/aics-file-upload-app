@@ -10,7 +10,6 @@ import {
   JSSJob,
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
-import { convertToArray } from "../../util";
 import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
@@ -67,53 +66,20 @@ export const getFilteredJobs = createSelector(
 );
 
 export const getJobsForTable = createSelector(
-  [getFilteredJobs, getCopyProgress, getJobIdToUploadJobMapGlobal],
+  [getFilteredJobs, getCopyProgress],
   (
-    uploadJobs: JSSJob<UploadServiceFields>[],
-    copyProgress: { [jobId: string]: UploadProgressInfo },
-    jobIdToUploadJobMap: Map<string, JSSJob<UploadServiceFields>>
+    uploadJobs: JSSJob[],
+    copyProgress: { [jobId: string]: UploadProgressInfo }
   ): UploadSummaryTableRow[] => {
-    uploadJobs = orderBy(uploadJobs, ["modified"], ["desc"]);
-    const jobIdsToFilterOut: string[] = [];
-    for (const uploadJob of uploadJobs) {
-      if (uploadJob?.serviceFields?.replacementJobIds) {
-        jobIdsToFilterOut.push(...uploadJob?.serviceFields?.replacementJobIds);
-      }
-    }
-
-    return orderBy(uploadJobs, ["modified"], ["desc"])
-      .filter(({ jobId }) => !jobIdsToFilterOut.includes(jobId))
-      .map((job) => {
-        const replacementJobIds = convertToArray(
-          job?.serviceFields?.replacementJobIds
-        );
-        let representativeJob = job;
-        for (const jobId of replacementJobIds) {
-          const replacementJob = jobIdToUploadJobMap.get(jobId);
-          if (replacementJob) {
-            if (
-              new Date(replacementJob.created) >
-              new Date(representativeJob.created)
-            ) {
-              representativeJob = replacementJob;
-            }
-          }
-        }
-
-        const originalModified = new Date(job.modified);
-        const representativeModified = new Date(representativeJob.modified);
-        return {
-          ...representativeJob,
-          created: new Date(job.created),
-          key: representativeJob.jobId,
-          modified:
-            originalModified < representativeModified
-              ? representativeModified
-              : originalModified,
-          progress: copyProgress[job.jobId],
-          status: representativeJob.status,
-        };
-      });
+    return orderBy(uploadJobs, ["modified"], ["desc"]).map((job) => {
+      return {
+        ...job,
+        created: new Date(job.created),
+        key: job.jobId,
+        modified: new Date(job.modified),
+        progress: copyProgress[job.jobId],
+      };
+    });
   }
 );
 

@@ -7,8 +7,15 @@ import {
   UploadServiceFields,
 } from "../../../services/aicsfiles/types";
 import JobStatusClient from "../../../services/job-status-client";
-import { JSSJob } from "../../../services/job-status-client/types";
-import { setErrorAlert, setInfoAlert } from "../../feedback/actions";
+import {
+  JSSJob,
+  JSSJobStatus,
+} from "../../../services/job-status-client/types";
+import {
+  setErrorAlert,
+  setInfoAlert,
+  setSuccessAlert,
+} from "../../feedback/actions";
 import {
   createMockReduxStore,
   mockReduxLogicDeps,
@@ -23,7 +30,11 @@ import {
   mockWorkingUploadJob,
 } from "../../test/mocks";
 import { State } from "../../types";
-import { uploadFailed, uploadSucceeded } from "../../upload/actions";
+import {
+  retryUploadFailed,
+  uploadFailed,
+  uploadSucceeded,
+} from "../../upload/actions";
 import { receiveJobs, receiveJobUpdate } from "../actions";
 import { handleAbandonedJobsLogic } from "../logics";
 
@@ -155,6 +166,18 @@ describe("Job logics", () => {
         setInfoAlert(
           `Upload "${copyFilesAbandonedJob.jobName}" was abandoned and will now be retried.`
         ),
+        setSuccessAlert(
+          `Retry for upload "${waitingAbandonedJob.jobName}" succeeded!`
+        ),
+        setSuccessAlert(
+          `Retry for upload "${addMetadataAbandonedJob.jobName}" succeeded!`
+        ),
+        setSuccessAlert(
+          `Retry for upload "${copyFileAbandonedJob.jobName}" succeeded!`
+        ),
+        setSuccessAlert(
+          `Retry for upload "${copyFilesAbandonedJob.jobName}" succeeded!`
+        ),
       ]);
     });
 
@@ -177,6 +200,7 @@ describe("Job logics", () => {
         setInfoAlert(
           'Upload "abandoned_job" was abandoned and will now be retried.'
         ),
+        setSuccessAlert('Retry for upload "abandoned_job" succeeded!'),
       ]);
     });
 
@@ -340,7 +364,59 @@ describe("Job logics", () => {
 
       expect(actions.list).to.deep.equal([
         action,
-        uploadFailed("Upload someJobName failed: foo", "someJobName"),
+        uploadFailed("someJobName", "Upload someJobName failed: foo"),
+      ]);
+    });
+    it("dispatches retryUploadFailed if the job is a replacement job that failed", async () => {
+      const replacementJobId = "lisa";
+      const originalJobId = "original";
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        {
+          ...mockState,
+          job: {
+            ...mockState.job,
+            uploadJobs: [
+              {
+                ...mockWorkingUploadJob,
+                jobId: originalJobId,
+                serviceFields: {
+                  ...mockWorkingUploadJob.serviceFields,
+                  files: [],
+                  replacementJobId,
+                  type: "upload",
+                  uploadDirectory: "/tmp",
+                },
+                status: JSSJobStatus.RETRYING,
+              },
+            ],
+          },
+        },
+        undefined,
+        undefined,
+        false
+      );
+      const action = receiveJobUpdate({
+        ...mockFailedUploadJob,
+        jobId: replacementJobId,
+        jobName: "someJobName",
+        serviceFields: {
+          ...mockFailedUploadJob.serviceFields,
+          error: "foo",
+          originalJobId,
+          type: "upload",
+        },
+      });
+
+      store.dispatch(action);
+
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([
+        action,
+        retryUploadFailed(
+          "someJobName",
+          "Retry upload someJobName failed: foo"
+        ),
       ]);
     });
   });

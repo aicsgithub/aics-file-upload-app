@@ -25,13 +25,11 @@ import {
 import {
   StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
-  UploadServiceFields,
 } from "../../services/aicsfiles/types";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+import { JSSJobStatus } from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
-  convertToArray,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
   getUploadFilePromise,
@@ -43,10 +41,7 @@ import { requestFailed } from "../actions";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
-import {
-  getCurrentJobName,
-  getJobIdToUploadJobMapGlobal,
-} from "../job/selectors";
+import { getCurrentJobName } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -96,6 +91,7 @@ import {
   initiateUploadSucceeded,
   removeUploads,
   replaceUpload,
+  retryUploadFailed,
   saveUploadDraftSuccess,
   updateUpload,
   updateUploads,
@@ -380,47 +376,29 @@ export const cancelUploadLogic = createLogic({
     {
       action,
       fms,
-      getState,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<CancelUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const uploadJob = action.payload;
-    const jobIdsToFail = new Set<string>();
-    if (uploadJob.serviceFields?.originalJobId) {
-      jobIdsToFail.add(uploadJob.serviceFields?.originalJobId);
-      const jobIdToJobMap = getJobIdToUploadJobMapGlobal(getState());
-      const originalJob = jobIdToJobMap.get(
-        uploadJob.serviceFields.originalJobId
-      );
-      if (originalJob) {
-        convertToArray(originalJob.serviceFields?.replacementJobIds).forEach(
-          (jobId) => {
-            jobIdsToFail.add(jobId);
-          }
-        );
-      }
-    } else {
-      jobIdsToFail.add(uploadJob.jobId);
-    }
+    const uploadJob: UploadSummaryTableRow = action.payload;
 
     try {
       // TODO FUA-55: we need to do more than this to really stop an upload
-      await Promise.all(
-        Array.from(jobIdsToFail).map((jobId) =>
-          fms.failUpload(jobId, "Cancelled by user", JSSJobStatus.FAILED, {
-            cancelled: true,
-          })
-        )
+      await fms.failUpload(
+        uploadJob.jobId,
+        "Cancelled by user",
+        JSSJobStatus.UNRECOVERABLE,
+        {
+          cancelled: true,
+        }
       );
-
-      dispatch(cancelUploadSucceeded(uploadJob.jobName || ""));
+      dispatch(cancelUploadSucceeded(uploadJob));
     } catch (e) {
-      logger.error(`Cancel upload failed`, e);
+      logger.error(`Cancel for jobId=${uploadJob.jobId} failed`, e);
       dispatch(
         cancelUploadFailed(
-          uploadJob.jobName || "",
+          uploadJob,
           `Cancel upload ${uploadJob.jobName} failed: ${e.message}`
         )
       );
@@ -436,7 +414,7 @@ export const cancelUploadLogic = createLogic({
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const uploadJob = action.payload;
+    const uploadJob: UploadSummaryTableRow = action.payload;
     if (!uploadJob) {
       reject(setErrorAlert("Cannot cancel undefined upload job"));
     } else {
@@ -469,7 +447,7 @@ const retryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const uploadJob: JSSJob<UploadServiceFields> = action.payload;
+    const uploadJob: UploadSummaryTableRow = action.payload;
     const jobName = uploadJob.jobName || "";
     const fileNames = ctx.files.map(
       ({ file: { originalPath } }: AicsFilesUploadMetadata) => originalPath
@@ -486,7 +464,7 @@ const retryUploadLogic = createLogic({
     } catch (e) {
       const error = `Retry upload ${jobName} failed: ${e.message}`;
       logger.error(`Retry for jobId=${uploadJob.jobId} failed`, e);
-      dispatch(uploadFailed(error, jobName));
+      dispatch(retryUploadFailed(jobName, error));
       done();
     }
   },
@@ -494,40 +472,17 @@ const retryUploadLogic = createLogic({
     {
       action,
       ctx,
-      getState,
-      logger,
     }: ReduxLogicTransformDependenciesWithAction<RetryUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const uploadJob: JSSJob<UploadServiceFields> = action.payload;
+    const uploadJob: UploadSummaryTableRow = action.payload;
     if (isEmpty(uploadJob.serviceFields?.files)) {
       reject(
         setErrorAlert(
           "Not enough information to retry upload. Contact Software."
         )
       );
-    } else if (uploadJob.serviceFields?.originalJobId) {
-      logger.info(
-        `This upload job replaced the job ${uploadJob.serviceFields?.originalJobId}. Finding the original to retry.`
-      );
-      let currJob:
-        | UploadSummaryTableRow
-        | JSSJob<UploadServiceFields>
-        | undefined = uploadJob;
-      const jobIdToJobMap = getJobIdToUploadJobMapGlobal(getState());
-      while (currJob?.serviceFields?.originalJobId) {
-        currJob = jobIdToJobMap.get(currJob?.serviceFields?.originalJobId);
-        logger.info(`Now the current job is ${currJob?.jobId}`);
-      }
-      if (!currJob) {
-        reject(setErrorAlert("Could not find original upload to retry"));
-      } else {
-        action.payload = currJob;
-        ctx.files =
-          currJob.serviceFields?.files || uploadJob.serviceFields.files;
-        next(action);
-      }
     } else {
       ctx.files = uploadJob.serviceFields?.files;
       next(action);

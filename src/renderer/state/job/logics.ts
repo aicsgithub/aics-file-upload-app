@@ -11,14 +11,23 @@ import {
   JSSJobStatus,
 } from "../../services/job-status-client/types";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
-import { setErrorAlert, setInfoAlert } from "../feedback/actions";
+import {
+  setErrorAlert,
+  setInfoAlert,
+  setSuccessAlert,
+} from "../feedback/actions";
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
-import { uploadFailed, uploadSucceeded } from "../upload/actions";
+import {
+  retryUploadFailed,
+  retryUploadSucceeded,
+  uploadFailed,
+  uploadSucceeded,
+} from "../upload/actions";
 import { handleUploadProgress } from "../util";
 
 import { updateUploadProgressInfo } from "./actions";
@@ -83,6 +92,12 @@ export const handleAbandonedJobsLogic = createLogic({
               ),
               COPY_PROGRESS_THROTTLE_MS
             );
+            logger.info(`Retry upload "${updatedJob.jobName}" succeeded!`);
+            dispatch(
+              setSuccessAlert(
+                `Retry for upload "${updatedJob.jobName}" succeeded!`
+              )
+            );
           } catch (e) {
             logger.error(`Retry for upload "${updatedJob.jobName}" failed`, e);
             dispatch(
@@ -106,7 +121,6 @@ export const handleAbandonedJobsLogic = createLogic({
 
 const isUploadJob = (job: JSSJob): job is JSSJob<UploadServiceFields> =>
   job.serviceFields?.type === "upload";
-// When the app receives a job update, it will also alert the user if the job update means that a upload succeeded or failed.
 const receiveJobUpdateLogics = createLogic({
   process: (
     {
@@ -131,18 +145,30 @@ const receiveJobUpdateLogics = createLogic({
     }
 
     if (updatedJob.status === JSSJobStatus.SUCCEEDED) {
-      dispatch(uploadSucceeded(jobName));
+      if (prevStatus === JSSJobStatus.RETRYING) {
+        dispatch(retryUploadSucceeded(jobName));
+      } else {
+        dispatch(uploadSucceeded(jobName));
+      }
     } else if (
-      (!updatedJob.serviceFields?.replacementJobIds ||
-        !updatedJob.serviceFields?.replacementJobId) &&
+      !updatedJob.serviceFields?.replacementJobId &&
       !updatedJob.serviceFields?.cancelled
     ) {
-      const error = `Upload ${jobName} failed${
-        updatedJob?.serviceFields?.error
-          ? `: ${updatedJob?.serviceFields?.error}`
-          : ""
-      }`;
-      dispatch(uploadFailed(error, jobName));
+      if (prevStatus === JSSJobStatus.RETRYING) {
+        const error = `Retry upload ${jobName} failed${
+          updatedJob?.serviceFields?.error
+            ? `: ${updatedJob?.serviceFields?.error}`
+            : ""
+        }`;
+        dispatch(retryUploadFailed(jobName, error));
+      } else {
+        const error = `Upload ${jobName} failed${
+          updatedJob?.serviceFields?.error
+            ? `: ${updatedJob?.serviceFields?.error}`
+            : ""
+        }`;
+        dispatch(uploadFailed(jobName, error));
+      }
     }
 
     done();
@@ -156,9 +182,8 @@ const receiveJobUpdateLogics = createLogic({
     next: ReduxLogicNextCb
   ) => {
     const { payload: updatedJob } = action;
-    const prevJob = getJobIdToUploadJobMapGlobal(getState()).get(
-      updatedJob.jobId
-    );
+    const jobId = updatedJob.serviceFields?.originalJobId || updatedJob.jobId;
+    const prevJob = getJobIdToUploadJobMapGlobal(getState()).get(jobId);
     ctx.prevStatus = prevJob?.status;
     next(action);
   },
