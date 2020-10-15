@@ -57,8 +57,10 @@ export class EnvironmentAwareStorage<T = any> implements LocalStorage<T> {
         "Expected first argument to be an object, string, or number."
       );
     }
-    // Setting a key will invalidate (delete) the cached value
-    prefixedKeys.forEach((key: Key) => this.get.cache.delete(key));
+    // Setting a key will completely clear the cache.
+    if (this.get.cache.clear) {
+      this.get.cache.clear();
+    }
   }
 
   /**
