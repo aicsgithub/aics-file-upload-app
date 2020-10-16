@@ -806,7 +806,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       ...state,
       requestsInProgress: addRequestToInProgress(
         state,
-        `${AsyncRequest.RETRY_UPLOAD}-${action.payload}`
+        `${AsyncRequest.UPLOAD}-${action.payload}`
       ),
     }),
   },

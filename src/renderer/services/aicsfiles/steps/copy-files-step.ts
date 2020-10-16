@@ -1,3 +1,7 @@
+import { readdir as fsReaddir, unlink as fsUnlink } from "fs";
+import { basename, resolve } from "path";
+import { promisify } from "util";
+
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 import { isEmpty, noop } from "lodash";
@@ -17,6 +21,13 @@ import {
 
 import { CopyStep } from "./copy-step";
 
+const readdir = promisify(fsReaddir);
+const unlink = promisify(fsUnlink);
+export interface CopyFilesFileSystemUtil {
+  readdir: typeof readdir;
+  unlink: typeof unlink;
+}
+
 // Step 1/2 in which files are copied to a location on the isilon
 export class CopyFilesStep implements Step {
   public readonly job: JSSJob<CopyFilesServiceFields>;
@@ -30,6 +41,7 @@ export class CopyFilesStep implements Step {
   ) => void;
   private readonly copyProgressCbThrottleMs: number | undefined;
   private getCopyWorker: () => Worker;
+  private fs: CopyFilesFileSystemUtil;
 
   public constructor(
     job: JSSJob<CopyFilesServiceFields>,
@@ -41,7 +53,8 @@ export class CopyFilesStep implements Step {
       bytesCopied: number,
       totalBytes: number
     ) => void = noop,
-    copyProgressCbThrottleMs?: number
+    copyProgressCbThrottleMs?: number,
+    fs: CopyFilesFileSystemUtil = { readdir, unlink }
   ) {
     this.job = job;
     this.jss = jss;
@@ -49,12 +62,16 @@ export class CopyFilesStep implements Step {
     this.logger = logger;
     this.onCopyFileProgress = onCopyProgressCb;
     this.copyProgressCbThrottleMs = copyProgressCbThrottleMs;
+    this.fs = fs;
   }
 
   public start = async (ctx: UploadContext): Promise<UploadContext> => {
     if (isEmpty(ctx.copyChildJobs) || !ctx.copyChildJobs) {
       throw new Error("Context is missing copyChildJobs");
     }
+
+    // Removes unwanted files from upload directory. Otherwise, FSS complains with a 417 response.
+    await this.removeUnexpectedFiles(ctx);
 
     const steps: Step[] = ctx.copyChildJobs.map(
       (j) =>
@@ -138,6 +155,32 @@ export class CopyFilesStep implements Step {
       const error = `Could not update the copy files job ${this.job.jobId} while ending the copy files step`;
       this.logger.error(error, e.response);
       throw new Error(error);
+    }
+  };
+
+  private removeUnexpectedFiles = async (ctx: UploadContext): Promise<void> => {
+    const filesInUploadDir = await this.fs.readdir(
+      ctx.startUploadResponse.uploadDirectory
+    );
+    const originalPaths = new Set(
+      Object.keys(ctx.uploads).map((fullpath) => basename(fullpath))
+    );
+    const filesToDelete = filesInUploadDir.filter(
+      (file) => !originalPaths.has(file)
+    );
+    if (filesToDelete.length > 0) {
+      this.logger.info(
+        `Found unexpected files in upload directory: ${filesToDelete.join(
+          ", "
+        )}`
+      );
+      console.log("test1");
+      await Promise.all(
+        filesToDelete.map((file) =>
+          this.fs.unlink(resolve(ctx.startUploadResponse.uploadDirectory, file))
+        )
+      );
+      console.log("test");
     }
   };
 }

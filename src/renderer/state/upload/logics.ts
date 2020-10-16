@@ -27,7 +27,11 @@ import {
   UploadMetadata as AicsFilesUploadMetadata,
   UploadServiceFields,
 } from "../../services/aicsfiles/types";
-import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
+import {
+  FAILED_STATUSES,
+  JSSJob,
+  JSSJobStatus,
+} from "../../services/job-status-client/types";
 import { AnnotationType, ColumnType } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
 import {
@@ -1180,6 +1184,7 @@ const submitFileMetadataUpdateLogic = createLogic({
 const updateAndRetryUploadLogic = createLogic({
   process: async (
     {
+      ctx,
       fms,
       getApplicationMenu,
       getState,
@@ -1189,15 +1194,11 @@ const updateAndRetryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    let selectedJob = getSelectedJob(getState());
-    if (!selectedJob) {
-      dispatch(setErrorAlert("No upload selected"));
-      done();
-      return;
-    }
-    const requestType = `${AsyncRequest.RETRY_UPLOAD}-${getCurrentJobName(
-      getState()
-    )}`;
+    let { selectedJob } = ctx;
+    const { jobName } = ctx;
+    const requestType = `${AsyncRequest.UPLOAD}-${jobName}`;
+    // get this information before the tab closes and everything gets cleared out
+    const files = Object.values(getUploadPayload(getState()));
 
     // close the tab to let user watch progress from upload summary page
     const actions = [];
@@ -1219,11 +1220,12 @@ const updateAndRetryUploadLogic = createLogic({
       selectedJob = await jssClient.updateJob(
         selectedJob.jobId,
         {
+          jobName,
           serviceFields: {
-            files: getUploadPayload(getState()),
+            files,
           },
         },
-        true
+        false
       );
     } catch (e) {
       dispatch(
@@ -1232,6 +1234,8 @@ const updateAndRetryUploadLogic = createLogic({
           requestType
         )
       );
+      done();
+      return;
     }
 
     try {
@@ -1240,7 +1244,7 @@ const updateAndRetryUploadLogic = createLogic({
     } catch (e) {
       dispatch(
         requestFailed(
-          `Retry upload ${getCurrentJobName(getState())} failed: ${e.message}`,
+          `Retry upload ${jobName} failed: ${e.message}`,
           requestType
         )
       );
@@ -1251,21 +1255,23 @@ const updateAndRetryUploadLogic = createLogic({
   validate: (
     {
       action,
+      ctx,
       getState,
     }: ReduxLogicTransformDependenciesWithAction<UpdateAndRetryUploadAction>,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
-    const selectedJob = getSelectedJob(getState());
-    if (selectedJob?.status === JSSJobStatus.FAILED) {
+    ctx.selectedJob = getSelectedJob(getState());
+    ctx.jobName = getCurrentJobName(getState());
+    if (!ctx.selectedJob) {
+      reject(setErrorAlert("No upload selected"));
+    } else if (FAILED_STATUSES.includes(ctx.selectedJob.status)) {
       next({
         ...action,
-        payload: getCurrentJobName(getState()),
+        payload: ctx.jobName,
       });
-    } else if (selectedJob) {
-      reject(setErrorAlert("Selected job is not retryable"));
     } else {
-      reject(setErrorAlert("No upload selected"));
+      reject(setErrorAlert("Selected job is not retryable"));
     }
   },
   type: UPDATE_AND_RETRY_UPLOAD,
