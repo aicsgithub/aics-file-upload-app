@@ -17,9 +17,10 @@ import {
   makeAxiosResponse,
 } from "./mocks";
 
-const storage = (createStubInstance(
-  EnvironmentAwareStorage
-) as any) as LocalStorage;
+const storage = createStubInstance(EnvironmentAwareStorage);
+// Stub `get` specifically, since it is a class property and not on the prototype
+storage.get = stub();
+
 const httpClient = (createStubInstance(
   HttpCacheClient
 ) as any) as HttpCacheClient;

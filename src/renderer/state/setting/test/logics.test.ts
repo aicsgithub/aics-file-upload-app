@@ -29,6 +29,8 @@ describe("Setting logics", () => {
 
   beforeEach(() => {
     storage = createStubInstance(EnvironmentAwareStorage);
+    // Stub `get` specifically, since it is a class property and not on the prototype
+    storage.get = sandbox.stub();
     sandbox.replace(mockReduxLogicDeps, "storage", storage);
   });
 
