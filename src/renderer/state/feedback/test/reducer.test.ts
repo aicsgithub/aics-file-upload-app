@@ -47,6 +47,7 @@ import {
   initiateUploadSucceeded,
   retryUpload,
   submitFileMetadataUpdate,
+  updateAndRetryUpload,
   uploadFailed,
   uploadSucceeded,
 } from "../../upload/actions";
@@ -618,6 +619,17 @@ describe("feedback reducer", () => {
           AsyncRequest.GET_FILE_METADATA_FOR_JOB
         )
       ).to.be.false;
+    });
+  });
+  describe("updateAndRetryUpload", () => {
+    it("adds UPLOAD to requestsInProgress", () => {
+      const result = reducer(initialState, {
+        ...updateAndRetryUpload(),
+        payload: "jobName",
+      });
+      expect(
+        result.requestsInProgress.includes(`${AsyncRequest.UPLOAD}-jobName`)
+      );
     });
   });
 });

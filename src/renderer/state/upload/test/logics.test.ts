@@ -3,10 +3,10 @@ import { get, keys } from "lodash";
 import * as moment from "moment";
 import {
   createSandbox,
+  createStubInstance,
   match,
   SinonStubbedInstance,
   stub,
-  createStubInstance,
 } from "sinon";
 
 import {
@@ -29,6 +29,7 @@ import { ColumnType } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
+import { REQUEST_FAILED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { getCurrentJobName } from "../../job/selectors";
@@ -47,6 +48,7 @@ import {
   mockFailedUploadJob,
   mockMMSTemplate,
   mockNumberAnnotation,
+  mockSelection,
   mockState,
   mockSuccessfulUploadJob,
   mockTemplateStateBranch,
@@ -66,6 +68,9 @@ import {
 import {
   applyTemplate,
   associateFilesAndWells,
+  cancelUpload,
+  cancelUploadFailed,
+  cancelUploadSucceeded,
   editFileMetadataFailed,
   editFileMetadataSucceeded,
   initiateUpload,
@@ -77,15 +82,13 @@ import {
   saveUploadDraftSuccess,
   submitFileMetadataUpdate,
   undoFileWellAssociation,
+  updateAndRetryUpload,
   updateFilesToArchive,
   updateFilesToStoreOnIsilon,
   updateSubImages,
   updateUpload,
   updateUploadRows,
   uploadFailed,
-  cancelUpload,
-  cancelUploadSucceeded,
-  cancelUploadFailed,
 } from "../actions";
 import {
   CANCEL_UPLOAD,
@@ -2124,6 +2127,99 @@ describe("Upload logics", () => {
           )
         )
       ).to.be.true;
+    });
+  });
+  describe("updateAndRetryUpload", () => {
+    let nonEmptyState: State;
+    beforeEach(() => {
+      nonEmptyState = {
+        ...nonEmptyStateForInitiatingUpload,
+        route: {
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
+        },
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          job: { ...mockFailedUploadJob, jobName: "bar" },
+        }),
+      };
+    });
+    it("sets error alert if no job selected", async () => {
+      const { actions, store, logicMiddleware } = createMockReduxStore();
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(actions.includesMatch(setErrorAlert("No upload selected"))).to.be
+        .true;
+      expect(actions.list.length).to.equal(1);
+    });
+    it("sets error alert if selected job is not retryable", async () => {
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          job: mockSuccessfulUploadJob,
+        }),
+      });
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(setErrorAlert("Selected job is not retryable"))
+      ).to.be.true;
+      expect(actions.list.length).to.equal(1);
+    });
+    it("(happy path) updates the selected job and retries if the job is retryable", async () => {
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        nonEmptyState
+      );
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        )
+      ).to.be.true;
+      expect(actions.includesType(REQUEST_FAILED)).to.be.false;
+      expect(jssClient.updateJob.called).to.be.true;
+      expect(fms.retryUpload.called).to.be.true;
+    });
+    it("dispatches requestFailed if it cannot update the job", async () => {
+      jssClient.updateJob.rejects(new Error("foo"));
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        nonEmptyState
+      );
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Could not update and retry upload: foo",
+            `${AsyncRequest.UPLOAD}-file1, file2, file3`
+          )
+        )
+      ).to.be.true;
+    });
+    it("dispatches requestFailed if it cannot retry the job and attempts to revert job back to previous state", async () => {
+      fms.retryUpload.rejects(new Error("foo"));
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        nonEmptyState
+      );
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        )
+      ).to.be.true;
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Retry upload file1, file2, file3 failed: foo",
+            `${AsyncRequest.UPLOAD}-file1, file2, file3`
+          )
+        )
+      ).to.be.true;
+      expect(jssClient.updateJob.calledTwice).to.be.true;
+      expect(fms.retryUpload.called).to.be.true;
     });
   });
 });

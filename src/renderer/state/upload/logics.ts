@@ -101,7 +101,6 @@ import {
   removeUploads,
   replaceUpload,
   saveUploadDraftSuccess,
-  updateAndRetryUploadSucceeded,
   updateUpload,
   updateUploads,
   uploadFailed,
@@ -1194,31 +1193,14 @@ const updateAndRetryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    let { selectedJob } = ctx;
-    const { jobName } = ctx;
+    const { selectedJob: originalJob } = ctx;
+    const { files, jobName } = ctx;
     const requestType = `${AsyncRequest.UPLOAD}-${jobName}`;
-    // get this information before the tab closes and everything gets cleared out
-    const files = Object.values(getUploadPayload(getState()));
 
-    // close the tab to let user watch progress from upload summary page
-    const actions = [];
-    const currentPage = getPage(getState());
-    const nextPage = findNextPage(currentPage, 1);
-    if (nextPage) {
-      actions.push(
-        ...getSelectPageActions(
-          logger,
-          getState(),
-          getApplicationMenu,
-          selectPage(currentPage, nextPage)
-        )
-      );
-      dispatch(batchActions(actions));
-    }
-
+    let selectedJob = originalJob;
     try {
       selectedJob = await jssClient.updateJob(
-        selectedJob.jobId,
+        originalJob.jobId,
         {
           jobName,
           serviceFields: {
@@ -1238,9 +1220,24 @@ const updateAndRetryUploadLogic = createLogic({
       return;
     }
 
+    // close the tab to let user watch progress from upload summary page
+    const actions = [];
+    const currentPage = getPage(getState());
+    const nextPage = findNextPage(currentPage, 1);
+    if (nextPage) {
+      actions.push(
+        ...getSelectPageActions(
+          logger,
+          getState(),
+          getApplicationMenu,
+          selectPage(currentPage, nextPage)
+        )
+      );
+      dispatch(batchActions(actions));
+    }
+
     try {
       await fms.retryUpload(selectedJob);
-      dispatch(updateAndRetryUploadSucceeded());
     } catch (e) {
       dispatch(
         requestFailed(
@@ -1248,6 +1245,22 @@ const updateAndRetryUploadLogic = createLogic({
           requestType
         )
       );
+
+      // attempt to revert job back to previous state
+      try {
+        await jssClient.updateJob(originalJob.jobId, {
+          jobName: originalJob.jobName,
+          serviceFields: {
+            files: originalJob.serviceFields.files,
+          },
+        });
+      } catch (e) {
+        dispatch(
+          setErrorAlert(
+            `Unable to revert upload back to original state: ${e.message}`
+          )
+        );
+      }
     } finally {
       done();
     }
@@ -1266,10 +1279,16 @@ const updateAndRetryUploadLogic = createLogic({
     if (!ctx.selectedJob) {
       reject(setErrorAlert("No upload selected"));
     } else if (FAILED_STATUSES.includes(ctx.selectedJob.status)) {
-      next({
-        ...action,
-        payload: ctx.jobName,
-      });
+      try {
+        // get this information before the tab closes and everything gets cleared out
+        ctx.files = Object.values(getUploadPayload(getState()));
+        next({
+          ...action,
+          payload: ctx.jobName,
+        });
+      } catch (e) {
+        reject(setErrorAlert(e.message));
+      }
     } else {
       reject(setErrorAlert("Selected job is not retryable"));
     }

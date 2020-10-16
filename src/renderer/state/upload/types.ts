@@ -309,10 +309,6 @@ export interface UpdateAndRetryUploadAction {
   type: string;
 }
 
-export interface UpdateAndRetryUploadSucceededAction {
-  type: string;
-}
-
 export enum FileTagType {
   WELL = "well",
   WORKFLOW = "workflow",

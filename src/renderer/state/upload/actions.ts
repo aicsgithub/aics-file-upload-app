@@ -40,7 +40,6 @@ import {
   UNDO_FILE_WELL_ASSOCIATION,
   UNDO_FILE_WORKFLOW_ASSOCIATION,
   UPDATE_AND_RETRY_UPLOAD,
-  UPDATE_AND_RETRY_UPLOAD_SUCCEEDED,
   UPDATE_FILES_TO_ARCHIVE,
   UPDATE_FILES_TO_STORE_ON_ISILON,
   UPDATE_SUB_IMAGES,
@@ -80,7 +79,6 @@ import {
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
   UpdateAndRetryUploadAction,
-  UpdateAndRetryUploadSucceededAction,
   UpdateFilesToArchive,
   UpdateFilesToStoreOnIsilon,
   UpdateSubImagesAction,
@@ -480,11 +478,5 @@ export function editFileMetadataFailed(
 export function updateAndRetryUpload(): UpdateAndRetryUploadAction {
   return {
     type: UPDATE_AND_RETRY_UPLOAD,
-  };
-}
-
-export function updateAndRetryUploadSucceeded(): UpdateAndRetryUploadSucceededAction {
-  return {
-    type: UPDATE_AND_RETRY_UPLOAD_SUCCEEDED,
   };
 }

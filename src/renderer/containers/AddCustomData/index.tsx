@@ -199,13 +199,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       if (this.isReadOnly) {
         prompt = "";
       } else {
-        prompt =
-          "Make any changes necessary and click Update to update the upload";
         if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
           saveButtonText = "Update";
         } else {
           saveButtonText = "Retry";
         }
+        prompt = `Make any changes necessary and click ${saveButtonText} to ${saveButtonText.toLowerCase()} the upload`;
       }
     }
     return (
