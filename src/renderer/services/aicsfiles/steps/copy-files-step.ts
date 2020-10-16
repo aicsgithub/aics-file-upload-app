@@ -174,13 +174,11 @@ export class CopyFilesStep implements Step {
           ", "
         )}`
       );
-      console.log("test1");
       await Promise.all(
         filesToDelete.map((file) =>
           this.fs.unlink(resolve(ctx.startUploadResponse.uploadDirectory, file))
         )
       );
-      console.log("test");
     }
   };
 }
