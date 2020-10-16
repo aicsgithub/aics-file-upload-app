@@ -1,13 +1,5 @@
-import {
-  access as fsAccess,
-  BigIntStats,
-  PathLike,
-  stat as fsStat,
-  StatOptions,
-  Stats,
-} from "fs";
+import { BigIntStats, PathLike, promises, StatOptions, Stats } from "fs";
 import { hostname, platform, userInfo } from "os";
-import { promisify } from "util";
 
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
@@ -45,8 +37,6 @@ const EXPECTED_NUMBER_UPLOAD_STEPS = 2;
 export const COPY_TYPE = "copy";
 export const COPY_CHILD_TYPE = "copy_child";
 export const ADD_METADATA_TYPE = "add_metadata";
-const stat = promisify(fsStat);
-const access = promisify(fsAccess);
 
 const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
@@ -108,7 +98,7 @@ export class Uploader {
     jobStatusClient: JobStatusClient,
     storage: LocalStorage,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
-    fs: FileSystemUtil = { access, stat }
+    fs: FileSystemUtil = { access: promises.access, stat: promises.stat }
   ) {
     this.getCopyWorker = getCopyWorker;
     this.fss = fss;
