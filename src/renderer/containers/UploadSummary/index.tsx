@@ -17,7 +17,7 @@ import {
   getRequestsInProgressContains,
 } from "../../state/feedback/selectors";
 import { selectJobFilter } from "../../state/job/actions";
-import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
+import { getJobFilter } from "../../state/job/selectors";
 import { SelectJobFilterAction } from "../../state/job/types";
 import {
   openEditFileMetadataTab,
@@ -45,6 +45,7 @@ import {
   RetryUploadAction,
 } from "../../state/upload/types";
 
+import { getJobsForTable } from "./selectors";
 import UploadProgress from "./UploadProgress";
 
 const styles = require("./styles.pcss");
