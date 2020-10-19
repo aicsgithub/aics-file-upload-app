@@ -321,13 +321,11 @@ describe("Uploader", () => {
 
       await uploader.retryUpload(uploads, mockRetryableUploadJob);
 
-      expect(
-        executeStepsStub.calledWith(
-          jobStatusClient,
-          match.array,
-          match.has("copyChildJobs", [mockCopyJobChild1, mockCopyJobChild2])
-        )
-      ).to.be.true;
+      expect(executeStepsStub).to.have.been.calledWith(
+        jobStatusClient,
+        match.array,
+        match.has("copyChildJobs", [mockCopyJobChild1, mockCopyJobChild2])
+      );
     });
     it("Throws error if number of child jobs retrieved through JSS is not 2", () => {
       jobStatusClient.getJobs

@@ -1221,18 +1221,17 @@ const updateAndRetryUploadLogic = createLogic({
     }
 
     // close the tab to let user watch progress from upload summary page
-    const actions = [];
     const currentPage = getPage(getState());
     const nextPage = findNextPage(currentPage, 1);
     if (nextPage) {
-      actions.push(
+      const actions = [
         ...getSelectPageActions(
           logger,
           getState(),
           getApplicationMenu,
           selectPage(currentPage, nextPage)
-        )
-      );
+        ),
+      ];
       dispatch(batchActions(actions));
     }
 

@@ -97,7 +97,7 @@ export default class ActionTracker {
     }
 
     /**
-     * Answers the question: "Has an action with this type been put in the queu to run against the Redux store?"
+     * Answers the question: "Has an action with this type been put in the queue to run against the Redux store?"
      * @param actionType the type of the action
      */
     public includesType(actionType: string): boolean {
