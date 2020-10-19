@@ -2,6 +2,8 @@ import { expect } from "chai";
 
 import {
   getMockStateWithHistory,
+  mockFailedUploadJob,
+  mockSelection,
   mockState,
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
@@ -11,6 +13,16 @@ import { getCanSubmitUpload, getUpdateInProgress } from "../selectors";
 
 describe("AddCustomData selectors", () => {
   describe("getCanSubmitUpload", () => {
+    it("returns true if selected job and job failed", () => {
+      const result = getCanSubmitUpload({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          job: mockFailedUploadJob,
+        }),
+      });
+      expect(result).to.be.true;
+    });
     it("returns true if working on new upload, no validation errors, and no requests in progress", () => {
       const result = getCanSubmitUpload(nonEmptyStateForInitiatingUpload);
       expect(result).to.be.true;

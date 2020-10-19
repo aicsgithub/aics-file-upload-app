@@ -14,6 +14,7 @@ import {
 } from "sinon";
 
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
+import { mockFailedAddMetadataJob } from "../../../state/test/mocks";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJobStatus } from "../../job-status-client/types";
@@ -72,6 +73,7 @@ describe("Uploader", () => {
     stat: SinonStub;
   };
   let uploader: Uploader;
+  let executeStepsStub: SinonStub;
 
   beforeEach(() => {
     copyWorkerStub = {
@@ -79,11 +81,8 @@ describe("Uploader", () => {
       onerror: stub(),
       postMessage: stub(),
     };
-    sandbox.replace(
-      StepExecutor,
-      "executeSteps",
-      stub().resolves({ resultFiles })
-    );
+    executeStepsStub = stub().resolves({ resultFiles });
+    sandbox.replace(StepExecutor, "executeSteps", executeStepsStub);
     jobStatusClient = createStubInstance(JobStatusClient);
     fss = createStubInstance(FSSClient);
     storage = createStubInstance(EnvironmentAwareStorage);
@@ -298,6 +297,35 @@ describe("Uploader", () => {
       return expect(
         uploader.retryUpload({}, mockRetryableUploadJob)
       ).to.be.rejectedWith(Error);
+    });
+    it("Removes copy step for any files that are no longer part of the upload", async () => {
+      fakeSuccessfulCopy();
+      jobStatusClient.getJobs
+        .onFirstCall()
+        .resolves([
+          { ...mockCopyJobParent, status: JSSJobStatus.FAILED },
+          mockFailedAddMetadataJob,
+        ])
+        .onSecondCall()
+        .resolves([
+          mockCopyJobChild1,
+          mockCopyJobChild2,
+          {
+            ...mockCopyJobChild1,
+            serviceFields: {
+              ...mockCopyJobChild1.serviceFields,
+              originalPath: "/no-longer-exists",
+            },
+          },
+        ]);
+
+      await uploader.retryUpload(uploads, mockRetryableUploadJob);
+
+      expect(executeStepsStub).to.have.been.calledWith(
+        jobStatusClient,
+        match.array,
+        match.has("copyChildJobs", [mockCopyJobChild1, mockCopyJobChild2])
+      );
     });
     it("Throws error if number of child jobs retrieved through JSS is not 2", () => {
       jobStatusClient.getJobs

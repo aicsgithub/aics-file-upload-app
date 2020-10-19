@@ -333,7 +333,7 @@ export class Uploader {
         throw new UnrecoverableJobError("Could not find the parent copy job.");
       }
 
-      const copyChildJobs = await this.jss.getJobs({
+      let copyChildJobs = await this.jss.getJobs({
         jobId: {
           $in: copyJob.childIds,
         },
@@ -342,9 +342,51 @@ export class Uploader {
 
       const expectedNumberCopyChildJobs = keys(uploads).length;
       if (copyChildJobs.length !== expectedNumberCopyChildJobs) {
-        throw new UnrecoverableJobError(
-          `Was expecting to retrieve ${expectedNumberCopyChildJobs} but instead retrieved ${copyChildJobs.length}`
-        );
+        // it is OK to remove a file from a upload so we just need to abandon the child job
+        // (deleting not available through JSS yet)
+        if (
+          copyChildJobs.length > expectedNumberCopyChildJobs &&
+          expectedNumberCopyChildJobs > 0
+        ) {
+          const originalPathsToUpload = new Set(keys(uploads));
+          const copyChildJobsToAbandon = [];
+          const copyChildJobIdsToKeep = [];
+          const copyChildJobsToKeep = [];
+          for (const copyChildJob of copyChildJobs) {
+            if (
+              originalPathsToUpload.has(
+                copyChildJob.serviceFields?.originalPath
+              )
+            ) {
+              copyChildJobsToKeep.push(copyChildJob);
+              copyChildJobIdsToKeep.push(copyChildJob.jobId);
+            } else {
+              copyChildJobsToAbandon.push(copyChildJob.jobId);
+            }
+          }
+          this.logger.info(
+            `Abandoning copy child jobs ${copyChildJobsToAbandon.join(
+              ", "
+            )} and keeping ${copyChildJobsToKeep.join(", ")}`
+          );
+          await Promise.all([
+            ...copyChildJobsToAbandon.map((jobId) =>
+              this.jss.updateJob(jobId, {
+                serviceFields: {
+                  notes: "This file is no longer part of its original upload",
+                },
+              })
+            ),
+            this.jss.updateJob(copyJob.jobId, {
+              childIds: copyChildJobIdsToKeep,
+            }),
+          ]);
+          copyChildJobs = copyChildJobsToKeep;
+        } else {
+          throw new UnrecoverableJobError(
+            `Was expecting to retrieve ${expectedNumberCopyChildJobs} copy child jobs but instead retrieved ${copyChildJobs.length}`
+          );
+        }
       }
       if (copyChildJobs.find((j) => !j.serviceFields?.originalPath)) {
         throw new UnrecoverableJobError(

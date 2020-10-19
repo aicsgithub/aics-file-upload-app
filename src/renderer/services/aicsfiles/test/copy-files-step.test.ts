@@ -7,6 +7,7 @@ import {
   SinonStubbedInstance,
   stub,
   createStubInstance,
+  SinonStub,
 } from "sinon";
 
 import JobStatusClient from "../../job-status-client";
@@ -36,6 +37,10 @@ describe("CopyFilesStep", () => {
   const sandbox = createSandbox();
   let copyStep: CopyFilesStep, mockCtx: UploadContext;
   let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
+  let fs: {
+    readdir: SinonStub;
+    unlink: SinonStub;
+  };
 
   beforeEach(() => {
     mockCtx = {
@@ -47,11 +52,18 @@ describe("CopyFilesStep", () => {
     jobStatusClient = createStubInstance(JobStatusClient);
     const logger = Logger.get(AICSFILES_LOGGER);
     sandbox.replace(logger, "error", stub());
+    fs = {
+      readdir: stub().resolves([]),
+      unlink: stub().resolves(),
+    };
     copyStep = new CopyFilesStep(
       mockCopyJobParent,
       (jobStatusClient as any) as JobStatusClient,
       stub().returns(copyWorkerStub),
-      logger
+      logger,
+      undefined,
+      undefined,
+      fs
     );
   });
 
@@ -70,6 +82,12 @@ describe("CopyFilesStep", () => {
       });
     };
 
+    it("removes unexpected files from upload directory", async () => {
+      fakeSuccessfulCopy();
+      fs.readdir = stub().resolves(["unexpected-file.txt"]);
+      await copyStep.start(mockCtx);
+      expect(fs.unlink).to.have.been.called;
+    });
     it("populates sourceFiles", async () => {
       fakeSuccessfulCopy();
       const ctx = await copyStep.start(mockCtx);
