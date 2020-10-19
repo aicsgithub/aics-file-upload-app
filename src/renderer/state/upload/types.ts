@@ -4,9 +4,9 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
 import { Workflow } from "../../services/labkey-client/types";
-import { UploadSummaryTableRow } from "../types";
 import {
   AutoSaveAction,
   State,
@@ -182,38 +182,29 @@ export interface UploadFailedAction {
   type: string;
 }
 
-export interface CancelUploadAction {
-  payload: UploadSummaryTableRow;
+export interface CancelUploadAction<
+  T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
+> {
+  payload: T;
   type: string;
 }
 
-export interface RetryUploadAction {
-  payload: UploadSummaryTableRow;
-  type: string;
-}
-
-export interface RetryUploadSucceededAction {
-  payload: string;
-  type: string;
-}
-
-export interface RetryUploadFailedAction {
-  payload: {
-    error: string;
-    jobName: string;
-  };
+export interface RetryUploadAction<
+  T extends JSSJob<UploadServiceFields> = JSSJob<UploadServiceFields>
+> {
+  payload: T;
   type: string;
 }
 
 export interface CancelUploadSucceededAction {
-  payload: UploadSummaryTableRow;
+  payload: string;
   type: string;
 }
 
 export interface CancelUploadFailedAction {
   payload: {
     error: string;
-    job: UploadSummaryTableRow;
+    jobName: string;
   };
   type: string;
 }
@@ -310,6 +301,11 @@ export interface SaveUploadDraftSuccessAction extends WriteToStoreAction {
   // this is the file path of the draft that was saved. It is undefined if we do not want to set this value on
   // the store - for example when closing the upload tab we may save the draft but we want this value to be undefined.
   payload?: string;
+  type: string;
+}
+
+export interface UpdateAndRetryUploadAction {
+  payload?: string; // job name
   type: string;
 }
 

@@ -34,13 +34,12 @@ import {
   REMOVE_FILE_FROM_ISILON,
   REPLACE_UPLOAD,
   RETRY_UPLOAD,
-  RETRY_UPLOAD_FAILED,
-  RETRY_UPLOAD_SUCCEEDED,
   SAVE_UPLOAD_DRAFT,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   SUBMIT_FILE_METADATA_UPDATE,
   UNDO_FILE_WELL_ASSOCIATION,
   UNDO_FILE_WORKFLOW_ASSOCIATION,
+  UPDATE_AND_RETRY_UPLOAD,
   UPDATE_FILES_TO_ARCHIVE,
   UPDATE_FILES_TO_STORE_ON_ISILON,
   UPDATE_SUB_IMAGES,
@@ -74,13 +73,12 @@ import {
   RemoveUploadsAction,
   ReplaceUploadAction,
   RetryUploadAction,
-  RetryUploadFailedAction,
-  RetryUploadSucceededAction,
   SaveUploadDraftAction,
   SaveUploadDraftSuccessAction,
   SubmitFileMetadataUpdateAction,
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
+  UpdateAndRetryUploadAction,
   UpdateFilesToArchive,
   UpdateFilesToStoreOnIsilon,
   UpdateSubImagesAction,
@@ -290,22 +288,22 @@ export function cancelUpload(job: UploadSummaryTableRow): CancelUploadAction {
 }
 
 export function cancelUploadSucceeded(
-  job: UploadSummaryTableRow
+  jobName: string
 ): CancelUploadSucceededAction {
   return {
-    payload: job,
+    payload: jobName,
     type: CANCEL_UPLOAD_SUCCEEDED,
   };
 }
 
 export function cancelUploadFailed(
-  job: UploadSummaryTableRow,
+  jobName: string,
   error: string
 ): CancelUploadFailedAction {
   return {
     payload: {
       error,
-      job,
+      jobName,
     },
     type: CANCEL_UPLOAD_FAILED,
   };
@@ -315,28 +313,6 @@ export function retryUpload(job: UploadSummaryTableRow): RetryUploadAction {
   return {
     payload: job,
     type: RETRY_UPLOAD,
-  };
-}
-
-export function retryUploadSucceeded(
-  jobName: string
-): RetryUploadSucceededAction {
-  return {
-    payload: jobName,
-    type: RETRY_UPLOAD_SUCCEEDED,
-  };
-}
-
-export function retryUploadFailed(
-  jobName: string,
-  error: string
-): RetryUploadFailedAction {
-  return {
-    payload: {
-      error,
-      jobName,
-    },
-    type: RETRY_UPLOAD_FAILED,
   };
 }
 
@@ -496,5 +472,11 @@ export function editFileMetadataFailed(
       jobName,
     },
     type: EDIT_FILE_METADATA_FAILED,
+  };
+}
+
+export function updateAndRetryUpload(): UpdateAndRetryUploadAction {
+  return {
+    type: UPDATE_AND_RETRY_UPLOAD,
   };
 }

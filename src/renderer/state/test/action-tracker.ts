@@ -11,6 +11,7 @@ export interface Actions {
   includesInOrder(search: AnyAction[]): boolean;
   includesMatch(search: AnyAction): boolean;
   includesMatchesInOrder(search: AnyAction[]): boolean;
+  includesType(actionType: string): boolean;
   reset(): void;
 }
 
@@ -93,6 +94,16 @@ export default class ActionTracker {
      */
     public includesMatch(search: AnyAction): boolean {
       return this._includes(search, isMatch);
+    }
+
+    /**
+     * Answers the question: "Has an action with this type been put in the queue to run against the Redux store?"
+     * @param actionType the type of the action
+     */
+    public includesType(actionType: string): boolean {
+      return !!this.list.find(
+        (action: AnyAction) => action.type === actionType
+      );
     }
 
     /**
