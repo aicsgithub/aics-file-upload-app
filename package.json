@@ -103,7 +103,7 @@
     "classnames": "2.2.6",
     "cross-env": "5.2.0",
     "css-loader": "2.1.1",
-    "electron": "9.0.1",
+    "electron": "9.3.1",
     "electron-builder": "22.7.0",
     "electron-webpack": "2.6.2",
     "electron-webpack-ts": "3.1.1",
