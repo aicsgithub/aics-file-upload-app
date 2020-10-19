@@ -3,10 +3,10 @@ import { get, keys } from "lodash";
 import * as moment from "moment";
 import {
   createSandbox,
+  createStubInstance,
   match,
   SinonStubbedInstance,
   stub,
-  createStubInstance,
 } from "sinon";
 
 import {
@@ -16,12 +16,20 @@ import {
 } from "../../../constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import { mockJob } from "../../../services/aicsfiles/test/mocks";
-import { StartUploadResponse } from "../../../services/aicsfiles/types";
+import {
+  StartUploadResponse,
+  UploadServiceFields,
+} from "../../../services/aicsfiles/types";
 import JobStatusClient from "../../../services/job-status-client";
+import {
+  JSSJob,
+  JSSJobStatus,
+} from "../../../services/job-status-client/types";
 import { ColumnType } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { CANCEL_BUTTON_INDEX } from "../../../util";
 import { requestFailed } from "../../actions";
+import { REQUEST_FAILED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { getCurrentJobName } from "../../job/selectors";
@@ -40,6 +48,7 @@ import {
   mockFailedUploadJob,
   mockMMSTemplate,
   mockNumberAnnotation,
+  mockSelection,
   mockState,
   mockSuccessfulUploadJob,
   mockTemplateStateBranch,
@@ -59,6 +68,9 @@ import {
 import {
   applyTemplate,
   associateFilesAndWells,
+  cancelUpload,
+  cancelUploadFailed,
+  cancelUploadSucceeded,
   editFileMetadataFailed,
   editFileMetadataSucceeded,
   initiateUpload,
@@ -70,16 +82,13 @@ import {
   saveUploadDraftSuccess,
   submitFileMetadataUpdate,
   undoFileWellAssociation,
+  updateAndRetryUpload,
   updateFilesToArchive,
   updateFilesToStoreOnIsilon,
   updateSubImages,
   updateUpload,
   updateUploadRows,
   uploadFailed,
-  retryUploadFailed,
-  cancelUpload,
-  cancelUploadSucceeded,
-  cancelUploadFailed,
 } from "../actions";
 import {
   CANCEL_UPLOAD,
@@ -545,7 +554,7 @@ describe("Upload logics", () => {
 
       expect(fms.retryUpload.called).to.be.true;
     });
-    it("dispatches retryUploadFailed fms.retryUpload throws exception", async () => {
+    it("dispatches uploadFailed fms.retryUpload throws exception", async () => {
       fms.retryUpload.rejects(new Error("error"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         mockState,
@@ -559,9 +568,9 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          retryUploadFailed(
-            mockFailedUploadJob.jobName || "",
-            `Retry upload ${mockFailedUploadJob.jobName} failed: error`
+          uploadFailed(
+            `Retry upload ${mockFailedUploadJob.jobName} failed: error`,
+            mockFailedUploadJob.jobName || ""
           )
         )
       ).to.be.true;
@@ -2043,14 +2052,57 @@ describe("Upload logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
-      const job = { ...mockJob, key: "key" };
+      const jobName = "bar";
+      const job = { ...mockJob, jobName, key: "key" };
 
       store.dispatch(cancelUpload(job));
       await logicMiddleware.whenComplete();
 
       expect(dialog.showMessageBox.called).to.be.true;
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
-      expect(actions.includesMatch(cancelUploadSucceeded(job))).to.be.true;
+      expect(actions.includesMatch(cancelUploadSucceeded(jobName))).to.be.true;
+    });
+    it("cancels all replacement jobs related to upload", async () => {
+      const replacementJob: JSSJob<UploadServiceFields> = {
+        ...mockFailedUploadJob,
+        jobId: "replacement",
+        serviceFields: {
+          files: [],
+          originalJobId: "original",
+          type: "upload",
+          uploadDirectory: "/foo",
+        },
+        status: JSSJobStatus.RETRYING,
+      };
+      const originalJob: JSSJob<UploadServiceFields> = {
+        ...mockFailedUploadJob,
+        jobId: "original",
+        serviceFields: {
+          files: [],
+          replacementJobIds: ["replacement"],
+          type: "upload",
+          uploadDirectory: "/foo",
+        },
+      };
+      const { logicMiddleware, store } = createMockReduxStore(
+        {
+          ...mockState,
+          job: {
+            ...mockState.job,
+            uploadJobs: [originalJob, replacementJob],
+          },
+        },
+        undefined,
+        [cancelUploadLogic]
+      );
+      dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
+      const job = { ...replacementJob, key: "replacement" };
+
+      store.dispatch(cancelUpload(job));
+      await logicMiddleware.whenComplete();
+
+      expect(fms.failUpload.calledWith("replacement")).to.be.true;
+      expect(fms.failUpload.calledWith("original")).to.be.true;
     });
     it("dispatches cancelUploadFailed if cancelling the upload failed", async () => {
       const {
@@ -2059,7 +2111,7 @@ describe("Upload logics", () => {
         store,
       } = createMockReduxStore(undefined, undefined, [cancelUploadLogic]);
       dialog.showMessageBox = stub().resolves({ response: 1 }); // Yes button index
-      const job = { ...mockJob, key: "key" };
+      const job = { ...mockJob, jobName: "jobName", key: "key" };
       fms.failUpload.rejects(new Error("foo"));
 
       store.dispatch(cancelUpload(job));
@@ -2069,9 +2121,105 @@ describe("Upload logics", () => {
       expect(actions.includesMatch(cancelUpload(job))).to.be.true;
       expect(
         actions.includesMatch(
-          cancelUploadFailed(job, `Cancel upload ${job.jobName} failed: foo`)
+          cancelUploadFailed(
+            "jobName",
+            `Cancel upload ${job.jobName} failed: foo`
+          )
         )
       ).to.be.true;
+    });
+  });
+  describe("updateAndRetryUpload", () => {
+    let nonEmptyState: State;
+    beforeEach(() => {
+      nonEmptyState = {
+        ...nonEmptyStateForInitiatingUpload,
+        route: {
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
+        },
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          job: { ...mockFailedUploadJob, jobName: "bar" },
+        }),
+      };
+    });
+    it("sets error alert if no job selected", async () => {
+      const { actions, store, logicMiddleware } = createMockReduxStore();
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(actions.includesMatch(setErrorAlert("No upload selected"))).to.be
+        .true;
+      expect(actions.list.length).to.equal(1);
+    });
+    it("sets error alert if selected job is not retryable", async () => {
+      const { actions, store, logicMiddleware } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          job: mockSuccessfulUploadJob,
+        }),
+      });
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(setErrorAlert("Selected job is not retryable"))
+      ).to.be.true;
+      expect(actions.list.length).to.equal(1);
+    });
+    it("(happy path) updates the selected job and retries if the job is retryable", async () => {
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        nonEmptyState
+      );
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        )
+      ).to.be.true;
+      expect(actions.includesType(REQUEST_FAILED)).to.be.false;
+      expect(jssClient.updateJob.called).to.be.true;
+      expect(fms.retryUpload.called).to.be.true;
+    });
+    it("dispatches requestFailed if it cannot update the job", async () => {
+      jssClient.updateJob.rejects(new Error("foo"));
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        nonEmptyState
+      );
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Could not update and retry upload: foo",
+            `${AsyncRequest.UPLOAD}-file1, file2, file3`
+          )
+        )
+      ).to.be.true;
+    });
+    it("dispatches requestFailed if it cannot retry the job and attempts to revert job back to previous state", async () => {
+      fms.retryUpload.rejects(new Error("foo"));
+      const { actions, store, logicMiddleware } = createMockReduxStore(
+        nonEmptyState
+      );
+      store.dispatch(updateAndRetryUpload());
+      await logicMiddleware.whenComplete();
+      expect(
+        actions.includesMatch(
+          selectPage(Page.AddCustomData, Page.UploadSummary)
+        )
+      ).to.be.true;
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            "Retry upload file1, file2, file3 failed: foo",
+            `${AsyncRequest.UPLOAD}-file1, file2, file3`
+          )
+        )
+      ).to.be.true;
+      expect(jssClient.updateJob.calledTwice).to.be.true;
+      expect(fms.retryUpload.called).to.be.true;
     });
   });
 });

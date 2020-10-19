@@ -120,7 +120,7 @@ class UploadSummary extends React.Component<Props, {}> {
               <a
                 className={classNames(styles.action, {
                   [styles.disabled]: this.props.requestsInProgress.includes(
-                    `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
+                    `${AsyncRequest.UPLOAD}-${row.jobName}`
                   ),
                 })}
                 onClick={this.retryJob(row)}
@@ -246,7 +246,7 @@ class UploadSummary extends React.Component<Props, {}> {
   private retryJob = (row: UploadSummaryTableRow) => () => {
     if (
       !this.props.requestsInProgress.includes(
-        `${AsyncRequest.RETRY_UPLOAD}-${row.jobName}`
+        `${AsyncRequest.UPLOAD}-${row.jobName}`
       )
     ) {
       this.props.retryUpload(row);

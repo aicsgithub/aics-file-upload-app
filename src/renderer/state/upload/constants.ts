@@ -79,17 +79,13 @@ export const UNDO_FILE_WORKFLOW_ASSOCIATION = makeConstant(
   BRANCH_NAME,
   "undo-file-workflow-association"
 );
+export const UPDATE_AND_RETRY_UPLOAD = makeConstant(
+  BRANCH_NAME,
+  "update-and-retry-upload"
+);
 export const JUMP_TO_PAST_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-past");
 export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
-export const RETRY_UPLOAD_SUCCEEDED = makeConstant(
-  BRANCH_NAME,
-  "retry-upload-succeeded"
-);
-export const RETRY_UPLOAD_FAILED = makeConstant(
-  BRANCH_NAME,
-  "retry-upload-failed"
-);
 export const SAVE_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "save-upload-draft");
 export const UPDATE_SUB_IMAGES = makeConstant(BRANCH_NAME, "update-sub-images");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");

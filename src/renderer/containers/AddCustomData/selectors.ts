@@ -1,9 +1,14 @@
 import { isEqual } from "lodash";
 import { createSelector } from "reselect";
 
+import {
+  FAILED_STATUSES,
+  JSSJob,
+} from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { getCurrentJobName } from "../../state/job/selectors";
 import { getOriginalUpload } from "../../state/metadata/selectors";
+import { getSelectedJob } from "../../state/selection/selectors";
 import { AsyncRequest, UploadStateBranch } from "../../state/types";
 import {
   getUpload,
@@ -16,6 +21,7 @@ export const getCanSubmitUpload = createSelector(
     getRequestsInProgress,
     getUpload,
     getOriginalUpload,
+    getSelectedJob,
     getCurrentJobName,
   ],
   (
@@ -23,6 +29,7 @@ export const getCanSubmitUpload = createSelector(
     requestsInProgress: string[],
     upload: UploadStateBranch,
     originalUpload?: UploadStateBranch,
+    selectedJob?: JSSJob,
     currentJobName?: string
   ): boolean => {
     const uploadRelatedRequests = [
@@ -35,6 +42,9 @@ export const getCanSubmitUpload = createSelector(
     const noValidationErrorsOrRequestsInProgress =
       validationErrors.length === 0 &&
       requestsInProgressRelatedToUpload.length === 0;
+    if (selectedJob && FAILED_STATUSES.includes(selectedJob.status)) {
+      return true;
+    }
     return originalUpload
       ? noValidationErrorsOrRequestsInProgress &&
           !isEqual(upload, originalUpload)
