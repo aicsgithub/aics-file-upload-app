@@ -185,7 +185,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const rowGetter = (idx: number) => sortedRows[idx];
 
     const massEditRow = cloneDeep(uploads[0]);
-    massEditRow["file"] = "";
+    delete massEditRow["file"]; // TODO: Smelly
     massEditRow["key"] = "massEdit";
     const massEditRows = this.sortRows(
       [massEditRow],
@@ -239,30 +239,36 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             <div>Mass Editing</div>
             <ReactDataGrid
               cellNavigationMode="changeRow"
-              columns={this.getColumns()}
+              columns={this.getColumns().slice(1)}
               enableCellSelect={true}
               enableDragAndDrop={true}
               getSubRowDetails={this.getSubRowDetails}
-              minHeight={
-                sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
-              }
+              minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
               onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
               onGridSort={this.determineSort}
               rowGetter={massEditRowGetter}
               rowsCount={massEditRows.length}
               rowSelection={{
-                enableShiftSelect: true,
-                onRowsDeselected: this.deselectRows,
-                onRowsSelected: this.selectRows,
-                selectBy: {
-                  keys: {
-                    rowKey: "key",
-                    values: selectedRows,
-                  },
-                },
+                showCheckbox: false,
               }}
               onCellExpand={this.onCellExpand}
             />
+            <button
+              onClick={() => {
+                // TODO: Create "apply" functionality
+                console.log("needs implementation");
+              }}
+            >
+              Apply
+            </button>
+            <button
+              onClick={() => {
+                // TODO: Reset massEditGrid state on cancel?
+                this.setState({ showMassEditGrid: false });
+              }}
+            >
+              Cancel
+            </button>
           </>
         )}
         <div className={classNames(styles.dataGrid, className)}>
