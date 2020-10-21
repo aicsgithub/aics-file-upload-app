@@ -3,7 +3,6 @@ import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
 import { castArray, includes, isEmpty, isNil, without } from "lodash";
-import { cloneDeep } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -89,6 +88,7 @@ interface Props {
 
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
+  massEditRows: Array<any>; //TODO: Figure out <any> type
   selectedRows: string[];
   showMassEditGrid: boolean;
   sortColumn?: SortableColumns;
@@ -168,6 +168,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   constructor(props: Props) {
     super(props);
     this.state = {
+      massEditRows: [],
       selectedRows: [],
       showMassEditGrid: false,
     };
@@ -183,16 +184,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
-
-    const massEditRow = cloneDeep(uploads[0]);
-    delete massEditRow["file"]; // TODO: Smelly
-    massEditRow["key"] = "massEdit";
-    const massEditRows = this.sortRows(
-      [massEditRow],
-      this.state.sortColumn,
-      this.state.sortDirection
-    );
-    const massEditRowGetter = (idx: number) => massEditRows[idx];
+    const massEditRowGetter = (idx: number) => this.state.massEditRows[idx];
 
     return (
       <>
@@ -217,9 +209,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           </Tooltip>
           <Tooltip title="Edit" mouseLeaveDelay={0}>
             <Button
-              onClick={() => {
-                this.setState({ showMassEditGrid: true });
-              }}
+              onClick={() => this.openMassEditGrid(sortedRows)}
               disabled={isEmpty(selectedRows)}
               icon="edit"
               type="link"
@@ -239,15 +229,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             <div>Mass Editing</div>
             <ReactDataGrid
               cellNavigationMode="changeRow"
-              columns={this.getColumns().slice(1)}
+              columns={
+                this.getColumns().slice(1) /* All columns except 'file' */
+              }
               enableCellSelect={true}
               enableDragAndDrop={true}
               getSubRowDetails={this.getSubRowDetails}
               minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
-              onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
-              onGridSort={this.determineSort}
+              onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
               rowGetter={massEditRowGetter}
-              rowsCount={massEditRows.length}
+              rowsCount={this.state.massEditRows.length}
               rowSelection={{
                 showCheckbox: false,
               }}
@@ -263,7 +254,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             </button>
             <button
               onClick={() => {
-                // TODO: Reset massEditGrid state on cancel?
                 this.setState({ showMassEditGrid: false });
               }}
             >
@@ -552,6 +542,31 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         uploadKeys.push(sortedRows[i].key);
       }
       this.props.updateUploadRows(uploadKeys, updated);
+    }
+  };
+
+  private openMassEditGrid = (sortedRows: Array<UploadJobTableRow>) => {
+    // TODO: Per Jordan's design, the "mass edit" grid should be highlighted against a darkened background when
+    //        first opened
+    // Ensure we have keys for all of the correct columns
+    const emptyMassEditRow: { [index: string]: any } = {}; // TODO: Typing codesmell?
+    Object.keys(sortedRows[0]).forEach((key) => {
+      emptyMassEditRow[key] = null;
+    });
+    this.setState({
+      showMassEditGrid: true,
+      massEditRows: [emptyMassEditRow],
+    });
+  };
+
+  private updateMassEditRows = (
+    e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>
+  ) => {
+    const { updated } = e;
+    if (updated) {
+      this.setState({
+        massEditRows: [{ ...this.state.massEditRows[0], ...e.updated }],
+      });
     }
   };
 
