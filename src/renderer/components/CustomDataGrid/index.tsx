@@ -209,7 +209,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           </Tooltip>
           <Tooltip title="Edit" mouseLeaveDelay={0}>
             <Button
-              onClick={() => this.openMassEditGrid(sortedRows)}
+              onClick={
+                () =>
+                  this.openMassEditGrid(
+                    sortedRows,
+                    this.getColumns().slice(1)
+                  ) /* TODO: slicing weirdness */
+              }
               disabled={isEmpty(selectedRows)}
               icon="edit"
               type="link"
@@ -244,12 +250,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               }}
               onCellExpand={this.onCellExpand}
             />
-            <button
-              onClick={() => {
-                // TODO: Create "apply" functionality
-                console.log("needs implementation");
-              }}
-            >
+            <button onClick={() => this.updateRowsWithMassEditInfo()}>
               Apply
             </button>
             <button
@@ -545,13 +546,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
   };
 
-  private openMassEditGrid = (sortedRows: Array<UploadJobTableRow>) => {
+  private openMassEditGrid = (
+    sortedRows: Array<UploadJobTableRow>,
+    columns: UploadJobColumn[]
+  ) => {
     // TODO: Per Jordan's design, the "mass edit" grid should be highlighted against a darkened background when
     //        first opened
     // Ensure we have keys for all of the correct columns
     const emptyMassEditRow: { [index: string]: any } = {}; // TODO: Typing codesmell?
-    Object.keys(sortedRows[0]).forEach((key) => {
-      emptyMassEditRow[key] = null;
+    columns.forEach((column) => {
+      emptyMassEditRow[column["name"]] = null;
     });
     this.setState({
       showMassEditGrid: true,
@@ -568,6 +572,23 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         massEditRows: [{ ...this.state.massEditRows[0], ...e.updated }],
       });
     }
+  };
+
+  private updateRowsWithMassEditInfo = () => {
+    const massEditRow = this.state.massEditRows[0];
+    const updateRow: Partial<UploadMetadata> = {};
+    Object.keys(massEditRow).map((key) => {
+      if (
+        Array.isArray(massEditRow[key] && massEditRow[key].length) ||
+        massEditRow[key] !== null
+      ) {
+        updateRow[key] = massEditRow[key];
+      }
+    });
+    this.state.selectedRows.forEach((rowKey) => {
+      this.props.updateUploadRows([rowKey], updateRow);
+    });
+    this.setState({ showMassEditGrid: false });
   };
 
   private removeSelectedRows = (): void => {
