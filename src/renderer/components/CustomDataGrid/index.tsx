@@ -188,6 +188,38 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
     return (
       <>
+        {this.state.showMassEditGrid && (
+          <>
+            <div>Mass Editing</div>
+            <ReactDataGrid
+              cellNavigationMode="changeRow"
+              columns={
+                this.getColumns().slice(1) /* All columns except 'file' */
+              }
+              enableCellSelect={true}
+              enableDragAndDrop={true}
+              getSubRowDetails={this.getSubRowDetails}
+              minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
+              onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
+              rowGetter={massEditRowGetter}
+              rowsCount={this.state.massEditRows.length}
+              rowSelection={{
+                showCheckbox: false,
+              }}
+              onCellExpand={this.onCellExpand}
+            />
+            <button onClick={() => this.updateRowsWithMassEditInfo()}>
+              Apply
+            </button>
+            <button
+              onClick={() => {
+                this.setState({ showMassEditGrid: false });
+              }}
+            >
+              Cancel
+            </button>
+          </>
+        )}
         <div className={styles.buttonRow}>
           <Tooltip title="Undo" mouseLeaveDelay={0}>
             <Button
@@ -230,38 +262,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             />
           </Tooltip>
         </div>
-        {this.state.showMassEditGrid && (
-          <>
-            <div>Mass Editing</div>
-            <ReactDataGrid
-              cellNavigationMode="changeRow"
-              columns={
-                this.getColumns().slice(1) /* All columns except 'file' */
-              }
-              enableCellSelect={true}
-              enableDragAndDrop={true}
-              getSubRowDetails={this.getSubRowDetails}
-              minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
-              onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
-              rowGetter={massEditRowGetter}
-              rowsCount={this.state.massEditRows.length}
-              rowSelection={{
-                showCheckbox: false,
-              }}
-              onCellExpand={this.onCellExpand}
-            />
-            <button onClick={() => this.updateRowsWithMassEditInfo()}>
-              Apply
-            </button>
-            <button
-              onClick={() => {
-                this.setState({ showMassEditGrid: false });
-              }}
-            >
-              Cancel
-            </button>
-          </>
-        )}
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (
             <ReactDataGrid
