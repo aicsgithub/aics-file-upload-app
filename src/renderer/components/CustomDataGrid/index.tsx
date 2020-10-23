@@ -190,32 +190,41 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       <>
         {this.state.showMassEditGrid && (
           <>
-            <div>Mass Editing</div>
-            <ReactDataGrid
-              cellNavigationMode="changeRow"
-              columns={this.getColumns(true)}
-              enableCellSelect={true}
-              enableDragAndDrop={true}
-              getSubRowDetails={this.getSubRowDetails}
-              minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
-              onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
-              rowGetter={massEditRowGetter}
-              rowsCount={this.state.massEditRows.length}
-              rowSelection={{
-                showCheckbox: false,
-              }}
-              onCellExpand={this.onCellExpand}
-            />
-            <button onClick={() => this.updateRowsWithMassEditInfo()}>
-              Apply
-            </button>
-            <button
-              onClick={() => {
-                this.setState({ showMassEditGrid: false });
-              }}
-            >
-              Cancel
-            </button>
+            <div className={classNames(styles.dataGrid, className)}>
+              <ReactDataGrid
+                cellNavigationMode="changeRow"
+                columns={this.getColumns(true)}
+                enableCellSelect={true}
+                enableDragAndDrop={true}
+                getSubRowDetails={this.getSubRowDetails}
+                minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
+                onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
+                rowGetter={massEditRowGetter}
+                rowsCount={this.state.massEditRows.length}
+                rowSelection={{
+                  showCheckbox: false,
+                }}
+                onCellExpand={this.onCellExpand}
+              />
+            </div>
+            <div className={styles.alignCenter}>
+              <Button
+                type="danger"
+                size="large"
+                onClick={() => {
+                  this.setState({ showMassEditGrid: false });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                size="large"
+                onClick={() => this.updateRowsWithMassEditInfo()}
+              >
+                Apply
+              </Button>
+            </div>
           </>
         )}
         <div className={styles.buttonRow}>
