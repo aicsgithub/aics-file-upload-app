@@ -13,9 +13,9 @@ import {
   DATE_FORMAT,
   DATETIME_FORMAT,
   LIST_DELIMITER_JOIN,
+  MAIN_FONT_WIDTH,
   NOTES_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
-  MAIN_FONT_WIDTH,
 } from "../../constants";
 import {
   AnnotationType,
@@ -193,9 +193,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             <div>Mass Editing</div>
             <ReactDataGrid
               cellNavigationMode="changeRow"
-              columns={
-                this.getColumns().slice(1) /* All columns except 'file' */
-              }
+              columns={this.getColumns(true)}
               enableCellSelect={true}
               enableDragAndDrop={true}
               getSubRowDetails={this.getSubRowDetails}
@@ -241,12 +239,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           </Tooltip>
           <Tooltip title="Edit" mouseLeaveDelay={0}>
             <Button
-              onClick={
-                () =>
-                  this.openMassEditGrid(
-                    sortedRows,
-                    this.getColumns().slice(1)
-                  ) /* TODO: slicing weirdness */
+              onClick={() =>
+                this.openMassEditGrid(sortedRows, this.getColumns())
               }
               disabled={isEmpty(selectedRows)}
               icon="edit"
@@ -304,6 +298,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     value: any = [],
     childElement?: React.ReactNode | React.ReactNodeArray,
     required?: boolean,
+    forMassEditRows?: boolean,
     className?: string,
     contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>
   ): React.ReactElement => {
@@ -312,13 +307,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     // If filled out but there is additional issues like misformatted lists (e.g. "a, b, c,")
     // then show a error related to that.
     const { validationErrors } = this.props;
-    const showFieldIsRequiredError =
-      required && !this.props.fileToAnnotationHasValueMap[row.file][label];
     let error;
-    if (showFieldIsRequiredError) {
-      error = `${label} is required`;
-    } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
-      error = validationErrors[row.key][label];
+    if (!forMassEditRows) {
+      const showFieldIsRequiredError =
+        required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+      if (showFieldIsRequiredError) {
+        error = `${label} is required`;
+      } else if (
+        validationErrors[row.key] &&
+        validationErrors[row.key][label]
+      ) {
+        error = validationErrors[row.key][label];
+      }
     }
 
     return (
@@ -389,7 +389,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     ];
   };
 
-  private getColumns = (): UploadJobColumn[] => {
+  private getColumns = (forMassEditRows = false): UploadJobColumn[] => {
     if (!this.props.uploads.length) {
       return [];
     }
@@ -473,7 +473,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               })
               .join(LIST_DELIMITER_JOIN);
             const childEl = <div className={styles.cell}>{formattedValue}</div>;
-            return this.renderFormat(row, name, value, childEl, required);
+            return this.renderFormat(
+              row,
+              name,
+              value,
+              childEl,
+              required,
+              forMassEditRows
+            );
           };
         }
         return column;
@@ -552,10 +559,20 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   ) => {
     // TODO: Per Jordan's design, the "mass edit" grid should be highlighted against a darkened background when
     //        first opened
-    // Ensure we have keys for all of the correct columns
+    // Initialize an empty grid row with the same columns as the standard editing grid
     const emptyMassEditRow: { [index: string]: any } = {}; // TODO: Typing codesmell?
     columns.forEach((column) => {
-      emptyMassEditRow[column["name"]] = null;
+      switch (column.type) {
+        case ColumnType.DROPDOWN:
+        case ColumnType.LOOKUP:
+          emptyMassEditRow[column["name"]] = [];
+          break;
+        case ColumnType.BOOLEAN:
+          emptyMassEditRow[column["name"]] = [false];
+          break;
+        default:
+          emptyMassEditRow[column["name"]] = null;
+      }
     });
     this.setState({
       showMassEditGrid: true,
@@ -578,10 +595,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const massEditRow = this.state.massEditRows[0];
     const updateRow: Partial<UploadMetadata> = {};
     Object.keys(massEditRow).map((key) => {
-      if (
-        Array.isArray(massEditRow[key] && massEditRow[key].length) ||
-        massEditRow[key] !== null
-      ) {
+      if (Array.isArray(massEditRow[key])) {
+        if (massEditRow[key].length > 0) {
+          updateRow[key] = massEditRow[key];
+        }
+      } else if (massEditRow[key] !== null) {
         updateRow[key] = massEditRow[key];
       }
     });
