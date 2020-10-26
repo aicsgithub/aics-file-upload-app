@@ -390,14 +390,13 @@ export default class LabkeyClient extends HttpCacheClient {
     return [];
   }
 
-  // todo: FUA-106 make generic
   // Returns the LabKey query
-  public async selectRows(
+  public async selectRows<T = any>(
     schema: string,
     table: string,
     columns?: string[],
     filters?: Filter[]
-  ): Promise<LabKeyResponse<any>> {
+  ): Promise<LabKeyResponse<T>> {
     const additionalQueries: string[] = [];
     if (columns && columns.length) {
       additionalQueries.push(`query.columns=${columns}`);
@@ -422,26 +421,32 @@ export default class LabkeyClient extends HttpCacheClient {
       });
     }
     const url = LabkeyClient.getSelectRowsURL(schema, table, additionalQueries);
-    const response = await this.get<any>(url);
+    const response = await this.get<LabkeyResponse<any>>(url);
     // Return LabKeyResponse in the same shape, but with camelized column names
     return response["rows"]
       ? {
           ...response,
-          rows: response["rows"].map((row: any) =>
-            camelizeKeys(pick(row, Object.keys(row)))
+          rows: response["rows"].map(
+            (row: any) =>
+              (camelizeKeys(pick(row, Object.keys(row))) as any) as T
           ),
         }
       : { rows: [] };
   }
 
   // Return the first value returned from the LabKey query
-  public async selectFirst(
+  public async selectFirst<T = any>(
     schema: string,
     table: string,
     columns?: string[],
     filters?: Filter[]
-  ): Promise<any> {
-    const rows = await this.selectRowsAsList(schema, table, columns, filters);
+  ): Promise<T> {
+    const rows = await this.selectRowsAsList<T>(
+      schema,
+      table,
+      columns,
+      filters
+    );
     if (!rows.length) {
       throw new Error(`Expected at least one value, received none. 
                              Query: ${schema} ${table} ${columns} ${
@@ -452,13 +457,13 @@ export default class LabkeyClient extends HttpCacheClient {
   }
 
   // Returns LabKey query as a an array of values
-  public selectRowsAsList(
+  public selectRowsAsList<T = any>(
     schema: string,
     table: string,
     columns?: string[],
     filters?: Filter[]
-  ): Promise<any[]> {
-    return this.selectRows(schema, table, columns, filters).then(
+  ): Promise<T[]> {
+    return this.selectRows<T>(schema, table, columns, filters).then(
       (response) => response["rows"]
     );
   }
