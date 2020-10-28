@@ -1,4 +1,3 @@
-import { BigIntStats, PathLike, promises, StatOptions, Stats } from "fs";
 import { hostname, platform, userInfo } from "os";
 
 import * as Logger from "js-logger";
@@ -15,11 +14,12 @@ import {
   JSSJob,
   JSSJobStatus,
 } from "../../job-status-client/types";
-import { AICSFILES_LOGGER } from "../constants";
+import { AICSFILES_LOGGER, defaultFs } from "../constants";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import { AddMetadataStep } from "../steps/add-metadata-step";
 import { CopyFilesStep } from "../steps/copy-files-step";
 import {
+  FileSystemUtil,
   FSSResponseFile,
   StartUploadResponse,
   Step,
@@ -42,18 +42,6 @@ const getUUID = (): string => {
   // JSS does not allow hyphenated GUIDS.
   return uuid.v1().replace(/-/g, "");
 };
-
-// These are mocked in the tests so they need to be constructor arguments
-// Bundling them into an object makes them easier to stub
-type AccessFn = (path: PathLike, mode?: number) => Promise<void>;
-type StatFn = (
-  path: PathLike,
-  options?: StatOptions
-) => Promise<Stats | BigIntStats>;
-export interface FileSystemUtil {
-  access: AccessFn;
-  stat: StatFn;
-}
 
 /**
  * This class is responsible for uploading files through FSS.
@@ -98,7 +86,7 @@ export class Uploader {
     jobStatusClient: JobStatusClient,
     storage: LocalStorage,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
-    fs: FileSystemUtil = { access: promises.access, stat: promises.stat }
+    fs: FileSystemUtil = defaultFs
   ) {
     this.getCopyWorker = getCopyWorker;
     this.fss = fss;
@@ -209,10 +197,17 @@ export class Uploader {
       this.logger.info(
         "Current upload failed too late in the process to retry, replacing with new job"
       );
+
+      const lastModified: { [fullpath: string]: Date } = {};
+      for (const fullpath of Object.keys(uploads)) {
+        const stats = await this.fs.stat(fullpath);
+        lastModified[fullpath] = stats.mtime;
+      }
       // Start new upload job that will replace the current one
       const newUploadResponse = await this.fss.startUpload(
         uploads,
-        uploadJobName
+        uploadJobName,
+        lastModified
       );
       // Update the current job with information about the replacement
       await Promise.all([
@@ -468,7 +463,8 @@ export class Uploader {
           copyChildJobs: await this.createCopyJobs(
             uploads,
             uploadChildJobIds[0],
-            fileToSizeMap
+            fileToSizeMap,
+            parentId
           ),
           totalBytesToCopy,
           uploadChildJobIds: uploadChildJobIds,
@@ -485,7 +481,8 @@ export class Uploader {
   private async createCopyJobs(
     uploads: Uploads,
     parentCopyJobId: string,
-    fileToSizeMap: Map<string, number>
+    fileToSizeMap: Map<string, number>,
+    uploadJobId: string
   ): Promise<JSSJob[]> {
     try {
       return await Promise.all(
@@ -500,6 +497,7 @@ export class Uploader {
               originalPath,
               totalBytes: fileToSizeMap.get(originalPath),
               type: COPY_CHILD_TYPE,
+              uploadJobId,
             },
             status: JSSJobStatus.WAITING,
             updateParent: true,

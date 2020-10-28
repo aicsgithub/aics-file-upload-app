@@ -1,3 +1,5 @@
+import { BigIntStats, PathLike, StatOptions, Stats } from "fs";
+
 import { JSSJob } from "../../job-status-client/types";
 
 export interface Uploads {
@@ -125,6 +127,15 @@ export interface UploadServiceFields extends BaseServiceFields {
   // populated by FSS when the app requests to start an upload.
   files: UploadMetadata[];
 
+  // a mapping for all files of this job to their MD5 at the time of the last upload.
+  md5: { [originalPath: string]: string };
+
+  // a mapping for all files of this job to when they were last modified. Used in addition to md5 mapping for
+  // determining when to recalculate the MD5.
+  // If the file has not been modified, then we can use the MD5 in combination with the file name to determine more
+  // quickly if this file would be a duplicate in FMS.
+  lastModified: { [originalPath: string]: string };
+
   // FSS doesn't currently support re-using jobs after an upload gets past the add metadata step.
   // This points to the original job id if this is a replacement job
   originalJobId?: string;
@@ -169,6 +180,9 @@ export interface CopyFileServiceFields extends BaseServiceFields {
 
   // size of the file being copied
   totalBytes: number;
+
+  // upload job id
+  uploadJobId: string;
 }
 
 // Represents the job of reporting to FSS
@@ -262,4 +276,18 @@ export interface ImageModelMetadata extends ImageModelBase, LabKeyFileMetadata {
 
 export interface LabKeyResponse<T> {
   rows: T[];
+}
+
+// These are mocked in the tests so they need to be constructor arguments
+// Bundling them into an object makes them easier to stub
+type AccessFn = (path: PathLike, mode?: number) => Promise<void>;
+type StatFn = (
+  path: PathLike,
+  options?: StatOptions
+) => Promise<Stats | BigIntStats>;
+type ExistsFn = (path: PathLike) => Promise<boolean>;
+export interface FileSystemUtil {
+  access: AccessFn;
+  exists: ExistsFn;
+  stat: StatFn;
 }

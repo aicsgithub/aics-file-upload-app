@@ -1,4 +1,9 @@
 // Errors
+import { exists as fsExists, promises } from "fs";
+import { promisify } from "util";
+
+import { FileSystemUtil } from "./types";
+
 export const COPY_ERROR = "CopyError";
 export const FAILED_JOB_ERROR = "FailedJobError";
 export const ILLEGAL_ARGUMENT_ERROR = "IllegalArgumentError";
@@ -17,3 +22,10 @@ export const UPLOAD_WORKER_ON_PROGRESS = "upload-progress";
 // Misc.
 export const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 export const AICSFILES_LOGGER = "aicsfiles";
+
+const exists = promisify(fsExists);
+export const defaultFs: FileSystemUtil = {
+  access: promises.access,
+  exists,
+  stat: promises.stat,
+};

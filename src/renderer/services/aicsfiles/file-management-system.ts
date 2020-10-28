@@ -1,6 +1,4 @@
-import { exists as fsExists } from "fs";
 import * as path from "path";
-import { promisify } from "util";
 
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
@@ -12,7 +10,11 @@ import JobStatusClient from "../job-status-client";
 import { JSSJob, JSSJobStatus } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
-import { AICSFILES_LOGGER, UNRECOVERABLE_JOB_ERROR } from "./constants";
+import {
+  AICSFILES_LOGGER,
+  defaultFs,
+  UNRECOVERABLE_JOB_ERROR,
+} from "./constants";
 import { InvalidMetadataError } from "./errors";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
 import { CustomMetadataQuerier } from "./helpers/custom-metadata-querier";
@@ -20,6 +22,7 @@ import { FSSClient } from "./helpers/fss-client";
 import { Uploader } from "./helpers/uploader";
 import {
   FileMetadata,
+  FileSystemUtil,
   FileToFileMetadata,
   ImageModelMetadata,
   StartUploadResponse,
@@ -31,6 +34,7 @@ import {
 // Configuration object for FMS. Either host and port have to be defined or fss needs
 // to be defined.
 export interface FileManagementSystemConfig {
+  fs: FileSystemUtil;
   // getter function for creating a copy worker
   getCopyWorker: () => Worker;
 
@@ -74,7 +78,6 @@ export const getOriginalPathPropertyDoesntMatch = (
   originalPath: string
 ): string =>
   `metadata for file ${fullpath} has property file.originalPath set to ${originalPath} which doesn't match ${fullpath}`;
-const exists = promisify(fsExists);
 
 const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   debug: Logger.DEBUG,
@@ -92,6 +95,7 @@ export class FileManagementSystem {
   private readonly logger: ILogger;
   private readonly uploader: Uploader;
   private readonly customMetadataQuerier: CustomMetadataQuerier;
+  private readonly fs: FileSystemUtil;
 
   /*
         This returns the shared FileMetadata between the two given FileMetadata objects
@@ -110,6 +114,7 @@ export class FileManagementSystem {
   public constructor(config: FileManagementSystemConfig) {
     const {
       jobStatusClient,
+      fs = defaultFs,
       fssClient,
       getCopyWorker,
       labkeyClient,
@@ -135,6 +140,7 @@ export class FileManagementSystem {
       this.lk,
       this.logger
     );
+    this.fs = fs;
   }
 
   /***
@@ -154,6 +160,7 @@ export class FileManagementSystem {
     Logger.get(AICSFILES_LOGGER).info("Received uploadFiles request", metadata);
 
     const names = new Set();
+    const lastModified: { [fullpath: string]: Date } = {};
     for (const [fullpath, fileMetadata] of Object.entries(metadata)) {
       const name = path.basename(fullpath);
       if (names.has(name)) {
@@ -162,9 +169,12 @@ export class FileManagementSystem {
         names.add(name);
       }
 
-      if (!(await exists(fullpath))) {
+      if (!(await this.fs.exists(fullpath))) {
         throw new InvalidMetadataError(getFileDoesNotExistError(fullpath));
       }
+
+      const stats = await this.fs.stat(fullpath);
+      lastModified[fullpath] = stats.mtime;
 
       if (!fileMetadata.file) {
         throw new InvalidMetadataError(getFilePropertyMissingError(fullpath));
@@ -190,7 +200,7 @@ export class FileManagementSystem {
       throw new InvalidMetadataError(noFilesError);
     }
 
-    return this.fss.startUpload(metadata, uploadJobName);
+    return this.fss.startUpload(metadata, uploadJobName, lastModified);
   }
 
   /***
