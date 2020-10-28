@@ -128,9 +128,12 @@ export class CustomMetadataQuerier {
   // Returns MMS GET File Metadata Response for given FileId
   public queryByFileId = async (fileId: string): Promise<FileMetadata> => {
     const [labkeyFileMetadata, customFileMetadata] = await Promise.all([
-      this.lk.selectFirst(FMS, "File", RELEVANT_FILE_COLUMNS, [
-        createFilter("FileId", fileId),
-      ]) as Promise<LabKeyFileMetadata>,
+      this.lk.selectFirst<LabKeyFileMetadata>(
+        FMS,
+        "File",
+        RELEVANT_FILE_COLUMNS,
+        [createFilter("FileId", fileId)]
+      ),
       this.mms.getFileMetadata(fileId) as Promise<CustomFileMetadata>,
     ]);
     return {
@@ -214,12 +217,12 @@ export class CustomMetadataQuerier {
     searchValue: string
   ): Promise<FileToFileMetadata> => {
     // Get the AnnotationId and AnnotationType matching the Annotation Name provided
-    const annotation = (await this.lk.selectFirst(
+    const annotation = await this.lk.selectFirst<LabKeyAnnotation>(
       FILE_METADATA,
       "Annotation",
       ["AnnotationId", "AnnotationTypeId/Name"],
       [createFilter("Name", annotationName)]
-    )) as LabKeyAnnotation;
+    );
     let fileIds: string[];
     // If the AnnotationType is Lookup we have to query against a specific junction table
     if (annotation["annotationTypeId/Name"] !== "Lookup") {
@@ -230,12 +233,12 @@ export class CustomMetadataQuerier {
       );
     } else {
       // Get PrimaryKeyId matching the value given from the LK table it belongs to
-      const lookup = (await this.lk.selectFirst(
+      const lookup = await this.lk.selectFirst<AnnotationLookup>(
         FILE_METADATA,
         "AnnotationLookup",
         ["LookupId/SchemaName", "LookupId/TableName", "LookupId/ColumnName"],
         [createFilter("AnnotationId", annotation["annotationId"])]
-      )) as AnnotationLookup;
+      );
       const annotationIdColumnName = `${lookup["lookupId/TableName"]}Id`;
       const lookupValue: any = await this.lk.selectFirst(
         lookup["lookupId/SchemaName"],
