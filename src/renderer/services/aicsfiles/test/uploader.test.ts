@@ -25,9 +25,9 @@ import {
   ADD_METADATA_TYPE,
   COPY_CHILD_TYPE,
   COPY_TYPE,
-  FileSystemUtil,
   Uploader,
 } from "../helpers/uploader";
+import { FileSystemUtil } from "../types";
 
 import {
   mockCompleteUploadJob,

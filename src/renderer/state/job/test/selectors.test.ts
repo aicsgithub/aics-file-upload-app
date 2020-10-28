@@ -83,6 +83,8 @@ describe("Job selectors", () => {
               created: new Date("Oct 1, 2020 03:24:00"),
               serviceFields: {
                 files: [],
+                lastModified: {},
+                md5: {},
                 replacementJobIds: ["replacement1", "replacement2"],
                 type: "upload",
                 uploadDirectory: "/foo",

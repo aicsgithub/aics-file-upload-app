@@ -178,6 +178,7 @@ describe("CopyStep", () => {
           totalBytes: 1200,
           type: "copy",
           output: sourceFiles,
+          uploadJobId: "abc",
         },
       });
       const ctx = await copyStep.skip(mockCtx);

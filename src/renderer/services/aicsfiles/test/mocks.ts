@@ -150,6 +150,7 @@ export const mockCopyJobChild1: JSSJob<CopyFileServiceFields> = {
     originalPath: upload1,
     totalBytes: 1200,
     type: "copy",
+    uploadJobId: "abc",
   },
   updateParent: true,
 };
@@ -162,6 +163,7 @@ export const mockCopyJobChild2: JSSJob<CopyFileServiceFields> = {
     originalPath: upload2,
     totalBytes: 1200,
     type: "copy",
+    uploadJobId: "abc",
   },
   updateParent: true,
 };
