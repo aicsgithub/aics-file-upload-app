@@ -280,14 +280,13 @@ export interface LabKeyResponse<T> {
 
 // These are mocked in the tests so they need to be constructor arguments
 // Bundling them into an object makes them easier to stub
-type AccessFn = (path: PathLike, mode?: number) => Promise<void>;
-type StatFn = (
-  path: PathLike,
-  options?: StatOptions
-) => Promise<Stats | BigIntStats>;
-type ExistsFn = (path: PathLike) => Promise<boolean>;
+
 export interface FileSystemUtil {
-  access: AccessFn;
-  exists: ExistsFn;
-  stat: StatFn;
+  access: (path: PathLike, mode?: number) => Promise<void>;
+  exists: (path: PathLike) => Promise<boolean>;
+  stat: (path: PathLike, options?: StatOptions) => Promise<Stats | BigIntStats>;
+}
+
+export interface FullPathHashToLastModifiedDate {
+  [fullPathHash: string]: Date;
 }

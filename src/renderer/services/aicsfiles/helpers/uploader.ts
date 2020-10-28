@@ -22,6 +22,7 @@ import { CopyFilesStep } from "../steps/copy-files-step";
 import {
   FileSystemUtil,
   FSSResponseFile,
+  FullPathHashToLastModifiedDate,
   StartUploadResponse,
   Step,
   UploadChildJobServiceFields,
@@ -245,8 +246,8 @@ export class Uploader {
 
   public async getLastModified(
     fullpaths: string[]
-  ): Promise<{ [fullpathHash: string]: Date }> {
-    const lastModified: { [fullpath: string]: Date } = {};
+  ): Promise<FullPathHashToLastModifiedDate> {
+    const lastModified: FullPathHashToLastModifiedDate = {};
     for (const fullpath of fullpaths) {
       try {
         const stats = await this.fs.stat(fullpath);

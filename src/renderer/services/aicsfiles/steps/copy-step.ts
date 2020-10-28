@@ -95,9 +95,6 @@ export class CopyStep implements Step {
             getCopyFileTimerName(this.job.jobId, originalPath)
           );
           const md5 = lowerCaseMessage.split(":")[1];
-          console.log(
-            `updating upload job ${this.job.serviceFields?.uploadJobId}`
-          );
           if (this.job.serviceFields?.uploadJobId) {
             this.jss.updateJob(
               this.job.serviceFields.uploadJobId,

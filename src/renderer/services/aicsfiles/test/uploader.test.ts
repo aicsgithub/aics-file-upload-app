@@ -3,6 +3,7 @@ import * as path from "path";
 import { expect } from "chai";
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
+import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 import {
   createSandbox,
@@ -413,7 +414,7 @@ describe("Uploader", () => {
     });
   });
   describe("getLastModified", () => {
-    it("creates a mapping between file paths and their modified date", async () => {
+    it("creates a mapping between the hash of the file paths and their modified date", async () => {
       const path1 = "/path1";
       const date1 = new Date();
       const path2 = "/path2";
@@ -422,8 +423,8 @@ describe("Uploader", () => {
       fs.stat.withArgs(path2).resolves({ mtime: date2 });
       const lastModified = await uploader.getLastModified([path1, path2]);
       expect(lastModified).to.deep.equal({
-        [path1]: date1,
-        [path2]: date2,
+        [hash.MD5(path1)]: date1,
+        [hash.MD5(path2)]: date2,
       });
     });
   });
