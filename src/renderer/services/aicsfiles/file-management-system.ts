@@ -160,7 +160,6 @@ export class FileManagementSystem {
     Logger.get(AICSFILES_LOGGER).info("Received uploadFiles request", metadata);
 
     const names = new Set();
-    const lastModified: { [fullpath: string]: Date } = {};
     for (const [fullpath, fileMetadata] of Object.entries(metadata)) {
       const name = path.basename(fullpath);
       if (names.has(name)) {
@@ -172,9 +171,6 @@ export class FileManagementSystem {
       if (!(await this.fs.exists(fullpath))) {
         throw new InvalidMetadataError(getFileDoesNotExistError(fullpath));
       }
-
-      const stats = await this.fs.stat(fullpath);
-      lastModified[fullpath] = stats.mtime;
 
       if (!fileMetadata.file) {
         throw new InvalidMetadataError(getFilePropertyMissingError(fullpath));
@@ -200,7 +196,11 @@ export class FileManagementSystem {
       throw new InvalidMetadataError(noFilesError);
     }
 
-    return this.fss.startUpload(metadata, uploadJobName, lastModified);
+    return this.fss.startUpload(
+      metadata,
+      uploadJobName,
+      await this.uploader.getLastModified(Object.keys(metadata))
+    );
   }
 
   /***

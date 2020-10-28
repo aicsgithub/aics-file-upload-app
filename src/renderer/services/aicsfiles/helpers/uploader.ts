@@ -3,6 +3,7 @@ import { hostname, platform, userInfo } from "os";
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 import { includes, keys, noop, uniq } from "lodash";
+import * as hash from "object-hash";
 import * as uuid from "uuid";
 
 import { USER_SETTINGS_KEY } from "../../../../shared/constants";
@@ -198,16 +199,11 @@ export class Uploader {
         "Current upload failed too late in the process to retry, replacing with new job"
       );
 
-      const lastModified: { [fullpath: string]: Date } = {};
-      for (const fullpath of Object.keys(uploads)) {
-        const stats = await this.fs.stat(fullpath);
-        lastModified[fullpath] = stats.mtime;
-      }
       // Start new upload job that will replace the current one
       const newUploadResponse = await this.fss.startUpload(
         uploads,
         uploadJobName,
-        lastModified
+        await this.getLastModified(Object.keys(uploads))
       );
       // Update the current job with information about the replacement
       await Promise.all([
@@ -245,6 +241,23 @@ export class Uploader {
       },
     });
     return this.executeSteps(ctx, steps);
+  }
+
+  public async getLastModified(
+    fullpaths: string[]
+  ): Promise<{ [fullpathHash: string]: Date }> {
+    const lastModified: { [fullpath: string]: Date } = {};
+    for (const fullpath of fullpaths) {
+      try {
+        const stats = await this.fs.stat(fullpath);
+        lastModified[hash.MD5(fullpath)] = stats.mtime;
+      } catch (e) {
+        this.logger.warn(
+          `Could not get modified date for file ${fullpath}. Will need to recalculate MD5 if the job gets retried.`
+        );
+      }
+    }
+    return lastModified;
   }
 
   private validateUploadJob(job: JSSJob): void {

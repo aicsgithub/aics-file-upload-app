@@ -3,6 +3,7 @@ import * as path from "path";
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 import { noop } from "lodash";
+import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 
 import JobStatusClient from "../../job-status-client";
@@ -100,7 +101,7 @@ export class CopyStep implements Step {
           if (this.job.serviceFields?.uploadJobId) {
             this.jss.updateJob(
               this.job.serviceFields.uploadJobId,
-              { serviceFields: { md5: { [originalPath]: md5 } } },
+              { serviceFields: { md5: { [hash.MD5(originalPath)]: md5 } } },
               true
             );
           }

@@ -412,4 +412,19 @@ describe("Uploader", () => {
       ).to.be.rejectedWith(Error);
     });
   });
+  describe("getLastModified", () => {
+    it("creates a mapping between file paths and their modified date", async () => {
+      const path1 = "/path1";
+      const date1 = new Date();
+      const path2 = "/path2";
+      const date2 = new Date();
+      fs.stat.withArgs(path1).resolves({ mtime: date1 });
+      fs.stat.withArgs(path2).resolves({ mtime: date2 });
+      const lastModified = await uploader.getLastModified([path1, path2]);
+      expect(lastModified).to.deep.equal({
+        [path1]: date1,
+        [path2]: date2,
+      });
+    });
+  });
 });

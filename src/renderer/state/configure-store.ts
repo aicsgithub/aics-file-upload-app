@@ -19,6 +19,7 @@ import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
+import { defaultFs } from "../services/aicsfiles/constants";
 import { FSSClient } from "../services/aicsfiles/helpers/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
@@ -84,6 +85,7 @@ const labkeyClient = new LabkeyClient(httpClient, storage, useCache);
 export const reduxLogicDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
+    fs: defaultFs,
     fssClient: new FSSClient(httpClient, storage, useCache),
     // We need to define a getter here for testing purposes. WebWorkers are not defined
     // in the mocha testing environment. It is also easier to unit test components with
