@@ -205,7 +205,12 @@ const selectBarcodeLogic = createLogic({
         mmsClient,
         dispatch
       );
-      dispatch(batchActions([...selectPageActions, setPlate(plate, wells)]));
+      dispatch(
+        batchActions([
+          ...selectPageActions,
+          setPlate(plate, wells, imagingSessionIds),
+        ])
+      );
     } catch (e) {
       const error = "Could not get plate info: " + e.message;
       logger.error(e.message);
