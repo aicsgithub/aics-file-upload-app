@@ -49,6 +49,7 @@ import { clearStagedFiles, selectBarcode, selectWells } from "../actions";
 import {
   getSelectedBarcode,
   getSelectedFiles,
+  getSelectedImagingSessionIds,
   getSelectedPlateId,
   getSelectedPlates,
   getSelectedWells,
@@ -423,7 +424,7 @@ describe("Selection logics", () => {
       };
     });
 
-    it("Sets wells, page, barcode, and plateId if GET wells is OK", async () => {
+    it("Sets wells, page, barcode, imagingSessionIds and plateId if GET wells is OK", async () => {
       mmsClient.getPlate.onFirstCall().callsFake(() => {
         return Promise.resolve(mockOkGetPlateResponse);
       });
@@ -431,13 +432,15 @@ describe("Selection logics", () => {
         mockState,
         mockReduxLogicDeps
       );
+      const imagingSessions = [12];
 
       // apply
-      store.dispatch(selectBarcode(barcode));
+      store.dispatch(selectBarcode(barcode, imagingSessions));
 
       // after
       await logicMiddleware.whenComplete();
       const state = store.getState();
+      expect(getSelectedImagingSessionIds(state)).to.equal(imagingSessions);
       expect(getWells(state)).to.not.be.empty;
       expect(getPage(state)).to.equal(Page.AssociateFiles);
       expect(getSelectedBarcode(state)).to.equal(barcode);
