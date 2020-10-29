@@ -436,13 +436,18 @@ describe("Uploader", () => {
         [path2Hash]: date2,
       });
     });
-    it("logs any errors it runs into while compiling lastModified dates but doesn't throw", async () => {
+    it("compiles lastModified dates where possible", async () => {
       fs.stat.withArgs(path1).resolves({ mtime: date1 });
       fs.stat.withArgs(path2).rejects(new Error("foo"));
       const lastModified = await uploader.getLastModified([path1, path2]);
       expect(lastModified).to.deep.equal({
         [path1Hash]: date1,
       });
+    });
+    it("logs any errors it runs into", async () => {
+      fs.stat.withArgs(path1).resolves({ mtime: date1 });
+      fs.stat.withArgs(path2).rejects(new Error("foo"));
+      await uploader.getLastModified([path1, path2]);
       expect(logger.warn).to.have.been.called;
     });
   });
