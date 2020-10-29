@@ -1,7 +1,6 @@
 import * as path from "path";
 
 import { expect } from "chai";
-import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
 import * as hash from "object-hash";
 import * as rimraf from "rimraf";
@@ -19,7 +18,7 @@ import { mockFailedAddMetadataJob } from "../../../state/test/mocks";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJobStatus } from "../../job-status-client/types";
-import { AICSFILES_LOGGER, UPLOAD_WORKER_SUCCEEDED } from "../constants";
+import { UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { FSSClient } from "../helpers/fss-client";
 import { StepExecutor } from "../helpers/step-executor";
 import {
@@ -60,7 +59,11 @@ export const differentTargetFile2 = path.resolve(
 describe("Uploader", () => {
   const sandbox = createSandbox();
   const uploadJobName = "Upload job name";
-  let logger: ILogger;
+  let logger: {
+    error: SinonStub;
+    info: SinonStub;
+    warn: SinonStub;
+  };
   let copyWorkerStub: {
     postMessage: SinonStub;
     onmessage: SinonStub;
@@ -100,8 +103,11 @@ describe("Uploader", () => {
       files: resultFiles,
       jobId: uploadJobId,
     });
-    logger = Logger.get(AICSFILES_LOGGER);
-    sandbox.replace(logger, "error", stub());
+    logger = {
+      error: stub(),
+      info: stub(),
+      warn: stub(),
+    };
     fs = {
       access: stub().resolves(),
       stat: stub().resolves({ size: 100 }),
@@ -111,7 +117,7 @@ describe("Uploader", () => {
       (fss as any) as FSSClient,
       (jobStatusClient as any) as JobStatusClient,
       (storage as any) as LocalStorage,
-      logger,
+      (logger as any) as ILogger,
       (fs as any) as FileSystemUtil
     );
   });
@@ -414,18 +420,30 @@ describe("Uploader", () => {
     });
   });
   describe("getLastModified", () => {
+    const path1 = "/path1";
+    const date1 = new Date();
+    const path2 = "/path2";
+    const date2 = new Date();
+    const path1Hash = hash.MD5(path1);
+    const path2Hash = hash.MD5(path2);
+
     it("creates a mapping between the hash of the file paths and their modified date", async () => {
-      const path1 = "/path1";
-      const date1 = new Date();
-      const path2 = "/path2";
-      const date2 = new Date();
       fs.stat.withArgs(path1).resolves({ mtime: date1 });
       fs.stat.withArgs(path2).resolves({ mtime: date2 });
       const lastModified = await uploader.getLastModified([path1, path2]);
       expect(lastModified).to.deep.equal({
-        [hash.MD5(path1)]: date1,
-        [hash.MD5(path2)]: date2,
+        [path1Hash]: date1,
+        [path2Hash]: date2,
       });
+    });
+    it("logs any errors it runs into while compiling lastModified dates but doesn't throw", async () => {
+      fs.stat.withArgs(path1).resolves({ mtime: date1 });
+      fs.stat.withArgs(path2).rejects(new Error("foo"));
+      const lastModified = await uploader.getLastModified([path1, path2]);
+      expect(lastModified).to.deep.equal({
+        [path1Hash]: date1,
+      });
+      expect(logger.warn).to.have.been.called;
     });
   });
 });
