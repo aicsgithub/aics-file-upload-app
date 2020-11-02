@@ -15,7 +15,6 @@
       "bucket": "file-upload-app.allencell.org",
       "region": "us-west-2"
     },
-    "productName": "File Upload App",
     "win": {
       "target": "portable"
     }

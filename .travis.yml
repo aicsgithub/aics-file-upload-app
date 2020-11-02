@@ -20,7 +20,6 @@ matrix:
       services: docker
       env:
         - CSC_LINK="https://drive.google.com/uc?export=download&id=1BkiMO6xsfk32cmrvHkodHN6__ZV1cSLG"
-        - CSC_LINK_PASSWORD=""
 
 cache:
   yarn: true
