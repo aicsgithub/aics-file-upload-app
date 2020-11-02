@@ -22,6 +22,8 @@ matrix:
       env:
         - CSC_LINK="./aics.pfx"
         - CSC_LINK_PASSWORD=""
+        - encrypted_922147baf725_key=$encrypted_922147baf725_key
+        - encrypted_922147baf725_iv=$encrypted_922147baf725_iv
 
 cache:
   yarn: true
