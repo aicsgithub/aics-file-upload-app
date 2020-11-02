@@ -3,7 +3,6 @@ node_js: "12.0.0"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  openssl aes-256-cbc -K $encrypted_922147baf725_key -iv $encrypted_922147baf725_iv -in aics.pfx.enc -out aics.pfx -d; fi
 
 install: yarn --link-duplicates
 
@@ -20,10 +19,8 @@ matrix:
     - os: linux
       services: docker
       env:
-        - CSC_LINK="./aics.pfx"
+        - CSC_LINK="https://drive.google.com/file/d/1BkiMO6xsfk32cmrvHkodHN6__ZV1cSLG/view?usp=sharing"
         - CSC_LINK_PASSWORD=""
-        - encrypted_922147baf725_key=$encrypted_922147baf725_key
-        - encrypted_922147baf725_iv=$encrypted_922147baf725_iv
 
 cache:
   yarn: true
