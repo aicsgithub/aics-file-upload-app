@@ -38,7 +38,7 @@ import {
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
-  UploadJobMassEditRow,
+  MassEditRow,
   UploadJobTableRow,
 } from "../../state/upload/types";
 import { convertToArray, getTextWidth, onDrop } from "../../util";
@@ -89,7 +89,7 @@ interface Props {
 
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
-  massEditRow: UploadJobMassEditRow;
+  massEditRow: MassEditRow;
   selectedRows: string[];
   showMassEditGrid: boolean;
   showMassEditShadow: boolean;
@@ -99,6 +99,17 @@ interface CustomDataState {
 
 interface UploadJobColumn
   extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
+  allowMultipleValues?: boolean;
+  dropdownValues?: string[];
+  onChange?: (
+    value: any,
+    key: keyof UploadJobTableRow,
+    row: UploadJobTableRow
+  ) => void;
+  type?: ColumnType;
+}
+
+interface MassEditColumn extends AdazzleReactDataGrid.Column<MassEditRow> {
   allowMultipleValues?: boolean;
   dropdownValues?: string[];
   onChange?: (
@@ -221,7 +232,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                   rowSelection={{
                     showCheckbox: false,
                   }}
-                  onCellExpand={this.onCellExpand}
                 />
               </div>
               <div className={styles.alignCenter}>
@@ -525,11 +535,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     return basicColumns.concat(schemaColumns);
   };
 
-  private getMassEditColumns = (): UploadJobColumn[] => {
+  private getMassEditColumns = (): MassEditColumn[] => {
     if (!this.props.template) {
       return [];
     }
-    const numberFiles: UploadJobColumn = {
+    const numberFiles: MassEditColumn = {
       key: "massEditNumberOfFiles",
       name: "# Files Selected",
       editable: false,
@@ -543,7 +553,10 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.props.template.annotations,
       true
     );
-    return [numberFiles].concat(schemaColumns);
+    const massEditSchemaColumns = schemaColumns.map(
+      (column) => column as MassEditColumn
+    );
+    return [numberFiles].concat(massEditSchemaColumns);
   };
 
   // This method currently only supports file and wellLabels due to typescript constraints on allowing
@@ -615,7 +628,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     columns: UploadJobColumn[]
   ) => {
     // Initialize an empty grid row with the same columns as the standard editing grid
-    const emptyMassEditRow: UploadJobMassEditRow = {
+    const emptyMassEditRow: MassEditRow = {
       massEditNumberOfFiles: this.state.selectedRows.length,
     };
     columns.forEach((column) => {
@@ -638,7 +651,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   };
 
   private updateMassEditRows = (
-    e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobMassEditRow>
+    e: AdazzleReactDataGrid.GridRowsUpdatedEvent<MassEditRow>
   ) => {
     const { updated } = e;
     if (updated) {
