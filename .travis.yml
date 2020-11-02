@@ -19,7 +19,7 @@ matrix:
     - os: linux
       services: docker
       env:
-        - CSC_LINK="https://drive.google.com/file/d/1BkiMO6xsfk32cmrvHkodHN6__ZV1cSLG/view?usp=sharing"
+        - CSC_LINK="https://drive.google.com/uc?export=download&id=1BkiMO6xsfk32cmrvHkodHN6__ZV1cSLG"
         - CSC_LINK_PASSWORD=""
 
 cache:
