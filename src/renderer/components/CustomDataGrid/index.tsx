@@ -614,8 +614,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     sortedRows: Array<UploadJobTableRow>,
     columns: UploadJobColumn[]
   ) => {
-    // TODO: Per Jordan's design, the "mass edit" grid should be highlighted against a darkened background when
-    //        first opened
     // Initialize an empty grid row with the same columns as the standard editing grid
     const emptyMassEditRow: UploadJobMassEditRow = {
       massEditNumberOfFiles: this.state.selectedRows.length,
