@@ -38,6 +38,7 @@ import {
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
+  UploadJobMassEditRow,
   UploadJobTableRow,
 } from "../../state/upload/types";
 import { convertToArray, getTextWidth, onDrop } from "../../util";
@@ -88,7 +89,7 @@ interface Props {
 
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
-  massEditRows: Array<any>; //TODO: Figure out <any> type
+  massEditRow: UploadJobMassEditRow;
   selectedRows: string[];
   showMassEditGrid: boolean;
   sortColumn?: SortableColumns;
@@ -168,7 +169,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      massEditRows: [],
+      massEditRow: { massEditNumberOfFiles: 0 },
       selectedRows: [],
       showMassEditGrid: false,
     };
@@ -184,7 +185,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
-    const massEditRowGetter = (idx: number) => this.state.massEditRows[idx];
+    const massEditRowGetter = (idx: number) => [this.state.massEditRow][idx];
 
     return (
       <>
@@ -193,14 +194,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             <div className={classNames(styles.dataGrid, className)}>
               <ReactDataGrid
                 cellNavigationMode="changeRow"
-                columns={this.getColumns(true)}
+                columns={this.getMassEditColumns()}
                 enableCellSelect={true}
                 enableDragAndDrop={true}
-                getSubRowDetails={this.getSubRowDetails}
                 minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
                 onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
                 rowGetter={massEditRowGetter}
-                rowsCount={this.state.massEditRows.length}
+                rowsCount={1}
                 rowSelection={{
                   showCheckbox: false,
                 }}
@@ -398,7 +398,95 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     ];
   };
 
-  private getColumns = (forMassEditRows = false): UploadJobColumn[] => {
+  private getSchemaColumns = (
+    templateAnnotations: TemplateAnnotation[],
+    forMassEditRows = false
+  ): UploadJobColumn[] => {
+    return templateAnnotations.map((templateAnnotation: TemplateAnnotation) => {
+      const {
+        name,
+        annotationTypeId,
+        annotationOptions,
+        required,
+      } = templateAnnotation;
+      const annotationType = this.props.annotationTypes.find(
+        (a) => a.annotationTypeId === annotationTypeId
+      );
+      if (!annotationType) {
+        throw new Error(
+          `Could not get annotation type for annotation ${templateAnnotation.name}. Contact Software`
+        );
+      }
+
+      const type = annotationType.name;
+      // When an annotation can have multiple values and it is a Date or Datetime, we need more space.
+      const formatterNeedsModal = includes(
+        SPECIAL_CASES_FOR_MULTIPLE_VALUES,
+        type
+      );
+      const column: UploadJobColumn = {
+        cellClass: styles.formatterContainer,
+        dropdownValues: annotationOptions,
+        editable: this.props.editable,
+        key: name,
+        name,
+        resizable: true,
+        type,
+      };
+
+      // dates are handled completely differently from other data types because right now the best
+      // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
+      if (this.props.editable) {
+        column.editor = formatterNeedsModal ? DatesEditor : Editor;
+      }
+
+      const headerTextWidth: number =
+        getTextWidth("18px Nunito", column.name) + 3 * MAIN_FONT_WIDTH;
+
+      if (type === ColumnType.DATETIME) {
+        column.width = Math.max(250, headerTextWidth);
+      } else if (type === ColumnType.BOOLEAN) {
+        column.width = Math.max(100, headerTextWidth);
+      } else {
+        column.width = Math.max(DEFAULT_COLUMN_WIDTH, headerTextWidth);
+      }
+
+      // eventually we may want to allow undefined Booleans as well but for now, the default value is False
+      if (type === ColumnType.BOOLEAN) {
+        column.formatter = BooleanFormatter;
+      } else {
+        column.formatter = ({
+          row,
+          value,
+        }: FormatterProps<UploadJobTableRow>) => {
+          const formattedValue = convertToArray(value)
+            .map((v: any) => {
+              switch (type) {
+                case ColumnType.DATETIME:
+                  return moment(v).format(DATETIME_FORMAT);
+                case ColumnType.DATE:
+                  return moment(v).format(DATE_FORMAT);
+                default:
+                  return v;
+              }
+            })
+            .join(LIST_DELIMITER_JOIN);
+          const childEl = <div className={styles.cell}>{formattedValue}</div>;
+          return this.renderFormat(
+            row,
+            name,
+            value,
+            childEl,
+            required,
+            forMassEditRows
+          );
+        };
+      }
+      return column;
+    });
+  };
+
+  private getColumns = (): UploadJobColumn[] => {
     if (!this.props.uploads.length) {
       return [];
     }
@@ -411,91 +499,31 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     if (!this.props.template) {
       return basicColumns;
     }
-    const schemaColumns = this.props.template.annotations.map(
-      (templateAnnotation: TemplateAnnotation) => {
-        const {
-          name,
-          annotationTypeId,
-          annotationOptions,
-          required,
-        } = templateAnnotation;
-        const annotationType = this.props.annotationTypes.find(
-          (a) => a.annotationTypeId === annotationTypeId
-        );
-        if (!annotationType) {
-          throw new Error(
-            `Could not get annotation type for annotation ${templateAnnotation.name}. Contact Software`
-          );
-        }
-
-        const type = annotationType.name;
-        // When an annotation can have multiple values and it is a Date or Datetime, we need more space.
-        const formatterNeedsModal = includes(
-          SPECIAL_CASES_FOR_MULTIPLE_VALUES,
-          type
-        );
-        const column: UploadJobColumn = {
-          cellClass: styles.formatterContainer,
-          dropdownValues: annotationOptions,
-          editable: this.props.editable,
-          key: name,
-          name,
-          resizable: true,
-          type,
-        };
-
-        // dates are handled completely differently from other data types because right now the best
-        // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
-        if (this.props.editable) {
-          column.editor = formatterNeedsModal ? DatesEditor : Editor;
-        }
-
-        const headerTextWidth: number =
-          getTextWidth("18px Nunito", column.name) + 3 * MAIN_FONT_WIDTH;
-
-        if (type === ColumnType.DATETIME) {
-          column.width = Math.max(250, headerTextWidth);
-        } else if (type === ColumnType.BOOLEAN) {
-          column.width = Math.max(100, headerTextWidth);
-        } else {
-          column.width = Math.max(DEFAULT_COLUMN_WIDTH, headerTextWidth);
-        }
-
-        // eventually we may want to allow undefined Booleans as well but for now, the default value is False
-        if (type === ColumnType.BOOLEAN) {
-          column.formatter = BooleanFormatter;
-        } else {
-          column.formatter = ({
-            row,
-            value,
-          }: FormatterProps<UploadJobTableRow>) => {
-            const formattedValue = convertToArray(value)
-              .map((v: any) => {
-                switch (type) {
-                  case ColumnType.DATETIME:
-                    return moment(v).format(DATETIME_FORMAT);
-                  case ColumnType.DATE:
-                    return moment(v).format(DATE_FORMAT);
-                  default:
-                    return v;
-                }
-              })
-              .join(LIST_DELIMITER_JOIN);
-            const childEl = <div className={styles.cell}>{formattedValue}</div>;
-            return this.renderFormat(
-              row,
-              name,
-              value,
-              childEl,
-              required,
-              forMassEditRows
-            );
-          };
-        }
-        return column;
-      }
+    const schemaColumns = this.getSchemaColumns(
+      this.props.template.annotations
     );
     return basicColumns.concat(schemaColumns);
+  };
+
+  private getMassEditColumns = (): UploadJobColumn[] => {
+    if (!this.props.template) {
+      return [];
+    }
+    const numberFiles: UploadJobColumn = {
+      key: "massEditNumberOfFiles",
+      name: "# Files Selected",
+      editable: false,
+      formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+        this.renderFormat(row, WORKFLOW_ANNOTATION_NAME, value),
+      resizable: true,
+      width: DEFAULT_COLUMN_WIDTH,
+      type: ColumnType.NUMBER,
+    };
+    const schemaColumns = this.getSchemaColumns(
+      this.props.template.annotations,
+      true
+    );
+    return [numberFiles].concat(schemaColumns);
   };
 
   // This method currently only supports file and wellLabels due to typescript constraints on allowing
@@ -569,7 +597,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     // TODO: Per Jordan's design, the "mass edit" grid should be highlighted against a darkened background when
     //        first opened
     // Initialize an empty grid row with the same columns as the standard editing grid
-    const emptyMassEditRow: { [index: string]: any } = {}; // TODO: Typing codesmell?
+    const emptyMassEditRow: UploadJobMassEditRow = {
+      massEditNumberOfFiles: this.state.selectedRows.length,
+    };
     columns.forEach((column) => {
       switch (column.type) {
         case ColumnType.DROPDOWN:
@@ -585,23 +615,23 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     });
     this.setState({
       showMassEditGrid: true,
-      massEditRows: [emptyMassEditRow],
+      massEditRow: emptyMassEditRow,
     });
   };
 
   private updateMassEditRows = (
-    e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobTableRow>
+    e: AdazzleReactDataGrid.GridRowsUpdatedEvent<UploadJobMassEditRow>
   ) => {
     const { updated } = e;
     if (updated) {
       this.setState({
-        massEditRows: [{ ...this.state.massEditRows[0], ...e.updated }],
+        massEditRow: { ...this.state.massEditRow, ...e.updated },
       });
     }
   };
 
   private updateRowsWithMassEditInfo = () => {
-    const massEditRow = this.state.massEditRows[0];
+    const massEditRow = this.state.massEditRow;
     const updateRow: Partial<UploadMetadata> = {};
     Object.keys(massEditRow).map((key) => {
       if (Array.isArray(massEditRow[key])) {
