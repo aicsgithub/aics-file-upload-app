@@ -92,6 +92,7 @@ interface CustomDataState {
   massEditRow: UploadJobMassEditRow;
   selectedRows: string[];
   showMassEditGrid: boolean;
+  showMassEditShadow: boolean;
   sortColumn?: SortableColumns;
   sortDirection?: SortDirections;
 }
@@ -172,6 +173,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       massEditRow: { massEditNumberOfFiles: 0 },
       selectedRows: [],
       showMassEditGrid: false,
+      showMassEditShadow: true,
     };
   }
 
@@ -187,43 +189,61 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const rowGetter = (idx: number) => sortedRows[idx];
     const massEditRowGetter = (idx: number) => [this.state.massEditRow][idx];
 
+    const massEditParentClassName = this.state.showMassEditShadow
+      ? styles.massEdit
+      : null;
+
     return (
       <>
         {this.state.showMassEditGrid && (
           <>
-            <div className={classNames(styles.dataGrid, className)}>
-              <ReactDataGrid
-                cellNavigationMode="changeRow"
-                columns={this.getMassEditColumns()}
-                enableCellSelect={true}
-                enableDragAndDrop={true}
-                minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
-                onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
-                rowGetter={massEditRowGetter}
-                rowsCount={1}
-                rowSelection={{
-                  showCheckbox: false,
-                }}
-                onCellExpand={this.onCellExpand}
-              />
-            </div>
-            <div className={styles.alignCenter}>
-              <Button
-                type="danger"
-                size="large"
-                onClick={() => {
-                  this.setState({ showMassEditGrid: false });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                size="large"
-                onClick={() => this.updateRowsWithMassEditInfo()}
-              >
-                Apply
-              </Button>
+            {this.state.showMassEditShadow && (
+              <div className={styles.shadowBox} />
+            )}
+            <div className={massEditParentClassName}>
+              <div className={styles.whiteText}>
+                <span>Mass Edit</span>
+                <div>
+                  Make edits below and all edits will be applied to selected
+                  rows. Click Apply to complete changes.
+                </div>
+              </div>
+              <div className={classNames(styles.dataGrid, className)}>
+                <ReactDataGrid
+                  cellNavigationMode="changeRow"
+                  columns={this.getMassEditColumns()}
+                  enableCellSelect={true}
+                  enableDragAndDrop={true}
+                  minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
+                  onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
+                  rowGetter={massEditRowGetter}
+                  rowsCount={1}
+                  rowSelection={{
+                    showCheckbox: false,
+                  }}
+                  onCellExpand={this.onCellExpand}
+                />
+              </div>
+              <div className={styles.alignCenter}>
+                <Button
+                  className={styles.massEditButton}
+                  type="danger"
+                  size="large"
+                  onClick={() => {
+                    this.setState({ showMassEditGrid: false });
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className={styles.massEditButton}
+                  type="primary"
+                  size="large"
+                  onClick={() => this.updateRowsWithMassEditInfo()}
+                >
+                  Apply
+                </Button>
+              </div>
             </div>
           </>
         )}
@@ -626,6 +646,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     if (updated) {
       this.setState({
         massEditRow: { ...this.state.massEditRow, ...e.updated },
+        showMassEditShadow: false,
       });
     }
   };

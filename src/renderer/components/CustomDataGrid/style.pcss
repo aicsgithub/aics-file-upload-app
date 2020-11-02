@@ -25,6 +25,11 @@
     }
 }
 
+.mass-edit {
+    position: relative;
+    z-index: 100;
+}
+
 .align-center {
     text-align: center;
 }
@@ -55,4 +60,22 @@
     min-height: 35px;
     background-color: var(--disabled-bg);
     composes: grid-cell from "../../styles/variables.pcss";
+}
+
+.shadow-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2000px;
+    height: 2000px;
+    background-color: rgba(168, 168, 168, 0.84);
+    z-index: 50;
+}
+
+.white-text {
+    color: white;
+}
+
+.mass-edit-button {
+    margin: 10px;
 }
