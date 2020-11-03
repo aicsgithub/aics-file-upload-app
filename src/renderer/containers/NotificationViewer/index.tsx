@@ -42,7 +42,7 @@ export default function NotificationViewer() {
 
   const eventList = reversedEvents.map((event) => (
     <div
-      key={event.date.toLocaleString()}
+      key={event.date.toISOString()}
       className={styles.notificationContainer}
     >
       <div className={styles.iconContainer}>
