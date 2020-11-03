@@ -18,6 +18,8 @@ matrix:
         - secure: cdxmn+QiHUYjFksqnDRvwrib3tdp2a2R7pZpzJBgx53nB0cm+WYcpiQcMNYTzfFqXH+3PYJXv+lI55uNQzacnT6QPQ7iWVLTBzjg8CaqvkvFKAlZK22ypHPizFNNVYyLK3wGItE1DS+qTdXH+KXRBpthTYGqIH02dwhQs7HRCdVFeqRcdAE8UcVT0+BjW6G1kWe2EaRfzzmAssguWSkmd6cTmNJph5VN3cplEAYF+lMPg37ukab38hMbgiEJ8zUDr8fl3R4jgw/qSsc1I4EQm+I55MOJP6CY0OfIHatQRJZnO6xFukYef6J9CDQwY0JRcB9IiFhzRRmk/6xWJuSxlcD7lKoeJgQuzdcKpn2ZRGPS3QT1d2zWE484TyqrSrXz7uiHwDfIvRZ420mAQqgj+wwCRbMncqOk1RhU65BFdw4Vg5xBuatOH+jTndhdRzIZp+7ShuTzBb/H7d2iLOI1CdomzDRHtSCBXIpyy094evUe9sBnx5y52n6XP9jld877Xe4fpKOcrPFuuJeORT1G6UvfXSrSI4exemGtrL0+Diu1YytIIXBFqMQLk9+3jedyVdvBoh/EgO3ClXHCLlyZm3zhSMj0hVs+eJ+J34qlU2Uwfjbf2gla/clemwgkwl6RHMzfTgCCs1r5KkWp/5FylxxWO3yQ+d1T9itZGg5c9TI=
     - os: linux
       services: docker
+      env:
+        - CSC_LINK="https://drive.google.com/uc?export=download&id=1BkiMO6xsfk32cmrvHkodHN6__ZV1cSLG"
 
 cache:
   yarn: true
@@ -33,11 +35,12 @@ script:
       docker run --rm \
           -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
           -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+          -e CSC_LINK=$CSC_LINK \
           -v ${PWD}:/project \
           -v ~/.cache/electron:/root/.cache/electron \
           -v ~/.cache/electron-builder:/root/.cache/electron-builder \
           electronuserland/builder:wine \
-          /bin/bash -c "yarn dist --linux --win"
+          /bin/bash -c "CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist --linux --win"
     else
       CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
     fi
