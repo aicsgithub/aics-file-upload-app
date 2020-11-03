@@ -544,7 +544,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       name: "# Files Selected",
       editable: false,
       formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
-        this.renderFormat(row, WORKFLOW_ANNOTATION_NAME, value),
+        this.renderFormat(row, "Number of Files Selected", value),
       resizable: true,
       width: DEFAULT_COLUMN_WIDTH,
       type: ColumnType.NUMBER,
