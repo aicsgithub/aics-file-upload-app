@@ -12,17 +12,17 @@
   resolved "https://registry.yarnpkg.com/7zip/-/7zip-0.0.6.tgz#9cafb171af82329490353b4816f03347aa150a30"
   integrity sha1-nK+xca+CMpSQNTtIFvAzR6oVCjA=
 
-"@aics/aics-react-labkey@4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@aics/aics-react-labkey/-/aics-react-labkey-4.6.1.tgz#f556cb41f92278529cc73dad70b183785c0f884b"
-  integrity sha512-7BdaxfHKIJ+mjkZxcGAxzmzSTTJq8ue4nPD/ptFN6mqoK98GTB2vV3STQaUGdTvz7ECNaDMkmfYj3r0iWXeUqw==
+"@aics/aics-react-labkey@4.1.6":
+  version "4.1.6"
+  resolved "https://registry.yarnpkg.com/@aics/aics-react-labkey/-/aics-react-labkey-4.1.6.tgz#2ce8470095d72577d98347ab074720a9d18b0f16"
+  integrity sha512-BXlwz+cZ5oLUsyllLFqGi0iZZub1gB5PwQUJ4K79jvxg0Irrm/ODu8+r4wtzk687/360MGBO9NmYTLW3GMEEBw==
   dependencies:
     loaders.css "^0.1.2"
-    prop-types "^15.7.2"
-    react-block-ui "^1.3.2"
-    react-bootstrap "^0.32.4"
+    prop-types "^15.6.1"
+    react-block-ui "^1.1.1"
+    react-bootstrap "^0.32.1"
     react-loaders "^3.0.1"
-    react-select "^1.3.0"
+    react-select "^1.2.1"
 
 "@ant-design/colors@^3.1.0":
   version "3.1.0"
@@ -1054,7 +1054,7 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
-"@types/rimraf@^3.0.0":
+"@types/rimraf@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@types/rimraf/-/rimraf-3.0.0.tgz#b9d03f090ece263671898d57bb7bb007023ac19f"
   integrity sha512-7WhJ0MdpFgYQPXlF4Dx+DhgvlPCfz/x5mHaeDQAKhcenvQP1KCpLQ18JklAqeGMYSAT2PxLpzd0g2/HE7fj7hQ==
@@ -3824,6 +3824,15 @@ electron-builder@22.7.0:
     update-notifier "^4.1.0"
     yargs "^15.3.1"
 
+electron-devtools-installer@3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/electron-devtools-installer/-/electron-devtools-installer-3.1.1.tgz#7b56c8c86475c5e4e10de6917d150c53c9ceb55e"
+  integrity sha512-g2D4J6APbpsiIcnLkFMyKZ6bOpEJ0Ltcc2m66F7oKUymyGAt628OWeU9nRZoh1cNmUs/a6Cls2UfOmsZtE496Q==
+  dependencies:
+    rimraf "^3.0.2"
+    semver "^7.2.1"
+    unzip-crx-3 "^0.2.0"
+
 electron-devtools-installer@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/electron-devtools-installer/-/electron-devtools-installer-2.2.4.tgz#261a50337e37121d338b966f07922eb4939a8763"
@@ -3833,15 +3842,6 @@ electron-devtools-installer@^2.2.4:
     cross-unzip "0.0.2"
     rimraf "^2.5.2"
     semver "^5.3.0"
-
-electron-devtools-installer@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/electron-devtools-installer/-/electron-devtools-installer-3.1.1.tgz#7b56c8c86475c5e4e10de6917d150c53c9ceb55e"
-  integrity sha512-g2D4J6APbpsiIcnLkFMyKZ6bOpEJ0Ltcc2m66F7oKUymyGAt628OWeU9nRZoh1cNmUs/a6Cls2UfOmsZtE496Q==
-  dependencies:
-    rimraf "^3.0.2"
-    semver "^7.2.1"
-    unzip-crx-3 "^0.2.0"
 
 electron-download@^3.0.1:
   version "3.3.0"
@@ -9691,14 +9691,14 @@ rc@^1.1.2, rc@^1.2.7, rc@^1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-block-ui@^1.3.2:
+react-block-ui@^1.1.1:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/react-block-ui/-/react-block-ui-1.3.3.tgz#42568498ec39951fde392a3704bd1f1bb79b77e9"
   integrity sha512-oOYMvImtq7UgK3LfyfhtFHkNLhbij2Fj8ldRwmaDotLqacu22jKwRcJxG+bfBLZzm13tFIASKVu24QG8JxwUvg==
   dependencies:
     prop-types "^15.6.2"
 
-react-bootstrap@^0.32.4:
+react-bootstrap@^0.32.1:
   version "0.32.4"
   resolved "https://registry.yarnpkg.com/react-bootstrap/-/react-bootstrap-0.32.4.tgz#8efc4cbfc4807215d75b7639bee0d324c8d740d1"
   integrity sha512-xj+JfaPOvnvr3ow0aHC7Y3HaBKZNR1mm361hVxVzVX3fcdJNIrfiodbQ0m9nLBpNxiKG6FTU2lq/SbTDYT2vew==
@@ -9810,7 +9810,7 @@ react-redux@7.1.1:
     prop-types "^15.7.2"
     react-is "^16.9.0"
 
-react-select@^1.3.0:
+react-select@^1.2.1:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-1.3.0.tgz#1828ad5bf7f3e42a835c7e2d8cb13b5c20714876"
   integrity sha512-g/QAU1HZrzSfxkwMAo/wzi6/ezdWye302RGZevsATec07hI/iSxcpB1hejFIp7V63DJ8mwuign6KmB3VjdlinQ==
@@ -11923,6 +11923,11 @@ utils-merge@1.0.1:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
+uuid@8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.0.tgz#ab738085ca22dc9a8c92725e459b1d507df5d6ea"
+  integrity sha512-fX6Z5o4m6XsXBdli9g7DtWgAx+osMsRRZFKma1mIUsLCz6vRvv+pz5VNbyu9UEDzpMWulZfvpgb/cmDXVulYFQ==
+
 uuid@^3.0.1:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
@@ -11937,11 +11942,6 @@ uuid@^7.0.2:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.3.tgz#c5c9f2c8cf25dc0a372c4df1441c41f5bd0c680b"
   integrity sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
-
-uuid@^8.3.0:
-  version "8.3.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.0.tgz#ab738085ca22dc9a8c92725e459b1d507df5d6ea"
-  integrity sha512-fX6Z5o4m6XsXBdli9g7DtWgAx+osMsRRZFKma1mIUsLCz6vRvv+pz5VNbyu9UEDzpMWulZfvpgb/cmDXVulYFQ==
 
 v8-compile-cache@^2.0.2:
   version "2.0.3"

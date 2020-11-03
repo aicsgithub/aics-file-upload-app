@@ -47,13 +47,13 @@
   "author": "Lisa Harrylock",
   "license": "ISC",
   "dependencies": {
-    "@aics/aics-react-labkey": "4.6.1",
+    "@aics/aics-react-labkey": "4.1.6",
     "@ant-design/icons": "~1.1.0",
     "antd": "3.26.0",
     "axios": "0.19.0",
     "chai-as-promised": "7.1.1",
     "core-js": "2.6.5",
-    "electron-devtools-installer": "^3.1.1",
+    "electron-devtools-installer": "3.1.1",
     "electron-store": "5.2.0",
     "electron-updater": "4.2.2",
     "humps": "2.0.1",
@@ -73,7 +73,7 @@
     "source-map-support": "0.5.11",
     "ts-import-plugin": "1.5.5",
     "ts-node": "8.2.0",
-    "uuid": "^8.3.0"
+    "uuid": "8.3.0"
   },
   "devDependencies": {
     "@types/chai": "4.1.7",
@@ -92,7 +92,7 @@
     "@types/react-data-grid": "4.0.5",
     "@types/react-dom": "16.9.0",
     "@types/react-redux": "7.1.5",
-    "@types/rimraf": "^3.0.0",
+    "@types/rimraf": "3.0.0",
     "@types/semver": "6.0.0",
     "@types/sinon": "^9.0.5",
     "@types/sinon-chai": "^3.2.4",
