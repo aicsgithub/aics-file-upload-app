@@ -1,5 +1,6 @@
 import { Icon, Modal } from "antd";
 import * as classNames from "classnames";
+import * as moment from "moment";
 import { useState } from "react";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -28,6 +29,10 @@ const iconPropsLookup = {
   },
 };
 
+function formatDate(date: Date): string {
+  return moment(date).format("MM/DD/YYYY [at] HH:mm A");
+}
+
 export default function NotificationViewer() {
   const events = useSelector(getEvents);
   const [showEvents, setShowEvents] = useState(false);
@@ -37,14 +42,14 @@ export default function NotificationViewer() {
 
   const eventList = reversedEvents.map((event) => (
     <div
-      key={event.date.toISOString()}
+      key={event.date.toLocaleString()}
       className={styles.notificationContainer}
     >
       <div className={styles.iconContainer}>
         <Icon theme="filled" {...iconPropsLookup[event.type]} />
       </div>
       <div className={styles.message}>{event.message}</div>
-      <div className={styles.timestamp}>{event.date.toLocaleString()}</div>
+      <div className={styles.timestamp}>{formatDate(event.date)}</div>
     </div>
   ));
 
