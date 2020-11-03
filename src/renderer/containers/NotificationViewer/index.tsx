@@ -27,6 +27,10 @@ const iconPropsLookup = {
     type: "info-circle",
     className: classNames(styles.icon, styles.info),
   },
+  [AlertType.DRAFT_SAVED]: {
+    type: "save",
+    className: classNames(styles.icon, styles.save),
+  },
 };
 
 function formatDate(date: Date): string {

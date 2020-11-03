@@ -131,6 +131,7 @@ export enum AlertType {
   SUCCESS,
   ERROR,
   INFO,
+  DRAFT_SAVED,
 }
 
 export enum AsyncRequest {
