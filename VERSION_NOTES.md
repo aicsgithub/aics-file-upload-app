@@ -1,4 +1,10 @@
 # Version Notes
+## 1.0.53 (11/4/20)
+- Bugfix: self signed the Windows artifact which prevents antivirus software from quarantining the app
+- Bugfix: fixed issue where app goes blank when barcode associated with an imaging session gets selected
+- Bugfix: Fixed issue with switching environments
+- Feature: Improved experience for retrying uploads
+
 ## 1.0.52 (10/4/20)
 - Bugfix: Improve auto-connection behavior of upload status tracking
 
