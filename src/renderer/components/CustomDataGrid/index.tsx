@@ -200,10 +200,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const rowGetter = (idx: number) => sortedRows[idx];
     const massEditRowGetter = (idx: number) => [this.state.massEditRow][idx];
 
-    const massEditParentClassName = this.state.showMassEditShadow
-      ? styles.massEdit
-      : null;
-
     return (
       <>
         {this.state.showMassEditGrid && (
@@ -211,7 +207,11 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             {this.state.showMassEditShadow && (
               <div className={styles.shadowBox} />
             )}
-            <div className={massEditParentClassName}>
+            <div
+              className={classNames({
+                [styles.massEdit]: this.state.showMassEditShadow,
+              })}
+            >
               <div className={styles.whiteText}>
                 <span>Mass Edit</span>
                 <div>
