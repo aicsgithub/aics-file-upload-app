@@ -1,0 +1,54 @@
+:global(.notification-modal) :global(.ant-modal-body) {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+:global(.notification-modal) :global(.ant-modal) {
+  position: absolute;
+  top: 50px;
+  right: 5px;
+}
+
+.icon {
+  font-size: 30px;
+}
+
+.notification-bell {
+  margin: 5px;
+}
+
+.warn {
+  color: var(--warning);
+}
+
+.success {
+  color: var(--success);
+}
+
+.error {
+  color: var(--error);
+}
+
+.info {
+  color: var(--info);
+}
+
+.notification-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.icon-container {
+  width: 30px;
+}
+
+.message {
+  width: 220px;
+}
+
+.timestamp {
+  width: 180px;
+  font-size: 16px;
+}

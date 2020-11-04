@@ -72,6 +72,7 @@ import {
 import AddCustomData from "../AddCustomData";
 import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
+import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
 import SearchFiles from "../SearchFiles";
 import SelectStorageIntent from "../SelectStorageIntent";
@@ -356,6 +357,7 @@ export default function App() {
             onChange={(view) => dispatch(selectView(view))}
             onEdit={onTabChange}
             type="editable-card"
+            tabBarExtraContent={<NotificationViewer />}
           >
             <TabPane
               className={styles.tabContent}
