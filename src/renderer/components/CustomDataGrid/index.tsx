@@ -536,7 +536,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   };
 
   private getMassEditColumns = (): MassEditColumn[] => {
-    if (!this.props.template) {
+    if (!this.props.template || !this.props.template.annotations) {
       return [];
     }
     const numberFiles: MassEditColumn = {
