@@ -5,7 +5,7 @@ import { useState } from "react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { getEvents } from "../../state/feedback/selectors";
+import { getEventsByNewest } from "../../state/feedback/selectors";
 import { AlertType } from "../../state/types";
 
 const styles = require("./styles.pcss");
@@ -34,13 +34,10 @@ function formatDate(date: Date): string {
 }
 
 export default function NotificationViewer() {
-  const events = useSelector(getEvents);
+  const events = useSelector(getEventsByNewest);
   const [showEvents, setShowEvents] = useState(false);
 
-  // Show newest events first
-  const reversedEvents = [...events].reverse();
-
-  const eventList = reversedEvents.map((event) => (
+  const eventList = events.map((event) => (
     <div
       key={event.date.toISOString()}
       className={styles.notificationContainer}

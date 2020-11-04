@@ -35,3 +35,8 @@ export const getRecentEvent = createSelector(
   [getEvents],
   (events: AppEvent[]) => last(events)
 );
+
+export const getEventsByNewest = createSelector(
+  [getEvents],
+  (events: AppEvent[]) => [...events].reverse()
+);
