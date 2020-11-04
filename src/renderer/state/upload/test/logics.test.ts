@@ -2068,6 +2068,8 @@ describe("Upload logics", () => {
         jobId: "replacement",
         serviceFields: {
           files: [],
+          lastModified: {},
+          md5: {},
           originalJobId: "original",
           type: "upload",
           uploadDirectory: "/foo",
@@ -2079,6 +2081,8 @@ describe("Upload logics", () => {
         jobId: "original",
         serviceFields: {
           files: [],
+          lastModified: {},
+          md5: {},
           replacementJobIds: ["replacement"],
           type: "upload",
           uploadDirectory: "/foo",

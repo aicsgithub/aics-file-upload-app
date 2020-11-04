@@ -33,12 +33,15 @@ export class FSSClient extends HttpCacheClient {
 
   public async startUpload(
     uploads: Uploads,
-    uploadJobName: string
+    uploadJobName: string,
+    lastModified: { [originalPath: string]: Date }
   ): Promise<StartUploadResponse> {
     const requestBody = {
       jobName: uploadJobName,
       serviceFields: {
         files: values(uploads),
+        lastModified,
+        md5: {},
         type: UPLOAD_TYPE,
       },
     };

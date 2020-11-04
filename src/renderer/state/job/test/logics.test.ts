@@ -65,6 +65,8 @@ describe("Job logics", () => {
               file: { fileType: "image", originalPath: "test_path" },
             },
           ],
+          lastModified: {},
+          md5: {},
           type: "upload",
           uploadDirectory: "/test",
         },

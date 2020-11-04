@@ -525,6 +525,8 @@ export const mockWorkingUploadJob: JSSJob<UploadServiceFields> = {
   modified: new Date(),
   serviceFields: {
     files: [],
+    lastModified: {},
+    md5: {},
     type: "upload",
     uploadDirectory: "/tmp/fss/asdf",
   },
@@ -564,6 +566,8 @@ export const mockFailedUploadJob: JSSJob<UploadServiceFields> = {
         },
       },
     ],
+    lastModified: {},
+    md5: {},
     type: "upload",
     uploadDirectory: "/foo",
   },

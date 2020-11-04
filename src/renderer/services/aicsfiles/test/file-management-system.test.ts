@@ -6,6 +6,7 @@ import {
   createSandbox,
   createStubInstance,
   match,
+  SinonStub,
   SinonStubbedInstance,
   stub,
 } from "sinon";
@@ -53,6 +54,11 @@ describe("FileManagementSystem", () => {
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
   let labkeyClient: SinonStubbedInstance<LabkeyClient>;
   let mmsClient: SinonStubbedInstance<MMSClient>;
+  let fs: {
+    access: SinonStub;
+    exists: SinonStub;
+    stat: SinonStub;
+  };
 
   beforeEach(() => {
     fssClient = createStubInstance(FSSClient);
@@ -63,7 +69,13 @@ describe("FileManagementSystem", () => {
     const logger = Logger.get("test");
     sandbox.replace(logger, "error", stub());
     uploader = createStubInstance(Uploader);
+    fs = {
+      access: stub().resolves(),
+      exists: stub().resolves(true),
+      stat: stub().resolves({ size: 100 }),
+    };
     fms = new FileManagementSystem({
+      fs,
       fssClient: (fssClient as any) as FSSClient,
       getCopyWorker: getCopyWorkerStub,
       jobStatusClient: (jobStatusClient as any) as JobStatusClient,

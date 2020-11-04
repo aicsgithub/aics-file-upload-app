@@ -56,6 +56,8 @@ describe("<UploadProgress/>", () => {
             ...row,
             serviceFields: {
               files: [],
+              lastModified: {},
+              md5: {},
               replacementJobId: "abc",
               type: "upload",
               uploadDirectory: "/tmp",
