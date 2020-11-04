@@ -251,6 +251,10 @@ export class Uploader {
     for (const fullpath of fullpaths) {
       try {
         const stats = await this.fs.stat(fullpath);
+        // Using a hash for the key because the file path and file name may contain dots which makes the JSS endpoint
+        // for updating a job read the request body as a patch update to property nested within another property.
+        // For example, if my request body contains the key test.txt: "foo" within service fields, by design, JSS will
+        // try to update the property "txt" within "test": { test: { txt: "foo" } }
         lastModified[hash.MD5(fullpath)] = stats.mtime;
       } catch (e) {
         this.logger.warn(
