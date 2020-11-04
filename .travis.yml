@@ -1,6 +1,7 @@
 language: node_js
 node_js: "12.0.0"
 
+# These $encrypted variables get set automatically in the CI environment when encrypting files via the Travis CLI
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl aes-256-cbc -K $encrypted_4631d445613d_key -iv $encrypted_4631d445613d_iv -in Certificates.p12.enc -out Certificates.p12 -d; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then openssl aes-256-cbc -K $encrypted_922147baf725_key -iv $encrypted_922147baf725_iv -in aics.pfx.enc -out aics.pfx -d; fi
@@ -41,7 +42,7 @@ script:
           -v ~/.cache/electron:/root/.cache/electron \
           -v ~/.cache/electron-builder:/root/.cache/electron-builder \
           electronuserland/builder:wine \
-          /bin/bash -c "CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist --linux --win"
+          /bin/bash -c "CSC_LINK=${CSC_LINK} yarn dist --linux --win"
     else
       CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
     fi
