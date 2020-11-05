@@ -34,11 +34,11 @@ import {
   getUploadRowKeyFromUploadTableRow,
 } from "../../state/upload/constants";
 import {
+  MassEditRow,
   RemoveUploadsAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
-  MassEditRow,
   UploadJobTableRow,
 } from "../../state/upload/types";
 import { convertToArray, getTextWidth, onDrop } from "../../util";
@@ -630,17 +630,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       massEditNumberOfFiles: this.state.selectedRows.length,
     };
     columns.forEach((column) => {
-      switch (column.type) {
-        case ColumnType.DROPDOWN:
-        case ColumnType.LOOKUP:
-          emptyMassEditRow[column["name"]] = [];
-          break;
-        case ColumnType.BOOLEAN:
-          emptyMassEditRow[column["name"]] = [false];
-          break;
-        default:
-          emptyMassEditRow[column["name"]] = null;
-      }
+      emptyMassEditRow[column["name"]] =
+        column.type === ColumnType.BOOLEAN ? [false] : [];
     });
     this.setState({
       showMassEditGrid: true,
