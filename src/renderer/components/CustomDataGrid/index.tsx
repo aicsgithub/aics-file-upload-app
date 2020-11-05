@@ -663,9 +663,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         updateRow[key] = massEditRow[key];
       }
     });
-    this.state.selectedRows.forEach((rowKey) => {
-      this.props.updateUploadRows([rowKey], updateRow);
-    });
+    this.props.updateUploadRows(this.state.selectedRows, updateRow);
     this.setState({ showMassEditGrid: false });
   };
 
