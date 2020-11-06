@@ -3,7 +3,6 @@
   "version": "1.0.53",
   "build": {
     "appId": "org.aics.alleninstitute.fileupload",
-    "artifactName": "${productName}-${version}.${env.TRAVIS_BUILD_NUMBER}.${ext}",
     "files": [
       "dist/main/*",
       "dist/renderer/*"
@@ -27,10 +26,10 @@
     "compile-stage": "cross-env ELECTRON_WEBPACK_APP_LIMS_HOST=\"stg-aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 yarn compile",
     "compile-prod": "cross-env ELECTRON_WEBPACK_APP_LIMS_HOST=\"aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 NODE_ENV=production yarn compile",
     "build-executable": "yarn compile && cross-env TRAVIS_BUILD_NUMBER=\"222\" yarn electron-builder",
-    "dist2": "cross-env TRAVIS_BUILD_NUMBER=\"222\" yarn electron-builder",
     "dist": "electron-builder -p always",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps",
+    "postversion": "git push && git push --tags",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "madge": "madge --warning --circular --ts-config tsconfig.base.json --webpack-config webpack/webpack.render.additions.js --extensions js,jsx,ts,tsx  src/"
   },

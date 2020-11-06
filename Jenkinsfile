@@ -49,7 +49,7 @@ pipeline {
                 sh "./gradlew -i compile"
             }
         }
-        stage ("version") {
+        stage ("version - release") {
             when {
                 expression {
                     return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"
@@ -57,8 +57,18 @@ pipeline {
             }
             steps {
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
-                sh "git push -u origin master && git push --tags"
             }
+        }
+        stage ("version - snapshot") {
+        when {
+            expression {
+                return env.INCREMENT_VERSION == "false"
+            }
+            steps {
+                sh "./gradlew -i createSnapshot"
+            }
+        }
+
         }
     }
     post {
