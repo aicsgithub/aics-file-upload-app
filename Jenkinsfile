@@ -9,7 +9,7 @@ pipeline {
         }
     }
      triggers {
-        pollSCM("H */4 * * 1-5", ignorePostCommitHooks: true)
+        pollSCM(scmpoll_spec: "H */4 * * 1-5", ignorePostCommitHooks: true)
     }
     environment {
         PATH = "/home/jenkins/.local/bin:$PATH"
