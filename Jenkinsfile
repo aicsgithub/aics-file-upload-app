@@ -25,7 +25,7 @@ pipeline {
     stages {
         stage ("initialize build") {
            when {
-                not { expression { return params.INCREMENT_VERSION }}
+                expression { return !params.INCREMENT_VERSION && !gitAuthor().toLowerCase().contains("jenkins") }
            }
             steps {
                 this.notifyBB("INPROGRESS")
@@ -33,25 +33,38 @@ pipeline {
                 echo "${BRANCH_NAME}"
                 echo "increment version: ${env.INCREMENT_VERSION}"
                 echo "BUILD_CAUSE: " + "${env.BUILD_CAUSE}"
+                echo "gitAuthor: " + "${env.gitAuthor}"
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
         }
         stage ("lint") {
+            when {
+                expression { return !params.INCREMENT_VERSION && !gitAuthor().toLowerCase().contains("jenkins") }
+            }
             steps {
                 sh "./gradlew -i yarn lint"
             }
         }
         stage("circular-dependencies") {
+            when {
+                expression { return !params.INCREMENT_VERSION && !gitAuthor().toLowerCase().contains("jenkins") }
+            }
             steps {
                 sh "./gradlew -i detectCircularDeps"
             }
         }
         stage ("test") {
+            when {
+                expression { return !params.INCREMENT_VERSION && !gitAuthor().toLowerCase().contains("jenkins") }
+            }
             steps {
                 sh "./gradlew -i test"
             }
         }
         stage ("build") {
+            when {
+                expression { return !params.INCREMENT_VERSION && !gitAuthor().toLowerCase().contains("jenkins") }
+            }
             steps {
                 sh "./gradlew -i compile"
             }
@@ -59,7 +72,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master" &&  && !buildingTag()
+                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"  && !gitAuthor().toLowerCase().contains("jenkins")
                 }
             }
             steps {
@@ -71,7 +84,7 @@ pipeline {
         stage ("version - snapshot") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "false" && !buildingTag()
+                    return env.INCREMENT_VERSION == "false" && !gitAuthor().toLowerCase().contains("jenkins")
                 }
             }
             steps {
