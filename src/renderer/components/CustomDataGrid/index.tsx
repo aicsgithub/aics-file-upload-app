@@ -13,9 +13,9 @@ import {
   DATE_FORMAT,
   DATETIME_FORMAT,
   LIST_DELIMITER_JOIN,
+  MAIN_FONT_WIDTH,
   NOTES_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
-  MAIN_FONT_WIDTH,
 } from "../../constants";
 import {
   AnnotationType,
@@ -34,6 +34,7 @@ import {
   getUploadRowKeyFromUploadTableRow,
 } from "../../state/upload/constants";
 import {
+  MassEditRow,
   RemoveUploadsAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
@@ -88,13 +89,27 @@ interface Props {
 
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
+  massEditRow: MassEditRow;
   selectedRows: string[];
+  showMassEditGrid: boolean;
+  showMassEditShadow: boolean;
   sortColumn?: SortableColumns;
   sortDirection?: SortDirections;
 }
 
 interface UploadJobColumn
   extends AdazzleReactDataGrid.Column<UploadJobTableRow> {
+  allowMultipleValues?: boolean;
+  dropdownValues?: string[];
+  onChange?: (
+    value: any,
+    key: keyof UploadJobTableRow,
+    row: UploadJobTableRow
+  ) => void;
+  type?: ColumnType;
+}
+
+interface MassEditColumn extends AdazzleReactDataGrid.Column<MassEditRow> {
   allowMultipleValues?: boolean;
   dropdownValues?: string[];
   onChange?: (
@@ -166,7 +181,10 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   constructor(props: Props) {
     super(props);
     this.state = {
+      massEditRow: { massEditNumberOfFiles: 0 },
       selectedRows: [],
+      showMassEditGrid: false,
+      showMassEditShadow: true,
     };
   }
 
@@ -180,9 +198,65 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
+    const massEditRowGetter = (idx: number) => [this.state.massEditRow][idx];
 
     return (
       <>
+        {this.state.showMassEditGrid && (
+          <>
+            {this.state.showMassEditShadow && (
+              <div className={styles.shadowBox} />
+            )}
+            <div
+              className={classNames({
+                [styles.massEdit]: this.state.showMassEditShadow,
+              })}
+            >
+              <div className={styles.whiteText}>
+                <span>Mass Edit</span>
+                <div>
+                  Make edits below and all edits will be applied to selected
+                  rows. Click Apply to complete changes.
+                </div>
+              </div>
+              <div className={classNames(styles.dataGrid, className)}>
+                <ReactDataGrid
+                  cellNavigationMode="changeRow"
+                  columns={this.getMassEditColumns()}
+                  enableCellSelect={true}
+                  enableDragAndDrop={true}
+                  minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
+                  onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
+                  rowGetter={massEditRowGetter}
+                  rowsCount={1}
+                  rowSelection={{
+                    showCheckbox: false,
+                  }}
+                />
+              </div>
+              <div className={styles.alignCenter}>
+                <Button
+                  className={styles.massEditButton}
+                  type="danger"
+                  size="large"
+                  onClick={() => {
+                    this.setState({ showMassEditGrid: false });
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className={styles.massEditButton}
+                  type="primary"
+                  size="large"
+                  onClick={() => this.updateRowsWithMassEditInfo()}
+                >
+                  Apply
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
         <div className={styles.buttonRow}>
           <Tooltip title="Undo" mouseLeaveDelay={0}>
             <Button
@@ -199,6 +273,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               onClick={redo}
               disabled={!canRedo}
               icon="redo"
+              type="link"
+            />
+          </Tooltip>
+          <Tooltip title="Edit" mouseLeaveDelay={0}>
+            <Button
+              onClick={() =>
+                this.openMassEditGrid(sortedRows, this.getColumns())
+              }
+              disabled={isEmpty(selectedRows)}
+              icon="edit"
               type="link"
             />
           </Tooltip>
@@ -253,6 +337,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     value: any = [],
     childElement?: React.ReactNode | React.ReactNodeArray,
     required?: boolean,
+    forMassEditRows?: boolean,
     className?: string,
     contextMenuItems?: Array<MenuItemConstructorOptions | MenuItem>
   ): React.ReactElement => {
@@ -261,13 +346,18 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     // If filled out but there is additional issues like misformatted lists (e.g. "a, b, c,")
     // then show a error related to that.
     const { validationErrors } = this.props;
-    const showFieldIsRequiredError =
-      required && !this.props.fileToAnnotationHasValueMap[row.file][label];
     let error;
-    if (showFieldIsRequiredError) {
-      error = `${label} is required`;
-    } else if (validationErrors[row.key] && validationErrors[row.key][label]) {
-      error = validationErrors[row.key][label];
+    if (!forMassEditRows) {
+      const showFieldIsRequiredError =
+        required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+      if (showFieldIsRequiredError) {
+        error = `${label} is required`;
+      } else if (
+        validationErrors[row.key] &&
+        validationErrors[row.key][label]
+      ) {
+        error = validationErrors[row.key][label];
+      }
     }
 
     return (
@@ -338,20 +428,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     ];
   };
 
-  private getColumns = (): UploadJobColumn[] => {
-    if (!this.props.uploads.length) {
+  private getSchemaColumns = (forMassEditRows = false): UploadJobColumn[] => {
+    const { annotationTypes, editable, template } = this.props;
+    if (!template || !template.annotations) {
       return [];
     }
-    let basicColumns;
-    if (!this.props.associateByWorkflow) {
-      basicColumns = this.uploadColumns(this.wellUploadColumns);
-    } else {
-      basicColumns = this.uploadColumns(this.workflowUploadColumns);
-    }
-    if (!this.props.template) {
-      return basicColumns;
-    }
-    const schemaColumns = this.props.template.annotations.map(
+    return template.annotations.map(
       (templateAnnotation: TemplateAnnotation) => {
         const {
           name,
@@ -359,7 +441,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           annotationOptions,
           required,
         } = templateAnnotation;
-        const annotationType = this.props.annotationTypes.find(
+        const annotationType = annotationTypes.find(
           (a) => a.annotationTypeId === annotationTypeId
         );
         if (!annotationType) {
@@ -377,7 +459,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         const column: UploadJobColumn = {
           cellClass: styles.formatterContainer,
           dropdownValues: annotationOptions,
-          editable: this.props.editable,
+          editable,
           key: name,
           name,
           resizable: true,
@@ -386,7 +468,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
 
         // dates are handled completely differently from other data types because right now the best
         // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
-        if (this.props.editable) {
+        if (editable) {
           column.editor = formatterNeedsModal ? DatesEditor : Editor;
         }
 
@@ -422,13 +504,57 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               })
               .join(LIST_DELIMITER_JOIN);
             const childEl = <div className={styles.cell}>{formattedValue}</div>;
-            return this.renderFormat(row, name, value, childEl, required);
+            return this.renderFormat(
+              row,
+              name,
+              value,
+              childEl,
+              required,
+              forMassEditRows
+            );
           };
         }
         return column;
       }
     );
+  };
+
+  private getColumns = (): UploadJobColumn[] => {
+    if (!this.props.uploads.length) {
+      return [];
+    }
+    let basicColumns;
+    if (!this.props.associateByWorkflow) {
+      basicColumns = this.uploadColumns(this.wellUploadColumns);
+    } else {
+      basicColumns = this.uploadColumns(this.workflowUploadColumns);
+    }
+    if (!this.props.template) {
+      return basicColumns;
+    }
+    const schemaColumns = this.getSchemaColumns();
     return basicColumns.concat(schemaColumns);
+  };
+
+  private getMassEditColumns = (): MassEditColumn[] => {
+    if (!this.props.template || !this.props.template.annotations) {
+      return [];
+    }
+    const numberFiles: MassEditColumn = {
+      key: "massEditNumberOfFiles",
+      name: "# Files Selected",
+      editable: false,
+      formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
+        this.renderFormat(row, "Number of Files Selected", value),
+      resizable: true,
+      width: DEFAULT_COLUMN_WIDTH,
+      type: ColumnType.NUMBER,
+    };
+    const schemaColumns = this.getSchemaColumns(true);
+    const massEditSchemaColumns = schemaColumns.map(
+      (column) => column as MassEditColumn
+    );
+    return [numberFiles].concat(massEditSchemaColumns);
   };
 
   // This method currently only supports file and wellLabels due to typescript constraints on allowing
@@ -462,7 +588,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         `${b[sortColumn]}`.localeCompare(`${a[sortColumn]}`)
       );
     }
-    return this.props.uploads;
+    return rows;
   };
 
   private selectRows = (
@@ -493,6 +619,52 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       }
       this.props.updateUploadRows(uploadKeys, updated);
     }
+  };
+
+  private openMassEditGrid = (
+    sortedRows: Array<UploadJobTableRow>,
+    columns: UploadJobColumn[]
+  ) => {
+    // Initialize an empty grid row with the same columns as the standard editing grid
+    const emptyMassEditRow: MassEditRow = {
+      massEditNumberOfFiles: this.state.selectedRows.length,
+    };
+    columns.forEach((column) => {
+      emptyMassEditRow[column["name"]] =
+        column.type === ColumnType.BOOLEAN ? [false] : [];
+    });
+    this.setState({
+      showMassEditGrid: true,
+      massEditRow: emptyMassEditRow,
+    });
+  };
+
+  private updateMassEditRows = (
+    e: AdazzleReactDataGrid.GridRowsUpdatedEvent<MassEditRow>
+  ) => {
+    const { updated } = e;
+    if (updated) {
+      this.setState({
+        massEditRow: { ...this.state.massEditRow, ...e.updated },
+        showMassEditShadow: false,
+      });
+    }
+  };
+
+  private updateRowsWithMassEditInfo = () => {
+    const massEditRow = this.state.massEditRow;
+    const updateRow: Partial<UploadMetadata> = {};
+    Object.keys(massEditRow).map((key) => {
+      if (Array.isArray(massEditRow[key])) {
+        if (massEditRow[key].length > 0) {
+          updateRow[key] = massEditRow[key];
+        }
+      } else if (massEditRow[key] !== null) {
+        updateRow[key] = massEditRow[key];
+      }
+    });
+    this.props.updateUploadRows(this.state.selectedRows, updateRow);
+    this.setState({ showMassEditGrid: false });
   };
 
   private removeSelectedRows = (): void => {

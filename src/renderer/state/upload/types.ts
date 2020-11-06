@@ -97,6 +97,12 @@ export interface UploadJobTableRow extends UploadRowId {
   [WORKFLOW_ANNOTATION_NAME]: string[];
 }
 
+export interface MassEditRow {
+  massEditNumberOfFiles: number;
+  // custom annotations
+  [key: string]: any;
+}
+
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {
   payload: {
     rowIds: UploadRowId[];
