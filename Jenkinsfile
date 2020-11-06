@@ -24,9 +24,12 @@ pipeline {
     }
     stages {
         stage ("initialize build") {
+           when {
+                not { expression { return params.INCREMENT_VERSION }}
+           }
             steps {
                 this.notifyBB("INPROGRESS")
-                echo "BUILDTYPE: " + ( params.PROMOTE_ARTIFACT ? "Promote Image" : "Build, Publish and Tag")
+                echo "BUILDTYPE: " + ( params.INCREMENT_VERSION ? "Create Release" : "Build, Tag, and Create Snapshot1")
                 echo "${BRANCH_NAME}"
                 echo "increment version: ${env.INCREMENT_VERSION}"
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
@@ -55,7 +58,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"
+                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master" &&  && !buildingTag()
                 }
             }
             steps {
@@ -67,7 +70,7 @@ pipeline {
         stage ("version - snapshot") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "false"
+                    return env.INCREMENT_VERSION == "false" && !buildingTag()
                 }
             }
             steps {
