@@ -60,15 +60,14 @@ pipeline {
             }
         }
         stage ("version - snapshot") {
-        when {
-            expression {
-                return env.INCREMENT_VERSION == "false"
+            when {
+                expression {
+                    return env.INCREMENT_VERSION == "false"
+                }
             }
             steps {
                 sh "./gradlew -i createSnapshot"
             }
-        }
-
         }
     }
     post {
