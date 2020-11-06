@@ -22,7 +22,7 @@ pipeline {
     stages {
         stage ("initialize build") {
            when {
-                expression { return !params.INCREMENT_VERSION && !env.BUILD_CAUSE().toLowerCase().contains("jenkins") }
+                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
            }
             steps {
                 this.notifyBB("INPROGRESS")
@@ -36,7 +36,7 @@ pipeline {
         }
         stage ("lint") {
             when {
-                expression { return !params.INCREMENT_VERSION && !env.BUILD_CAUSE().toLowerCase().contains("jenkins") }
+                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
             }
             steps {
                 sh "./gradlew -i yarn lint"
@@ -44,7 +44,7 @@ pipeline {
         }
         stage("circular-dependencies") {
             when {
-                expression { return !params.INCREMENT_VERSION && !env.BUILD_CAUSE().toLowerCase().contains("jenkins") }
+                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
             }
             steps {
                 sh "./gradlew -i detectCircularDeps"
@@ -52,7 +52,7 @@ pipeline {
         }
         stage ("test") {
             when {
-                expression { return !params.INCREMENT_VERSION && !env.BUILD_CAUSE().toLowerCase().contains("jenkins") }
+                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
             }
             steps {
                 sh "./gradlew -i test"
@@ -60,7 +60,7 @@ pipeline {
         }
         stage ("build") {
             when {
-                expression { return !params.INCREMENT_VERSION && !env.BUILD_CAUSE().toLowerCase().contains("jenkins") }
+                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
             }
             steps {
                 sh "./gradlew -i compile"
@@ -69,7 +69,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"  && !env.BUILD_CAUSE().toLowerCase().contains("jenkins")
+                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"  && env.BUILD_CAUSE != "jenkins"
                 }
             }
             steps {
@@ -81,7 +81,7 @@ pipeline {
         stage ("version - snapshot") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "false" && !env.BUILD_CAUSE().toLowerCase().contains("jenkins")
+                    return env.INCREMENT_VERSION == "false" && env.BUILD_CAUSE != "jenkins"
                 }
             }
             steps {
