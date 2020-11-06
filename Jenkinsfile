@@ -8,6 +8,9 @@ pipeline {
             label "electron"
         }
     }
+     triggers {
+        pollSCM("H */4 * * 1-5", ignorePostCommitHooks: true)
+    }
     environment {
         PATH = "/home/jenkins/.local/bin:$PATH"
         REQUESTS_CA_BUNDLE = "/etc/ssl/certs"
