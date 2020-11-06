@@ -56,6 +56,7 @@ pipeline {
                 }
             }
             steps {
+                sh "git checkout ${BRANCH_NAME}"
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
             }
         }
@@ -66,6 +67,7 @@ pipeline {
                 }
             }
             steps {
+                sh "git checkout ${BRANCH_NAME}"
                 sh "./gradlew -i createSnapshot"
             }
         }
