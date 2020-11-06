@@ -69,6 +69,7 @@ pipeline {
             steps {
                 sh "git checkout ${BRANCH_NAME}"
                 sh "./gradlew -i createSnapshot"
+                sh "git push -u origin ${BRANCH_NAME} && git push --tags"
             }
         }
     }

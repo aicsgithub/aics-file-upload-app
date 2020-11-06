@@ -29,7 +29,6 @@
     "dist": "electron-builder -p always",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps",
-    "postversion": "git push && git push --tags",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "madge": "madge --warning --circular --ts-config tsconfig.base.json --webpack-config webpack/webpack.render.additions.js --extensions js,jsx,ts,tsx  src/"
   },
