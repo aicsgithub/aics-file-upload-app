@@ -22,21 +22,21 @@ pipeline {
     stages {
         stage ("initialize build") {
            when {
-                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
+                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
            }
             steps {
                 this.notifyBB("INPROGRESS")
                 echo "BUILDTYPE: " + ( params.INCREMENT_VERSION ? "Create Release" : "Build, Tag, and Create Snapshot1")
                 echo "${BRANCH_NAME}"
                 echo "increment version: ${env.INCREMENT_VERSION}"
-                echo "JENKINS_STARTED_BY: " + "${env.JENKINS_STARTED_BY}"
+                echo "gitauthor: " + "${gitAuthor()}"
 
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
         }
         stage ("lint") {
             when {
-                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
+                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
             }
             steps {
                 sh "./gradlew -i yarn lint"
@@ -44,7 +44,7 @@ pipeline {
         }
         stage("circular-dependencies") {
             when {
-                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
+                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
             }
             steps {
                 sh "./gradlew -i detectCircularDeps"
@@ -52,7 +52,7 @@ pipeline {
         }
         stage ("test") {
             when {
-                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
+                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
             }
             steps {
                 sh "./gradlew -i test"
@@ -60,7 +60,7 @@ pipeline {
         }
         stage ("build") {
             when {
-                expression { return !params.INCREMENT_VERSION && env.BUILD_CAUSE != "jenkins" }
+                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
             }
             steps {
                 sh "./gradlew -i compile"
@@ -69,7 +69,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"  && env.BUILD_CAUSE != "jenkins"
+                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"  && gitAuthor() != "jenkins"
                 }
             }
             steps {
@@ -81,7 +81,7 @@ pipeline {
         stage ("version - snapshot") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "false" && env.BUILD_CAUSE != "jenkins"
+                    return env.INCREMENT_VERSION == "false" && gitAuthor() != "jenkins"
                 }
             }
             steps {
@@ -117,4 +117,8 @@ def notifyBB(String state) {
             prependParentProjectKey: false,
             projectKey: "SW",
             stashServerBaseUrl: "https://aicsbitbucket.corp.alleninstitute.org"
+}
+
+def gitAuthor() {
+    sh(returnStdout: true, script: 'git log -1 --format=%an').trim()
 }
