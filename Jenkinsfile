@@ -25,66 +25,42 @@ pipeline {
     stages {
         stage ("initialize build") {
            when {
-                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
+                expression { return !skipBuild(params) }
            }
             steps {
                 this.notifyBB("INPROGRESS")
-                echo "BUILDTYPE: " + ( params.INCREMENT_VERSION ? "Create Release" : "Build, Tag, and Create Snapshot1")
+                echo "BUILDTYPE: " + ( env.BRANCH_NAME == "master" ? "Normal Build" : "Build, Tag, and Create Snapshot")
                 echo "${BRANCH_NAME}"
                 echo "increment version: ${env.INCREMENT_VERSION}"
-                echo "gitauthor: " + "${gitAuthor()}"
 
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
         }
-        stage ("lint") {
+        stage ("lint, circular-dependencies, test, build") {
             when {
-                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
+                expression { return !skipBuild(params) }
             }
             steps {
-                sh "./gradlew -i yarn lint"
-            }
-        }
-        stage("circular-dependencies") {
-            when {
-                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
-            }
-            steps {
-                sh "./gradlew -i detectCircularDeps"
-            }
-        }
-        stage ("test") {
-            when {
-                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
-            }
-            steps {
-                sh "./gradlew -i test"
-            }
-        }
-        stage ("build") {
-            when {
-                expression { return !params.INCREMENT_VERSION && gitAuthor() != "jenkins" }
-            }
-            steps {
-                sh "./gradlew -i compile"
+                sh "./gradlew -i yarn lint detectCircularDeps test compile"
             }
         }
         stage ("version - release") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "true" && env.BRANCH_NAME == "master"  && gitAuthor() != "jenkins"
+                    return !skipBuild(params) && env.BRANCH_NAME == "master"
                 }
             }
             steps {
-                sh "git checkout ${BRANCH_NAME}"
-                sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
-                 sh "git push -u origin master && git push --tags"
+                // make sure build at least compiles before versioning the app
+                sh "./gradlew -i compile yarn_version_--${VERSION_TO_INCREMENT}"
+                sh "git push -u origin master && git push --tags"
             }
         }
         stage ("version - snapshot") {
             when {
                 expression {
-                    return env.INCREMENT_VERSION == "false" && gitAuthor() != "jenkins"
+                    // todo add master check again
+                    return !skipBuild(params)
                 }
             }
             steps {
@@ -124,4 +100,11 @@ def notifyBB(String state) {
 
 def gitAuthor() {
     sh(returnStdout: true, script: 'git log -1 --format=%an').trim()
+}
+
+// Returns true if we should not run the lint, circular-dependencies, test, build
+// It is true when the CI is triggered via a commit by jenkins or when triggered using extra parameters for
+// releasing the app
+def skipBuild(params) {
+    return params.INCREMENT_VERSION || gitAuthor == "jenkins"
 }
