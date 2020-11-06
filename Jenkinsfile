@@ -29,7 +29,7 @@ pipeline {
                 echo "BUILDTYPE: " + ( params.INCREMENT_VERSION ? "Create Release" : "Build, Tag, and Create Snapshot1")
                 echo "${BRANCH_NAME}"
                 echo "increment version: ${env.INCREMENT_VERSION}"
-                echo "BUILD_CAUSE: " + "${env.BUILD_CAUSE}"
+                echo "JENKINS_STARTED_BY: " + "${env.JENKINS_STARTED_BY}"
 
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
