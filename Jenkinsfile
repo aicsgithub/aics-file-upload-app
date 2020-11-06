@@ -58,6 +58,7 @@ pipeline {
             steps {
                 sh "git checkout ${BRANCH_NAME}"
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
+                 sh "git push -u origin master && git push --tags"
             }
         }
         stage ("version - snapshot") {
@@ -67,7 +68,6 @@ pipeline {
                 }
             }
             steps {
-                sh "git checkout ${BRANCH_NAME}"
                 sh "./gradlew -i createSnapshot"
                 sh "git push -u origin ${BRANCH_NAME} && git push --tags"
             }
