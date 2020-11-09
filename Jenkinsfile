@@ -57,13 +57,12 @@ pipeline {
         stage ("version - snapshot") {
             when {
                 expression {
-                    // todo add master check again
-                    return skipBuild(params) && params.VERSION_TO_INCREMENT == "prerelease"
+                    return skipBuild(params) && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT == "prerelease"
                 }
             }
             steps {
                 sh "./gradlew -i createSnapshot"
-                sh "git push -u origin ${BRANCH_NAME} && git push --tags"
+                sh "git push -u origin master && git push --tags"
             }
         }
     }
