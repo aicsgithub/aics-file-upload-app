@@ -29,7 +29,6 @@ pipeline {
            }
             steps {
                 this.notifyBB("INPROGRESS")
-                echo "BUILDTYPE: " + ( env.BRANCH_NAME == "master" ? "Normal Build" : "Build, Tag, and Create Snapshot")
                 echo "${BRANCH_NAME}"
 
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
