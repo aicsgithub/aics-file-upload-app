@@ -24,9 +24,9 @@ pipeline {
     }
     stages {
         stage ("initialize build") {
-           when {
-                expression { return !skipBuild(params) }
-           }
+//            when {
+//                 expression { return !skipBuild(params) }
+//            }
             steps {
                 this.notifyBB("INPROGRESS")
                 echo "BUILDTYPE: " + ( env.BRANCH_NAME == "master" ? "Normal Build" : "Build, Tag, and Create Snapshot")
@@ -105,5 +105,7 @@ def gitAuthor() {
 // It is true when the CI is triggered via a commit by jenkins or when triggered using extra parameters for
 // releasing the app
 def skipBuild(params) {
+    echo versions
+    echo params.VERSION_TO_INCREMENT
     return versions.contains(params.VERSION_TO_INCREMENT) || gitAuthor() == "jenkins"
 }
