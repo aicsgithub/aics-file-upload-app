@@ -20,18 +20,18 @@ pipeline {
         PYTHON = "${VENV_BIN}/python3"
     }
     parameters {
+        booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build. Note that this can only be done on master.")
         choice(name: "VERSION_TO_INCREMENT", choices: versions, description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
     }
     stages {
         stage ("initialize build") {
-//            when {
-//                 expression { return !skipBuild(params) }
-//            }
+           when {
+                expression { return !skipBuild(params) }
+           }
             steps {
                 this.notifyBB("INPROGRESS")
                 echo "BUILDTYPE: " + ( env.BRANCH_NAME == "master" ? "Normal Build" : "Build, Tag, and Create Snapshot")
                 echo "${BRANCH_NAME}"
-                echo "params.VERSION_TO_INCREMENT: ${params.VERSION_TO_INCREMENT}"
 
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
@@ -105,7 +105,5 @@ def gitAuthor() {
 // It is true when the CI is triggered via a commit by jenkins or when triggered using extra parameters for
 // releasing the app
 def skipBuild(params) {
-    echo versions
-    echo params.VERSION_TO_INCREMENT
-    return versions.contains(params.VERSION_TO_INCREMENT) || gitAuthor() == "jenkins"
+    return params.INCREMENT_VERSION || gitAuthor() == "jenkins"
 }
