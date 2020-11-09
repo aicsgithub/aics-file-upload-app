@@ -47,7 +47,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return skipBuild(params) && env.BRANCH_NAME == "master" && env.VERSION_TO_INCREMENT != "prerelease"
+                    return skipBuild(params) && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT != "prerelease"
                 }
             }
             steps {
@@ -59,7 +59,7 @@ pipeline {
             when {
                 expression {
                     // todo add master check again
-                    return skipBuild(params) && env.VERSION_TO_INCREMENT == "prerelease"
+                    return skipBuild(params) && params.VERSION_TO_INCREMENT == "prerelease"
                 }
             }
             steps {
