@@ -1,3 +1,4 @@
+versions = ["patch", "minor", "major", "prerelease"]
 pipeline {
     options {
         disableConcurrentBuilds()
@@ -19,8 +20,7 @@ pipeline {
         PYTHON = "${VENV_BIN}/python3"
     }
     parameters {
-        booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build. Note that this can only be done on master.")
-        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major", "prerelease"], description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
+        choice(name: "VERSION_TO_INCREMENT", choices: versions, description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
     }
     stages {
         stage ("initialize build") {
@@ -31,7 +31,7 @@ pipeline {
                 this.notifyBB("INPROGRESS")
                 echo "BUILDTYPE: " + ( env.BRANCH_NAME == "master" ? "Normal Build" : "Build, Tag, and Create Snapshot")
                 echo "${BRANCH_NAME}"
-                echo "increment version: ${env.INCREMENT_VERSION}"
+                echo "params.VERSION_TO_INCREMENT: ${params.VERSION_TO_INCREMENT}"
 
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
@@ -47,12 +47,11 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return !skipBuild(params) && env.BRANCH_NAME == "master" && env.VERSION_TO_INCREMENT != "prerelease"
+                    return skipBuild(params) && env.BRANCH_NAME == "master" && env.VERSION_TO_INCREMENT != "prerelease"
                 }
             }
             steps {
-                // make sure build at least compiles before versioning the app
-                sh "./gradlew -i compile yarn_version_--${VERSION_TO_INCREMENT}"
+                sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
                 sh "git push -u origin master && git push --tags"
             }
         }
@@ -60,7 +59,7 @@ pipeline {
             when {
                 expression {
                     // todo add master check again
-                    return !skipBuild(params) && env.VERSION_TO_INCREMENT == "prerelease"
+                    return skipBuild(params) && env.VERSION_TO_INCREMENT == "prerelease"
                 }
             }
             steps {
@@ -106,5 +105,5 @@ def gitAuthor() {
 // It is true when the CI is triggered via a commit by jenkins or when triggered using extra parameters for
 // releasing the app
 def skipBuild(params) {
-    return params.INCREMENT_VERSION || gitAuthor() == "jenkins"
+    return versions.contains(params.VERSION_TO_INCREMENT) || gitAuthor() == "jenkins"
 }
