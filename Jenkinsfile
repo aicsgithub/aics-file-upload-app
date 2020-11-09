@@ -106,5 +106,5 @@ def gitAuthor() {
 // It is true when the CI is triggered via a commit by jenkins or when triggered using extra parameters for
 // releasing the app
 def skipBuild(params) {
-    return params.INCREMENT_VERSION || gitAuthor == "jenkins"
+    return params.INCREMENT_VERSION || gitAuthor() == "jenkins"
 }
