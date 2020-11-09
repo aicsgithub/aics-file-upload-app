@@ -20,7 +20,7 @@ pipeline {
     }
     parameters {
         booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build. Note that this can only be done on master.")
-        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major"], description: "Which part of the npm version to increment.")
+        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major", "prerelease"], description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
     }
     stages {
         stage ("initialize build") {
@@ -47,7 +47,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return !skipBuild(params) && env.BRANCH_NAME == "master"
+                    return !skipBuild(params) && env.BRANCH_NAME == "master" && env.VERSION_TO_INCREMENT != "prerelease"
                 }
             }
             steps {
@@ -60,7 +60,7 @@ pipeline {
             when {
                 expression {
                     // todo add master check again
-                    return !skipBuild(params)
+                    return !skipBuild(params) && env.VERSION_TO_INCREMENT == "prerelease"
                 }
             }
             steps {
