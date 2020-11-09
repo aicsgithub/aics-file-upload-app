@@ -76,27 +76,17 @@ For example, these will all get built:
 Before releasing an official version of the app, you'll want to test the packaged app on all platforms. To create a
 snapshot build:
 
-1. Update the version in package.json. This will be used for naming the artifact:
-```json
- "version": "1.0.5-snapshot",
-```
-2. Commit, tag, and push
-```bash
-git add package.json
-git commit -m "create snapshot"
-git tag 1.0.5-snapshot
-git push --tags && git push
-```
- 
-For official versions of the app, first revert the version back to the pre-snapshot version in package.json (on master).
-Then update VERSION_NOTES.md and update the version using the following commands: 
+1. Go to the "Build with Parameters" page for the master branch of this repo: https://jenkins.corp.alleninstitute.org/job/desktop-apps/job/file-upload-app/job/master/build?delay=0sec
+2. Check the INCREMENT_VERSION checkbox
+3. Select "prerelease" in the VERSION_TO_INCREMENT dropdown
 
-```bash
-git add .
-git commit -m "update version"
-git tag 1.0.5
-git push --tags && git push
-```
+This will create a git tag that will trigger a build in Travis CI which will generate a snapshot for each OS.
+ 
+For official versions of the app:
+
+1. Go to the "Build with Parameters" page for the master branch of this repo: https://jenkins.corp.alleninstitute.org/job/desktop-apps/job/file-upload-app/job/master/build?delay=0sec
+2. Check the INCREMENT_VERSION checkbox
+3. Select "patch", "minor", or "major" in the VERSION_TO_INCREMENT dropdown
 
 You can look at the Travis build by going to https://travis-ci.com/github/aicsgithub/aics-file-upload-app.
 
