@@ -1,4 +1,3 @@
-versions = ["patch", "minor", "major", "prerelease"]
 pipeline {
     options {
         disableConcurrentBuilds()
@@ -21,7 +20,7 @@ pipeline {
     }
     parameters {
         booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build. Note that this can only be done on master.")
-        choice(name: "VERSION_TO_INCREMENT", choices: versions, description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
+        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major", "prerelease"], description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
     }
     stages {
         stage ("initialize build") {
@@ -64,7 +63,7 @@ pipeline {
             }
             steps {
                 sh "./gradlew -i createSnapshot"
-                sh "git push -u origin ${BRANCH_NAME} && git push --tags"
+                sh "git pull && git push -u origin ${BRANCH_NAME} && git push --tags"
             }
         }
     }
