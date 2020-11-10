@@ -5,10 +5,11 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getEventsByNewest } from "../../state/feedback/selectors";
 import { updateSettings } from "../../state/setting/actions";
 import { getEnabledNotifications } from "../../state/setting/selectors";
 import { AlertType } from "../../state/types";
+
+import { getFilteredEvents } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -46,7 +47,7 @@ function formatDate(date: Date): string {
 export default function NotificationViewer() {
   const dispatch = useDispatch();
 
-  const events = useSelector(getEventsByNewest);
+  const filteredEvents = useSelector(getFilteredEvents);
   const [showEvents, setShowEvents] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -93,10 +94,6 @@ export default function NotificationViewer() {
         onClick={() => setShowSettings(true)}
       />
     </div>
-  );
-
-  const filteredEvents = events.filter(
-    (event) => enabledNotifications[event.type]
   );
 
   const eventList = filteredEvents.map((event) => (
