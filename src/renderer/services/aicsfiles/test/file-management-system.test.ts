@@ -101,13 +101,20 @@ describe("FileManagementSystem", () => {
       },
     };
 
-    it("Throws error if input file not found", () => {
+    it("Throws error if input file not found", async () => {
       const metadataMap = {
-        [upload1 + "foo"]: metadata1,
+        [upload1 + "foo"]: {
+          ...metadata1,
+          file: {
+            ...metadata1.file,
+            originalPath: upload1 + "foo",
+          },
+        },
         [upload2]: metadata2,
       };
+      fs.exists.resolves(false);
 
-      expect(
+      await expect(
         fms.validateMetadataAndGetUploadDirectory(metadataMap, "test_job_name")
       ).to.be.rejectedWith(getFileDoesNotExistError(upload1 + "foo"));
     });
@@ -119,19 +126,19 @@ describe("FileManagementSystem", () => {
         [anotherUpload]: { ...metadata1, originalPath: anotherUpload },
       };
 
-      expect(
+      return expect(
         fms.validateMetadataAndGetUploadDirectory(metadataMap, "test_job_name")
       ).to.be.rejectedWith(getDuplicateFilesError(path.basename(upload1)));
     });
 
     it("Throws error if metadata is empty", () => {
-      expect(
+      return expect(
         fms.validateMetadataAndGetUploadDirectory({}, "test_job_name")
       ).to.be.rejectedWith(noFilesError);
     });
 
     it("Throws error if metadata is missing fileType property", () => {
-      expect(
+      return expect(
         fms.validateMetadataAndGetUploadDirectory(
           {
             [upload1]: {
@@ -145,7 +152,7 @@ describe("FileManagementSystem", () => {
     });
 
     it("Throws error if metadata originalPath does not match filePath", () => {
-      expect(
+      return expect(
         fms.validateMetadataAndGetUploadDirectory(
           {
             [upload1]: {
@@ -165,7 +172,7 @@ describe("FileManagementSystem", () => {
 
     it("Throws error if it cannot get a start upload response from FSS", () => {
       fssClient.startUpload.rejects(new Error());
-      expect(
+      return expect(
         fms.validateMetadataAndGetUploadDirectory(goodMetadata, "test_job_name")
       ).to.be.rejectedWith(Error);
     });
@@ -199,7 +206,7 @@ describe("FileManagementSystem", () => {
 
     it("throws exception if uploader.uploadFiles throws", () => {
       uploader.uploadFiles.rejects();
-      expect(
+      return expect(
         fms.uploadFiles(startUploadResponse, uploads, "anything")
       ).to.be.rejectedWith(Error);
     });
@@ -207,7 +214,7 @@ describe("FileManagementSystem", () => {
 
   describe("retryUpload", () => {
     it("throws UnrecoverableJobError if the upload job doesn't have serviceFields.file", () => {
-      expect(
+      return expect(
         fms.retryUpload({
           ...mockRetryableUploadJob,
           serviceFields: {},
@@ -247,7 +254,9 @@ describe("FileManagementSystem", () => {
 
     it("throws error if uploader.retryUpload throws", () => {
       uploader.retryUpload.rejects();
-      expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(Error);
+      return expect(fms.retryUpload(mockRetryableUploadJob)).to.be.rejectedWith(
+        Error
+      );
     });
 
     it("updates upload job with UNRECOVERABLE status if UnrecoverableJobError is thrown", async () => {

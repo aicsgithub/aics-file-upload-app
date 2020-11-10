@@ -186,7 +186,7 @@ describe("CopyStep", () => {
     });
 
     it("throws error if job is undefined", () => {
-      expect(copyStep.skip(mockCtx)).to.be.rejectedWith(Error);
+      return expect(copyStep.skip(mockCtx)).to.be.rejectedWith(Error);
     });
 
     it("throws error if job does not contain enough information", () => {

@@ -1,3 +1,4 @@
+import { basename } from "path";
 import * as path from "path";
 
 import { expect } from "chai";
@@ -18,6 +19,7 @@ import { mockFailedAddMetadataJob } from "../../../state/test/mocks";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import { JSSJobStatus } from "../../job-status-client/types";
+import LabkeyClient from "../../labkey-client";
 import { UPLOAD_WORKER_SUCCEEDED } from "../constants";
 import { FSSClient } from "../helpers/fss-client";
 import { StepExecutor } from "../helpers/step-executor";
@@ -71,6 +73,7 @@ describe("Uploader", () => {
   };
   let jobStatusClient: SinonStubbedInstance<JobStatusClient>;
   let fss: SinonStubbedInstance<FSSClient>;
+  let lk: SinonStubbedInstance<LabkeyClient>;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
   let fs: {
     access: SinonStub;
@@ -88,6 +91,7 @@ describe("Uploader", () => {
     executeStepsStub = stub().resolves({ resultFiles });
     sandbox.replace(StepExecutor, "executeSteps", executeStepsStub);
     jobStatusClient = createStubInstance(JobStatusClient);
+    lk = createStubInstance(LabkeyClient);
     fss = createStubInstance(FSSClient);
     storage = createStubInstance(EnvironmentAwareStorage);
     // Stub `get` specifically, since it is a class property and not on the prototype
@@ -116,6 +120,7 @@ describe("Uploader", () => {
       stub().returns(copyWorkerStub),
       (fss as any) as FSSClient,
       (jobStatusClient as any) as JobStatusClient,
+      (lk as any) as LabkeyClient,
       (storage as any) as LocalStorage,
       (logger as any) as ILogger,
       (fs as any) as FileSystemUtil
@@ -201,8 +206,15 @@ describe("Uploader", () => {
   });
 
   describe("retryUpload", () => {
+    const lastModified1 = new Date();
+    const lastModified2 = new Date();
+    const md51 = "foo";
+    const md52 = "bar";
+    beforeEach(() => {
+      lk.getFileExistsByMD5AndName.resolves(false);
+    });
     it("Throws error if upload job provided is missing serviceFields.uploadDirectory", () => {
-      expect(
+      return expect(
         uploader.retryUpload(uploads, {
           ...mockRetryableUploadJob,
           serviceFields: {
@@ -213,7 +225,7 @@ describe("Uploader", () => {
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if unrecoverable upload job provided", () => {
-      expect(
+      return expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
           status: JSSJobStatus.UNRECOVERABLE,
@@ -221,7 +233,7 @@ describe("Uploader", () => {
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if working upload job provided", () => {
-      expect(
+      return expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
           status: JSSJobStatus.WORKING,
@@ -229,7 +241,7 @@ describe("Uploader", () => {
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if retrying upload job provided", () => {
-      expect(
+      return expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
           status: JSSJobStatus.RETRYING,
@@ -237,12 +249,61 @@ describe("Uploader", () => {
       ).to.be.rejectedWith(Error);
     });
     it("Throws error if blocked upload job provided", () => {
-      expect(
+      return expect(
         uploader.retryUpload(uploads, {
           ...mockJob,
           status: JSSJobStatus.BLOCKED,
         })
       ).to.be.rejectedWith(Error);
+    });
+    it("Throws error if file has been uploaded to FMS before", () => {
+      lk.getFileExistsByMD5AndName
+        .withArgs(md51, basename(upload1))
+        .resolves(true);
+      lk.getFileExistsByMD5AndName
+        .withArgs(md52, basename(upload2))
+        .resolves(false);
+      fs.stat.withArgs(upload1).resolves({ mtime: lastModified1 });
+      fs.stat.withArgs(upload2).resolves({ mtime: lastModified2 });
+      return expect(
+        uploader.retryUpload(uploads, {
+          ...mockRetryableUploadJob,
+          serviceFields: {
+            ...mockRetryableUploadJob.serviceFields,
+            lastModified: {
+              [hash.MD5(upload1)]: lastModified1,
+              [hash.MD5(upload2)]: lastModified2,
+            },
+            md5: {
+              [hash.MD5(upload1)]: md51,
+              [hash.MD5(upload2)]: md52,
+            },
+            uploadDirectory: "/foo",
+          },
+          status: JSSJobStatus.FAILED,
+        })
+      ).to.be.rejectedWith(Error);
+    });
+    it("Does not throw error if file has been modified", () => {
+      fs.stat.withArgs(upload1).resolves({ mtime: new Date() });
+      fs.stat.withArgs(upload2).resolves({ mtime: new Date() });
+      return expect(
+        uploader.retryUpload(uploads, {
+          ...mockRetryableUploadJob,
+          serviceFields: {
+            ...mockRetryableUploadJob.serviceFields,
+            lastModified: {
+              [hash.MD5(upload1)]: lastModified1,
+              [hash.MD5(upload2)]: lastModified2,
+            },
+            md5: {
+              [hash.MD5(upload1)]: md51,
+              [hash.MD5(upload2)]: md52,
+            },
+          },
+          status: JSSJobStatus.FAILED,
+        })
+      ).to.not.be.rejectedWith(Error);
     });
     it("Returns previous output stored on upload job if upload job provided succeeded", async () => {
       const result = await uploader.retryUpload(uploads, mockCompleteUploadJob);
@@ -384,7 +445,7 @@ describe("Uploader", () => {
         // copy job children
         .onSecondCall()
         .resolves([mockCopyJobChild1]);
-      expect(
+      return expect(
         uploader.retryUpload(uploads, mockRetryableUploadJob)
       ).to.be.rejectedWith("Could not find the parent copy job.");
     });
@@ -414,7 +475,7 @@ describe("Uploader", () => {
             },
           },
         ]);
-      expect(
+      return expect(
         uploader.retryUpload(uploads, mockRetryableUploadJob)
       ).to.be.rejectedWith(Error);
     });

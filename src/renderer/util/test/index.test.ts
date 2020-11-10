@@ -310,7 +310,7 @@ describe("General utilities", () => {
 
     it("throws error if getTemplate request fails", () => {
       mmsClient.getTemplate.rejects(new Error("Oops"));
-      expect(
+      return expect(
         getApplyTemplateInfo(
           1,
           (mmsClient as any) as MMSClient,

@@ -129,7 +129,13 @@ export class FileManagementSystem {
     this.lk = labkeyClient;
     this.uploader =
       uploader ||
-      new Uploader(getCopyWorker, fssClient, jobStatusClient, storage);
+      new Uploader(
+        getCopyWorker,
+        fssClient,
+        jobStatusClient,
+        labkeyClient,
+        storage
+      );
     // eslint-disable-next-line react-hooks/rules-of-hooks
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = logger || Logger.get(AICSFILES_LOGGER);
