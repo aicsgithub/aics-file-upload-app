@@ -351,7 +351,7 @@ export interface TemplateStateBranch {
   originalTemplateHasBeenUsed?: boolean;
 }
 
-interface EnabledNotifications {
+export interface EnabledNotifications {
   [AlertType.WARN]: boolean;
   [AlertType.SUCCESS]: boolean;
   [AlertType.ERROR]: boolean;
