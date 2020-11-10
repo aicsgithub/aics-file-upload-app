@@ -11,7 +11,7 @@ pipeline {
     triggers {
         // Every 15 minutes from 8am through 6pm on Monday through Friday
         // https://cron.help/
-        pollSCM("*/15 8-18 * * 1-5")
+        pollSCM("*/15 * * * 1-5")
     }
     environment {
         PATH = "/home/jenkins/.local/bin:$PATH"
