@@ -2,10 +2,12 @@ import { Button, Icon, Modal, Switch } from "antd";
 import * as classNames from "classnames";
 import * as moment from "moment";
 import * as React from "react";
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import { getEventsByNewest } from "../../state/feedback/selectors";
+import { updateSettings } from "../../state/setting/actions";
+import { getEnabledNotifications } from "../../state/setting/selectors";
 import { AlertType } from "../../state/types";
 
 const styles = require("./styles.pcss");
@@ -42,14 +44,44 @@ function formatDate(date: Date): string {
 }
 
 export default function NotificationViewer() {
+  const dispatch = useDispatch();
+
   const events = useSelector(getEventsByNewest);
   const [showEvents, setShowEvents] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(true);
-  const [showErrors, setShowErrors] = useState(true);
-  const [showWarnings, setShowWarnings] = useState(true);
-  const [showInfo, setShowInfo] = useState(true);
-  const [showDraftSaved, setShowDraftSaved] = useState(false);
+
+  const enabledNotifications = useSelector(getEnabledNotifications);
+  // We keep a draft of the user's notification settings, because we don't want
+  // to make use of them until they click "Apply".
+  const [enabledNotificationsDraft, setEnabledNotificationsDraft] = useState(
+    enabledNotifications
+  );
+
+  // Reset the draft enabled notifications whenever the ones in the store
+  // change. This is technically derived state, which should be avoided, but
+  // it was the simplest solution in this case.
+  useEffect(() => setEnabledNotificationsDraft(enabledNotifications), [
+    enabledNotifications,
+  ]);
+
+  function changeEnabledNotification(checked: boolean, type: AlertType) {
+    setEnabledNotificationsDraft((prev) => ({
+      ...prev,
+      [type]: checked,
+    }));
+  }
+
+  function applySettings() {
+    setShowSettings(false);
+    dispatch(
+      updateSettings({ enabledNotifications: enabledNotificationsDraft })
+    );
+  }
+
+  function cancelSettings() {
+    setShowSettings(false);
+    setEnabledNotificationsDraft(enabledNotifications);
+  }
 
   const modalHeader = (
     <div className={styles.modalHeader}>
@@ -63,7 +95,11 @@ export default function NotificationViewer() {
     </div>
   );
 
-  const eventList = events.map((event) => (
+  const filteredEvents = events.filter(
+    (event) => enabledNotifications[event.type]
+  );
+
+  const eventList = filteredEvents.map((event) => (
     <div
       key={event.date.toISOString()}
       className={styles.notificationContainer}
@@ -78,32 +114,22 @@ export default function NotificationViewer() {
     {
       type: AlertType.SUCCESS,
       label: "Success",
-      checked: showSuccess,
-      setter: setShowSuccess,
     },
     {
       type: AlertType.ERROR,
       label: "Error",
-      checked: showErrors,
-      setter: setShowErrors,
     },
     {
       type: AlertType.WARN,
       label: "Warning",
-      checked: showWarnings,
-      setter: setShowWarnings,
     },
     {
       type: AlertType.INFO,
       label: "Info",
-      checked: showInfo,
-      setter: setShowInfo,
     },
     {
       type: AlertType.DRAFT_SAVED,
       label: "Draft Saved",
-      checked: showDraftSaved,
-      setter: setShowDraftSaved,
     },
   ];
 
@@ -111,24 +137,26 @@ export default function NotificationViewer() {
     <>
       <div className={styles.settingsTitle}>Notification Settings</div>
       <div className={styles.toggleLabel}>Show in Notification Center</div>
-      {settingsItems.map((item) => (
-        <div key={item.type} className={styles.settingsContainer}>
+      {settingsItems.map(({ type, label }) => (
+        <div key={type} className={styles.settingsContainer}>
           <div className={styles.notificationType}>
-            {getIcon(item.type)} {item.label}
+            {getIcon(type)} {label}
           </div>
           <div className={styles.toggle}>
             <Switch
-              checked={item.checked}
-              onChange={(checked) => item.setter(checked)}
+              checked={enabledNotificationsDraft[type]}
+              onChange={(checked) => changeEnabledNotification(checked, type)}
             />
           </div>
         </div>
       ))}
       <div className={styles.settingsButtons}>
-        <Button type="danger" onClick={() => setShowSettings(false)}>
+        <Button type="danger" onClick={cancelSettings}>
           Cancel
         </Button>
-        <Button type="primary">Apply</Button>
+        <Button type="primary" onClick={applySettings}>
+          Apply
+        </Button>
       </div>
     </>
   );
