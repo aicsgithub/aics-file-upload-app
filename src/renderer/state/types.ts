@@ -131,6 +131,7 @@ export enum AlertType {
   SUCCESS,
   ERROR,
   INFO,
+  DRAFT_SAVED,
 }
 
 export enum AsyncRequest {
@@ -350,6 +351,14 @@ export interface TemplateStateBranch {
   originalTemplateHasBeenUsed?: boolean;
 }
 
+export interface EnabledNotifications {
+  [AlertType.WARN]: boolean;
+  [AlertType.SUCCESS]: boolean;
+  [AlertType.ERROR]: boolean;
+  [AlertType.INFO]: boolean;
+  [AlertType.DRAFT_SAVED]: boolean;
+}
+
 export interface SettingStateBranch extends LimsUrl {
   associateByWorkflow: boolean;
   metadataColumns: string[];
@@ -359,6 +368,7 @@ export interface SettingStateBranch extends LimsUrl {
   showTemplateHint: boolean;
   templateId?: number;
   username: string;
+  enabledNotifications: EnabledNotifications;
 }
 
 export interface State {

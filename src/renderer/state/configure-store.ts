@@ -132,7 +132,7 @@ const autoSaver = (store: any) => (next: any) => async (action: AnyAction) => {
     result = next(
       addEvent(
         `Your draft was saved at ${moment().format("h:mm a")}`,
-        AlertType.INFO,
+        AlertType.DRAFT_SAVED,
         new Date()
       )
     );

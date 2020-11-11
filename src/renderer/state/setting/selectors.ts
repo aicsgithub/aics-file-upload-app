@@ -17,6 +17,8 @@ export const getLoggedInUser = (state: State) => state.setting.username;
 export const getTemplateId = (state: State) => state.setting.templateId;
 export const getMetadataColumns = (state: State) =>
   state.setting.metadataColumns;
+export const getEnabledNotifications = (state: State) =>
+  state.setting.enabledNotifications;
 
 export const getAreAllMetadataColumnsSelected = createSelector(
   [getMetadataColumns],

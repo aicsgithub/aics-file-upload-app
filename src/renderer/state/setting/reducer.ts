@@ -7,7 +7,7 @@ import { SET_PLATE } from "../selection/constants";
 import { SetPlateAction } from "../selection/types";
 import { SAVE_TEMPLATE_SUCCEEDED } from "../template/constants";
 import { SaveTemplateSucceededAction } from "../template/types";
-import { SettingStateBranch, TypeToDescriptionMap } from "../types";
+import { AlertType, SettingStateBranch, TypeToDescriptionMap } from "../types";
 import { APPLY_TEMPLATE, REPLACE_UPLOAD } from "../upload/constants";
 import { ApplyTemplateAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
@@ -33,6 +33,13 @@ export const initialState: SettingStateBranch = {
   showUploadHint: true,
   showTemplateHint: true,
   username: userInfo().username,
+  enabledNotifications: {
+    [AlertType.WARN]: true,
+    [AlertType.SUCCESS]: true,
+    [AlertType.ERROR]: true,
+    [AlertType.INFO]: true,
+    [AlertType.DRAFT_SAVED]: false,
+  },
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
