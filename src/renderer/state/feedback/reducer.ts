@@ -58,6 +58,7 @@ import {
 } from "../template/types";
 import {
   AlertType,
+  AppEvent,
   AsyncRequest,
   FeedbackStateBranch,
   HTTP_STATUS,
@@ -179,10 +180,11 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       }
 
       const { message, type } = alert;
-      const event = {
+      const event: AppEvent = {
         date: new Date(),
         message: message ?? "",
         type,
+        viewed: false,
       };
       return {
         ...state,
@@ -254,7 +256,7 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
     perform: (state: FeedbackStateBranch, action: AddEventAction) => {
       return {
         ...state,
-        events: [...state.events, action.payload],
+        events: [...state.events, { ...action.payload, viewed: false }],
       };
     },
   },

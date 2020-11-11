@@ -125,6 +125,8 @@ export interface AppEvent {
   message: string;
   date: Date;
   type: AlertType;
+  // Used to track whether the user has seen this event
+  viewed: boolean;
 }
 
 export enum AlertType {
