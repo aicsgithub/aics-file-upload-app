@@ -1,4 +1,4 @@
-import { Button, Icon, Modal, Switch } from "antd";
+import { Badge, Button, Icon, Modal, Switch } from "antd";
 import * as classNames from "classnames";
 import * as moment from "moment";
 import * as React from "react";
@@ -9,7 +9,7 @@ import { updateSettings } from "../../state/setting/actions";
 import { getEnabledNotifications } from "../../state/setting/selectors";
 import { AlertType } from "../../state/types";
 
-import { getFilteredEvents } from "./selectors";
+import { getFilteredEvents, getUnreadEventsCount } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -48,6 +48,7 @@ export default function NotificationViewer() {
   const dispatch = useDispatch();
 
   const filteredEvents = useSelector(getFilteredEvents);
+  const unreadEventsCount = useSelector(getUnreadEventsCount);
   const [showEvents, setShowEvents] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -99,7 +100,9 @@ export default function NotificationViewer() {
   const eventList = filteredEvents.map((event) => (
     <div
       key={event.date.toISOString()}
-      className={styles.notificationContainer}
+      className={classNames(styles.notificationContainer, {
+        [styles.unread]: !event.viewed,
+      })}
     >
       <div className={styles.iconContainer}>{getIcon(event.type)}</div>
       <div className={styles.message}>{event.message}</div>
@@ -160,12 +163,14 @@ export default function NotificationViewer() {
 
   return (
     <>
-      <Icon
-        type="bell"
-        theme="filled"
-        className={classNames(styles.icon, styles.notificationBell)}
-        onClick={() => setShowEvents(true)}
-      />
+      <Badge count={unreadEventsCount} offset={[-8, 8]}>
+        <Icon
+          type="bell"
+          theme="filled"
+          className={classNames(styles.icon, styles.notificationBell)}
+          onClick={() => setShowEvents(true)}
+        />
+      </Badge>
       <Modal
         title={modalHeader}
         visible={showEvents}

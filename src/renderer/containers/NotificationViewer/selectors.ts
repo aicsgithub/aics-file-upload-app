@@ -8,3 +8,8 @@ export const getFilteredEvents = createSelector(
   (events, enabledNotifications) =>
     events.filter((event) => enabledNotifications[event.type])
 );
+
+export const getUnreadEventsCount = createSelector(
+  getFilteredEvents,
+  (events) => events.filter((event) => !event.viewed).length
+);
