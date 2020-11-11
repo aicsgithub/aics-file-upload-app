@@ -107,6 +107,7 @@ import {
   CLEAR_DEFERRED_ACTION,
   CLEAR_UPLOAD_ERROR,
   CLOSE_MODAL,
+  CLOSE_NOTIFICATION_CENTER,
   CLOSE_SET_MOUNT_POINT_NOTIFICATION,
   OPEN_MODAL,
   OPEN_SET_MOUNT_POINT_NOTIFICATION,
@@ -124,6 +125,7 @@ import {
   ClearDeferredAction,
   ClearUploadErrorAction,
   CloseModalAction,
+  CloseNotificationCenter,
   CloseSetMountPointNotificationAction,
   OpenModalAction,
   OpenSetMountPointNotificationAction,
@@ -810,6 +812,14 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
         state,
         `${AsyncRequest.UPLOAD}-${action.payload}`
       ),
+    }),
+  },
+  [CLOSE_NOTIFICATION_CENTER]: {
+    accepts: (action: AnyAction): action is CloseNotificationCenter =>
+      action.type === CLOSE_NOTIFICATION_CENTER,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      events: state.events.map((event) => ({ ...event, viewed: true })),
     }),
   },
 };

@@ -58,6 +58,7 @@ import {
   clearDeferredAction,
   clearUploadError,
   closeModal,
+  closeNotificationCenter,
   closeSetMountPointNotification,
   openModal,
   openSetMountPointNotification,
@@ -630,6 +631,49 @@ describe("feedback reducer", () => {
       expect(
         result.requestsInProgress.includes(`${AsyncRequest.UPLOAD}-jobName`)
       );
+    });
+  });
+  describe("closeNotificationCenter", () => {
+    it("marks all events as viewed", () => {
+      const state: FeedbackStateBranch = {
+        ...initialState,
+        events: [
+          {
+            date: new Date("2020-10-30T10:45:00Z"),
+            message: "Test warning",
+            type: AlertType.WARN,
+            viewed: false,
+          },
+          {
+            date: new Date("2020-10-30T11:45:00Z"),
+            message: "Test success",
+            type: AlertType.SUCCESS,
+            viewed: false,
+          },
+          {
+            date: new Date("2020-10-30T12:45:00Z"),
+            message: "Test error",
+            type: AlertType.ERROR,
+            viewed: false,
+          },
+          {
+            date: new Date("2020-10-30T13:45:00Z"),
+            message: "Test info",
+            type: AlertType.INFO,
+            viewed: false,
+          },
+          {
+            date: new Date("2020-10-30T14:45:00Z"),
+            message: "Test draft saved",
+            type: AlertType.DRAFT_SAVED,
+            viewed: false,
+          },
+        ],
+      };
+
+      const result = reducer(state, closeNotificationCenter());
+
+      expect(result.events.every((event) => event.viewed)).to.be.true;
     });
   });
 });

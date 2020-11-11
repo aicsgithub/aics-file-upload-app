@@ -5,6 +5,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { closeNotificationCenter } from "../../state/feedback/actions";
 import { updateSettings } from "../../state/setting/actions";
 import { getEnabledNotifications } from "../../state/setting/selectors";
 import { AlertType } from "../../state/types";
@@ -65,6 +66,11 @@ export default function NotificationViewer() {
   useEffect(() => setEnabledNotificationsDraft(enabledNotifications), [
     enabledNotifications,
   ]);
+
+  function closeModal() {
+    setShowEvents(false);
+    dispatch(closeNotificationCenter());
+  }
 
   function changeEnabledNotification(checked: boolean, type: AlertType) {
     setEnabledNotificationsDraft((prev) => ({
@@ -176,7 +182,7 @@ export default function NotificationViewer() {
         visible={showEvents}
         mask={false}
         footer={null}
-        onCancel={() => setShowEvents(false)}
+        onCancel={closeModal}
         closable={false}
         wrapClassName="notification-modal"
       >
