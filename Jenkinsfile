@@ -22,7 +22,7 @@ pipeline {
     }
     parameters {
         booleanParam(name: "INCREMENT_VERSION", defaultValue: false, description: "Whether or not to increment version as part of this build. Note that this can only be done on master.")
-        choice(name: "VERSION_TO_INCREMENT", choices: ["patch", "minor", "major", "prerelease"], description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
+        choice(name: "VERSION_TO_INCREMENT", choices: ["prerelease", "patch", "minor", "major"], description: "Which part of the npm version to increment. Select 'prerelease' to create a snapshot.")
     }
     stages {
         stage ("initialize build") {
@@ -51,8 +51,9 @@ pipeline {
                 }
             }
             steps {
+                sh "git checkout ${env.BRANCH_NAME} && git branch --set-upstream-to=origin/${env.BRANCH_NAME} ${env.BRANCH_NAME} && git pull"
                 sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
-                sh "git push -u origin master && git push --tags"
+                sh "git push -u origin ${env.BRANCH_NAME} && git push --tags"
             }
         }
         stage ("version - snapshot") {
@@ -62,8 +63,9 @@ pipeline {
                 }
             }
             steps {
+                sh "git checkout ${env.BRANCH_NAME} && git branch --set-upstream-to=origin/${env.BRANCH_NAME} ${env.BRANCH_NAME} && git pull"
                 sh "./gradlew -i createSnapshot"
-                sh "git push -u origin master && git push --tags"
+                sh "git push -u origin ${env.BRANCH_NAME} && git push --tags"
             }
         }
     }
