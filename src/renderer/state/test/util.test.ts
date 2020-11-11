@@ -38,7 +38,7 @@ describe("state utilities", () => {
       flag: false,
     };
 
-    const typeToDescriptionMap: TypeToDescriptionMap = {
+    const typeToDescriptionMap: TypeToDescriptionMap<State> = {
       [ACTION_CONSTANT]: {
         accepts: (action: AnyAction): action is Action =>
           // https://eslint.org/docs/rules/no-prototype-builtins

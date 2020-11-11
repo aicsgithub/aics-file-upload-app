@@ -14,7 +14,7 @@ export const initialState: RouteStateBranch = {
   view: Page.UploadSummary,
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
   [SELECT_PAGE]: {
     accepts: (action: AnyAction): action is SelectPageAction =>
       action.type === SELECT_PAGE,

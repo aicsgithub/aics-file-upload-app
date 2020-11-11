@@ -42,9 +42,10 @@ import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
 
-export interface ActionDescription {
+// T should be the type of a state branch
+export interface ActionDescription<T> {
   accepts: (action: AnyAction) => boolean;
-  perform: (state: any, action: any) => any;
+  perform: (state: T, action: any) => T;
 }
 
 export interface BatchedAction {
@@ -398,8 +399,9 @@ export interface State {
   upload: StateWithHistory<UploadStateBranch>;
 }
 
-export interface TypeToDescriptionMap {
-  [propName: string]: ActionDescription;
+// T should be the type of a state branch
+export interface TypeToDescriptionMap<T> {
+  [propName: string]: ActionDescription<T>;
 }
 
 export interface AutoSaveAction extends AnyAction {

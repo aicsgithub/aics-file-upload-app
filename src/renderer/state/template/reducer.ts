@@ -36,7 +36,7 @@ export const initialState: TemplateStateBranch = {
   originalTemplateHasBeenUsed: undefined,
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
   [CLEAR_TEMPLATE_DRAFT]: {
     accepts: (action: AnyAction): action is ClearTemplateDraftAction =>
       action.type === CLEAR_TEMPLATE_DRAFT,

@@ -56,7 +56,7 @@ export const initialState: MetadataStateBranch = {
   workflowOptions: [],
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
   [CLEAR_OPTIONS_FOR_LOOKUP]: {
     accepts: (action: AnyAction): action is ClearOptionsForLookupAction =>
       action.type === CLEAR_OPTIONS_FOR_LOOKUP,

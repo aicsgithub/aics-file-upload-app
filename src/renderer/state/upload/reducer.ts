@@ -52,7 +52,7 @@ import {
 
 export const initialState = {};
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
   [ASSOCIATE_FILES_AND_WELLS]: {
     accepts: (action: AnyAction): action is AssociateFilesAndWellsAction =>
       action.type === ASSOCIATE_FILES_AND_WELLS,
