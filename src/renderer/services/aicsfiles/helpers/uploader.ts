@@ -1,4 +1,5 @@
 import { hostname, platform, userInfo } from "os";
+import { basename } from "path";
 
 import * as Logger from "js-logger";
 import { ILogger } from "js-logger/src/types";
@@ -15,6 +16,7 @@ import {
   JSSJob,
   JSSJobStatus,
 } from "../../job-status-client/types";
+import LabkeyClient from "../../labkey-client";
 import { AICSFILES_LOGGER, defaultFs } from "../constants";
 import { UnrecoverableJobError } from "../errors/UnrecoverableJobError";
 import { AddMetadataStep } from "../steps/add-metadata-step";
@@ -29,6 +31,7 @@ import {
   UploadContext,
   UploadResponse,
   Uploads,
+  UploadServiceFields,
 } from "../types";
 import { makePosixPathCompatibleWithPlatform } from "../util";
 
@@ -51,6 +54,7 @@ const getUUID = (): string => {
 export class Uploader {
   private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
+  private readonly lk: LabkeyClient;
   private readonly storage: LocalStorage;
   private readonly logger: ILogger;
 
@@ -86,6 +90,7 @@ export class Uploader {
     getCopyWorker: () => Worker,
     fss: FSSClient,
     jobStatusClient: JobStatusClient,
+    lk: LabkeyClient,
     storage: LocalStorage,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
     fs: FileSystemUtil = defaultFs
@@ -93,6 +98,7 @@ export class Uploader {
     this.getCopyWorker = getCopyWorker;
     this.fss = fss;
     this.jss = jobStatusClient;
+    this.lk = lk;
     this.storage = storage;
     this.logger = logger;
     this.fs = fs;
@@ -157,7 +163,7 @@ export class Uploader {
     ) => void = noop,
     copyProgressCbThrottleMs?: number
   ): Promise<UploadResponse> {
-    this.validateUploadJob(uploadJob);
+    await this.validateUploadJob(uploadJob, uploads);
 
     if (uploadJob.status === JSSJobStatus.SUCCEEDED) {
       // if upload job already succeeded, we'll just return what is stored as output on the job
@@ -265,7 +271,10 @@ export class Uploader {
     return lastModified;
   }
 
-  private validateUploadJob(job: JSSJob): void {
+  private async validateUploadJob(
+    job: JSSJob<UploadServiceFields>,
+    uploads: Uploads
+  ): Promise<void> {
     if (
       includes(
         [
@@ -282,10 +291,38 @@ export class Uploader {
       );
     }
 
-    if (!job.serviceFields.uploadDirectory) {
+    if (!job.serviceFields?.uploadDirectory) {
       throw new UnrecoverableJobError(
         "Upload job is missing serviceFields.uploadDirectory"
       );
+    }
+
+    const { lastModified, md5 } = job.serviceFields;
+    // older uploads might not have these fields. we cannot do a duplicate check at this point if that is the case.
+    if (!lastModified || !md5) {
+      return;
+    }
+
+    // Prevent duplicate files from getting uploaded ASAP
+    // We can do this if MD5 has already been calculated for a file and the file has not been modified since then
+    for (const originalPath of Object.keys(uploads)) {
+      const currLastModified = lastModified[hash.MD5(originalPath)];
+      const currMD5 = md5[hash.MD5(originalPath)];
+      if (currLastModified && currMD5) {
+        const stats = await this.fs.stat(originalPath);
+        if (stats.mtime.getTime() === new Date(currLastModified).getTime()) {
+          if (
+            await this.lk.getFileExistsByMD5AndName(
+              currMD5,
+              basename(originalPath)
+            )
+          ) {
+            throw new Error(
+              `${basename(originalPath)} has already been uploaded to FMS.`
+            );
+          }
+        }
+      }
     }
   }
 

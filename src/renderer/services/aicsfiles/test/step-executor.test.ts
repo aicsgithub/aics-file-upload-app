@@ -160,7 +160,7 @@ describe("StepExecutor", () => {
         JSSJobStatus.WAITING,
         stub().rejects(new Error("Mock error"))
       );
-      expect(
+      await expect(
         StepExecutor.executeSteps(
           (jobStatusClient as any) as JobStatusClient,
           [step],
@@ -194,7 +194,7 @@ describe("StepExecutor", () => {
     });
     it("throws error if a step is blocked", () => {
       const { step } = getStepAndStubs(JSSJobStatus.BLOCKED);
-      expect(
+      return expect(
         StepExecutor.executeSteps(
           (jobStatusClient as any) as JobStatusClient,
           [step],
@@ -204,7 +204,7 @@ describe("StepExecutor", () => {
     });
     it("throws error if a step is retrying", () => {
       const { step } = getStepAndStubs(JSSJobStatus.RETRYING);
-      expect(
+      return expect(
         StepExecutor.executeSteps(
           (jobStatusClient as any) as JobStatusClient,
           [step],
@@ -214,7 +214,7 @@ describe("StepExecutor", () => {
     });
     it("throws error if a step is working", () => {
       const { step } = getStepAndStubs(JSSJobStatus.WORKING);
-      expect(
+      return expect(
         StepExecutor.executeSteps(
           (jobStatusClient as any) as JobStatusClient,
           [step],
@@ -395,7 +395,7 @@ describe("StepExecutor", () => {
 
     it("throws error if a step is blocked", () => {
       const { step } = getStepAndStubs(JSSJobStatus.BLOCKED);
-      expect(
+      return expect(
         StepExecutor.executeStepsInParallel(
           (jobStatusClient as any) as JobStatusClient,
           [step],
@@ -406,7 +406,7 @@ describe("StepExecutor", () => {
 
     it("throws error if a step is retrying", () => {
       const { step } = getStepAndStubs(JSSJobStatus.RETRYING);
-      expect(
+      return expect(
         StepExecutor.executeStepsInParallel(
           (jobStatusClient as any) as JobStatusClient,
           [step],
@@ -417,7 +417,7 @@ describe("StepExecutor", () => {
 
     it("throws error if a step is working", () => {
       const { step } = getStepAndStubs(JSSJobStatus.WORKING);
-      expect(
+      return expect(
         StepExecutor.executeStepsInParallel(
           (jobStatusClient as any) as JobStatusClient,
           [step],

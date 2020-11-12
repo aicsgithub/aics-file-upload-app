@@ -35,6 +35,7 @@ import {
 } from "./types";
 
 const LK_FILEMETADATA_SCHEMA = "filemetadata";
+const LK_FMS_SCHEMA = "fms";
 const LK_MICROSCOPY_SCHEMA = "microscopy";
 const LK_PROCESSING_SCHEMA = "processing";
 const LK_UPLOADER_SCHEMA = "uploader";
@@ -78,6 +79,7 @@ export default class LabkeyClient extends HttpCacheClient {
     this.getImagingSessionIdsForBarcode = this.getImagingSessionIdsForBarcode.bind(
       this
     );
+    this.getFileExistsByMD5AndName = this.getFileExistsByMD5AndName.bind(this);
     this.selectRows = this.selectRows.bind(this);
     this.selectFirst = this.selectFirst.bind(this);
     this.selectRowsAsList = this.selectRowsAsList.bind(this);
@@ -388,6 +390,18 @@ export default class LabkeyClient extends HttpCacheClient {
       );
     }
     return [];
+  }
+
+  public async getFileExistsByMD5AndName(
+    md5: string,
+    name: string
+  ): Promise<boolean> {
+    const query = LabkeyClient.getSelectRowsURL(LK_FMS_SCHEMA, "File", [
+      `query.FileName~eq=${name}`,
+      `query.MD5~eq=${md5}`,
+    ]);
+    const response = await this.get(query);
+    return response.rows.length > 0;
   }
 
   // Returns the LabKey query
