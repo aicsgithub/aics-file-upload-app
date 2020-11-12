@@ -47,7 +47,7 @@ pipeline {
         stage ("version - release") {
             when {
                 expression {
-                    return gitAuthor() != "jenkins" && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT != "prerelease"
+                    return params.INCREMENT_VERSION && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT != "prerelease"
                 }
             }
             steps {
@@ -59,7 +59,7 @@ pipeline {
         stage ("version - snapshot") {
             when {
                 expression {
-                    return gitAuthor() != "jenkins" && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT == "prerelease"
+                    return params.INCREMENT_VERSION && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT == "prerelease"
                 }
             }
             steps {
