@@ -27,7 +27,7 @@
     "compile-prod": "cross-env ELECTRON_WEBPACK_APP_LIMS_HOST=\"aics.corp.alleninstitute.org\" ELECTRON_WEBPACK_APP_LIMS_PORT=80 NODE_ENV=production yarn compile",
     "build-executable": "yarn compile && yarn electron-builder",
     "dist": "electron-builder -p always",
-    "test": "cross-env TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*.{ts,tsx}",
+    "test": "cross-env TS_NODE_PROJECT=tsconfig.commonjs.json TS_NODE_FILES=true NODE_ENV=production mocha src/**/test/*.{ts,tsx}",
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "madge": "madge --warning --circular --ts-config tsconfig.base.json --webpack-config webpack/webpack.render.additions.js --extensions js,jsx,ts,tsx  src/"
@@ -72,7 +72,7 @@
     "rxjs": "6.5.4",
     "source-map-support": "0.5.11",
     "ts-import-plugin": "1.5.5",
-    "ts-node": "8.2.0",
+    "ts-node": "9.0.0",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
@@ -85,7 +85,7 @@
     "@types/humps": "1.1.2",
     "@types/jsdom": "12.2.3",
     "@types/lodash": "4.14.123",
-    "@types/mocha": "5.2.6",
+    "@types/mocha": "8.0.4",
     "@types/node": "12.12.47",
     "@types/object-hash": "1.3.3",
     "@types/react": "16.9.2",
@@ -121,7 +121,7 @@
     "less-loader": "4.1.0",
     "lint-staged": ">=10",
     "madge": "^3.9.2",
-    "mocha": "6.0.2",
+    "mocha": "8.2.1",
     "mock-css-modules": "2.0.0",
     "postcss-import": "12.0.1",
     "postcss-loader": "3.0.0",
