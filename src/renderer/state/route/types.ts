@@ -27,7 +27,7 @@ export interface SelectPageAction {
 }
 
 export interface SelectViewAction {
-  payload: string;
+  payload: Page;
   type: string;
 }
 

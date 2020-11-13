@@ -48,7 +48,7 @@ export function selectPage(
   };
 }
 
-export function selectView(view: string): SelectViewAction {
+export function selectView(view: Page): SelectViewAction {
   return {
     payload: view,
     type: SELECT_VIEW,

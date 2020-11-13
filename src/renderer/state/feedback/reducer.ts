@@ -168,7 +168,7 @@ export const initialState: FeedbackStateBranch = {
   visibleModals: [],
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
   [CLEAR_ALERT]: {
     accepts: (action: AnyAction): action is ClearAlertAction =>
       action.type === CLEAR_ALERT,
@@ -181,7 +181,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       const { message, type } = alert;
       const event = {
         date: new Date(),
-        message,
+        message: message ?? "",
         type,
       };
       return {

@@ -42,7 +42,7 @@ export const initialState: SettingStateBranch = {
   },
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<SettingStateBranch> = {
   [GATHER_SETTINGS]: {
     accepts: (action: AnyAction): action is GatherSettingsAction =>
       action.type === GATHER_SETTINGS,

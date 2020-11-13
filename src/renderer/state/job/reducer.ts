@@ -27,7 +27,7 @@ export const initialState: JobStateBranch = {
   uploadJobs: [],
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
   [RECEIVE_JOBS]: {
     accepts: (action: AnyAction): action is ReceiveJobsAction =>
       action.type === RECEIVE_JOBS,

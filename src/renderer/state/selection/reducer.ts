@@ -89,7 +89,7 @@ export const initialState: SelectionStateBranch = {
   user: userInfo().username,
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
+const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
   [DESELECT_FILES]: {
     accepts: (action: AnyAction): action is DeselectFilesAction =>
       action.type === DESELECT_FILES,
@@ -138,7 +138,7 @@ const actionToConfigMap: TypeToDescriptionMap = {
       { payload: { imagingSessionIds, plate, wells } }: SetPlateAction
     ) => ({
       ...state,
-      imagingSessionId: imagingSessionIds[0],
+      imagingSessionId: imagingSessionIds[0] ?? undefined,
       imagingSessionIds,
       plate,
       wells,

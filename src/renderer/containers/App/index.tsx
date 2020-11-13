@@ -354,7 +354,7 @@ export default function App() {
             activeKey={view}
             className={styles.tabContainer}
             hideAdd={true}
-            onChange={(view) => dispatch(selectView(view))}
+            onChange={(view) => dispatch(selectView(view as Page))}
             onEdit={onTabChange}
             type="editable-card"
             tabBarExtraContent={<NotificationViewer />}

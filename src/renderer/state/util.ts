@@ -14,7 +14,7 @@ export function makeConstant(associatedReducer: string, actionType: string) {
 }
 
 export function makeReducer<S>(
-  typeToDescriptionMap: TypeToDescriptionMap,
+  typeToDescriptionMap: TypeToDescriptionMap<S>,
   initialState: S
 ): Reducer<S> {
   return (state: S = initialState, action: AnyAction) => {
