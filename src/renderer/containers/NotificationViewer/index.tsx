@@ -1,15 +1,17 @@
-import { Button, Icon, Modal, Switch } from "antd";
+import { Badge, Button, Icon, Modal, Switch } from "antd";
 import * as classNames from "classnames";
 import * as moment from "moment";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { closeNotificationCenter } from "../../state/feedback/actions";
+import { getEventsByNewest } from "../../state/feedback/selectors";
 import { updateSettings } from "../../state/setting/actions";
 import { getEnabledNotifications } from "../../state/setting/selectors";
 import { AlertType } from "../../state/types";
 
-import { getFilteredEvents } from "./selectors";
+import { getFilteredEvents, getUnreadEventsCount } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -48,6 +50,8 @@ export default function NotificationViewer() {
   const dispatch = useDispatch();
 
   const filteredEvents = useSelector(getFilteredEvents);
+  const allEvents = useSelector(getEventsByNewest);
+  const unreadEventsCount = useSelector(getUnreadEventsCount);
   const [showEvents, setShowEvents] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -64,6 +68,11 @@ export default function NotificationViewer() {
   useEffect(() => setEnabledNotificationsDraft(enabledNotifications), [
     enabledNotifications,
   ]);
+
+  function closeModal() {
+    setShowEvents(false);
+    dispatch(closeNotificationCenter());
+  }
 
   function changeEnabledNotification(checked: boolean, type: AlertType) {
     setEnabledNotificationsDraft((prev) => ({
@@ -84,6 +93,27 @@ export default function NotificationViewer() {
     setEnabledNotificationsDraft(enabledNotifications);
   }
 
+  function renderEventsPage() {
+    if (filteredEvents.length > 0) {
+      return filteredEvents.map((event) => (
+        <div
+          key={event.date.toISOString()}
+          className={classNames(styles.notificationContainer, {
+            [styles.unread]: !event.viewed,
+          })}
+        >
+          <div className={styles.iconContainer}>{getIcon(event.type)}</div>
+          <div className={styles.message}>{event.message}</div>
+          <div className={styles.timestamp}>{formatDate(event.date)}</div>
+        </div>
+      ));
+    } else if (allEvents.length > 0) {
+      return "No notifications matching your settings.";
+    } else {
+      return "No notifications yet for the current session.";
+    }
+  }
+
   const modalHeader = (
     <div className={styles.modalHeader}>
       Notifications
@@ -95,17 +125,6 @@ export default function NotificationViewer() {
       />
     </div>
   );
-
-  const eventList = filteredEvents.map((event) => (
-    <div
-      key={event.date.toISOString()}
-      className={styles.notificationContainer}
-    >
-      <div className={styles.iconContainer}>{getIcon(event.type)}</div>
-      <div className={styles.message}>{event.message}</div>
-      <div className={styles.timestamp}>{formatDate(event.date)}</div>
-    </div>
-  ));
 
   const settingsItems = [
     {
@@ -160,22 +179,24 @@ export default function NotificationViewer() {
 
   return (
     <>
-      <Icon
-        type="bell"
-        theme="filled"
-        className={classNames(styles.icon, styles.notificationBell)}
-        onClick={() => setShowEvents(true)}
-      />
+      <Badge count={unreadEventsCount} offset={[-8, 8]}>
+        <Icon
+          type="bell"
+          theme="filled"
+          className={classNames(styles.icon, styles.notificationBell)}
+          onClick={() => setShowEvents(true)}
+        />
+      </Badge>
       <Modal
         title={modalHeader}
         visible={showEvents}
         mask={false}
         footer={null}
-        onCancel={() => setShowEvents(false)}
+        onCancel={closeModal}
         closable={false}
         wrapClassName="notification-modal"
       >
-        {showSettings ? settingsPage : eventList}
+        {showSettings ? settingsPage : renderEventsPage()}
       </Modal>
     </>
   );

@@ -23,6 +23,7 @@ describe("<StatusBar/>", () => {
       date: new Date(),
       message,
       type: AlertType.ERROR,
+      viewed: false,
     };
   });
 

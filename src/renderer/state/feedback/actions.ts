@@ -9,6 +9,7 @@ import {
   CLEAR_DEFERRED_ACTION,
   CLEAR_UPLOAD_ERROR,
   CLOSE_MODAL,
+  CLOSE_NOTIFICATION_CENTER,
   CLOSE_SET_MOUNT_POINT_NOTIFICATION,
   OPEN_MODAL,
   OPEN_SET_MOUNT_POINT_NOTIFICATION,
@@ -26,6 +27,7 @@ import {
   ClearDeferredAction,
   ClearUploadErrorAction,
   CloseModalAction,
+  CloseNotificationCenter,
   CloseSetMountPointNotificationAction,
   OpenModalAction,
   OpenSetMountPointNotificationAction,
@@ -182,5 +184,11 @@ export function clearUploadError(): ClearUploadErrorAction {
 export function toggleFolderTree(): ToggleFolderTreeAction {
   return {
     type: TOGGLE_FOLDER_TREE,
+  };
+}
+
+export function closeNotificationCenter(): CloseNotificationCenter {
+  return {
+    type: CLOSE_NOTIFICATION_CENTER,
   };
 }

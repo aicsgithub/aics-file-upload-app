@@ -41,3 +41,7 @@ export const TOGGLE_FOLDER_TREE = makeConstant(
   BRANCH_NAME,
   "toggle-folder-tree"
 );
+export const CLOSE_NOTIFICATION_CENTER = makeConstant(
+  BRANCH_NAME,
+  "close-notification-center"
+);

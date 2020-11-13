@@ -357,7 +357,11 @@ export default function App() {
             onChange={(view) => dispatch(selectView(view as Page))}
             onEdit={onTabChange}
             type="editable-card"
-            tabBarExtraContent={<NotificationViewer />}
+            tabBarExtraContent={
+              <div style={{ marginRight: "10px" }}>
+                <NotificationViewer />
+              </div>
+            }
           >
             <TabPane
               className={styles.tabContent}

@@ -77,3 +77,7 @@ export interface ClearUploadErrorAction {
 export interface ToggleFolderTreeAction {
   type: string;
 }
+
+export interface CloseNotificationCenter {
+  type: string;
+}
