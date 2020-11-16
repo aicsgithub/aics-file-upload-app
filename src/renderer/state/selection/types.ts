@@ -123,3 +123,14 @@ export interface SelectImagingSessionIdAction extends AutoSaveAction {
   payload: number;
   type: string;
 }
+
+export interface MassEditRow {
+  massEditNumberOfFiles: number;
+  // custom annotations
+  [key: string]: any;
+}
+
+export interface UpdateMassEditRowAction {
+  payload: MassEditRow;
+  type: string;
+}

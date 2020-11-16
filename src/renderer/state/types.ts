@@ -38,6 +38,8 @@ import {
 } from "../services/mms-client/types";
 import { LocalStorage } from "../types";
 
+import { MassEditRow } from "./selection/types";
+
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -288,6 +290,7 @@ export interface SelectionStateBranch extends UploadTabSelections {
   files: string[];
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
+  massEditRow: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];

@@ -28,6 +28,7 @@ import {
   SELECT_WORKFLOWS,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+  UPDATE_MASS_EDIT_ROW,
   UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -39,6 +40,7 @@ import {
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
+  MassEditRow,
   SelectAnnotationAction,
   SelectBarcodeAction,
   SelectFileAction,
@@ -49,6 +51,7 @@ import {
   SelectWorkflowsAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
+  UpdateMassEditRowAction,
   UpdateStagedFilesAction,
 } from "./types";
 
@@ -220,5 +223,14 @@ export function selectImagingSessionId(
     autoSave: true,
     payload: imagingSessionId,
     type: SELECT_IMAGING_SESSION_ID,
+  };
+}
+
+export function updateMassEditRow(
+  upload: MassEditRow
+): UpdateMassEditRowAction {
+  return {
+    payload: upload,
+    type: UPDATE_MASS_EDIT_ROW,
   };
 }

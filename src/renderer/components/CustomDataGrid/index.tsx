@@ -26,15 +26,16 @@ import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import { SetAlertAction } from "../../state/feedback/types";
 import {
   ToggleExpandedUploadJobRowAction,
+  UpdateMassEditRowAction,
   Well,
 } from "../../state/selection/types";
+import { MassEditRow } from "../../state/selection/types";
 import { AlertType, ExpandedRows, UploadMetadata } from "../../state/types";
 import {
   getUploadRowKey,
   getUploadRowKeyFromUploadTableRow,
 } from "../../state/upload/constants";
 import {
-  MassEditRow,
   RemoveUploadsAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
@@ -74,12 +75,14 @@ interface Props {
   editable: boolean;
   expandedRows: ExpandedRows;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
+  massEditRow: MassEditRow;
   redo: () => void;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   template?: Template;
   setAlert: ActionCreator<SetAlertAction>;
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   undo: () => void;
+  updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
   updateUpload: ActionCreator<UpdateUploadAction>;
   updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
@@ -89,7 +92,6 @@ interface Props {
 
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
-  massEditRow: MassEditRow;
   selectedRows: string[];
   showMassEditGrid: boolean;
   showMassEditShadow: boolean;
@@ -181,7 +183,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      massEditRow: { massEditNumberOfFiles: 0 },
       selectedRows: [],
       showMassEditGrid: false,
       showMassEditShadow: true,
@@ -198,7 +199,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
-    const massEditRowGetter = (idx: number) => [this.state.massEditRow][idx];
+    const massEditRowGetter = (idx: number) => [this.props.massEditRow][idx];
 
     return (
       <>
@@ -635,8 +636,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     });
     this.setState({
       showMassEditGrid: true,
-      massEditRow: emptyMassEditRow,
     });
+    this.props.updateMassEditRow(emptyMassEditRow);
   };
 
   private updateMassEditRows = (
@@ -644,15 +645,15 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   ) => {
     const { updated } = e;
     if (updated) {
+      this.props.updateMassEditRow({ ...this.props.massEditRow, ...e.updated });
       this.setState({
-        massEditRow: { ...this.state.massEditRow, ...e.updated },
         showMassEditShadow: false,
       });
     }
   };
 
   private updateRowsWithMassEditInfo = () => {
-    const massEditRow = this.state.massEditRow;
+    const massEditRow = this.props.massEditRow;
     const updateRow: Partial<UploadMetadata> = {};
     Object.keys(massEditRow).map((key) => {
       if (Array.isArray(massEditRow[key])) {

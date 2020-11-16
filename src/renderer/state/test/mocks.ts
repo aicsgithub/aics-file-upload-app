@@ -208,6 +208,7 @@ export const mockSelection: SelectionStateBranch = {
   imagingSessionId: undefined,
   imagingSessionIds: [null, 1],
   plate: mockPlate,
+  massEditRow: { massEditNumberOfFiles: 0 },
   selectedWells: [],
   selectedWorkflows: [],
   stagedFiles: [],
