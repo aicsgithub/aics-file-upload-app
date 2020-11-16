@@ -583,13 +583,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       state: FeedbackStateBranch,
       { payload: { nextPage } }: SelectPageAction
     ) => {
-      const pagesToShowFolderTree = [
-        Page.AssociateFiles,
-        Page.SelectStorageLocation,
-      ];
       return {
         ...state,
-        folderTreeOpen: pagesToShowFolderTree.includes(nextPage),
+        folderTreeOpen: nextPage === Page.AssociateFiles,
       };
     },
   },
