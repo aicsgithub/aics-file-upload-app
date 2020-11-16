@@ -115,7 +115,7 @@ describe("Upload selectors", () => {
       expect(getCanUndoUpload(state)).to.equal(false);
     });
 
-    it("should return true if on AddCustomData page and previous action is not from the previous page", () => {
+    it("should return true if on AddCustomData page and current index is more than 1 more than that of previous page", () => {
       const state = {
         ...mockState,
         route: {
