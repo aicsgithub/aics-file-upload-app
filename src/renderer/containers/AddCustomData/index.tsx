@@ -45,7 +45,6 @@ import {
   getMassEditRow,
 } from "../../state/selection/selectors";
 import {
-  MassEditRow,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
   Well,
@@ -58,7 +57,13 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AsyncRequest, ExpandedRows, Page, State } from "../../state/types";
+import {
+  AsyncRequest,
+  ExpandedRows,
+  MassEditRow,
+  Page,
+  State,
+} from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,

@@ -7,8 +7,7 @@ import {
   getSelectedWells,
   getWellsWithUnitsAndModified,
 } from "../../../state/selection/selectors";
-import { MassEditRow } from "../../../state/selection/types";
-import { State } from "../../../state/types";
+import { MassEditRow, State } from "../../../state/types";
 
 interface Props {
   rowData: MassEditRow;

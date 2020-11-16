@@ -30,8 +30,12 @@ import {
   UpdateMassEditRowAction,
   Well,
 } from "../../state/selection/types";
-import { MassEditRow } from "../../state/selection/types";
-import { AlertType, ExpandedRows, UploadMetadata } from "../../state/types";
+import {
+  AlertType,
+  ExpandedRows,
+  MassEditRow,
+  UploadMetadata,
+} from "../../state/types";
 import {
   getUploadRowKey,
   getUploadRowKeyFromUploadTableRow,

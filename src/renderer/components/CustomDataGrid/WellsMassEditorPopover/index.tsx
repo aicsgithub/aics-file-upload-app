@@ -12,11 +12,8 @@ import {
   getSelectedWellIds,
   getSelectedWellLabels,
 } from "../../../state/selection/selectors";
-import {
-  MassEditRow,
-  UpdateMassEditRowAction,
-} from "../../../state/selection/types";
-import { State, UploadStateBranch } from "../../../state/types";
+import { UpdateMassEditRowAction } from "../../../state/selection/types";
+import { MassEditRow, State, UploadStateBranch } from "../../../state/types";
 import {
   associateFilesAndWells,
   undoFileWellAssociation,
