@@ -566,12 +566,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       width: DEFAULT_COLUMN_WIDTH,
       type: ColumnType.NUMBER,
     };
-    let basicColumns;
-    if (!this.props.associateByWorkflow) {
-      basicColumns = this.getWellUploadColumns(true);
-    } else {
-      basicColumns = this.getWorkflowUploadColumns();
-    }
+    const basicColumns = this.props.associateByWorkflow
+      ? this.getWorkflowUploadColumns()
+      : this.getWellUploadColumns(true);
     const schemaColumns = this.getSchemaColumns(true);
     const massEditSchemaColumns = basicColumns
       .concat(schemaColumns)
