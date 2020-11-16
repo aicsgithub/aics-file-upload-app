@@ -6,6 +6,7 @@ import {
   DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
+  MassEditRow,
   UploadFile,
 } from "../types";
 
@@ -40,7 +41,6 @@ import {
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
-  MassEditRow,
   SelectAnnotationAction,
   SelectBarcodeAction,
   SelectFileAction,

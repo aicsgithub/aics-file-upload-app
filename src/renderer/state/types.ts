@@ -38,8 +38,6 @@ import {
 } from "../services/mms-client/types";
 import { LocalStorage } from "../types";
 
-import { MassEditRow } from "./selection/types";
-
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -454,4 +452,10 @@ export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
   // used by antd's Table component to uniquely identify rows
   key: string;
   progress?: UploadProgressInfo;
+}
+
+export interface MassEditRow {
+  massEditNumberOfFiles: number;
+  // custom annotations
+  [key: string]: any;
 }
