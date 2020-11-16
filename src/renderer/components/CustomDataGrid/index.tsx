@@ -15,6 +15,7 @@ import {
   LIST_DELIMITER_JOIN,
   MAIN_FONT_WIDTH,
   NOTES_ANNOTATION_NAME,
+  WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
@@ -51,6 +52,7 @@ import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import { FormatterProps } from "./types";
 import WellsEditor from "./WellsEditor";
+import WellsMassEditor from "./WellsMassEditor";
 
 const styles = require("./style.pcss");
 
@@ -136,11 +138,13 @@ interface OnExpandArgs {
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {
-  private get wellUploadColumns(): UploadJobColumn[] {
+  private getWellUploadColumns(massEdit = false): UploadJobColumn[] {
     return [
       {
         editable: this.props.editable,
-        ...(this.props.editable ? { editor: WellsEditor } : {}),
+        ...(this.props.editable
+          ? { editor: massEdit ? WellsMassEditor : WellsEditor }
+          : {}),
         formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
           if (
             row.channelId ||
@@ -152,7 +156,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           }
           return !isEmpty(row.positionIndexes)
             ? null
-            : this.renderFormat(row, "wellLabels", value, undefined, true);
+            : this.renderFormat(
+                row,
+                "wellLabels",
+                value,
+                undefined,
+                true,
+                massEdit
+              );
         },
         key: "wellLabels",
         name: "Wells",
@@ -163,7 +174,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     ];
   }
 
-  private get workflowUploadColumns(): UploadJobColumn[] {
+  private getWorkflowUploadColumns(): UploadJobColumn[] {
     return [
       {
         cellClass: styles.formatterContainer,
@@ -526,9 +537,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
     let basicColumns;
     if (!this.props.associateByWorkflow) {
-      basicColumns = this.uploadColumns(this.wellUploadColumns);
+      basicColumns = this.uploadColumns(this.getWellUploadColumns());
     } else {
-      basicColumns = this.uploadColumns(this.workflowUploadColumns);
+      basicColumns = this.uploadColumns(this.getWorkflowUploadColumns());
     }
     if (!this.props.template) {
       return basicColumns;
@@ -551,10 +562,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       width: DEFAULT_COLUMN_WIDTH,
       type: ColumnType.NUMBER,
     };
+    let basicColumns;
+    if (!this.props.associateByWorkflow) {
+      basicColumns = this.getWellUploadColumns(true);
+    } else {
+      basicColumns = this.getWorkflowUploadColumns();
+    }
     const schemaColumns = this.getSchemaColumns(true);
-    const massEditSchemaColumns = schemaColumns.map(
-      (column) => column as MassEditColumn
-    );
+    const massEditSchemaColumns = basicColumns
+      .concat(schemaColumns)
+      .map((column) => column as MassEditColumn);
     return [numberFiles].concat(massEditSchemaColumns);
   };
 
@@ -631,8 +648,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       massEditNumberOfFiles: this.state.selectedRows.length,
     };
     columns.forEach((column) => {
-      emptyMassEditRow[column["name"]] =
-        column.type === ColumnType.BOOLEAN ? [false] : [];
+      if (column["name"] === "Wells") {
+        // Special case where column name != annotation name TODO: Handle others?
+        emptyMassEditRow[WELL_ANNOTATION_NAME] = [];
+      } else {
+        emptyMassEditRow[column["name"]] =
+          column.type === ColumnType.BOOLEAN ? [false] : [];
+      }
     });
     this.setState({
       showMassEditGrid: true,
