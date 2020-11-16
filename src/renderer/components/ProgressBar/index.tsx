@@ -29,10 +29,6 @@ const stepOrder: { [stepName: string]: StepInfo } = {
     description: "Associate Wells or Workflows with Files to upload",
     display: "Associate Files",
   },
-  [Page.SelectStorageLocation]: {
-    description: "Select where to store files",
-    display: "Storage",
-  },
   [Page.AddCustomData]: {
     description: "Add additional custom metadata to the files",
     display: "Add Metadata",

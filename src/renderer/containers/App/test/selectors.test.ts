@@ -141,12 +141,12 @@ describe("App selectors", () => {
       );
     });
 
-    it("creates non-closeable tag for well if on the SelectStorageLocation page", () => {
+    it("creates non-closeable tag for well if on the AddCustomData page", () => {
       const map = getFileToTags({
         ...stateWithWellAssociations,
         route: {
-          page: Page.SelectStorageLocation,
-          view: Page.SelectStorageLocation,
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
         },
       });
 
@@ -165,13 +165,13 @@ describe("App selectors", () => {
       expect(get(map.get(filePath1), [0, "closable"])).to.be.false;
     });
 
-    it("creates non-closeable tag for workflow if on the SelectStorageLocation page", () => {
+    it("creates non-closeable tag for workflow if on the AddCustomData page", () => {
       const map = getFileToTags({
         ...stateWithWorkflowAssociations,
         route: {
           ...mockState.route,
-          page: Page.SelectStorageLocation,
-          view: Page.SelectStorageLocation,
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
         },
       });
 
@@ -198,83 +198,6 @@ describe("App selectors", () => {
 
       const file2Tags = map.get(filePath2) || [];
       expect(get(file2Tags, [0, "closable"])).to.be.false;
-    });
-
-    it("creates a closeable tag for storage intents if on the SelectStorageLocation page", () => {
-      const map = getFileToTags({
-        ...mockState,
-        route: {
-          ...mockState.route,
-          page: Page.SelectStorageLocation,
-          view: Page.SelectStorageLocation,
-        },
-        selection: getMockStateWithHistory({
-          ...mockSelection,
-          wells: mockWells,
-        }),
-        upload: getMockStateWithHistory({
-          [filePath1]: {
-            barcode: "test_barcode",
-            file: filePath1,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
-            [WELL_ANNOTATION_NAME]: [1, 3],
-          },
-          [filePath2]: {
-            barcode: "test_barcode",
-            file: filePath2,
-            shouldBeInArchive: false,
-            shouldBeInLocal: true,
-            [WELL_ANNOTATION_NAME]: [4],
-          },
-        }),
-      });
-
-      const file1Tags = map.get(filePath1) || [];
-      expect(get(file1Tags, [2, "title"])).to.equal("Archive");
-      expect(get(file1Tags, [2, "closable"])).to.be.true;
-
-      const file2Tags = map.get(filePath2) || [];
-      expect(get(file2Tags, [1, "title"])).to.equal("Isilon");
-      expect(get(file2Tags, [1, "closable"])).to.be.true;
-    });
-    it("creates a non-closeable tag for storage intents if on the AddCustomData page", () => {
-      const map = getFileToTags({
-        ...mockState,
-        route: {
-          ...mockState.route,
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
-        },
-        selection: getMockStateWithHistory({
-          ...mockSelection,
-          wells: mockWells,
-        }),
-        upload: getMockStateWithHistory({
-          [filePath1]: {
-            barcode: "test_barcode",
-            file: filePath1,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
-            [WELL_ANNOTATION_NAME]: [1, 3],
-          },
-          [filePath2]: {
-            barcode: "test_barcode",
-            file: filePath2,
-            shouldBeInArchive: false,
-            shouldBeInLocal: true,
-            [WELL_ANNOTATION_NAME]: [4],
-          },
-        }),
-      });
-
-      const file1Tags = map.get(filePath1) || [];
-      expect(get(file1Tags, [2, "title"])).to.equal("Archive");
-      expect(get(file1Tags, [2, "closable"])).to.be.false;
-
-      const file2Tags = map.get(filePath2) || [];
-      expect(get(file2Tags, [1, "title"])).to.equal("Isilon");
-      expect(get(file2Tags, [1, "closable"])).to.be.false;
     });
   });
   describe("getUploadTabName", () => {

@@ -30,8 +30,6 @@ import {
   JUMP_TO_PAST_UPLOAD,
   JUMP_TO_UPLOAD,
   OPEN_UPLOAD_DRAFT,
-  REMOVE_FILE_FROM_ARCHIVE,
-  REMOVE_FILE_FROM_ISILON,
   REPLACE_UPLOAD,
   RETRY_UPLOAD,
   SAVE_UPLOAD_DRAFT,
@@ -40,8 +38,6 @@ import {
   UNDO_FILE_WELL_ASSOCIATION,
   UNDO_FILE_WORKFLOW_ASSOCIATION,
   UPDATE_AND_RETRY_UPLOAD,
-  UPDATE_FILES_TO_ARCHIVE,
-  UPDATE_FILES_TO_STORE_ON_ISILON,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
@@ -61,15 +57,12 @@ import {
   ClearUploadHistoryAction,
   EditFileMetadataFailedAction,
   EditFileMetadataSucceededAction,
-  FilepathToBoolean,
   InitiateUploadAction,
   InitiateUploadFailedAction,
   InitiateUploadSucceededAction,
   JumpToPastUploadAction,
   JumpToUploadAction,
   OpenUploadDraftAction,
-  RemoveFileFromArchiveAction,
-  RemoveFileFromIsilonAction,
   RemoveUploadsAction,
   ReplaceUploadAction,
   RetryUploadAction,
@@ -79,8 +72,6 @@ import {
   UndoFileWellAssociationAction,
   UndoFileWorkflowAssociationAction,
   UpdateAndRetryUploadAction,
-  UpdateFilesToArchive,
-  UpdateFilesToStoreOnIsilon,
   UpdateSubImagesAction,
   UpdateSubImagesPayload,
   UpdateUploadAction,
@@ -344,46 +335,6 @@ export function updateSubImages(
       subImageNames: payload.subImageNames || [],
     },
     type: UPDATE_SUB_IMAGES,
-  };
-}
-
-export function updateFilesToArchive(
-  filesToArchive: FilepathToBoolean
-): UpdateFilesToArchive {
-  return {
-    autoSave: true,
-    payload: filesToArchive,
-    type: UPDATE_FILES_TO_ARCHIVE,
-  };
-}
-
-export function updateFilesToStoreOnIsilon(
-  filesToStoreOnIsilon: FilepathToBoolean
-): UpdateFilesToStoreOnIsilon {
-  return {
-    autoSave: true,
-    payload: filesToStoreOnIsilon,
-    type: UPDATE_FILES_TO_STORE_ON_ISILON,
-  };
-}
-
-export function removeFileFromArchive(
-  fileToNotArchive: string
-): RemoveFileFromArchiveAction {
-  return {
-    autoSave: true,
-    payload: fileToNotArchive,
-    type: REMOVE_FILE_FROM_ARCHIVE,
-  };
-}
-
-export function removeFileFromIsilon(
-  fileToNotStoreOnIsilon: string
-): RemoveFileFromIsilonAction {
-  return {
-    autoSave: true,
-    payload: fileToNotStoreOnIsilon,
-    type: REMOVE_FILE_FROM_ISILON,
   };
 }
 

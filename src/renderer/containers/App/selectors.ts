@@ -21,7 +21,6 @@ import {
   getWellIdToWellMap,
 } from "../../state/selection/selectors";
 import { Page, UploadMetadata, UploadStateBranch } from "../../state/types";
-import { isFileRow } from "../../state/upload/constants";
 import {
   getUpload,
   getWellLabelAndImagingSessionName,
@@ -76,30 +75,6 @@ export const getFileToTags = createSelector(
             wellId,
           })),
         ];
-        const fileRows = metadata.filter(isFileRow);
-        let shouldBeInArchive = false;
-        let shouldBeInLocal = false;
-        if (fileRows.length) {
-          const fileRow = fileRows[0];
-          shouldBeInArchive = Boolean(fileRow.shouldBeInArchive);
-          shouldBeInLocal = Boolean(fileRow.shouldBeInLocal);
-        }
-        if (shouldBeInArchive) {
-          tags.push({
-            closable: page === Page.SelectStorageLocation,
-            color: "green",
-            title: "Archive",
-            type: FileTagType.STORAGE,
-          });
-        }
-        if (shouldBeInLocal) {
-          tags.push({
-            closable: page === Page.SelectStorageLocation,
-            color: "green",
-            title: "Isilon",
-            type: FileTagType.STORAGE,
-          });
-        }
         result.set(file, tags);
       }
     );

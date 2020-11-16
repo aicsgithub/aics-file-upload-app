@@ -21,12 +21,7 @@ import {
   undoFileWellAssociation,
   undoFileWorkflowAssociation,
 } from "../../state/upload/actions";
-import {
-  FileTag,
-  FileTagType,
-  RemoveFileFromArchiveAction,
-  RemoveFileFromIsilonAction,
-} from "../../state/upload/types";
+import { FileTag, FileTagType } from "../../state/upload/types";
 import DragAndDrop from "../DragAndDrop";
 import Resizable from "../Resizable";
 
@@ -47,8 +42,6 @@ interface FolderTreeProps {
     files: string[]
   ) => LoadFilesFromOpenDialogAction;
   onCheck: (files: string[]) => SelectFileAction;
-  removeFileFromArchive: ActionCreator<RemoveFileFromArchiveAction>;
-  removeFileFromIsilon: ActionCreator<RemoveFileFromIsilonAction>;
   selectedKeys: string[];
   setAlert: ActionCreator<SetAlertAction>;
   toggleFolderTree: ActionCreator<ToggleFolderTreeAction>;
@@ -270,12 +263,6 @@ class FolderTree extends React.Component<FolderTreeProps, FolderTreeState> {
       ]);
     } else if (tag.type === FileTagType.WORKFLOW && tag.workflow) {
       this.props.undoFileWorkflowAssociation(fullpath, [tag.workflow]);
-    } else if (tag.type === FileTagType.STORAGE) {
-      if (tag.title.toLowerCase() === "archive") {
-        this.props.removeFileFromArchive(fullpath);
-      } else {
-        this.props.removeFileFromIsilon(fullpath);
-      }
     }
   };
 

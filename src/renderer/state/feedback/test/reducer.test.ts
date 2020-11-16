@@ -508,17 +508,10 @@ describe("feedback reducer", () => {
       );
       expect(result.folderTreeOpen).to.be.true;
     });
-    it("sets folderTreeOpen to true if page is SelectStorageLocation", () => {
-      const result = reducer(
-        initialState,
-        selectPage(Page.AssociateFiles, Page.SelectStorageLocation)
-      );
-      expect(result.folderTreeOpen).to.be.true;
-    });
     it("sets folderTreeOpen to false if page is AddCustomData", () => {
       const result = reducer(
         initialState,
-        selectPage(Page.SelectStorageLocation, Page.AddCustomData)
+        selectPage(Page.AssociateFiles, Page.AddCustomData)
       );
       expect(result.folderTreeOpen).to.be.false;
     });
