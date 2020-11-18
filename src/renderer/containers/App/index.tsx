@@ -72,7 +72,6 @@ import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
-import SearchFiles from "../SearchFiles";
 import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
@@ -357,14 +356,6 @@ export default function App() {
               closable={false}
             >
               {uploadSummaryConfig.container}
-            </TabPane>
-            <TabPane
-              className={styles.tabContent}
-              tab="Search Files"
-              key={Page.SearchFiles}
-              closable={false}
-            >
-              <SearchFiles key="searchFiles" />
             </TabPane>
             {page !== Page.UploadSummary && (
               <TabPane
