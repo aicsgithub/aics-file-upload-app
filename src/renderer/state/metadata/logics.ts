@@ -1,15 +1,10 @@
-import fs from "fs";
-
 import { isEmpty, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
 import { FileManagementSystem } from "../../services/aicsfiles";
-import {
-  FileToFileMetadata,
-  ImageModelMetadata,
-} from "../../services/aicsfiles/types";
+import { FileToFileMetadata } from "../../services/aicsfiles/types";
 import {
   Annotation,
   AnnotationLookup,
@@ -31,7 +26,6 @@ import {
 import { receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,
-  EXPORT_FILE_METADATA,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
@@ -39,12 +33,7 @@ import {
   REQUEST_METADATA,
   SEARCH_FILE_METADATA,
 } from "./constants";
-import {
-  getAnnotationLookups,
-  getAnnotations,
-  getLookups,
-  getSearchResultsHeader,
-} from "./selectors";
+import { getAnnotationLookups, getAnnotations, getLookups } from "./selectors";
 import { CreateBarcodeAction, GetOptionsForLookupAction } from "./types";
 
 const createBarcodeLogic = createLogic({
@@ -407,45 +396,8 @@ const searchFileMetadataLogic = createLogic({
   type: SEARCH_FILE_METADATA,
 });
 
-const exportFileMetadataLogic = createLogic({
-  process: (
-    { action, fms, getState }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    try {
-      const filePath: string = action.payload;
-      const state = getState();
-      const tableHeader = getSearchResultsHeader(state);
-      const {
-        metadata: { fileMetadataSearchResults },
-      } = state;
-      if (fileMetadataSearchResults && tableHeader) {
-        const header = tableHeader.map(({ title }) => title);
-        const csv = fms.transformTableIntoCSV(
-          header,
-          fileMetadataSearchResults as ImageModelMetadata[]
-        );
-        fs.writeFileSync(filePath, csv);
-        // nothing to write to state but need to remove request
-        dispatch(receiveMetadata({}, AsyncRequest.EXPORT_FILE_METADATA));
-      }
-    } catch (e) {
-      dispatch(
-        requestFailed(
-          `Could not export: ${e.message}`,
-          AsyncRequest.EXPORT_FILE_METADATA
-        )
-      );
-    }
-    done();
-  },
-  type: EXPORT_FILE_METADATA,
-});
-
 export default [
   createBarcodeLogic,
-  exportFileMetadataLogic,
   requestAnnotationsLogic,
   getBarcodeSearchResultsLogic,
   requestMetadataLogic,

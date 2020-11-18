@@ -412,24 +412,4 @@ export class FileManagementSystem {
       fileToFileMetadata
     );
   }
-
-  /*
-        Receives table formatted file metadata and transformed it into a character separated value set.
-
-        :param header: Columns to include in the CSV
-        :param rows: Array of metadata objects with keys matching the columns in the header,
-            whitespace and casing doesn't matter
-        :return: Character separated value set
-     */
-  public transformTableIntoCSV(
-    header: string[],
-    rows: ImageModelMetadata[],
-    separator?: string
-  ): string {
-    return this.customMetadataQuerier.transformTableIntoCSV(
-      header,
-      rows,
-      separator
-    );
-  }
 }

@@ -7,7 +7,6 @@ import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
 import {
   CREATE_BARCODE,
-  EXPORT_FILE_METADATA,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
@@ -18,7 +17,6 @@ import {
 } from "../metadata/constants";
 import {
   CreateBarcodeAction,
-  ExportFileMetadataAction,
   GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
@@ -747,17 +745,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: addRequestToInProgress(
         state,
         AsyncRequest.SEARCH_FILE_METADATA
-      ),
-    }),
-  },
-  [EXPORT_FILE_METADATA]: {
-    accepts: (action: AnyAction): action is ExportFileMetadataAction =>
-      action.type === EXPORT_FILE_METADATA,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        AsyncRequest.EXPORT_FILE_METADATA
       ),
     }),
   },

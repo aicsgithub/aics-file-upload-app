@@ -86,8 +86,3 @@ export interface SearchFileMetadataAction {
   payload: SearchConfig;
   type: string;
 }
-
-export interface ExportFileMetadataAction {
-  payload: string;
-  type: string;
-}

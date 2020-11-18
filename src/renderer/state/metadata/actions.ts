@@ -5,7 +5,6 @@ import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
   CREATE_BARCODE,
-  EXPORT_FILE_METADATA,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
@@ -21,7 +20,6 @@ import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
-  ExportFileMetadataAction,
   GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
@@ -145,14 +143,5 @@ export function searchFileMetadata(
 export function clearFileMetadataForJob(): ClearFileMetadataForJobAction {
   return {
     type: CLEAR_FILE_METADATA_FOR_JOB,
-  };
-}
-
-export function exportFileMetadataCSV(
-  fileName: string
-): ExportFileMetadataAction {
-  return {
-    payload: fileName,
-    type: EXPORT_FILE_METADATA,
   };
 }

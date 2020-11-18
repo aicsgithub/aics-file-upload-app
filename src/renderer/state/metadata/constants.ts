@@ -11,10 +11,6 @@ export const CLEAR_OPTIONS_FOR_LOOKUP = makeConstant(
   "clear-options-for-lookup"
 );
 export const CREATE_BARCODE = makeConstant(BRANCH_NAME, "create-barcode");
-export const EXPORT_FILE_METADATA = makeConstant(
-  BRANCH_NAME,
-  "export-file-metadata"
-);
 export const GET_ANNOTATIONS = makeConstant(BRANCH_NAME, "get-annotations");
 export const GET_BARCODE_SEARCH_RESULTS = makeConstant(
   BRANCH_NAME,
