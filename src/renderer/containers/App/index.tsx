@@ -63,8 +63,6 @@ import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, AsyncRequest, Page } from "../../state/types";
 import {
   openUploadDraft,
-  removeFileFromArchive,
-  removeFileFromIsilon,
   saveUploadDraft,
   undoFileWellAssociation,
   undoFileWorkflowAssociation,
@@ -75,7 +73,6 @@ import DragAndDropSquare from "../DragAndDropSquare";
 import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
 import SearchFiles from "../SearchFiles";
-import SelectStorageIntent from "../SelectStorageIntent";
 import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
@@ -107,12 +104,6 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     Page.AssociateFiles,
     {
       container: <AssociateFiles key="associateFiles" />,
-    },
-  ],
-  [
-    Page.SelectStorageLocation,
-    {
-      container: <SelectStorageIntent key="selectStorageIntent" />,
     },
   ],
   [
@@ -334,10 +325,6 @@ export default function App() {
             dispatch(openFilesFromDialog(files))
           }
           onCheck={(files) => dispatch(selectFile(files))}
-          removeFileFromArchive={(file) =>
-            dispatch(removeFileFromArchive(file))
-          }
-          removeFileFromIsilon={(file) => dispatch(removeFileFromIsilon(file))}
           selectedKeys={selectedFiles}
           setAlert={setAlert}
           fileToTags={fileToTags}

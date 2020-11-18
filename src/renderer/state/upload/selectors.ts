@@ -14,7 +14,6 @@ import {
   omit,
   pickBy,
   reduce,
-  some,
   uniq,
   values,
   without,
@@ -80,7 +79,6 @@ import {
 } from "./constants";
 import {
   DisplayUploadStateBranch,
-  FilepathToBoolean,
   FileType,
   MMSAnnotationValueRequest,
   UploadJobTableRow,
@@ -103,15 +101,13 @@ export const getCanUndoUpload = createSelector(
   [getUploadPast, getPage, getCurrentUploadIndex, getUploadHistory],
   (past, page, currentUploadIndex, uploadHistory) => {
     if (page === Page.AddCustomData) {
-      const prevIndex = currentUploadIndex - 1;
       const prevPage = pageOrder[pageOrder.indexOf(Page.AddCustomData) - 1];
-      // When on the "AddCustomData" page, only allow undoing if the previous
-      // action is not from the previous page. We do not want to allow undoing
-      // of actions not from the current page.
-      return prevIndex !== uploadHistory[prevPage];
+      // Selecting a template on the AddCustomData page will update the upload state branch and thus increment the
+      // upload index. However, we do not want this to be undoable from the grid.
+      return currentUploadIndex > uploadHistory[prevPage] + 1;
     }
-
-    return !isEmpty(past);
+    const prevPage = pageOrder[pageOrder.indexOf(Page.AddCustomData) - 1];
+    return currentUploadIndex > uploadHistory[prevPage];
   }
 );
 
@@ -120,8 +116,6 @@ const EXCLUDED_UPLOAD_FIELDS = [
   "key",
   "positionIndex",
   "scene",
-  "shouldBeInArchive",
-  "shouldBeInLocal",
   "subImageName",
 ];
 
@@ -782,15 +776,6 @@ export const getUploadPayload = createSelector(
         const workflows = uniq(
           flatMap(metadata, (m) => m[WORKFLOW_ANNOTATION_NAME] || [])
         ).filter((w) => !!w);
-        const fileRows = metadata.filter(isFileRow);
-        const shouldBeInArchive =
-          fileRows.length && !isNil(fileRows[0].shouldBeInArchive)
-            ? fileRows[0].shouldBeInArchive
-            : true;
-        const shouldBeInLocal =
-          fileRows.length && !isNil(fileRows[0].shouldBeInLocal)
-            ? fileRows[0].shouldBeInLocal
-            : true;
         const fileKey = metadata[0]?.fileId || fullPath;
         result = {
           ...result,
@@ -806,8 +791,8 @@ export const getUploadPayload = createSelector(
                 extensionToFileTypeMap[extname(fullPath).toLowerCase()] ||
                 FileType.OTHER,
               originalPath: fullPath,
-              shouldBeInArchive,
-              shouldBeInLocal,
+              shouldBeInArchive: true,
+              shouldBeInLocal: true,
             },
             microscopy: {
               ...(wellIds.length && { wellIds }),
@@ -836,49 +821,6 @@ export const getUploadFiles = createSelector(
   [getUpload],
   (upload: UploadStateBranch) =>
     uniq(values(upload).map((u: UploadMetadata) => u.file))
-);
-
-export const getFileToArchive = createSelector(
-  [getUpload],
-  (upload: UploadStateBranch) =>
-    values(upload)
-      .filter(isFileRow)
-      .reduce(
-        (
-          accum: FilepathToBoolean,
-          { file, shouldBeInArchive }: UploadMetadata
-        ) => ({
-          ...accum,
-          [file]: Boolean(shouldBeInArchive),
-        }),
-        {}
-      )
-);
-
-export const getFileToStoreOnIsilon = createSelector(
-  [getUpload],
-  (upload: UploadStateBranch) =>
-    values(upload)
-      .filter(isFileRow)
-      .reduce(
-        (
-          accum: FilepathToBoolean,
-          { file, shouldBeInLocal }: UploadMetadata
-        ) => ({
-          ...accum,
-          [file]: Boolean(shouldBeInLocal),
-        }),
-        {}
-      )
-);
-
-export const getCanGoForwardFromSelectStorageLocationPage = createSelector(
-  [getUploadFiles, getFileToArchive, getFileToStoreOnIsilon],
-  (
-    files: string[],
-    fileToArchive: FilepathToBoolean,
-    fileToStoreOnIsilon: FilepathToBoolean
-  ) => !some(files, (f: string) => !fileToArchive[f] && !fileToStoreOnIsilon[f])
 );
 
 export const getCanSaveUploadDraft = createSelector(

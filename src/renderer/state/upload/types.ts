@@ -235,30 +235,6 @@ export interface UpdateSubImagesAction extends AutoSaveAction {
   type: string;
 }
 
-export interface FilepathToBoolean {
-  [filepath: string]: boolean;
-}
-
-export interface UpdateFilesToArchive extends AutoSaveAction {
-  payload: FilepathToBoolean;
-  type: string;
-}
-
-export interface UpdateFilesToStoreOnIsilon extends AutoSaveAction {
-  payload: FilepathToBoolean;
-  type: string;
-}
-
-export interface RemoveFileFromArchiveAction extends AutoSaveAction {
-  payload: string;
-  type: string;
-}
-
-export interface RemoveFileFromIsilonAction extends AutoSaveAction {
-  payload: string;
-  type: string;
-}
-
 export interface ClearUploadAction extends AutoSaveAction {
   type: string;
 }
@@ -318,7 +294,6 @@ export interface UpdateAndRetryUploadAction {
 export enum FileTagType {
   WELL = "well",
   WORKFLOW = "workflow",
-  STORAGE = "storage",
 }
 
 // Represents information needed to display an Antd Tag next to a file on the FolderTree.

@@ -8,7 +8,6 @@ import {
   includes,
   isEmpty,
   isNil,
-  map,
   trim,
   values,
 } from "lodash";
@@ -101,7 +100,6 @@ import {
   removeUploads,
   replaceUpload,
   saveUploadDraftSuccess,
-  updateUpload,
   updateUploads,
   uploadFailed,
 } from "./actions";
@@ -118,8 +116,6 @@ import {
   SUBMIT_FILE_METADATA_UPDATE,
   UNDO_FILE_WELL_ASSOCIATION,
   UPDATE_AND_RETRY_UPLOAD,
-  UPDATE_FILES_TO_ARCHIVE,
-  UPDATE_FILES_TO_STORE_ON_ISILON,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
@@ -142,8 +138,6 @@ import {
   SubmitFileMetadataUpdateAction,
   UndoFileWellAssociationAction,
   UpdateAndRetryUploadAction,
-  UpdateFilesToArchive,
-  UpdateFilesToStoreOnIsilon,
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
@@ -906,38 +900,6 @@ const updateUploadRowsLogic = createLogic({
   type: UPDATE_UPLOAD_ROWS,
 });
 
-const updateFilesToStoreOnIsilonLogic = createLogic({
-  transform: (
-    {
-      action,
-    }: ReduxLogicTransformDependenciesWithAction<UpdateFilesToStoreOnIsilon>,
-    next: ReduxLogicNextCb
-  ) => {
-    const updates = map(
-      action.payload,
-      (shouldBeInLocal: boolean, file: string) =>
-        updateUpload(getUploadRowKey({ file }), { shouldBeInLocal })
-    );
-    next(batchActions(updates));
-  },
-  type: UPDATE_FILES_TO_STORE_ON_ISILON,
-});
-
-const updateFilesToStoreInArchiveLogic = createLogic({
-  transform: (
-    { action }: ReduxLogicTransformDependenciesWithAction<UpdateFilesToArchive>,
-    next: ReduxLogicNextCb
-  ) => {
-    const updates = map(
-      action.payload,
-      (shouldBeInArchive: boolean, file: string) =>
-        updateUpload(getUploadRowKey({ file }), { shouldBeInArchive })
-    );
-    next(batchActions(updates));
-  },
-  type: UPDATE_FILES_TO_ARCHIVE,
-});
-
 // Saves what is currently in the upload wizard tab whether a new upload in progress or
 // a draft that was saved previously
 const saveUploadDraftLogic = createLogic({
@@ -1309,6 +1271,4 @@ export default [
   updateSubImagesLogic,
   updateUploadLogic,
   updateUploadRowsLogic,
-  updateFilesToStoreOnIsilonLogic,
-  updateFilesToStoreInArchiveLogic,
 ];

@@ -24,8 +24,6 @@ import {
   INITIATE_UPLOAD,
   JUMP_TO_PAST_UPLOAD,
   JUMP_TO_UPLOAD,
-  REMOVE_FILE_FROM_ARCHIVE,
-  REMOVE_FILE_FROM_ISILON,
   REPLACE_UPLOAD,
   RETRY_UPLOAD,
   UNDO_FILE_WELL_ASSOCIATION,
@@ -39,8 +37,6 @@ import {
   AssociateFilesAndWellsAction,
   AssociateFilesAndWorkflowsAction,
   ClearUploadAction,
-  RemoveFileFromArchiveAction,
-  RemoveFileFromIsilonAction,
   RemoveUploadsAction,
   ReplaceUploadAction,
   UndoFileWellAssociationAction,
@@ -229,34 +225,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       state: UploadStateBranch,
       { payload: { clearAll, uploads: replacement } }: UpdateUploadsAction
     ) => (clearAll ? { ...replacement } : { ...state, ...replacement }),
-  },
-  [REMOVE_FILE_FROM_ARCHIVE]: {
-    accepts: (action: AnyAction): action is RemoveFileFromArchiveAction =>
-      action.type === REMOVE_FILE_FROM_ARCHIVE,
-    perform: (
-      state: UploadStateBranch,
-      action: RemoveFileFromArchiveAction
-    ) => ({
-      ...state,
-      [action.payload]: {
-        ...state[action.payload],
-        shouldBeInArchive: false,
-      },
-    }),
-  },
-  [REMOVE_FILE_FROM_ISILON]: {
-    accepts: (action: AnyAction): action is RemoveFileFromIsilonAction =>
-      action.type === REMOVE_FILE_FROM_ISILON,
-    perform: (
-      state: UploadStateBranch,
-      action: RemoveFileFromIsilonAction
-    ) => ({
-      ...state,
-      [action.payload]: {
-        ...state[action.payload],
-        shouldBeInLocal: false,
-      },
-    }),
   },
   [REPLACE_UPLOAD]: {
     accepts: (action: AnyAction): action is ReplaceUploadAction =>

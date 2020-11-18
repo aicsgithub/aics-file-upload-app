@@ -21,7 +21,6 @@ export const pageOrder: Page[] = [
   Page.DragAndDrop,
   Page.SelectUploadType,
   Page.AssociateFiles,
-  Page.SelectStorageLocation,
   Page.AddCustomData,
   Page.UploadSummary,
 ];

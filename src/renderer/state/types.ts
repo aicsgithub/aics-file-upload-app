@@ -219,8 +219,6 @@ export interface UploadRowId {
 export interface UploadMetadata extends UploadRowId {
   barcode?: string;
   notes?: string[]; // only one note expected but we treat this like other custom annotations
-  shouldBeInArchive?: boolean;
-  shouldBeInLocal?: boolean;
   templateId?: number;
   [WELL_ANNOTATION_NAME]?: number[];
   [WORKFLOW_ANNOTATION_NAME]?: string[];
@@ -267,7 +265,6 @@ export enum Page {
   SearchFiles = "SearchFiles",
   SelectUploadType = "SelectUploadType",
   AssociateFiles = "AssociateFiles",
-  SelectStorageLocation = "SelectStorageIntent",
   AddCustomData = "AddCustomData",
   UploadSummary = "UploadSummary",
 }

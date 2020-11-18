@@ -70,14 +70,12 @@ import {
   clearUploadDraft,
   clearUploadHistory,
   jumpToPastUpload,
-  updateUpload,
   updateUploads,
 } from "../upload/actions";
 import { getUploadRowKey } from "../upload/constants";
 import {
   getCanSaveUploadDraft,
   getCurrentUploadIndex,
-  getUploadFiles,
 } from "../upload/selectors";
 import { batchActions } from "../util";
 
@@ -252,18 +250,6 @@ export const getSelectPageActions = (
     actions.push(
       updatePageHistory(currentPage, selectionIndex, uploadIndex, templateIndex)
     );
-    if (nextPage === Page.SelectStorageLocation) {
-      const files = getUploadFiles(state);
-      const uploadPartial = {
-        shouldBeInArchive: true,
-        shouldBeInLocal: true,
-      };
-      actions.push(
-        ...files.map((file: string) =>
-          updateUpload(getUploadRowKey({ file }), uploadPartial)
-        )
-      );
-    }
   }
   return actions;
 };

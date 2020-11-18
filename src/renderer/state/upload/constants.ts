@@ -54,14 +54,6 @@ export const INITIATE_UPLOAD_FAILED = makeConstant(
 export const UPLOAD_FAILED = makeConstant(BRANCH_NAME, "upload-failed");
 export const UPLOAD_SUCCEEDED = makeConstant(BRANCH_NAME, "upload-succeeded");
 export const OPEN_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "open-upload-draft");
-export const REMOVE_FILE_FROM_ARCHIVE = makeConstant(
-  BRANCH_NAME,
-  "remove-file-from-archive"
-);
-export const REMOVE_FILE_FROM_ISILON = makeConstant(
-  BRANCH_NAME,
-  "remove-file-from-isilon"
-);
 export const REPLACE_UPLOAD = makeConstant(BRANCH_NAME, "replace-upload");
 export const SAVE_UPLOAD_DRAFT_SUCCESS = makeConstant(
   BRANCH_NAME,
@@ -94,14 +86,6 @@ export const UPDATE_UPLOAD_ROWS = makeConstant(
   "update-upload-rows"
 );
 export const UPDATE_UPLOADS = makeConstant(BRANCH_NAME, "update-uploads");
-export const UPDATE_FILES_TO_ARCHIVE = makeConstant(
-  BRANCH_NAME,
-  "update-files-to-archive"
-);
-export const UPDATE_FILES_TO_STORE_ON_ISILON = makeConstant(
-  BRANCH_NAME,
-  "update-files-to-store-on-isilon"
-);
 export const UPDATE_UPLOAD_PROGRESS_INFO = makeConstant(
   BRANCH_NAME,
   "update-upload-progress-info"

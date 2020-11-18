@@ -424,17 +424,9 @@ describe("Route logics", () => {
   };
 
   describe("goBackLogic", () => {
-    it("goes to SelectStorageIntent page if going back from AddCustomData page", async () => {
+    it("goes to AssociateFiles page if going back from AddCustomData page", async () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
-        Page.SelectStorageLocation,
-        goBack,
-        1
-      );
-    });
-    it("goes to AssociateFiles page if going back from SelectStorageLocation page", async () => {
-      await runShowMessageBoxTest(
-        Page.SelectStorageLocation,
         Page.AssociateFiles,
         goBack,
         1

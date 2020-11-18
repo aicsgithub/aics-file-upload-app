@@ -39,12 +39,9 @@ import { Page, State } from "../../types";
 import { UploadMetadata as UploadMetadataRow } from "../../types";
 import { getUploadRowKey } from "../constants";
 import {
-  getCanGoForwardFromSelectStorageLocationPage,
   getCanUndoUpload,
   getFileIdsToDelete,
   getFileToAnnotationHasValueMap,
-  getFileToArchive,
-  getFileToStoreOnIsilon,
   getUploadFileNames,
   getUploadFiles,
   getUploadKeyToAnnotationErrorMap,
@@ -90,7 +87,7 @@ describe("Upload selectors", () => {
       expect(getCanUndoUpload(mockState)).to.equal(false);
     });
 
-    it("should return false if on AddCustomData page and previous action is from the previous page", () => {
+    it("should return false if on AddCustomData page current index is no more than one more than that on the previous page", () => {
       const state: State = {
         ...mockState,
         route: {
@@ -106,20 +103,19 @@ describe("Upload selectors", () => {
               [Page.DragAndDrop]: 0,
               [Page.SelectUploadType]: 0,
               [Page.AssociateFiles]: 1,
-              [Page.SelectStorageLocation]: 2,
             },
           },
         },
         upload: {
           ...mockState.upload,
-          index: 3,
+          index: 2,
         },
       };
 
       expect(getCanUndoUpload(state)).to.equal(false);
     });
 
-    it("should return true if on AddCustomData page and previous action is not from the previous page", () => {
+    it("should return true if on AddCustomData page and current index is more than 1 more than that of previous page", () => {
       const state = {
         ...mockState,
         route: {
@@ -135,7 +131,6 @@ describe("Upload selectors", () => {
               [Page.DragAndDrop]: 0,
               [Page.SelectUploadType]: 0,
               [Page.AssociateFiles]: 1,
-              [Page.SelectStorageLocation]: 2,
             },
           },
         },
@@ -183,8 +178,6 @@ describe("Upload selectors", () => {
             file,
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 4,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             unexpectedAnnotation: ["Hello World"],
             [WELL_ANNOTATION_NAME]: [],
           },
@@ -214,8 +207,6 @@ describe("Upload selectors", () => {
             file: "/path/to.dot/image.tiff",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 4,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [],
           },
         }),
@@ -240,7 +231,7 @@ describe("Upload selectors", () => {
             fileType: FileType.IMAGE,
             originalPath: "/path/to.dot/image.tiff",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {},
         },
@@ -248,7 +239,7 @@ describe("Upload selectors", () => {
       const actual = getUploadPayload(state);
       expect(actual).to.deep.equal(expectedPayload);
     });
-    it("Converts upload state branch into correct payload for aicsfiles-js", () => {
+    it("Converts upload state branch into correct payload for aicsfiles", () => {
       const state: State = {
         ...nonEmptyStateForInitiatingUpload,
         upload: getMockStateWithHistory({
@@ -258,8 +249,6 @@ describe("Upload selectors", () => {
             ["Favorite Color"]: ["blue"],
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 4,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [],
           },
           "/path/to.dot/image.tiffscene:1channel:1": {
@@ -278,8 +267,6 @@ describe("Upload selectors", () => {
             file: "/path/to/image.czi",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 4,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [1],
           },
           "/path/to/image.ome.tiff": {
@@ -288,8 +275,6 @@ describe("Upload selectors", () => {
             file: "/path/to/image.ome.tiff",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 2,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [2],
           },
           "/path/to/image.png": {
@@ -298,8 +283,6 @@ describe("Upload selectors", () => {
             file: "/path/to/image.png",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 5,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [3],
           },
           "/path/to/image.tiff": {
@@ -308,8 +291,6 @@ describe("Upload selectors", () => {
             file: "/path/to/image.tiff",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 3,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [4],
           },
           "/path/to/multi-well.txt": {
@@ -318,8 +299,6 @@ describe("Upload selectors", () => {
             file: "/path/to/multi-well.txt",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 7,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [5, 6, 7],
           },
           "/path/to/no-extension": {
@@ -328,8 +307,6 @@ describe("Upload selectors", () => {
             file: "/path/to/no-extension",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 7,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [7],
           },
           "/path/to/not-image.csv": {
@@ -338,8 +315,6 @@ describe("Upload selectors", () => {
             file: "/path/to/not-image.csv",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 7,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [8],
           },
           "/path/to/not-image.txt": {
@@ -348,8 +323,6 @@ describe("Upload selectors", () => {
             file: "/path/to/not-image.txt",
             [NOTES_ANNOTATION_NAME]: [],
             plateId: 7,
-            shouldBeInArchive: true,
-            shouldBeInLocal: false,
             [WELL_ANNOTATION_NAME]: [5],
           },
         }),
@@ -398,7 +371,7 @@ describe("Upload selectors", () => {
             fileType: FileType.IMAGE,
             originalPath: "/path/to.dot/image.tiff",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [6],
@@ -431,7 +404,7 @@ describe("Upload selectors", () => {
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.czi",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [1],
@@ -464,7 +437,7 @@ describe("Upload selectors", () => {
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.ome.tiff",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [2],
@@ -497,7 +470,7 @@ describe("Upload selectors", () => {
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.png",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [3],
@@ -530,7 +503,7 @@ describe("Upload selectors", () => {
             fileType: FileType.IMAGE,
             originalPath: "/path/to/image.tiff",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [4],
@@ -563,7 +536,7 @@ describe("Upload selectors", () => {
             fileType: FileType.TEXT,
             originalPath: "/path/to/multi-well.txt",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [5, 6, 7],
@@ -596,7 +569,7 @@ describe("Upload selectors", () => {
             fileType: FileType.OTHER,
             originalPath: "/path/to/no-extension",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [7],
@@ -629,7 +602,7 @@ describe("Upload selectors", () => {
             fileType: FileType.CSV,
             originalPath: "/path/to/not-image.csv",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [8],
@@ -662,7 +635,7 @@ describe("Upload selectors", () => {
             fileType: FileType.TEXT,
             originalPath: "/path/to/not-image.txt",
             shouldBeInArchive: true,
-            shouldBeInLocal: false,
+            shouldBeInLocal: true,
           },
           microscopy: {
             wellIds: [5],
@@ -762,8 +735,6 @@ describe("Upload selectors", () => {
         numberSiblings: 3,
         positionIndexes: [],
         scenes: [],
-        shouldBeInArchive: true,
-        shouldBeInLocal: true,
         siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
@@ -782,8 +753,6 @@ describe("Upload selectors", () => {
         numberSiblings: 3,
         positionIndexes: [],
         scenes: [],
-        shouldBeInArchive: false,
-        shouldBeInLocal: true,
         siblingIndex: 1,
         subImageNames: [],
         treeDepth: 0,
@@ -802,8 +771,6 @@ describe("Upload selectors", () => {
         numberSiblings: 3,
         positionIndexes: [1],
         scenes: [],
-        shouldBeInArchive: true,
-        shouldBeInLocal: false,
         siblingIndex: 2,
         subImageNames: [],
         treeDepth: 0,
@@ -1237,8 +1204,6 @@ describe("Upload selectors", () => {
             barcode: "abcd",
             file,
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             [WELL_ANNOTATION_NAME]: [],
           },
         }),
@@ -1248,8 +1213,6 @@ describe("Upload selectors", () => {
         barcode: true,
         file: true,
         [NOTES_ANNOTATION_NAME]: false,
-        shouldBeInArchive: true,
-        shouldBeInLocal: true,
         [WELL_ANNOTATION_NAME]: false,
         wellLabels: false,
       });
@@ -1432,57 +1395,6 @@ describe("Upload selectors", () => {
     });
   });
 
-  describe("getFileToArchive", () => {
-    it("returns a map of files to booleans representing whether to archive the file", () => {
-      const result = getFileToArchive({
-        ...nonEmptyStateForInitiatingUpload,
-      });
-      expect(result).to.deep.equal({
-        "/path/to/file1": true,
-        "/path/to/file2": false,
-        "/path/to/file3": true,
-      });
-    });
-  });
-
-  describe("getFileToStoreOnIsilon", () => {
-    it("returns a map of files to booleans representing whether to store the file locally", () => {
-      const result = getFileToStoreOnIsilon({
-        ...nonEmptyStateForInitiatingUpload,
-      });
-      expect(result).to.deep.equal({
-        "/path/to/file1": true,
-        "/path/to/file2": true,
-        "/path/to/file3": false,
-      });
-    });
-  });
-
-  describe("getCanGoForwardFromSelectStorageLocationPage", () => {
-    it("returns true if all files have a place to go", () => {
-      const result = getCanGoForwardFromSelectStorageLocationPage({
-        ...nonEmptyStateForInitiatingUpload,
-      });
-      expect(result).to.be.true;
-    });
-    it("returns false if a file does not have a place to go", () => {
-      const result = getCanGoForwardFromSelectStorageLocationPage({
-        ...nonEmptyStateForInitiatingUpload,
-        upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "/path/to/file1" })]: {
-            barcode: "1234",
-            file: "/path/to/file1",
-            key: getUploadRowKey({ file: "/path/to/file" }),
-            [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: false,
-            shouldBeInLocal: false,
-            [WELL_ANNOTATION_NAME]: [1],
-          },
-        }),
-      });
-      expect(result).to.be.false;
-    });
-  });
   describe("getFileIdsToDelete", () => {
     it("returns files that don't exist in uploads that exist on selectedJob", () => {
       const fileIds = getFileIdsToDelete({

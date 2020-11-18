@@ -83,8 +83,6 @@ import {
   submitFileMetadataUpdate,
   undoFileWellAssociation,
   updateAndRetryUpload,
-  updateFilesToArchive,
-  updateFilesToStoreOnIsilon,
   updateSubImages,
   updateUpload,
   updateUploadRows,
@@ -98,12 +96,7 @@ import {
   SAVE_UPLOAD_DRAFT_SUCCESS,
 } from "../constants";
 import uploadLogics, { cancelUploadLogic } from "../logics";
-import {
-  getFileToArchive,
-  getFileToStoreOnIsilon,
-  getUpload,
-  getUploadSummaryRows,
-} from "../selectors";
+import { getUpload, getUploadSummaryRows } from "../selectors";
 import { UpdateSubImagesPayload, UploadJobTableRow } from "../types";
 
 describe("Upload logics", () => {
@@ -380,8 +373,6 @@ describe("Upload logics", () => {
           [getUploadRowKey({ file: "/path/to/file1" })]: {
             file: "/path/to/file1",
             key: getUploadRowKey({ file: "/path/to/file" }),
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             [WELL_ANNOTATION_NAME]: [1],
           },
         }),
@@ -391,8 +382,6 @@ describe("Upload logics", () => {
           ["Favorite Color"]: [],
           file: "/path/to/file1",
           key: getUploadRowKey({ file: "/path/to/file" }),
-          shouldBeInArchive: true,
-          shouldBeInLocal: true,
           [WELL_ANNOTATION_NAME]: [1],
         },
       });
@@ -591,8 +580,6 @@ describe("Upload logics", () => {
           [fileRowKey]: {
             file: "/path/to/file1",
             key: fileRowKey,
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             [WELL_ANNOTATION_NAME]: [1],
           },
         }),
@@ -1335,8 +1322,6 @@ describe("Upload logics", () => {
             "Birth Date": [],
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1370,8 +1355,6 @@ describe("Upload logics", () => {
             "Birth Date": [],
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1406,8 +1389,6 @@ describe("Upload logics", () => {
             "Another Garbage Text Annotation": [],
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1442,8 +1423,6 @@ describe("Upload logics", () => {
             "Clone Number Garbage": undefined,
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1477,8 +1456,6 @@ describe("Upload logics", () => {
             "Clone Number Garbage": undefined,
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1514,8 +1491,6 @@ describe("Upload logics", () => {
             "Clone Number Garbage": undefined,
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1550,8 +1525,6 @@ describe("Upload logics", () => {
             [mockTextAnnotation.name]: [],
             file: "/path/to/file3",
             [NOTES_ANNOTATION_NAME]: [],
-            shouldBeInArchive: true,
-            shouldBeInLocal: true,
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
@@ -1683,43 +1656,6 @@ describe("Upload logics", () => {
       // assert
       const upload = getUpload(store.getState());
       expect(upload[uploadRowKey]["Birth Date"][0]).to.be.a("Date");
-    });
-  });
-
-  describe("updateFilesToStoreOnIsilonLogic", () => {
-    it("sets shouldBeInLocal on each file in payload", async () => {
-      const { store, logicMiddleware } = createMockReduxStore({
-        ...nonEmptyStateForInitiatingUpload,
-      });
-
-      // before
-      expect(getFileToStoreOnIsilon(store.getState())["/path/to/file1"]).to.be
-        .true;
-
-      // apply
-      store.dispatch(updateFilesToStoreOnIsilon({ "/path/to/file1": false }));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(getFileToStoreOnIsilon(store.getState())["/path/to/file1"]).to.be
-        .false;
-    });
-  });
-  describe("updateFilesToStoreInArchiveLogic", () => {
-    it("sets shouldBeInArchive on each file in payload", async () => {
-      const { store, logicMiddleware } = createMockReduxStore({
-        ...nonEmptyStateForInitiatingUpload,
-      });
-
-      // before
-      expect(getFileToArchive(store.getState())["/path/to/file1"]).to.be.true;
-
-      // apply
-      store.dispatch(updateFilesToArchive({ "/path/to/file1": false }));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(getFileToArchive(store.getState())["/path/to/file1"]).to.be.false;
     });
   });
   describe("saveUploadDraftLogic", () => {
