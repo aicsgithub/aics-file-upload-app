@@ -3,8 +3,6 @@ import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
-import { FileManagementSystem } from "../../services/aicsfiles";
-import { FileToFileMetadata } from "../../services/aicsfiles/types";
 import {
   Annotation,
   AnnotationLookup,
@@ -31,7 +29,6 @@ import {
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
   REQUEST_METADATA,
-  SEARCH_FILE_METADATA,
 } from "./constants";
 import { getAnnotationLookups, getAnnotations, getLookups } from "./selectors";
 import { CreateBarcodeAction, GetOptionsForLookupAction } from "./types";
@@ -324,78 +321,6 @@ const requestTemplatesLogicLogic = createLogic({
   type: GET_TEMPLATES,
 });
 
-const innerJoinOrDefault = (
-  fms: FileManagementSystem,
-  defaultSearchResults: FileToFileMetadata,
-  searchResultsAsMap?: FileToFileMetadata
-): FileToFileMetadata => {
-  if (!searchResultsAsMap) {
-    return defaultSearchResults;
-  }
-  return FileManagementSystem.innerJoinFileMetadata(
-    defaultSearchResults,
-    searchResultsAsMap
-  );
-};
-
-const searchFileMetadataLogic = createLogic({
-  process: async (
-    { action, fms, logger }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    try {
-      const { annotation, searchValue, templateId, user } = action.payload;
-      let searchResultsAsMap: FileToFileMetadata | undefined;
-      if (annotation && searchValue) {
-        searchResultsAsMap = await fms.getFilesByAnnotation(
-          annotation,
-          searchValue
-        );
-      }
-      if (templateId) {
-        const fileMetadataForTemplate = await fms.getFilesByTemplate(
-          templateId
-        );
-        searchResultsAsMap = innerJoinOrDefault(
-          fms,
-          fileMetadataForTemplate,
-          searchResultsAsMap
-        );
-      }
-      if (user) {
-        const fileMetadataForUser = await fms.getFilesByUser(user);
-        searchResultsAsMap = innerJoinOrDefault(
-          fms,
-          fileMetadataForUser,
-          searchResultsAsMap
-        );
-      }
-      if (searchResultsAsMap) {
-        const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(
-          searchResultsAsMap
-        );
-        dispatch(
-          receiveMetadata(
-            { fileMetadataSearchResults },
-            AsyncRequest.SEARCH_FILE_METADATA
-          )
-        );
-      } else {
-        const error = "Could not perform search, no query params provided";
-        logger.error(error);
-        dispatch(requestFailed(error, AsyncRequest.SEARCH_FILE_METADATA));
-      }
-    } catch (e) {
-      const error = `Could not perform search: ${e.message}`;
-      logger.error(error);
-      dispatch(requestFailed(error, AsyncRequest.SEARCH_FILE_METADATA));
-    }
-    done();
-  },
-  type: SEARCH_FILE_METADATA,
-});
-
 export default [
   createBarcodeLogic,
   requestAnnotationsLogic,
@@ -403,5 +328,4 @@ export default [
   requestMetadataLogic,
   requestOptionsForLookupLogic,
   requestTemplatesLogicLogic,
-  searchFileMetadataLogic,
 ];

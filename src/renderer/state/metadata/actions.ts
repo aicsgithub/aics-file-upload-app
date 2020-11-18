@@ -12,7 +12,6 @@ import {
   RECEIVE_METADATA,
   REQUEST_METADATA,
   RESET_HISTORY,
-  SEARCH_FILE_METADATA,
   UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
@@ -27,8 +26,6 @@ import {
   ReceiveMetadataAction,
   RequestMetadataAction,
   ResetHistoryAction,
-  SearchConfig,
-  SearchFileMetadataAction,
   UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -128,15 +125,6 @@ export function updatePageHistory(
 export function resetHistory(): ResetHistoryAction {
   return {
     type: RESET_HISTORY,
-  };
-}
-
-export function searchFileMetadata(
-  searchConfig: SearchConfig
-): SearchFileMetadataAction {
-  return {
-    payload: searchConfig,
-    type: SEARCH_FILE_METADATA,
   };
 }
 

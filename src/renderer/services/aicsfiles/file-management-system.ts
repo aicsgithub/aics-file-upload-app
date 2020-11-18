@@ -352,23 +352,6 @@ export class FileManagementSystem {
   }
 
   /*
-        This method queries for all files that contain the given annotationName and are equal to the given value.
-
-        :param annotationName: The name of the Annotation we are querying
-        :param searchValue: The value the file should have for the Annotation we are querying
-        :return: Dictionary of FileIds to metadata objects representing all metadata for the file
-    */
-  public getFilesByAnnotation(
-    annotationName: string,
-    searchValue: string
-  ): Promise<FileToFileMetadata> {
-    return this.customMetadataQuerier.queryByAnnotation(
-      annotationName,
-      searchValue
-    );
-  }
-
-  /*
         This method queries for metadata related to the given File ID.
 
         :param fileId: The FileID for the file we are
@@ -376,26 +359,6 @@ export class FileManagementSystem {
     */
   public getCustomMetadataForFile(fileId: string): Promise<FileMetadata> {
     return this.customMetadataQuerier.queryByFileId(fileId);
-  }
-
-  /*
-        This method queries for all files that were uploaded by the given user.
-
-        :param userName: The user that uploaded the files querying for
-        :return: Dictionary of FileIds to metadata objects representing all metadata for the file
-    */
-  public getFilesByUser(userName: string): Promise<FileToFileMetadata> {
-    return this.customMetadataQuerier.queryByUser(userName);
-  }
-
-  /*
-        This method queries for all files that were uploaded by the given user.
-
-        :param templateId: Id of the template used to upload the files querying for
-        :return: Dictionary of FileIds to metadata objects representing all metadata for the file
-    */
-  public getFilesByTemplate(templateId: number): Promise<FileToFileMetadata> {
-    return this.customMetadataQuerier.queryByTemplate(templateId);
   }
 
   /*

@@ -151,7 +151,6 @@ export enum AsyncRequest {
   GET_FILE_METADATA_FOR_JOB = "GET_FILE_METADATA_FOR_JOB",
   UPLOAD = "UPLOAD",
   SAVE_TEMPLATE = "SAVE_TEMPLATE",
-  SEARCH_FILE_METADATA = "SEARCH_FILE_METADATA",
   UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
   CREATE_BARCODE = "CREATE_BARCODE",
   UPDATE_AND_RETRY_UPLOAD = "UPDATE_AND_RETRY_UPLOAD",
@@ -261,7 +260,6 @@ export type ModalName = "openTemplate" | "settings" | "templateEditor";
 
 export enum Page {
   DragAndDrop = "DragAndDrop",
-  SearchFiles = "SearchFiles",
   SelectUploadType = "SelectUploadType",
   AssociateFiles = "AssociateFiles",
   AddCustomData = "AddCustomData",

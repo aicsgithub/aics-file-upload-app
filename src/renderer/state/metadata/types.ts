@@ -8,14 +8,6 @@ export interface SearchResultsHeader extends ColumnProps<SearchResultRow> {
   title: string;
 }
 
-export interface SearchConfig {
-  annotation?: string;
-  fileIds?: string[];
-  searchValue?: string;
-  templateId?: number;
-  user?: string;
-}
-
 export interface GetAnnotationsAction {
   type: string;
 }
@@ -79,10 +71,5 @@ export interface GetTemplatesAction {
 }
 
 export interface ResetHistoryAction {
-  type: string;
-}
-
-export interface SearchFileMetadataAction {
-  payload: SearchConfig;
   type: string;
 }
