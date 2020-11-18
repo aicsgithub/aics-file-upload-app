@@ -4,8 +4,6 @@ import { ColumnType } from "../../../services/labkey-client/types";
 import {
   mockAuditInfo,
   mockNotesAnnotation,
-  mockSearchResults,
-  mockSearchResultsHeader,
   mockState,
   mockWellAnnotation,
   mockWorkflowAnnotation,
@@ -18,8 +16,6 @@ import {
   getForbiddenAnnotationNames,
   getLookupAnnotationTypeId,
   getNotesAnnotation,
-  getNumberOfFiles,
-  getSearchResultsHeader,
   getUniqueBarcodeSearchResults,
   getWellAnnotation,
   getWorkflowAnnotation,
@@ -187,28 +183,6 @@ describe("Metadata selectors", () => {
       expect(result).to.be.undefined;
     });
   });
-  describe("getSearchResultsHeader", () => {
-    it("returns getSearchResultsAsHeader if searchResults exist", () => {
-      const result = getSearchResultsHeader({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          fileMetadataSearchResults: mockSearchResults,
-        },
-      });
-      expect(result).to.not.be.undefined;
-      if (result) {
-        // Can't use deep equals because the sort function doesn't get properly diffed
-        expect(result.length).to.eq(mockSearchResultsHeader.length);
-        expect(result[0].dataIndex).to.eq(mockSearchResultsHeader[0].dataIndex);
-        expect(result[0].title).to.eq(mockSearchResultsHeader[0].title);
-      }
-    });
-    it("returns undefined if searchResults don't exist", () => {
-      const result = getSearchResultsHeader(mockState);
-      expect(result).to.be.undefined;
-    });
-  });
   describe("getAnnotationsWithAnnotationOptions", () => {
     const mockAnnotation = {
       ...mockAuditInfo,
@@ -262,24 +236,6 @@ describe("Metadata selectors", () => {
           annotationOptions: ["a", "b"],
         },
       ]);
-    });
-  });
-
-  describe("getNumberOfFiles", () => {
-    it("returns 0 if nothing match search", () => {
-      const result = getNumberOfFiles(mockState);
-      expect(result).to.equal(0);
-    });
-
-    it("returns correct number of files if files match search", () => {
-      const result = getNumberOfFiles({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          fileMetadataSearchResults: mockSearchResults,
-        },
-      });
-      expect(result).to.equal(2);
     });
   });
 });

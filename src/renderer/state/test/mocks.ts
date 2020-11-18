@@ -8,7 +8,6 @@ import {
 } from "../../constants";
 import {
   AddMetadataServiceFields,
-  ImageModelMetadata,
   UploadServiceFields,
 } from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
@@ -41,7 +40,6 @@ import {
   template,
   upload,
 } from "../index";
-import { SearchResultsHeader } from "../metadata/types";
 import { Well } from "../selection/types";
 import {
   AnnotationDraft,
@@ -383,66 +381,6 @@ export const mockState: State = {
   template: getMockStateWithHistory(template.initialState),
   upload: getMockStateWithHistory(upload.initialState),
 };
-
-export const mockSearchResults: ImageModelMetadata[] = [
-  {
-    channel: undefined,
-    fileId: "abc123",
-    fileSize: 1,
-    fileType: "image",
-    filename: "example.img",
-    modified: "sometime",
-    modifiedBy: "somebody",
-    positionIndex: undefined,
-  },
-  {
-    channel: undefined,
-    fileId: "abc123",
-    fileSize: 1,
-    fileType: "image",
-    filename: "example.img",
-    modified: "sometime",
-    modifiedBy: "somebody",
-    positionIndex: 1,
-  },
-  {
-    channel: undefined,
-    fileId: "abc123-1",
-    fileSize: 1,
-    fileType: "image",
-    filename: "example.img",
-    modified: "sometime",
-    modifiedBy: "somebody",
-    positionIndex: undefined,
-  },
-];
-
-export const mockSearchResultsHeader: SearchResultsHeader[] = [
-  {
-    dataIndex: "filename",
-    key: "filename",
-    sorter: (a, b) => `${a}`.localeCompare(`${b}`),
-    title: "Filename",
-  },
-  {
-    dataIndex: "positionIndex",
-    key: "positionIndex",
-    sorter: (a, b) => `${a}`.localeCompare(`${b}`),
-    title: "Position Index",
-  },
-  {
-    dataIndex: "channel",
-    key: "channel",
-    sorter: (a, b) => `${a}`.localeCompare(`${b}`),
-    title: "Channel",
-  },
-  {
-    dataIndex: "template",
-    key: "template",
-    sorter: (a, b) => `${a}`.localeCompare(`${b}`),
-    title: "Template",
-  },
-];
 
 export const mockUnits: Unit[] = [
   {
