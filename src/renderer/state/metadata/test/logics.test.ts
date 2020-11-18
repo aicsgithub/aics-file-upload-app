@@ -36,7 +36,6 @@ import {
   mockSelectedWorkflows,
   mockState,
   mockUnit,
-  mockUsers,
   mockWellAnnotation,
 } from "../../test/mocks";
 import { AsyncRequest } from "../../types";
@@ -139,7 +138,6 @@ describe("Metadata logics", () => {
       labkeyClient.getLookups.resolves(mockLookups);
       labkeyClient.getUnits.resolves([mockUnit]);
       labkeyClient.getWorkflows.resolves(mockSelectedWorkflows);
-      labkeyClient.getUsers.resolves(mockUsers);
 
       const expectedAction = receiveMetadata({
         annotationLookups: mockAnnotationLookups,
@@ -150,7 +148,6 @@ describe("Metadata logics", () => {
         lookups: mockLookups,
         units: [mockUnit],
         workflowOptions: mockSelectedWorkflows,
-        users: mockUsers,
       });
       await runRequestSucceededTest(requestMetadata(), expectedAction);
     });

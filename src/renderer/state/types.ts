@@ -26,7 +26,6 @@ import {
   ImagingSession,
   LabkeyPlateResponse,
   LabkeyTemplate,
-  LabkeyUser,
   Lookup,
   Unit,
   Workflow,
@@ -241,7 +240,6 @@ export interface MetadataStateBranch {
   // for tracking whether an upload has changed when updating the upload
   originalUpload?: UploadStateBranch;
   templates: LabkeyTemplate[];
-  users: LabkeyUser[];
   units: Unit[];
   // Gets updated every time app changes pages.
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)

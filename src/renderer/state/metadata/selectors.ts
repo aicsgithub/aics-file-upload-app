@@ -42,7 +42,6 @@ export const getBarcodeSearchResults = (state: State) =>
   state.metadata.barcodeSearchResults;
 export const getTemplates = (state: State) => state.metadata.templates;
 export const getChannels = (state: State) => state.metadata.channels;
-export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) =>
   state.metadata.fileMetadataForJob;
 export const getCurrentUploadFilePath = (state: State) =>

@@ -423,17 +423,6 @@ export const mockSelectedWorkflows: Workflow[] = [
   { workflowId: 4, name: "name4", description: "cool workflow" },
 ];
 
-export const mockUsers = [
-  {
-    DisplayName: "fake1",
-    UserId: 1,
-  },
-  {
-    DisplayName: "fake2",
-    UserId: 2,
-  },
-];
-
 export const mockSuccessfulUploadJob: JSSJob = {
   created: new Date(),
   currentStage: "Completed",
