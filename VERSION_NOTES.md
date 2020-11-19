@@ -1,4 +1,14 @@
 # Version Notes
+
+## 1.0.55 (11/19/20)
+- Feature: indicate unread notifications
+- Feature: removed storage intent upload wizard page
+
+## 1.0.54 (11/13/20)
+- Feature: added ability to mass edit multiple files at once!
+- Feature: notification center
+- Feature: check if file is a duplicate sooner when retrying an upload
+
 ## 1.0.53 (11/4/20)
 - Bugfix: self signed the Windows artifact which prevents antivirus software from quarantining the app
 - Bugfix: fixed issue where app goes blank when barcode associated with an imaging session gets selected
