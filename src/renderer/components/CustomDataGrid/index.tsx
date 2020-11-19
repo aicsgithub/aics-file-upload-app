@@ -644,6 +644,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     // Initialize an empty grid row with the same columns as the standard editing grid
     const emptyMassEditRow: MassEditRow = {
       massEditNumberOfFiles: this.state.selectedRows.length,
+      wellLabels: [],
     };
     columns.forEach((column) => {
       if (column["name"] === "Wells") {

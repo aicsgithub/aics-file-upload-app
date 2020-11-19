@@ -455,7 +455,6 @@ export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
 }
 
 export interface MassEditRow {
-  massEditNumberOfFiles: number;
   // custom annotations
   [key: string]: any;
 }

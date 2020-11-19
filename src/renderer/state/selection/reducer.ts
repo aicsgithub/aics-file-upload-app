@@ -88,7 +88,7 @@ export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
   annotation: DEFAULT_ANNOTATION,
   files: [],
-  massEditRow: { massEditNumberOfFiles: 0, wellLabels: [] },
+  massEditRow: {},
   user: userInfo().username,
 };
 
