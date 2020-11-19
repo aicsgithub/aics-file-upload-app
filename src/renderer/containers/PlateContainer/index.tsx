@@ -7,22 +7,30 @@ import {
   getSelectedWells,
   getWellsWithUnitsAndModified,
 } from "../../state/selection/selectors";
-import { State } from "../../state/types";
+import { MassEditRow, State } from "../../state/types";
 import { getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
 import { getUpload } from "../../state/upload/selectors";
 import { UploadJobTableRow } from "../../state/upload/types";
 
 interface Props {
-  rowData: UploadJobTableRow;
+  rowData: UploadJobTableRow | MassEditRow;
 }
 
 function mapStateToProps(state: State, { rowData }: Props) {
   const upload = getUpload(state);
-  const metadata = upload[getUploadRowKeyFromUploadTableRow(rowData)];
+  let wellsWithAssociations;
+  if (!rowData.massEditNumberOfFiles) {
+    const metadata =
+      upload[getUploadRowKeyFromUploadTableRow(rowData as UploadJobTableRow)];
+    wellsWithAssociations = metadata[WELL_ANNOTATION_NAME];
+  } else {
+    wellsWithAssociations = rowData[WELL_ANNOTATION_NAME];
+  }
+
   return {
     selectedWells: getSelectedWells(state),
     wells: getWellsWithUnitsAndModified(state),
-    wellsWithAssociations: metadata[WELL_ANNOTATION_NAME] || [],
+    wellsWithAssociations: wellsWithAssociations || [],
   };
 }
 

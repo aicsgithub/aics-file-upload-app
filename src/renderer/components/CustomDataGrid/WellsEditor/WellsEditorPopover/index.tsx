@@ -1,28 +1,23 @@
-import { Button } from "antd";
-import * as classNames from "classnames";
 import { intersection, isEmpty } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { WELL_ANNOTATION_NAME } from "../../constants";
-import { getSelectedWellIds } from "../../state/selection/selectors";
-import { State, UploadStateBranch } from "../../state/types";
+import { WELL_ANNOTATION_NAME } from "../../../../constants";
+import { getSelectedWellIds } from "../../../../state/selection/selectors";
+import { State, UploadStateBranch } from "../../../../state/types";
 import {
   associateFilesAndWells,
   undoFileWellAssociation,
-} from "../../state/upload/actions";
-import { getUploadRowKeyFromUploadTableRow } from "../../state/upload/constants";
-import { getUpload } from "../../state/upload/selectors";
+} from "../../../../state/upload/actions";
+import { getUploadRowKeyFromUploadTableRow } from "../../../../state/upload/constants";
+import { getUpload } from "../../../../state/upload/selectors";
 import {
   AssociateFilesAndWellsAction,
   UndoFileWellAssociationAction,
   UploadJobTableRow,
-} from "../../state/upload/types";
-import ImagingSessionSelector from "../ImagingSessionSelector";
-import Plate from "../PlateContainer";
-
-const styles = require("./styles.pcss");
+} from "../../../../state/upload/types";
+import WellsEditorCommon from "../WellsEditorCommon";
 
 interface Props {
   associateFilesAndWells: ActionCreator<AssociateFilesAndWellsAction>;
@@ -39,37 +34,19 @@ interface Props {
  * their props only update when the editor is activated (i.e. double-clicked). We want real-time updates so we're
  * bypassing this lifecycle.
  */
-class WellEditorPopover extends React.Component<Props, {}> {
+class WellsEditorPopover extends React.Component<Props, {}> {
   public render() {
     const { className, rowData } = this.props;
 
     return (
-      <div className={styles.container}>
-        <div className={classNames(className, styles.row)}>
-          <ImagingSessionSelector className={styles.imagingSessionSelector} />
-          <div className={styles.btns}>
-            <Button
-              onClick={this.associateWithRow}
-              size="small"
-              type="primary"
-              className={styles.associateBtn}
-              disabled={this.associateBtnDisabled()}
-            >
-              Associate
-            </Button>
-            <Button
-              onClick={this.undoAssociation}
-              disabled={this.removeAssociationsBtnDisabled()}
-              size="small"
-            >
-              Remove Association
-            </Button>
-          </div>
-        </div>
-        <div className={styles.plateContainer}>
-          <Plate rowData={rowData} className={styles.plate} />
-        </div>
-      </div>
+      <WellsEditorCommon
+        className={className}
+        associateWithRow={this.associateWithRow}
+        associateBtnDisabled={this.associateBtnDisabled}
+        removeAssociationsBtnDisabled={this.removeAssociationsBtnDisabled}
+        rowData={rowData}
+        undoAssociation={this.undoAssociation}
+      />
     );
   }
 
@@ -126,4 +103,4 @@ const dispatchToPropsMap = {
   undoFileWellAssociation,
 };
 
-export default connect(mapStateToProps, dispatchToPropsMap)(WellEditorPopover);
+export default connect(mapStateToProps, dispatchToPropsMap)(WellsEditorPopover);

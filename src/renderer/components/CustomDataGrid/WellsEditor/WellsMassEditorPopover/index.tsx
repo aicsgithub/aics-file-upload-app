@@ -1,27 +1,22 @@
-import { Button } from "antd";
-import * as classNames from "classnames";
 import { intersection, isEmpty, uniq, without } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { WELL_ANNOTATION_NAME } from "../../../constants";
-import ImagingSessionSelector from "../../../containers/ImagingSessionSelector";
-import { updateMassEditRow } from "../../../state/selection/actions";
+import { WELL_ANNOTATION_NAME } from "../../../../constants";
+import { updateMassEditRow } from "../../../../state/selection/actions";
 import {
   getSelectedWellIds,
   getSelectedWellLabels,
-} from "../../../state/selection/selectors";
-import { UpdateMassEditRowAction } from "../../../state/selection/types";
-import { MassEditRow, State, UploadStateBranch } from "../../../state/types";
+} from "../../../../state/selection/selectors";
+import { UpdateMassEditRowAction } from "../../../../state/selection/types";
+import { MassEditRow, State, UploadStateBranch } from "../../../../state/types";
 import {
   associateFilesAndWells,
   undoFileWellAssociation,
-} from "../../../state/upload/actions";
-import { getUpload } from "../../../state/upload/selectors";
-import Plate from "../MassEditPlateContainer";
-
-const styles = require("../style.pcss");
+} from "../../../../state/upload/actions";
+import { getUpload } from "../../../../state/upload/selectors";
+import WellsEditorPopover from "../WellsEditorCommon";
 
 interface Props {
   className?: string;
@@ -32,43 +27,19 @@ interface Props {
   updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
 }
 
-/**
- * This renders the popover contents used for the WellEditor component of the CustomDataGrid
- * It is required to be connected to the redux store because react-data-grid editors follow a lifecycle in which
- * their props only update when the editor is activated (i.e. double-clicked). We want real-time updates so we're
- * bypassing this lifecycle.
- */
 class WellsMassEditorPopover extends React.Component<Props, {}> {
   public render() {
     const { className, rowData } = this.props;
 
     return (
-      <div className={styles.container}>
-        <div className={classNames(className, styles.row)}>
-          <ImagingSessionSelector className={styles.imagingSessionSelector} />
-          <div className={styles.btns}>
-            <Button
-              onClick={this.associateWithRow}
-              size="small"
-              type="primary"
-              className={styles.associateBtn}
-              disabled={this.associateBtnDisabled()}
-            >
-              Associate
-            </Button>
-            <Button
-              onClick={this.undoAssociation}
-              disabled={this.removeAssociationsBtnDisabled()}
-              size="small"
-            >
-              Remove Association
-            </Button>
-          </div>
-        </div>
-        <div className={styles.plateContainer}>
-          <Plate rowData={rowData} className={styles.plate} />
-        </div>
-      </div>
+      <WellsEditorPopover
+        className={className}
+        associateWithRow={this.associateWithRow}
+        associateBtnDisabled={this.associateBtnDisabled}
+        removeAssociationsBtnDisabled={this.removeAssociationsBtnDisabled}
+        rowData={rowData}
+        undoAssociation={this.undoAssociation}
+      />
     );
   }
 
@@ -79,19 +50,18 @@ class WellsMassEditorPopover extends React.Component<Props, {}> {
       [WELL_ANNOTATION_NAME]: uniq(
         rowData[WELL_ANNOTATION_NAME].concat(selectedWellIds)
       ),
-      wellLabels: selectedWellLabels,
+      wellLabels: rowData["wellLabels"].concat(selectedWellLabels),
     });
   };
 
   private undoAssociation = (): void => {
-    const { rowData, selectedWellIds, selectedWellLabels } = this.props;
+    const { rowData, selectedWellIds } = this.props;
     this.props.updateMassEditRow({
       ...rowData,
       [WELL_ANNOTATION_NAME]: without(
         rowData[WELL_ANNOTATION_NAME],
         ...selectedWellIds
       ),
-      wellLabels: selectedWellLabels,
     });
   };
 

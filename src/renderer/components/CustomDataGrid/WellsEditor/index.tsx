@@ -3,7 +3,8 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import WellEditorPopover from "../../../containers/WellEditorPopover";
+import WellsEditorPopover from "./WellsEditorPopover";
+import WellsMassEditorPopover from "./WellsMassEditorPopover";
 
 const styles = require("./styles.pcss");
 
@@ -20,6 +21,11 @@ class WellsEditor extends editors.EditorBase<
 
   public render() {
     const { rowData } = this.props;
+    const content = rowData.massEditNumberOfFiles ? (
+      <WellsMassEditorPopover rowData={rowData} />
+    ) : (
+      <WellsEditorPopover rowData={rowData} />
+    );
     if (
       rowData.channel ||
       !isEmpty(rowData.positionIndexes) ||
@@ -34,7 +40,7 @@ class WellsEditor extends editors.EditorBase<
         <Popover
           placement="bottom"
           visible={true}
-          content={<WellEditorPopover rowData={rowData} />}
+          content={content}
           title="Associate Wells with this row by selecting wells and clicking Associate"
         >
           <div className={styles.container} />

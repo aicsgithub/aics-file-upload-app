@@ -56,7 +56,6 @@ import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import { FormatterProps } from "./types";
 import WellsEditor from "./WellsEditor";
-import WellsMassEditor from "./WellsMassEditor";
 
 const styles = require("./style.pcss");
 
@@ -142,13 +141,11 @@ interface OnExpandArgs {
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {
-  private getWellUploadColumns(massEdit = false): UploadJobColumn[] {
+  private getWellUploadColumns(forMassEdit = false): UploadJobColumn[] {
     return [
       {
         editable: this.props.editable,
-        ...(this.props.editable
-          ? { editor: massEdit ? WellsMassEditor : WellsEditor }
-          : {}),
+        ...(this.props.editable ? { editor: WellsEditor } : {}),
         formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) => {
           if (
             row.channelId ||
@@ -166,7 +163,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 value,
                 undefined,
                 true,
-                massEdit
+                forMassEdit
               );
         },
         key: "wellLabels",
@@ -660,7 +657,10 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     this.setState({
       showMassEditGrid: true,
     });
-    this.props.updateMassEditRow(emptyMassEditRow);
+    this.props.updateMassEditRow({
+      ...this.props.massEditRow,
+      ...emptyMassEditRow,
+    });
   };
 
   private updateMassEditRows = (
