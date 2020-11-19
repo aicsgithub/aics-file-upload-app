@@ -55,13 +55,14 @@ class WellsMassEditorPopover extends React.Component<Props, {}> {
   };
 
   private undoAssociation = (): void => {
-    const { rowData, selectedWellIds } = this.props;
+    const { rowData, selectedWellIds, selectedWellLabels } = this.props;
     this.props.updateMassEditRow({
       ...rowData,
       [WELL_ANNOTATION_NAME]: without(
         rowData[WELL_ANNOTATION_NAME],
         ...selectedWellIds
       ),
+      wellLabels: without(rowData["wellLabels"], ...selectedWellLabels),
     });
   };
 
