@@ -26,9 +26,6 @@ pipeline {
     }
     stages {
         stage ("initialize build") {
-           when {
-                expression { return !skipBuild(params) }
-           }
             steps {
                 this.notifyBB("INPROGRESS")
                 echo "${BRANCH_NAME}"
@@ -36,36 +33,24 @@ pipeline {
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
             }
         }
-        stage ("lint, circular-dependencies, test, build") {
-            when {
-                expression { return !skipBuild(params) }
-            }
+        stage ("install dependencies and lint") {
             steps {
-                sh "./gradlew -i yarn lint detectCircularDeps test compile"
+                sh "./gradlew -i yarn lint"
             }
         }
-        stage ("version - release") {
-            when {
-                expression {
-                    return params.INCREMENT_VERSION && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT != "prerelease"
-                }
-            }
+        stage ("detect circular dependencies") {
             steps {
-                sh "git checkout ${env.BRANCH_NAME} && git branch --set-upstream-to=origin/${env.BRANCH_NAME} ${env.BRANCH_NAME} && git pull"
-                sh "./gradlew -i yarn_version_--${VERSION_TO_INCREMENT}"
-                sh "git push -u origin ${env.BRANCH_NAME} && git push --tags"
+                sh "./gradlew -i detectCircularDeps"
             }
         }
-        stage ("version - snapshot") {
-            when {
-                expression {
-                    return params.INCREMENT_VERSION && env.BRANCH_NAME == "master" && params.VERSION_TO_INCREMENT == "prerelease"
-                }
-            }
+        stage ("test") {
             steps {
-                sh "git checkout ${env.BRANCH_NAME} && git branch --set-upstream-to=origin/${env.BRANCH_NAME} ${env.BRANCH_NAME} && git pull"
-                sh "./gradlew -i createSnapshot"
-                sh "git push -u origin ${env.BRANCH_NAME} && git push --tags"
+                sh "./gradlew -i test"
+            }
+        }
+        stage ("compile") {
+            steps {
+                sh "./gradlew -i compile"
             }
         }
     }
@@ -96,15 +81,4 @@ def notifyBB(String state) {
             prependParentProjectKey: false,
             projectKey: "SW",
             stashServerBaseUrl: "https://aicsbitbucket.corp.alleninstitute.org"
-}
-
-def gitAuthor() {
-    sh(returnStdout: true, script: 'git log -1 --format=%an').trim()
-}
-
-// Returns true if we should not run the lint, circular-dependencies, test, build
-// It is true when the CI is triggered via a commit by jenkins or when triggered using extra parameters for
-// releasing the app
-def skipBuild(params) {
-    return params.INCREMENT_VERSION || gitAuthor() == "jenkins"
 }
