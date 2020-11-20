@@ -169,7 +169,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         key: "wellLabels",
         name: "Wells",
         resizable: true,
-        sortable: true,
+        sortable: !forMassEdit,
         width: DEFAULT_COLUMN_WIDTH,
       },
     ];
