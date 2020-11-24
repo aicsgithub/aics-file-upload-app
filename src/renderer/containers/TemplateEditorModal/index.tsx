@@ -89,6 +89,7 @@ type Props = ConnectedProps<typeof connector> & {
 };
 
 interface TemplateEditorModalState {
+  templateNameChanged: boolean;
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
 }
@@ -100,6 +101,7 @@ class TemplateEditorModal extends React.Component<
   constructor(props: Props) {
     super(props);
     this.state = {
+      templateNameChanged: false,
       annotationNameSearch: undefined,
       selectedAnnotation: undefined,
     };
@@ -151,12 +153,16 @@ class TemplateEditorModal extends React.Component<
 
   private openModal = (event: Event, templateId?: number) =>
     this.props.openModal(templateId);
-  private closeModal = () => this.props.closeModal("templateEditor");
+  private closeModal = () => {
+    this.props.closeModal("templateEditor");
+    this.setState({ templateNameChanged: false });
+  };
 
   private closeAlert = () =>
     this.props.updateSettings({ showTemplateHint: false });
 
   private updateTemplateName = (e: ChangeEvent<HTMLInputElement>): void => {
+    this.setState({ templateNameChanged: true });
     this.props.updateTemplateDraft({ name: e.target.value });
   };
 
@@ -171,7 +177,7 @@ class TemplateEditorModal extends React.Component<
       template,
       showTemplateHint,
     } = this.props;
-    const { annotationNameSearch } = this.state;
+    const { templateNameChanged, annotationNameSearch } = this.state;
     const appliedAnnotationNames = template.annotations
       .map((a) => a.name)
       .concat(
@@ -209,7 +215,9 @@ class TemplateEditorModal extends React.Component<
             className={styles.formControl}
             label="Template Name"
             error={
-              !trim(template.name) ? "Template Name is required" : undefined
+              templateNameChanged && !trim(template.name)
+                ? "Template Name is required"
+                : undefined
             }
           >
             <Input value={template.name} onChange={this.updateTemplateName} />
