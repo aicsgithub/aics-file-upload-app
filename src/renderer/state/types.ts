@@ -285,6 +285,7 @@ export interface SelectionStateBranch extends UploadTabSelections {
   files: string[];
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
+  massEditRow: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
@@ -448,4 +449,9 @@ export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
   // used by antd's Table component to uniquely identify rows
   key: string;
   progress?: UploadProgressInfo;
+}
+
+export interface MassEditRow {
+  // custom annotations
+  [key: string]: any;
 }

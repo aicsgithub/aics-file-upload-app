@@ -39,6 +39,7 @@ import {
   SELECT_WORKFLOWS,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
+  UPDATE_MASS_EDIT_ROW,
   UPDATE_STAGED_FILES,
 } from "./constants";
 import {
@@ -64,6 +65,7 @@ import {
   SelectWorkflowsAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
+  UpdateMassEditRowAction,
   UpdateStagedFilesAction,
 } from "./types";
 
@@ -86,6 +88,7 @@ export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
   annotation: DEFAULT_ANNOTATION,
   files: [],
+  massEditRow: {},
   user: userInfo().username,
 };
 
@@ -265,6 +268,17 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       ...state,
       folderTreeOpen: false, // there's no use to this when editing files already uploaded
       job: action.payload,
+    }),
+  },
+  [UPDATE_MASS_EDIT_ROW]: {
+    accepts: (action: AnyAction): action is UpdateMassEditRowAction =>
+      action.type === UPDATE_MASS_EDIT_ROW,
+    perform: (
+      state: SelectionStateBranch,
+      action: UpdateMassEditRowAction
+    ) => ({
+      ...state,
+      massEditRow: action.payload,
     }),
   },
 };

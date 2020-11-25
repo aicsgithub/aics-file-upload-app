@@ -6,6 +6,7 @@ import {
   DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
+  MassEditRow,
   MetadataStateBranch,
   UploadFile,
 } from "../types";
@@ -121,5 +122,10 @@ export interface ToggleExpandedUploadJobRowAction {
 
 export interface SelectImagingSessionIdAction extends AutoSaveAction {
   payload: number;
+  type: string;
+}
+
+export interface UpdateMassEditRowAction {
+  payload: MassEditRow;
   type: string;
 }

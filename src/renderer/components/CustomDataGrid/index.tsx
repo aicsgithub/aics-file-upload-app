@@ -15,6 +15,7 @@ import {
   LIST_DELIMITER_JOIN,
   MAIN_FONT_WIDTH,
   NOTES_ANNOTATION_NAME,
+  WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
@@ -26,15 +27,20 @@ import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import { SetAlertAction } from "../../state/feedback/types";
 import {
   ToggleExpandedUploadJobRowAction,
+  UpdateMassEditRowAction,
   Well,
 } from "../../state/selection/types";
-import { AlertType, ExpandedRows, UploadMetadata } from "../../state/types";
+import {
+  AlertType,
+  ExpandedRows,
+  MassEditRow,
+  UploadMetadata,
+} from "../../state/types";
 import {
   getUploadRowKey,
   getUploadRowKeyFromUploadTableRow,
 } from "../../state/upload/constants";
 import {
-  MassEditRow,
   RemoveUploadsAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
@@ -74,12 +80,14 @@ interface Props {
   editable: boolean;
   expandedRows: ExpandedRows;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
+  massEditRow: MassEditRow;
   redo: () => void;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   template?: Template;
   setAlert: ActionCreator<SetAlertAction>;
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   undo: () => void;
+  updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
   updateUpload: ActionCreator<UpdateUploadAction>;
   updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
@@ -89,7 +97,6 @@ interface Props {
 
 interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
-  massEditRow: MassEditRow;
   selectedRows: string[];
   showMassEditGrid: boolean;
   showMassEditShadow: boolean;
@@ -134,7 +141,7 @@ interface OnExpandArgs {
 }
 
 class CustomDataGrid extends React.Component<Props, CustomDataState> {
-  private get wellUploadColumns(): UploadJobColumn[] {
+  private getWellUploadColumns(forMassEdit = false): UploadJobColumn[] {
     return [
       {
         editable: this.props.editable,
@@ -150,18 +157,25 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           }
           return !isEmpty(row.positionIndexes)
             ? null
-            : this.renderFormat(row, "wellLabels", value, undefined, true);
+            : this.renderFormat(
+                row,
+                "wellLabels",
+                value,
+                undefined,
+                true,
+                forMassEdit
+              );
         },
         key: "wellLabels",
         name: "Wells",
         resizable: true,
-        sortable: true,
+        sortable: !forMassEdit,
         width: DEFAULT_COLUMN_WIDTH,
       },
     ];
   }
 
-  private get workflowUploadColumns(): UploadJobColumn[] {
+  private getWorkflowUploadColumns(): UploadJobColumn[] {
     return [
       {
         cellClass: styles.formatterContainer,
@@ -181,7 +195,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      massEditRow: { massEditNumberOfFiles: 0 },
       selectedRows: [],
       showMassEditGrid: false,
       showMassEditShadow: true,
@@ -198,7 +211,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       this.state.sortDirection
     );
     const rowGetter = (idx: number) => sortedRows[idx];
-    const massEditRowGetter = (idx: number) => [this.state.massEditRow][idx];
+    const massEditRowGetter = (idx: number) => [this.props.massEditRow][idx];
 
     return (
       <>
@@ -525,9 +538,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     }
     let basicColumns;
     if (!this.props.associateByWorkflow) {
-      basicColumns = this.uploadColumns(this.wellUploadColumns);
+      basicColumns = this.uploadColumns(this.getWellUploadColumns());
     } else {
-      basicColumns = this.uploadColumns(this.workflowUploadColumns);
+      basicColumns = this.uploadColumns(this.getWorkflowUploadColumns());
     }
     if (!this.props.template) {
       return basicColumns;
@@ -550,10 +563,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       width: DEFAULT_COLUMN_WIDTH,
       type: ColumnType.NUMBER,
     };
+    const basicColumns = this.props.associateByWorkflow
+      ? this.getWorkflowUploadColumns()
+      : this.getWellUploadColumns(true);
     const schemaColumns = this.getSchemaColumns(true);
-    const massEditSchemaColumns = schemaColumns.map(
-      (column) => column as MassEditColumn
-    );
+    const massEditSchemaColumns = basicColumns
+      .concat(schemaColumns)
+      .map((column) => column as MassEditColumn);
     return [numberFiles].concat(massEditSchemaColumns);
   };
 
@@ -628,14 +644,23 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     // Initialize an empty grid row with the same columns as the standard editing grid
     const emptyMassEditRow: MassEditRow = {
       massEditNumberOfFiles: this.state.selectedRows.length,
+      wellLabels: [],
     };
     columns.forEach((column) => {
-      emptyMassEditRow[column["name"]] =
-        column.type === ColumnType.BOOLEAN ? [false] : [];
+      if (column["name"] === "Wells") {
+        // Special case where column name != annotation name TODO: Handle others?
+        emptyMassEditRow[WELL_ANNOTATION_NAME] = [];
+      } else {
+        emptyMassEditRow[column["name"]] =
+          column.type === ColumnType.BOOLEAN ? [false] : [];
+      }
     });
     this.setState({
       showMassEditGrid: true,
-      massEditRow: emptyMassEditRow,
+    });
+    this.props.updateMassEditRow({
+      ...this.props.massEditRow,
+      ...emptyMassEditRow,
     });
   };
 
@@ -644,15 +669,15 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   ) => {
     const { updated } = e;
     if (updated) {
+      this.props.updateMassEditRow({ ...this.props.massEditRow, ...e.updated });
       this.setState({
-        massEditRow: { ...this.state.massEditRow, ...e.updated },
         showMassEditShadow: false,
       });
     }
   };
 
   private updateRowsWithMassEditInfo = () => {
-    const massEditRow = this.state.massEditRow;
+    const massEditRow = this.props.massEditRow;
     const updateRow: Partial<UploadMetadata> = {};
     Object.keys(massEditRow).map((key) => {
       if (Array.isArray(massEditRow[key])) {

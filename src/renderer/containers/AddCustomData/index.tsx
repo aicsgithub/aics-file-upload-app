@@ -35,15 +35,18 @@ import { GoBackAction } from "../../state/route/types";
 import {
   selectBarcode,
   toggleExpandedUploadJobRow,
+  updateMassEditRow,
 } from "../../state/selection/actions";
 import {
   getExpandedUploadJobRows,
   getSelectedBarcode,
   getSelectedJob,
   getWellsWithUnitsAndModified,
+  getMassEditRow,
 } from "../../state/selection/selectors";
 import {
   ToggleExpandedUploadJobRowAction,
+  UpdateMassEditRowAction,
   Well,
 } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
@@ -54,7 +57,13 @@ import {
 } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { AsyncRequest, ExpandedRows, Page, State } from "../../state/types";
+import {
+  AsyncRequest,
+  ExpandedRows,
+  MassEditRow,
+  Page,
+  State,
+} from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,
@@ -111,6 +120,7 @@ interface Props {
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
   loadingFileMetadata: boolean;
+  massEditRow: MassEditRow;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
   selectBarcode: typeof selectBarcode;
@@ -122,6 +132,7 @@ interface Props {
   templates: LabkeyTemplate[];
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
+  updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
   updateInProgress: boolean;
   updateSettings: ActionCreator<UpdateSettingsAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
@@ -180,6 +191,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       className,
       loading,
       loadingFileMetadata,
+      massEditRow,
       selectedJob,
       updateInProgress,
       showUploadHint,
@@ -274,12 +286,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             editable={!this.isReadOnly}
             expandedRows={this.props.expandedRows}
             fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
+            massEditRow={massEditRow}
             redo={this.redo}
             removeUploads={this.props.removeUploads}
             template={appliedTemplate}
             setAlert={this.props.setAlert}
             toggleRowExpanded={this.props.toggleRowExpanded}
             undo={this.undo}
+            updateMassEditRow={this.props.updateMassEditRow}
             updateSubImages={this.props.updateSubImages}
             updateUpload={this.props.updateUpload}
             updateUploadRows={this.props.updateUploadRows}
@@ -364,6 +378,7 @@ function mapStateToProps(state: State) {
       state,
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
+    massEditRow: getMassEditRow(state),
     savedTemplateId: getTemplateId(state),
     selectedBarcode: getSelectedBarcode(state),
     selectedJob: getSelectedJob(state),
@@ -389,6 +404,7 @@ const dispatchToPropsMap = {
   submitFileMetadataUpdate,
   toggleRowExpanded: toggleExpandedUploadJobRow,
   updateAndRetryUpload,
+  updateMassEditRow,
   updateSettings,
   updateSubImages,
   updateUpload,
