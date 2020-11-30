@@ -54,4 +54,3 @@ before_cache:
 branches:
   only:
     - /^v*\d+\.\d+\.\d+(-\S*)?$/
-    - feature/FUA-142-code-sign-windows-artifact
