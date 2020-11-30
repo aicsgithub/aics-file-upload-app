@@ -1,94 +1,134 @@
 # File Upload App
 
-Desktop client application to the File Storage Service. Uploads files to the network
-and saves metadata about the files. 
+A desktop client for uploading file and file metadata to the Allen Institute for Cell Science's internal file management system (FMS).
 
 ## Development
 
-NOTE:
-We're using `electron-builder` to package the app into OS-specific distributables.
-This npm package strongly recommends using yarn for dependency management. If you don't have
-yarn already, set it up by following these instructions:
+### Step 1: Setup Yarn
 
-https://yarnpkg.com/en/docs/install#debian-stable
+If you don't have `yarn` already, set it up by following these instructions:
 
-Then clone the repo, install the dependencies, and run the dev server against staging:
+Linux: https://classic.yarnpkg.com/en/docs/install#debian-stable
+
+macOS: https://classic.yarnpkg.com/en/docs/install#mac-stable
+
+Windows: https://classic.yarnpkg.com/en/docs/install#windows-stable
+
+### Step 2: Clone Repo, Install Dependencies
 
 ```bash
-git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/file-upload-app.git
+git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/aics-file-upload-app.git
 cd file-upload-app
-./gradlew yarn
-./gradlew devStg
+yarn
 ```
 
-To create an executable that will allow you to test a production build of the
-app, you can run `yarn build-executable`. The executable will be built to the
-`dist` directory.
+### Step 3: Run Dev Server
 
-### WFH setup (Mac)
-How to run against dev machine in AI building over VPN:
-1. Make sure you are connected to the AI VPN
-2. Set up sshfs and FUSE. Download and run both FUSE and SSHFS installers from here: https://osxfuse.github.io/
-3. Create a directory at /tmp/lk/fss on your local machine
-4. Run `lk_run -xc cps -dr -kc` on your remote dev machine
-5. Once above step is done, run the following replacing "username" and "dev-machine-name" as appropriate:
-`sshfs -o allow_other username@dev-machine-name:/tmp/lk/fss /tmp/lk/fss`
-By default, lk_run will configure FSS's incoming directory to /tmp/lk/fss/incoming and we want
-the upload app to copy files to this directory on the remote.
+```bash
+yarn dev
+```
+
+### Step 4: Switch to Staging Environment
+
+Switch to the staging environment after the app starts up through the File menu: File > Switch Environments, select the "Staging" button in the dialog.
+You can configure the LIMS Host URL to a custom one by going to: File > Settings. 
+
+### Additional Setup notes
+
+* You will need to be on the Allen Institute's VPN when developing against staging (if working from home).
+* You will need write access to the Allen Institute's file system in order to use the app.
+* If you are working on a Mac, follow these instructions for setting up your Mac for uploads: http://confluence.corp.alleninstitute.org/display/SF/Mac+Setup
 
 ## Run Tests
 
 ```bash
-./gradlew test
+yarn test
 ```
 
 ## Run Linter
 
 ```bash
-./gradlew lint
+yarn lint
 ```
 
 ## Prettier
-This repository is configured to automatically format code with Prettier upon
+We configured this repository to automatically format code with Prettier upon
 committing it. If you would like configure you IDE or editor to run Prettier
 before committing, you can find instructions
 [here](https://prettier.io/docs/en/editors.html).
 
 ## Packaging and Publishing
 
-We are packaging the app for Windows, Linux, and Mac platforms using electron-builder on Travis CI.
-Artifacts are sent to S3 and are available for download for all users using the Institute network (but not through VPN).
+For an overview of our build pipeline, see [Confluence](http://confluence.corp.alleninstitute.org/display/SF/File+Upload+App+CI+Pipeline)
 
-We accomplish packaging for both Windows and Linux using the docker image: electronuserland/builder:wine
-which provides the dependencies needed on a Linux system to build the app for both Linux and Windows.
-
-Travis CI will package and publish a new version of the app for all tagged commits of the form /^\d+\.\d+\.\d+(-\S*)?$/.
+Travis CI will package and publish a new version of the app for all tagged commits of the form /^v*\d+\.\d+\.\d+(-\S*)?$/.
 For example, these will all get built:
 
 1.0.5
 1.21.5
 1.0.5-snapshot
 1.0.5-feature-autoupdate
+v1.0.5
+v1.0.5-snapshot.0
 
+## Release workflow
 
-### Release workflow
+### Step 1: Create Snapshot
+Before releasing an official version of the app, create a snapshot build to test the app on all platforms:
 
-Before releasing an official version of the app, you'll want to test the packaged app on all platforms. To create a
-snapshot build:
+```bash
+yarn version --prerelease --preid=snapshot
+```
 
-1. Go to the "Build with Parameters" page for the master branch of this repo: https://jenkins.corp.alleninstitute.org/job/desktop-apps/job/file-upload-app/job/master/build?delay=0sec
-2. Check the INCREMENT_VERSION checkbox
-3. Select "prerelease" in the VERSION_TO_INCREMENT dropdown
+This will create a git tag, update the version in package.json, and a commit with the snapshot version in the message.
+If the package.json version was 1.0.55, running this command will change it to 1.0.56-snapshot.0.
 
-This will create a git tag that will trigger a build in Travis CI which will generate a snapshot for each OS.
- 
-For official versions of the app:
+In order to trigger a build in Travis CI in order to create the packaged app, push your changes to the remote:
 
-1. Go to the "Build with Parameters" page for the master branch of this repo: https://jenkins.corp.alleninstitute.org/job/desktop-apps/job/file-upload-app/job/master/build?delay=0sec
-2. Check the INCREMENT_VERSION checkbox
-3. Select "patch", "minor", or "major" in the VERSION_TO_INCREMENT dropdown
+```bash
+git push --tags && git push
+```
+
+### Step 2: Test the Snapshot
+The snapshot will be stored in the file-upload-app.allencell.org S3 bucket. 
+You can find the download link for the snapshot by navigating to that bucket and clicking on the snapshot. 
+
+Run a set of smoke tests for each packaged version of the app. At minimum:
+* Upload a file and view the upload, ensuring that the metadata looks correct
+
+### Step 3: Create Release
+A release is an official version of the app. You can create a release from the command line.
+Ensure you are  on the master branch and have the latest:
+
+```bash
+git checkout master
+git pull
+```
+
+Create the release using the `yarn version` command. By default, it increments the patch version.
+
+```bash
+yarn version
+```
+
+Update the VERSION_NOTES.md file with what is new in this release. I typically look through
+the commits for merged PR's.
+
+After updating the notes, add and commit them and push everything to the server.
+
+```bash
+git add .
+git commit -m "update version notes"
+git push --tags && git push
+```
 
 You can look at the Travis build by going to https://travis-ci.com/github/aicsgithub/aics-file-upload-app.
+
+### Packaging the app locally
+
+To create an executable that will allow you to test a production build of the
+app, you can run `yarn build-executable`. The executable will be built to the
+`dist` directory.
 
 ## Mirroring
 
