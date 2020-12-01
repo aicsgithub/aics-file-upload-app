@@ -234,7 +234,6 @@ export interface MetadataStateBranch {
   // this represents the filepath to an upload draft that has been saved is currently opened in the upload wizard
   currentUploadFilePath?: string;
   fileMetadataForJob?: SearchResultRow[];
-  fileMetadataSearchResults?: SearchResultRow[];
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
