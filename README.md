@@ -77,10 +77,12 @@ v1.0.5-snapshot.0
 Before releasing an official version of the app, create a snapshot build to test the app on all platforms:
 
 ```bash
+git checkout master
+git pull
 yarn version --prerelease --preid=snapshot
 ```
 
-This will create a git tag, update the version in package.json, and a commit with the snapshot version in the message.
+The last command will create a git tag, update the version in package.json, and a commit with the snapshot version in the message.
 If the package.json version was 1.0.55, running this command will change it to 1.0.56-snapshot.0.
 
 In order to trigger a build in Travis CI in order to create the packaged app, push your changes to the remote:
@@ -89,16 +91,21 @@ In order to trigger a build in Travis CI in order to create the packaged app, pu
 git push --tags && git push
 ```
 
+You can view the Travis build in progress here: https://travis-ci.com/github/aicsgithub/aics-file-upload-app
+You will need to sign in with the AICS github account. Account info [here](https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/ansible-platform/browse/playbooks/vars/vaults/vault_production.yml#527)
+
 ### Step 2: Test the Snapshot
-The snapshot will be stored in the file-upload-app.allencell.org S3 bucket. 
-You can find the download link for the snapshot by navigating to that bucket and clicking on the snapshot. 
+The snapshot will be stored in the [file-upload-app.allencell.org S3 bucket](https://s3.console.aws.amazon.com/s3/buckets/file-upload-app.allencell.org/?region=us-west-2&tab=objects). 
+You can find the download link for the snapshot by navigating to that bucket and clicking on the snapshot. Alternatively, if you do not have s3 access, you can access download links in [Confluence](http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application#FileUploadApplication-DownloadLinks)
 
 Run a set of smoke tests for each packaged version of the app. At minimum:
 * Upload a file and view the upload, ensuring that the metadata looks correct
 
+Ideally, you should try out the app in all platforms before each big release: Windows, Linux, and Mac.
+
 ### Step 3: Create Release
 A release is an official version of the app. You can create a release from the command line.
-Ensure you are  on the master branch and have the latest:
+Ensure you are on the master branch and have the latest:
 
 ```bash
 git checkout master
@@ -123,6 +130,10 @@ git push --tags && git push
 ```
 
 You can look at the Travis build by going to https://travis-ci.com/github/aicsgithub/aics-file-upload-app.
+
+### Step 4: Update Confluence links
+Update the download links in confluence: http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application
+And notify people in the #file-upload-app slack channel
 
 ### Packaging the app locally
 
