@@ -1,15 +1,8 @@
-import fs from "fs";
-
 import { isEmpty, trim } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { OPEN_CREATE_PLATE_STANDALONE } from "../../../shared/constants";
-import { FileManagementSystem } from "../../services/aicsfiles";
-import {
-  FileToFileMetadata,
-  ImageModelMetadata,
-} from "../../services/aicsfiles/types";
 import {
   Annotation,
   AnnotationLookup,
@@ -31,20 +24,13 @@ import {
 import { receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,
-  EXPORT_FILE_METADATA,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
   REQUEST_METADATA,
-  SEARCH_FILE_METADATA,
 } from "./constants";
-import {
-  getAnnotationLookups,
-  getAnnotations,
-  getLookups,
-  getSearchResultsHeader,
-} from "./selectors";
+import { getAnnotationLookups, getAnnotations, getLookups } from "./selectors";
 import { CreateBarcodeAction, GetOptionsForLookupAction } from "./types";
 
 const createBarcodeLogic = createLogic({
@@ -98,7 +84,6 @@ const requestMetadataLogic = createLogic({
           labkeyClient.getImagingSessions(),
           labkeyClient.getLookups(),
           labkeyClient.getUnits(),
-          labkeyClient.getUsers(),
           labkeyClient.getWorkflows(),
         ]);
       const [
@@ -109,7 +94,6 @@ const requestMetadataLogic = createLogic({
         imagingSessions,
         lookups,
         units,
-        users,
         workflowOptions,
       ] = await getWithRetry(request, dispatch);
       dispatch(
@@ -121,7 +105,6 @@ const requestMetadataLogic = createLogic({
           imagingSessions,
           lookups,
           units,
-          users,
           workflowOptions,
         })
       );
@@ -335,121 +318,11 @@ const requestTemplatesLogicLogic = createLogic({
   type: GET_TEMPLATES,
 });
 
-const innerJoinOrDefault = (
-  fms: FileManagementSystem,
-  defaultSearchResults: FileToFileMetadata,
-  searchResultsAsMap?: FileToFileMetadata
-): FileToFileMetadata => {
-  if (!searchResultsAsMap) {
-    return defaultSearchResults;
-  }
-  return FileManagementSystem.innerJoinFileMetadata(
-    defaultSearchResults,
-    searchResultsAsMap
-  );
-};
-
-const searchFileMetadataLogic = createLogic({
-  process: async (
-    { action, fms, logger }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    try {
-      const { annotation, searchValue, templateId, user } = action.payload;
-      let searchResultsAsMap: FileToFileMetadata | undefined;
-      if (annotation && searchValue) {
-        searchResultsAsMap = await fms.getFilesByAnnotation(
-          annotation,
-          searchValue
-        );
-      }
-      if (templateId) {
-        const fileMetadataForTemplate = await fms.getFilesByTemplate(
-          templateId
-        );
-        searchResultsAsMap = innerJoinOrDefault(
-          fms,
-          fileMetadataForTemplate,
-          searchResultsAsMap
-        );
-      }
-      if (user) {
-        const fileMetadataForUser = await fms.getFilesByUser(user);
-        searchResultsAsMap = innerJoinOrDefault(
-          fms,
-          fileMetadataForUser,
-          searchResultsAsMap
-        );
-      }
-      if (searchResultsAsMap) {
-        const fileMetadataSearchResults = await fms.transformFileMetadataIntoTable(
-          searchResultsAsMap
-        );
-        dispatch(
-          receiveMetadata(
-            { fileMetadataSearchResults },
-            AsyncRequest.SEARCH_FILE_METADATA
-          )
-        );
-      } else {
-        const error = "Could not perform search, no query params provided";
-        logger.error(error);
-        dispatch(requestFailed(error, AsyncRequest.SEARCH_FILE_METADATA));
-      }
-    } catch (e) {
-      const error = `Could not perform search: ${e.message}`;
-      logger.error(error);
-      dispatch(requestFailed(error, AsyncRequest.SEARCH_FILE_METADATA));
-    }
-    done();
-  },
-  type: SEARCH_FILE_METADATA,
-});
-
-const exportFileMetadataLogic = createLogic({
-  process: (
-    { action, fms, getState }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    try {
-      const filePath: string = action.payload;
-      const state = getState();
-      const tableHeader = getSearchResultsHeader(state);
-      const {
-        metadata: { fileMetadataSearchResults },
-      } = state;
-      if (fileMetadataSearchResults && tableHeader) {
-        const header = tableHeader.map(({ title }) => title);
-        const csv = fms.transformTableIntoCSV(
-          header,
-          fileMetadataSearchResults as ImageModelMetadata[]
-        );
-        fs.writeFileSync(filePath, csv);
-        // nothing to write to state but need to remove request
-        dispatch(receiveMetadata({}, AsyncRequest.EXPORT_FILE_METADATA));
-      }
-    } catch (e) {
-      dispatch(
-        requestFailed(
-          `Could not export: ${e.message}`,
-          AsyncRequest.EXPORT_FILE_METADATA
-        )
-      );
-    }
-    done();
-  },
-  type: EXPORT_FILE_METADATA,
-});
-
 export default [
   createBarcodeLogic,
-  exportFileMetadataLogic,
   requestAnnotationsLogic,
   getBarcodeSearchResultsLogic,
   requestMetadataLogic,
   requestOptionsForLookupLogic,
   requestTemplatesLogicLogic,
-  searchFileMetadataLogic,
 ];

@@ -1,7 +1,5 @@
-import { difference } from "lodash";
 import { createSelector } from "reselect";
 
-import { UNIMPORTANT_COLUMNS } from "../metadata/constants";
 import { State } from "../types";
 
 export const getAssociateByWorkflow = (state: State) =>
@@ -15,16 +13,8 @@ export const getShowTemplateHint = (state: State) =>
   state.setting.showTemplateHint;
 export const getLoggedInUser = (state: State) => state.setting.username;
 export const getTemplateId = (state: State) => state.setting.templateId;
-export const getMetadataColumns = (state: State) =>
-  state.setting.metadataColumns;
 export const getEnabledNotifications = (state: State) =>
   state.setting.enabledNotifications;
-
-export const getAreAllMetadataColumnsSelected = createSelector(
-  [getMetadataColumns],
-  (metadataColumns: string[]) =>
-    !difference(UNIMPORTANT_COLUMNS, metadataColumns).length
-);
 
 export const getLimsUrl = createSelector(
   [getLimsProtocol, getLimsHost, getLimsPort],

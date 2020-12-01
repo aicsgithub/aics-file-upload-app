@@ -23,7 +23,6 @@ import {
   CLEAR_OPTIONS_FOR_LOOKUP,
   RECEIVE_METADATA,
   RESET_HISTORY,
-  SEARCH_FILE_METADATA,
   UPDATE_PAGE_HISTORY,
 } from "./constants";
 import {
@@ -31,7 +30,6 @@ import {
   ClearOptionsForLookupAction,
   ReceiveMetadataAction,
   ResetHistoryAction,
-  SearchFileMetadataAction,
   UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -86,15 +84,6 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
         template: {},
         upload: {},
       },
-    }),
-  },
-  [SEARCH_FILE_METADATA]: {
-    accepts: (action: AnyAction): action is SearchFileMetadataAction =>
-      action.type === SEARCH_FILE_METADATA,
-    perform: (state: MetadataStateBranch) => ({
-      ...state,
-      fileMetadataSearchResults: undefined,
-      fileMetadataSearchResultsAsTable: undefined,
     }),
   },
   [UPDATE_PAGE_HISTORY]: {

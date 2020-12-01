@@ -19,11 +19,9 @@ import {
   JUMP_TO_PAST_SELECTION,
   LOAD_FILES,
   OPEN_FILES,
-  SELECT_ANNOTATION,
   SELECT_BARCODE,
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
-  SELECT_USER,
   SELECT_WELLS,
   SELECT_WORKFLOW_PATH,
   SELECT_WORKFLOWS,
@@ -41,11 +39,9 @@ import {
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
-  SelectAnnotationAction,
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
-  SelectUserAction,
   SelectWellsAction,
   SelectWorkflowPathAction,
   SelectWorkflowsAction,
@@ -175,20 +171,6 @@ export function openTemplateEditor(
   return {
     payload: templateId,
     type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
-  };
-}
-
-export function selectAnnotation(annotation: string): SelectAnnotationAction {
-  return {
-    payload: annotation,
-    type: SELECT_ANNOTATION,
-  };
-}
-
-export function selectUser(user: string): SelectUserAction {
-  return {
-    payload: user,
-    type: SELECT_USER,
   };
 }
 

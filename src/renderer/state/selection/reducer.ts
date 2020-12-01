@@ -28,12 +28,10 @@ import {
   CLEAR_STAGED_FILES,
   DESELECT_FILES,
   JUMP_TO_PAST_SELECTION,
-  SELECT_ANNOTATION,
   SELECT_BARCODE,
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
-  SELECT_USER,
   SELECT_WELLS,
   SELECT_WORKFLOW_PATH,
   SELECT_WORKFLOWS,
@@ -54,12 +52,10 @@ import {
   AddStageFilesAction,
   ClearStagedFilesAction,
   DeselectFilesAction,
-  SelectAnnotationAction,
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
   SelectMetadataAction,
-  SelectUserAction,
   SelectWellsAction,
   SelectWorkflowPathAction,
   SelectWorkflowsAction,
@@ -68,8 +64,6 @@ import {
   UpdateMassEditRowAction,
   UpdateStagedFilesAction,
 } from "./types";
-
-const DEFAULT_ANNOTATION = "Dataset";
 
 const uploadTabSelectionInitialState: UploadTabSelections = {
   barcode: undefined,
@@ -86,7 +80,6 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
 
 export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
-  annotation: DEFAULT_ANNOTATION,
   files: [],
   massEditRow: {},
   user: userInfo().username,
@@ -99,22 +92,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch) => ({
       ...state,
       files: [],
-    }),
-  },
-  [SELECT_ANNOTATION]: {
-    accepts: (action: AnyAction): action is SelectAnnotationAction =>
-      action.type === SELECT_ANNOTATION,
-    perform: (state: SelectionStateBranch, action: SelectAnnotationAction) => ({
-      ...state,
-      annotation: action.payload,
-    }),
-  },
-  [SELECT_USER]: {
-    accepts: (action: AnyAction): action is SelectUserAction =>
-      action.type === SELECT_USER,
-    perform: (state: SelectionStateBranch, action: SelectUserAction) => ({
-      ...state,
-      user: action.payload,
     }),
   },
   [SELECT_BARCODE]: {

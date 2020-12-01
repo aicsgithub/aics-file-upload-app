@@ -7,25 +7,21 @@ import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
 import {
   CREATE_BARCODE,
-  EXPORT_FILE_METADATA,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
   RECEIVE_METADATA,
   REQUEST_METADATA,
-  SEARCH_FILE_METADATA,
 } from "../metadata/constants";
 import {
   CreateBarcodeAction,
-  ExportFileMetadataAction,
   GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
   ReceiveMetadataAction,
   RequestMetadataAction,
-  SearchFileMetadataAction,
 } from "../metadata/types";
 import {
   CLOSE_UPLOAD_TAB,
@@ -736,28 +732,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: addRequestToInProgress(
         state,
         AsyncRequest.GET_TEMPLATES
-      ),
-    }),
-  },
-  [SEARCH_FILE_METADATA]: {
-    accepts: (action: AnyAction): action is SearchFileMetadataAction =>
-      action.type === SEARCH_FILE_METADATA,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        AsyncRequest.SEARCH_FILE_METADATA
-      ),
-    }),
-  },
-  [EXPORT_FILE_METADATA]: {
-    accepts: (action: AnyAction): action is ExportFileMetadataAction =>
-      action.type === EXPORT_FILE_METADATA,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        AsyncRequest.EXPORT_FILE_METADATA
       ),
     }),
   },

@@ -17,7 +17,6 @@ import {
 } from "../../../services/labkey-client/types";
 import MMSClient from "../../../services/mms-client";
 import { requestFailed } from "../../actions";
-import { getAlert } from "../../feedback/selectors";
 import {
   createMockReduxStore,
   ipcRenderer,
@@ -34,11 +33,9 @@ import {
   mockImagingSessions,
   mockLookupOptions,
   mockLookups,
-  mockSearchResults,
   mockSelectedWorkflows,
   mockState,
   mockUnit,
-  mockUsers,
   mockWellAnnotation,
 } from "../../test/mocks";
 import { AsyncRequest } from "../../types";
@@ -50,12 +47,8 @@ import {
   requestMetadata,
   requestTemplates,
   retrieveOptionsForLookup,
-  searchFileMetadata,
 } from "../actions";
-import {
-  getBarcodeSearchResults,
-  getFileMetadataSearchResults,
-} from "../selectors";
+import { getBarcodeSearchResults } from "../selectors";
 
 describe("Metadata logics", () => {
   const sandbox = createSandbox();
@@ -145,7 +138,6 @@ describe("Metadata logics", () => {
       labkeyClient.getLookups.resolves(mockLookups);
       labkeyClient.getUnits.resolves([mockUnit]);
       labkeyClient.getWorkflows.resolves(mockSelectedWorkflows);
-      labkeyClient.getUsers.resolves(mockUsers);
 
       const expectedAction = receiveMetadata({
         annotationLookups: mockAnnotationLookups,
@@ -156,7 +148,6 @@ describe("Metadata logics", () => {
         lookups: mockLookups,
         units: [mockUnit],
         workflowOptions: mockSelectedWorkflows,
-        users: mockUsers,
       });
       await runRequestSucceededTest(requestMetadata(), expectedAction);
     });
@@ -266,85 +257,6 @@ describe("Metadata logics", () => {
           },
         }
       );
-    });
-  });
-  describe("searchFileMetadataLogic", () => {
-    it("sets searchResults given annotation and searchValue to search for", async () => {
-      fms.getFilesByAnnotation.resolves({});
-      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getFileMetadataSearchResults(state)).to.be.undefined;
-
-      store.dispatch(
-        searchFileMetadata({ annotation: "fake_user", searchValue: "mms" })
-      );
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
-    });
-    it("sets searchResults given user to search for", async () => {
-      fms.getFilesByUser.resolves({});
-      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getFileMetadataSearchResults(state)).to.be.undefined;
-
-      store.dispatch(searchFileMetadata({ user: "fake_user" }));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
-    });
-    it("sets searchResults given not OK response", async () => {
-      fms.getFilesByAnnotation.resolves({});
-      fms.transformFileMetadataIntoTable.rejects();
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getAlert(state)).to.be.undefined;
-
-      store.dispatch(
-        searchFileMetadata({
-          annotation: "fakeAnnotation",
-          searchValue: "something",
-        })
-      );
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getAlert(state)).to.not.be.undefined;
-    });
-    it("sets search results given template id", async () => {
-      fms.getFilesByTemplate.resolves({});
-      fms.transformFileMetadataIntoTable.resolves(mockSearchResults);
-      const { logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        mockReduxLogicDeps
-      );
-
-      let state = store.getState();
-      expect(getFileMetadataSearchResults(state)).to.be.undefined;
-      expect(fms.getFilesByTemplate.called).to.be.false;
-
-      store.dispatch(searchFileMetadata({ templateId: 1 }));
-
-      await logicMiddleware.whenComplete();
-      state = store.getState();
-      expect(getFileMetadataSearchResults(state)).to.not.be.undefined;
-      expect(fms.getFilesByTemplate.called).to.be.true;
     });
   });
   describe("getBarcodeSearchResults", () => {

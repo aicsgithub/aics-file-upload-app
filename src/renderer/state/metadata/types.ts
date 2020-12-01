@@ -1,20 +1,5 @@
-import { ColumnProps } from "antd/es/table";
-
 import { BarcodePrefix } from "../../services/labkey-client/types";
-import { AsyncRequest, MetadataStateBranch, SearchResultRow } from "../types";
-
-// This wrapper interface is merely to convince ts-lint that title is always present
-export interface SearchResultsHeader extends ColumnProps<SearchResultRow> {
-  title: string;
-}
-
-export interface SearchConfig {
-  annotation?: string;
-  fileIds?: string[];
-  searchValue?: string;
-  templateId?: number;
-  user?: string;
-}
+import { AsyncRequest, MetadataStateBranch } from "../types";
 
 export interface GetAnnotationsAction {
   type: string;
@@ -79,15 +64,5 @@ export interface GetTemplatesAction {
 }
 
 export interface ResetHistoryAction {
-  type: string;
-}
-
-export interface SearchFileMetadataAction {
-  payload: SearchConfig;
-  type: string;
-}
-
-export interface ExportFileMetadataAction {
-  payload: string;
   type: string;
 }

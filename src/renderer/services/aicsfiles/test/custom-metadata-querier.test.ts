@@ -71,36 +71,6 @@ describe("CustomMetadataQuerier", () => {
       Words,
     };
   });
-  describe("transformTableIntoCSV", () => {
-    it("transforms metadata to CSV with matching columns", () => {
-      const header = ["fileId", "fileTYPE", "WoRkFlOw", "words"];
-      const rows = [mockImageModelMetadata];
-      const response = querier.transformTableIntoCSV(header, rows);
-      expect(response).to.deep.equal(
-        'fileId,fileTYPE,WoRkFlOw,words\r"abc123","image",,"carrots, celery, peas"'
-      );
-    });
-    it("transforms metadata to CSV with empty columns", () => {
-      const header = ["fileId", "fileTYPE", "WoRkFlOw"];
-      const rows = [mockImageModelMetadata];
-      const response = querier.transformTableIntoCSV(header, rows);
-      expect(response).to.deep.equal(
-        'fileId,fileTYPE,WoRkFlOw\r"abc123","image",'
-      );
-    });
-    it("transforms metadata to CSV with no rows", () => {
-      const header = ["invalidColumn"];
-      const rows = [mockImageModelMetadata];
-      const response = querier.transformTableIntoCSV(header, rows);
-      expect(response).to.deep.equal("invalidColumn\r");
-    });
-    it("transforms metadata to empty CSV", () => {
-      const header: string[] = [];
-      const rows: ImageModelMetadata[] = [];
-      const response = querier.transformTableIntoCSV(header, rows);
-      expect(response).to.deep.equal("");
-    });
-  });
 
   describe("innerJoinResults", () => {
     it("returns matching files", () => {

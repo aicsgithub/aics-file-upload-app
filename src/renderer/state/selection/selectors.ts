@@ -3,11 +3,7 @@ import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
 import { GridCell } from "../../components/AssociateWells/grid-cell";
-import {
-  Annotation,
-  ImagingSession,
-  Unit,
-} from "../../services/labkey-client/types";
+import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {
   PlateResponse,
   Solution,
@@ -15,12 +11,7 @@ import {
   WellResponse,
 } from "../../services/mms-client/types";
 import { getWellLabel } from "../../util";
-import {
-  getAnnotations,
-  getImagingSessions,
-  getLookupAnnotationTypeId,
-  getUnits,
-} from "../metadata/selectors";
+import { getImagingSessions, getUnits } from "../metadata/selectors";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
@@ -42,8 +33,6 @@ export const getSelectedWorkflows = (state: State) =>
   state.selection.present.selectedWorkflows;
 export const getSelectedWells = (state: State) =>
   state.selection.present.selectedWells;
-export const getSelectedAnnotation = (state: State) =>
-  state.selection.present.annotation;
 export const getSelectedUser = (state: State) => state.selection.present.user;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
 export const getSelectedImagingSessionId = (state: State) =>
@@ -58,21 +47,6 @@ export const getMassEditRow = (state: State) =>
 
 // COMPOSED SELECTORS
 export const NO_UNIT = "(Unit Not Found)";
-export const getAnnotationIsLookup = createSelector(
-  [getSelectedAnnotation, getAnnotations, getLookupAnnotationTypeId],
-  (
-    ann: string,
-    annotations?: Annotation[],
-    lookupAnnotationTypeId?: number
-  ) => {
-    if (!annotations || !lookupAnnotationTypeId) {
-      return false;
-    } else {
-      const match = annotations.find((a) => a.name === ann);
-      return !!match && match.annotationTypeId === lookupAnnotationTypeId;
-    }
-  }
-);
 export const getSelectedPlate = createSelector(
   [getSelectedPlates, getSelectedImagingSessionId],
   (

@@ -410,40 +410,4 @@ export class CustomMetadataQuerier {
     this.logger.info("Successfully built up table");
     return Object.values(keyToImageModel);
   };
-
-  /*
-        Receives table formatted file metadata and transformed it into a character separated value set.
-
-        :param header: Columns to include in the CSV
-        :param rows: Array of metadata objects with keys matching the columns in the header,
-            whitespace and casing doesn't matter
-        :return: Character separated value set
-     */
-  public transformTableIntoCSV = (
-    header: string[],
-    rows: ImageModelMetadata[],
-    separator = ","
-  ): string => {
-    if (!rows.length) {
-      return header.join(separator);
-    }
-    const csvData = rows.map((row) => {
-      const newRow = header.map(() => "");
-      forOwn(row, (value: any, key: string) => {
-        const speciallyCasedKey = key.replace(/\s/g, "").toLowerCase();
-        const columnIndex = header.findIndex(
-          (column) =>
-            column.replace(/\s/g, "").toLowerCase() === speciallyCasedKey
-        );
-        if (Array.isArray(value)) {
-          value = value.sort().join(", ");
-        }
-        // Surround value in quotes to avoid issues with commas in the value
-        newRow[columnIndex] = `"${value || ""}"`;
-      });
-      return newRow.join(separator);
-    });
-    this.logger.info(`Successfully built up CSV of ${rows.length}`);
-    return [header, ...csvData].join("\r");
-  };
 }

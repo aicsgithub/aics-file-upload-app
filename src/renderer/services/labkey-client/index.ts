@@ -27,7 +27,6 @@ import {
   LabkeyResponse,
   LabkeyTemplate,
   LabkeyUnit,
-  LabkeyUser,
   LabKeyWorkflow,
   Lookup,
   Unit,
@@ -68,7 +67,6 @@ export default class LabkeyClient extends HttpCacheClient {
     this.getLookups = this.getLookups.bind(this);
     this.getTemplates = this.getTemplates.bind(this);
     this.getUnits = this.getUnits.bind(this);
-    this.getUsers = this.getUsers.bind(this);
     this.getColumnValues = this.getColumnValues.bind(this);
     this.getWorkflows = this.getWorkflows.bind(this);
     this.getChannels = this.getChannels.bind(this);
@@ -294,15 +292,6 @@ export default class LabkeyClient extends HttpCacheClient {
       type: unit.Type,
       unitsId: unit.UnitsId,
     }));
-  }
-
-  /**
-   * Retrieves all users in LabKey from a special view
-   */
-  public async getUsers(): Promise<LabkeyUser[]> {
-    const query = LabkeyClient.getSelectRowsURL(LK_FILEMETADATA_SCHEMA, "User");
-    const response = await this.get(query);
-    return response.rows;
   }
 
   public async getColumnValues(

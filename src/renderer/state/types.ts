@@ -26,7 +26,6 @@ import {
   ImagingSession,
   LabkeyPlateResponse,
   LabkeyTemplate,
-  LabkeyUser,
   Lookup,
   Unit,
   Workflow,
@@ -139,7 +138,6 @@ export enum AlertType {
 
 export enum AsyncRequest {
   CANCEL_UPLOAD = "CANCEL_UPLOAD",
-  EXPORT_FILE_METADATA = "EXPORT_FILE_METADATA",
   GET_ANNOTATIONS = "GET_ANNOTATIONS",
   GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
   GET_PLATE = "GET_PLATE",
@@ -152,7 +150,6 @@ export enum AsyncRequest {
   GET_FILE_METADATA_FOR_JOB = "GET_FILE_METADATA_FOR_JOB",
   UPLOAD = "UPLOAD",
   SAVE_TEMPLATE = "SAVE_TEMPLATE",
-  SEARCH_FILE_METADATA = "SEARCH_FILE_METADATA",
   UPDATE_FILE_METADATA = "UPDATE_FILE_METADATA",
   CREATE_BARCODE = "CREATE_BARCODE",
   UPDATE_AND_RETRY_UPLOAD = "UPDATE_AND_RETRY_UPLOAD",
@@ -237,13 +234,11 @@ export interface MetadataStateBranch {
   // this represents the filepath to an upload draft that has been saved is currently opened in the upload wizard
   currentUploadFilePath?: string;
   fileMetadataForJob?: SearchResultRow[];
-  fileMetadataSearchResults?: SearchResultRow[];
   imagingSessions: ImagingSession[];
   lookups: Lookup[];
   // for tracking whether an upload has changed when updating the upload
   originalUpload?: UploadStateBranch;
   templates: LabkeyTemplate[];
-  users: LabkeyUser[];
   units: Unit[];
   // Gets updated every time app changes pages.
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
@@ -262,7 +257,6 @@ export type ModalName = "openTemplate" | "settings" | "templateEditor";
 
 export enum Page {
   DragAndDrop = "DragAndDrop",
-  SearchFiles = "SearchFiles",
   SelectUploadType = "SelectUploadType",
   AssociateFiles = "AssociateFiles",
   AddCustomData = "AddCustomData",
@@ -279,7 +273,6 @@ export interface ExpandedRows {
 }
 
 export interface SelectionStateBranch extends UploadTabSelections {
-  annotation: string;
   barcode?: string;
   expandedUploadJobRows: ExpandedRows;
   files: string[];

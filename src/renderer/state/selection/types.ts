@@ -92,16 +92,6 @@ export interface SelectWellsAction {
   type: string;
 }
 
-export interface SelectAnnotationAction {
-  payload: string;
-  type: string;
-}
-
-export interface SelectUserAction {
-  payload: string;
-  type: string;
-}
-
 export interface JumpToPastSelectionAction extends AutoSaveAction {
   index: number;
   type: string;

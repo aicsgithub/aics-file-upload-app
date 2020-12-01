@@ -17,7 +17,6 @@ import {
   clearOptionsForLookup,
   receiveMetadata,
   resetHistory,
-  searchFileMetadata,
   updatePageHistory,
 } from "../actions";
 import reducer from "../reducer";
@@ -48,13 +47,6 @@ describe("metadata reducer", () => {
         template: {},
         upload: {},
       });
-    });
-  });
-  describe("searchFileMetadata", () => {
-    it("clears previous search results", () => {
-      const result = reducer(initialState, searchFileMetadata({}));
-      expect(result.fileMetadataSearchResults).to.be.undefined;
-      expect(result.fileMetadataSearchResultsAsTable).to.be.undefined;
     });
   });
   describe("updatePageHistory", () => {

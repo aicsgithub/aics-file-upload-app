@@ -5,7 +5,6 @@ import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
   CREATE_BARCODE,
-  EXPORT_FILE_METADATA,
   GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
@@ -13,7 +12,6 @@ import {
   RECEIVE_METADATA,
   REQUEST_METADATA,
   RESET_HISTORY,
-  SEARCH_FILE_METADATA,
   UPDATE_PAGE_HISTORY,
 } from "./constants";
 import { initialState } from "./reducer";
@@ -21,7 +19,6 @@ import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
-  ExportFileMetadataAction,
   GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
@@ -29,8 +26,6 @@ import {
   ReceiveMetadataAction,
   RequestMetadataAction,
   ResetHistoryAction,
-  SearchConfig,
-  SearchFileMetadataAction,
   UpdatePageHistoryMapAction,
 } from "./types";
 
@@ -133,26 +128,8 @@ export function resetHistory(): ResetHistoryAction {
   };
 }
 
-export function searchFileMetadata(
-  searchConfig: SearchConfig
-): SearchFileMetadataAction {
-  return {
-    payload: searchConfig,
-    type: SEARCH_FILE_METADATA,
-  };
-}
-
 export function clearFileMetadataForJob(): ClearFileMetadataForJobAction {
   return {
     type: CLEAR_FILE_METADATA_FOR_JOB,
-  };
-}
-
-export function exportFileMetadataCSV(
-  fileName: string
-): ExportFileMetadataAction {
-  return {
-    payload: fileName,
-    type: EXPORT_FILE_METADATA,
   };
 }

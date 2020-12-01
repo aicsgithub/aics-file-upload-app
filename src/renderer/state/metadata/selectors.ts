@@ -1,4 +1,4 @@
-import { uniq, uniqBy } from "lodash";
+import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import {
@@ -13,13 +13,8 @@ import {
   ColumnType,
   LabkeyPlateResponse,
 } from "../../services/labkey-client/types";
-import { titleCase } from "../../util";
-import { getMetadataColumns } from "../setting/selectors";
 import { AnnotationWithOptions } from "../template/types";
-import { BarcodeSelectorOption, SearchResultRow, State } from "../types";
-
-import { MAIN_FILE_COLUMNS, UNIMPORTANT_COLUMNS } from "./constants";
-import { SearchResultsHeader } from "./types";
+import { BarcodeSelectorOption, State } from "../types";
 
 // BASIC SELECTORS
 export const getMetadata = (state: State) => state.metadata;
@@ -47,9 +42,6 @@ export const getBarcodeSearchResults = (state: State) =>
   state.metadata.barcodeSearchResults;
 export const getTemplates = (state: State) => state.metadata.templates;
 export const getChannels = (state: State) => state.metadata.channels;
-export const getFileMetadataSearchResults = (state: State) =>
-  state.metadata.fileMetadataSearchResults;
-export const getUsers = (state: State) => state.metadata.users;
 export const getFileMetadataForJob = (state: State) =>
   state.metadata.fileMetadataForJob;
 export const getCurrentUploadFilePath = (state: State) =>
@@ -89,66 +81,6 @@ export const getUniqueBarcodeSearchResults = createSelector(
         imagingSessionIds,
       };
     });
-  }
-);
-
-const getHeaderForFileMetadata = (
-  rows?: SearchResultRow[],
-  extraMetadataColumns: string[] = [],
-  ellipsis = true
-): SearchResultsHeader[] | undefined => {
-  if (!rows || !extraMetadataColumns) {
-    return undefined;
-  }
-  const annotationColumns = new Set<string>();
-  rows.forEach((row) => {
-    Object.keys(row).forEach((column) => {
-      // Exclude all columns that aren't annotations
-      if (
-        !MAIN_FILE_COLUMNS.includes(column) &&
-        !UNIMPORTANT_COLUMNS.includes(column)
-      ) {
-        annotationColumns.add(column);
-      }
-    });
-  });
-  // Spread the columns back in the order of MAIN_COLUMNS then ANNOTATIONS then EXTRA_FILE_METADATA
-  const columns = [
-    ...MAIN_FILE_COLUMNS,
-    ...annotationColumns,
-    ...extraMetadataColumns,
-  ];
-  return columns.map((column) => ({
-    dataIndex: column,
-    ellipsis,
-    key: column,
-    sorter: (a: SearchResultRow, b: SearchResultRow) =>
-      `${a[column]}`.localeCompare(`${b[column]}`),
-    title: column === "fileSize" ? "File Size (in bytes)" : titleCase(column),
-  }));
-};
-
-export const getSearchResultsHeader = createSelector(
-  [getFileMetadataSearchResults, getMetadataColumns],
-  (rows, extraMetadataColumns): SearchResultsHeader[] | undefined => {
-    return getHeaderForFileMetadata(rows, extraMetadataColumns, false);
-  }
-);
-
-export const getFileMetadataForJobHeader = createSelector(
-  [getFileMetadataForJob],
-  (rows): SearchResultsHeader[] | undefined => {
-    return getHeaderForFileMetadata(rows);
-  }
-);
-
-export const getNumberOfFiles = createSelector(
-  [getFileMetadataSearchResults],
-  (rows?: SearchResultRow[]): number => {
-    if (!rows || !rows.length) {
-      return 0;
-    }
-    return uniq(rows.map(({ fileId }) => fileId)).length;
   }
 );
 

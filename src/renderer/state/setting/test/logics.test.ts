@@ -15,7 +15,6 @@ import { gatherSettings, updateSettings } from "../actions";
 import settingsLogics, { updateSettingsLogic } from "../logics";
 import {
   getLimsHost,
-  getMetadataColumns,
   getShowTemplateHint,
   getShowUploadHint,
   getTemplateId,
@@ -69,14 +68,6 @@ describe("Setting logics", () => {
       store.dispatch(updateSettings({ templateId: 3 }));
 
       expect(getTemplateId(store.getState())).to.equal(3);
-    });
-
-    it("sets metadata columns in settings", () => {
-      expect(getMetadataColumns(store.getState())).to.be.empty;
-
-      store.dispatch(updateSettings({ metadataColumns: ["a", "b"] }));
-
-      expect(getMetadataColumns(store.getState())).to.deep.equal(["a", "b"]);
     });
 
     it("sets whether to show the upload hint in settings", () => {
