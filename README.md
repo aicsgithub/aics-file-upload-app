@@ -89,6 +89,8 @@ In order to trigger a build in Travis CI in order to create the packaged app, pu
 git push --tags && git push
 ```
 
+You can view the Travis build in progress here: https://travis-ci.com/github/aicsgithub/aics-file-upload-app
+
 ### Step 2: Test the Snapshot
 The snapshot will be stored in the file-upload-app.allencell.org S3 bucket. 
 You can find the download link for the snapshot by navigating to that bucket and clicking on the snapshot. 
@@ -123,6 +125,10 @@ git push --tags && git push
 ```
 
 You can look at the Travis build by going to https://travis-ci.com/github/aicsgithub/aics-file-upload-app.
+
+### Step 4: Update Confluence links
+Update the download links in confluence: http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application
+And notify people in the #file-upload-app slack channel
 
 ### Packaging the app locally
 
