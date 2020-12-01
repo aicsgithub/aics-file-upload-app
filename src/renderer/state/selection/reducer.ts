@@ -32,7 +32,6 @@ import {
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
-  SELECT_USER,
   SELECT_WELLS,
   SELECT_WORKFLOW_PATH,
   SELECT_WORKFLOWS,
@@ -56,7 +55,6 @@ import {
   SelectFileAction,
   SelectImagingSessionIdAction,
   SelectMetadataAction,
-  SelectUserAction,
   SelectWellsAction,
   SelectWorkflowPathAction,
   SelectWorkflowsAction,
@@ -91,14 +89,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch) => ({
       ...state,
       files: [],
-    }),
-  },
-  [SELECT_USER]: {
-    accepts: (action: AnyAction): action is SelectUserAction =>
-      action.type === SELECT_USER,
-    perform: (state: SelectionStateBranch, action: SelectUserAction) => ({
-      ...state,
-      user: action.payload,
     }),
   },
   [SELECT_BARCODE]: {

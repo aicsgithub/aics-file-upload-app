@@ -21,7 +21,6 @@ import {
   SELECT_BARCODE,
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
-  SELECT_USER,
   SELECT_WELLS,
   SELECT_WORKFLOW_PATH,
   SELECT_WORKFLOWS,
@@ -41,7 +40,6 @@ import {
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
-  SelectUserAction,
   SelectWellsAction,
   SelectWorkflowPathAction,
   SelectWorkflowsAction,
@@ -170,13 +168,6 @@ export function openTemplateEditor(
   return {
     payload: templateId,
     type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
-  };
-}
-
-export function selectUser(user: string): SelectUserAction {
-  return {
-    payload: user,
-    type: SELECT_USER,
   };
 }
 
