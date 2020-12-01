@@ -67,8 +67,6 @@ import {
   UpdateStagedFilesAction,
 } from "./types";
 
-const DEFAULT_ANNOTATION = "Dataset";
-
 const uploadTabSelectionInitialState: UploadTabSelections = {
   barcode: undefined,
   expandedUploadJobRows: {},
@@ -84,7 +82,6 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
 
 export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
-  annotation: DEFAULT_ANNOTATION,
   files: [],
   user: userInfo().username,
 };

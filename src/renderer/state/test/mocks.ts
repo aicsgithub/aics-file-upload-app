@@ -199,7 +199,6 @@ export const mockPlate: ImagingSessionIdToPlateMap = {
 };
 
 export const mockSelection: SelectionStateBranch = {
-  annotation: "Dataset",
   barcode: undefined,
   expandedUploadJobRows: {},
   files: [],

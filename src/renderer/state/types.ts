@@ -274,7 +274,6 @@ export interface ExpandedRows {
 }
 
 export interface SelectionStateBranch extends UploadTabSelections {
-  annotation: string;
   barcode?: string;
   expandedUploadJobRows: ExpandedRows;
   files: string[];

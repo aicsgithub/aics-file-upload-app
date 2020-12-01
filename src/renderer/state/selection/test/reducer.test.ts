@@ -16,7 +16,6 @@ import reducer from "../reducer";
 import { initialState } from "../reducer";
 import {
   getExpandedUploadJobRows,
-  getSelectedAnnotation,
   getSelectedBarcode,
   getSelectedFiles,
   getSelectedImagingSessionId,
@@ -70,7 +69,6 @@ describe("selection reducer", () => {
       );
       expect(present.wells).to.equal(getWells(nonEmptySelectionsState));
 
-      expect(present.annotation).to.equal(mockSelection.annotation);
       expect(present.files).to.equal(mockSelection.files);
       expect(present.user).to.equal(mockSelection.user);
     });
@@ -99,9 +97,6 @@ describe("selection reducer", () => {
       expect(present.stagedFiles).to.deep.equal(initialState.stagedFiles);
       expect(present.job).to.be.undefined;
 
-      expect(present.annotation).to.equal(
-        getSelectedAnnotation(nonEmptySelectionsState)
-      );
       expect(present.files).to.equal(getSelectedFiles(nonEmptySelectionsState));
       expect(present.user).to.equal(getSelectedUser(nonEmptySelectionsState));
     });
