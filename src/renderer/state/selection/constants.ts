@@ -24,7 +24,6 @@ export const GET_FILES_IN_FOLDER = makeConstant(
   "get-files-in-folder"
 );
 export const SELECT_WELLS = makeConstant(BRANCH_NAME, "select-wells");
-export const SELECT_ANNOTATION = makeConstant(BRANCH_NAME, "select-annotation");
 export const SELECT_USER = makeConstant(BRANCH_NAME, "select-user");
 export const JUMP_TO_PAST_SELECTION = makeConstant(BRANCH_NAME, "jump-to-past");
 export const CLEAR_SELECTION_HISTORY = makeConstant(

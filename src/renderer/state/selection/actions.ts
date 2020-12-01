@@ -18,7 +18,6 @@ import {
   JUMP_TO_PAST_SELECTION,
   LOAD_FILES,
   OPEN_FILES,
-  SELECT_ANNOTATION,
   SELECT_BARCODE,
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
@@ -39,7 +38,6 @@ import {
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
-  SelectAnnotationAction,
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
@@ -172,13 +170,6 @@ export function openTemplateEditor(
   return {
     payload: templateId,
     type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
-  };
-}
-
-export function selectAnnotation(annotation: string): SelectAnnotationAction {
-  return {
-    payload: annotation,
-    type: SELECT_ANNOTATION,
   };
 }
 

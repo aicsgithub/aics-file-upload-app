@@ -28,7 +28,6 @@ import {
   CLEAR_STAGED_FILES,
   DESELECT_FILES,
   JUMP_TO_PAST_SELECTION,
-  SELECT_ANNOTATION,
   SELECT_BARCODE,
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
@@ -53,7 +52,6 @@ import {
   AddStageFilesAction,
   ClearStagedFilesAction,
   DeselectFilesAction,
-  SelectAnnotationAction,
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
@@ -93,14 +91,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch) => ({
       ...state,
       files: [],
-    }),
-  },
-  [SELECT_ANNOTATION]: {
-    accepts: (action: AnyAction): action is SelectAnnotationAction =>
-      action.type === SELECT_ANNOTATION,
-    perform: (state: SelectionStateBranch, action: SelectAnnotationAction) => ({
-      ...state,
-      annotation: action.payload,
     }),
   },
   [SELECT_USER]: {
