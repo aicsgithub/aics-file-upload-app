@@ -1,7 +1,6 @@
 import { Alert, Button, Checkbox, Input, Modal, Radio } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { ipcRenderer } from "electron";
-import { trim } from "lodash";
 import * as React from "react";
 import { ChangeEvent, ReactNode, ReactNodeArray } from "react";
 import { connect, ConnectedProps } from "react-redux";
@@ -17,7 +16,6 @@ import {
 import {
   getLimsHost,
   getLimsUrl,
-  getLoggedInUser,
   getMountPoint,
   getShowTemplateHint,
   getShowUploadHint,
@@ -35,7 +33,6 @@ function mapStateToProps(state: State) {
     mountPoint: getMountPoint(state),
     showUploadHint: getShowUploadHint(state),
     showTemplateHint: getShowTemplateHint(state),
-    username: getLoggedInUser(state),
     visible,
   };
 }
@@ -59,7 +56,6 @@ interface SettingsEditorState {
   limsUrl: string;
   showUploadHint: boolean;
   showTemplateHint: boolean;
-  username: string;
 }
 
 enum Environment {
@@ -86,7 +82,6 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
       limsUrl: props.limsUrl,
       showUploadHint: props.showUploadHint,
       showTemplateHint: props.showTemplateHint,
-      username: props.username,
     };
   }
 
@@ -130,7 +125,6 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
       limsUrl,
       showUploadHint,
       showTemplateHint,
-      username,
     } = this.state;
     const errors = this.getErrors();
 
@@ -176,14 +170,6 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
           </Radio.Group>
         </div>
         <div className={styles.row}>
-          <div className={styles.key}>Username</div>
-          <Input
-            className={styles.value}
-            value={username}
-            onChange={this.setUsername}
-          />
-        </div>
-        <div className={styles.row}>
           <div className={styles.key}>Show Upload Hints</div>
           <Checkbox
             className={styles.value}
@@ -227,16 +213,9 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
   private setLimsUrl = (e: ChangeEvent<HTMLInputElement>) =>
     this.setState({ limsUrl: e.target.value });
 
-  private setUsername = (e: ChangeEvent<HTMLInputElement>) =>
-    this.setState({ username: e.target.value });
-
   private getErrors = () => {
     const errors = [];
-    const { limsUrl, username } = this.state;
-
-    if (!trim(username)) {
-      errors.push("Username cannot be blank");
-    }
+    const { limsUrl } = this.state;
 
     const completeLimsUrl = limsUrl.startsWith("http")
       ? limsUrl
@@ -251,15 +230,13 @@ class SettingsEditorModal extends React.Component<Props, SettingsEditorState> {
     return errors;
   };
   private save = () => {
-    const { showUploadHint, showTemplateHint, username } = this.state;
-    const trimmedUsername = trim(username);
+    const { showUploadHint, showTemplateHint } = this.state;
     const url = this.getURL();
     this.props.updateSettings({
       limsHost: url.hostname,
       limsPort: url.port || "80",
       showUploadHint,
       showTemplateHint,
-      username: trimmedUsername,
     });
     this.closeModal();
   };
