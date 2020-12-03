@@ -12,10 +12,10 @@
   resolved "https://registry.yarnpkg.com/7zip/-/7zip-0.0.6.tgz#9cafb171af82329490353b4816f03347aa150a30"
   integrity sha1-nK+xca+CMpSQNTtIFvAzR6oVCjA=
 
-"@aics/aics-react-labkey@^4.6.2":
-  version "4.6.2"
-  resolved "https://registry.yarnpkg.com/@aics/aics-react-labkey/-/aics-react-labkey-4.6.2.tgz#5876233ae14a9f910ad374a83c52a9a6de3d14fe"
-  integrity sha512-e4RcsjuRRJVYPhS5tQKHiLLJ07IbClT+yZu0iidBe2IhLv5gbonfmlEKNOEGuFPohOICOQL5EONqFbu3T/XFXg==
+"@aics/aics-react-labkey@^4.6.3":
+  version "4.6.3"
+  resolved "https://registry.yarnpkg.com/@aics/aics-react-labkey/-/aics-react-labkey-4.6.3.tgz#66c1394edcfb438afb99303a16c1dbadef7f75d9"
+  integrity sha512-a/DKwwO4ksIDkJ8VAzzcxuPu9fqkVTdJQuB7uEqIG2ymv+L+SzY9r2cXcDcktGzgsjh29ZaQFyRkEvCcI42Yjw==
   dependencies:
     "@babel/runtime" "^7.12.5"
     loaders.css "^0.1.2"
