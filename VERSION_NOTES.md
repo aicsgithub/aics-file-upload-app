@@ -1,8 +1,15 @@
 # Version Notes
 
+## 1.0.56 (12/3/20)
+- Feature: Added ability to mass edit wells in custom data page!
+- Bugfix: Grid multi-select not working correctly
+- Task: Removed username input from settings
+- Task: Removed Search Files tab
+
 ## 1.0.55 (11/19/20)
 - Feature: indicate unread notifications
 - Feature: removed storage intent upload wizard page
+- Feature: mass edit rows in custom data page
 
 ## 1.0.54 (11/13/20)
 - Feature: added ability to mass edit multiple files at once!
