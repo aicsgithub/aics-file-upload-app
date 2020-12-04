@@ -158,6 +158,10 @@ export interface UploadServiceFields extends BaseServiceFields {
   // directory where all files of this upload are copied to by this app
   // populated by FSS when the app requests to start an upload.
   uploadDirectory: string;
+
+  // Tracks how many bytes have been processed by FSS during its copy and MD5
+  // calculation step. This field is populated by FSS.
+  fssBytesProcessed?: number;
 }
 
 // Represents the job of copying a batch of files
