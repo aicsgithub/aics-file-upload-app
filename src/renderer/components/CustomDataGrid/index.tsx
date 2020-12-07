@@ -563,14 +563,34 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       width: DEFAULT_COLUMN_WIDTH,
       type: ColumnType.NUMBER,
     };
+    const notes: MassEditColumn = {
+      formatter: ({ row }: FormatterProps<UploadJobTableRow>) => (
+        <div
+          className={classNames(
+            styles.formatterContainer,
+            styles.noteIconContainer
+          )}
+          onDrop={this.onDrop(row)}
+        >
+          <NoteIcon
+            editable={this.props.editable}
+            handleError={this.handleError}
+            notes={row[NOTES_ANNOTATION_NAME]}
+            saveNotes={this.saveMassEditNotes}
+          />
+        </div>
+      ),
+      key: NOTES_ANNOTATION_NAME,
+      name: NOTES_ANNOTATION_NAME,
+      width: 80,
+    };
     const basicColumns = this.props.associateByWorkflow
       ? this.getWorkflowUploadColumns()
       : this.getWellUploadColumns(true);
     const schemaColumns = this.getSchemaColumns(true);
-    const massEditSchemaColumns = basicColumns
-      .concat(schemaColumns)
-      .map((column) => column as MassEditColumn);
-    return [numberFiles].concat(massEditSchemaColumns);
+    return [numberFiles, ...basicColumns, notes, ...schemaColumns].map(
+      (column) => column as MassEditColumn
+    );
   };
 
   // This method currently only supports file and wellLabels due to typescript constraints on allowing
@@ -645,11 +665,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const emptyMassEditRow: MassEditRow = {
       massEditNumberOfFiles: this.state.selectedRows.length,
       wellLabels: [],
+      Notes: undefined,
     };
     columns.forEach((column) => {
       if (column["name"] === "Wells") {
         // Special case where column name != annotation name TODO: Handle others?
         emptyMassEditRow[WELL_ANNOTATION_NAME] = [];
+      } else if (column["name"] === NOTES_ANNOTATION_NAME) {
+        emptyMassEditRow[NOTES_ANNOTATION_NAME] = "";
       } else {
         emptyMassEditRow[column["name"]] =
           column.type === ColumnType.BOOLEAN ? [false] : [];
@@ -710,6 +733,10 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   ): ((notes: string | undefined) => void) => {
     return (notes: string | undefined) =>
       this.saveByRow(notes, NOTES_ANNOTATION_NAME, row);
+  };
+
+  private saveMassEditNotes = (notes: string | undefined) => {
+    this.props.updateMassEditRow({ ...this.props.massEditRow, Notes: notes });
   };
 
   private saveByRow = (
