@@ -19,7 +19,7 @@ const copyAndGetMD5 = (
   onProgress: (progress: number) => void = noop,
   throttleMs: number = THROTTLE_MS
 ): Promise<string> => {
-  onProgress = throttle(onProgress, throttleMs);
+  const onProgressThrottled = throttle(onProgress, throttleMs);
   return new Promise((resolve, reject) => {
     try {
       // Adapted from these sources:
@@ -31,11 +31,13 @@ const copyAndGetMD5 = (
       let bytesCopied = 0;
       readable.on("data", (chunk) => {
         bytesCopied += chunk.length;
-        onProgress(bytesCopied);
+        onProgressThrottled(bytesCopied);
         hash.update(chunk, "utf8");
       });
 
       readable.on("end", () => {
+        // Ensure that final call to `onProgress` happens
+        onProgressThrottled.flush();
         resolve(hash.digest("hex"));
       });
 
