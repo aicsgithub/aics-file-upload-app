@@ -72,6 +72,10 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
           showInfo={false}
           status="success"
           percent={Math.floor((100 * completedBytesForStep) / totalBytes)}
+          // Use `appCopyInProgress` as a key so the progress bar reinitializes
+          // when going from step 1 to step 2. Without this, there is an
+          // unwanted animation where the progress bar goes from 100% back to
+          // 0%.
           key={appCopyInProgress.toString()}
         />
         <div className={styles.copyStatsContainer}>
