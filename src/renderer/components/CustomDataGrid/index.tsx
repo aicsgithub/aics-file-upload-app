@@ -570,7 +570,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             styles.formatterContainer,
             styles.noteIconContainer
           )}
-          onDrop={this.onDrop(row)}
+          onDrop={this.onMassEditDrop()}
         >
           <NoteIcon
             editable={this.props.editable}
@@ -728,6 +728,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     e.preventDefault();
     const notes = await onDrop(e.dataTransfer.files, this.handleError);
     this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { notes });
+  };
+
+  private onMassEditDrop = () => async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const notes = await onDrop(e.dataTransfer.files, this.handleError);
+    this.props.updateMassEditRow({ ...this.props.massEditRow, Notes: notes });
   };
 
   private saveNotesByRow = (
