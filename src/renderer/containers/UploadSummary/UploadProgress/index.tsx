@@ -31,49 +31,67 @@ interface UploadProgressProps {
 }
 
 const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
-  row,
+  row: { progress, status, serviceFields },
 }: UploadProgressProps) => {
-  if (row?.serviceFields?.replacementJobId) {
+  if (serviceFields?.replacementJobId) {
     // TODO This is not very helpful to the user. But until we stop
     // replacing jobs with other jobs, we'll need to show the user what happened
     return (
       <div className={styles.replaced}>
-        Replaced with jobId {row?.serviceFields?.replacementJobId}
+        Replaced with jobId {serviceFields.replacementJobId}
       </div>
     );
   }
 
-  const { progress } = row;
   if (
     [
       JSSJobStatus.SUCCEEDED,
       JSSJobStatus.UNRECOVERABLE,
       JSSJobStatus.FAILED,
-    ].includes(row.status) ||
+    ].includes(status) ||
     !progress
   ) {
     return null;
   }
 
+  // `completedBytes` refers to the copy done by the app itself, while
+  // `fssCompletedBytes` refers to the post-upload processing done by FSS.
   const { completedBytes, totalBytes } = progress;
-  const completedBytesDisplay = getBytesDisplay(completedBytes);
+  const fssCompletedBytes = serviceFields?.fssBytesProcessed ?? 0;
+  const appCopyInProgress = completedBytes !== totalBytes;
+
+  const completedBytesForStep = appCopyInProgress
+    ? completedBytes
+    : fssCompletedBytes;
+  const completedBytesDisplay = getBytesDisplay(completedBytesForStep);
   const totalBytesDisplay = getBytesDisplay(totalBytes);
 
   return (
-    <div className={styles.progressContainer}>
-      <Progress
-        className={styles.progress}
-        showInfo={false}
-        status="success"
-        percent={Math.floor((100 * completedBytes) / totalBytes)}
-      />
-      <div className={styles.copyStatsContainer}>
-        <div className={styles.bytes}>
-          {completedBytesDisplay} / {totalBytesDisplay}
+    <>
+      <div className={styles.progressContainer}>
+        <Progress
+          className={styles.progress}
+          showInfo={false}
+          status="success"
+          percent={Math.floor((100 * completedBytesForStep) / totalBytes)}
+          // Use `appCopyInProgress` as a key so the progress bar reinitializes
+          // when going from step 1 to step 2. Without this, there is an
+          // unwanted animation where the progress bar goes from 100% back to
+          // 0%.
+          key={appCopyInProgress.toString()}
+        />
+        <div className={styles.copyStatsContainer}>
+          <div className={styles.bytes}>
+            {completedBytesDisplay} / {totalBytesDisplay}
+          </div>
         </div>
-        {completedBytes === totalBytes && <div>Finishing up</div>}
       </div>
-    </div>
+      <div className={styles.step}>
+        {appCopyInProgress
+          ? "Step 1 of 2: Uploading file"
+          : "Step 2 of 2: Post-upload processing"}
+      </div>
+    </>
   );
 };
 

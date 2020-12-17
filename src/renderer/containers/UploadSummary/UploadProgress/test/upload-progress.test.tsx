@@ -77,6 +77,7 @@ describe("<UploadProgress/>", () => {
 
     const testStatsDisplay = (
       completedBytes: number,
+      fssBytesProcessed: number | undefined,
       totalBytes: number,
       expectedDisplay: string
     ) => {
@@ -88,6 +89,14 @@ describe("<UploadProgress/>", () => {
               completedBytes,
               totalBytes,
             },
+            serviceFields: {
+              fssBytesProcessed,
+              files: [],
+              lastModified: {},
+              md5: {},
+              type: "upload",
+              uploadDirectory: "/tmp/fss/asdf",
+            },
           }}
         />
       );
@@ -95,11 +104,19 @@ describe("<UploadProgress/>", () => {
       expect(wrapper.find(".bytes").text()).to.equal(expectedDisplay);
     };
     it("Displays progress if progress info with correct units", () => {
-      testStatsDisplay(0, 100, "0B / 100B");
-      testStatsDisplay(2134, 4000, "2.1KB / 4KB");
-      testStatsDisplay(1000, 1000000, "1KB / 1MB");
-      testStatsDisplay(16122233344, 34022233344, "16.1GB / 34GB");
-      testStatsDisplay(0, 4000000000000, "0B / 4TB");
+      // Test app copy step
+      testStatsDisplay(0, undefined, 100, "0B / 100B");
+      testStatsDisplay(2134, undefined, 4000, "2.1KB / 4KB");
+      testStatsDisplay(1000, undefined, 1000000, "1KB / 1MB");
+      testStatsDisplay(16122233344, undefined, 34022233344, "16.1GB / 34GB");
+      testStatsDisplay(0, undefined, 4000000000000, "0B / 4TB");
+      // Test FSS process step
+      testStatsDisplay(100, undefined, 100, "0B / 100B");
+      testStatsDisplay(100, 50, 100, "50B / 100B");
+      testStatsDisplay(4000, 2134, 4000, "2.1KB / 4KB");
+      testStatsDisplay(1000000, 1000, 1000000, "1KB / 1MB");
+      testStatsDisplay(34022233344, 16122233344, 34022233344, "16.1GB / 34GB");
+      testStatsDisplay(4000000000000, 0, 4000000000000, "0B / 4TB");
     });
   });
 });
