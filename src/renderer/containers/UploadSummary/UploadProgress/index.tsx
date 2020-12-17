@@ -87,7 +87,7 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
       <div className={styles.step}>
         {appCopyInProgress
           ? "Step 1 of 2: Uploading file"
-          : "Step 2 of 2: Processing upload in FMS"}
+          : "Step 2 of 2: Post-upload processing"}
       </div>
     </>
   );
