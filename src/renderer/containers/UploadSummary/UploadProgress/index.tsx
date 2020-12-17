@@ -54,6 +54,8 @@ const UploadProgress: React.FunctionComponent<UploadProgressProps> = ({
     return null;
   }
 
+  // `completedBytes` refers to the copy done by the app itself, while
+  // `fssCompletedBytes` refers to the post-upload processing done by FSS.
   const { completedBytes, totalBytes } = progress;
   const fssCompletedBytes = serviceFields?.fssBytesProcessed ?? 0;
   const appCopyInProgress = completedBytes !== totalBytes;
