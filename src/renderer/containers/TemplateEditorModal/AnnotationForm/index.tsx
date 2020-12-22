@@ -329,7 +329,14 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
   };
 
   private saveAnnotation = () => {
-    const { annotation, annotationTypes, index, lookups } = this.props;
+    const {
+      annotation,
+      annotationTypes,
+      index,
+      lookups,
+      setNameChanged,
+      setDescriptionChanged,
+    } = this.props;
     const {
       annotationOptions,
       annotationTypeName,
@@ -369,6 +376,10 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
       this.props.addAnnotation(draft);
       this.setState({ ...EMPTY_STATE });
     }
+
+    // Prevent errors from displaying on blank form
+    setNameChanged(false);
+    setDescriptionChanged(false);
   };
 }
 
