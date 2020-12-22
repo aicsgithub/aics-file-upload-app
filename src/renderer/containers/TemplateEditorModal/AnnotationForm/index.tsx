@@ -41,12 +41,10 @@ interface Props {
     index: number,
     annotation: Partial<AnnotationDraft>
   ) => void;
-  // The below 4 props are not available when the component is rendered by
-  // AnnotationListItem (in edit mode popover)
-  nameChanged?: boolean;
-  descriptionChanged?: boolean;
-  setNameChanged?: (status: boolean) => void;
-  setDescriptionChanged?: (status: boolean) => void;
+  nameChanged: boolean;
+  descriptionChanged: boolean;
+  setNameChanged: (status: boolean) => void;
+  setDescriptionChanged: (status: boolean) => void;
 }
 
 interface AnnotationFormState {

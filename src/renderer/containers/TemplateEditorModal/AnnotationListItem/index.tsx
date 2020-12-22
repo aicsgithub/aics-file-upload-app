@@ -27,6 +27,10 @@ interface AnnotationListItemProps {
   tables: Lookup[];
   template: TemplateDraft;
   updateAnnotation: (index: number, row: Partial<AnnotationDraft>) => void;
+  nameChanged: boolean;
+  descriptionChanged: boolean;
+  setNameChanged: (status: boolean) => void;
+  setDescriptionChanged: (status: boolean) => void;
 }
 
 class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
@@ -50,6 +54,10 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
       tables,
       template,
       updateAnnotation,
+      nameChanged,
+      descriptionChanged,
+      setNameChanged,
+      setDescriptionChanged,
     } = this.props;
     const {
       annotationId,
@@ -102,6 +110,10 @@ class AnnotationListItem extends React.Component<AnnotationListItemProps, {}> {
             lookups={tables}
             templateAnnotations={template.annotations}
             updateAnnotation={updateAnnotation}
+            nameChanged={nameChanged}
+            descriptionChanged={descriptionChanged}
+            setNameChanged={setNameChanged}
+            setDescriptionChanged={setDescriptionChanged}
           />
         }
         trigger="click"

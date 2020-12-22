@@ -173,10 +173,6 @@ class TemplateEditorModal extends React.Component<
     this.props.closeModal("templateEditor");
     this.setState({
       templateNameChanged: false,
-      // createNewAnnotationChanged: {
-      //   nameChanged: false,
-      //   descriptionChanged: false,
-      // },
       annotationDescriptionChanged: false,
       annotationNameChanged: false,
     });
@@ -320,7 +316,11 @@ class TemplateEditorModal extends React.Component<
       tables,
       template,
     } = this.props;
-    const { selectedAnnotation } = this.state;
+    const {
+      selectedAnnotation,
+      annotationNameChanged,
+      annotationDescriptionChanged,
+    } = this.state;
 
     return (
       <AnnotationListItem
@@ -338,6 +338,10 @@ class TemplateEditorModal extends React.Component<
         tables={tables}
         template={template}
         updateAnnotation={this.updateAnnotation}
+        nameChanged={annotationNameChanged}
+        descriptionChanged={annotationDescriptionChanged}
+        setNameChanged={this.setAnnotationNameChanged}
+        setDescriptionChanged={this.setAnnotationDescriptionChanged}
       />
     );
   };
