@@ -41,10 +41,12 @@ interface Props {
     index: number,
     annotation: Partial<AnnotationDraft>
   ) => void;
-  nameChanged: boolean;
-  descriptionChanged: boolean;
-  setNameChanged: (status: boolean) => void;
-  setDescriptionChanged: (status: boolean) => void;
+  // The below 4 props are not available when the component is rendered by
+  // AnnotationListItem (in edit mode popover)
+  nameChanged?: boolean;
+  descriptionChanged?: boolean;
+  setNameChanged?: (status: boolean) => void;
+  setDescriptionChanged?: (status: boolean) => void;
 }
 
 interface AnnotationFormState {
@@ -296,14 +298,16 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
   };
 
   private updateName = (e: ChangeEvent<HTMLInputElement>) => {
-    this.props.setNameChanged(true);
+    if (this.props.setNameChanged) this.props.setNameChanged(true);
     const endsInSpace = endsWith(e.target.value, " ");
     const ending = endsInSpace ? " " : "";
     this.setState({ name: titleCase(e.target.value) + ending });
   };
 
   private updateDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    this.props.setDescriptionChanged(true);
+    if (this.props.setDescriptionChanged) {
+      this.props.setDescriptionChanged(true);
+    }
     this.setState({ description: e.target.value });
   };
 
