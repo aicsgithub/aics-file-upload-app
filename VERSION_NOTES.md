@@ -1,5 +1,10 @@
 # Version Notes
 
+## 1.0.57 (12/22/20)
+- Feature: Add progress tracking for post-upload processing
+- Bugfix: Fix issue loading data from plates with special characters in their barcodes
+- Feature: Added ability to mass edit notes
+
 ## 1.0.56 (12/3/20)
 - Feature: Added ability to mass edit wells in custom data page!
 - Bugfix: Grid multi-select not working correctly
