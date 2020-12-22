@@ -41,6 +41,10 @@ interface Props {
     index: number,
     annotation: Partial<AnnotationDraft>
   ) => void;
+  nameChanged: boolean;
+  descriptionChanged: boolean;
+  setNameChanged: (status: boolean) => void;
+  setDescriptionChanged: (status: boolean) => void;
 }
 
 interface AnnotationFormState {
@@ -153,7 +157,14 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
   }
 
   public render() {
-    const { annotation, annotationTypes, cancel, className } = this.props;
+    const {
+      annotation,
+      annotationTypes,
+      cancel,
+      className,
+      nameChanged,
+      descriptionChanged,
+    } = this.props;
     const { annotationTypeName, description, name, required } = this.state;
     const isReadOnly = Boolean(annotation && annotation.annotationId);
     const isEditing = !!annotation;
@@ -165,7 +176,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
           <>
             <FormControl
               label="Annotation Name"
-              error={this.annotationNameError}
+              error={nameChanged ? this.annotationNameError : undefined}
               className={styles.formControl}
             >
               <Input value={name} onChange={this.updateName} />
@@ -187,7 +198,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             {this.renderAdditionalInputForType()}
             <FormControl
               label="Description"
-              error={this.descriptionError}
+              error={descriptionChanged ? this.descriptionError : undefined}
               className={styles.formControl}
             >
               <TextArea value={description} onChange={this.updateDescription} />
@@ -285,12 +296,14 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
   };
 
   private updateName = (e: ChangeEvent<HTMLInputElement>) => {
+    this.props.setNameChanged(true);
     const endsInSpace = endsWith(e.target.value, " ");
     const ending = endsInSpace ? " " : "";
     this.setState({ name: titleCase(e.target.value) + ending });
   };
 
   private updateDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    this.props.setDescriptionChanged(true);
     this.setState({ description: e.target.value });
   };
 

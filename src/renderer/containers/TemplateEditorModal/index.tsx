@@ -90,6 +90,8 @@ type Props = ConnectedProps<typeof connector> & {
 
 interface TemplateEditorModalState {
   templateNameChanged: boolean;
+  annotationNameChanged: boolean;
+  annotationDescriptionChanged: boolean;
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
 }
@@ -100,8 +102,14 @@ class TemplateEditorModal extends React.Component<
 > {
   constructor(props: Props) {
     super(props);
+    this.setAnnotationDescriptionChanged = this.setAnnotationDescriptionChanged.bind(
+      this
+    );
+    this.setAnnotationNameChanged = this.setAnnotationNameChanged.bind(this);
     this.state = {
       templateNameChanged: false,
+      annotationNameChanged: false,
+      annotationDescriptionChanged: false,
       annotationNameSearch: undefined,
       selectedAnnotation: undefined,
     };
@@ -126,6 +134,14 @@ class TemplateEditorModal extends React.Component<
   public componentWillUnmount(): void {
     ipcRenderer.removeListener(OPEN_TEMPLATE_MENU_ITEM_CLICKED, this.openModal);
   }
+
+  public setAnnotationNameChanged = (status: boolean) => {
+    this.setState({ annotationNameChanged: status });
+  };
+
+  public setAnnotationDescriptionChanged = (status: boolean) => {
+    this.setState({ annotationDescriptionChanged: status });
+  };
 
   public render() {
     const { className, errors, saveInProgress, template, visible } = this.props;
@@ -155,7 +171,15 @@ class TemplateEditorModal extends React.Component<
     this.props.openModal(templateId);
   private closeModal = () => {
     this.props.closeModal("templateEditor");
-    this.setState({ templateNameChanged: false });
+    this.setState({
+      templateNameChanged: false,
+      // createNewAnnotationChanged: {
+      //   nameChanged: false,
+      //   descriptionChanged: false,
+      // },
+      annotationDescriptionChanged: false,
+      annotationNameChanged: false,
+    });
   };
 
   private closeAlert = () =>
@@ -177,7 +201,12 @@ class TemplateEditorModal extends React.Component<
       template,
       showTemplateHint,
     } = this.props;
-    const { templateNameChanged, annotationNameSearch } = this.state;
+    const {
+      templateNameChanged,
+      annotationNameChanged,
+      annotationDescriptionChanged,
+      annotationNameSearch,
+    } = this.state;
     const appliedAnnotationNames = template.annotations
       .map((a) => a.name)
       .concat(
@@ -253,6 +282,10 @@ class TemplateEditorModal extends React.Component<
               lookups={tables}
               templateAnnotations={template.annotations}
               updateAnnotation={this.updateAnnotation}
+              nameChanged={annotationNameChanged}
+              descriptionChanged={annotationDescriptionChanged}
+              setNameChanged={this.setAnnotationNameChanged}
+              setDescriptionChanged={this.setAnnotationDescriptionChanged}
             />
           </div>
           <div className={styles.listContainer}>
