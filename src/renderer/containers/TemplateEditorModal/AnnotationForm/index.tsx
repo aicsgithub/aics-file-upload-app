@@ -296,16 +296,14 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
   };
 
   private updateName = (e: ChangeEvent<HTMLInputElement>) => {
-    if (this.props.setNameChanged) this.props.setNameChanged(true);
+    this.props.setNameChanged(true);
     const endsInSpace = endsWith(e.target.value, " ");
     const ending = endsInSpace ? " " : "";
     this.setState({ name: titleCase(e.target.value) + ending });
   };
 
   private updateDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    if (this.props.setDescriptionChanged) {
-      this.props.setDescriptionChanged(true);
-    }
+    this.props.setDescriptionChanged(true);
     this.setState({ description: e.target.value });
   };
 
