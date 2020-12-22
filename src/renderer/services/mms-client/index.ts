@@ -45,7 +45,9 @@ export default class MMSClient extends HttpCacheClient {
     barcode: string,
     imagingSessionId?: number
   ): Promise<GetPlateResponse> {
-    let url = `${mmsURL}/1.0/plate/query?barcode=${barcode}`;
+    let url = `${mmsURL}/1.0/plate/query?barcode=${encodeURIComponent(
+      barcode
+    )}`;
     if (imagingSessionId) {
       url += `&imagingSessionId=${imagingSessionId}`;
     }
