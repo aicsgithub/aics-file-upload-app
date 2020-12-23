@@ -164,6 +164,7 @@ class TemplateEditorModal extends React.Component<
     this.props.closeModal("templateEditor");
     this.setState({
       templateNameChanged: false,
+      showErrorAlert: false,
     });
   };
 
@@ -194,7 +195,11 @@ class TemplateEditorModal extends React.Component<
       template,
       showTemplateHint,
     } = this.props;
-    const { templateNameChanged, annotationNameSearch } = this.state;
+    const {
+      templateNameChanged,
+      annotationNameSearch,
+      showErrorAlert,
+    } = this.state;
     const appliedAnnotationNames = template.annotations
       .map((a) => a.name)
       .concat(
@@ -232,7 +237,7 @@ class TemplateEditorModal extends React.Component<
             className={styles.formControl}
             label="Template Name"
             error={
-              templateNameChanged && !trim(template.name)
+              (templateNameChanged || showErrorAlert) && !trim(template.name)
                 ? "Template Name is required"
                 : undefined
             }
