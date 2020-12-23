@@ -151,7 +151,7 @@ class TemplateEditorModal extends React.Component<
         okText="Save"
         okButtonProps={{ loading: saveInProgress }}
         maskClosable={false}
-        destroyOnClose={true}
+        destroyOnClose={true} // Unmount child components
       >
         {this.renderBody(isEditing)}
       </Modal>
