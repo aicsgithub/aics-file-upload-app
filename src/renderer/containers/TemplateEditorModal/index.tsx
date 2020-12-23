@@ -92,6 +92,7 @@ interface TemplateEditorModalState {
   templateNameChanged: boolean;
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
+  showErrorAlert: boolean;
 }
 
 class TemplateEditorModal extends React.Component<
@@ -104,6 +105,7 @@ class TemplateEditorModal extends React.Component<
       templateNameChanged: false,
       annotationNameSearch: undefined,
       selectedAnnotation: undefined,
+      showErrorAlert: false,
     };
   }
 
@@ -121,6 +123,10 @@ class TemplateEditorModal extends React.Component<
       });
       this.props.getAnnotations();
     }
+
+    if (prevProps.errors.length > 0 && this.props.errors.length === 0) {
+      this.setState({ showErrorAlert: false });
+    }
   }
 
   public componentWillUnmount(): void {
@@ -128,7 +134,7 @@ class TemplateEditorModal extends React.Component<
   }
 
   public render() {
-    const { className, errors, saveInProgress, template, visible } = this.props;
+    const { className, saveInProgress, template, visible } = this.props;
 
     const isEditing = Boolean(template && template.templateId);
     const title = isEditing
@@ -140,10 +146,10 @@ class TemplateEditorModal extends React.Component<
         className={className}
         title={title}
         visible={visible}
-        onOk={this.props.saveTemplate}
+        onOk={this.handleSave}
         onCancel={this.closeModal}
         okText="Save"
-        okButtonProps={{ disabled: errors.length > 0, loading: saveInProgress }}
+        okButtonProps={{ loading: saveInProgress }}
         maskClosable={false}
         destroyOnClose={true}
       >
@@ -159,6 +165,14 @@ class TemplateEditorModal extends React.Component<
     this.setState({
       templateNameChanged: false,
     });
+  };
+
+  private handleSave = () => {
+    if (this.props.errors.length === 0) {
+      this.props.saveTemplate();
+    } else if (!this.state.showErrorAlert) {
+      this.setState({ showErrorAlert: true });
+    }
   };
 
   private closeAlert = () =>
@@ -268,7 +282,7 @@ class TemplateEditorModal extends React.Component<
             />
           </div>
         </div>
-        {errors.length > 0 && (
+        {this.state.showErrorAlert && (
           <Alert
             className={styles.errorAlert}
             showIcon={true}
