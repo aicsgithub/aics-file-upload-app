@@ -24,6 +24,8 @@ const EMPTY_STATE: AnnotationFormState = {
   lookupTable: undefined,
   name: undefined,
   required: false,
+  nameChanged: false,
+  descriptionChanged: false,
 };
 
 interface Props {
@@ -50,6 +52,8 @@ interface AnnotationFormState {
   lookupTable?: string;
   name?: string;
   required: boolean;
+  nameChanged: boolean;
+  descriptionChanged: boolean;
 }
 
 class AnnotationForm extends React.Component<Props, AnnotationFormState> {
@@ -154,7 +158,14 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
 
   public render() {
     const { annotation, annotationTypes, cancel, className } = this.props;
-    const { annotationTypeName, description, name, required } = this.state;
+    const {
+      annotationTypeName,
+      description,
+      name,
+      required,
+      nameChanged,
+      descriptionChanged,
+    } = this.state;
     const isReadOnly = Boolean(annotation && annotation.annotationId);
     const isEditing = !!annotation;
 
@@ -165,7 +176,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
           <>
             <FormControl
               label="Annotation Name"
-              error={this.annotationNameError}
+              error={nameChanged ? this.annotationNameError : undefined}
               className={styles.formControl}
             >
               <Input value={name} onChange={this.updateName} />
@@ -187,7 +198,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             {this.renderAdditionalInputForType()}
             <FormControl
               label="Description"
-              error={this.descriptionError}
+              error={descriptionChanged ? this.descriptionError : undefined}
               className={styles.formControl}
             >
               <TextArea value={description} onChange={this.updateDescription} />
@@ -281,17 +292,22 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
     return {
       annotationOptions: annotationOptions ? [...annotationOptions] : undefined,
       ...etc,
+      nameChanged: false,
+      descriptionChanged: false,
     };
   };
 
   private updateName = (e: ChangeEvent<HTMLInputElement>) => {
     const endsInSpace = endsWith(e.target.value, " ");
     const ending = endsInSpace ? " " : "";
-    this.setState({ name: titleCase(e.target.value) + ending });
+    this.setState({
+      name: titleCase(e.target.value) + ending,
+      nameChanged: true,
+    });
   };
 
   private updateDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    this.setState({ description: e.target.value });
+    this.setState({ description: e.target.value, descriptionChanged: true });
   };
 
   private setDropdownValues = (values: string[]) => {
