@@ -1,6 +1,6 @@
 import { basename } from "path";
 
-import { map } from "lodash";
+import { find, map } from "lodash";
 import { createLogic } from "redux-logic";
 
 import {
@@ -94,8 +94,8 @@ export const updateSettingsLogic = createLogic({
 });
 
 const gatherSettingsLogic = createLogic({
-  validate: (
-    { action, logger, storage }: ReduxLogicTransformDependencies,
+  validate: async (
+    { action, logger, labkeyClient, storage }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
     reject: ReduxLogicRejectCb
   ) => {
@@ -112,6 +112,26 @@ const gatherSettingsLogic = createLogic({
       // Template ID is environment-dependent (staging and production could have different sets of template ids)
       // so we need to get it from another place and add it manually.
       userSettings.templateId = storage.get(PREFERRED_TEMPLATE_ID);
+
+      // Determine the most update to date template for the stored template ID
+      const templates = await labkeyClient.getTemplates();
+      const templateForStoredId = find(
+        templates,
+        (template) => userSettings.templateId === template["TemplateId"]
+      );
+      if (templateForStoredId) {
+        let mostRecentlyCreatedTemplateForName = templateForStoredId;
+        templates.forEach((template) => {
+          if (
+            template["Name"] === templateForStoredId["Name"] &&
+            template["Version"] > mostRecentlyCreatedTemplateForName["Version"]
+          ) {
+            mostRecentlyCreatedTemplateForName = template;
+          }
+        });
+        userSettings.templateId =
+          mostRecentlyCreatedTemplateForName["TemplateId"];
+      }
 
       next({
         ...action,
