@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { Store } from "redux";
 import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
+import { LabkeyClient } from "../../../services";
 import EnvironmentAwareStorage from "../../EnvironmentAwareStorage";
 import { getAlert } from "../../feedback/selectors";
 import { requestMetadata } from "../../metadata/actions";
@@ -24,13 +25,16 @@ describe("Setting logics", () => {
   const localhost = "localhost";
   const stagingHost = "staging";
   const sandbox = createSandbox();
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
 
   beforeEach(() => {
+    labkeyClient = createStubInstance(LabkeyClient);
     storage = createStubInstance(EnvironmentAwareStorage);
     // Stub `get` specifically, since it is a class property and not on the prototype
     storage.get = sandbox.stub();
     sandbox.replace(mockReduxLogicDeps, "storage", storage);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
   });
 
   afterEach(() => {
@@ -154,7 +158,7 @@ describe("Setting logics", () => {
 
       expect(actions.includesMatch(gatherSettings())).to.be.false;
     });
-    it("updates settings to what is saved in storage and doesn't set alert", () => {
+    it("updates settings to what is saved in storage and doesn't set alert", async () => {
       storage.get
         .onFirstCall()
         .returns({
@@ -162,26 +166,38 @@ describe("Setting logics", () => {
         })
         .onSecondCall()
         .returns(1);
-      const { store } = createMockReduxStore(mockState);
+
+      labkeyClient.getTemplates.resolves(
+        [1, 2, 3].map((id) => ({
+          TemplateId: id,
+          Version: id,
+          Name: "My Cool Template",
+        }))
+      );
+
+      const { logicMiddleware, store } = createMockReduxStore(mockState);
 
       // before
       expect(getLimsHost(store.getState())).to.equal(localhost);
+      expect(getTemplateId(store.getState())).to.be.undefined;
 
       // apply
       store.dispatch(gatherSettings());
+      await logicMiddleware.whenComplete();
 
       // after
-      expect(getLimsHost(store.getState())).to.equal(stagingHost);
       expect(getAlert(store.getState())).to.be.undefined;
-      expect(getTemplateId(store.getState())).to.equal(1);
+      expect(getLimsHost(store.getState())).to.equal(stagingHost);
+      expect(getTemplateId(store.getState())).to.equal(3);
     });
 
-    it("sets alert if error in getting storage settings", () => {
+    it("sets alert if error in getting storage settings", async () => {
       storage.get.throwsException();
-      const { store } = createMockReduxStore(mockState);
+      const { logicMiddleware, store } = createMockReduxStore(mockState);
 
       // apply
       store.dispatch(gatherSettings());
+      await logicMiddleware.whenComplete();
 
       // after
       expect(getLimsHost(store.getState())).to.equal(localhost);
