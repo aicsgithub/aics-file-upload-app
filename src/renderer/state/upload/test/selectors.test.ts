@@ -1428,6 +1428,28 @@ describe("Upload selectors", () => {
       });
       expect(errors.includes("No files to upload")).to.be.true;
     });
+    it("adds error if non-ASCII character is provided", () => {
+      const value = "Hello";
+      const annotation = "A Text Annotation";
+      const errors = getUploadValidationErrors({
+        ...mockState,
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "foo" })]: {
+            barcode: "abc",
+            file: "foo",
+            key: getUploadRowKey({ file: "foo" }),
+            [NOTES_ANNOTATION_NAME]: ["Valid String"],
+            [WELL_ANNOTATION_NAME]: [1],
+            [annotation]: [value],
+          },
+        }),
+      });
+      expect(
+        errors.includes(
+          `Annotations cannot have special characters like in "${value}" for ${annotation}`
+        )
+      );
+    });
     it("does not add error if no files to upload but a job is selected", () => {
       const errors = getUploadValidationErrors({
         ...mockState,
