@@ -189,8 +189,8 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
   };
 
   private saveAndClose = () => {
-    // Don't want to pass up null or empty string -- prefer undefined
-    this.props.saveNotes(this.state.notes || undefined);
+    // Don't want to pass up null or blank string -- prefer undefined
+    this.props.saveNotes(this.state.notes.trim() || undefined);
     this.closeModal();
   };
 
