@@ -239,7 +239,6 @@ export default function App() {
             // value.response corresponds to button index
             if (value.response === 1) {
               remote.app.exit();
-              console.log("user wants to close anyway, going to exit");
             }
           });
       }
