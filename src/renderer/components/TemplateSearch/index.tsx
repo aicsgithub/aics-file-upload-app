@@ -45,7 +45,21 @@ export default function TemplateSearch(props: TemplateSearchProps) {
     onSelect,
     value,
   } = props;
-  const sortedTemplates = sortBy(templates, ["Name", "Version"]);
+  // Filter out old versions of templates
+  const filteredTemplates = Object.values(
+    templates.reduce((templateNameToTemplate, template) => {
+      const currentHighestTemplateForVersion =
+        templateNameToTemplate[template["Name"]];
+      if (
+        !currentHighestTemplateForVersion ||
+        currentHighestTemplateForVersion["Version"] < template["Version"]
+      ) {
+        templateNameToTemplate[template["Name"]] = template;
+      }
+      return templateNameToTemplate;
+    }, {} as { [name: string]: LabkeyTemplate })
+  );
+  const sortedTemplates = sortBy(filteredTemplates, ["Name"]);
   return (
     <Select
       autoFocus={true}
@@ -96,13 +110,11 @@ export default function TemplateSearch(props: TemplateSearchProps) {
       showSearch={true}
       value={value}
     >
-      {sortedTemplates.map(
-        ({ Name: name, TemplateId: id, Version: version }: LabkeyTemplate) => (
-          <Select.Option key={`${name}${version}`} value={id}>
-            {name} (Version {version})
-          </Select.Option>
-        )
-      )}
+      {sortedTemplates.map(({ Name: name, TemplateId: id }: LabkeyTemplate) => (
+        <Select.Option key={name} value={id}>
+          {name}
+        </Select.Option>
+      ))}
     </Select>
   );
 }
