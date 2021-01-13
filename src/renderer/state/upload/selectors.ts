@@ -632,6 +632,23 @@ export const getUploadValidationErrors = createSelector(
     if (!template) {
       errors.push("A template must be selected to submit an upload");
     } else {
+      // Iterate over each row value adding an error for each value with a non-ASCII character
+      rows.forEach((row) => {
+        Object.entries(row).forEach(([rowKey, rowValue]) => {
+          const rowValues = isArray(rowValue) ? rowValue : [rowValue];
+          rowValues.forEach((individualRowValue) => {
+            // Checks if the value has any non-ASCII characters
+            if (
+              typeof individualRowValue === "string" &&
+              /[^\0-\x7F]/.exec(individualRowValue)
+            ) {
+              errors.push(
+                `Annotations cannot have special characters like in "${individualRowValue}" for ${rowKey}`
+              );
+            }
+          });
+        });
+      });
       const requiredAnnotations = template.annotations
         .filter((a) => a.required)
         .map((a) => a.name);
