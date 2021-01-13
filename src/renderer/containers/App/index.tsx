@@ -127,7 +127,7 @@ export default function App() {
   const dispatch = useDispatch();
 
   const alert = useSelector(getAlert);
-  const copyInProgress = !useSelector(getIsSafeToExit);
+  const isSafeToExit = useSelector(getIsSafeToExit);
   const fileToTags = useSelector(getFileToTags);
   const files = useSelector(getStagedFiles);
   const folderTreeOpen = useSelector(getFolderTreeOpen);
@@ -219,13 +219,15 @@ export default function App() {
   }, [dispatch]);
 
   // This one needs a special event handler that will be recreated whenever
-  // `copyInProgress` changes, since it is reliant on that value.
+  // `isSafeToExit` changes, since it is reliant on that value.
   useEffect(() => {
     ipcRenderer.on(SAFELY_CLOSE_WINDOW, () => {
       const warning =
         "Uploads are in progress. Exiting now may cause incomplete uploads to be abandoned and" +
         " will need to be manually cancelled. Are you sure?";
-      if (copyInProgress) {
+      if (isSafeToExit) {
+        remote.app.exit();
+      } else {
         remote.dialog
           .showMessageBox({
             buttons: ["Cancel", "Close Anyways"],
@@ -237,17 +239,16 @@ export default function App() {
             // value.response corresponds to button index
             if (value.response === 1) {
               remote.app.exit();
+              console.log("user wants to close anyway, going to exit");
             }
           });
-      } else {
-        remote.app.exit();
       }
     });
 
     return function cleanUp() {
       ipcRenderer.removeAllListeners(SAFELY_CLOSE_WINDOW);
     };
-  }, [copyInProgress, dispatch]);
+  }, [isSafeToExit, dispatch]);
 
   useEffect(() => {
     if (alert) {
