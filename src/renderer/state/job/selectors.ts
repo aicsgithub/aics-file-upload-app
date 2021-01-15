@@ -130,6 +130,7 @@ export const getIsSafeToExit = createSelector(
           StepName.AddMetadata.toString(),
           StepName.CopyFiles.toString(),
           StepName.CopyFilesChild.toString(),
+          StepName.Waiting.toString(),
         ].includes(job.currentStage || "")
     );
   }
