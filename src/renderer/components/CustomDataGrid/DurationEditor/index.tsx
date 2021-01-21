@@ -82,7 +82,6 @@ export default class DurationEditor extends editors.EditorBase<
               this.setState({ days: e.target.value.replace(/\D/, "") })
             }
             addonAfter="D"
-            style={{ width: "25%" }}
           />
           <Input
             value={this.state.hours}
@@ -90,7 +89,6 @@ export default class DurationEditor extends editors.EditorBase<
               this.setState({ hours: e.target.value.replace(/\D/, "") })
             }
             addonAfter="H"
-            style={{ width: "25%" }}
           />
           <Input
             value={this.state.minutes}
@@ -98,7 +96,6 @@ export default class DurationEditor extends editors.EditorBase<
               this.setState({ minutes: e.target.value.replace(/\D/, "") })
             }
             addonAfter="M"
-            style={{ width: "25%" }}
           />
           <Input
             value={this.state.seconds}
@@ -109,7 +106,6 @@ export default class DurationEditor extends editors.EditorBase<
               })
             }
             addonAfter="S"
-            style={{ width: "25%" }}
           />
         </Input.Group>
       </div>
