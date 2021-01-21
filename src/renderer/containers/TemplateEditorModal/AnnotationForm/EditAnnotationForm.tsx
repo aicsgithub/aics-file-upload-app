@@ -1,5 +1,6 @@
 import { Button, Checkbox, Select } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
+import classNames from "classnames";
 import * as React from "react";
 
 import FormControl from "../../../components/FormControl";
@@ -28,7 +29,7 @@ export default function CreateAnnotationForm(props: Props) {
       <>
         <FormControl
           label="Existing Dropdown Values"
-          className={styles.formControl}
+          className={classNames(styles.formControl, styles.longForm)}
         >
           {props.existingAnnotationOptions &&
             props.existingAnnotationOptions.join(", ")}
