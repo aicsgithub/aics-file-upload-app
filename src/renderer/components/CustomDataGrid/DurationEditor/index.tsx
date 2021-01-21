@@ -55,10 +55,11 @@ export default class DurationEditor extends editors.EditorBase<
   public getValue = (): { [key: string]: Duration[] } => {
     const { days, hours, minutes, seconds } = this.state;
     const durationValue: Duration = {
-      days: Number(days),
-      hours: Number(hours),
-      minutes: Number(minutes),
-      seconds: Number(seconds),
+      // Convert value to 0 if NaN
+      days: Number(days) || 0,
+      hours: Number(hours) || 0,
+      minutes: Number(minutes) || 0,
+      seconds: Number(seconds) || 0,
     };
 
     // Return duration object if any key has a value greater than 0
@@ -77,25 +78,36 @@ export default class DurationEditor extends editors.EditorBase<
         <Input.Group compact className={styles.durationEditorContainer}>
           <Input
             value={this.state.days}
-            onChange={(e) => this.setState({ days: e.target.value })}
+            onChange={(e) =>
+              this.setState({ days: e.target.value.replace(/\D/, "") })
+            }
             addonAfter="D"
             style={{ width: "25%" }}
           />
           <Input
             value={this.state.hours}
-            onChange={(e) => this.setState({ hours: e.target.value })}
+            onChange={(e) =>
+              this.setState({ hours: e.target.value.replace(/\D/, "") })
+            }
             addonAfter="H"
             style={{ width: "25%" }}
           />
           <Input
             value={this.state.minutes}
-            onChange={(e) => this.setState({ minutes: e.target.value })}
+            onChange={(e) =>
+              this.setState({ minutes: e.target.value.replace(/\D/, "") })
+            }
             addonAfter="M"
             style={{ width: "25%" }}
           />
           <Input
             value={this.state.seconds}
-            onChange={(e) => this.setState({ seconds: e.target.value })}
+            onChange={(e) =>
+              this.setState({
+                // Remove any value that is not "." or a digit
+                seconds: e.target.value.replace(/[^.\d]/, ""),
+              })
+            }
             addonAfter="S"
             style={{ width: "25%" }}
           />
