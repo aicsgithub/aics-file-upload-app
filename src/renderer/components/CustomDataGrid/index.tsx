@@ -538,7 +538,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             return this.renderFormat(
               row,
               name,
-              value,
+              formattedValue,
               childEl,
               required,
               forMassEditRows
