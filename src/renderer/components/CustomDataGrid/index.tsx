@@ -2,7 +2,7 @@ import { Button, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, includes, isEmpty, isNil, without } from "lodash";
+import { castArray, isEmpty, isNil, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -32,6 +32,7 @@ import {
 } from "../../state/selection/types";
 import {
   AlertType,
+  Duration,
   ExpandedRows,
   MassEditRow,
   UploadMetadata,
@@ -52,6 +53,7 @@ import BooleanFormatter from "../BooleanFormatter";
 
 import CellWithContextMenu from "./CellWithContextMenu";
 import DatesEditor from "./DatesEditor";
+import DurationEditor from "./DurationEditor";
 import Editor from "./Editor";
 import FileFormatter from "./FileFormatter";
 import { FormatterProps } from "./types";
@@ -59,10 +61,6 @@ import WellsEditor from "./WellsEditor";
 
 const styles = require("./style.pcss");
 
-const SPECIAL_CASES_FOR_MULTIPLE_VALUES = [
-  ColumnType.DATE,
-  ColumnType.DATETIME,
-];
 const DEFAULT_COLUMN_WIDTH = 170;
 const GRID_ROW_HEIGHT = 35;
 const GRID_BOTTOM_PADDING = 60;
@@ -464,11 +462,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         }
 
         const type = annotationType.name;
-        // When an annotation can have multiple values and it is a Date or Datetime, we need more space.
-        const formatterNeedsModal = includes(
-          SPECIAL_CASES_FOR_MULTIPLE_VALUES,
-          type
-        );
         const column: UploadJobColumn = {
           cellClass: styles.formatterContainer,
           dropdownValues: annotationOptions,
@@ -482,7 +475,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         // dates are handled completely differently from other data types because right now the best
         // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
         if (editable) {
-          column.editor = formatterNeedsModal ? DatesEditor : Editor;
+          if (type === ColumnType.DATE || type === ColumnType.DATETIME) {
+            column.editor = DatesEditor;
+          } else if (type === ColumnType.DURATION) {
+            column.editor = DurationEditor;
+          } else {
+            column.editor = Editor;
+          }
         }
 
         const headerTextWidth: number =
@@ -492,6 +491,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           column.width = Math.max(250, headerTextWidth);
         } else if (type === ColumnType.BOOLEAN) {
           column.width = Math.max(100, headerTextWidth);
+        } else if (type === ColumnType.DURATION) {
+          column.width = Math.max(250, headerTextWidth);
         } else {
           column.width = Math.max(DEFAULT_COLUMN_WIDTH, headerTextWidth);
         }
@@ -505,12 +506,29 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             value,
           }: FormatterProps<UploadJobTableRow>) => {
             const formattedValue = convertToArray(value)
-              .map((v: any) => {
+              .map((v: any): string => {
                 switch (type) {
                   case ColumnType.DATETIME:
                     return moment(v).format(DATETIME_FORMAT);
                   case ColumnType.DATE:
                     return moment(v).format(DATE_FORMAT);
+                  case ColumnType.DURATION: {
+                    const { days, hours, minutes, seconds } = v as Duration;
+                    let duration = "";
+                    if (days) {
+                      duration += `${days}D `;
+                    }
+                    if (hours) {
+                      duration += `${hours}H `;
+                    }
+                    if (minutes) {
+                      duration += `${minutes}M `;
+                    }
+                    if (seconds) {
+                      duration += `${seconds}S`;
+                    }
+                    return duration.trim();
+                  }
                   default:
                     return v;
                 }

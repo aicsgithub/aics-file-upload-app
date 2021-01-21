@@ -42,6 +42,7 @@ import {
   getDateAnnotationTypeId,
   getDateTimeAnnotationTypeId,
   getDropdownAnnotationTypeId,
+  getDurationAnnotationTypeId,
   getImagingSessions,
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
@@ -63,6 +64,7 @@ import {
   TemplateWithTypeNames,
 } from "../template/types";
 import {
+  Duration,
   ExpandedRows,
   Page,
   State,
@@ -478,6 +480,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     getBooleanAnnotationTypeId,
     getNumberAnnotationTypeId,
     getTextAnnotationTypeId,
+    getDurationAnnotationTypeId,
     getDateAnnotationTypeId,
     getDateTimeAnnotationTypeId,
     getCompleteAppliedTemplate,
@@ -489,6 +492,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     booleanAnnotationTypeId?: number,
     numberAnnotationTypeId?: number,
     textAnnotationTypeId?: number,
+    durationAnnotationTypeId?: number,
     dateAnnotationTypeId?: number,
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
@@ -575,6 +579,30 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                       annotationToErrorMap[
                         annotationName
                       ] = `${invalidValues} did not match expected type: Text`;
+                    }
+                  }
+                  break;
+                case durationAnnotationTypeId:
+                  if (value.length > 1) {
+                    annotationToErrorMap[
+                      annotationName
+                    ] = `Only one Duration value may be present`;
+                  } else if (value.length === 1) {
+                    const {
+                      days,
+                      hours,
+                      minutes,
+                      seconds,
+                    } = value[0] as Duration;
+
+                    if (
+                      [days, hours, minutes, seconds].some(
+                        (v) => typeof v !== "number" || v < 0
+                      )
+                    ) {
+                      annotationToErrorMap[
+                        annotationName
+                      ] = `A Duration may only include numbers greater than 0`;
                     }
                   }
                   break;

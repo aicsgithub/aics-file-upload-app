@@ -448,3 +448,10 @@ export interface MassEditRow {
   // custom annotations
   [key: string]: any;
 }
+
+export interface Duration {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
