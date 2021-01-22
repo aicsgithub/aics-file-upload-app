@@ -130,15 +130,6 @@ export const getSaveTemplateRequest = createSelector(
   (draft: TemplateDraft) => {
     return {
       annotations: draft.annotations.map((a: AnnotationDraft) => {
-        if (a.annotationId) {
-          return {
-            annotationId: a.annotationId,
-            // TODO lisah 5/7/20 this should be removed as part of FMS-1176
-            canHaveManyValues: true,
-            required: a.required,
-          };
-        }
-
         let annotationOptions: string[] | undefined = (
           a.annotationOptions || []
         )
@@ -147,6 +138,16 @@ export const getSaveTemplateRequest = createSelector(
 
         if (a.annotationTypeName !== ColumnType.DROPDOWN) {
           annotationOptions = undefined;
+        }
+
+        if (a.annotationId) {
+          return {
+            annotationId: a.annotationId,
+            annotationOptions,
+            // TODO lisah 5/7/20 this should be removed as part of FMS-1176
+            canHaveManyValues: true,
+            required: a.required,
+          };
         }
 
         return {

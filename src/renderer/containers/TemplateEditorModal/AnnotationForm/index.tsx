@@ -16,6 +16,8 @@ import {
 import { AnnotationDraft } from "../../../state/types";
 import { titleCase } from "../../../util";
 
+import EditAnnotationForm from "./EditAnnotationForm";
+
 const styles = require("./styles.pcss");
 const EMPTY_STATE: AnnotationFormState = {
   annotationOptions: undefined,
@@ -131,7 +133,7 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
       : undefined;
   }
 
-  public get saveDisabled(): boolean {
+  public get isSaveDisabled(): boolean {
     const { annotation } = this.props;
     const isReadOnly = Boolean(annotation && annotation.annotationId);
     return (
@@ -157,60 +159,67 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
   }
 
   public render() {
-    const { annotation, annotationTypes, cancel, className } = this.props;
-    const {
-      annotationTypeName,
-      description,
-      name,
-      required,
-      nameChanged,
-      descriptionChanged,
-    } = this.state;
-    const isReadOnly = Boolean(annotation && annotation.annotationId);
-    const isEditing = !!annotation;
+    if (this.props.annotation) {
+      return (
+        <EditAnnotationForm
+          annotationOptions={this.state.annotationOptions}
+          annotationTypeName={this.state.annotationTypeName}
+          className={styles.container}
+          dropdownValuesError={this.dropdownValuesError}
+          existingAnnotationOptions={this.props.annotation.annotationOptions}
+          isSaveDisabled={this.isSaveDisabled}
+          onCancel={this.props.cancel}
+          required={this.state.required}
+          saveAnnotation={this.saveAnnotation}
+          setDropdownValues={this.setDropdownValues}
+          setRequired={this.setRequired}
+        />
+      );
+    }
 
     return (
-      <form className={classNames(styles.container, className)}>
-        <h4>{isEditing ? "Edit Annotation" : "Create New Annotation"}</h4>
-        {!isReadOnly && (
-          <>
-            <FormControl
-              label="Annotation Name"
-              error={nameChanged ? this.annotationNameError : undefined}
-              className={styles.formControl}
-            >
-              <Input value={name} onChange={this.updateName} />
-            </FormControl>
-            <FormControl label="Data Type" className={styles.formControl}>
-              <Select
-                className={styles.select}
-                onChange={this.setColumnType}
-                placeholder="Column Type"
-                value={annotationTypeName}
-              >
-                {annotationTypes.map((at: AnnotationType) => (
-                  <Select.Option key={at.name} value={at.name}>
-                    {at.name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </FormControl>
-            {this.renderAdditionalInputForType()}
-            <FormControl
-              label="Description"
-              error={descriptionChanged ? this.descriptionError : undefined}
-              className={styles.formControl}
-            >
-              <TextArea value={description} onChange={this.updateDescription} />
-            </FormControl>
-          </>
-        )}
-        <Checkbox checked={required} onChange={this.setRequired}>
+      <form className={classNames(styles.container, this.props.className)}>
+        <h4>Create New Annotation</h4>
+        <FormControl
+          label="Annotation Name"
+          error={this.state.nameChanged ? this.annotationNameError : undefined}
+          className={styles.formControl}
+        >
+          <Input value={this.state.name} onChange={this.updateName} />
+        </FormControl>
+        <FormControl label="Data Type" className={styles.formControl}>
+          <Select
+            className={styles.select}
+            onChange={this.setColumnType}
+            placeholder="Column Type"
+            value={this.state.annotationTypeName}
+          >
+            {this.props.annotationTypes.map((at: AnnotationType) => (
+              <Select.Option key={at.name} value={at.name}>
+                {at.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </FormControl>
+        {this.renderAdditionalInputForAnnotationType()}
+        <FormControl
+          label="Description"
+          error={
+            this.state.descriptionChanged ? this.descriptionError : undefined
+          }
+          className={styles.formControl}
+        >
+          <TextArea
+            value={this.state.description}
+            onChange={this.updateDescription}
+          />
+        </FormControl>
+        <Checkbox checked={this.state.required} onChange={this.setRequired}>
           Required
         </Checkbox>
         <div className={styles.buttonContainer}>
-          {cancel && (
-            <Button className={styles.button} onClick={cancel}>
+          {this.props.cancel && (
+            <Button className={styles.button} onClick={this.props.cancel}>
               Cancel
             </Button>
           )}
@@ -218,69 +227,64 @@ class AnnotationForm extends React.Component<Props, AnnotationFormState> {
             className={styles.button}
             type="primary"
             onClick={this.saveAnnotation}
-            disabled={this.saveDisabled}
+            disabled={this.isSaveDisabled}
           >
-            {isEditing ? "Update" : "Add"}
+            Add
           </Button>
         </div>
       </form>
     );
   }
 
-  public renderAdditionalInputForType = (): React.ReactNode => {
-    const isReadOnly = Boolean(
-      this.props.annotation && this.props.annotation.annotationId
-    );
-    if (this.state.annotationTypeName === ColumnType.DROPDOWN) {
-      return (
-        <FormControl
-          label="Dropdown Values"
-          error={this.dropdownValuesError}
-          className={styles.formControl}
-        >
-          <Select
-            autoFocus={true}
-            className={styles.select}
-            disabled={isReadOnly}
-            mode="tags"
-            onChange={this.setDropdownValues}
-            placeholder="Dropdown Values"
-            value={this.state.annotationOptions}
-          />
-        </FormControl>
-      );
-    }
-    if (this.state.annotationTypeName === ColumnType.LOOKUP) {
-      const { lookups } = this.props;
-      return (
-        <FormControl
-          label="Lookup Table"
-          error={this.lookupError}
-          className={styles.formControl}
-        >
-          <Select
-            autoFocus={!this.state.lookupTable}
-            className={styles.select}
-            disabled={isReadOnly}
-            onChange={this.setLookup}
-            placeholder="Tables"
-            showSearch={true}
-            value={this.state.lookupTable}
+  private renderAdditionalInputForAnnotationType = () => {
+    switch (this.state.annotationTypeName) {
+      case ColumnType.DROPDOWN:
+        return (
+          <FormControl
+            label="Dropdown Values"
+            error={this.dropdownValuesError}
+            className={styles.formControl}
           >
-            {lookups &&
-              lookups
-                .map((l: Lookup) => l.tableName)
-                .sort()
-                .map((table: string) => (
-                  <Select.Option key={table} value={table}>
-                    {table}
-                  </Select.Option>
-                ))}
-          </Select>
-        </FormControl>
-      );
+            <Select
+              autoFocus={true}
+              className={styles.select}
+              mode="tags"
+              onChange={this.setDropdownValues}
+              placeholder="Dropdown Values"
+              value={this.state.annotationOptions}
+            />
+          </FormControl>
+        );
+      case ColumnType.LOOKUP:
+        return (
+          <FormControl
+            label="Lookup Table"
+            error={this.lookupError}
+            className={styles.formControl}
+          >
+            <Select
+              autoFocus={!this.state.lookupTable}
+              className={styles.select}
+              onChange={this.setLookup}
+              placeholder="Tables"
+              showSearch={true}
+              value={this.state.lookupTable}
+            >
+              {this.props.lookups &&
+                this.props.lookups
+                  .map((l: Lookup) => l.tableName)
+                  .sort()
+                  .map((table: string) => (
+                    <Select.Option key={table} value={table}>
+                      {table}
+                    </Select.Option>
+                  ))}
+            </Select>
+          </FormControl>
+        );
+      default:
+        return null;
     }
-    return null;
   };
 
   private getStateFromProps = (props: Props) => {
