@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as Logger from "js-logger";
-import { SinonStubbedInstance, createStubInstance, createSandbox } from "sinon";
+import { SinonStubbedInstance, createStubInstance, restore } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
 import LabkeyClient from "../../labkey-client";
@@ -71,6 +71,8 @@ describe("CustomMetadataQuerier", () => {
       Words,
     };
   });
+
+  afterEach(() => restore());
 
   describe("innerJoinResults", () => {
     it("returns matching files", () => {
@@ -169,7 +171,6 @@ describe("CustomMetadataQuerier", () => {
   });
 
   describe("transformFileMetadataIntoTable", () => {
-    const sandbox = createSandbox();
     beforeEach(() => {
       const mockTemplates: any[] = [
         { templateId: 1, name: "Not this" },
@@ -206,16 +207,17 @@ describe("CustomMetadataQuerier", () => {
           "annotationTypeId/Name": "Lookup",
           name: WELL_ANNOTATION_NAME,
         },
+        {
+          annotationId: 7,
+          "annotationTypeId/Name": "Duration",
+          name: "Interval",
+        },
       ];
       lk.selectRowsAsList
         .onCall(0)
         .resolves(mockTemplates)
         .onCall(1)
         .resolves(mockAnnotations);
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     it("transforms metadata into more useful table form", async () => {
@@ -286,9 +288,9 @@ describe("CustomMetadataQuerier", () => {
       ]);
     });
     it("ensures values for Well annotation are integers", async () => {
-      sandbox.replace(mockFileMetadata, "annotations", [
+      mockFileMetadata.annotations = [
         { annotationId: wellAnnotationId, values: ["1", "2"] },
-      ]);
+      ];
       const response = await querier.transformFileMetadataIntoTable(
         mockFileToFileMetadata
       );
@@ -312,9 +314,9 @@ describe("CustomMetadataQuerier", () => {
       ]);
     });
     it("ensures values for number annotations are numbers", async () => {
-      sandbox.replace(mockFileMetadata, "annotations", [
+      mockFileMetadata.annotations = [
         { annotationId: cloneAnnotationId, values: ["2", "4"] },
-      ]);
+      ];
       const response = await querier.transformFileMetadataIntoTable(
         mockFileToFileMetadata
       );
@@ -336,6 +338,33 @@ describe("CustomMetadataQuerier", () => {
           templateId: 2,
         },
       ]);
+    });
+    it("transforms durations from milliseconds to objects", async () => {
+      const metadata: FileMetadata = {
+        fileId: "abc123",
+        annotations: [
+          {
+            annotationId: 7,
+            values: ["356521111"],
+          },
+        ],
+        modified: "sometime",
+        modifiedBy: "seanm",
+        filename: "example.txt",
+        fileSize: 1,
+        fileType: "image",
+      };
+
+      const result = await querier.transformFileMetadataIntoTable({
+        abc123: metadata,
+      });
+
+      expect(result[0].Interval[0]).to.deep.equal({
+        days: 4,
+        hours: 3,
+        minutes: 2,
+        seconds: 1.111,
+      });
     });
   });
 });

@@ -1,6 +1,6 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
-import moment from "moment";
+import * as moment from "moment";
 
 import { LabkeyClient, MMSClient } from "../../";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
