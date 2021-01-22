@@ -2,7 +2,7 @@ import { Input } from "antd";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
-import { Duration } from "../../../state/types";
+import { Duration } from "../../../types";
 
 const styles = require("./styles.pcss");
 

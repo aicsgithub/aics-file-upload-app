@@ -36,7 +36,6 @@ import {
   WellResponse,
 } from "../services/mms-client/types";
 import { LocalStorage } from "../types";
-
 import Process = CreateLogic.Config.Process;
 import DepObj = CreateLogic.Config.DepObj;
 import SaveDialogOptions = Electron.SaveDialogOptions;
@@ -447,11 +446,4 @@ export interface UploadSummaryTableRow extends JSSJob<UploadServiceFields> {
 export interface MassEditRow {
   // custom annotations
   [key: string]: any;
-}
-
-export interface Duration {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
 }

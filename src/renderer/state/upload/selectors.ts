@@ -36,6 +36,7 @@ import {
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import { Duration } from "../../types";
 import { getWellLabel, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
@@ -64,7 +65,6 @@ import {
   TemplateWithTypeNames,
 } from "../template/types";
 import {
-  Duration,
   ExpandedRows,
   Page,
   State,

@@ -32,7 +32,6 @@ import {
 } from "../../state/selection/types";
 import {
   AlertType,
-  Duration,
   ExpandedRows,
   MassEditRow,
   UploadMetadata,
@@ -48,6 +47,7 @@ import {
   UpdateUploadRowsAction,
   UploadJobTableRow,
 } from "../../state/upload/types";
+import { Duration } from "../../types";
 import { convertToArray, getTextWidth, onDrop } from "../../util";
 import BooleanFormatter from "../BooleanFormatter";
 
