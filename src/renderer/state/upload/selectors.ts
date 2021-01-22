@@ -768,6 +768,15 @@ const getAnnotations = (
                 return moment(v).format("YYYY-MM-DD HH:mm:ss");
               } else if (annotation.type === ColumnType.DATE) {
                 return moment(v).format("YYYY-MM-DD");
+              } else if (annotation.type === ColumnType.DURATION) {
+                // While we may not want to rely on moment in the long-term,
+                // we are already using it with dates, and it conveniently
+                // can accept an object with the same shape as our`Duration`
+                // type.
+                return moment
+                  .duration(v as Duration)
+                  .asMilliseconds()
+                  .toString();
               }
               return v.toString();
             }),
