@@ -92,7 +92,7 @@ describe("Metadata selectors", () => {
   describe("getAnnotations", () => {
     it("returns only annotations that are meant to be exposed in this app", () => {
       const result = getAnnotations(nonEmptyStateForInitiatingUpload);
-      expect(result).to.be.length(3);
+      expect(result).to.be.length(5);
     });
     it("returns empty array if no annotations found", () => {
       const result = getAnnotations({
@@ -111,7 +111,7 @@ describe("Metadata selectors", () => {
       const result = getForbiddenAnnotationNames(
         nonEmptyStateForInitiatingUpload
       );
-      expect(result).to.be.length(2);
+      expect(result).to.be.length(1);
     });
     it("returns empty array if no annotations found", () => {
       const result = getForbiddenAnnotationNames({
