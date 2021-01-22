@@ -17,6 +17,8 @@ interface DurationState {
   seconds: string;
 }
 
+const secondsInputName = "seconds";
+
 // This component provides a way to edit duration information. It is used as a
 // custom editor with React Data Grid, and therefore must implement `getValue`
 // and `getInputNode`. Our version of React Data Grid does not seem to be
@@ -74,10 +76,19 @@ export default class DurationEditor extends editors.EditorBase<
   // provide a valid ref.
   public getInputNode = () => this.editorRef.current;
 
-  private handleKeyDown = (e: React.KeyboardEvent) => {
-    // React Data Grid will commit our changes by default when these keys are
-    // pressed.
-    if (e.key === "Tab" || e.key === "ArrowRight") {
+  private handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Prevent React Data Grid from committing our changes on Tab unless we are
+    // in the last input.
+    if (
+      e.key === "Tab" &&
+      (e.target as HTMLInputElement).name !== secondsInputName
+    ) {
+      e.stopPropagation();
+    }
+    // React Data Grid will commit our changes when the right arrow key is
+    // pressed for some reason, which we want to prevent while users are
+    // entering values.
+    if (e.key === "ArrowRight") {
       e.stopPropagation();
     }
   };
@@ -117,6 +128,7 @@ export default class DurationEditor extends editors.EditorBase<
               })
             }
             addonAfter="S"
+            name={secondsInputName}
           />
         </Input.Group>
       </div>
