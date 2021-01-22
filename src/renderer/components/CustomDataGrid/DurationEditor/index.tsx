@@ -70,11 +70,21 @@ export default class DurationEditor extends editors.EditorBase<
     return { [this.props.column.key]: [] };
   };
 
+  // This ref doesn't do anything, but React Data Grid hits an error if we don't
+  // provide a valid ref.
   public getInputNode = () => this.editorRef.current;
+
+  private handleKeyDown = (e: React.KeyboardEvent) => {
+    // React Data Grid will commit our changes by default when these keys are
+    // pressed.
+    if (e.key === "Tab" || e.key === "ArrowRight") {
+      e.stopPropagation();
+    }
+  };
 
   public render() {
     return (
-      <div ref={this.editorRef}>
+      <div ref={this.editorRef} onKeyDown={this.handleKeyDown}>
         <Input.Group compact className={styles.durationEditorContainer}>
           <Input
             value={this.state.days}
@@ -82,6 +92,7 @@ export default class DurationEditor extends editors.EditorBase<
               this.setState({ days: e.target.value.replace(/\D/, "") })
             }
             addonAfter="D"
+            autoFocus
           />
           <Input
             value={this.state.hours}
