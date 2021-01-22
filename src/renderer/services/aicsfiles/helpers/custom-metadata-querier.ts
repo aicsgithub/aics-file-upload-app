@@ -1,5 +1,6 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
+import moment from "moment";
 
 import { LabkeyClient, MMSClient } from "../../";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
@@ -392,6 +393,21 @@ export class CustomMetadataQuerier {
               case "yesno":
                 values = values.map((v) => Boolean(v));
                 break;
+              case "duration":
+                values = values.map((v) => {
+                  // We don't want to rely on moment in the long-term, but since
+                  // it's already a dep we use, we use it hear to convert the
+                  // duration from milliseconds into an object.
+                  const duration = moment.duration(parseInt(v));
+                  // TODO: Can we specific `Duration` type without circular dep?
+                  return {
+                    days: duration.days(),
+                    hours: duration.hours(),
+                    minutes: duration.minutes(),
+                    seconds:
+                      duration.seconds() + duration.milliseconds() / 1000,
+                  };
+                });
             }
 
             if (keyToImageModel[key][annotationName] === undefined) {
