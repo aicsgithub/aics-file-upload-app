@@ -276,7 +276,7 @@ export default function App() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.mainContentContainer}>
+      <div className={styles.mainContent}>
         <Tabs
           activeKey={view}
           className={styles.tabContainer}
