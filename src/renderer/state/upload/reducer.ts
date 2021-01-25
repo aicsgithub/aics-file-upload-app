@@ -219,7 +219,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
     accepts: (action: AnyAction): action is UpdateUploadRowsAction =>
       action.type === UPDATE_UPLOAD_ROWS,
     perform: (state: UploadStateBranch, action: UpdateUploadRowsAction) => {
-      console.log("updating in reducer", action);
       const { metadataUpdate, uploadKeys } = action.payload;
       const update: UploadStateBranch = {};
       uploadKeys.forEach((key) => {

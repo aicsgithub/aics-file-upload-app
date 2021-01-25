@@ -96,7 +96,6 @@ const loadFilesLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    console.log("loading files");
     dispatch(startLoading());
     const filesToLoad: DragAndDropFileList = action.payload;
 
@@ -122,7 +121,6 @@ const openFilesLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    console.log("opening files");
     dispatch(startLoading());
     const filesToLoad: string[] = mergeChildPaths(action.payload);
 
