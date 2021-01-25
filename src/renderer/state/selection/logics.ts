@@ -3,7 +3,7 @@ import { basename, dirname } from "path";
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { createLogic } from "redux-logic";
 
-import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { GridCell } from "../../entities";
 import {
   getPlateInfo,
   getUploadFilePromise,
@@ -48,7 +48,7 @@ const stageFilesAndStopLoading = async (
 ) => {
   try {
     const uploadFiles = await Promise.all(uploadFilePromises);
-    // If the file drag/dropped is a folder directory just immediatelly grab the files underneath it
+    // If the file drag/dropped is a folder directory just immediately grab the files underneath it
     // otherwise use the files drag/dropped as normal
     const filesToUpload =
       uploadFiles.length === 1 && uploadFiles[0].isDirectory

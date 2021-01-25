@@ -35,10 +35,11 @@ import {
   JobFilter,
   Page,
   State,
-  UploadFile,
+  UploadStateBranch,
   UploadSummaryTableRow,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
+import { getUpload } from "../../state/upload/selectors";
 import {
   CancelUploadAction,
   RetryUploadAction,
@@ -62,7 +63,6 @@ const TIME_DISPLAY_CONFIG = Object.freeze({
 interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
   className?: string;
-  files: UploadFile[];
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
@@ -73,6 +73,7 @@ interface Props {
   selectPage: ActionCreator<SelectPageAction>;
   selectView: ActionCreator<SelectViewAction>;
   selectJobFilter: ActionCreator<SelectJobFilterAction>;
+  upload: UploadStateBranch;
 }
 
 class UploadSummary extends React.Component<Props, {}> {
@@ -233,7 +234,7 @@ class UploadSummary extends React.Component<Props, {}> {
     // If the current page is UploadSummary we must just be a view
     if (this.props.page !== Page.UploadSummary) {
       this.props.selectView(this.props.page);
-    } else if (this.props.files.length > 0) {
+    } else if (Object.keys(this.props.upload).length > 0) {
       // If we already have files staged skip the drag and drop page
       this.props.selectPage(Page.UploadSummary, Page.SelectUploadType);
     } else {
@@ -268,12 +269,12 @@ class UploadSummary extends React.Component<Props, {}> {
 
 function mapStateToProps(state: State) {
   return {
-    files: [], // getStagedFiles(state),
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),
     page: getPage(state),
     requestsInProgress: getRequestsInProgress(state),
     requestingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
+    upload: getUpload(state),
   };
 }
 

@@ -280,7 +280,6 @@ export interface SelectionStateBranch extends UploadTabSelections {
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
-  selectedWorkflows: Workflow[];
   user: string;
 }
 
@@ -293,7 +292,6 @@ export interface UploadTabSelections {
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
-  selectedWorkflows: Workflow[];
 }
 
 export interface ImagingSessionIdToPlateMap {

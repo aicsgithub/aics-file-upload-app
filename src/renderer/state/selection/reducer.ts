@@ -31,7 +31,6 @@ import {
   SELECT_METADATA,
   SELECT_WELLS,
   SELECT_WORKFLOW_PATH,
-  SELECT_WORKFLOWS,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
@@ -51,7 +50,6 @@ import {
   SelectMetadataAction,
   SelectWellsAction,
   SelectWorkflowPathAction,
-  SelectWorkflowsAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -65,7 +63,6 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
   job: undefined,
   plate: {},
   selectedWells: [],
-  selectedWorkflows: [],
   wells: {},
 };
 
@@ -121,14 +118,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch, action: SelectMetadataAction) => ({
       ...state,
       [action.key]: action.payload,
-    }),
-  },
-  [SELECT_WORKFLOWS]: {
-    accepts: (action: AnyAction): action is SelectWorkflowsAction =>
-      action.type === SELECT_WORKFLOWS,
-    perform: (state: SelectionStateBranch, action: SelectWorkflowsAction) => ({
-      ...state,
-      selectedWorkflows: action.payload,
     }),
   },
   [SELECT_WELLS]: {

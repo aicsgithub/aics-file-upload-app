@@ -28,11 +28,7 @@ import {
   getTemplateHistory,
   getUploadHistory,
 } from "../../metadata/selectors";
-import {
-  selectFile,
-  selectWorkflowPath,
-  selectWorkflows,
-} from "../../selection/actions";
+import { selectWorkflowPath } from "../../selection/actions";
 import {
   getCurrentSelectionIndex,
   getSelectedPlate,
@@ -53,16 +49,14 @@ import {
   mockAuditInfo,
   mockFailedUploadJob,
   mockMMSTemplate,
-  mockSelectedWorkflows,
   mockState,
   mockSuccessfulUploadJob,
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
-import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
-import { getCurrentUploadIndex, getUpload } from "../../upload/selectors";
+import { getUpload } from "../../upload/selectors";
 import {
   closeUploadTab,
   goBack,
@@ -329,52 +323,6 @@ describe("Route logics", () => {
         expect(switchEnv.enabled).to.be.true;
       }
     );
-    it("Going to UploadSummary page should clear all upload information", async () => {
-      const startingSelectionHistory = {
-        [Page.DragAndDrop]: 0,
-      };
-      const startingTemplateHistory = {
-        [Page.DragAndDrop]: 0,
-      };
-      const startingUploadHistory = {
-        [Page.DragAndDrop]: 0,
-      };
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          history: {
-            selection: startingSelectionHistory,
-            template: startingTemplateHistory,
-            upload: startingUploadHistory,
-          },
-        },
-        route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
-        },
-      });
-      store.dispatch(selectWorkflows(mockSelectedWorkflows));
-      store.dispatch(selectFile("/path/to/file"));
-      store.dispatch(
-        associateFilesAndWorkflows(["/path/to/file"], mockSelectedWorkflows)
-      );
-      await logicMiddleware.whenComplete();
-
-      // before
-      expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(1);
-      expect(getCurrentUploadIndex(store.getState())).to.be.greaterThan(0);
-      expect(switchEnv.enabled).to.be.true;
-
-      store.dispatch(selectPage(Page.SelectUploadType, Page.UploadSummary));
-      await logicMiddleware.whenComplete();
-
-      const state = store.getState();
-      // we dispatching the closeUploadTab action after clearing history
-      expect(getCurrentSelectionIndex(state)).to.not.be.greaterThan(1);
-      expect(getCurrentUploadIndex(store.getState())).to.not.be.greaterThan(1);
-      expect(switchEnv.enabled).to.be.true;
-    });
   });
 
   /**

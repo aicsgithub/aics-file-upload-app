@@ -84,6 +84,7 @@ import {
 import { batchActions, handleUploadProgress } from "../util";
 
 import {
+  addUploadFiles,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
@@ -947,19 +948,10 @@ const openUploadLogic = createLogic({
       ])
     );
 
-    // const { draft } = ctx;
-    // const topLevelFilesToLoadAgain = getStagedFiles(draft).map((f) =>
-    //   resolvePath(f.path, f.name)
-    // );
-    // const filesToLoad: string[] = []; // TODO: mergeChildPaths(topLevelFilesToLoadAgain);
+    const { draft } = ctx;
+    const uploadFilesFromDraft = getUpload(draft);
     try {
-      // const uploadFilePromises: Array<Promise<
-      //   UploadFile
-      // >> = filesToLoad.map((filePath: string) =>
-      //   getUploadFilePromise(basename(filePath), dirname(filePath))
-      // );
-      // const uploadFiles = await Promise.all(uploadFilePromises);
-      // dispatch(stageFiles(uploadFiles));
+      dispatch(addUploadFiles(Object.values(uploadFilesFromDraft)));
     } catch (e) {
       dispatch(setErrorAlert(`Encountered error while resolving files: ${e}`));
     }

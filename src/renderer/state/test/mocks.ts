@@ -1,11 +1,11 @@
 import { StateWithHistory } from "redux-undo";
 
-import { GridCell } from "../../components/AssociateWells/grid-cell";
 import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import { GridCell } from "../../entities";
 import {
   AddMetadataServiceFields,
   UploadServiceFields,
@@ -207,7 +207,6 @@ export const mockSelection: SelectionStateBranch = {
   plate: mockPlate,
   massEditRow: { massEditNumberOfFiles: 0 },
   selectedWells: [],
-  selectedWorkflows: [],
   user: "fake_user",
   wells: mockWells,
 };

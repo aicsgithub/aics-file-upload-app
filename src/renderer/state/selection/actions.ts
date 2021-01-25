@@ -1,5 +1,5 @@
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
-import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { GridCell } from "../../entities";
 import { Workflow } from "../../services/labkey-client/types";
 import { OpenTemplateEditorAction } from "../feedback/types";
 import {

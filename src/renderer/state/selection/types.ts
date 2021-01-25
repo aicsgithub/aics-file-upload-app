@@ -1,4 +1,4 @@
-import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { GridCell } from "../../entities";
 import { Workflow } from "../../services/labkey-client/types";
 import { CellPopulation, Solution } from "../../services/mms-client/types";
 import {
