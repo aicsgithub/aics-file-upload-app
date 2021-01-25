@@ -222,7 +222,7 @@ describe("Route logics", () => {
       }
     );
     it(
-      "Going from SelectUploadType to AssociateFiles should record which index selection/template/upload state " +
+      "Going from SelectUploadType to AddCustomData should record which index selection/template/upload state " +
         "branches are at for the page we went to",
       async () => {
         const startingSelectionHistory = {
@@ -262,7 +262,7 @@ describe("Route logics", () => {
         expect(switchEnv.enabled).to.be.false;
 
         // apply
-        store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
+        store.dispatch(selectPage(Page.SelectUploadType, Page.AddCustomData));
 
         // after
         await logicMiddleware.whenComplete();
@@ -279,7 +279,7 @@ describe("Route logics", () => {
           ...startingUploadHistory,
           [Page.SelectUploadType]: 0,
         });
-        expect(getPage(state)).to.equal(Page.AssociateFiles);
+        expect(getPage(state)).to.equal(Page.AddCustomData);
         expect(switchEnv.enabled).to.be.false;
       }
     );
@@ -350,8 +350,8 @@ describe("Route logics", () => {
           },
         },
         route: {
-          page: Page.AssociateFiles,
-          view: Page.AssociateFiles,
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
         },
       });
       store.dispatch(selectWorkflows(mockSelectedWorkflows));
@@ -424,17 +424,9 @@ describe("Route logics", () => {
   };
 
   describe("goBackLogic", () => {
-    it("goes to AssociateFiles page if going back from AddCustomData page", async () => {
+    it("goes to AddCustomData page if going back from AddCustomData page", async () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
-        Page.AssociateFiles,
-        goBack,
-        1
-      );
-    });
-    it("goes to SelectUploadType page if going back from AssociateFiles page", async () => {
-      await runShowMessageBoxTest(
-        Page.AssociateFiles,
         Page.SelectUploadType,
         goBack,
         1
@@ -474,7 +466,7 @@ describe("Route logics", () => {
       });
       sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
       await runShowMessageBoxTest(
-        Page.AssociateFiles,
+        Page.AddCustomData,
         Page.UploadSummary,
         closeUploadTab,
         2
@@ -483,8 +475,8 @@ describe("Route logics", () => {
     });
     it("stays on current page given 'Cancel' clicked from dialog", async () => {
       await runShowMessageBoxTest(
-        Page.AssociateFiles,
-        Page.AssociateFiles,
+        Page.AddCustomData,
+        Page.AddCustomData,
         closeUploadTab,
         0
       );

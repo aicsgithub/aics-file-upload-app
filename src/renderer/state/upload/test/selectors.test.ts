@@ -101,8 +101,7 @@ describe("Upload selectors", () => {
             template: {},
             upload: {
               [Page.DragAndDrop]: 0,
-              [Page.SelectUploadType]: 0,
-              [Page.AssociateFiles]: 1,
+              [Page.SelectUploadType]: 1,
             },
           },
         },
@@ -129,8 +128,7 @@ describe("Upload selectors", () => {
             template: {},
             upload: {
               [Page.DragAndDrop]: 0,
-              [Page.SelectUploadType]: 0,
-              [Page.AssociateFiles]: 1,
+              [Page.SelectUploadType]: 1,
             },
           },
         },

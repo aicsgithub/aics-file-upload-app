@@ -32,6 +32,11 @@ export interface MMSAnnotationValueRequest {
   values: string[];
 }
 
+export interface AddUploadFilesAction extends AutoSaveAction {
+  payload: UploadRowId[];
+  type: string;
+}
+
 export interface ApplyTemplateAction extends WriteToStoreAction {
   payload: number;
   type: string;

@@ -23,10 +23,7 @@ import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
-  ADD_STAGE_FILES,
   CLEAR_SELECTION_HISTORY,
-  CLEAR_STAGED_FILES,
-  DESELECT_FILES,
   JUMP_TO_PAST_SELECTION,
   SELECT_BARCODE,
   SELECT_FILE,
@@ -38,7 +35,6 @@ import {
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
-  UPDATE_STAGED_FILES,
 } from "./constants";
 import {
   getExpandedUploadJobRows,
@@ -49,9 +45,6 @@ import {
   getWells,
 } from "./selectors";
 import {
-  AddStageFilesAction,
-  ClearStagedFilesAction,
-  DeselectFilesAction,
   SelectBarcodeAction,
   SelectFileAction,
   SelectImagingSessionIdAction,
@@ -62,7 +55,6 @@ import {
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
-  UpdateStagedFilesAction,
 } from "./types";
 
 const uploadTabSelectionInitialState: UploadTabSelections = {
@@ -74,7 +66,6 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
   plate: {},
   selectedWells: [],
   selectedWorkflows: [],
-  stagedFiles: [],
   wells: {},
 };
 
@@ -86,14 +77,6 @@ export const initialState: SelectionStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
-  [DESELECT_FILES]: {
-    accepts: (action: AnyAction): action is DeselectFilesAction =>
-      action.type === DESELECT_FILES,
-    perform: (state: SelectionStateBranch) => ({
-      ...state,
-      files: [],
-    }),
-  },
   [SELECT_BARCODE]: {
     accepts: (action: AnyAction): action is SelectBarcodeAction =>
       action.type === SELECT_BARCODE,
@@ -146,33 +129,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch, action: SelectWorkflowsAction) => ({
       ...state,
       selectedWorkflows: action.payload,
-    }),
-  },
-  [ADD_STAGE_FILES]: {
-    accepts: (action: AnyAction): action is AddStageFilesAction =>
-      action.type === ADD_STAGE_FILES,
-    perform: (state: SelectionStateBranch, action: AddStageFilesAction) => ({
-      ...state,
-      stagedFiles: [...state.stagedFiles, ...castArray(action.payload)],
-    }),
-  },
-  [UPDATE_STAGED_FILES]: {
-    accepts: (action: AnyAction): action is UpdateStagedFilesAction =>
-      action.type === UPDATE_STAGED_FILES,
-    perform: (
-      state: SelectionStateBranch,
-      action: UpdateStagedFilesAction
-    ) => ({
-      ...state,
-      stagedFiles: action.payload,
-    }),
-  },
-  [CLEAR_STAGED_FILES]: {
-    accepts: (action: AnyAction): action is ClearStagedFilesAction =>
-      action.type === CLEAR_STAGED_FILES,
-    perform: (state: SelectionStateBranch) => ({
-      ...state,
-      stagedFiles: [],
     }),
   },
   [SELECT_WELLS]: {

@@ -208,7 +208,6 @@ export const mockSelection: SelectionStateBranch = {
   massEditRow: { massEditNumberOfFiles: 0 },
   selectedWells: [],
   selectedWorkflows: [],
-  stagedFiles: [],
   user: "fake_user",
   wells: mockWells,
 };

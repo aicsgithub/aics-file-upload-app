@@ -11,10 +11,7 @@ import {
 } from "../types";
 
 import {
-  ADD_STAGE_FILES,
   CLEAR_SELECTION_HISTORY,
-  CLEAR_STAGED_FILES,
-  DESELECT_FILES,
   GET_FILES_IN_FOLDER,
   JUMP_TO_PAST_SELECTION,
   LOAD_FILES,
@@ -28,13 +25,9 @@ import {
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
-  UPDATE_STAGED_FILES,
 } from "./constants";
 import {
-  AddStageFilesAction,
   ClearSelectionHistoryAction,
-  ClearStagedFilesAction,
-  DeselectFilesAction,
   GetFilesInFolderAction,
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
@@ -48,19 +41,12 @@ import {
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
-  UpdateStagedFilesAction,
 } from "./types";
 
 export function selectFile(fileId: string | string[]): SelectFileAction {
   return {
     payload: fileId,
     type: SELECT_FILE,
-  };
-}
-
-export function deselectFiles(): DeselectFilesAction {
-  return {
-    type: DESELECT_FILES,
   };
 }
 
@@ -81,31 +67,6 @@ export function openFilesFromDialog(
     autoSave: true,
     payload: files,
     type: OPEN_FILES,
-  };
-}
-
-export function stageFiles(files: UploadFile[]): AddStageFilesAction {
-  return {
-    autoSave: true,
-    payload: files,
-    type: ADD_STAGE_FILES,
-  };
-}
-
-export function clearStagedFiles(): ClearStagedFilesAction {
-  return {
-    autoSave: true,
-    type: CLEAR_STAGED_FILES,
-  };
-}
-
-export function updateStagedFiles(
-  files: UploadFile[]
-): UpdateStagedFilesAction {
-  return {
-    autoSave: true,
-    payload: files,
-    type: UPDATE_STAGED_FILES,
   };
 }
 

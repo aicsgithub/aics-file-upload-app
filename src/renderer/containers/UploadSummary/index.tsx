@@ -30,7 +30,6 @@ import {
   SelectPageAction,
   SelectViewAction,
 } from "../../state/route/types";
-import { getStagedFiles } from "../../state/selection/selectors";
 import {
   AsyncRequest,
   JobFilter,
@@ -269,7 +268,7 @@ class UploadSummary extends React.Component<Props, {}> {
 
 function mapStateToProps(state: State) {
   return {
-    files: getStagedFiles(state),
+    files: [], // getStagedFiles(state),
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),
     page: getPage(state),

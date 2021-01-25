@@ -11,7 +11,7 @@ import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
-import { TypeToDescriptionMap, UploadStateBranch } from "../types";
+import { TypeToDescriptionMap, UploadRowId, UploadStateBranch } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
@@ -31,9 +31,11 @@ import {
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
   UPDATE_UPLOADS,
+  ADD_UPLOAD_FILES,
 } from "./constants";
 import { getUpload } from "./selectors";
 import {
+  AddUploadFilesAction,
   AssociateFilesAndWellsAction,
   AssociateFilesAndWorkflowsAction,
   ClearUploadAction,
@@ -49,6 +51,19 @@ import {
 export const initialState = {};
 
 const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
+  [ADD_UPLOAD_FILES]: {
+    accepts: (action: AnyAction): action is AddUploadFilesAction =>
+      action.type === ADD_UPLOAD_FILES,
+    perform: (state: UploadStateBranch, action: AddUploadFilesAction) => {
+      return action.payload.reduce(
+        (uploads: UploadStateBranch, uploadRowId: UploadRowId) => ({
+          ...uploads,
+          [getUploadRowKey(uploadRowId)]: { ...uploadRowId },
+        }),
+        { ...state }
+      );
+    },
+  },
   [ASSOCIATE_FILES_AND_WELLS]: {
     accepts: (action: AnyAction): action is AssociateFilesAndWellsAction =>
       action.type === ASSOCIATE_FILES_AND_WELLS,
@@ -204,6 +219,7 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
     accepts: (action: AnyAction): action is UpdateUploadRowsAction =>
       action.type === UPDATE_UPLOAD_ROWS,
     perform: (state: UploadStateBranch, action: UpdateUploadRowsAction) => {
+      console.log("updating in reducer", action);
       const { metadataUpdate, uploadKeys } = action.payload;
       const update: UploadStateBranch = {};
       uploadKeys.forEach((key) => {

@@ -44,8 +44,10 @@ import {
   UPDATE_UPLOADS,
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
+  ADD_UPLOAD_FILES,
 } from "./constants";
 import {
+  AddUploadFilesAction,
   ApplyTemplateAction,
   AssociateFilesAndWellsAction,
   AssociateFilesAndWorkflowsAction,
@@ -81,6 +83,16 @@ import {
   UploadJobTableRow,
   UploadSucceededAction,
 } from "./types";
+
+export function addUploadFiles(
+  uploadFiles: UploadRowId[]
+): AddUploadFilesAction {
+  return {
+    autoSave: true,
+    payload: uploadFiles,
+    type: ADD_UPLOAD_FILES,
+  };
+}
 
 export function associateFilesAndWells(
   rowIds: UploadRowId[]

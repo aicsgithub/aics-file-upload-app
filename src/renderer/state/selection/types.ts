@@ -11,10 +11,6 @@ import {
   UploadFile,
 } from "../types";
 
-export interface DeselectFilesAction {
-  type: string;
-}
-
 export interface SelectFileAction {
   payload: string | string[];
   type: string;
@@ -43,16 +39,6 @@ export interface LoadFilesFromDragAndDropAction extends AutoSaveAction {
 
 export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
   payload: string[];
-  type: string;
-}
-
-export interface AddStageFilesAction extends AutoSaveAction {
-  payload: UploadFile[];
-  type: string;
-}
-
-export interface UpdateStagedFilesAction extends AutoSaveAction {
-  payload: UploadFile[];
   type: string;
 }
 

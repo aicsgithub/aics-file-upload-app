@@ -27,13 +27,11 @@ import {
   CLOSE_UPLOAD_TAB,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
-  SELECT_PAGE,
 } from "../route/constants";
 import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
-  SelectPageAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
@@ -58,7 +56,6 @@ import {
   AsyncRequest,
   FeedbackStateBranch,
   HTTP_STATUS,
-  Page,
   RequestFailedAction,
   TypeToDescriptionMap,
 } from "../types";
@@ -112,7 +109,6 @@ import {
   SET_DEFERRED_ACTION,
   START_LOADING,
   STOP_LOADING,
-  TOGGLE_FOLDER_TREE,
 } from "./constants";
 import {
   AddEventAction,
@@ -131,7 +127,6 @@ import {
   SetDeferredActionAction,
   StartLoadingAction,
   StopLoadingAction,
-  ToggleFolderTreeAction,
 } from "./types";
 
 const BAD_GATEWAY_ERROR = "Bad Gateway Error: Labkey or MMS is down.";
@@ -159,7 +154,6 @@ const getErrorAlert = (message: string) => ({
 export const initialState: FeedbackStateBranch = {
   deferredAction: undefined,
   events: [],
-  folderTreeOpen: false,
   isLoading: false,
   requestsInProgress: [],
   setMountPointNotificationVisible: false,
@@ -563,27 +557,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
         `${AsyncRequest.CANCEL_UPLOAD}-${jobName}`
       ),
     }),
-  },
-  [TOGGLE_FOLDER_TREE]: {
-    accepts: (action: AnyAction): action is ToggleFolderTreeAction =>
-      action.type === TOGGLE_FOLDER_TREE,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      folderTreeOpen: !state.folderTreeOpen,
-    }),
-  },
-  [SELECT_PAGE]: {
-    accepts: (action: AnyAction): action is SelectPageAction =>
-      action.type === SELECT_PAGE,
-    perform: (
-      state: FeedbackStateBranch,
-      { payload: { nextPage } }: SelectPageAction
-    ) => {
-      return {
-        ...state,
-        folderTreeOpen: nextPage === Page.AssociateFiles,
-      };
-    },
   },
   [START_TEMPLATE_DRAFT]: {
     accepts: (action: AnyAction): action is StartTemplateDraftAction =>

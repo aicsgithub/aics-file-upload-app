@@ -9,6 +9,7 @@ import { UploadJobTableRow } from "./types";
 
 const BRANCH_NAME = "upload";
 
+export const ADD_UPLOAD_FILES = makeConstant(BRANCH_NAME, "add-upload-files");
 export const APPLY_TEMPLATE = makeConstant(BRANCH_NAME, "apply-template");
 export const ASSOCIATE_FILES_AND_WELLS = makeConstant(
   BRANCH_NAME,

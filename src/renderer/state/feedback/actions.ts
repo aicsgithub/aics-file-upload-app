@@ -18,7 +18,6 @@ import {
   SET_DEFERRED_ACTION,
   START_LOADING,
   STOP_LOADING,
-  TOGGLE_FOLDER_TREE,
 } from "./constants";
 import {
   AddEventAction,
@@ -36,7 +35,6 @@ import {
   SetDeferredActionAction,
   StartLoadingAction,
   StopLoadingAction,
-  ToggleFolderTreeAction,
 } from "./types";
 
 export function setAlert(payload: AppAlert): SetAlertAction {
@@ -178,12 +176,6 @@ export function clearDeferredAction(): ClearDeferredAction {
 export function clearUploadError(): ClearUploadErrorAction {
   return {
     type: CLEAR_UPLOAD_ERROR,
-  };
-}
-
-export function toggleFolderTree(): ToggleFolderTreeAction {
-  return {
-    type: TOGGLE_FOLDER_TREE,
   };
 }
 
