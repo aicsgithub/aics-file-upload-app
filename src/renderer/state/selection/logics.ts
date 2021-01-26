@@ -54,8 +54,6 @@ const stageFilesAndStopLoading = async (
       uploadFiles.length === 1 && uploadFiles[0].isDirectory
         ? uploadFiles.flatMap((file) => file.files)
         : uploadFiles;
-    console.log(uploadFiles);
-    console.log(filesToUpload);
 
     dispatch(
       batchActions([
