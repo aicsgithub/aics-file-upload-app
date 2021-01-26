@@ -1,0 +1,20 @@
+.duration-editor-container {
+    /* Hack to make the editor take up the entire width of the cell. It was
+     a couple of pixels short for some reason. */
+    width: 101.5%;
+
+    & :global(.ant-input-group-wrapper) {
+        width: 25%;
+    }
+
+    & :global(.ant-input) {
+        height: 34px;
+        padding: 4px;
+    }
+
+    & :global(.ant-input-group-addon) {
+        font-size: 14px;
+        padding: 0 2px;
+        border-radius: 0;
+    }
+}

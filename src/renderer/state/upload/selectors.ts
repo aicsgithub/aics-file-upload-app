@@ -36,12 +36,14 @@ import {
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import { Duration } from "../../types";
 import { getWellLabel, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
   getDateTimeAnnotationTypeId,
   getDropdownAnnotationTypeId,
+  getDurationAnnotationTypeId,
   getImagingSessions,
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
@@ -478,6 +480,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     getBooleanAnnotationTypeId,
     getNumberAnnotationTypeId,
     getTextAnnotationTypeId,
+    getDurationAnnotationTypeId,
     getDateAnnotationTypeId,
     getDateTimeAnnotationTypeId,
     getCompleteAppliedTemplate,
@@ -489,6 +492,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     booleanAnnotationTypeId?: number,
     numberAnnotationTypeId?: number,
     textAnnotationTypeId?: number,
+    durationAnnotationTypeId?: number,
     dateAnnotationTypeId?: number,
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
@@ -575,6 +579,30 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                       annotationToErrorMap[
                         annotationName
                       ] = `${invalidValues} did not match expected type: Text`;
+                    }
+                  }
+                  break;
+                case durationAnnotationTypeId:
+                  if (value.length > 1) {
+                    annotationToErrorMap[
+                      annotationName
+                    ] = `Only one Duration value may be present`;
+                  } else if (value.length === 1) {
+                    const {
+                      days,
+                      hours,
+                      minutes,
+                      seconds,
+                    } = value[0] as Duration;
+
+                    if (
+                      [days, hours, minutes, seconds].some(
+                        (v) => typeof v !== "number" || v < 0
+                      )
+                    ) {
+                      annotationToErrorMap[
+                        annotationName
+                      ] = `A Duration may only include numbers greater than 0`;
                     }
                   }
                   break;
@@ -740,6 +768,15 @@ const getAnnotations = (
                 return moment(v).format("YYYY-MM-DD HH:mm:ss");
               } else if (annotation.type === ColumnType.DATE) {
                 return moment(v).format("YYYY-MM-DD");
+              } else if (annotation.type === ColumnType.DURATION) {
+                // While we may not want to rely on moment in the long-term,
+                // we are already using it with dates, and it conveniently
+                // can accept an object with the same shape as our`Duration`
+                // type.
+                return moment
+                  .duration(v as Duration)
+                  .asMilliseconds()
+                  .toString();
               }
               return v.toString();
             }),
