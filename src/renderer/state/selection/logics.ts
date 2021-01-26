@@ -69,7 +69,7 @@ const stageFilesAndStopLoading = async (
       dispatch(
         selectPage(
           currentPage,
-          findNextPage(currentPage, 1) || Page.SelectUploadType
+          findNextPage(currentPage, 1) || Page.AddCustomData
         )
       );
     }
@@ -154,13 +154,12 @@ const selectBarcodeLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const { barcode, imagingSessionIds } = action.payload;
-    const nextPage =
-      findNextPage(Page.SelectUploadType, 1) || Page.AddCustomData;
+    const nextPage = findNextPage(Page.AddCustomData, 1) || Page.AddCustomData;
     const selectPageActions = getSelectPageActions(
       logger,
       getState(),
       getApplicationMenu,
-      selectPage(Page.SelectUploadType, nextPage)
+      selectPage(Page.AddCustomData, nextPage)
     );
     try {
       const { plate, wells } = await getPlateInfo(
@@ -197,9 +196,9 @@ const selectWorkflowPathLogic = createLogic({
     if (action) {
       const actions = [action, associateByWorkflow(true)];
       const nextPage =
-        findNextPage(Page.SelectUploadType, 1) || Page.AddCustomData;
+        findNextPage(Page.AddCustomData, 1) || Page.AddCustomData;
       dispatch(batchActions(actions));
-      dispatch(selectPage(Page.SelectUploadType, nextPage));
+      dispatch(selectPage(Page.AddCustomData, nextPage));
     }
     done();
   },

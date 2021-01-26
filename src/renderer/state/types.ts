@@ -256,7 +256,6 @@ export type ModalName = "openTemplate" | "settings" | "templateEditor";
 
 export enum Page {
   DragAndDrop = "DragAndDrop",
-  SelectUploadType = "SelectUploadType",
   AddCustomData = "AddCustomData",
   UploadSummary = "UploadSummary",
 }

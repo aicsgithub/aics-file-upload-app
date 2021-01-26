@@ -11,7 +11,6 @@ import {
   PlateResponse,
 } from "../../../services/mms-client/types";
 import { requestFailed } from "../../actions";
-import route from "../../route";
 import { getPage } from "../../route/selectors";
 import {
   createMockReduxStore,
@@ -77,48 +76,24 @@ describe("Selection logics", () => {
       };
     });
 
-    it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        route: {
-          page: Page.DragAndDrop,
-          view: Page.DragAndDrop,
-        },
-      });
-
-      // before
-      expect(route.selectors.getPage(store.getState())).to.equal(
-        Page.DragAndDrop
-      );
-
-      // apply
-      store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(route.selectors.getPage(store.getState())).to.equal(
-        Page.SelectUploadType
-      );
-    });
-
     it("Does not change page if not on DragAndDrop page", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
         route: {
-          page: Page.SelectUploadType,
-          view: Page.SelectUploadType,
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
         },
       });
 
       // before
-      expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
+      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
 
       // apply
       store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
       // after
       await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
+      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
     });
 
     it("sets files up for upload", async () => {
@@ -186,7 +161,7 @@ describe("Selection logics", () => {
       filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
     });
 
-    it("Goes to SelectUploadType page if on DragAndDrop page", async () => {
+    it("Goes to AddCustomData page if on DragAndDrop page", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
         route: {
@@ -203,27 +178,27 @@ describe("Selection logics", () => {
 
       // after
       await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
+      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
     });
 
     it("Does not change page if not on DragAndDrop page", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
         ...mockState,
         route: {
-          page: Page.SelectUploadType,
-          view: Page.SelectUploadType,
+          page: Page.AddCustomData,
+          view: Page.AddCustomData,
         },
       });
 
       // before
-      expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
+      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
 
       // apply
       store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
       // after
       await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
+      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
     });
 
     it("Stages all files opened", async () => {

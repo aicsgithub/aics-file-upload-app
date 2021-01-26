@@ -50,7 +50,6 @@ import AddCustomData from "../AddCustomData";
 import DragAndDropSquare from "../DragAndDropSquare";
 import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
-import EnterBarcode from "../SelectUploadType";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
@@ -69,12 +68,6 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     Page.DragAndDrop,
     {
       container: <DragAndDropSquare key="dragAndDrop" />,
-    },
-  ],
-  [
-    Page.SelectUploadType,
-    {
-      container: <EnterBarcode key="enterBarcode" />,
     },
   ],
   [

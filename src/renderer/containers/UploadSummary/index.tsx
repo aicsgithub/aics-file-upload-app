@@ -236,7 +236,7 @@ class UploadSummary extends React.Component<Props, {}> {
       this.props.selectView(this.props.page);
     } else if (Object.keys(this.props.upload).length > 0) {
       // If we already have files staged skip the drag and drop page
-      this.props.selectPage(Page.UploadSummary, Page.SelectUploadType);
+      this.props.selectPage(Page.UploadSummary, Page.AddCustomData);
     } else {
       this.props.selectPage(Page.UploadSummary, Page.DragAndDrop);
     }
