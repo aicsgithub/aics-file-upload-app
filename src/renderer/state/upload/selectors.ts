@@ -640,6 +640,9 @@ export const getUploadValidationErrors = createSelector(
     if (!template) {
       errors.push("A template must be selected to submit an upload");
     } else {
+      if (!shouldHaveWells && !shouldHaveWorkflows) {
+        errors.push("An upload type must be selected to submit an upload");
+      }
       // Iterate over each row value adding an error for each value with a non-ASCII character
       rows.forEach((row) => {
         Object.entries(row).forEach(([rowKey, rowValue]) => {
@@ -692,10 +695,6 @@ export const getUploadValidationErrors = createSelector(
           }
         }
       );
-    }
-
-    if (!shouldHaveWells && !shouldHaveWorkflows) {
-      errors.push("An upload type must be selected to submit an upload");
     }
 
     if (!rows.length && !selectedJob) {

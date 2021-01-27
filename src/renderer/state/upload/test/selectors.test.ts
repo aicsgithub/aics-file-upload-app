@@ -1457,9 +1457,13 @@ describe("Upload selectors", () => {
       });
       expect(errors.includes("No files to upload")).to.be.false;
     });
-    it("adds error if a row does not have a well or workflow annotation", () => {
+    it("adds error if no upload type is selected", () => {
       const errors = getUploadValidationErrors({
         ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...nonEmptyStateForInitiatingUpload.selection.present,
+          barcode: undefined,
+        }),
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "foo" })]: {
             barcode: "abc",
@@ -1471,7 +1475,56 @@ describe("Upload selectors", () => {
         }),
       });
       expect(
-        errors.includes("foo must have either a well or workflow association")
+        errors.includes("An upload type must be selected to submit an upload")
+      ).to.be.true;
+    });
+    it("adds error if a row does not have a well annotation and is meant to", () => {
+      const errors = getUploadValidationErrors({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...nonEmptyStateForInitiatingUpload.selection.present,
+          barcode: "123213",
+        }),
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "foo" })]: {
+            barcode: "abc",
+            file: "foo",
+            key: getUploadRowKey({ file: "foo" }),
+            [NOTES_ANNOTATION_NAME]: [],
+            [WELL_ANNOTATION_NAME]: [],
+          },
+        }),
+      });
+      expect(
+        errors.includes(
+          `"foo" is missing the following required annotations: ${WELL_ANNOTATION_NAME}`
+        )
+      ).to.be.true;
+    });
+    it("adds error if a row does not have a workflow annotation and is meant to", () => {
+      const errors = getUploadValidationErrors({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...nonEmptyStateForInitiatingUpload.selection.present,
+          barcode: undefined,
+        }),
+        setting: {
+          ...nonEmptyStateForInitiatingUpload.setting,
+          associateByWorkflow: true,
+        },
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "foo" })]: {
+            barcode: "abc",
+            file: "foo",
+            key: getUploadRowKey({ file: "foo" }),
+            [NOTES_ANNOTATION_NAME]: [],
+          },
+        }),
+      });
+      expect(
+        errors.includes(
+          `"foo" is missing the following required annotations: ${WORKFLOW_ANNOTATION_NAME}`
+        )
       ).to.be.true;
     });
     it("adds error if row is missing an annotation value that is required", () => {
@@ -1484,7 +1537,7 @@ describe("Upload selectors", () => {
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
             [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
+            [WELL_ANNOTATION_NAME]: [1],
           },
         }),
       });
