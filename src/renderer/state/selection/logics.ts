@@ -145,7 +145,6 @@ const selectBarcodeLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const { barcode, imagingSessionIds } = action.payload;
-    // TODO: Remove well information from upload
     try {
       const { plate, wells } = await getPlateInfo(
         barcode,
