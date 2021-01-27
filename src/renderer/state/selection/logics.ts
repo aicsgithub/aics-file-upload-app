@@ -13,7 +13,6 @@ import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
-import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
 import { associateByWorkflow } from "../setting/actions";
 import {
@@ -143,24 +142,12 @@ export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) =>
 
 const selectBarcodeLogic = createLogic({
   process: async (
-    {
-      action,
-      getApplicationMenu,
-      getState,
-      logger,
-      mmsClient,
-    }: ReduxLogicProcessDependencies,
+    { action, logger, mmsClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const { barcode, imagingSessionIds } = action.payload;
-    const nextPage = findNextPage(Page.AddCustomData, 1) || Page.AddCustomData;
-    const selectPageActions = getSelectPageActions(
-      logger,
-      getState(),
-      getApplicationMenu,
-      selectPage(Page.AddCustomData, nextPage)
-    );
+    // TODO: Remove well information from upload
     try {
       const { plate, wells } = await getPlateInfo(
         barcode,
@@ -168,12 +155,7 @@ const selectBarcodeLogic = createLogic({
         mmsClient,
         dispatch
       );
-      dispatch(
-        batchActions([
-          ...selectPageActions,
-          setPlate(plate, wells, imagingSessionIds),
-        ])
-      );
+      dispatch(setPlate(plate, wells, imagingSessionIds));
     } catch (e) {
       const error = "Could not get plate info: " + e.message;
       logger.error(e.message);
