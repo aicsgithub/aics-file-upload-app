@@ -112,32 +112,6 @@ describe("Upload selectors", () => {
 
       expect(getCanUndoUpload(state)).to.equal(false);
     });
-
-    it("should return true if on AddCustomData page and current index is more than 1 more than that of previous page", () => {
-      const state = {
-        ...mockState,
-        route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
-        },
-        metadata: {
-          ...mockState.metadata,
-          history: {
-            selection: {},
-            template: {},
-            upload: {
-              [Page.UploadSummary]: 1,
-            },
-          },
-        },
-        upload: {
-          ...mockState.upload,
-          index: 4,
-        },
-      };
-
-      expect(getCanUndoUpload(state)).to.equal(true);
-    });
   });
 
   describe("getUploadWithCalculatedData", () => {

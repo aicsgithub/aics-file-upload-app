@@ -22,12 +22,7 @@ import {
 import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
-import {
-  getFileMetadataForJob,
-  getSelectionHistory,
-  getTemplateHistory,
-  getUploadHistory,
-} from "../../metadata/selectors";
+import { getFileMetadataForJob } from "../../metadata/selectors";
 import { getSelectedPlate } from "../../selection/selectors";
 import { associateByWorkflow } from "../../setting/actions";
 import { getAppliedTemplate } from "../../template/selectors";
@@ -53,12 +48,7 @@ import {
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import {
-  closeUploadTab,
-  goBack,
-  openEditFileMetadataTab,
-  selectPage,
-} from "../actions";
+import { closeUploadTab, goBack, openEditFileMetadataTab } from "../actions";
 import { OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
@@ -176,41 +166,6 @@ describe("Route logics", () => {
         getApplicationMenuStub
       );
     });
-
-    // This is going forward
-    it(
-      "Going from UploadSummary to AddCustomData should record the index selection/template/upload state " +
-        "branches were at after leaving that page",
-      async () => {
-        const { logicMiddleware, store } = createMockReduxStore({
-          ...mockState,
-          route: {
-            page: Page.UploadSummary,
-            view: Page.UploadSummary,
-          },
-        });
-
-        // before
-        let state = store.getState();
-        expect(getSelectionHistory(state)).to.be.empty;
-        expect(getTemplateHistory(state)).to.be.empty;
-        expect(getUploadHistory(state)).to.be.empty;
-        expect(getPage(state)).to.equal(Page.UploadSummary);
-        expect(switchEnv.enabled).to.be.true;
-
-        // apply
-        store.dispatch(selectPage(Page.UploadSummary, Page.AddCustomData));
-
-        // after
-        await logicMiddleware.whenComplete();
-        state = store.getState();
-        expect(getSelectionHistory(state)[Page.UploadSummary]).to.equal(0);
-        expect(getTemplateHistory(state)[Page.UploadSummary]).to.equal(0);
-        expect(getUploadHistory(state)[Page.UploadSummary]).to.equal(0);
-        expect(getPage(state)).to.equal(Page.AddCustomData);
-        expect(switchEnv.enabled).to.be.false;
-      }
-    );
   });
 
   /**
