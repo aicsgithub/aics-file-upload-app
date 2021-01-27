@@ -1,5 +1,4 @@
 import { GridCell } from "../../entities";
-import { Workflow } from "../../services/labkey-client/types";
 import { CellPopulation, Solution } from "../../services/mms-client/types";
 import {
   AutoSaveAction,
@@ -8,13 +7,7 @@ import {
   ImagingSessionIdToWellsMap,
   MassEditRow,
   MetadataStateBranch,
-  UploadFile,
 } from "../types";
-
-export interface SelectFileAction {
-  payload: string | string[];
-  type: string;
-}
 
 export interface SelectMetadataAction {
   key: keyof MetadataStateBranch;
@@ -42,21 +35,11 @@ export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
   type: string;
 }
 
-export interface GetFilesInFolderAction extends AutoSaveAction {
-  payload: UploadFile;
-  type: string;
-}
-
 export interface SelectBarcodeAction extends AutoSaveAction {
   payload: {
     barcode: string;
     imagingSessionIds: Array<number | null>;
   };
-  type: string;
-}
-
-export interface SelectWorkflowsAction {
-  payload: Workflow[];
   type: string;
 }
 

@@ -1,52 +1,37 @@
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { GridCell } from "../../entities";
-import { Workflow } from "../../services/labkey-client/types";
 import { OpenTemplateEditorAction } from "../feedback/types";
 import {
   DragAndDropFileList,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   MassEditRow,
-  UploadFile,
 } from "../types";
 
 import {
   CLEAR_SELECTION_HISTORY,
-  GET_FILES_IN_FOLDER,
   JUMP_TO_PAST_SELECTION,
   LOAD_FILES,
   OPEN_FILES,
   SELECT_BARCODE,
-  SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_WELLS,
-  SELECT_WORKFLOWS,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
 import {
   ClearSelectionHistoryAction,
-  GetFilesInFolderAction,
   JumpToPastSelectionAction,
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectBarcodeAction,
-  SelectFileAction,
   SelectImagingSessionIdAction,
   SelectWellsAction,
-  SelectWorkflowsAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
 } from "./types";
-
-export function selectFile(fileId: string | string[]): SelectFileAction {
-  return {
-    payload: fileId,
-    type: SELECT_FILE,
-  };
-}
 
 export function loadFilesFromDragAndDrop(
   files: DragAndDropFileList
@@ -68,14 +53,6 @@ export function openFilesFromDialog(
   };
 }
 
-export function getFilesInFolder(folder: UploadFile): GetFilesInFolderAction {
-  return {
-    autoSave: true,
-    payload: folder,
-    type: GET_FILES_IN_FOLDER,
-  };
-}
-
 export function selectBarcode(
   barcode: string,
   imagingSessionIds: Array<number | null> = [null]
@@ -84,13 +61,6 @@ export function selectBarcode(
     autoSave: true,
     payload: { barcode, imagingSessionIds },
     type: SELECT_BARCODE,
-  };
-}
-
-export function selectWorkflows(workflows: Workflow[]): SelectWorkflowsAction {
-  return {
-    payload: workflows,
-    type: SELECT_WORKFLOWS,
   };
 }
 

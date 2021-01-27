@@ -1,6 +1,5 @@
 import { userInfo } from "os";
 
-import { castArray } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
@@ -28,7 +27,6 @@ import {
   CLEAR_SELECTION_HISTORY,
   JUMP_TO_PAST_SELECTION,
   SELECT_BARCODE,
-  SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
   SELECT_WELLS,
@@ -46,7 +44,6 @@ import {
 } from "./selectors";
 import {
   SelectBarcodeAction,
-  SelectFileAction,
   SelectImagingSessionIdAction,
   SelectMetadataAction,
   SelectWellsAction,
@@ -68,7 +65,6 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
 
 export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
-  files: [],
   massEditRow: {},
   user: userInfo().username,
 };
@@ -107,14 +103,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       imagingSessionIds,
       plate,
       wells,
-    }),
-  },
-  [SELECT_FILE]: {
-    accepts: (action: AnyAction): action is SelectFileAction =>
-      action.type === SELECT_FILE,
-    perform: (state: SelectionStateBranch, action: SelectFileAction) => ({
-      ...state,
-      files: [...castArray(action.payload)],
     }),
   },
   [SELECT_METADATA]: {

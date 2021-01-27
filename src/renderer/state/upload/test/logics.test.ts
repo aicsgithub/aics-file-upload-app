@@ -34,7 +34,6 @@ import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { getCurrentJobName } from "../../job/selectors";
 import { selectPage } from "../../route/actions";
-import { getSelectedFiles } from "../../selection/selectors";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -128,8 +127,6 @@ describe("Upload logics", () => {
         associateFilesAndWells([{ file: file1 }, { file: file2 }])
       );
 
-      const state = store.getState();
-      expect(getSelectedFiles(state)).to.be.empty;
       const upload = getUpload(store.getState());
       expect(get(upload, [file1, WELL_ANNOTATION_NAME, 0])).to.equal(wellId);
       expect(get(upload, [file2, WELL_ANNOTATION_NAME, 0])).to.equal(wellId);
@@ -230,8 +227,6 @@ describe("Upload logics", () => {
         associateFilesAndWells([{ file: file1, positionIndex: 1 }])
       );
 
-      const state = store.getState();
-      expect(getSelectedFiles(state)).to.be.empty;
       const upload = getUpload(store.getState());
       const uploadRowKey = getUploadRowKey({ file: file1, positionIndex: 1 });
       expect(get(upload, [uploadRowKey, WELL_ANNOTATION_NAME, 0])).to.equal(
