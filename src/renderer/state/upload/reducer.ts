@@ -77,8 +77,8 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           ...nextState,
           [key]: {
             ...metadata,
-            Well: undefined,
-            Workflow: undefined,
+            [WELL_ANNOTATION_NAME]: undefined,
+            [WORKFLOW_ANNOTATION_NAME]: undefined,
           },
         }),
         {} as UploadStateBranch
@@ -94,8 +94,8 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           ...nextState,
           [key]: {
             ...metadata,
-            Well: undefined,
-            Workflow: undefined,
+            [WELL_ANNOTATION_NAME]: undefined,
+            [WORKFLOW_ANNOTATION_NAME]: undefined,
           },
         }),
         {} as UploadStateBranch
