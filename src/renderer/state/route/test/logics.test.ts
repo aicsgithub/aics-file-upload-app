@@ -28,11 +28,7 @@ import {
   getTemplateHistory,
   getUploadHistory,
 } from "../../metadata/selectors";
-import { selectWorkflowPath } from "../../selection/actions";
-import {
-  getCurrentSelectionIndex,
-  getSelectedPlate,
-} from "../../selection/selectors";
+import { getSelectedPlate } from "../../selection/selectors";
 import { associateByWorkflow } from "../../setting/actions";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
@@ -213,50 +209,6 @@ describe("Route logics", () => {
         expect(getUploadHistory(state)[Page.DragAndDrop]).to.equal(0);
         expect(getPage(state)).to.equal(Page.AddCustomData);
         expect(switchEnv.enabled).to.be.false;
-      }
-    );
-    it(
-      "Going from AddCustomData to DragAndDrop should change indexes for selection/template/upload to 0" +
-        "back to where they were when the user left the DragAndDrop page",
-      async () => {
-        const startingSelectionHistory = {
-          [Page.DragAndDrop]: 0,
-        };
-        const startingTemplateHistory = {
-          [Page.DragAndDrop]: 0,
-        };
-        const startingUploadHistory = {
-          [Page.DragAndDrop]: 0,
-        };
-        const { logicMiddleware, store } = createMockReduxStore({
-          ...mockState,
-          metadata: {
-            ...mockState.metadata,
-            history: {
-              selection: startingSelectionHistory,
-              template: startingTemplateHistory,
-              upload: startingUploadHistory,
-            },
-          },
-          route: {
-            page: Page.AddCustomData,
-            view: Page.AddCustomData,
-          },
-        });
-        store.dispatch(selectWorkflowPath());
-        await logicMiddleware.whenComplete();
-
-        // before
-        expect(getCurrentSelectionIndex(store.getState())).to.be.equal(1);
-
-        // apply
-        store.dispatch(selectPage(Page.AddCustomData, Page.DragAndDrop));
-
-        // after
-        await logicMiddleware.whenComplete();
-        const state = store.getState();
-        expect(getCurrentSelectionIndex(state)).to.equal(0);
-        expect(getPage(state)).to.equal(Page.DragAndDrop);
       }
     );
   });

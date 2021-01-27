@@ -32,7 +32,6 @@ import {
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
   SELECT_WELLS,
-  SELECT_WORKFLOW_PATH,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
@@ -51,7 +50,6 @@ import {
   SelectImagingSessionIdAction,
   SelectMetadataAction,
   SelectWellsAction,
-  SelectWorkflowPathAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -95,14 +93,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
       ...state,
       ...action.payload,
-    }),
-  },
-  [SELECT_WORKFLOW_PATH]: {
-    accepts: (action: AnyAction): action is SelectWorkflowPathAction =>
-      action.type === SELECT_WORKFLOW_PATH,
-    perform: (state: SelectionStateBranch) => ({
-      ...state,
-      barcode: undefined,
     }),
   },
   [SET_PLATE]: {

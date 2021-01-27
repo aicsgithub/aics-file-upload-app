@@ -20,7 +20,6 @@ import {
   SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_WELLS,
-  SELECT_WORKFLOW_PATH,
   SELECT_WORKFLOWS,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
@@ -36,7 +35,6 @@ import {
   SelectFileAction,
   SelectImagingSessionIdAction,
   SelectWellsAction,
-  SelectWorkflowPathAction,
   SelectWorkflowsAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
@@ -86,13 +84,6 @@ export function selectBarcode(
     autoSave: true,
     payload: { barcode, imagingSessionIds },
     type: SELECT_BARCODE,
-  };
-}
-
-export function selectWorkflowPath(): SelectWorkflowPathAction {
-  return {
-    autoSave: true,
-    type: SELECT_WORKFLOW_PATH,
   };
 }
 

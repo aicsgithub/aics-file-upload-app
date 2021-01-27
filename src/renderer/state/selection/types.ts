@@ -55,10 +55,6 @@ export interface SelectBarcodeAction extends AutoSaveAction {
   type: string;
 }
 
-export interface SelectWorkflowPathAction extends AutoSaveAction {
-  type: string;
-}
-
 export interface SelectWorkflowsAction {
   payload: Workflow[];
   type: string;

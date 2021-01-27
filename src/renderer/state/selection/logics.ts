@@ -14,7 +14,6 @@ import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
 import { getPage } from "../route/selectors";
-import { associateByWorkflow } from "../setting/actions";
 import {
   AlertType,
   AsyncRequest,
@@ -27,7 +26,7 @@ import {
   UploadFile,
 } from "../types";
 import { addUploadFiles } from "../upload/actions";
-import { batchActions, getActionFromBatch } from "../util";
+import { batchActions } from "../util";
 
 import { selectWells, setPlate } from "./actions";
 import {
@@ -35,7 +34,6 @@ import {
   OPEN_FILES,
   SELECT_BARCODE,
   SELECT_WELLS,
-  SELECT_WORKFLOW_PATH,
 } from "./constants";
 import { getWellsWithModified } from "./selectors";
 
@@ -167,26 +165,6 @@ const selectBarcodeLogic = createLogic({
   type: SELECT_BARCODE,
 });
 
-const selectWorkflowPathLogic = createLogic({
-  process: (
-    deps: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    const action = getActionFromBatch(deps.action, SELECT_WORKFLOW_PATH);
-
-    if (action) {
-      const actions = [action, associateByWorkflow(true)];
-      const nextPage =
-        findNextPage(Page.AddCustomData, 1) || Page.AddCustomData;
-      dispatch(batchActions(actions));
-      dispatch(selectPage(Page.AddCustomData, nextPage));
-    }
-    done();
-  },
-  type: SELECT_WORKFLOW_PATH,
-});
-
 const selectWellsLogic = createLogic({
   transform: (
     { action, getState }: ReduxLogicTransformDependencies,
@@ -210,5 +188,4 @@ export default [
   openFilesLogic,
   selectBarcodeLogic,
   selectWellsLogic,
-  selectWorkflowPathLogic,
 ];
