@@ -141,10 +141,7 @@ const stateBranchHistory = [
     jumpToPast: jumpToPastUpload,
   },
 ];
-const pagesToAllowSwitchingEnvironments = [
-  Page.UploadSummary,
-  Page.DragAndDrop,
-];
+const pagesToAllowSwitchingEnvironments = [Page.UploadSummary];
 
 export const handleGoingToNextPage = (
   logger: Logger,
@@ -153,7 +150,7 @@ export const handleGoingToNextPage = (
   selectPageAction: SelectPageAction
 ) => {
   const actions: AnyAction[] = [selectPageAction];
-  if (selectPageAction.payload.nextPage === Page.DragAndDrop) {
+  if (selectPageAction.payload.nextPage === Page.AddCustomData) {
     const isMountedAsExpected = existsSync(
       makePosixPathCompatibleWithPlatform("/allen/aics", platform())
     );

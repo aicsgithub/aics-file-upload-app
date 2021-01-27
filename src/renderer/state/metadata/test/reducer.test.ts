@@ -53,11 +53,11 @@ describe("metadata reducer", () => {
     it("updates page history", () => {
       const result = reducer(
         initialState,
-        updatePageHistory(Page.DragAndDrop, 1, 2, 3)
+        updatePageHistory(Page.AddCustomData, 1, 2, 3)
       );
-      expect(result.history.selection[Page.DragAndDrop]).to.equal(1);
-      expect(result.history.upload[Page.DragAndDrop]).to.equal(2);
-      expect(result.history.template[Page.DragAndDrop]).to.equal(3);
+      expect(result.history.selection[Page.AddCustomData]).to.equal(1);
+      expect(result.history.upload[Page.AddCustomData]).to.equal(2);
+      expect(result.history.template[Page.AddCustomData]).to.equal(3);
     });
   });
   describe("clearFileMetadataForJob", () => {

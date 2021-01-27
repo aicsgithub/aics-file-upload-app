@@ -22,10 +22,10 @@ describe("route reducer", () => {
     it("sets page and view to payload.nextPage", () => {
       const result = reducer(
         route,
-        selectPage(Page.UploadSummary, Page.DragAndDrop)
+        selectPage(Page.UploadSummary, Page.AddCustomData)
       );
-      expect(result.page).to.equal(Page.DragAndDrop);
-      expect(result.view).to.equal(Page.DragAndDrop);
+      expect(result.page).to.equal(Page.AddCustomData);
+      expect(result.view).to.equal(Page.AddCustomData);
     });
   });
   describe("replaceUpload", () => {

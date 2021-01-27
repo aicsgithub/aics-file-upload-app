@@ -161,46 +161,6 @@ describe("Selection logics", () => {
       filePaths = [FILE_FULL_PATH, FOLDER_FULL_PATH];
     });
 
-    it("Goes to AddCustomData page if on DragAndDrop page", async () => {
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        route: {
-          page: Page.DragAndDrop,
-          view: Page.DragAndDrop,
-        },
-      });
-
-      // before
-      expect(getPage(store.getState())).to.equal(Page.DragAndDrop);
-
-      // apply
-      store.dispatch(selections.actions.openFilesFromDialog(filePaths));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
-    });
-
-    it("Does not change page if not on DragAndDrop page", async () => {
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        route: {
-          page: Page.AddCustomData,
-          view: Page.AddCustomData,
-        },
-      });
-
-      // before
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
-
-      // apply
-      store.dispatch(selections.actions.openFilesFromDialog(filePaths));
-
-      // after
-      await logicMiddleware.whenComplete();
-      expect(getPage(store.getState())).to.equal(Page.AddCustomData);
-    });
-
     it("Stages all files opened", async () => {
       const { logicMiddleware, store } = createMockReduxStore(mockState);
 

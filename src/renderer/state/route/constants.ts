@@ -17,11 +17,7 @@ export const OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED = makeConstant(
 export const SELECT_PAGE = makeConstant(BRANCH_NAME, "select-page");
 export const SELECT_VIEW = makeConstant(BRANCH_NAME, "select-view");
 
-export const pageOrder: Page[] = [
-  Page.DragAndDrop,
-  Page.AddCustomData,
-  Page.UploadSummary,
-];
+export const pageOrder: Page[] = [Page.AddCustomData, Page.UploadSummary];
 /***
  * Helper function for getting a page relative to a given page. Returns null if direction is out of bounds or
  * if current page is not recognized.

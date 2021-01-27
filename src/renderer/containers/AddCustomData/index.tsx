@@ -8,7 +8,6 @@ import { ActionCreator } from "redux";
 
 import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
-import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
@@ -75,7 +74,6 @@ import {
   AsyncRequest,
   ExpandedRows,
   MassEditRow,
-  Page,
   State,
 } from "../../state/types";
 import {
@@ -228,106 +226,97 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
-    let saveButtonText = "Upload";
-    let title = "ADD ADDITIONAL DATA";
-    let prompt =
-      "Review and add information to the files below and click Upload to submit the job.";
-    if (selectedJob) {
-      title = "UPLOAD DETAILS";
-      if (this.isReadOnly) {
-        prompt = "";
-      } else {
-        if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
-          saveButtonText = "Update";
-        } else {
-          saveButtonText = "Retry";
-        }
-        prompt = `Make any changes necessary and click ${saveButtonText} to ${saveButtonText.toLowerCase()} the upload`;
-      }
-    }
     return (
-      <FormPage
-        backButtonDisabled={!!selectedJob}
-        className={className}
-        formTitle={title}
-        formPrompt={prompt}
-        onSave={this.submit}
-        saveButtonDisabled={!canSubmit}
-        saveInProgress={uploadInProgress || updateInProgress}
-        saveButtonName={saveButtonText}
-        hideProgressBar={!!selectedJob}
-        hideBackButton={!!selectedJob}
-        hideSaveButton={this.isReadOnly}
-        onBack={this.props.goBack}
-        page={Page.AddCustomData}
-      >
-        {selectedJob && <JobOverviewDisplay job={selectedJob} />}
-        {!loadingFileMetadata && this.renderButtons()}
-        {showLoading && (
-          <div className={styles.spinContainer}>
-            <div className={styles.spinText}>Loading...</div>
-            <Spin />
-          </div>
-        )}
-        {!showLoading && uploadError && (
-          <Alert
-            className={styles.alert}
-            message="Upload Failed"
-            description={uploadError}
-            type="error"
-            showIcon={true}
-          />
-        )}
-        {!showLoading && validationErrors.length > 0 && (
-          <Alert
-            className={styles.alert}
-            message={validationErrors.map((e) => (
-              <div key={e}>{e}</div>
-            ))}
-            showIcon={true}
-            type="error"
-          />
-        )}
-        {!showLoading &&
-          appliedTemplate &&
-          showUploadHint &&
-          !this.isReadOnly && (
+      <div className={classNames(className, styles.uploadJobContainer)}>
+        <div className={styles.contentContainer}>
+          {selectedJob && <JobOverviewDisplay job={selectedJob} />}
+          {!loadingFileMetadata && this.renderButtons()}
+          {showLoading && (
+            <div className={styles.spinContainer}>
+              <div className={styles.spinText}>Loading...</div>
+              <Spin />
+            </div>
+          )}
+          {!showLoading && uploadError && (
             <Alert
-              afterClose={this.hideHint}
               className={styles.alert}
-              closable={true}
-              message="Hint: You can add multiple values for Text and Number annotations using commas!"
+              message="Upload Failed"
+              description={uploadError}
+              type="error"
               showIcon={true}
-              type="info"
             />
           )}
-        {!showLoading && appliedTemplate && (
-          <CustomDataGrid
-            allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
-            annotationTypes={annotationTypes}
-            associateByWorkflow={isAssociatedByWorkflow}
-            canRedo={canRedo}
-            canUndo={canUndo}
-            channels={this.props.channels}
-            editable={!this.isReadOnly}
-            expandedRows={this.props.expandedRows}
-            fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
-            massEditRow={massEditRow}
-            redo={this.redo}
-            removeUploads={this.props.removeUploads}
-            template={appliedTemplate}
-            setAlert={this.props.setAlert}
-            toggleRowExpanded={this.props.toggleRowExpanded}
-            undo={this.undo}
-            updateMassEditRow={this.props.updateMassEditRow}
-            updateSubImages={this.props.updateSubImages}
-            updateUpload={this.props.updateUpload}
-            updateUploadRows={this.props.updateUploadRows}
-            uploads={uploads}
-            validationErrors={uploadRowKeyToAnnotationErrorMap}
-          />
-        )}
-      </FormPage>
+          {!showLoading && validationErrors.length > 0 && (
+            <Alert
+              className={styles.alert}
+              message={validationErrors.map((e) => (
+                <div key={e}>{e}</div>
+              ))}
+              showIcon={true}
+              type="error"
+            />
+          )}
+          {!showLoading &&
+            appliedTemplate &&
+            showUploadHint &&
+            !this.isReadOnly && (
+              <Alert
+                afterClose={this.hideHint}
+                className={styles.alert}
+                closable={true}
+                message="Hint: You can add multiple values for Text and Number annotations using commas!"
+                showIcon={true}
+                type="info"
+              />
+            )}
+          {!showLoading && appliedTemplate && (
+            <CustomDataGrid
+              allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
+              annotationTypes={annotationTypes}
+              associateByWorkflow={isAssociatedByWorkflow}
+              canRedo={canRedo}
+              canUndo={canUndo}
+              channels={this.props.channels}
+              editable={!this.isReadOnly}
+              expandedRows={this.props.expandedRows}
+              fileToAnnotationHasValueMap={
+                this.props.fileToAnnotationHasValueMap
+              }
+              massEditRow={massEditRow}
+              redo={this.redo}
+              removeUploads={this.props.removeUploads}
+              template={appliedTemplate}
+              setAlert={this.props.setAlert}
+              toggleRowExpanded={this.props.toggleRowExpanded}
+              undo={this.undo}
+              updateMassEditRow={this.props.updateMassEditRow}
+              updateSubImages={this.props.updateSubImages}
+              updateUpload={this.props.updateUpload}
+              updateUploadRows={this.props.updateUploadRows}
+              uploads={uploads}
+              validationErrors={uploadRowKeyToAnnotationErrorMap}
+            />
+          )}
+        </div>
+        <div className={styles.saveButtonContainer}>
+          <Button
+            className={styles.saveButton}
+            type="primary"
+            size="large"
+            onClick={this.submit}
+            disabled={!canSubmit || uploadInProgress || updateInProgress}
+          >
+            {uploadInProgress || updateInProgress ? (
+              <>
+                Loading
+                <Icon type="loading" className={styles.loading} spin={true} />
+              </>
+            ) : (
+              "Upload"
+            )}
+          </Button>
+        </div>
+      </div>
     );
   }
 

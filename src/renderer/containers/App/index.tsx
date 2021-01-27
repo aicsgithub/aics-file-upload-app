@@ -47,7 +47,6 @@ import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, AsyncRequest, Page } from "../../state/types";
 import { openUploadDraft, saveUploadDraft } from "../../state/upload/actions";
 import AddCustomData from "../AddCustomData";
-import DragAndDropSquare from "../DragAndDropSquare";
 import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
 import SettingsEditorModal from "../SettingsEditorModal";
@@ -64,12 +63,6 @@ const { TabPane } = Tabs;
 const ALERT_DURATION = 2;
 
 const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
-  [
-    Page.DragAndDrop,
-    {
-      container: <DragAndDropSquare key="dragAndDrop" />,
-    },
-  ],
   [
     Page.AddCustomData,
     {

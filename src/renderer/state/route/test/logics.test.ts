@@ -179,14 +179,14 @@ describe("Route logics", () => {
 
     // This is going forward
     it(
-      "Going from DragAndDrop to AddCustomData should record the index selection/template/upload state " +
+      "Going from UploadSummary to AddCustomData should record the index selection/template/upload state " +
         "branches were at after leaving that page",
       async () => {
         const { logicMiddleware, store } = createMockReduxStore({
           ...mockState,
           route: {
-            page: Page.DragAndDrop,
-            view: Page.DragAndDrop,
+            page: Page.UploadSummary,
+            view: Page.UploadSummary,
           },
         });
 
@@ -195,18 +195,18 @@ describe("Route logics", () => {
         expect(getSelectionHistory(state)).to.be.empty;
         expect(getTemplateHistory(state)).to.be.empty;
         expect(getUploadHistory(state)).to.be.empty;
-        expect(getPage(state)).to.equal(Page.DragAndDrop);
+        expect(getPage(state)).to.equal(Page.UploadSummary);
         expect(switchEnv.enabled).to.be.true;
 
         // apply
-        store.dispatch(selectPage(Page.DragAndDrop, Page.AddCustomData));
+        store.dispatch(selectPage(Page.UploadSummary, Page.AddCustomData));
 
         // after
         await logicMiddleware.whenComplete();
         state = store.getState();
-        expect(getSelectionHistory(state)[Page.DragAndDrop]).to.equal(0);
-        expect(getTemplateHistory(state)[Page.DragAndDrop]).to.equal(0);
-        expect(getUploadHistory(state)[Page.DragAndDrop]).to.equal(0);
+        expect(getSelectionHistory(state)[Page.UploadSummary]).to.equal(0);
+        expect(getTemplateHistory(state)[Page.UploadSummary]).to.equal(0);
+        expect(getUploadHistory(state)[Page.UploadSummary]).to.equal(0);
         expect(getPage(state)).to.equal(Page.AddCustomData);
         expect(switchEnv.enabled).to.be.false;
       }
@@ -260,17 +260,9 @@ describe("Route logics", () => {
   };
 
   describe("goBackLogic", () => {
-    it("goes to DragAndDrop page if going back from AddCustomData page", async () => {
+    it("goes to UploadSummary page if going back from AddCustomData page", async () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
-        Page.DragAndDrop,
-        goBack,
-        1
-      );
-    });
-    it("goes to UploadSummary page if going back from DragAndDrop page", async () => {
-      await runShowMessageBoxTest(
-        Page.DragAndDrop,
         Page.UploadSummary,
         goBack,
         1
