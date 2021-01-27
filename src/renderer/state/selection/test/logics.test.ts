@@ -301,7 +301,7 @@ describe("Selection logics", () => {
       };
     });
 
-    it("Sets wells, page, barcode, imagingSessionIds and plateId if GET wells is OK", async () => {
+    it("Sets wells, barcode, imagingSessionIds and plateId if GET wells is OK", async () => {
       mmsClient.getPlate.onFirstCall().callsFake(() => {
         return Promise.resolve(mockOkGetPlateResponse);
       });
@@ -319,7 +319,6 @@ describe("Selection logics", () => {
       const state = store.getState();
       expect(getSelectedImagingSessionIds(state)).to.equal(imagingSessions);
       expect(getWells(state)).to.not.be.empty;
-      expect(getPage(state)).to.equal(Page.AddCustomData);
       expect(getSelectedBarcode(state)).to.equal(barcode);
       expect(getSelectedPlateId(state)).to.equal(plateId);
     });
@@ -359,7 +358,6 @@ describe("Selection logics", () => {
         0: mockOkGetPlateResponse.plate,
         1: mockPlateResponse2.plate,
       });
-      expect(getPage(state)).to.equal(Page.AddCustomData);
       expect(getSelectedBarcode(state)).to.equal(barcode);
       expect(getSelectedPlateId(state)).to.equal(plateId);
     });

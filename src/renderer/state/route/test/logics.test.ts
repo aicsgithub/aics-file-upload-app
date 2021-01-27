@@ -247,8 +247,7 @@ describe("Route logics", () => {
         await logicMiddleware.whenComplete();
 
         // before
-        expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
-        expect(switchEnv.enabled).to.be.false;
+        expect(getCurrentSelectionIndex(store.getState())).to.be.equal(1);
 
         // apply
         store.dispatch(selectPage(Page.AddCustomData, Page.DragAndDrop));
@@ -258,7 +257,6 @@ describe("Route logics", () => {
         const state = store.getState();
         expect(getCurrentSelectionIndex(state)).to.equal(0);
         expect(getPage(state)).to.equal(Page.DragAndDrop);
-        expect(switchEnv.enabled).to.be.true;
       }
     );
   });

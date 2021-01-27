@@ -13,6 +13,8 @@ import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
 } from "../route/types";
+import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
+import { AssociateByWorkflowAction } from "../setting/types";
 import {
   SelectionStateBranch,
   TypeToDescriptionMap,
@@ -74,6 +76,19 @@ export const initialState: SelectionStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
+  [ASSOCIATE_BY_WORKFLOW]: {
+    accepts: (action: AnyAction): action is AssociateByWorkflowAction =>
+      action.type === ASSOCIATE_BY_WORKFLOW,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      barcode: undefined,
+      imagingSessionId: undefined,
+      imagingSessionIds: [],
+      plate: {},
+      selectedWells: [],
+      wells: {},
+    }),
+  },
   [SELECT_BARCODE]: {
     accepts: (action: AnyAction): action is SelectBarcodeAction =>
       action.type === SELECT_BARCODE,
