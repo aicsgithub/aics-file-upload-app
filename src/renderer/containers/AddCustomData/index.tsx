@@ -1,11 +1,12 @@
 import { Alert, Button, Icon, Select, Spin } from "antd";
 import classNames from "classnames";
+import { ipcRenderer } from "electron";
 import { find } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SCHEMA_SYNONYM } from "../../../shared/constants";
+import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
@@ -51,6 +52,7 @@ import {
   getMassEditRow,
 } from "../../state/selection/selectors";
 import {
+  SelectBarcodeAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
   Well,
@@ -138,7 +140,7 @@ interface Props {
   massEditRow: MassEditRow;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
-  selectBarcode: typeof selectBarcode;
+  selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
   selectedJob?: JSSJob<UploadServiceFields>;
   setAlert: ActionCreator<SetAlertAction>;
@@ -175,6 +177,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     this.state = {
       selectedFiles: [],
     };
+
+    // During the "Create Barcode" path the user will create a plate, triggering this. From here we can proceed
+    // to associating files and wells, note this will now become essentially the same path as "Enter Barcode"
+    ipcRenderer.on(
+      PLATE_CREATED,
+      (_: any, barcode: string, imagingSessionId: number | null) => {
+        this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
+      }
+    );
   }
 
   public get isReadOnly() {
