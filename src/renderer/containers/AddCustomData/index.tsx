@@ -233,12 +233,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       massEditRow,
       selectedJob,
       updateInProgress,
-      showUploadHint,
-      uploadError,
       uploadInProgress,
       uploadRowKeyToAnnotationErrorMap,
       uploads,
-      validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
     let saveButtonText = "Upload";
@@ -259,77 +256,46 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       >
         <div className={styles.contentContainer}>
           {selectedJob && <JobOverviewDisplay job={selectedJob} />}
-          {!loadingFileMetadata && this.renderButtons()}
-          {showLoading && (
+          {!loadingFileMetadata && this.renderTemplateAndUploadTypeInput()}
+          {showLoading ? (
             <div className={styles.spinContainer}>
-              <div className={styles.spinText}>Loading...</div>
+              <div>Loading...</div>
               <Spin />
             </div>
-          )}
-          {!showLoading && uploadError && (
-            <Alert
-              className={styles.alert}
-              message="Upload Failed"
-              description={uploadError}
-              type="error"
-              showIcon={true}
-            />
-          )}
-          {!showLoading && validationErrors.length > 0 && (
-            <Alert
-              className={styles.alert}
-              message={validationErrors.map((e) => (
-                <div key={e}>{e}</div>
-              ))}
-              showIcon={true}
-              type="error"
-            />
-          )}
-          {!showLoading &&
-            appliedTemplate &&
-            showUploadHint &&
-            !this.isReadOnly && (
-              <Alert
-                afterClose={this.hideHint}
-                className={styles.alert}
-                closable={true}
-                message="Hint: You can add multiple values for Text and Number annotations using commas!"
-                showIcon={true}
-                type="info"
+          ) : (
+            <>
+              {this.renderAlerts()}
+              <CustomDataGrid
+                allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
+                annotationTypes={annotationTypes}
+                associateByWorkflow={isAssociatedByWorkflow}
+                canRedo={canRedo}
+                canUndo={canUndo}
+                channels={this.props.channels}
+                editable={!this.isReadOnly}
+                expandedRows={this.props.expandedRows}
+                fileToAnnotationHasValueMap={
+                  this.props.fileToAnnotationHasValueMap
+                }
+                massEditRow={massEditRow}
+                redo={this.redo}
+                removeUploads={this.props.removeUploads}
+                template={appliedTemplate}
+                setAlert={this.props.setAlert}
+                toggleRowExpanded={this.props.toggleRowExpanded}
+                undo={this.undo}
+                updateMassEditRow={this.props.updateMassEditRow}
+                updateSubImages={this.props.updateSubImages}
+                updateUpload={this.props.updateUpload}
+                updateUploadRows={this.props.updateUploadRows}
+                uploads={uploads}
+                validationErrors={uploadRowKeyToAnnotationErrorMap}
               />
-            )}
-          {!showLoading && appliedTemplate && (
-            <CustomDataGrid
-              allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
-              annotationTypes={annotationTypes}
-              associateByWorkflow={isAssociatedByWorkflow}
-              canRedo={canRedo}
-              canUndo={canUndo}
-              channels={this.props.channels}
-              editable={!this.isReadOnly}
-              expandedRows={this.props.expandedRows}
-              fileToAnnotationHasValueMap={
-                this.props.fileToAnnotationHasValueMap
-              }
-              massEditRow={massEditRow}
-              redo={this.redo}
-              removeUploads={this.props.removeUploads}
-              template={appliedTemplate}
-              setAlert={this.props.setAlert}
-              toggleRowExpanded={this.props.toggleRowExpanded}
-              undo={this.undo}
-              updateMassEditRow={this.props.updateMassEditRow}
-              updateSubImages={this.props.updateSubImages}
-              updateUpload={this.props.updateUpload}
-              updateUploadRows={this.props.updateUploadRows}
-              uploads={uploads}
-              validationErrors={uploadRowKeyToAnnotationErrorMap}
-            />
+            </>
           )}
         </div>
         <div className={styles.saveButtonContainer}>
           <Button
-            className={styles.saveButton}
             type="primary"
             size="large"
             onClick={this.submit}
@@ -349,7 +315,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   }
 
-  private renderButtons = () => {
+  private renderTemplateAndUploadTypeInput = () => {
     const {
       appliedTemplate,
       associateByWorkflow,
@@ -453,6 +419,53 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         </div>
       </>
     );
+  };
+
+  private renderAlerts = () => {
+    const alerts = [];
+    if (this.props.uploadError) {
+      alerts.push(
+        <Alert
+          className={styles.alert}
+          message="Upload Failed"
+          description={this.props.uploadError}
+          type="error"
+          showIcon={true}
+          key="upload-failed"
+        />
+      );
+    }
+    if (this.props.validationErrors.length > 0) {
+      alerts.push(
+        <Alert
+          className={styles.alert}
+          message={this.props.validationErrors.map((e) => (
+            <div key={e}>{e}</div>
+          ))}
+          showIcon={true}
+          type="error"
+          key="validation-errors"
+        />
+      );
+    }
+    if (
+      this.props.appliedTemplate &&
+      this.props.showUploadHint &&
+      !this.isReadOnly
+    ) {
+      alerts.push(
+        <Alert
+          afterClose={this.hideHint}
+          className={styles.alert}
+          closable={true}
+          message="Hint: You can add multiple values for Text and Number annotations using commas!"
+          showIcon={true}
+          type="info"
+          key="hint"
+        />
+      );
+    }
+    return alerts;
   };
 
   private submit = (): void => {
