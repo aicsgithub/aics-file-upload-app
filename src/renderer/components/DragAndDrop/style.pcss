@@ -5,6 +5,14 @@
   flex-direction: column;
 }
 
+.highlight {
+  background-color: var(--drag-and-drop-background-color);
+  color: var(--brand-primary);
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
 .container {
   width: 100%;
   height: 100%;
@@ -12,6 +20,9 @@
   &.highlight {
     background-color: var(--drag-and-drop-background-color);
     color: var(--brand-primary);
+    height: 100%;
+    width: 100%;
+    position: absolute;
   }
 
   & .content {
@@ -22,6 +33,17 @@
       color: var(--brand-primary);
       padding: 1rem;
     }
+  }
+
+  & .overlay {
+    pointer-events: none;
+    opacity: 0.25;
+    height: 100%;
+  }
+
+  & .overlay-prompt {
+    position: absolute;
+    top: 45%;
   }
 }
 

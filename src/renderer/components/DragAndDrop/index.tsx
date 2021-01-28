@@ -12,6 +12,7 @@ interface DragAndDropProps {
   children?: React.ReactNode | React.ReactNodeArray;
   openDialogOptions: OpenDialogOptions;
   className?: string;
+  overlayChildren?: boolean;
   onDrop: (files: DragAndDropFileList) => void;
   onOpen?: (files: string[]) => void;
 }
@@ -39,34 +40,70 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   }
 
   public render() {
-    const { children, className } = this.props;
-
     return (
       <div
-        className={classNames(
-          styles.container,
-          { [styles.highlight]: this.isHovered },
-          className
-        )}
+        className={classNames(styles.container, this.props.className)}
         onDragEnter={this.onDragEnter}
         onDragLeave={this.onDragLeave}
         onDragEnd={this.onDragLeave}
         onDrop={this.onDrop}
         onDragOver={DragAndDrop.onDragOver}
       >
-        {children || (
-          <div className={styles.content}>
-            <>
-              <Icon type="upload" className={styles.uploadIcon} />
-              <div>Drag&nbsp;and&nbsp;Drop</div>
-              <div>- or -</div>
-              <Button onClick={this.onBrowse}>Browse</Button>
-            </>
-          </div>
-        )}
+        {this.renderContent()}
+        <div className={this.isHovered && styles.highlight} />
       </div>
     );
   }
+
+  private renderContent = (): React.ReactNode | React.ReactNodeArray => {
+    const dragAndDropPrompt = (
+      <div className={styles.content}>
+        <>
+          <Icon type="upload" className={styles.uploadIcon} />
+          <div>Drag&nbsp;and&nbsp;Drop</div>
+          <div>- or -</div>
+          <Button
+            disabled={!this.props.openDialogOptions}
+            onClick={this.onBrowse}
+          >
+            Browse
+          </Button>
+        </>
+      </div>
+    );
+
+    if (!this.props.children) {
+      return dragAndDropPrompt;
+    }
+
+    if (!this.props.overlayChildren) {
+      return this.props.children;
+    }
+
+    if (this.props.children && this.props.overlayChildren) {
+      return (
+        <>
+          <div className={styles.overlay}>{this.props.children}</div>
+          <div className={styles.overlayPrompt}>{dragAndDropPrompt}</div>
+        </>
+      );
+    }
+    return (
+      <div className={styles.content}>
+        <>
+          <Icon type="upload" className={styles.uploadIcon} />
+          <div>Drag&nbsp;and&nbsp;Drop</div>
+          <div>- or -</div>
+          <Button
+            disabled={!this.props.openDialogOptions}
+            onClick={this.onBrowse}
+          >
+            Browse
+          </Button>
+        </>
+      </div>
+    );
+  };
 
   // Opens native file explorer
   private onBrowse = async (): Promise<void> => {

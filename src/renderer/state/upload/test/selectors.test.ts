@@ -1391,13 +1391,6 @@ describe("Upload selectors", () => {
       expect(errors.includes("A template must be selected to submit an upload"))
         .to.be.true;
     });
-    it("adds error if no files to upload and no job selected", () => {
-      const errors = getUploadValidationErrors({
-        ...mockState,
-        upload: getMockStateWithHistory({}),
-      });
-      expect(errors.includes("No files to upload")).to.be.true;
-    });
     it("adds error if non-ASCII character is provided", () => {
       const value = "Hello";
       const annotation = "A Text Annotation";
@@ -1419,17 +1412,6 @@ describe("Upload selectors", () => {
           `Annotations cannot have special characters like in "${value}" for ${annotation}`
         )
       );
-    });
-    it("does not add error if no files to upload but a job is selected", () => {
-      const errors = getUploadValidationErrors({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          job: mockSuccessfulUploadJob,
-        }),
-        upload: getMockStateWithHistory({}),
-      });
-      expect(errors.includes("No files to upload")).to.be.false;
     });
     it("adds error if no upload type is selected", () => {
       const errors = getUploadValidationErrors({

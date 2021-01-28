@@ -697,10 +697,6 @@ export const getUploadValidationErrors = createSelector(
       );
     }
 
-    if (!rows.length && !selectedJob) {
-      errors.push("No files to upload");
-    }
-
     if (keys(validationErrorsMap).length) {
       errors.push(
         "Unexpected format for annotation type. Hover red x icons for more information."

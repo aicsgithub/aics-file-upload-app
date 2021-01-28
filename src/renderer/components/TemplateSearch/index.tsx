@@ -62,7 +62,6 @@ export default function TemplateSearch(props: TemplateSearchProps) {
   const sortedTemplates = sortBy(filteredTemplates, ["Name"]);
   return (
     <Select
-      autoFocus={true}
       className={classNames(styles.container, className)}
       defaultOpen={defaultOpen}
       disabled={disabled || (loading && !templates)}

@@ -114,7 +114,6 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     return (
       <Select
         allowClear={true}
-        autoFocus={true}
         className={classNames(
           styles.container,
           { [styles.search]: isLargeLookup },

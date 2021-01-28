@@ -1,6 +1,6 @@
 import { Alert, Button, Icon, Select, Spin } from "antd";
 import classNames from "classnames";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -8,6 +8,7 @@ import { ActionCreator } from "redux";
 
 import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
+import DragAndDrop from "../../components/DragAndDrop";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
@@ -39,6 +40,8 @@ import { CreateBarcodeAction } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction } from "../../state/route/types";
 import {
+  loadFilesFromDragAndDrop,
+  openFilesFromDialog,
   selectBarcode,
   toggleExpandedUploadJobRow,
   updateMassEditRow,
@@ -51,6 +54,8 @@ import {
   getMassEditRow,
 } from "../../state/selection/selectors";
 import {
+  LoadFilesFromDragAndDropAction,
+  LoadFilesFromOpenDialogAction,
   SelectBarcodeAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -72,6 +77,7 @@ import {
 import { getAppliedTemplate } from "../../state/template/selectors";
 import {
   AsyncRequest,
+  DragAndDropFileList,
   ExpandedRows,
   MassEditRow,
   State,
@@ -125,7 +131,6 @@ interface Props {
   canSubmit: boolean;
   canUndo: boolean;
   channels: Channel[];
-  className?: string;
   createBarcode: ActionCreator<CreateBarcodeAction>;
   expandedRows: ExpandedRows;
   isAssociatedByWorkflow: boolean;
@@ -135,7 +140,11 @@ interface Props {
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
   loadingFileMetadata: boolean;
+  loadFilesFromDragAndDrop: (
+    files: DragAndDropFileList
+  ) => LoadFilesFromDragAndDropAction;
   massEditRow: MassEditRow;
+  openFilesFromDialog: (files: string[]) => LoadFilesFromOpenDialogAction;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
   selectBarcode: ActionCreator<SelectBarcodeAction>;
@@ -165,6 +174,13 @@ interface Props {
 interface AddCustomDataState {
   selectedFiles: string[];
 }
+
+// On Windows, file browsers cannot look for directories and files at the same time
+// directories are the default in that case
+const openDialogOptions: OpenDialogOptions = {
+  properties: ["openFile", "openDirectory", "multiSelections"],
+  title: "Browse for folders, or drag and drop files/folders onto app",
+};
 
 /**
  * Renders template selector and custom data grid for adding additional data to each file.
@@ -211,7 +227,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       canRedo,
       canSubmit,
       canUndo,
-      className,
       isAssociatedByWorkflow,
       loading,
       loadingFileMetadata,
@@ -227,7 +242,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
     return (
-      <div className={classNames(className, styles.uploadJobContainer)}>
+      <DragAndDrop
+        overlayChildren={!Object.keys(uploads).length}
+        onDrop={this.props.loadFilesFromDragAndDrop}
+        onOpen={this.props.openFilesFromDialog}
+        openDialogOptions={openDialogOptions}
+      >
         <div className={styles.contentContainer}>
           {selectedJob && <JobOverviewDisplay job={selectedJob} />}
           {!loadingFileMetadata && this.renderButtons()}
@@ -316,7 +336,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             )}
           </Button>
         </div>
-      </div>
+      </DragAndDrop>
     );
   }
 
@@ -484,6 +504,8 @@ const dispatchToPropsMap = {
   goBack,
   initiateUpload,
   jumpToUpload,
+  loadFilesFromDragAndDrop,
+  openFilesFromDialog,
   removeUploads,
   selectBarcode,
   setAlert,
