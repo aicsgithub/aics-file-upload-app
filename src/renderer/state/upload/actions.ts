@@ -18,7 +18,6 @@ import {
   CANCEL_UPLOAD,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
-  CLEAR_UPLOAD,
   CLEAR_UPLOAD_DRAFT,
   CLEAR_UPLOAD_HISTORY,
   DELETE_UPLOADS,
@@ -36,7 +35,6 @@ import {
   SAVE_UPLOAD_DRAFT_SUCCESS,
   SUBMIT_FILE_METADATA_UPDATE,
   UNDO_FILE_WELL_ASSOCIATION,
-  UNDO_FILE_WORKFLOW_ASSOCIATION,
   UPDATE_AND_RETRY_UPLOAD,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
@@ -54,7 +52,6 @@ import {
   CancelUploadAction,
   CancelUploadFailedAction,
   CancelUploadSucceededAction,
-  ClearUploadAction,
   ClearUploadDraftAction,
   ClearUploadHistoryAction,
   EditFileMetadataFailedAction,
@@ -72,7 +69,6 @@ import {
   SaveUploadDraftSuccessAction,
   SubmitFileMetadataUpdateAction,
   UndoFileWellAssociationAction,
-  UndoFileWorkflowAssociationAction,
   UpdateAndRetryUploadAction,
   UpdateSubImagesAction,
   UpdateSubImagesPayload,
@@ -135,20 +131,6 @@ export function associateFilesAndWorkflows(
       workflows,
     },
     type: ASSOCIATE_FILES_AND_WORKFLOWS,
-  };
-}
-
-export function undoFileWorkflowAssociation(
-  fullPath: string,
-  workflowNames: string[]
-): UndoFileWorkflowAssociationAction {
-  return {
-    autoSave: true,
-    payload: {
-      fullPath,
-      workflowNames,
-    },
-    type: UNDO_FILE_WORKFLOW_ASSOCIATION,
   };
 }
 
@@ -347,13 +329,6 @@ export function updateSubImages(
       subImageNames: payload.subImageNames || [],
     },
     type: UPDATE_SUB_IMAGES,
-  };
-}
-
-export function clearUpload(): ClearUploadAction {
-  return {
-    autoSave: true,
-    type: CLEAR_UPLOAD,
   };
 }
 

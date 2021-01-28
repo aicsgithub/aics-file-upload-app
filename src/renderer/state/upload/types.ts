@@ -127,14 +127,6 @@ export interface UndoFileWellAssociationAction extends AutoSaveAction {
   type: string;
 }
 
-export interface UndoFileWorkflowAssociationAction extends AutoSaveAction {
-  payload: {
-    fullPath: string;
-    workflowNames: string[];
-  };
-  type: string;
-}
-
 export interface JumpToPastUploadAction extends AutoSaveAction {
   index: number;
   type: string;
@@ -234,10 +226,6 @@ export interface UpdateSubImagesAction extends AutoSaveAction {
   type: string;
 }
 
-export interface ClearUploadAction extends AutoSaveAction {
-  type: string;
-}
-
 export interface SaveUploadDraftAction {
   // represents whether to set uploadDraftFilePath after success
   payload: boolean;
@@ -288,33 +276,6 @@ export interface SaveUploadDraftSuccessAction extends WriteToStoreAction {
 export interface UpdateAndRetryUploadAction {
   payload?: string; // job name
   type: string;
-}
-
-export enum FileTagType {
-  WELL = "well",
-  WORKFLOW = "workflow",
-}
-
-// Represents information needed to display an Antd Tag next to a file on the FolderTree.
-// There will be a tag for each piece of metadata associated with a file.
-export interface FileTag {
-  // Whether or not this tag can be closed
-  closable: boolean;
-
-  // Tag background color
-  color: string;
-
-  // Tag text
-  title: string;
-
-  // Type of tag
-  type: FileTagType;
-
-  // Well Id that this tag represents, if applicable
-  wellId?: number;
-
-  // Workflow name that this tag represents, if applicable
-  workflow?: string;
 }
 
 export enum FileType {
