@@ -59,7 +59,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
         onDragOver={DragAndDrop.onDragOver}
       >
         {this.renderContent()}
-        <div className={this.isHovered && styles.highlight} />
+        <div className={this.isHovered ? styles.highlight : undefined} />
       </div>
     );
   }

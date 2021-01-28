@@ -371,7 +371,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <Icon
             className={classNames(
               styles.icon,
-              !appliedTemplate && styles.hidden
+              !appliedTemplate ? styles.hidden : undefined
             )}
             type="check-circle"
           />
@@ -391,7 +391,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <Icon
             className={classNames(
               styles.icon,
-              !selectedBarcode && !isAssociatedByWorkflow && styles.hidden
+              !selectedBarcode && !isAssociatedByWorkflow
+                ? styles.hidden
+                : undefined
             )}
             type="check-circle"
           />
