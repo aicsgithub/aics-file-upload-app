@@ -366,5 +366,33 @@ describe("CustomMetadataQuerier", () => {
         seconds: 1.111,
       });
     });
+
+    it("transforms durations from milliseconds to objects for large values", async () => {
+      const metadata: FileMetadata = {
+        fileId: "abc123",
+        annotations: [
+          {
+            annotationId: 7,
+            values: ["172800000000"],
+          },
+        ],
+        modified: "sometime",
+        modifiedBy: "seanm",
+        filename: "example.txt",
+        fileSize: 1,
+        fileType: "image",
+      };
+
+      const result = await querier.transformFileMetadataIntoTable({
+        abc123: metadata,
+      });
+
+      expect(result[0].Interval[0]).to.deep.equal({
+        days: 2000,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      });
+    });
   });
 });

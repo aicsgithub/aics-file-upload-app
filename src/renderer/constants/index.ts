@@ -13,3 +13,7 @@ export const NOTES_ANNOTATION_NAME = "Notes";
 // This was calculated by finding an element with the main font size (18px), getting the clientWidth
 // and dividing by the number of characters.
 export const MAIN_FONT_WIDTH = 8.45; // px
+
+export const MINUTE_AS_MS = 60 * 1000;
+export const HOUR_AS_MS = 60 * MINUTE_AS_MS;
+export const DAY_AS_MS = 24 * HOUR_AS_MS;

@@ -1,9 +1,13 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
-import * as moment from "moment";
 
 import { LabkeyClient, MMSClient } from "../../";
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import {
+  DAY_AS_MS,
+  HOUR_AS_MS,
+  MINUTE_AS_MS,
+  WELL_ANNOTATION_NAME,
+} from "../../../constants";
 import { Duration } from "../../../types";
 import { FILE_METADATA, FMS, UPLOADER } from "../constants";
 import {
@@ -396,18 +400,25 @@ export class CustomMetadataQuerier {
                 break;
               case "duration":
                 values = values.map(
-                  (v): Duration => {
-                    // We don't want to rely on moment in the long-term, but
-                    // since it's already a dep we use, we use it here to
-                    // convert the duration from milliseconds into an object.
-                    const duration = moment.duration(parseInt(v));
-                    return {
-                      days: duration.days(),
-                      hours: duration.hours(),
-                      minutes: duration.minutes(),
-                      seconds:
-                        duration.seconds() + duration.milliseconds() / 1000,
-                    };
+                  (v: string): Duration => {
+                    let remainingMs = parseInt(v);
+
+                    function calculateUnit(unitAsMs: number, useFloor = true) {
+                      const numUnit = useFloor
+                        ? Math.floor(remainingMs / unitAsMs)
+                        : remainingMs / unitAsMs;
+                      if (numUnit > 0) {
+                        remainingMs -= numUnit * unitAsMs;
+                      }
+                      return numUnit;
+                    }
+
+                    const days = calculateUnit(DAY_AS_MS);
+                    const hours = calculateUnit(HOUR_AS_MS);
+                    const minutes = calculateUnit(MINUTE_AS_MS);
+                    const seconds = calculateUnit(1000, false);
+
+                    return { days, hours, minutes, seconds };
                   }
                 );
             }
