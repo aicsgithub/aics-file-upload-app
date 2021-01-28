@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import {
   getMockStateWithHistory,
   mockFailedUploadJob,
@@ -9,6 +10,7 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../../state/test/mocks";
 import { AsyncRequest } from "../../../state/types";
+import { getUploadRowKey } from "../../../state/upload/constants";
 import { getCanSubmitUpload, getUpdateInProgress } from "../selectors";
 
 describe("AddCustomData selectors", () => {
@@ -40,7 +42,12 @@ describe("AddCustomData selectors", () => {
     it("returns false if there are validation errors", () => {
       const result = getCanSubmitUpload({
         ...nonEmptyStateForInitiatingUpload,
-        upload: getMockStateWithHistory({}),
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "/path/to/file3" })]: {
+            file: "/path/to/file3",
+            [WELL_ANNOTATION_NAME]: [],
+          },
+        }),
       });
       expect(result).to.be.false;
     });
