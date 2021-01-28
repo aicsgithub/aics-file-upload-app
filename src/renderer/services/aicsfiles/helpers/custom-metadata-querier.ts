@@ -1,6 +1,5 @@
 import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
-import * as moment from "moment";
 
 import { LabkeyClient, MMSClient } from "../../";
 import { WELL_ANNOTATION_NAME } from "../../../constants";
@@ -396,18 +395,29 @@ export class CustomMetadataQuerier {
                 break;
               case "duration":
                 values = values.map(
-                  (v): Duration => {
-                    // We don't want to rely on moment in the long-term, but
-                    // since it's already a dep we use, we use it here to
-                    // convert the duration from milliseconds into an object.
-                    const duration = moment.duration(parseInt(v));
-                    return {
-                      days: duration.days(),
-                      hours: duration.hours(),
-                      minutes: duration.minutes(),
-                      seconds:
-                        duration.seconds() + duration.milliseconds() / 1000,
-                    };
+                  (v: string): Duration => {
+                    const minuteAsMs = 60 * 1000;
+                    const hourAsMs = 60 * minuteAsMs;
+                    const dayAsMs = 24 * hourAsMs;
+
+                    let remainingMs = parseInt(v);
+
+                    function calculateUnit(unitAsMs: number, useFloor = true) {
+                      const numUnit = useFloor
+                        ? Math.floor(remainingMs / unitAsMs)
+                        : remainingMs / unitAsMs;
+                      if (numUnit > 0) {
+                        remainingMs -= numUnit * unitAsMs;
+                      }
+                      return numUnit;
+                    }
+
+                    const days = calculateUnit(dayAsMs);
+                    const hours = calculateUnit(hourAsMs);
+                    const minutes = calculateUnit(minuteAsMs);
+                    const seconds = calculateUnit(1000, false);
+
+                    return { days, hours, minutes, seconds };
                   }
                 );
             }
