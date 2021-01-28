@@ -23,6 +23,7 @@ import {
 import { Template } from "../../services/mms-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import {
+  getIsLoading,
   getRequestsInProgressContains,
   getUploadError,
 } from "../../state/feedback/selectors";
@@ -136,7 +137,6 @@ interface Props {
   initiateUpload: ActionCreator<InitiateUploadAction>;
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
-  loadingFileMetadata: boolean;
   loadFilesFromDragAndDrop: (
     files: DragAndDropFileList
   ) => LoadFilesFromDragAndDropAction;
@@ -147,9 +147,11 @@ interface Props {
   selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
   selectedJob?: JSSJob<UploadServiceFields>;
+  selectedJobIsLoading: boolean;
   setAlert: ActionCreator<SetAlertAction>;
   showUploadHint: boolean;
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
+  templateIsLoading: boolean;
   templates: LabkeyTemplate[];
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
@@ -226,15 +228,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       canUndo,
       isAssociatedByWorkflow,
       loading,
-      loadingFileMetadata,
       massEditRow,
       selectedJob,
+      selectedJobIsLoading,
+      templateIsLoading,
       updateInProgress,
       uploadInProgress,
       uploadRowKeyToAnnotationErrorMap,
       uploads,
     } = this.props;
-    const showLoading = loading || loadingFileMetadata;
     let saveButtonText = "Upload";
     if (selectedJob) {
       if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
@@ -246,15 +248,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     return (
       <DragAndDrop
         disabled={Boolean(selectedJob) || this.isReadOnly}
-        overlayChildren={!Object.keys(uploads).length}
+        overlayChildren={!Object.keys(uploads).length && !loading}
         onDrop={this.props.loadFilesFromDragAndDrop}
         onOpen={this.props.openFilesFromDialog}
         openDialogOptions={openDialogOptions}
       >
         <div className={styles.contentContainer}>
           {selectedJob && <JobOverviewDisplay job={selectedJob} />}
-          {!loadingFileMetadata && this.renderTemplateAndUploadTypeInput()}
-          {showLoading ? (
+          {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
+          {loading || templateIsLoading || selectedJobIsLoading ? (
             <div className={styles.spinContainer}>
               <div>Loading...</div>
               <Spin />
@@ -319,8 +321,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       barcodePrefixes,
       createBarcode,
       isAssociatedByWorkflow,
-      loading,
       selectedBarcode,
+      templateIsLoading,
     } = this.props;
     const onCreateBarcode = (selectedPrefixId: any) => {
       createBarcode(
@@ -344,7 +346,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           >
             <TemplateSearch
               allowCreate={true}
-              disabled={loading || this.isReadOnly}
+              disabled={templateIsLoading || this.isReadOnly}
               value={appliedTemplate ? appliedTemplate.templateId : undefined}
               onSelect={this.props.applyTemplate}
             />
@@ -369,7 +371,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 </div>
                 <BarcodeSearch
                   barcode={selectedBarcode}
-                  disabled={loading || this.isReadOnly}
+                  disabled={this.isReadOnly}
                   onBarcodeChange={(imagingSessionIds, barcode) => {
                     if (barcode) {
                       this.props.selectBarcode(barcode, imagingSessionIds);
@@ -385,7 +387,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 </div>
                 <Select
                   className={styles.selector}
-                  disabled={loading || this.isReadOnly}
+                  disabled={this.isReadOnly}
                   onSelect={onCreateBarcode}
                   placeholder="Select Barcode Prefix"
                 >
@@ -403,7 +405,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                   can select to associate with workflows
                 </div>
                 <Button
-                  disabled={loading || this.isReadOnly}
+                  disabled={this.isReadOnly}
                   onClick={associateByWorkflow}
                 >
                   {isAssociatedByWorkflow
@@ -503,8 +505,12 @@ function mapStateToProps(state: State) {
     expandedRows: getExpandedUploadJobRows(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
     isAssociatedByWorkflow: getAssociateByWorkflow(state),
-    loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
-    loadingFileMetadata: getRequestsInProgressContains(
+    loading: getIsLoading(state),
+    templateIsLoading: getRequestsInProgressContains(
+      state,
+      AsyncRequest.GET_TEMPLATE
+    ),
+    selectedJobIsLoading: getRequestsInProgressContains(
       state,
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),

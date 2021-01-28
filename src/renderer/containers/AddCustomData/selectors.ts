@@ -32,6 +32,9 @@ export const getCanSubmitUpload = createSelector(
     selectedJob?: JSSJob,
     currentJobName?: string
   ): boolean => {
+    if (!Object.keys(upload).length) {
+      return false;
+    }
     const uploadRelatedRequests = [
       `${AsyncRequest.UPDATE_FILE_METADATA}-${currentJobName}`,
       `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`,
