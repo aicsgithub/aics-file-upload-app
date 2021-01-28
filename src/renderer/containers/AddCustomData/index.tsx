@@ -251,7 +251,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
     return (
       <DragAndDrop
-        disabled={Boolean(selectedJob)}
+        disabled={Boolean(selectedJob) || this.isReadOnly}
         overlayChildren={!Object.keys(uploads).length}
         onDrop={this.props.loadFilesFromDragAndDrop}
         onOpen={this.props.openFilesFromDialog}
@@ -404,6 +404,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 </div>
                 <BarcodeSearch
                   barcode={selectedBarcode}
+                  disabled={loading || this.isReadOnly}
                   onBarcodeChange={(imagingSessionIds, barcode) => {
                     if (barcode) {
                       this.props.selectBarcode(barcode, imagingSessionIds);
@@ -419,6 +420,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 </div>
                 <Select
                   className={styles.selector}
+                  disabled={loading || this.isReadOnly}
                   onSelect={onCreateBarcode}
                   placeholder="Select Barcode Prefix"
                 >
@@ -435,7 +437,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                   If you do not have a plate to associate your files with you
                   can select to associate with workflows
                 </div>
-                <Button onClick={associateByWorkflow}>
+                <Button
+                  disabled={loading || this.isReadOnly}
+                  onClick={associateByWorkflow}
+                >
                   {isAssociatedByWorkflow
                     ? "Selected"
                     : "Associate with Workflows"}
