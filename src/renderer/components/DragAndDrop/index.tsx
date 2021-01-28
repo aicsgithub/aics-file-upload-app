@@ -10,6 +10,7 @@ const styles = require("../../components/DragAndDrop/style.pcss");
 
 interface DragAndDropProps {
   children?: React.ReactNode | React.ReactNodeArray;
+  disabled?: boolean;
   openDialogOptions: OpenDialogOptions;
   className?: string;
   overlayChildren?: boolean;
@@ -40,6 +41,14 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   }
 
   public render() {
+    if (this.props.disabled) {
+      return (
+        <div className={classNames(styles.container, this.props.className)}>
+          {this.props.children}
+        </div>
+      );
+    }
+
     return (
       <div
         className={classNames(styles.container, this.props.className)}

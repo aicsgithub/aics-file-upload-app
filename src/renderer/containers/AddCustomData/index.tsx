@@ -241,8 +241,17 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       validationErrors,
     } = this.props;
     const showLoading = loading || loadingFileMetadata;
+    let saveButtonText = "Upload";
+    if (selectedJob) {
+      if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
+        saveButtonText = "Update";
+      } else {
+        saveButtonText = "Retry";
+      }
+    }
     return (
       <DragAndDrop
+        disabled={Boolean(selectedJob)}
         overlayChildren={!Object.keys(uploads).length}
         onDrop={this.props.loadFilesFromDragAndDrop}
         onOpen={this.props.openFilesFromDialog}
@@ -332,7 +341,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 <Icon type="loading" className={styles.loading} spin={true} />
               </>
             ) : (
-              "Upload"
+              saveButtonText
             )}
           </Button>
         </div>
