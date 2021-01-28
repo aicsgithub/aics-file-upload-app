@@ -726,7 +726,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           updateRow[key] = massEditRow[key];
         }
       } else if (key === NOTES_ANNOTATION_NAME) {
-        updateRow[key] = [massEditRow[NOTES_ANNOTATION_NAME]];
+        updateRow[key] = massEditRow[NOTES_ANNOTATION_NAME]
+          ? [massEditRow[NOTES_ANNOTATION_NAME]]
+          : undefined;
       } else if (massEditRow[key] !== null) {
         updateRow[key] = massEditRow[key];
       }
