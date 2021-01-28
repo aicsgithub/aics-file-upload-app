@@ -48,7 +48,7 @@ import {
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { closeUploadTab, goBack, openEditFileMetadataTab } from "../actions";
+import { closeUploadTab, openEditFileMetadataTab } from "../actions";
 import { OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
@@ -213,25 +213,6 @@ describe("Route logics", () => {
     expect(showMessageBoxStub.called).to.be.true;
     return { actions, showMessageBoxStub, store };
   };
-
-  describe("goBackLogic", () => {
-    it("goes to UploadSummary page if going back from AddCustomData page", async () => {
-      await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.UploadSummary,
-        goBack,
-        1
-      );
-    });
-    it("does not change pages if user cancels the action through the dialog", async () => {
-      await runShowMessageBoxTest(
-        Page.AddCustomData,
-        Page.AddCustomData,
-        goBack,
-        0
-      );
-    });
-  });
 
   describe("closeUploadTabLogic", () => {
     it("goes to UploadSummary page given user clicks Save Upload Draft from dialog", async () => {

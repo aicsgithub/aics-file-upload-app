@@ -37,8 +37,6 @@ import {
   getTemplates,
 } from "../../state/metadata/selectors";
 import { CreateBarcodeAction } from "../../state/metadata/types";
-import { goBack } from "../../state/route/actions";
-import { GoBackAction } from "../../state/route/types";
 import {
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
@@ -135,7 +133,6 @@ interface Props {
   expandedRows: ExpandedRows;
   isAssociatedByWorkflow: boolean;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
-  goBack: ActionCreator<GoBackAction>;
   initiateUpload: ActionCreator<InitiateUploadAction>;
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
@@ -530,7 +527,6 @@ const dispatchToPropsMap = {
   applyTemplate,
   associateByWorkflow,
   createBarcode,
-  goBack,
   initiateUpload,
   jumpToUpload,
   loadFilesFromDragAndDrop,

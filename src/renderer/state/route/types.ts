@@ -10,10 +10,6 @@ export interface CloseUploadTabAction {
   type: string;
 }
 
-export interface GoBackAction {
-  type: string;
-}
-
 export interface NextPageAction {
   type: string;
 }
