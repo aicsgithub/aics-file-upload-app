@@ -24,7 +24,10 @@ import { createSelector } from "reselect";
 
 import {
   CHANNEL_ANNOTATION_NAME,
+  DAY_AS_MS,
+  HOUR_AS_MS,
   LIST_DELIMITER_SPLIT,
+  MINUTE_AS_MS,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
@@ -769,14 +772,13 @@ const getAnnotations = (
               } else if (annotation.type === ColumnType.DATE) {
                 return moment(v).format("YYYY-MM-DD");
               } else if (annotation.type === ColumnType.DURATION) {
-                // While we may not want to rely on moment in the long-term,
-                // we are already using it with dates, and it conveniently
-                // can accept an object with the same shape as our`Duration`
-                // type.
-                return moment
-                  .duration(v as Duration)
-                  .asMilliseconds()
-                  .toString();
+                const { days, hours, minutes, seconds } = v as Duration;
+                return (
+                  days * DAY_AS_MS +
+                  hours * HOUR_AS_MS +
+                  minutes * MINUTE_AS_MS +
+                  seconds * 1000
+                ).toString();
               }
               return v.toString();
             }),

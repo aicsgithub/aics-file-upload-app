@@ -682,6 +682,37 @@ describe("Upload selectors", () => {
         payload[filePath].customMetadata.annotations[0].values[0]
       ).to.equal("356521111");
     });
+
+    it("Converts durations into milliseconds when only some units present", () => {
+      const duration: Duration = {
+        days: 0,
+        hours: 0,
+        minutes: 2,
+        seconds: 1.111,
+      };
+      const filePath = "/path/to/file.tiff";
+      const state: State = {
+        ...nonEmptyStateForInitiatingUpload,
+        template: getMockStateWithHistory({
+          appliedTemplate: mockIntervalTemplate,
+          draft: {
+            annotations: [],
+          },
+        }),
+        upload: getMockStateWithHistory({
+          [filePath]: {
+            file: filePath,
+            ["Interval"]: [duration],
+          },
+        }),
+      };
+
+      const payload = getUploadPayload(state);
+
+      expect(
+        payload[filePath].customMetadata.annotations[0].values[0]
+      ).to.equal("121111");
+    });
   });
 
   describe("getUploadFileNames", () => {

@@ -2,7 +2,12 @@ import { ILogger } from "js-logger/src/types";
 import { keys, uniq, reduce, forOwn, isEmpty, omit } from "lodash";
 
 import { LabkeyClient, MMSClient } from "../../";
-import { WELL_ANNOTATION_NAME } from "../../../constants";
+import {
+  DAY_AS_MS,
+  HOUR_AS_MS,
+  MINUTE_AS_MS,
+  WELL_ANNOTATION_NAME,
+} from "../../../constants";
 import { Duration } from "../../../types";
 import { FILE_METADATA, FMS, UPLOADER } from "../constants";
 import {
@@ -396,10 +401,6 @@ export class CustomMetadataQuerier {
               case "duration":
                 values = values.map(
                   (v: string): Duration => {
-                    const minuteAsMs = 60 * 1000;
-                    const hourAsMs = 60 * minuteAsMs;
-                    const dayAsMs = 24 * hourAsMs;
-
                     let remainingMs = parseInt(v);
 
                     function calculateUnit(unitAsMs: number, useFloor = true) {
@@ -412,9 +413,9 @@ export class CustomMetadataQuerier {
                       return numUnit;
                     }
 
-                    const days = calculateUnit(dayAsMs);
-                    const hours = calculateUnit(hourAsMs);
-                    const minutes = calculateUnit(minuteAsMs);
+                    const days = calculateUnit(DAY_AS_MS);
+                    const hours = calculateUnit(HOUR_AS_MS);
+                    const minutes = calculateUnit(MINUTE_AS_MS);
                     const seconds = calculateUnit(1000, false);
 
                     return { days, hours, minutes, seconds };
