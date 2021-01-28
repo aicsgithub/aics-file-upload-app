@@ -28,7 +28,6 @@ import {
   getUploadError,
 } from "../../state/feedback/selectors";
 import { SetAlertAction } from "../../state/feedback/types";
-import { getUploadInProgress } from "../../state/job/selectors";
 import { createBarcode } from "../../state/metadata/actions";
 import {
   getAnnotationTypes,
@@ -114,7 +113,7 @@ import {
 } from "../../state/upload/types";
 import BarcodeSearch from "../BarcodeSearch";
 
-import { getCanSubmitUpload, getUpdateInProgress } from "./selectors";
+import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 
 const styles = require("./style.pcss");
 
@@ -156,7 +155,6 @@ interface Props {
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
   updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
-  updateInProgress: boolean;
   updateSettings: ActionCreator<UpdateSettingsAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
   updateUpload: ActionCreator<UpdateUploadAction>;
@@ -232,7 +230,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       selectedJob,
       selectedJobIsLoading,
       templateIsLoading,
-      updateInProgress,
       uploadInProgress,
       uploadRowKeyToAnnotationErrorMap,
       uploads,
@@ -298,9 +295,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             type="primary"
             size="large"
             onClick={this.submit}
-            disabled={!canSubmit || uploadInProgress || updateInProgress}
+            disabled={!canSubmit}
           >
-            {uploadInProgress || updateInProgress ? (
+            {uploadInProgress ? (
               <>
                 Loading
                 <Icon type="loading" className={styles.loading} spin={true} />
@@ -520,7 +517,6 @@ function mapStateToProps(state: State) {
     selectedJob: getSelectedJob(state),
     showUploadHint: getShowUploadHint(state),
     templates: getTemplates(state),
-    updateInProgress: getUpdateInProgress(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
     uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),

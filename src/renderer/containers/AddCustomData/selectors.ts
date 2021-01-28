@@ -15,6 +15,21 @@ import {
   getUploadValidationErrors,
 } from "../../state/upload/selectors";
 
+export const getUploadInProgress = createSelector(
+  [getRequestsInProgress, getCurrentJobName],
+  (requestsInProgress: string[], jobName?: string) => {
+    if (!jobName) {
+      return false;
+    }
+    return (
+      requestsInProgress.includes(
+        `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
+      ) ||
+      requestsInProgress.includes(`${AsyncRequest.INITIATE_UPLOAD}-${jobName}`)
+    );
+  }
+);
+
 export const getCanSubmitUpload = createSelector(
   [
     getUploadValidationErrors,
@@ -23,6 +38,7 @@ export const getCanSubmitUpload = createSelector(
     getOriginalUpload,
     getSelectedJob,
     getCurrentJobName,
+    getUploadInProgress,
   ],
   (
     validationErrors: string[],
@@ -30,9 +46,10 @@ export const getCanSubmitUpload = createSelector(
     upload: UploadStateBranch,
     originalUpload?: UploadStateBranch,
     selectedJob?: JSSJob,
-    currentJobName?: string
+    currentJobName?: string,
+    uploadInProgress?: boolean
   ): boolean => {
-    if (!Object.keys(upload).length) {
+    if (!Object.keys(upload).length || uploadInProgress) {
       return false;
     }
     const uploadRelatedRequests = [
@@ -52,17 +69,5 @@ export const getCanSubmitUpload = createSelector(
       ? noValidationErrorsOrRequestsInProgress &&
           !isEqual(upload, originalUpload)
       : noValidationErrorsOrRequestsInProgress;
-  }
-);
-
-export const getUpdateInProgress = createSelector(
-  [getRequestsInProgress, getCurrentJobName],
-  (requestsInProgress: string[], jobName?: string) => {
-    if (!jobName) {
-      return false;
-    }
-    return requestsInProgress.includes(
-      `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
-    );
   }
 );
