@@ -173,7 +173,6 @@ export interface FeedbackStateBranch {
   alert?: AppAlert;
   deferredAction?: AnyAction; // action to dispatch when modal closes
   events: AppEvent[];
-  folderTreeOpen: boolean;
   isLoading: boolean;
   requestsInProgress: string[];
   setMountPointNotificationVisible: boolean;
@@ -257,7 +256,6 @@ export type ModalName = "openTemplate" | "settings" | "templateEditor";
 export enum Page {
   DragAndDrop = "DragAndDrop",
   SelectUploadType = "SelectUploadType",
-  AssociateFiles = "AssociateFiles",
   AddCustomData = "AddCustomData",
   UploadSummary = "UploadSummary",
 }
@@ -281,8 +279,6 @@ export interface SelectionStateBranch extends UploadTabSelections {
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
-  selectedWorkflows: Workflow[];
-  stagedFiles: UploadFile[];
   user: string;
 }
 
@@ -295,8 +291,6 @@ export interface UploadTabSelections {
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
-  selectedWorkflows: Workflow[];
-  stagedFiles: UploadFile[];
 }
 
 export interface ImagingSessionIdToPlateMap {

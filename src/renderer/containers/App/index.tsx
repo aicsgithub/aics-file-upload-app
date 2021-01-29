@@ -13,7 +13,6 @@ import {
   SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../../../shared/constants";
-import FolderTree from "../../components/FolderTree";
 import StatusBar from "../../components/StatusBar";
 import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
@@ -21,15 +20,11 @@ import {
   addRequestToInProgress,
   clearAlert,
   removeRequestFromInProgress,
-  setAlert,
   setErrorAlert,
   setSuccessAlert,
-  toggleFolderTree,
 } from "../../state/feedback/actions";
 import {
   getAlert,
-  getFolderTreeOpen,
-  getIsLoading,
   getRecentEvent,
   getSetMountPointNotificationVisible,
 } from "../../state/feedback/selectors";
@@ -44,31 +39,14 @@ import { closeUploadTab, selectView } from "../../state/route/actions";
 import { getPage, getView } from "../../state/route/selectors";
 import { AppPageConfig } from "../../state/route/types";
 import {
-  clearStagedFiles,
-  getFilesInFolder,
-  loadFilesFromDragAndDrop,
-  openFilesFromDialog,
-  selectFile,
-} from "../../state/selection/actions";
-import {
-  getSelectedFiles,
-  getStagedFiles,
-} from "../../state/selection/selectors";
-import {
   gatherSettings,
   setMountPoint,
   switchEnvironment,
 } from "../../state/setting/actions";
 import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, AsyncRequest, Page } from "../../state/types";
-import {
-  openUploadDraft,
-  saveUploadDraft,
-  undoFileWellAssociation,
-  undoFileWorkflowAssociation,
-} from "../../state/upload/actions";
+import { openUploadDraft, saveUploadDraft } from "../../state/upload/actions";
 import AddCustomData from "../AddCustomData";
-import AssociateFiles from "../AssociateFiles";
 import DragAndDropSquare from "../DragAndDropSquare";
 import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
@@ -78,7 +56,7 @@ import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
 import AutoReconnectingEventSource from "./AutoReconnectingEventSource";
-import { getFileToTags, getUploadTabName } from "./selectors";
+import { getUploadTabName } from "./selectors";
 
 const styles = require("./styles.pcss");
 
@@ -97,12 +75,6 @@ const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
     Page.SelectUploadType,
     {
       container: <EnterBarcode key="enterBarcode" />,
-    },
-  ],
-  [
-    Page.AssociateFiles,
-    {
-      container: <AssociateFiles key="associateFiles" />,
     },
   ],
   [
@@ -128,15 +100,10 @@ export default function App() {
 
   const alert = useSelector(getAlert);
   const isSafeToExit = useSelector(getIsSafeToExit);
-  const fileToTags = useSelector(getFileToTags);
-  const files = useSelector(getStagedFiles);
-  const folderTreeOpen = useSelector(getFolderTreeOpen);
   const limsUrl = useSelector(getLimsUrl);
   const user = useSelector(getLoggedInUser);
-  const loading = useSelector(getIsLoading);
   const page = useSelector(getPage);
   const recentEvent = useSelector(getRecentEvent);
-  const selectedFiles = useSelector(getSelectedFiles);
   const setMountPointNotificationVisible = useSelector(
     getSetMountPointNotificationVisible
   );
@@ -309,66 +276,39 @@ export default function App() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.mainContentContainer}>
-        <FolderTree
-          className={styles.folderTree}
-          clearStagedFiles={() => dispatch(clearStagedFiles())}
-          files={files}
-          folderTreeOpen={folderTreeOpen}
-          getFilesInFolder={(folder) => dispatch(getFilesInFolder(folder))}
-          isLoading={loading}
-          loadFilesFromDragAndDropAction={(files) =>
-            dispatch(loadFilesFromDragAndDrop(files))
+      <div className={styles.mainContent}>
+        <Tabs
+          activeKey={view}
+          className={styles.tabContainer}
+          hideAdd={true}
+          onChange={(view) => dispatch(selectView(view as Page))}
+          onEdit={onTabChange}
+          type="editable-card"
+          tabBarExtraContent={
+            <div style={{ marginRight: "10px" }}>
+              <NotificationViewer />
+            </div>
           }
-          loadFilesFromOpenDialogAction={(files) =>
-            dispatch(openFilesFromDialog(files))
-          }
-          onCheck={(files) => dispatch(selectFile(files))}
-          selectedKeys={selectedFiles}
-          setAlert={setAlert}
-          fileToTags={fileToTags}
-          toggleFolderTree={() => dispatch(toggleFolderTree())}
-          undoFileWellAssociation={(rowId, deleteUpload, wellIds) =>
-            dispatch(undoFileWellAssociation(rowId, deleteUpload, wellIds))
-          }
-          undoFileWorkflowAssociation={(fullPath, workflowNames) =>
-            dispatch(undoFileWorkflowAssociation(fullPath, workflowNames))
-          }
-        />
-        <div className={styles.mainContent}>
-          <Tabs
-            activeKey={view}
-            className={styles.tabContainer}
-            hideAdd={true}
-            onChange={(view) => dispatch(selectView(view as Page))}
-            onEdit={onTabChange}
-            type="editable-card"
-            tabBarExtraContent={
-              <div style={{ marginRight: "10px" }}>
-                <NotificationViewer />
-              </div>
-            }
+        >
+          <TabPane
+            className={styles.tabContent}
+            tab="Summary"
+            key={Page.UploadSummary}
+            closable={false}
           >
+            {uploadSummaryConfig.container}
+          </TabPane>
+          {page !== Page.UploadSummary && (
             <TabPane
-              className={styles.tabContent}
-              tab="Summary"
-              key={Page.UploadSummary}
-              closable={false}
+              className={classNames(styles.uploadTab, styles.tabContent)}
+              tab={uploadTabName}
+              key={page}
+              closable={true}
             >
-              {uploadSummaryConfig.container}
+              {pageConfig.container}
             </TabPane>
-            {page !== Page.UploadSummary && (
-              <TabPane
-                className={classNames(styles.uploadTab, styles.tabContent)}
-                tab={uploadTabName}
-                key={page}
-                closable={true}
-              >
-                {pageConfig.container}
-              </TabPane>
-            )}
-          </Tabs>
-        </div>
+          )}
+        </Tabs>
       </div>
       <StatusBar
         className={styles.statusBar}

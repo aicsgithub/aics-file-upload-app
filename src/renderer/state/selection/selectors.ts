@@ -2,7 +2,7 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
-import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { GridCell } from "../../entities";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {
   PlateResponse,
@@ -26,11 +26,7 @@ export const getSelectedBarcode = (state: State) =>
 export const getSelectedPlates = (state: State) =>
   state.selection.present.plate;
 export const getSelectedFiles = (state: State) => state.selection.present.files;
-export const getStagedFiles = (state: State) =>
-  state.selection.present.stagedFiles;
 export const getWells = (state: State) => state.selection.present.wells;
-export const getSelectedWorkflows = (state: State) =>
-  state.selection.present.selectedWorkflows;
 export const getSelectedWells = (state: State) =>
   state.selection.present.selectedWells;
 export const getSelectedUser = (state: State) => state.selection.present.user;

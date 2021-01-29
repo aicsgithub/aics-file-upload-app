@@ -25,10 +25,6 @@ const stepOrder: { [stepName: string]: StepInfo } = {
     description: "Choose how you want to associate data with your files",
     display: "Upload Type",
   },
-  [Page.AssociateFiles]: {
-    description: "Associate Wells or Workflows with Files to upload",
-    display: "Associate Files",
-  },
   [Page.AddCustomData]: {
     description: "Add additional custom metadata to the files",
     display: "Add Metadata",

@@ -5,7 +5,6 @@ import {
   closeUploadTab,
   openEditFileMetadataTab,
   openEditFileMetadataTabSucceeded,
-  selectPage,
 } from "../../route/actions";
 import {
   openTemplateEditor,
@@ -29,12 +28,7 @@ import {
   mockTemplateDraft,
   mockWellUpload,
 } from "../../test/mocks";
-import {
-  AlertType,
-  AsyncRequest,
-  FeedbackStateBranch,
-  Page,
-} from "../../types";
+import { AlertType, AsyncRequest, FeedbackStateBranch } from "../../types";
 import {
   applyTemplate,
   cancelUpload,
@@ -68,7 +62,6 @@ import {
   setErrorAlert,
   startLoading,
   stopLoading,
-  toggleFolderTree,
 } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
@@ -492,35 +485,6 @@ describe("feedback reducer", () => {
         message: "foo",
         type: AlertType.ERROR,
       });
-    });
-  });
-  describe("toggleFolderTree", () => {
-    it("sets folderTreeOpen to opposite value it was set to before", () => {
-      const result = reducer(initialState, toggleFolderTree());
-      expect(result.folderTreeOpen).to.be.true;
-    });
-  });
-  describe("selectPage", () => {
-    it("sets folderTreeOpen to true if page is AssociateFiles", () => {
-      const result = reducer(
-        initialState,
-        selectPage(Page.SelectUploadType, Page.AssociateFiles)
-      );
-      expect(result.folderTreeOpen).to.be.true;
-    });
-    it("sets folderTreeOpen to false if page is AddCustomData", () => {
-      const result = reducer(
-        initialState,
-        selectPage(Page.AssociateFiles, Page.AddCustomData)
-      );
-      expect(result.folderTreeOpen).to.be.false;
-    });
-    it("sets folderTreeOpen to false if page is UploadSummary", () => {
-      const result = reducer(
-        initialState,
-        selectPage(Page.AddCustomData, Page.UploadSummary)
-      );
-      expect(result.folderTreeOpen).to.be.false;
     });
   });
   describe("startTemplateDraft", () => {

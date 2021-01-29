@@ -1,5 +1,3 @@
-import { basename, dirname, resolve as resolvePath } from "path";
-
 import {
   castArray,
   flatMap,
@@ -37,8 +35,6 @@ import {
   convertToArray,
   ensureDraftGetsSaved,
   getApplyTemplateInfo,
-  getUploadFilePromise,
-  mergeChildPaths,
   pivotAnnotations,
   splitTrimAndFilter,
 } from "../../util";
@@ -62,12 +58,10 @@ import {
   handleGoingToNextPageForNewUpload,
 } from "../route/logics";
 import { getPage } from "../route/selectors";
-import { deselectFiles, stageFiles } from "../selection/actions";
 import {
   getSelectedBarcode,
   getSelectedJob,
   getSelectedWellIds,
-  getStagedFiles,
 } from "../selection/selectors";
 import { getLoggedInUser } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
@@ -81,7 +75,6 @@ import {
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependenciesWithAction,
-  UploadFile,
   UploadMetadata,
   UploadProgressInfo,
   UploadRowId,
@@ -91,6 +84,7 @@ import {
 import { batchActions, handleUploadProgress } from "../util";
 
 import {
+  addUploadFiles,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
@@ -187,7 +181,7 @@ const associateFilesAndWellsLogic = createLogic({
       ...action.payload,
       wellIds,
     };
-    next(batchActions([action, deselectFiles()]));
+    next(action);
   },
 });
 
@@ -932,7 +926,7 @@ const saveUploadDraftLogic = createLogic({
 });
 
 const openUploadLogic = createLogic({
-  process: async (
+  process: (
     {
       ctx,
       getApplicationMenu,
@@ -955,18 +949,9 @@ const openUploadLogic = createLogic({
     );
 
     const { draft } = ctx;
-    const topLevelFilesToLoadAgain = getStagedFiles(draft).map((f) =>
-      resolvePath(f.path, f.name)
-    );
-    const filesToLoad: string[] = mergeChildPaths(topLevelFilesToLoadAgain);
+    const uploadFilesFromDraft = getUpload(draft);
     try {
-      const uploadFilePromises: Array<Promise<
-        UploadFile
-      >> = filesToLoad.map((filePath: string) =>
-        getUploadFilePromise(basename(filePath), dirname(filePath))
-      );
-      const uploadFiles = await Promise.all(uploadFilePromises);
-      dispatch(stageFiles(uploadFiles));
+      dispatch(addUploadFiles(Object.values(uploadFilesFromDraft)));
     } catch (e) {
       dispatch(setErrorAlert(`Encountered error while resolving files: ${e}`));
     }

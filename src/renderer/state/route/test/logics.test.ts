@@ -28,11 +28,7 @@ import {
   getTemplateHistory,
   getUploadHistory,
 } from "../../metadata/selectors";
-import {
-  selectFile,
-  selectWorkflowPath,
-  selectWorkflows,
-} from "../../selection/actions";
+import { selectWorkflowPath } from "../../selection/actions";
 import {
   getCurrentSelectionIndex,
   getSelectedPlate,
@@ -53,16 +49,14 @@ import {
   mockAuditInfo,
   mockFailedUploadJob,
   mockMMSTemplate,
-  mockSelectedWorkflows,
   mockState,
   mockSuccessfulUploadJob,
   mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
-import { associateFilesAndWorkflows } from "../../upload/actions";
 import { getUploadRowKey } from "../../upload/constants";
-import { getCurrentUploadIndex, getUpload } from "../../upload/selectors";
+import { getUpload } from "../../upload/selectors";
 import {
   closeUploadTab,
   goBack,
@@ -222,7 +216,7 @@ describe("Route logics", () => {
       }
     );
     it(
-      "Going from SelectUploadType to AssociateFiles should record which index selection/template/upload state " +
+      "Going from SelectUploadType to AddCustomData should record which index selection/template/upload state " +
         "branches are at for the page we went to",
       async () => {
         const startingSelectionHistory = {
@@ -262,7 +256,7 @@ describe("Route logics", () => {
         expect(switchEnv.enabled).to.be.false;
 
         // apply
-        store.dispatch(selectPage(Page.SelectUploadType, Page.AssociateFiles));
+        store.dispatch(selectPage(Page.SelectUploadType, Page.AddCustomData));
 
         // after
         await logicMiddleware.whenComplete();
@@ -279,7 +273,7 @@ describe("Route logics", () => {
           ...startingUploadHistory,
           [Page.SelectUploadType]: 0,
         });
-        expect(getPage(state)).to.equal(Page.AssociateFiles);
+        expect(getPage(state)).to.equal(Page.AddCustomData);
         expect(switchEnv.enabled).to.be.false;
       }
     );
@@ -329,52 +323,6 @@ describe("Route logics", () => {
         expect(switchEnv.enabled).to.be.true;
       }
     );
-    it("Going to UploadSummary page should clear all upload information", async () => {
-      const startingSelectionHistory = {
-        [Page.DragAndDrop]: 0,
-      };
-      const startingTemplateHistory = {
-        [Page.DragAndDrop]: 0,
-      };
-      const startingUploadHistory = {
-        [Page.DragAndDrop]: 0,
-      };
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          history: {
-            selection: startingSelectionHistory,
-            template: startingTemplateHistory,
-            upload: startingUploadHistory,
-          },
-        },
-        route: {
-          page: Page.AssociateFiles,
-          view: Page.AssociateFiles,
-        },
-      });
-      store.dispatch(selectWorkflows(mockSelectedWorkflows));
-      store.dispatch(selectFile("/path/to/file"));
-      store.dispatch(
-        associateFilesAndWorkflows(["/path/to/file"], mockSelectedWorkflows)
-      );
-      await logicMiddleware.whenComplete();
-
-      // before
-      expect(getCurrentSelectionIndex(store.getState())).to.be.greaterThan(1);
-      expect(getCurrentUploadIndex(store.getState())).to.be.greaterThan(0);
-      expect(switchEnv.enabled).to.be.true;
-
-      store.dispatch(selectPage(Page.SelectUploadType, Page.UploadSummary));
-      await logicMiddleware.whenComplete();
-
-      const state = store.getState();
-      // we dispatching the closeUploadTab action after clearing history
-      expect(getCurrentSelectionIndex(state)).to.not.be.greaterThan(1);
-      expect(getCurrentUploadIndex(store.getState())).to.not.be.greaterThan(1);
-      expect(switchEnv.enabled).to.be.true;
-    });
   });
 
   /**
@@ -424,17 +372,9 @@ describe("Route logics", () => {
   };
 
   describe("goBackLogic", () => {
-    it("goes to AssociateFiles page if going back from AddCustomData page", async () => {
+    it("goes to AddCustomData page if going back from AddCustomData page", async () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
-        Page.AssociateFiles,
-        goBack,
-        1
-      );
-    });
-    it("goes to SelectUploadType page if going back from AssociateFiles page", async () => {
-      await runShowMessageBoxTest(
-        Page.AssociateFiles,
         Page.SelectUploadType,
         goBack,
         1
@@ -474,7 +414,7 @@ describe("Route logics", () => {
       });
       sandbox.replace(dialog, "showSaveDialog", showSaveDialogStub);
       await runShowMessageBoxTest(
-        Page.AssociateFiles,
+        Page.AddCustomData,
         Page.UploadSummary,
         closeUploadTab,
         2
@@ -483,8 +423,8 @@ describe("Route logics", () => {
     });
     it("stays on current page given 'Cancel' clicked from dialog", async () => {
       await runShowMessageBoxTest(
-        Page.AssociateFiles,
-        Page.AssociateFiles,
+        Page.AddCustomData,
+        Page.AddCustomData,
         closeUploadTab,
         0
       );

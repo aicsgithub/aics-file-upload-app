@@ -180,7 +180,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         editable: this.props.editable,
         ...(this.props.editable ? { editor: Editor } : {}),
         formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
-          this.renderFormat(row, WORKFLOW_ANNOTATION_NAME, value),
+          this.renderFormat(
+            row,
+            WORKFLOW_ANNOTATION_NAME,
+            value,
+            undefined,
+            true
+          ),
         key: WORKFLOW_ANNOTATION_NAME,
         name: WORKFLOW_ANNOTATION_NAME,
         resizable: true,

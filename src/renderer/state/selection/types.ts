@@ -1,4 +1,4 @@
-import { GridCell } from "../../components/AssociateWells/grid-cell";
+import { GridCell } from "../../entities";
 import { Workflow } from "../../services/labkey-client/types";
 import { CellPopulation, Solution } from "../../services/mms-client/types";
 import {
@@ -10,10 +10,6 @@ import {
   MetadataStateBranch,
   UploadFile,
 } from "../types";
-
-export interface DeselectFilesAction {
-  type: string;
-}
 
 export interface SelectFileAction {
   payload: string | string[];
@@ -43,16 +39,6 @@ export interface LoadFilesFromDragAndDropAction extends AutoSaveAction {
 
 export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
   payload: string[];
-  type: string;
-}
-
-export interface AddStageFilesAction extends AutoSaveAction {
-  payload: UploadFile[];
-  type: string;
-}
-
-export interface UpdateStagedFilesAction extends AutoSaveAction {
-  payload: UploadFile[];
   type: string;
 }
 

@@ -1,30 +1,20 @@
-import { dirname, resolve } from "path";
+import { resolve } from "path";
 
 import { expect } from "chai";
-import { isEmpty } from "lodash";
-import { StateWithHistory } from "redux-undo";
-import {
-  createSandbox,
-  SinonStubbedInstance,
-  stub,
-  createStubInstance,
-} from "sinon";
+import { createSandbox, SinonStubbedInstance, createStubInstance } from "sinon";
 
 import selections from "../";
 import { feedback } from "../../";
-import { WELL_ANNOTATION_NAME } from "../../../constants";
 import MMSClient from "../../../services/mms-client";
 import {
   GetPlateResponse,
   PlateResponse,
 } from "../../../services/mms-client/types";
-import { UploadFileImpl } from "../../../util";
 import { requestFailed } from "../../actions";
 import route from "../../route";
 import { getPage } from "../../route/selectors";
 import {
   createMockReduxStore,
-  dialog,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
@@ -33,27 +23,17 @@ import {
   mockSelection,
   mockState,
   mockWells,
-  mockWellUpload,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import {
-  AsyncRequest,
-  DragAndDropFileList,
-  Page,
-  SelectionStateBranch,
-  UploadFile,
-} from "../../types";
-import { getUploadRowKey } from "../../upload/constants";
+import { AsyncRequest, DragAndDropFileList, Page } from "../../types";
 import { getUpload } from "../../upload/selectors";
-import { clearStagedFiles, selectBarcode, selectWells } from "../actions";
+import { selectBarcode, selectWells } from "../actions";
 import {
   getSelectedBarcode,
-  getSelectedFiles,
   getSelectedImagingSessionIds,
   getSelectedPlateId,
   getSelectedPlates,
   getSelectedWells,
-  getStagedFiles,
   getWells,
 } from "../selectors";
 import { Well } from "../types";
@@ -65,23 +45,7 @@ describe("Selection logics", () => {
   const FOLDER_NAME = "a_directory";
   const FILE_FULL_PATH = resolve(__dirname, TEST_FILES_DIR, FILE_NAME);
   const FOLDER_FULL_PATH = resolve(__dirname, TEST_FILES_DIR, FOLDER_NAME);
-  const EXPECTED_FILE_INDEX = 0;
-  const EXPECTED_FOLDER_INDEX = 1;
 
-  const testStagedFilesCreated = (stagedFiles: UploadFile[]) => {
-    const file = stagedFiles[EXPECTED_FILE_INDEX];
-    expect(file.isDirectory).to.equal(false);
-    expect(file.name).to.equal(FILE_NAME);
-    expect(file.path).to.equal(resolve(__dirname, TEST_FILES_DIR));
-    expect(file.fullPath).to.equal(FILE_FULL_PATH);
-
-    const folder = stagedFiles[EXPECTED_FOLDER_INDEX];
-    expect(folder.isDirectory).to.equal(true);
-    expect(folder.name).to.equal(FOLDER_NAME);
-    expect(folder.path).to.equal(resolve(__dirname, TEST_FILES_DIR));
-    expect(folder.fullPath).to.equal(FOLDER_FULL_PATH);
-    expect(folder.files.length).to.equal(2);
-  };
   let mmsClient: SinonStubbedInstance<MMSClient>;
 
   beforeEach(() => {
@@ -157,22 +121,22 @@ describe("Selection logics", () => {
       expect(getPage(store.getState())).to.equal(Page.SelectUploadType);
     });
 
-    it("stages all files loaded", async () => {
+    it("sets files up for upload", async () => {
       const { logicMiddleware, store } = createMockReduxStore(mockState);
 
       // before
-      expect(getStagedFiles(store.getState()).length).to.equal(0);
+      expect(getUpload(store.getState())).to.be.empty;
 
       // apply
       store.dispatch(selections.actions.loadFilesFromDragAndDrop(fileList));
 
       // after
       await logicMiddleware.whenComplete();
-      const stagedFiles = getStagedFiles(store.getState());
-      expect(stagedFiles.length === fileList.length).to.be.true;
-      expect(stagedFiles.length).to.equal(fileList.length);
+      const upload = getUpload(store.getState());
 
-      testStagedFilesCreated(stagedFiles);
+      expect(Object.keys(upload)).to.be.lengthOf(1);
+      const file = upload[Object.keys(upload)[0]];
+      expect(file.file).to.equal(FILE_FULL_PATH);
     });
 
     it("should stop loading on success", async () => {
@@ -266,24 +230,25 @@ describe("Selection logics", () => {
       const { logicMiddleware, store } = createMockReduxStore(mockState);
 
       // before
-      expect(getStagedFiles(store.getState()).length).to.equal(0);
+      expect(Object.keys(getUpload(store.getState()))).to.be.empty;
 
       // apply
       store.dispatch(selections.actions.openFilesFromDialog(filePaths));
 
       // after
       await logicMiddleware.whenComplete();
-      const stagedFiles = getStagedFiles(store.getState());
-      expect(stagedFiles.length).to.equal(filePaths.length);
+      const upload = getUpload(store.getState());
 
-      testStagedFilesCreated(stagedFiles);
+      expect(Object.keys(upload)).to.be.lengthOf(1);
+      const file = upload[Object.keys(upload)[0]];
+      expect(file.file).to.equal(FILE_FULL_PATH);
     });
 
     it("Removes child files or directories", async () => {
       const { logicMiddleware, store } = createMockReduxStore(mockState);
 
       // before
-      expect(getStagedFiles(store.getState()).length).to.equal(0);
+      expect(Object.keys(getUpload(store.getState()))).to.be.empty;
 
       // apply
       const filePathsWithDuplicates = [
@@ -297,11 +262,8 @@ describe("Selection logics", () => {
 
       // after
       await logicMiddleware.whenComplete();
-      const stagedFiles = getStagedFiles(store.getState());
-      expect(stagedFiles.length).to.equal(1);
-      expect(stagedFiles[0].isDirectory).to.equal(true);
-      expect(stagedFiles[0].path).to.equal(dirname(FOLDER_FULL_PATH));
-      expect(stagedFiles[0].name).to.equal(FOLDER_NAME);
+      const upload = getUpload(store.getState());
+      expect(Object.keys(upload)).to.be.lengthOf(1);
     });
 
     it("should stop loading on success", async () => {
@@ -331,66 +293,6 @@ describe("Selection logics", () => {
       // after
       await logicMiddleware.whenComplete();
       expect(feedback.selectors.getIsLoading(store.getState())).to.equal(false);
-    });
-  });
-
-  describe("getFilesInFolderLogic", () => {
-    it("should add child files to folder", async () => {
-      const folder = new UploadFileImpl(
-        FOLDER_NAME,
-        dirname(FOLDER_FULL_PATH),
-        true,
-        true
-      );
-      const stagedFiles = [
-        new UploadFileImpl(FILE_NAME, dirname(FILE_FULL_PATH), false, true),
-        folder,
-      ];
-      const selection: StateWithHistory<SelectionStateBranch> = getMockStateWithHistory(
-        {
-          ...mockSelection,
-          stagedFiles,
-        }
-      );
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        selection,
-      });
-
-      // before
-      const stagedFilesBefore = getStagedFiles(store.getState());
-      expect(isEmpty(stagedFilesBefore[EXPECTED_FOLDER_INDEX].files)).to.equal(
-        true
-      );
-
-      // apply
-      store.dispatch(selections.actions.getFilesInFolder(folder));
-
-      // after
-      await logicMiddleware.whenComplete();
-      const stagedFilesAfter = getStagedFiles(store.getState());
-      const stagedFolder = stagedFilesAfter[EXPECTED_FOLDER_INDEX];
-      expect(stagedFolder.files.length).to.equal(2);
-
-      const stagedFolderContainsSecretsFolder = !!stagedFolder.files.find(
-        (file) => {
-          return (
-            file.name === "secrets" &&
-            file.path === FOLDER_FULL_PATH &&
-            file.isDirectory
-          );
-        }
-      );
-      expect(stagedFolderContainsSecretsFolder).to.equal(true);
-
-      const stagedFolderContainsTxtFile = !!stagedFolder.files.find((file) => {
-        return (
-          file.name === "more_cells.txt" &&
-          file.path === FOLDER_FULL_PATH &&
-          !file.isDirectory
-        );
-      });
-      expect(stagedFolderContainsTxtFile).to.equal(true);
     });
   });
 
@@ -442,7 +344,7 @@ describe("Selection logics", () => {
       const state = store.getState();
       expect(getSelectedImagingSessionIds(state)).to.equal(imagingSessions);
       expect(getWells(state)).to.not.be.empty;
-      expect(getPage(state)).to.equal(Page.AssociateFiles);
+      expect(getPage(state)).to.equal(Page.AddCustomData);
       expect(getSelectedBarcode(state)).to.equal(barcode);
       expect(getSelectedPlateId(state)).to.equal(plateId);
     });
@@ -482,7 +384,7 @@ describe("Selection logics", () => {
         0: mockOkGetPlateResponse.plate,
         1: mockPlateResponse2.plate,
       });
-      expect(getPage(state)).to.equal(Page.AssociateFiles);
+      expect(getPage(state)).to.equal(Page.AddCustomData);
       expect(getSelectedBarcode(state)).to.equal(barcode);
       expect(getSelectedPlateId(state)).to.equal(plateId);
     });
@@ -520,85 +422,6 @@ describe("Selection logics", () => {
 
       // after
       expect(getSelectedWells(store.getState()).length).to.equal(4);
-    });
-  });
-
-  describe("clearStagedFilesLogic", () => {
-    it("does not show warning dialog if upload is empty", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          files: ["/path/test.txt"],
-          stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
-        }),
-      });
-
-      const showMessageBoxStub = stub();
-      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-
-      store.dispatch(clearStagedFiles());
-      await logicMiddleware.whenComplete();
-
-      expect(showMessageBoxStub.called).to.be.false;
-      expect(actions.list.length).to.equal(1);
-    });
-    it("does not do anything if cancel clicked", async () => {
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          files: ["/path/test.txt"],
-          stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
-        }),
-        upload: getMockStateWithHistory({
-          ...mockState.upload.present,
-          [getUploadRowKey({ file: "/path/test.txt" })]: {
-            barcode: "abc",
-            file: "/path/test.txt",
-            [WELL_ANNOTATION_NAME]: [],
-          },
-        }),
-      });
-      const showMessageBoxStub = stub().resolves({ response: 0 });
-      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-
-      expect(getSelectedFiles(store.getState())).to.not.be.empty;
-      expect(getStagedFiles(store.getState())).to.not.be.empty;
-      expect(getUpload(store.getState())).to.not.be.empty;
-
-      store.dispatch(clearStagedFiles());
-
-      await logicMiddleware.whenComplete();
-      expect(getSelectedFiles(store.getState())).to.not.be.empty;
-      expect(getStagedFiles(store.getState())).to.not.be.empty;
-      expect(getUpload(store.getState())).to.not.be.empty;
-    });
-
-    it("clears staged files, selected files, and upload", async () => {
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockState.selection.present,
-          files: ["/path/test.txt"],
-          stagedFiles: [new UploadFileImpl("test.txt", "/path", false, true)],
-        }),
-        upload: getMockStateWithHistory(mockWellUpload),
-      });
-
-      const showMessageBoxStub = stub().resolves({ response: 1 });
-      sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
-
-      expect(getSelectedFiles(store.getState())).to.not.be.empty;
-      expect(getStagedFiles(store.getState())).to.not.be.empty;
-      expect(getUpload(store.getState())).to.not.be.empty;
-
-      store.dispatch(clearStagedFiles());
-
-      await logicMiddleware.whenComplete();
-      expect(getSelectedFiles(store.getState())).to.be.empty;
-      expect(getStagedFiles(store.getState())).to.be.empty;
-      expect(getUpload(store.getState())).to.be.empty;
     });
   });
 });
