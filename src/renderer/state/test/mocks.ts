@@ -61,14 +61,27 @@ export const mockAuditInfo = {
   modifiedBy: 1,
 };
 
-export const mockFavoriteColorAnnotation: TemplateAnnotation = {
+export const mockFavoriteColorAnnotation: Annotation = {
   ...mockAuditInfo,
   annotationId: 1,
-  annotationOptions: undefined,
   annotationTypeId: 1,
   description: "a description",
   name: "Favorite Color",
+  exposeToFileUploadApp: true,
+};
+
+export const mockFavoriteColorTemplateAnnotation: TemplateAnnotation = {
+  ...mockFavoriteColorAnnotation,
   required: true,
+};
+
+const mockIntervalAnnotation: Annotation = {
+  ...mockAuditInfo,
+  annotationId: 101,
+  annotationTypeId: 8,
+  description: "Example duration annotation",
+  name: "Interval",
+  exposeToFileUploadApp: true,
 };
 
 export const mockWellAnnotation: Annotation = {
@@ -109,8 +122,16 @@ const mockUnusableStructureAnnotation: Annotation = {
 
 export const mockMMSTemplate: Template = {
   ...mockAuditInfo,
-  annotations: [mockFavoriteColorAnnotation],
+  annotations: [mockFavoriteColorTemplateAnnotation],
   name: "Test",
+  templateId: 1,
+  version: 1,
+};
+
+export const mockIntervalTemplate: Template = {
+  ...mockAuditInfo,
+  annotations: [{ ...mockIntervalAnnotation, required: true }],
+  name: "Test for Interval",
   templateId: 1,
   version: 1,
 };
@@ -129,6 +150,7 @@ export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
 
 export const mockAnnotations = [
   mockFavoriteColorAnnotation,
+  mockIntervalAnnotation,
   mockWellAnnotation,
   mockWorkflowAnnotation,
   mockNotesAnnotation,
@@ -555,6 +577,10 @@ export const mockAnnotationTypes: AnnotationType[] = [
   {
     annotationTypeId: 7,
     name: ColumnType.DATE,
+  },
+  {
+    annotationTypeId: 8,
+    name: ColumnType.DURATION,
   },
 ];
 

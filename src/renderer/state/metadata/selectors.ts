@@ -101,6 +101,9 @@ export const getDropdownAnnotationTypeId = getAnnotationTypeId(
 export const getLookupAnnotationTypeId = getAnnotationTypeId(ColumnType.LOOKUP);
 export const getNumberAnnotationTypeId = getAnnotationTypeId(ColumnType.NUMBER);
 export const getTextAnnotationTypeId = getAnnotationTypeId(ColumnType.TEXT);
+export const getDurationAnnotationTypeId = getAnnotationTypeId(
+  ColumnType.DURATION
+);
 export const getDateAnnotationTypeId = getAnnotationTypeId(ColumnType.DATE);
 export const getDateTimeAnnotationTypeId = getAnnotationTypeId(
   ColumnType.DATETIME
