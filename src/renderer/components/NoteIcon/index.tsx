@@ -129,7 +129,7 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
             className={styles.useFullWidth}
             onChange={this.updateNotes}
             placeholder="Type notes for file here or drag/drop a file below"
-            autosize={{ minRows: 4, maxRows: 12 }}
+            autoSize={{ minRows: 4, maxRows: 12 }}
             value={this.state.notes}
           />
           <p className={styles.dragAndDropNote}>

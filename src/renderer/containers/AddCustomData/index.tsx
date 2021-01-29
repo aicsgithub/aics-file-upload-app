@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
 import * as React from "react";
+import { ReactNodeArray } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
@@ -417,8 +418,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   };
 
-  private renderAlerts = () => {
-    const alerts = [];
+  private renderAlerts = (): ReactNodeArray => {
+    const alerts: ReactNodeArray = [];
+    if (!Object.keys(this.props.uploads).length) {
+      return alerts;
+    }
     if (this.props.uploadError) {
       alerts.push(
         <Alert

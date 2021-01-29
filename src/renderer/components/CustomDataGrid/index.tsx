@@ -47,7 +47,7 @@ import {
   UpdateUploadRowsAction,
   UploadJobTableRow,
 } from "../../state/upload/types";
-import { convertToArray, getTextWidth, onDrop } from "../../util";
+import { convertToArray, getTextWidth } from "../../util";
 import BooleanFormatter from "../BooleanFormatter";
 
 import CellWithContextMenu from "./CellWithContextMenu";
@@ -422,7 +422,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               styles.formatterContainer,
               styles.noteIconContainer
             )}
-            onDrop={this.onDrop(row)}
           >
             {(this.props.editable || !!row[NOTES_ANNOTATION_NAME]) && (
               <NoteIcon
@@ -572,7 +571,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             styles.formatterContainer,
             styles.noteIconContainer
           )}
-          onDrop={this.onMassEditDrop()}
         >
           <NoteIcon
             editable={this.props.editable}
@@ -725,20 +723,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private removeSelectedRows = (): void => {
     this.props.removeUploads(this.state.selectedRows);
     this.setState({ selectedRows: [] });
-  };
-
-  private onDrop = (row: UploadJobTableRow) => async (
-    e: React.DragEvent<HTMLDivElement>
-  ) => {
-    e.preventDefault();
-    const notes = await onDrop(e.dataTransfer.files, this.handleError);
-    this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { notes });
-  };
-
-  private onMassEditDrop = () => async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const notes = await onDrop(e.dataTransfer.files, this.handleError);
-    this.props.updateMassEditRow({ ...this.props.massEditRow, Notes: notes });
   };
 
   private saveNotesByRow = (
