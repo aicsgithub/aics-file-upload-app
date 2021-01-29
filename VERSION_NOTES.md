@@ -1,6 +1,6 @@
 # Version Notes
 
-## 1.0.57 (01/29/21)
+## 1.0.59 (01/29/21)
 - Feature: Add new duration annotation type
 - Feature: Add ability to add options to dropdown annotations
 - Bugfix: Fix issue where warning is not shown when app is closed during upload
