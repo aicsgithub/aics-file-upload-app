@@ -125,21 +125,27 @@ class NoteIcon extends React.Component<NoteIconProps, NoteIconState> {
     if (this.state.editing) {
       return (
         <>
-          <TextArea
-            className={styles.useFullWidth}
-            onChange={this.updateNotes}
-            placeholder="Type notes for file here or drag/drop a file below"
-            autoSize={{ minRows: 4, maxRows: 12 }}
-            value={this.state.notes}
-          />
-          <p className={styles.dragAndDropNote}>
-            <strong>Note:</strong> Notes must be file type .txt
-          </p>
           <DragAndDrop
             onDrop={this.handleOnDrop}
             onOpen={this.handleOnOpen}
             openDialogOptions={openDialogOptions}
-          />
+          >
+            <TextArea
+              className={styles.useFullWidth}
+              onChange={this.updateNotes}
+              placeholder="Type notes for file here or drag/drop a file below"
+              autoSize={{ minRows: 4, maxRows: 12 }}
+              value={this.state.notes}
+            />
+            <p className={styles.dragAndDropNote}>
+              <strong>Note:</strong> Notes must be file type .txt
+            </p>
+            <DragAndDrop
+              onDrop={this.handleOnDrop}
+              onOpen={this.handleOnOpen}
+              openDialogOptions={openDialogOptions}
+            />
+          </DragAndDrop>
         </>
       );
     }
