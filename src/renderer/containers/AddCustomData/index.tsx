@@ -403,8 +403,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                   can select to associate with workflows
                 </div>
                 <Button
-                  disabled={this.isReadOnly}
-                  onClick={associateByWorkflow}
+                  disabled={isAssociatedByWorkflow || this.isReadOnly}
+                  onClick={() => associateByWorkflow(true)}
                 >
                   {isAssociatedByWorkflow
                     ? "Selected"

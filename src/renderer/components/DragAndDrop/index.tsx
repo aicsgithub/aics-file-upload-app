@@ -65,6 +65,10 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   }
 
   private renderContent = (): React.ReactNode | React.ReactNodeArray => {
+    if (!this.props.overlayChildren && this.props.children) {
+      return this.props.children;
+    }
+
     const dragAndDropPrompt = (
       <div className={styles.content}>
         <>
@@ -85,10 +89,6 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
       return dragAndDropPrompt;
     }
 
-    if (!this.props.overlayChildren) {
-      return this.props.children;
-    }
-
     if (this.props.children && this.props.overlayChildren) {
       return (
         <>
@@ -97,21 +97,8 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
         </>
       );
     }
-    return (
-      <div className={styles.content}>
-        <>
-          <Icon type="upload" className={styles.uploadIcon} />
-          <div>Drag&nbsp;and&nbsp;Drop</div>
-          <div>- or -</div>
-          <Button
-            disabled={!this.props.openDialogOptions}
-            onClick={this.onBrowse}
-          >
-            Browse
-          </Button>
-        </>
-      </div>
-    );
+
+    return dragAndDropPrompt;
   };
 
   // Opens native file explorer
