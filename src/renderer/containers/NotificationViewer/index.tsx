@@ -186,6 +186,7 @@ export default function NotificationViewer() {
           className={classNames(styles.icon, styles.notificationBell)}
           onClick={() => setShowEvents(true)}
         />
+        <div>Notifications</div>
       </Badge>
       <Modal
         title={modalHeader}

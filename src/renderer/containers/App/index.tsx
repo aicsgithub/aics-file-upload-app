@@ -13,6 +13,7 @@ import {
   SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
 } from "../../../shared/constants";
+import NavigationBar from "../../components/NavigationBar";
 import StatusBar from "../../components/StatusBar";
 import { BaseServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
@@ -47,7 +48,6 @@ import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, AsyncRequest, Page } from "../../state/types";
 import { openUploadDraft, saveUploadDraft } from "../../state/upload/actions";
 import AddCustomData from "../AddCustomData";
-import NotificationViewer from "../NotificationViewer";
 import OpenTemplateModal from "../OpenTemplateModal";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
@@ -263,6 +263,7 @@ export default function App() {
   return (
     <div className={styles.container}>
       <div className={styles.mainContent}>
+        <NavigationBar view={view} selectView={selectView} />
         <Tabs
           activeKey={view}
           className={styles.tabContainer}
@@ -270,11 +271,6 @@ export default function App() {
           onChange={(view) => dispatch(selectView(view as Page))}
           onEdit={onTabChange}
           type="editable-card"
-          tabBarExtraContent={
-            <div style={{ marginRight: "10px" }}>
-              <NotificationViewer />
-            </div>
-          }
         >
           <TabPane
             className={styles.tabContent}
