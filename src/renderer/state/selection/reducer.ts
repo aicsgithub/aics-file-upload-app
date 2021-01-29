@@ -1,6 +1,5 @@
 import { userInfo } from "os";
 
-import { castArray } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
@@ -13,6 +12,8 @@ import {
   CloseUploadTabAction,
   OpenEditFileMetadataTabAction,
 } from "../route/types";
+import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
+import { AssociateByWorkflowAction } from "../setting/types";
 import {
   SelectionStateBranch,
   TypeToDescriptionMap,
@@ -26,11 +27,9 @@ import {
   CLEAR_SELECTION_HISTORY,
   JUMP_TO_PAST_SELECTION,
   SELECT_BARCODE,
-  SELECT_FILE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
   SELECT_WELLS,
-  SELECT_WORKFLOW_PATH,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
@@ -45,11 +44,9 @@ import {
 } from "./selectors";
 import {
   SelectBarcodeAction,
-  SelectFileAction,
   SelectImagingSessionIdAction,
   SelectMetadataAction,
   SelectWellsAction,
-  SelectWorkflowPathAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -68,26 +65,30 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
 
 export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
-  files: [],
   massEditRow: {},
   user: userInfo().username,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
+  [ASSOCIATE_BY_WORKFLOW]: {
+    accepts: (action: AnyAction): action is AssociateByWorkflowAction =>
+      action.type === ASSOCIATE_BY_WORKFLOW,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      barcode: undefined,
+      imagingSessionId: undefined,
+      imagingSessionIds: [],
+      plate: {},
+      selectedWells: [],
+      wells: {},
+    }),
+  },
   [SELECT_BARCODE]: {
     accepts: (action: AnyAction): action is SelectBarcodeAction =>
       action.type === SELECT_BARCODE,
     perform: (state: SelectionStateBranch, action: SelectBarcodeAction) => ({
       ...state,
       ...action.payload,
-    }),
-  },
-  [SELECT_WORKFLOW_PATH]: {
-    accepts: (action: AnyAction): action is SelectWorkflowPathAction =>
-      action.type === SELECT_WORKFLOW_PATH,
-    perform: (state: SelectionStateBranch) => ({
-      ...state,
-      barcode: undefined,
     }),
   },
   [SET_PLATE]: {
@@ -102,14 +103,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       imagingSessionIds,
       plate,
       wells,
-    }),
-  },
-  [SELECT_FILE]: {
-    accepts: (action: AnyAction): action is SelectFileAction =>
-      action.type === SELECT_FILE,
-    perform: (state: SelectionStateBranch, action: SelectFileAction) => ({
-      ...state,
-      files: [...castArray(action.payload)],
     }),
   },
   [SELECT_METADATA]: {

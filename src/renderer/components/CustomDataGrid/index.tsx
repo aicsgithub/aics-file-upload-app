@@ -561,10 +561,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       return [];
     }
     let basicColumns;
-    if (!this.props.associateByWorkflow) {
+    if (this.props.allWellsForSelectedPlate.length) {
       basicColumns = this.uploadColumns(this.getWellUploadColumns());
-    } else {
+    } else if (this.props.associateByWorkflow) {
       basicColumns = this.uploadColumns(this.getWorkflowUploadColumns());
+    } else {
+      basicColumns = this.uploadColumns([]);
     }
     if (!this.props.template) {
       return basicColumns;

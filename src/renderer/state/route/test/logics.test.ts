@@ -28,11 +28,7 @@ import {
   getTemplateHistory,
   getUploadHistory,
 } from "../../metadata/selectors";
-import { selectWorkflowPath } from "../../selection/actions";
-import {
-  getCurrentSelectionIndex,
-  getSelectedPlate,
-} from "../../selection/selectors";
+import { getSelectedPlate } from "../../selection/selectors";
 import { associateByWorkflow } from "../../setting/actions";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
@@ -183,7 +179,7 @@ describe("Route logics", () => {
 
     // This is going forward
     it(
-      "Going from DragAndDrop to SelectUploadType should record the index selection/template/upload state " +
+      "Going from DragAndDrop to AddCustomData should record the index selection/template/upload state " +
         "branches were at after leaving that page",
       async () => {
         const { logicMiddleware, store } = createMockReduxStore({
@@ -203,7 +199,7 @@ describe("Route logics", () => {
         expect(switchEnv.enabled).to.be.true;
 
         // apply
-        store.dispatch(selectPage(Page.DragAndDrop, Page.SelectUploadType));
+        store.dispatch(selectPage(Page.DragAndDrop, Page.AddCustomData));
 
         // after
         await logicMiddleware.whenComplete();
@@ -211,116 +207,8 @@ describe("Route logics", () => {
         expect(getSelectionHistory(state)[Page.DragAndDrop]).to.equal(0);
         expect(getTemplateHistory(state)[Page.DragAndDrop]).to.equal(0);
         expect(getUploadHistory(state)[Page.DragAndDrop]).to.equal(0);
-        expect(getPage(state)).to.equal(Page.SelectUploadType);
-        expect(switchEnv.enabled).to.be.false;
-      }
-    );
-    it(
-      "Going from SelectUploadType to AddCustomData should record which index selection/template/upload state " +
-        "branches are at for the page we went to",
-      async () => {
-        const startingSelectionHistory = {
-          [Page.SelectUploadType]: 0,
-        };
-        const startingTemplateHistory = {
-          [Page.SelectUploadType]: 0,
-        };
-        const startingUploadHistory = {
-          [Page.SelectUploadType]: 0,
-        };
-        const { logicMiddleware, store } = createMockReduxStore({
-          ...mockState,
-          metadata: {
-            ...mockState.metadata,
-            history: {
-              selection: startingSelectionHistory,
-              template: startingTemplateHistory,
-              upload: startingUploadHistory,
-            },
-          },
-          route: {
-            page: Page.SelectUploadType,
-            view: Page.SelectUploadType,
-          },
-        });
-        let state = store.getState();
-        expect(getSelectionHistory(state)).to.equal(startingSelectionHistory);
-        expect(getTemplateHistory(state)).to.equal(startingTemplateHistory);
-        expect(getUploadHistory(state)).to.equal(startingUploadHistory);
-
-        store.dispatch(selectWorkflowPath());
-        await logicMiddleware.whenComplete();
-
-        // before
-        expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
-        expect(switchEnv.enabled).to.be.false;
-
-        // apply
-        store.dispatch(selectPage(Page.SelectUploadType, Page.AddCustomData));
-
-        // after
-        await logicMiddleware.whenComplete();
-        state = store.getState();
-        expect(getSelectionHistory(state)).to.deep.equal({
-          ...startingSelectionHistory,
-          [Page.SelectUploadType]: 2,
-        });
-        expect(getTemplateHistory(state)).to.deep.equal({
-          ...startingTemplateHistory,
-          [Page.SelectUploadType]: 0,
-        });
-        expect(getUploadHistory(state)).to.deep.equal({
-          ...startingUploadHistory,
-          [Page.SelectUploadType]: 0,
-        });
         expect(getPage(state)).to.equal(Page.AddCustomData);
         expect(switchEnv.enabled).to.be.false;
-      }
-    );
-    it(
-      "Going from SelectUploadType to DragAndDrop should change indexes for selection/template/upload to 0" +
-        "back to where they were when the user left the DragAndDrop page",
-      async () => {
-        const startingSelectionHistory = {
-          [Page.DragAndDrop]: 0,
-        };
-        const startingTemplateHistory = {
-          [Page.DragAndDrop]: 0,
-        };
-        const startingUploadHistory = {
-          [Page.DragAndDrop]: 0,
-        };
-        const { logicMiddleware, store } = createMockReduxStore({
-          ...mockState,
-          metadata: {
-            ...mockState.metadata,
-            history: {
-              selection: startingSelectionHistory,
-              template: startingTemplateHistory,
-              upload: startingUploadHistory,
-            },
-          },
-          route: {
-            page: Page.SelectUploadType,
-            view: Page.SelectUploadType,
-          },
-        });
-        store.dispatch(selectWorkflowPath());
-        await logicMiddleware.whenComplete();
-
-        // before
-        expect(getCurrentSelectionIndex(store.getState())).to.be.equal(2);
-        expect(switchEnv.enabled).to.be.false;
-
-        // apply
-        store.dispatch(selectPage(Page.SelectUploadType, Page.DragAndDrop));
-
-        // after
-        await logicMiddleware.whenComplete();
-        const state = store.getState();
-        expect(getCurrentSelectionIndex(state)).to.equal(0);
-        expect(getPage(state)).to.equal(Page.DragAndDrop);
-        expect(switchEnv.enabled).to.be.true;
       }
     );
   });
@@ -372,17 +260,9 @@ describe("Route logics", () => {
   };
 
   describe("goBackLogic", () => {
-    it("goes to AddCustomData page if going back from AddCustomData page", async () => {
+    it("goes to DragAndDrop page if going back from AddCustomData page", async () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
-        Page.SelectUploadType,
-        goBack,
-        1
-      );
-    });
-    it("goes to DragAndDrop page if going back from SelectUploadType page", async () => {
-      await runShowMessageBoxTest(
-        Page.SelectUploadType,
         Page.DragAndDrop,
         goBack,
         1
@@ -398,8 +278,8 @@ describe("Route logics", () => {
     });
     it("does not change pages if user cancels the action through the dialog", async () => {
       await runShowMessageBoxTest(
-        Page.SelectUploadType,
-        Page.SelectUploadType,
+        Page.AddCustomData,
+        Page.AddCustomData,
         goBack,
         0
       );

@@ -255,7 +255,6 @@ export type ModalName = "openTemplate" | "settings" | "templateEditor";
 
 export enum Page {
   DragAndDrop = "DragAndDrop",
-  SelectUploadType = "SelectUploadType",
   AddCustomData = "AddCustomData",
   UploadSummary = "UploadSummary",
 }
@@ -272,7 +271,6 @@ export interface ExpandedRows {
 export interface SelectionStateBranch extends UploadTabSelections {
   barcode?: string;
   expandedUploadJobRows: ExpandedRows;
-  files: string[];
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
   massEditRow: MassEditRow;

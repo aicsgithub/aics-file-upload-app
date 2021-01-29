@@ -21,10 +21,6 @@ const stepOrder: { [stepName: string]: StepInfo } = {
     description: "Drag and drop folders/files to upload",
     display: "Drag and Drop",
   },
-  [Page.SelectUploadType]: {
-    description: "Choose how you want to associate data with your files",
-    display: "Upload Type",
-  },
   [Page.AddCustomData]: {
     description: "Add additional custom metadata to the files",
     display: "Add Metadata",

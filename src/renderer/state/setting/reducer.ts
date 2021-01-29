@@ -3,6 +3,8 @@ import { userInfo } from "os";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
+import { CLOSE_UPLOAD_TAB } from "../route/constants";
+import { CloseUploadTabAction } from "../route/types";
 import { SET_PLATE } from "../selection/constants";
 import { SetPlateAction } from "../selection/types";
 import { SAVE_TEMPLATE_SUCCEEDED } from "../template/constants";
@@ -49,6 +51,14 @@ const actionToConfigMap: TypeToDescriptionMap<SettingStateBranch> = {
     perform: (state: SettingStateBranch, action: GatherSettingsAction) => ({
       ...state,
       ...action.payload,
+    }),
+  },
+  [CLOSE_UPLOAD_TAB]: {
+    accepts: (action: AnyAction): action is CloseUploadTabAction =>
+      action.type === CLOSE_UPLOAD_TAB,
+    perform: (state: SettingStateBranch) => ({
+      ...state,
+      associateByWorkflow: false,
     }),
   },
   [UPDATE_SETTINGS]: {

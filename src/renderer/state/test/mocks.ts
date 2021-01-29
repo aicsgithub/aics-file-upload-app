@@ -223,7 +223,6 @@ export const mockPlate: ImagingSessionIdToPlateMap = {
 export const mockSelection: SelectionStateBranch = {
   barcode: undefined,
   expandedUploadJobRows: {},
-  files: [],
   imagingSessionId: undefined,
   imagingSessionIds: [null, 1],
   plate: mockPlate,

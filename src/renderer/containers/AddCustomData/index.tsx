@@ -1,9 +1,12 @@
-import { Alert, Spin } from "antd";
+import { Alert, Button, Icon, Select, Spin } from "antd";
+import classNames from "classnames";
+import { ipcRenderer } from "electron";
+import { find } from "lodash";
 import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
-import { SCHEMA_SYNONYM } from "../../../shared/constants";
+import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
 import FormPage from "../../components/FormPage";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
@@ -13,6 +16,7 @@ import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   AnnotationType,
+  BarcodePrefix,
   Channel,
   LabkeyTemplate,
 } from "../../services/labkey-client/types";
@@ -24,12 +28,15 @@ import {
 } from "../../state/feedback/selectors";
 import { SetAlertAction } from "../../state/feedback/types";
 import { getUploadInProgress } from "../../state/job/selectors";
+import { createBarcode } from "../../state/metadata/actions";
 import {
   getAnnotationTypes,
+  getBarcodePrefixes,
   getBooleanAnnotationTypeId,
   getChannels,
   getTemplates,
 } from "../../state/metadata/selectors";
+import { CreateBarcodeAction } from "../../state/metadata/types";
 import { goBack } from "../../state/route/actions";
 import { GoBackAction } from "../../state/route/types";
 import {
@@ -45,17 +52,24 @@ import {
   getMassEditRow,
 } from "../../state/selection/selectors";
 import {
+  SelectBarcodeAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
   Well,
 } from "../../state/selection/types";
-import { updateSettings } from "../../state/setting/actions";
+import {
+  associateByWorkflow,
+  updateSettings,
+} from "../../state/setting/actions";
 import {
   getAssociateByWorkflow,
   getShowUploadHint,
   getTemplateId,
 } from "../../state/setting/selectors";
-import { UpdateSettingsAction } from "../../state/setting/types";
+import {
+  AssociateByWorkflowAction,
+  UpdateSettingsAction,
+} from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import {
   AsyncRequest,
@@ -106,14 +120,17 @@ interface Props {
   annotationTypes: AnnotationType[];
   appliedTemplate?: Template;
   applyTemplate: ActionCreator<ApplyTemplateAction>;
-  associateByWorkflow: boolean;
+  associateByWorkflow: ActionCreator<AssociateByWorkflowAction>;
+  barcodePrefixes: BarcodePrefix[];
   booleanAnnotationTypeId?: number;
   canRedo: boolean;
   canSubmit: boolean;
   canUndo: boolean;
   channels: Channel[];
   className?: string;
+  createBarcode: ActionCreator<CreateBarcodeAction>;
   expandedRows: ExpandedRows;
+  isAssociatedByWorkflow: boolean;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
   goBack: ActionCreator<GoBackAction>;
   initiateUpload: ActionCreator<InitiateUploadAction>;
@@ -123,7 +140,7 @@ interface Props {
   massEditRow: MassEditRow;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
-  selectBarcode: typeof selectBarcode;
+  selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
   selectedJob?: JSSJob<UploadServiceFields>;
   setAlert: ActionCreator<SetAlertAction>;
@@ -160,6 +177,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     this.state = {
       selectedFiles: [],
     };
+
+    // During the "Create Barcode" path the user will create a plate, triggering this. From here we can proceed
+    // to associating files and wells, note this will now become essentially the same path as "Enter Barcode"
+    ipcRenderer.on(
+      PLATE_CREATED,
+      (_: any, barcode: string, imagingSessionId: number | null) => {
+        this.props.selectBarcode(barcode, [imagingSessionId], imagingSessionId);
+      }
+    );
   }
 
   public get isReadOnly() {
@@ -184,11 +210,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     const {
       annotationTypes,
       appliedTemplate,
-      associateByWorkflow,
       canRedo,
       canSubmit,
       canUndo,
       className,
+      isAssociatedByWorkflow,
       loading,
       loadingFileMetadata,
       massEditRow,
@@ -279,7 +305,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <CustomDataGrid
             allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
             annotationTypes={annotationTypes}
-            associateByWorkflow={associateByWorkflow}
+            associateByWorkflow={isAssociatedByWorkflow}
             canRedo={canRedo}
             canUndo={canUndo}
             channels={this.props.channels}
@@ -306,33 +332,101 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   }
 
   private renderButtons = () => {
-    const { appliedTemplate, loading, selectedBarcode } = this.props;
+    const {
+      appliedTemplate,
+      associateByWorkflow,
+      barcodePrefixes,
+      createBarcode,
+      isAssociatedByWorkflow,
+      loading,
+      selectedBarcode,
+    } = this.props;
+    const onCreateBarcode = (selectedPrefixId: any) => {
+      createBarcode(
+        find(barcodePrefixes, (prefix) => prefix.prefixId === selectedPrefixId)
+      );
+    };
 
     return (
-      <div className={styles.selectors}>
-        <LabeledInput className={styles.schemaSelector} label={SCHEMA_SYNONYM}>
-          <TemplateSearch
-            allowCreate={true}
-            className={styles.schemaSelector}
-            disabled={loading || this.isReadOnly}
-            value={appliedTemplate ? appliedTemplate.templateId : undefined}
-            onSelect={this.props.applyTemplate}
+      <>
+        <div className={styles.container}>
+          <Icon
+            className={classNames(
+              styles.icon,
+              !appliedTemplate && styles.hidden
+            )}
+            type="check-circle"
           />
-        </LabeledInput>
-        {selectedBarcode && (
-          <LabeledInput label="Plate Barcode" className={styles.barcode}>
-            <BarcodeSearch
-              barcode={selectedBarcode}
-              disabled={true} // TODO remove in FUA-5
-              onBarcodeChange={(imagingSessionIds, barcode) => {
-                if (barcode) {
-                  this.props.selectBarcode(barcode, imagingSessionIds);
-                }
-              }}
+          <LabeledInput
+            className={styles.selector}
+            label={`Select ${SCHEMA_SYNONYM}`}
+          >
+            <TemplateSearch
+              allowCreate={true}
+              disabled={loading || this.isReadOnly}
+              value={appliedTemplate ? appliedTemplate.templateId : undefined}
+              onSelect={this.props.applyTemplate}
             />
           </LabeledInput>
-        )}
-      </div>
+        </div>
+        <div className={styles.container}>
+          <Icon
+            className={classNames(
+              styles.icon,
+              !selectedBarcode && !isAssociatedByWorkflow && styles.hidden
+            )}
+            type="check-circle"
+          />
+          <LabeledInput className={styles.label} label="Select Upload Type">
+            <div className={styles.container}>
+              <div>
+                <div className={styles.helpText}>
+                  The barcode you enter will be used to associate your files
+                  with wells
+                </div>
+                <BarcodeSearch
+                  barcode={selectedBarcode}
+                  onBarcodeChange={(imagingSessionIds, barcode) => {
+                    if (barcode) {
+                      this.props.selectBarcode(barcode, imagingSessionIds);
+                    }
+                  }}
+                />
+              </div>
+              <div className={styles.separatorText}>OR</div>
+              <div>
+                <div className={styles.helpText}>
+                  Selecting a barcode prefix will prompt you to create a plate
+                  in LabKey with said prefix
+                </div>
+                <Select
+                  className={styles.selector}
+                  onSelect={onCreateBarcode}
+                  placeholder="Select Barcode Prefix"
+                >
+                  {barcodePrefixes.map(({ prefixId, description }) => (
+                    <Select.Option value={prefixId} key={prefixId}>
+                      {description}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+              <div className={styles.separatorText}>OR</div>
+              <div>
+                <div className={styles.helpText}>
+                  If you do not have a plate to associate your files with you
+                  can select to associate with workflows
+                </div>
+                <Button onClick={associateByWorkflow}>
+                  {isAssociatedByWorkflow
+                    ? "Selected"
+                    : "Associate with Workflows"}
+                </Button>
+              </div>
+            </div>
+          </LabeledInput>
+        </div>
+      </>
     );
   };
 
@@ -365,7 +459,7 @@ function mapStateToProps(state: State) {
     allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
     annotationTypes: getAnnotationTypes(state),
     appliedTemplate: getAppliedTemplate(state),
-    associateByWorkflow: getAssociateByWorkflow(state),
+    barcodePrefixes: getBarcodePrefixes(state),
     booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
     canRedo: getCanRedoUpload(state),
     canSubmit: getCanSubmitUpload(state),
@@ -373,6 +467,7 @@ function mapStateToProps(state: State) {
     channels: getChannels(state),
     expandedRows: getExpandedUploadJobRows(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
+    isAssociatedByWorkflow: getAssociateByWorkflow(state),
     loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
     loadingFileMetadata: getRequestsInProgressContains(
       state,
@@ -395,6 +490,8 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   applyTemplate,
+  associateByWorkflow,
+  createBarcode,
   goBack,
   initiateUpload,
   jumpToUpload,

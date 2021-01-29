@@ -25,7 +25,6 @@ export const getSelectedBarcode = (state: State) =>
   state.selection.present.barcode;
 export const getSelectedPlates = (state: State) =>
   state.selection.present.plate;
-export const getSelectedFiles = (state: State) => state.selection.present.files;
 export const getWells = (state: State) => state.selection.present.wells;
 export const getSelectedWells = (state: State) =>
   state.selection.present.selectedWells;

@@ -9,6 +9,10 @@ import {
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD_TAB } from "../route/constants";
 import { CloseUploadTabAction } from "../route/types";
+import { SELECT_BARCODE } from "../selection/constants";
+import { SelectBarcodeAction } from "../selection/types";
+import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
+import { AssociateByWorkflowAction } from "../setting/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
 import { TypeToDescriptionMap, UploadRowId, UploadStateBranch } from "../types";
@@ -61,6 +65,40 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           [getUploadRowKey(uploadRowId)]: { ...uploadRowId },
         }),
         { ...state }
+      );
+    },
+  },
+  [SELECT_BARCODE]: {
+    accepts: (action: AnyAction): action is SelectBarcodeAction =>
+      action.type === SELECT_BARCODE,
+    perform: (state: UploadStateBranch) => {
+      return Object.entries(state).reduce(
+        (nextState, [key, metadata]) => ({
+          ...nextState,
+          [key]: {
+            ...metadata,
+            [WELL_ANNOTATION_NAME]: undefined,
+            [WORKFLOW_ANNOTATION_NAME]: undefined,
+          },
+        }),
+        {} as UploadStateBranch
+      );
+    },
+  },
+  [ASSOCIATE_BY_WORKFLOW]: {
+    accepts: (action: AnyAction): action is AssociateByWorkflowAction =>
+      action.type === ASSOCIATE_BY_WORKFLOW,
+    perform: (state: UploadStateBranch) => {
+      return Object.entries(state).reduce(
+        (nextState, [key, metadata]) => ({
+          ...nextState,
+          [key]: {
+            ...metadata,
+            [WELL_ANNOTATION_NAME]: undefined,
+            [WORKFLOW_ANNOTATION_NAME]: undefined,
+          },
+        }),
+        {} as UploadStateBranch
       );
     },
   },

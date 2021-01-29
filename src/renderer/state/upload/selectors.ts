@@ -59,9 +59,11 @@ import { getPage } from "../route/selectors";
 import {
   getAllPlates,
   getExpandedUploadJobRows,
+  getSelectedBarcode,
   getSelectedJob,
   getWellIdToWellMap,
 } from "../selection/selectors";
+import { getAssociateByWorkflow } from "../setting/selectors";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
   TemplateAnnotationWithTypeName,
@@ -651,18 +653,27 @@ export const getUploadValidationErrors = createSelector(
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
     getSelectedJob,
+    getSelectedBarcode,
+    getAssociateByWorkflow,
   ],
   (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
     validationErrorsMap: { [key: string]: { [annotation: string]: string } },
     template?: TemplateWithTypeNames,
-    selectedJob?: JSSJob
+    selectedJob?: JSSJob,
+    selectedBarcode?: string,
+    isAssociatedByWorkflow?: boolean
   ): string[] => {
+    const shouldHaveWells = Boolean(selectedBarcode);
+    const shouldHaveWorkflows = isAssociatedByWorkflow;
     const errors: string[] = [];
     if (!template) {
       errors.push("A template must be selected to submit an upload");
     } else {
+      if (!shouldHaveWells && !shouldHaveWorkflows) {
+        errors.push("An upload type must be selected to submit an upload");
+      }
       // Iterate over each row value adding an error for each value with a non-ASCII character
       rows.forEach((row) => {
         Object.entries(row).forEach(([rowKey, rowValue]) => {
@@ -687,14 +698,6 @@ export const getUploadValidationErrors = createSelector(
         fileToAnnotationHasValueMap,
         (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
           const fileName = basename(file);
-          if (
-            !annotationHasValueMap[WELL_ANNOTATION_NAME] &&
-            !annotationHasValueMap[WORKFLOW_ANNOTATION_NAME]
-          ) {
-            errors.push(
-              `${fileName} must have either a well or workflow association`
-            );
-          }
           const requiredAnnotationsThatDontHaveValues = keys(
             pickBy(
               annotationHasValueMap,
@@ -702,6 +705,16 @@ export const getUploadValidationErrors = createSelector(
                 !hasValue && requiredAnnotations.includes(annotationName)
             )
           );
+          if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
+            requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);
+          } else if (
+            !annotationHasValueMap[WORKFLOW_ANNOTATION_NAME] &&
+            shouldHaveWorkflows
+          ) {
+            requiredAnnotationsThatDontHaveValues.push(
+              WORKFLOW_ANNOTATION_NAME
+            );
+          }
 
           if (requiredAnnotationsThatDontHaveValues.length) {
             const requiredAnnotationsMissingNames = requiredAnnotationsThatDontHaveValues.join(
@@ -714,6 +727,7 @@ export const getUploadValidationErrors = createSelector(
         }
       );
     }
+
     if (!rows.length && !selectedJob) {
       errors.push("No files to upload");
     }

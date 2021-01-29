@@ -13,9 +13,7 @@ import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
 import { selectPage } from "../route/actions";
 import { findNextPage } from "../route/constants";
-import { getSelectPageActions } from "../route/logics";
 import { getPage } from "../route/selectors";
-import { associateByWorkflow } from "../setting/actions";
 import {
   AlertType,
   AsyncRequest,
@@ -28,7 +26,7 @@ import {
   UploadFile,
 } from "../types";
 import { addUploadFiles } from "../upload/actions";
-import { batchActions, getActionFromBatch } from "../util";
+import { batchActions } from "../util";
 
 import { selectWells, setPlate } from "./actions";
 import {
@@ -36,7 +34,6 @@ import {
   OPEN_FILES,
   SELECT_BARCODE,
   SELECT_WELLS,
-  SELECT_WORKFLOW_PATH,
 } from "./constants";
 import { getWellsWithModified } from "./selectors";
 
@@ -69,7 +66,7 @@ const stageFilesAndStopLoading = async (
       dispatch(
         selectPage(
           currentPage,
-          findNextPage(currentPage, 1) || Page.SelectUploadType
+          findNextPage(currentPage, 1) || Page.AddCustomData
         )
       );
     }
@@ -143,25 +140,11 @@ export const GENERIC_GET_WELLS_ERROR_MESSAGE = (barcode: string) =>
 
 const selectBarcodeLogic = createLogic({
   process: async (
-    {
-      action,
-      getApplicationMenu,
-      getState,
-      logger,
-      mmsClient,
-    }: ReduxLogicProcessDependencies,
+    { action, logger, mmsClient }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
     const { barcode, imagingSessionIds } = action.payload;
-    const nextPage =
-      findNextPage(Page.SelectUploadType, 1) || Page.AddCustomData;
-    const selectPageActions = getSelectPageActions(
-      logger,
-      getState(),
-      getApplicationMenu,
-      selectPage(Page.SelectUploadType, nextPage)
-    );
     try {
       const { plate, wells } = await getPlateInfo(
         barcode,
@@ -169,12 +152,7 @@ const selectBarcodeLogic = createLogic({
         mmsClient,
         dispatch
       );
-      dispatch(
-        batchActions([
-          ...selectPageActions,
-          setPlate(plate, wells, imagingSessionIds),
-        ])
-      );
+      dispatch(setPlate(plate, wells, imagingSessionIds));
     } catch (e) {
       const error = "Could not get plate info: " + e.message;
       logger.error(e.message);
@@ -184,26 +162,6 @@ const selectBarcodeLogic = createLogic({
     done();
   },
   type: SELECT_BARCODE,
-});
-
-const selectWorkflowPathLogic = createLogic({
-  process: (
-    deps: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    const action = getActionFromBatch(deps.action, SELECT_WORKFLOW_PATH);
-
-    if (action) {
-      const actions = [action, associateByWorkflow(true)];
-      const nextPage =
-        findNextPage(Page.SelectUploadType, 1) || Page.AddCustomData;
-      dispatch(batchActions(actions));
-      dispatch(selectPage(Page.SelectUploadType, nextPage));
-    }
-    done();
-  },
-  type: SELECT_WORKFLOW_PATH,
 });
 
 const selectWellsLogic = createLogic({
@@ -229,5 +187,4 @@ export default [
   openFilesLogic,
   selectBarcodeLogic,
   selectWellsLogic,
-  selectWorkflowPathLogic,
 ];
