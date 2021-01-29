@@ -586,9 +586,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       name: NOTES_ANNOTATION_NAME,
       width: 80,
     };
-    const basicColumns = this.props.associateByWorkflow
-      ? this.getWorkflowUploadColumns()
-      : this.getWellUploadColumns(true);
+    let basicColumns: UploadJobColumn[] = [];
+    if (this.props.allWellsForSelectedPlate.length) {
+      basicColumns = this.getWellUploadColumns(true);
+    } else if (this.props.associateByWorkflow) {
+      basicColumns = this.getWorkflowUploadColumns();
+    }
     const schemaColumns = this.getSchemaColumns(true);
     return [numberFiles, ...basicColumns, notes, ...schemaColumns].map(
       (column) => column as MassEditColumn
