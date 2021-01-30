@@ -46,7 +46,7 @@ function formatDate(date: Date): string {
   return moment(date).format("MM/DD/YYYY [at] HH:mm A");
 }
 
-export default function NotificationViewer() {
+export default function NotificationViewer(props: { className: string }) {
   const dispatch = useDispatch();
 
   const filteredEvents = useSelector(getFilteredEvents);
@@ -176,17 +176,20 @@ export default function NotificationViewer() {
       </div>
     </>
   );
+  // className={classNames(styles.button, showEvents ? styles.selectedButton : undefined)}
 
   return (
     <>
       <Badge count={unreadEventsCount} offset={[-8, 8]}>
-        <Icon
-          type="bell"
-          theme="filled"
-          className={classNames(styles.icon, styles.notificationBell)}
-          onClick={() => setShowEvents(true)}
-        />
-        <div>Notifications</div>
+        <Button className={props.className} onClick={() => setShowEvents(true)}>
+          <Icon
+            type="bell"
+            theme="filled"
+            title="Notifications"
+            className={classNames(styles.icon)}
+          />
+          <div>Notifications</div>
+        </Button>
       </Badge>
       <Modal
         title={modalHeader}

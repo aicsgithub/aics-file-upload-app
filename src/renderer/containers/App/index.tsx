@@ -263,7 +263,7 @@ export default function App() {
   return (
     <div className={styles.container}>
       <div className={styles.mainContent}>
-        <NavigationBar view={view} selectView={selectView} />
+        <NavigationBar page={page} view={view} selectView={selectView} />
         <Tabs
           activeKey={view}
           className={styles.tabContainer}

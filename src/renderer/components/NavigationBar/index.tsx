@@ -1,4 +1,5 @@
-import { Icon } from "antd";
+import { Button, Icon } from "antd";
+import classNames from "classnames";
 import React from "react";
 
 import NotificationViewer from "../../containers/NotificationViewer";
@@ -7,54 +8,33 @@ import { Page } from "../../state/types";
 const styles = require("./styles.pcss");
 
 interface Props {
+  page: Page;
   selectView: (view: Page) => void;
   view: Page;
 }
 
-interface PageButton {
-  isSelected: boolean;
-  representation?: React.ReactNode;
-  title: string;
-  type: string;
-}
-
 export default function NavigationBar(props: Props) {
-  const pageButtons: PageButton[] = [
-    {
-      title: "Notifications",
-      type: "check",
-      isSelected: props.view === Page.DragAndDrop,
-      representation: <NotificationViewer />,
-    },
-    {
-      title: "Upload",
-      type: "check",
-      isSelected:
-        props.view === Page.UploadSummary || props.view === Page.AddCustomData,
-    },
-    {
-      title: "Settings",
-      type: "check",
-      isSelected:
-        props.view === Page.UploadSummary || props.view === Page.AddCustomData,
-    },
-  ];
+  const isUploadViewActive =
+    props.view === Page.AddCustomData || props.view === Page.UploadSummary;
+  console.log(isUploadViewActive);
   return (
     <div className={styles.container}>
-      {pageButtons.map(
-        (button) =>
-          button.representation || (
-            <div className={styles.button}>
-              <Icon
-                className={
-                  button.isSelected ? styles.selectedButton : undefined
-                }
-                type={button.type}
-              />
-              <div>{button.title}</div>
-            </div>
-          )
-      )}
+      <NotificationViewer
+        className={classNames(
+          styles.button,
+          !isUploadViewActive ? styles.selectedButton : undefined
+        )}
+      />
+      <Button
+        className={classNames(
+          styles.button,
+          isUploadViewActive ? styles.selectedButton : undefined
+        )}
+        onClick={() => props.selectView(props.page)}
+      >
+        <Icon className={styles.buttonIcon} type="upload" title="Upload" />
+        <div className={styles.buttonTitle}>Upload</div>
+      </Button>
     </div>
   );
 }
