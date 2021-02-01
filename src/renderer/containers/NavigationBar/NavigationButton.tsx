@@ -24,10 +24,9 @@ export default function NavigationButton(props: Props) {
       <Icon
         className={styles.buttonIcon}
         type={props.icon}
-        title={props.title}
         theme={props.iconTheme}
       />
-      <div className={styles.buttonTitle}>{props.title}</div>
+      <p className={styles.buttonTitle}>{props.title}</p>
     </Button>
   );
 }

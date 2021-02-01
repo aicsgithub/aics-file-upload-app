@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -20,12 +19,7 @@ export default function NavigationBar() {
 
   return (
     <div className={styles.container}>
-      <NotificationViewer
-        className={classNames(
-          styles.button,
-          view === Page.Notifications ? styles.selectedButton : undefined
-        )}
-      />
+      <NotificationViewer />
       <NavigationButton
         icon="upload"
         isSelected={view === Page.AddCustomData}

@@ -52,7 +52,7 @@ import {
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
 import { closeUpload, openEditFileMetadataTab } from "../route/actions";
-import { handleGoingToNextPageForNewUpload } from "../route/logics";
+import { handleStartingNewUploadJob } from "../route/logics";
 import {
   getSelectedBarcode,
   getSelectedJob,
@@ -909,6 +909,8 @@ const openUploadLogic = createLogic({
   process: (
     {
       ctx,
+      logger,
+      getApplicationMenu,
       getState,
     }: ReduxLogicProcessDependenciesWithAction<OpenUploadDraftAction>,
     dispatch: ReduxLogicNextCb,
@@ -917,7 +919,7 @@ const openUploadLogic = createLogic({
     dispatch(
       batchActions([
         replaceUpload(ctx.filePath, ctx.draft),
-        ...handleGoingToNextPageForNewUpload(getState()),
+        ...handleStartingNewUploadJob(logger, getState(), getApplicationMenu),
       ])
     );
 

@@ -124,8 +124,10 @@ const stateBranchHistory = [
 // Returns common actions needed because we share the upload tab between upload drafts for now
 // Some of these actions cannot be done in the reducer because they are handled by a higher-order reducer
 // from redux-undo.
-export const handleGoingToNextPageForNewUpload = (
-  state: State
+export const handleStartingNewUploadJob = (
+  logger: Logger,
+  state: State,
+  getApplicationMenu: () => Menu | null
 ): AnyAction[] => {
   const actions = [
     clearUploadDraft(),
@@ -136,6 +138,10 @@ export const handleGoingToNextPageForNewUpload = (
   const isMountedAsExpected = existsSync(
     makePosixPathCompatibleWithPlatform("/allen/aics", platform())
   );
+  const menu = getApplicationMenu();
+  if (menu) {
+    setSwitchEnvEnabled(menu, false, logger);
+  }
   const mountPoint = getMountPoint(state);
   if (!isMountedAsExpected && !mountPoint) {
     actions.push(openSetMountPointNotification());
@@ -255,6 +261,7 @@ const openEditFileMetadataTabLogic = createLogic({
       action,
       ctx,
       fms,
+      getApplicationMenu,
       getState,
       labkeyClient,
       logger,
@@ -265,7 +272,11 @@ const openEditFileMetadataTabLogic = createLogic({
   ) => {
     const state = getState();
     // Open the upload tab and make sure application menu gets updated and redux-undo histories reset.
-    dispatch(batchActions(handleGoingToNextPageForNewUpload(state)));
+    dispatch(
+      batchActions(
+        handleStartingNewUploadJob(logger, state, getApplicationMenu)
+      )
+    );
 
     // Second, we fetch the file metadata
     let fileMetadataForJob: ImageModelMetadata[];
