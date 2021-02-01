@@ -3,7 +3,7 @@
 
     background-color: var(--border-color);
     padding: 8vh var(--bar-right-and-left-padding) 0 var(--bar-right-and-left-padding);
-    width: calc(60px + 2 * var(--bar-right-and-left-padding));
+    width: var(--navigation-bar-width);
 }
 
 .button {
@@ -17,7 +17,8 @@
     height: 65px;
     margin: 0 0 2em 0;
     padding-top: 5px;
-    width: 60px;
+    /* Width is the width of the entire bar minus the left and right padding */
+    width: calc(var(--navigation-bar-width) - 2 * var(--bar-right-and-left-padding));
 
     & .button-icon {
         font-size: 30px;
