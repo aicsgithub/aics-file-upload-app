@@ -1,12 +1,12 @@
 import { AnyAction } from "redux";
 
 import {
-  CLOSE_UPLOAD_TAB,
+  CLOSE_UPLOAD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
 } from "../route/constants";
 import {
-  CloseUploadTabAction,
+  CloseUploadAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
 } from "../route/types";
@@ -126,9 +126,9 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
       currentUploadFilePath: action.payload.filePath,
     }),
   },
-  [CLOSE_UPLOAD_TAB]: {
-    accepts: (action: AnyAction): action is CloseUploadTabAction =>
-      action.type === CLOSE_UPLOAD_TAB,
+  [CLOSE_UPLOAD]: {
+    accepts: (action: AnyAction): action is CloseUploadAction =>
+      action.type === CLOSE_UPLOAD,
     perform: (state: MetadataStateBranch) => ({
       ...state,
       currentUploadFilePath: undefined,

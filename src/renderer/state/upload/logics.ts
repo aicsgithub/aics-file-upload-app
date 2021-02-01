@@ -51,12 +51,8 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
-import { openEditFileMetadataTab, selectPage } from "../route/actions";
-import {
-  getSelectPageActions,
-  handleGoingToNextPageForNewUpload,
-} from "../route/logics";
-import { getPage } from "../route/selectors";
+import { closeUpload, openEditFileMetadataTab } from "../route/actions";
+import { handleGoingToNextPageForNewUpload } from "../route/logics";
 import {
   getSelectedBarcode,
   getSelectedJob,
@@ -68,7 +64,6 @@ import { getAppliedTemplate } from "../template/selectors";
 import {
   AsyncRequest,
   HTTP_STATUS,
-  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
@@ -269,7 +264,6 @@ const initiateUploadLogic = createLogic({
     {
       ctx,
       fms,
-      getApplicationMenu,
       getState,
       logger,
     }: ReduxLogicProcessDependenciesWithAction<InitiateUploadAction>,
@@ -304,17 +298,7 @@ const initiateUploadLogic = createLogic({
         getLoggedInUser(getState())
       )
     );
-    const actions = [];
-    const currentPage = getPage(getState());
-    actions.push(
-      ...getSelectPageActions(
-        logger,
-        getState(),
-        getApplicationMenu,
-        selectPage(currentPage, Page.UploadSummary)
-      )
-    );
-    dispatch(batchActions(actions));
+    dispatch(closeUpload());
     try {
       await fms.uploadFiles(
         startUploadResponse,
@@ -925,9 +909,7 @@ const openUploadLogic = createLogic({
   process: (
     {
       ctx,
-      getApplicationMenu,
       getState,
-      logger,
     }: ReduxLogicProcessDependenciesWithAction<OpenUploadDraftAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
@@ -935,12 +917,7 @@ const openUploadLogic = createLogic({
     dispatch(
       batchActions([
         replaceUpload(ctx.filePath, ctx.draft),
-        ...handleGoingToNextPageForNewUpload(
-          logger,
-          getState(),
-          getApplicationMenu,
-          getPage(ctx.draft)
-        ),
+        ...handleGoingToNextPageForNewUpload(getState()),
       ])
     );
 
@@ -1013,10 +990,8 @@ const submitFileMetadataUpdateLogic = createLogic({
   process: async (
     {
       ctx,
-      getApplicationMenu,
       getState,
       jssClient,
-      logger,
       mmsClient,
     }: ReduxLogicProcessDependenciesWithAction<SubmitFileMetadataUpdateAction>,
     dispatch: ReduxLogicNextCb,
@@ -1079,15 +1054,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     }
 
     dispatch(
-      batchActions([
-        editFileMetadataSucceeded(ctx.jobName),
-        ...getSelectPageActions(
-          logger,
-          getState(),
-          getApplicationMenu,
-          selectPage(Page.AddCustomData, Page.UploadSummary)
-        ),
-      ])
+      batchActions([editFileMetadataSucceeded(ctx.jobName), closeUpload()])
     );
     done();
   },
@@ -1128,10 +1095,7 @@ const updateAndRetryUploadLogic = createLogic({
     {
       ctx,
       fms,
-      getApplicationMenu,
-      getState,
       jssClient,
-      logger,
     }: ReduxLogicProcessDependenciesWithAction<UpdateAndRetryUploadAction>,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
@@ -1164,16 +1128,7 @@ const updateAndRetryUploadLogic = createLogic({
     }
 
     // close the tab to let user watch progress from upload summary page
-    const currentPage = getPage(getState());
-    const actions = [
-      ...getSelectPageActions(
-        logger,
-        getState(),
-        getApplicationMenu,
-        selectPage(currentPage, Page.UploadSummary)
-      ),
-    ];
-    dispatch(batchActions(actions));
+    dispatch(closeUpload());
 
     try {
       await fms.retryUpload(selectedJob);

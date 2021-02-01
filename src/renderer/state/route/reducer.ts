@@ -1,27 +1,46 @@
 import { AnyAction } from "redux";
 
+import { CLOSE_NOTIFICATION_CENTER } from "../feedback/constants";
+import { CloseNotificationCenter } from "../feedback/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
-import { SELECT_PAGE, SELECT_VIEW } from "./constants";
+import { CLOSE_UPLOAD, SELECT_PAGE, SELECT_VIEW } from "./constants";
 import { getPage } from "./selectors";
-import { SelectPageAction, SelectViewAction } from "./types";
+import { CloseUploadAction, SelectPageAction, SelectViewAction } from "./types";
 
 export const initialState: RouteStateBranch = {
-  page: Page.UploadSummary,
-  view: Page.UploadSummary,
+  page: Page.AddCustomData,
+  view: Page.AddCustomData,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
+  [CLOSE_NOTIFICATION_CENTER]: {
+    accepts: (action: AnyAction): action is CloseNotificationCenter =>
+      action.type === CLOSE_NOTIFICATION_CENTER,
+    perform: (state: RouteStateBranch) => ({
+      ...state,
+      view: state.page,
+    }),
+  },
+  [CLOSE_UPLOAD]: {
+    accepts: (action: AnyAction): action is CloseUploadAction =>
+      action.type === CLOSE_UPLOAD,
+    perform: (state: RouteStateBranch) => ({
+      ...state,
+      page: Page.UploadSummary,
+      view: Page.UploadSummary,
+    }),
+  },
   [SELECT_PAGE]: {
     accepts: (action: AnyAction): action is SelectPageAction =>
       action.type === SELECT_PAGE,
     perform: (state: RouteStateBranch, action: SelectPageAction) => ({
       ...state,
-      page: action.payload.nextPage,
-      view: action.payload.nextPage,
+      page: action.payload,
+      view: action.payload,
     }),
   },
   [SELECT_VIEW]: {

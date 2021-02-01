@@ -20,10 +20,7 @@ describe("route reducer", () => {
   });
   describe("selectPage", () => {
     it("sets page and view to payload.nextPage", () => {
-      const result = reducer(
-        route,
-        selectPage(Page.UploadSummary, Page.AddCustomData)
-      );
+      const result = reducer(route, selectPage(Page.AddCustomData));
       expect(result.page).to.equal(Page.AddCustomData);
       expect(result.view).to.equal(Page.AddCustomData);
     });

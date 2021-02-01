@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { receiveJobs } from "../../job/actions";
 import {
-  closeUploadTab,
+  closeUpload,
   openEditFileMetadataTab,
   openEditFileMetadataTabSucceeded,
 } from "../../route/actions";
@@ -251,7 +251,7 @@ describe("feedback reducer", () => {
       expect(result.deferredAction).to.be.undefined;
     });
   });
-  describe("closeUploadTab", () => {
+  describe("closeUpload", () => {
     it("closes setMountPointNotification", () => {
       const result = reducer(
         {
@@ -259,7 +259,7 @@ describe("feedback reducer", () => {
           setMountPointNotificationVisible: true,
           uploadError: "foo",
         },
-        closeUploadTab()
+        closeUpload()
       );
       expect(result.setMountPointNotificationVisible).to.be.false;
       expect(result.uploadError).to.be.undefined;

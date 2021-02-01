@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import {
-  closeUploadTab,
+  closeUpload,
   openEditFileMetadataTab,
   openEditFileMetadataTabSucceeded,
 } from "../../route/actions";
@@ -75,14 +75,14 @@ describe("metadata reducer", () => {
       expect(result.currentUploadFilePath).to.not.be.undefined;
     });
   });
-  describe("closeUploadTab", () => {
+  describe("closeUpload", () => {
     it("clears currentUploadFilePath", () => {
       const result = reducer(
         {
           ...initialState,
           currentUploadFilePath: filePath,
         },
-        closeUploadTab()
+        closeUpload()
       );
       expect(result.currentUpload).to.be.undefined;
     });
@@ -92,7 +92,7 @@ describe("metadata reducer", () => {
           ...initialState,
           originalUpload: {},
         },
-        closeUploadTab()
+        closeUpload()
       );
       expect(result.originalUpload).to.be.undefined;
     });

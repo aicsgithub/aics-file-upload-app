@@ -443,11 +443,7 @@ describe("Upload logics", () => {
       ).to.be.true;
       expect(actions.list.find((a) => a.type === INITIATE_UPLOAD_SUCCEEDED)).to
         .not.be.undefined;
-      expect(
-        actions.includesMatch(
-          selectPage(Page.AddCustomData, Page.UploadSummary)
-        )
-      );
+      expect(actions.includesMatch(selectPage(Page.UploadSummary)));
     });
 
     it("sets error alert given validation error", async () => {
@@ -1857,11 +1853,7 @@ describe("Upload logics", () => {
       expect(mmsClient.editFileMetadata.calledWith("dog", match.object)).to.be
         .false;
       expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
-      expect(
-        actions.includesMatch(
-          selectPage(Page.AddCustomData, Page.UploadSummary)
-        )
-      );
+      expect(actions.includesMatch(selectPage(Page.UploadSummary)));
     });
     it("ignores 404s when deleting files", async () => {
       mmsClient.deleteFileMetadata.rejects({
@@ -2108,11 +2100,7 @@ describe("Upload logics", () => {
       );
       store.dispatch(updateAndRetryUpload());
       await logicMiddleware.whenComplete();
-      expect(
-        actions.includesMatch(
-          selectPage(Page.AddCustomData, Page.UploadSummary)
-        )
-      ).to.be.true;
+      expect(actions.includesMatch(selectPage(Page.UploadSummary))).to.be.true;
       expect(actions.includesType(REQUEST_FAILED)).to.be.false;
       expect(jssClient.updateJob.called).to.be.true;
       expect(fms.retryUpload.called).to.be.true;
@@ -2140,11 +2128,7 @@ describe("Upload logics", () => {
       );
       store.dispatch(updateAndRetryUpload());
       await logicMiddleware.whenComplete();
-      expect(
-        actions.includesMatch(
-          selectPage(Page.AddCustomData, Page.UploadSummary)
-        )
-      ).to.be.true;
+      expect(actions.includesMatch(selectPage(Page.UploadSummary))).to.be.true;
       expect(
         actions.includesMatch(
           requestFailed(

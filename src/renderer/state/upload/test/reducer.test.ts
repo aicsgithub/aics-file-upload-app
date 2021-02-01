@@ -4,7 +4,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
-import { closeUploadTab } from "../../route/actions";
+import { closeUpload } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import { UploadStateBranch } from "../../types";
 import { replaceUpload, updateUpload, updateUploads } from "../actions";
@@ -68,12 +68,9 @@ describe("upload reducer", () => {
       expect(present.bar).to.equal(uploadPartial);
     });
   });
-  describe("closeUploadTab", () => {
+  describe("closeUpload", () => {
     it("clears all uploads", () => {
-      const result = reducer(
-        getMockStateWithHistory(uploads),
-        closeUploadTab()
-      );
+      const result = reducer(getMockStateWithHistory(uploads), closeUpload());
       const { present } = result;
       expect(present).to.be.empty;
     });
