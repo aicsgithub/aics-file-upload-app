@@ -21,10 +21,13 @@
 }
 
 .content-container {
-  height: 100%;
+  height: calc(100% - 2em);
+  left: var(--navigation-bar-width);
   overflow-y: auto;
   padding: 1em;
-  width: 100%;
+  position: absolute;
+  user-select: auto;
+  width: calc(100% - var(--navigation-bar-width));
 }
 
 .save-button-container {
