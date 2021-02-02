@@ -1,4 +1,3 @@
-import { Page } from "../types";
 import { makeConstant } from "../util";
 
 const BRANCH_NAME = "route";
@@ -14,5 +13,3 @@ export const OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED = makeConstant(
 );
 export const SELECT_PAGE = makeConstant(BRANCH_NAME, "select-page");
 export const SELECT_VIEW = makeConstant(BRANCH_NAME, "select-view");
-
-export const pageOrder: Page[] = [Page.AddCustomData, Page.UploadSummary];

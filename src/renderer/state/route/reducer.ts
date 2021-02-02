@@ -12,8 +12,8 @@ import { getPage } from "./selectors";
 import { CloseUploadAction, SelectPageAction, SelectViewAction } from "./types";
 
 export const initialState: RouteStateBranch = {
-  page: Page.AddCustomData,
-  view: Page.AddCustomData,
+  page: Page.UploadSummary,
+  view: Page.UploadSummary,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
