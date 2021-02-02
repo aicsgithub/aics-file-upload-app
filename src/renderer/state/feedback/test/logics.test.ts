@@ -17,7 +17,7 @@ import {
 } from "../../test/configure-mock-store";
 import {
   getMockStateWithHistory,
-  mockFavoriteColorAnnotation,
+  mockFavoriteColorTemplateAnnotation,
   mockMMSTemplate,
   mockState,
   mockTemplateStateBranch,
@@ -118,7 +118,7 @@ describe("Feedback logics", () => {
           ...mockMMSTemplate,
           annotations: [
             {
-              ...mockFavoriteColorAnnotation,
+              ...mockFavoriteColorTemplateAnnotation,
               annotationTypeName: "Text",
               index: 0,
             },

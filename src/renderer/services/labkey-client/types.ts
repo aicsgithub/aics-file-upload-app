@@ -115,6 +115,7 @@ export enum ColumnType {
   DATE = "Date",
   DATETIME = "DateTime",
   LOOKUP = "Lookup",
+  DURATION = "Duration",
 }
 
 export interface AnnotationType {

@@ -257,7 +257,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         <div className={styles.contentContainer}>
           {selectedJob && <JobOverviewDisplay job={selectedJob} />}
           {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
-          {loading || templateIsLoading || selectedJobIsLoading ? (
+          {templateIsLoading || selectedJobIsLoading ? (
             <div className={styles.spinContainer}>
               <div>Loading...</div>
               <Spin />

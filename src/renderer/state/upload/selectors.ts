@@ -24,7 +24,10 @@ import { createSelector } from "reselect";
 
 import {
   CHANNEL_ANNOTATION_NAME,
+  DAY_AS_MS,
+  HOUR_AS_MS,
   LIST_DELIMITER_SPLIT,
+  MINUTE_AS_MS,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
@@ -36,12 +39,14 @@ import {
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
+import { Duration } from "../../types";
 import { getWellLabel, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
   getDateTimeAnnotationTypeId,
   getDropdownAnnotationTypeId,
+  getDurationAnnotationTypeId,
   getImagingSessions,
   getLookupAnnotationTypeId,
   getNumberAnnotationTypeId,
@@ -469,6 +474,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     getBooleanAnnotationTypeId,
     getNumberAnnotationTypeId,
     getTextAnnotationTypeId,
+    getDurationAnnotationTypeId,
     getDateAnnotationTypeId,
     getDateTimeAnnotationTypeId,
     getCompleteAppliedTemplate,
@@ -480,6 +486,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
     booleanAnnotationTypeId?: number,
     numberAnnotationTypeId?: number,
     textAnnotationTypeId?: number,
+    durationAnnotationTypeId?: number,
     dateAnnotationTypeId?: number,
     dateTimeAnnotationTypeId?: number,
     template?: TemplateWithTypeNames
@@ -566,6 +573,30 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
                       annotationToErrorMap[
                         annotationName
                       ] = `${invalidValues} did not match expected type: Text`;
+                    }
+                  }
+                  break;
+                case durationAnnotationTypeId:
+                  if (value.length > 1) {
+                    annotationToErrorMap[
+                      annotationName
+                    ] = `Only one Duration value may be present`;
+                  } else if (value.length === 1) {
+                    const {
+                      days,
+                      hours,
+                      minutes,
+                      seconds,
+                    } = value[0] as Duration;
+
+                    if (
+                      [days, hours, minutes, seconds].some(
+                        (v) => typeof v !== "number" || v < 0
+                      )
+                    ) {
+                      annotationToErrorMap[
+                        annotationName
+                      ] = `A Duration may only include numbers greater than 0`;
                     }
                   }
                   break;
@@ -739,6 +770,14 @@ const getAnnotations = (
                 return moment(v).format("YYYY-MM-DD HH:mm:ss");
               } else if (annotation.type === ColumnType.DATE) {
                 return moment(v).format("YYYY-MM-DD");
+              } else if (annotation.type === ColumnType.DURATION) {
+                const { days, hours, minutes, seconds } = v as Duration;
+                return (
+                  days * DAY_AS_MS +
+                  hours * HOUR_AS_MS +
+                  minutes * MINUTE_AS_MS +
+                  seconds * 1000
+                ).toString();
               }
               return v.toString();
             }),

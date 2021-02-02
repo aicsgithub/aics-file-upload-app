@@ -38,6 +38,7 @@ import {
   mockBooleanAnnotation,
   mockChannel,
   mockFavoriteColorAnnotation,
+  mockFavoriteColorTemplateAnnotation,
   mockMMSTemplate,
   mockNotesAnnotation,
   mockNumberAnnotation,
@@ -280,7 +281,7 @@ describe("General utilities", () => {
     const template = {
       ...mockMMSTemplate,
       annotations: [
-        mockFavoriteColorAnnotation,
+        mockFavoriteColorTemplateAnnotation,
         mockBooleanAnnotation,
         mockNumberAnnotation,
       ],
@@ -302,7 +303,7 @@ describe("General utilities", () => {
       previouslyAppliedTemplate = {
         ...mockMMSTemplate,
         annotations: [
-          mockFavoriteColorAnnotation,
+          mockFavoriteColorTemplateAnnotation,
           { ...mockNumberAnnotation, name: "Age" },
         ],
       };

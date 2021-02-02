@@ -9,6 +9,7 @@ import {
 } from "../../../constants";
 import { UploadMetadata, Uploads } from "../../../services/aicsfiles/types";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
+import { Duration } from "../../../types";
 import {
   getMockStateWithHistory,
   mockAnnotationTypes,
@@ -19,6 +20,8 @@ import {
   mockDateTimeAnnotation,
   mockDropdownAnnotation,
   mockFavoriteColorAnnotation,
+  mockFavoriteColorTemplateAnnotation,
+  mockIntervalTemplate,
   mockLookupAnnotation,
   mockMMSTemplate,
   mockNotesAnnotation,
@@ -120,7 +123,7 @@ describe("Upload selectors", () => {
           ...mockState.template.present,
           appliedTemplate: {
             ...mockAuditInfo,
-            annotations: [mockFavoriteColorAnnotation],
+            annotations: [mockFavoriteColorTemplateAnnotation],
             name: "foo",
             [NOTES_ANNOTATION_NAME]: [],
             templateId: 1,
@@ -603,6 +606,68 @@ describe("Upload selectors", () => {
       expect(standardizeUploads(payload)).to.deep.equal(
         standardizeUploads(expected)
       );
+    });
+
+    it("Converts durations into milliseconds", () => {
+      const duration: Duration = {
+        days: 4,
+        hours: 3,
+        minutes: 2,
+        seconds: 1.111,
+      };
+      const filePath = "/path/to/file.tiff";
+      const state: State = {
+        ...nonEmptyStateForInitiatingUpload,
+        template: getMockStateWithHistory({
+          appliedTemplate: mockIntervalTemplate,
+          draft: {
+            annotations: [],
+          },
+        }),
+        upload: getMockStateWithHistory({
+          [filePath]: {
+            file: filePath,
+            ["Interval"]: [duration],
+          },
+        }),
+      };
+
+      const payload = getUploadPayload(state);
+
+      expect(
+        payload[filePath].customMetadata.annotations[0].values[0]
+      ).to.equal("356521111");
+    });
+
+    it("Converts durations into milliseconds when only some units present", () => {
+      const duration: Duration = {
+        days: 0,
+        hours: 0,
+        minutes: 2,
+        seconds: 1.111,
+      };
+      const filePath = "/path/to/file.tiff";
+      const state: State = {
+        ...nonEmptyStateForInitiatingUpload,
+        template: getMockStateWithHistory({
+          appliedTemplate: mockIntervalTemplate,
+          draft: {
+            annotations: [],
+          },
+        }),
+        upload: getMockStateWithHistory({
+          [filePath]: {
+            file: filePath,
+            ["Interval"]: [duration],
+          },
+        }),
+      };
+
+      const payload = getUploadPayload(state);
+
+      expect(
+        payload[filePath].customMetadata.annotations[0].values[0]
+      ).to.equal("121111");
     });
   });
 
@@ -1127,7 +1192,7 @@ describe("Upload selectors", () => {
             ...mockState.template.present,
             appliedTemplate: {
               ...mockAuditInfo,
-              annotations: [mockFavoriteColorAnnotation],
+              annotations: [mockFavoriteColorTemplateAnnotation],
               name: "foo",
               [NOTES_ANNOTATION_NAME]: [],
               templateId: 1,

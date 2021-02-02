@@ -131,6 +131,8 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
     e.stopPropagation();
     this.setState({
       dragEnterCount:
+        // Ensure the drag enter count can never be negative since that would require
+        // a file originating from the file upload app and moved elsewhere
         this.state.dragEnterCount - 1 <= 0 ? 0 : this.state.dragEnterCount - 1,
     });
   };

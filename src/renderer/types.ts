@@ -17,3 +17,10 @@ export interface LocalStorage<T = any> {
     value?: T[Key]
   ) => void;
 }
+
+export interface Duration {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}

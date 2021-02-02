@@ -1,8 +1,14 @@
 # Version Notes
 
+## 1.0.59 (01/29/21)
+- Feature: Added new duration annotation type
+- Feature: Added ability to add options to dropdown annotations
+- Bugfix: Fixed issue where warning is not shown when app is closed during upload
+- Various minor fixes and usability enhancements
+
 ## 1.0.57 (12/22/20)
-- Feature: Add progress tracking for post-upload processing
-- Bugfix: Fix issue loading data from plates with special characters in their barcodes
+- Feature: Added progress tracking for post-upload processing
+- Bugfix: Fixed issue loading data from plates with special characters in their barcodes
 - Feature: Added ability to mass edit notes
 
 ## 1.0.56 (12/3/20)

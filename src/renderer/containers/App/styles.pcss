@@ -16,6 +16,13 @@
   overflow: hidden;
 }
 
+:global(.rdg-editor-container) {
+  /* React Data Grid has an inline style on the div that wraps the editor
+   that sets z-index to 2. This makes it get hidden when using the mass editor,
+   which also needs to set z-index.*/
+  z-index: 150 !important;
+}
+
 .container {
   height: 100%;
   width: 100%;
