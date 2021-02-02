@@ -3,8 +3,6 @@ import { Page, UploadStateBranch } from "../types";
 
 import {
   CLOSE_UPLOAD_TAB,
-  GO_BACK,
-  GO_FORWARD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
   SELECT_PAGE,
@@ -12,8 +10,6 @@ import {
 } from "./constants";
 import {
   CloseUploadTabAction,
-  GoBackAction,
-  NextPageAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
   SelectPageAction,
@@ -23,18 +19,6 @@ import {
 export function closeUploadTab(): CloseUploadTabAction {
   return {
     type: CLOSE_UPLOAD_TAB,
-  };
-}
-
-export function goBack(): GoBackAction {
-  return {
-    type: GO_BACK,
-  };
-}
-
-export function goForward(): NextPageAction {
-  return {
-    type: GO_FORWARD,
   };
 }
 

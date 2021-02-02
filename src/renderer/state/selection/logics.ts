@@ -11,8 +11,6 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
-import { selectPage } from "../route/actions";
-import { findNextPage } from "../route/constants";
 import { getPage } from "../route/selectors";
 import {
   AlertType,
@@ -62,14 +60,6 @@ const stageFilesAndStopLoading = async (
         ),
       ])
     );
-    if (currentPage === Page.DragAndDrop) {
-      dispatch(
-        selectPage(
-          currentPage,
-          findNextPage(currentPage, 1) || Page.AddCustomData
-        )
-      );
-    }
     done();
   } catch (e) {
     dispatch(

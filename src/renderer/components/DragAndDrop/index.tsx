@@ -10,8 +10,10 @@ const styles = require("../../components/DragAndDrop/style.pcss");
 
 interface DragAndDropProps {
   children?: React.ReactNode | React.ReactNodeArray;
+  disabled?: boolean;
   openDialogOptions: OpenDialogOptions;
   className?: string;
+  overlayChildren?: boolean;
   onDrop: (files: DragAndDropFileList) => void;
   onOpen?: (files: string[]) => void;
 }
@@ -39,34 +41,65 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   }
 
   public render() {
-    const { children, className } = this.props;
+    if (this.props.disabled) {
+      return (
+        <div className={classNames(styles.container, this.props.className)}>
+          {this.props.children}
+        </div>
+      );
+    }
 
     return (
       <div
-        className={classNames(
-          styles.container,
-          { [styles.highlight]: this.isHovered },
-          className
-        )}
+        className={classNames(styles.container, this.props.className)}
         onDragEnter={this.onDragEnter}
         onDragLeave={this.onDragLeave}
         onDragEnd={this.onDragLeave}
         onDrop={this.onDrop}
         onDragOver={DragAndDrop.onDragOver}
       >
-        {children || (
-          <div className={styles.content}>
-            <>
-              <Icon type="upload" className={styles.uploadIcon} />
-              <div>Drag&nbsp;and&nbsp;Drop</div>
-              <div>- or -</div>
-              <Button onClick={this.onBrowse}>Browse</Button>
-            </>
-          </div>
-        )}
+        {this.renderContent()}
+        <div className={this.isHovered ? styles.highlight : undefined} />
       </div>
     );
   }
+
+  private renderContent = (): React.ReactNode | React.ReactNodeArray => {
+    if (!this.props.overlayChildren && this.props.children) {
+      return this.props.children;
+    }
+
+    const dragAndDropPrompt = (
+      <div className={styles.content}>
+        <>
+          <Icon type="upload" className={styles.uploadIcon} />
+          <div>Drag&nbsp;and&nbsp;Drop</div>
+          <div>- or -</div>
+          <Button
+            disabled={!this.props.openDialogOptions}
+            onClick={this.onBrowse}
+          >
+            Browse
+          </Button>
+        </>
+      </div>
+    );
+
+    if (!this.props.children) {
+      return dragAndDropPrompt;
+    }
+
+    if (this.props.children && this.props.overlayChildren) {
+      return (
+        <>
+          <div className={styles.overlay}>{this.props.children}</div>
+          <div className={styles.overlayPrompt}>{dragAndDropPrompt}</div>
+        </>
+      );
+    }
+
+    return dragAndDropPrompt;
+  };
 
   // Opens native file explorer
   private onBrowse = async (): Promise<void> => {
@@ -87,16 +120,27 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
 
   private onDragEnter = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
+    // Prevent drag and drop events from stacking (like notes over upload job page)
+    e.stopPropagation();
     this.setState({ dragEnterCount: this.state.dragEnterCount + 1 });
   };
 
   private onDragLeave = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
-    this.setState({ dragEnterCount: this.state.dragEnterCount - 1 });
+    // Prevent drag and drop events from stacking (like notes over upload job page)
+    e.stopPropagation();
+    this.setState({
+      dragEnterCount:
+        // Ensure the drag enter count can never be negative since that would require
+        // a file originating from the file upload app and moved elsewhere
+        this.state.dragEnterCount - 1 <= 0 ? 0 : this.state.dragEnterCount - 1,
+    });
   };
 
   private onDrop = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
+    // Prevent drag and drop events from stacking (like notes over upload job page)
+    e.stopPropagation();
     this.setState({ dragEnterCount: 0 });
     this.props.onDrop(e.dataTransfer.files);
   };

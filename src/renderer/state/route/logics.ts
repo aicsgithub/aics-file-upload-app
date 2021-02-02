@@ -86,9 +86,6 @@ import {
 } from "./actions";
 import {
   CLOSE_UPLOAD_TAB,
-  findNextPage,
-  GO_BACK,
-  GO_FORWARD,
   OPEN_EDIT_FILE_METADATA_TAB,
   pageOrder,
   SELECT_PAGE,
@@ -141,10 +138,7 @@ const stateBranchHistory = [
     jumpToPast: jumpToPastUpload,
   },
 ];
-const pagesToAllowSwitchingEnvironments = [
-  Page.UploadSummary,
-  Page.DragAndDrop,
-];
+const pagesToAllowSwitchingEnvironments = [Page.UploadSummary];
 
 export const handleGoingToNextPage = (
   logger: Logger,
@@ -153,7 +147,7 @@ export const handleGoingToNextPage = (
   selectPageAction: SelectPageAction
 ) => {
   const actions: AnyAction[] = [selectPageAction];
-  if (selectPageAction.payload.nextPage === Page.DragAndDrop) {
+  if (selectPageAction.payload.nextPage === Page.AddCustomData) {
     const isMountedAsExpected = existsSync(
       makePosixPathCompatibleWithPlatform("/allen/aics", platform())
     );
@@ -279,58 +273,6 @@ const selectPageLogic = createLogic({
     done();
   },
   type: SELECT_PAGE,
-});
-
-const goBackLogic = createLogic({
-  type: GO_BACK,
-  validate: async (
-    { dialog, getState }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const state = getState();
-    const currentPage = getPage(state);
-    const nextPage = findNextPage(currentPage, -1);
-
-    if (nextPage) {
-      const {
-        response: buttonIndex,
-      }: Electron.MessageBoxReturnValue = await dialog.showMessageBox({
-        buttons: ["Cancel", "Yes"],
-        cancelId: 0,
-        defaultId: 1,
-        message: "Changes will be lost if you go back. Are you sure?",
-        title: "Warning",
-        type: "warning",
-      });
-      // index of button clicked
-      if (buttonIndex === 1) {
-        next(selectPage(currentPage, nextPage));
-      } else {
-        reject({ type: "ignore" });
-      }
-    } else {
-      reject({ type: "ignore" });
-    }
-  },
-});
-
-const goForwardLogic = createLogic({
-  type: GO_FORWARD,
-  validate: (
-    { getState }: ReduxLogicTransformDependencies,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const currentPage = getPage(getState());
-    const nextPage = findNextPage(currentPage, 1);
-
-    if (nextPage) {
-      next(selectPage(currentPage, nextPage));
-    } else {
-      reject({ type: "ignore" });
-    }
-  },
 });
 
 const closeUploadTabLogic = createLogic({
@@ -640,8 +582,6 @@ const openEditFileMetadataTabLogic = createLogic({
 
 export default [
   closeUploadTabLogic,
-  goBackLogic,
-  goForwardLogic,
   openEditFileMetadataTabLogic,
   selectPageLogic,
 ];

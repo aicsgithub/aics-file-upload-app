@@ -28,7 +28,6 @@ export const CANCEL_UPLOAD_FAILED = makeConstant(
   BRANCH_NAME,
   "cancel-upload-failed"
 );
-export const CLEAR_UPLOAD = makeConstant(BRANCH_NAME, "clear-upload");
 export const CLEAR_UPLOAD_DRAFT = makeConstant(
   BRANCH_NAME,
   "clear-upload-draft"

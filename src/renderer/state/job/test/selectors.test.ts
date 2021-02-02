@@ -11,18 +11,16 @@ import {
   mockFailedUploadJob,
   mockState,
   mockSuccessfulUploadJob,
-  mockWellUpload,
   mockWorkingUploadJob,
   nonEmptyJobStateBranch,
 } from "../../test/mocks";
-import { AsyncRequest, JobFilter, State } from "../../types";
+import { JobFilter, State } from "../../types";
 import {
   getCurrentJobName,
   getFilteredJobs,
   getIsSafeToExit,
   getJobIdToUploadJobMap,
   getJobsForTable,
-  getUploadInProgress,
 } from "../selectors";
 
 describe("Job selectors", () => {
@@ -249,51 +247,6 @@ describe("Job selectors", () => {
       if (name) {
         expect(name.includes("bar, foo")).to.be.true;
       }
-    });
-  });
-  describe("getUploadInProgress", () => {
-    it("returns false if requestsInProgress does not contain INITIATE_UPLOAD-currentUploadName", () => {
-      const inProgress = getUploadInProgress(mockState);
-      expect(inProgress).to.be.false;
-    });
-    it("returns true if requestsInProgress contains INITIATE_UPLOAD-currentUploadName", () => {
-      const currentJobName = `foo`;
-      const inProgress = getUploadInProgress({
-        ...mockState,
-        feedback: {
-          ...mockState.feedback,
-          requestsInProgress: [
-            `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`,
-          ],
-        },
-        metadata: {
-          ...mockState.metadata,
-          currentUploadFilePath: "/path/foo.json",
-        },
-        upload: getMockStateWithHistory(mockWellUpload),
-      });
-      expect(inProgress).to.be.true;
-    });
-    it("returns false if requestsInProgress contains request belonging to a different upload", () => {
-      const inProgress = getUploadInProgress({
-        ...mockState,
-        feedback: {
-          ...mockState.feedback,
-          requestsInProgress: [`${AsyncRequest.INITIATE_UPLOAD}-bar`],
-        },
-        metadata: {
-          ...mockState.metadata,
-          currentUploadFilePath: "/path/foo.json",
-        },
-        upload: getMockStateWithHistory({
-          foo: {
-            barcode: "1234",
-            file: "foo",
-            [WELL_ANNOTATION_NAME]: [1],
-          },
-        }),
-      });
-      expect(inProgress).to.be.false;
     });
   });
   describe("getFilteredJobs", () => {

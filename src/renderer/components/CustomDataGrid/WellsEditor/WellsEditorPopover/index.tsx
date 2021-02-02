@@ -84,7 +84,6 @@ class WellsEditorPopover extends React.Component<Props, {}> {
     }
     const uploadRow = upload[getUploadRowKeyFromUploadTableRow(rowData)];
     return (
-      !uploadRow ||
       intersection(selectedWellIds, uploadRow[WELL_ANNOTATION_NAME] || [])
         .length === selectedWellIds.length
     );

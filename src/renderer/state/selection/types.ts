@@ -66,10 +66,6 @@ export interface ClearSelectionHistoryAction extends AutoSaveAction {
   type: string;
 }
 
-export interface ClearStagedFilesAction extends AutoSaveAction {
-  type: string;
-}
-
 export interface ToggleExpandedUploadJobRowAction {
   payload: string;
   type: string;

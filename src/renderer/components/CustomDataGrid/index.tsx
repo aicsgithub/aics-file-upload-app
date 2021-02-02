@@ -48,7 +48,7 @@ import {
   UploadJobTableRow,
 } from "../../state/upload/types";
 import { Duration } from "../../types";
-import { convertToArray, getTextWidth, onDrop } from "../../util";
+import { convertToArray, getTextWidth } from "../../util";
 import BooleanFormatter from "../BooleanFormatter";
 
 import CellWithContextMenu from "./CellWithContextMenu";
@@ -426,7 +426,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               styles.formatterContainer,
               styles.noteIconContainer
             )}
-            onDrop={this.onDrop(row)}
           >
             {(this.props.editable || !!row[NOTES_ANNOTATION_NAME]) && (
               <NoteIcon
@@ -596,7 +595,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
             styles.formatterContainer,
             styles.noteIconContainer
           )}
-          onDrop={this.onMassEditDrop()}
         >
           <NoteIcon
             editable={this.props.editable}
@@ -610,9 +608,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       name: NOTES_ANNOTATION_NAME,
       width: 80,
     };
-    const basicColumns = this.props.associateByWorkflow
-      ? this.getWorkflowUploadColumns()
-      : this.getWellUploadColumns(true);
+    let basicColumns: UploadJobColumn[] = [];
+    if (this.props.allWellsForSelectedPlate.length) {
+      basicColumns = this.getWellUploadColumns(true);
+    } else if (this.props.associateByWorkflow) {
+      basicColumns = this.getWorkflowUploadColumns();
+    }
     const schemaColumns = this.getSchemaColumns(true);
     return [numberFiles, ...basicColumns, notes, ...schemaColumns].map(
       (column) => column as MassEditColumn
@@ -748,20 +749,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   private removeSelectedRows = (): void => {
     this.props.removeUploads(this.state.selectedRows);
     this.setState({ selectedRows: [] });
-  };
-
-  private onDrop = (row: UploadJobTableRow) => async (
-    e: React.DragEvent<HTMLDivElement>
-  ) => {
-    e.preventDefault();
-    const notes = await onDrop(e.dataTransfer.files, this.handleError);
-    this.props.updateUpload(getUploadRowKeyFromUploadTableRow(row), { notes });
-  };
-
-  private onMassEditDrop = () => async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const notes = await onDrop(e.dataTransfer.files, this.handleError);
-    this.props.updateMassEditRow({ ...this.props.massEditRow, Notes: notes });
   };
 
   private saveNotesByRow = (

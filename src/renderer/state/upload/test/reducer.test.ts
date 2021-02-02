@@ -7,12 +7,7 @@ import {
 import { closeUploadTab } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import { UploadStateBranch } from "../../types";
-import {
-  replaceUpload,
-  undoFileWorkflowAssociation,
-  updateUpload,
-  updateUploads,
-} from "../actions";
+import { replaceUpload, updateUpload, updateUploads } from "../actions";
 import reducer from "../reducer";
 
 describe("upload reducer", () => {
@@ -32,26 +27,6 @@ describe("upload reducer", () => {
         [WORKFLOW_ANNOTATION_NAME]: ["workflow 1", "workflow 2"],
       },
     };
-  });
-  describe("undoFileWorkflowAssociation", () => {
-    it("undoes a workflow association", () => {
-      const result = reducer(
-        getMockStateWithHistory(uploads),
-        undoFileWorkflowAssociation("bar", ["workflow 1"])
-      );
-      const { present } = result;
-      expect(present.bar[WORKFLOW_ANNOTATION_NAME]).to.deep.equal([
-        "workflow 2",
-      ]);
-    });
-    it("undoes all workflows and removes upload", () => {
-      const result = reducer(
-        getMockStateWithHistory(uploads),
-        undoFileWorkflowAssociation("bar", ["workflow 1", "workflow 2"])
-      );
-      const { present } = result;
-      expect(present.bar).to.be.undefined;
-    });
   });
   describe("updateUpload", () => {
     it("does not change anything if key doesn't exist on upload", () => {

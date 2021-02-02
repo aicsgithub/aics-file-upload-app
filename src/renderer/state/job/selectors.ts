@@ -11,10 +11,8 @@ import {
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
 import { convertToArray } from "../../util";
-import { getRequestsInProgress } from "../feedback/selectors";
 import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
-  AsyncRequest,
   JobFilter,
   JobStateBranch,
   State,
@@ -152,17 +150,5 @@ export const getCurrentJobName = createSelector(
     }
 
     return fileNames;
-  }
-);
-
-export const getUploadInProgress = createSelector(
-  [getRequestsInProgress, getCurrentJobName],
-  (requestsInProgress: string[], currentJobName?: string): boolean => {
-    return (
-      !!currentJobName &&
-      requestsInProgress.includes(
-        `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`
-      )
-    );
   }
 );

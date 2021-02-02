@@ -35,7 +35,6 @@
 
 .main-content {
   flex: 1;
-  overflow-y: auto;
 }
 
 .tab-container {
@@ -57,11 +56,12 @@
   & .tab-content {
     height: 100%;
     user-select: auto;
-
-    &:not(.upload-tab) {
-      padding: 1em;
-    }
+    padding: 1em;
   }
+}
+
+.upload-tab {
+  overflow-y: auto;
 }
 
 .status-bar {

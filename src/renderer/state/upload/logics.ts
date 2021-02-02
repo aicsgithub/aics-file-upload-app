@@ -52,7 +52,6 @@ import {
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
 import { openEditFileMetadataTab, selectPage } from "../route/actions";
-import { findNextPage } from "../route/constants";
 import {
   getSelectPageActions,
   handleGoingToNextPageForNewUpload,
@@ -307,18 +306,15 @@ const initiateUploadLogic = createLogic({
     );
     const actions = [];
     const currentPage = getPage(getState());
-    const nextPage = findNextPage(currentPage, 1);
-    if (nextPage) {
-      actions.push(
-        ...getSelectPageActions(
-          logger,
-          getState(),
-          getApplicationMenu,
-          selectPage(currentPage, nextPage)
-        )
-      );
-      dispatch(batchActions(actions));
-    }
+    actions.push(
+      ...getSelectPageActions(
+        logger,
+        getState(),
+        getApplicationMenu,
+        selectPage(currentPage, Page.UploadSummary)
+      )
+    );
+    dispatch(batchActions(actions));
     try {
       await fms.uploadFiles(
         startUploadResponse,
@@ -1169,18 +1165,15 @@ const updateAndRetryUploadLogic = createLogic({
 
     // close the tab to let user watch progress from upload summary page
     const currentPage = getPage(getState());
-    const nextPage = findNextPage(currentPage, 1);
-    if (nextPage) {
-      const actions = [
-        ...getSelectPageActions(
-          logger,
-          getState(),
-          getApplicationMenu,
-          selectPage(currentPage, nextPage)
-        ),
-      ];
-      dispatch(batchActions(actions));
-    }
+    const actions = [
+      ...getSelectPageActions(
+        logger,
+        getState(),
+        getApplicationMenu,
+        selectPage(currentPage, Page.UploadSummary)
+      ),
+    ];
+    dispatch(batchActions(actions));
 
     try {
       await fms.retryUpload(selectedJob);

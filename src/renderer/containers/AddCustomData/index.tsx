@@ -1,14 +1,15 @@
 import { Alert, Button, Icon, Select, Spin } from "antd";
 import classNames from "classnames";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
 import * as React from "react";
+import { ReactNodeArray } from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
 import CustomDataGrid from "../../components/CustomDataGrid";
-import FormPage from "../../components/FormPage";
+import DragAndDrop from "../../components/DragAndDrop";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
@@ -23,11 +24,11 @@ import {
 import { Template } from "../../services/mms-client/types";
 import { setAlert } from "../../state/feedback/actions";
 import {
+  getIsLoading,
   getRequestsInProgressContains,
   getUploadError,
 } from "../../state/feedback/selectors";
 import { SetAlertAction } from "../../state/feedback/types";
-import { getUploadInProgress } from "../../state/job/selectors";
 import { createBarcode } from "../../state/metadata/actions";
 import {
   getAnnotationTypes,
@@ -37,9 +38,9 @@ import {
   getTemplates,
 } from "../../state/metadata/selectors";
 import { CreateBarcodeAction } from "../../state/metadata/types";
-import { goBack } from "../../state/route/actions";
-import { GoBackAction } from "../../state/route/types";
 import {
+  loadFilesFromDragAndDrop,
+  openFilesFromDialog,
   selectBarcode,
   toggleExpandedUploadJobRow,
   updateMassEditRow,
@@ -52,6 +53,8 @@ import {
   getMassEditRow,
 } from "../../state/selection/selectors";
 import {
+  LoadFilesFromDragAndDropAction,
+  LoadFilesFromOpenDialogAction,
   SelectBarcodeAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -73,9 +76,9 @@ import {
 import { getAppliedTemplate } from "../../state/template/selectors";
 import {
   AsyncRequest,
+  DragAndDropFileList,
   ExpandedRows,
   MassEditRow,
-  Page,
   State,
 } from "../../state/types";
 import {
@@ -111,7 +114,7 @@ import {
 } from "../../state/upload/types";
 import BarcodeSearch from "../BarcodeSearch";
 
-import { getCanSubmitUpload, getUpdateInProgress } from "./selectors";
+import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 
 const styles = require("./style.pcss");
 
@@ -127,30 +130,32 @@ interface Props {
   canSubmit: boolean;
   canUndo: boolean;
   channels: Channel[];
-  className?: string;
   createBarcode: ActionCreator<CreateBarcodeAction>;
   expandedRows: ExpandedRows;
   isAssociatedByWorkflow: boolean;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
-  goBack: ActionCreator<GoBackAction>;
   initiateUpload: ActionCreator<InitiateUploadAction>;
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
-  loadingFileMetadata: boolean;
+  loadFilesFromDragAndDrop: (
+    files: DragAndDropFileList
+  ) => LoadFilesFromDragAndDropAction;
   massEditRow: MassEditRow;
+  openFilesFromDialog: (files: string[]) => LoadFilesFromOpenDialogAction;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   savedTemplateId?: number;
   selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
   selectedJob?: JSSJob<UploadServiceFields>;
+  selectedJobIsLoading: boolean;
   setAlert: ActionCreator<SetAlertAction>;
   showUploadHint: boolean;
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
+  templateIsLoading: boolean;
   templates: LabkeyTemplate[];
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
   updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
-  updateInProgress: boolean;
   updateSettings: ActionCreator<UpdateSettingsAction>;
   updateSubImages: ActionCreator<UpdateSubImagesAction>;
   updateUpload: ActionCreator<UpdateUploadAction>;
@@ -167,6 +172,13 @@ interface Props {
 interface AddCustomDataState {
   selectedFiles: string[];
 }
+
+// On Windows, file browsers cannot look for directories and files at the same time
+// directories are the default in that case
+const openDialogOptions: OpenDialogOptions = {
+  properties: ["openFile", "openDirectory", "multiSelections"],
+  title: "Browse for folders, or drag and drop files/folders onto app",
+};
 
 /**
  * Renders template selector and custom data grid for adding additional data to each file.
@@ -213,133 +225,102 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       canRedo,
       canSubmit,
       canUndo,
-      className,
       isAssociatedByWorkflow,
       loading,
-      loadingFileMetadata,
       massEditRow,
       selectedJob,
-      updateInProgress,
-      showUploadHint,
-      uploadError,
+      selectedJobIsLoading,
+      templateIsLoading,
       uploadInProgress,
       uploadRowKeyToAnnotationErrorMap,
       uploads,
-      validationErrors,
     } = this.props;
-    const showLoading = loading || loadingFileMetadata;
     let saveButtonText = "Upload";
-    let title = "ADD ADDITIONAL DATA";
-    let prompt =
-      "Review and add information to the files below and click Upload to submit the job.";
     if (selectedJob) {
-      title = "UPLOAD DETAILS";
-      if (this.isReadOnly) {
-        prompt = "";
+      if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
+        saveButtonText = "Update";
       } else {
-        if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
-          saveButtonText = "Update";
-        } else {
-          saveButtonText = "Retry";
-        }
-        prompt = `Make any changes necessary and click ${saveButtonText} to ${saveButtonText.toLowerCase()} the upload`;
+        saveButtonText = "Retry";
       }
     }
     return (
-      <FormPage
-        backButtonDisabled={!!selectedJob}
-        className={className}
-        formTitle={title}
-        formPrompt={prompt}
-        onSave={this.submit}
-        saveButtonDisabled={!canSubmit}
-        saveInProgress={uploadInProgress || updateInProgress}
-        saveButtonName={saveButtonText}
-        hideProgressBar={!!selectedJob}
-        hideBackButton={!!selectedJob}
-        hideSaveButton={this.isReadOnly}
-        onBack={this.props.goBack}
-        page={Page.AddCustomData}
+      <DragAndDrop
+        disabled={Boolean(selectedJob) || this.isReadOnly}
+        overlayChildren={!Object.keys(uploads).length && !loading}
+        onDrop={this.props.loadFilesFromDragAndDrop}
+        onOpen={this.props.openFilesFromDialog}
+        openDialogOptions={openDialogOptions}
       >
-        {selectedJob && <JobOverviewDisplay job={selectedJob} />}
-        {!loadingFileMetadata && this.renderButtons()}
-        {showLoading && (
-          <div className={styles.spinContainer}>
-            <div className={styles.spinText}>Loading...</div>
-            <Spin />
-          </div>
-        )}
-        {!showLoading && uploadError && (
-          <Alert
-            className={styles.alert}
-            message="Upload Failed"
-            description={uploadError}
-            type="error"
-            showIcon={true}
-          />
-        )}
-        {!showLoading && validationErrors.length > 0 && (
-          <Alert
-            className={styles.alert}
-            message={validationErrors.map((e) => (
-              <div key={e}>{e}</div>
-            ))}
-            showIcon={true}
-            type="error"
-          />
-        )}
-        {!showLoading &&
-          appliedTemplate &&
-          showUploadHint &&
-          !this.isReadOnly && (
-            <Alert
-              afterClose={this.hideHint}
-              className={styles.alert}
-              closable={true}
-              message="Hint: You can add multiple values for Text and Number annotations using commas!"
-              showIcon={true}
-              type="info"
-            />
+        <div className={styles.contentContainer}>
+          {selectedJob && <JobOverviewDisplay job={selectedJob} />}
+          {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
+          {templateIsLoading || selectedJobIsLoading ? (
+            <div className={styles.spinContainer}>
+              <div>Loading...</div>
+              <Spin />
+            </div>
+          ) : (
+            <>
+              {this.renderAlerts()}
+              <CustomDataGrid
+                allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
+                annotationTypes={annotationTypes}
+                associateByWorkflow={isAssociatedByWorkflow}
+                canRedo={canRedo}
+                canUndo={canUndo}
+                channels={this.props.channels}
+                editable={!this.isReadOnly}
+                expandedRows={this.props.expandedRows}
+                fileToAnnotationHasValueMap={
+                  this.props.fileToAnnotationHasValueMap
+                }
+                massEditRow={massEditRow}
+                redo={this.redo}
+                removeUploads={this.props.removeUploads}
+                template={appliedTemplate}
+                setAlert={this.props.setAlert}
+                toggleRowExpanded={this.props.toggleRowExpanded}
+                undo={this.undo}
+                updateMassEditRow={this.props.updateMassEditRow}
+                updateSubImages={this.props.updateSubImages}
+                updateUpload={this.props.updateUpload}
+                updateUploadRows={this.props.updateUploadRows}
+                uploads={uploads}
+                validationErrors={uploadRowKeyToAnnotationErrorMap}
+              />
+            </>
           )}
-        {!showLoading && appliedTemplate && (
-          <CustomDataGrid
-            allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
-            annotationTypes={annotationTypes}
-            associateByWorkflow={isAssociatedByWorkflow}
-            canRedo={canRedo}
-            canUndo={canUndo}
-            channels={this.props.channels}
-            editable={!this.isReadOnly}
-            expandedRows={this.props.expandedRows}
-            fileToAnnotationHasValueMap={this.props.fileToAnnotationHasValueMap}
-            massEditRow={massEditRow}
-            redo={this.redo}
-            removeUploads={this.props.removeUploads}
-            template={appliedTemplate}
-            setAlert={this.props.setAlert}
-            toggleRowExpanded={this.props.toggleRowExpanded}
-            undo={this.undo}
-            updateMassEditRow={this.props.updateMassEditRow}
-            updateSubImages={this.props.updateSubImages}
-            updateUpload={this.props.updateUpload}
-            updateUploadRows={this.props.updateUploadRows}
-            uploads={uploads}
-            validationErrors={uploadRowKeyToAnnotationErrorMap}
-          />
-        )}
-      </FormPage>
+        </div>
+        <div className={styles.saveButtonContainer}>
+          <Button
+            type="primary"
+            size="large"
+            onClick={this.submit}
+            disabled={!canSubmit}
+          >
+            {uploadInProgress ? (
+              <>
+                Loading
+                <Icon type="loading" className={styles.loading} spin={true} />
+              </>
+            ) : (
+              saveButtonText
+            )}
+          </Button>
+        </div>
+      </DragAndDrop>
     );
   }
 
-  private renderButtons = () => {
+  private renderTemplateAndUploadTypeInput = () => {
     const {
       appliedTemplate,
       associateByWorkflow,
       barcodePrefixes,
       createBarcode,
       isAssociatedByWorkflow,
-      loading,
       selectedBarcode,
+      templateIsLoading,
     } = this.props;
     const onCreateBarcode = (selectedPrefixId: any) => {
       createBarcode(
@@ -353,7 +334,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <Icon
             className={classNames(
               styles.icon,
-              !appliedTemplate && styles.hidden
+              !appliedTemplate ? styles.hidden : undefined
             )}
             type="check-circle"
           />
@@ -363,7 +344,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           >
             <TemplateSearch
               allowCreate={true}
-              disabled={loading || this.isReadOnly}
+              disabled={templateIsLoading || this.isReadOnly}
               value={appliedTemplate ? appliedTemplate.templateId : undefined}
               onSelect={this.props.applyTemplate}
             />
@@ -373,7 +354,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <Icon
             className={classNames(
               styles.icon,
-              !selectedBarcode && !isAssociatedByWorkflow && styles.hidden
+              !selectedBarcode && !isAssociatedByWorkflow
+                ? styles.hidden
+                : undefined
             )}
             type="check-circle"
           />
@@ -386,6 +369,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 </div>
                 <BarcodeSearch
                   barcode={selectedBarcode}
+                  disabled={this.isReadOnly}
                   onBarcodeChange={(imagingSessionIds, barcode) => {
                     if (barcode) {
                       this.props.selectBarcode(barcode, imagingSessionIds);
@@ -401,6 +385,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 </div>
                 <Select
                   className={styles.selector}
+                  disabled={this.isReadOnly}
                   onSelect={onCreateBarcode}
                   placeholder="Select Barcode Prefix"
                 >
@@ -417,7 +402,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                   If you do not have a plate to associate your files with you
                   can select to associate with workflows
                 </div>
-                <Button onClick={associateByWorkflow}>
+                <Button
+                  disabled={isAssociatedByWorkflow || this.isReadOnly}
+                  onClick={() => associateByWorkflow(true)}
+                >
                   {isAssociatedByWorkflow
                     ? "Selected"
                     : "Associate with Workflows"}
@@ -428,6 +416,56 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         </div>
       </>
     );
+  };
+
+  private renderAlerts = (): ReactNodeArray => {
+    const alerts: ReactNodeArray = [];
+    if (!Object.keys(this.props.uploads).length) {
+      return alerts;
+    }
+    if (this.props.uploadError) {
+      alerts.push(
+        <Alert
+          className={styles.alert}
+          message="Upload Failed"
+          description={this.props.uploadError}
+          type="error"
+          showIcon={true}
+          key="upload-failed"
+        />
+      );
+    }
+    if (this.props.validationErrors.length > 0) {
+      alerts.push(
+        <Alert
+          className={styles.alert}
+          message={this.props.validationErrors.map((e) => (
+            <div key={e}>{e}</div>
+          ))}
+          showIcon={true}
+          type="error"
+          key="validation-errors"
+        />
+      );
+    }
+    if (
+      this.props.appliedTemplate &&
+      this.props.showUploadHint &&
+      !this.isReadOnly
+    ) {
+      alerts.push(
+        <Alert
+          afterClose={this.hideHint}
+          className={styles.alert}
+          closable={true}
+          message="Hint: You can add multiple values for Text and Number annotations using commas!"
+          showIcon={true}
+          type="info"
+          key="hint"
+        />
+      );
+    }
+    return alerts;
   };
 
   private submit = (): void => {
@@ -468,8 +506,12 @@ function mapStateToProps(state: State) {
     expandedRows: getExpandedUploadJobRows(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
     isAssociatedByWorkflow: getAssociateByWorkflow(state),
-    loading: getRequestsInProgressContains(state, AsyncRequest.GET_TEMPLATE),
-    loadingFileMetadata: getRequestsInProgressContains(
+    loading: getIsLoading(state),
+    templateIsLoading: getRequestsInProgressContains(
+      state,
+      AsyncRequest.GET_TEMPLATE
+    ),
+    selectedJobIsLoading: getRequestsInProgressContains(
       state,
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
@@ -479,7 +521,6 @@ function mapStateToProps(state: State) {
     selectedJob: getSelectedJob(state),
     showUploadHint: getShowUploadHint(state),
     templates: getTemplates(state),
-    updateInProgress: getUpdateInProgress(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
     uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),
@@ -492,9 +533,10 @@ const dispatchToPropsMap = {
   applyTemplate,
   associateByWorkflow,
   createBarcode,
-  goBack,
   initiateUpload,
   jumpToUpload,
+  loadFilesFromDragAndDrop,
+  openFilesFromDialog,
   removeUploads,
   selectBarcode,
   setAlert,

@@ -21,7 +21,6 @@ import { getReduxUndoFilterFn, makeReducer } from "../util";
 import {
   ASSOCIATE_FILES_AND_WELLS,
   ASSOCIATE_FILES_AND_WORKFLOWS,
-  CLEAR_UPLOAD,
   CLEAR_UPLOAD_HISTORY,
   DELETE_UPLOADS,
   getUploadRowKey,
@@ -31,7 +30,6 @@ import {
   REPLACE_UPLOAD,
   RETRY_UPLOAD,
   UNDO_FILE_WELL_ASSOCIATION,
-  UNDO_FILE_WORKFLOW_ASSOCIATION,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
   UPDATE_UPLOADS,
@@ -42,11 +40,9 @@ import {
   AddUploadFilesAction,
   AssociateFilesAndWellsAction,
   AssociateFilesAndWorkflowsAction,
-  ClearUploadAction,
   RemoveUploadsAction,
   ReplaceUploadAction,
   UndoFileWellAssociationAction,
-  UndoFileWorkflowAssociationAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
   UpdateUploadsAction,
@@ -166,11 +162,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       }, nextState);
     },
   },
-  [CLEAR_UPLOAD]: {
-    accepts: (action: AnyAction): action is ClearUploadAction =>
-      action.type === CLEAR_UPLOAD,
-    perform: () => ({}),
-  },
   [UNDO_FILE_WELL_ASSOCIATION]: {
     accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
       action.type === UNDO_FILE_WELL_ASSOCIATION,
@@ -197,34 +188,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
         [key]: {
           ...state[key],
           [WELL_ANNOTATION_NAME]: wellIds,
-        },
-      };
-    },
-  },
-  [UNDO_FILE_WORKFLOW_ASSOCIATION]: {
-    accepts: (action: AnyAction): action is UndoFileWorkflowAssociationAction =>
-      action.type === UNDO_FILE_WORKFLOW_ASSOCIATION,
-    perform: (
-      state: UploadStateBranch,
-      action: UndoFileWorkflowAssociationAction
-    ) => {
-      const key = getUploadRowKey({ file: action.payload.fullPath });
-      if (!state[key]) {
-        return state;
-      }
-      const currentWorkflows = state[key][WORKFLOW_ANNOTATION_NAME] || [];
-      const workflows = without(
-        currentWorkflows,
-        ...action.payload.workflowNames
-      );
-      if (!workflows.length) {
-        return omit(state, key);
-      }
-      return {
-        ...state,
-        [key]: {
-          ...state[key],
-          [WORKFLOW_ANNOTATION_NAME]: workflows,
         },
       };
     },
