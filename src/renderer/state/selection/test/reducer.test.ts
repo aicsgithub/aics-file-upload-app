@@ -35,7 +35,6 @@ describe("selection reducer", () => {
         barcode: "1234",
         expandedUploadJobRows: { "/path/to/file": true },
         files: ["file1", "file2"],
-        folderTreeOpen: false,
         imagingSessionId: undefined,
         imagingSessionIds: [null, 1],
         plate: mockPlate,

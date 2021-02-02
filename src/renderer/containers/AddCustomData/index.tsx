@@ -38,6 +38,8 @@ import {
   getTemplates,
 } from "../../state/metadata/selectors";
 import { CreateBarcodeAction } from "../../state/metadata/types";
+import { closeUpload } from "../../state/route/actions";
+import { CloseUploadAction } from "../../state/route/types";
 import {
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
@@ -129,6 +131,7 @@ interface Props {
   canRedo: boolean;
   canSubmit: boolean;
   canUndo: boolean;
+  closeUpload: ActionCreator<CloseUploadAction>;
   channels: Channel[];
   createBarcode: ActionCreator<CreateBarcodeAction>;
   expandedRows: ExpandedRows;
@@ -293,6 +296,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         </div>
         <div className={styles.saveButtonContainer}>
           <Button
+            className={styles.cancelButton}
+            size="large"
+            onClick={() => this.props.closeUpload()}
+            disabled={!Object.keys(uploads).length}
+          >
+            Cancel
+          </Button>
+          <Button
             type="primary"
             size="large"
             onClick={this.submit}
@@ -300,7 +311,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           >
             {uploadInProgress ? (
               <>
-                Loading
+                Loading&nbsp;
                 <Icon type="loading" className={styles.loading} spin={true} />
               </>
             ) : (
@@ -532,6 +543,7 @@ function mapStateToProps(state: State) {
 const dispatchToPropsMap = {
   applyTemplate,
   associateByWorkflow,
+  closeUpload,
   createBarcode,
   initiateUpload,
   jumpToUpload,

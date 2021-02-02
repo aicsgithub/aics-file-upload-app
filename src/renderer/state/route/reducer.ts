@@ -3,8 +3,8 @@ import { AnyAction } from "redux";
 import { CLOSE_NOTIFICATION_CENTER } from "../feedback/constants";
 import { CloseNotificationCenter } from "../feedback/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
-import { REPLACE_UPLOAD } from "../upload/constants";
-import { ReplaceUploadAction } from "../upload/types";
+import { INITIATE_UPLOAD, REPLACE_UPLOAD } from "../upload/constants";
+import { InitiateUploadAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
 import { CLOSE_UPLOAD, SELECT_PAGE, SELECT_VIEW } from "./constants";
@@ -28,6 +28,15 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
   [CLOSE_UPLOAD]: {
     accepts: (action: AnyAction): action is CloseUploadAction =>
       action.type === CLOSE_UPLOAD,
+    perform: (state: RouteStateBranch) => ({
+      ...state,
+      page: Page.UploadSummary,
+      view: Page.UploadSummary,
+    }),
+  },
+  [INITIATE_UPLOAD]: {
+    accepts: (action: AnyAction): action is InitiateUploadAction =>
+      action.type === INITIATE_UPLOAD,
     perform: (state: RouteStateBranch) => ({
       ...state,
       page: Page.UploadSummary,

@@ -121,6 +121,10 @@ const stateBranchHistory = [
     jumpToPast: jumpToPastUpload,
   },
 ];
+export const resetHistoryActions = stateBranchHistory.flatMap((history) => [
+  history.jumpToPast(0),
+  history.clearHistory(),
+]);
 
 // Returns common actions needed because we share the upload tab between upload drafts for now
 // Some of these actions cannot be done in the reducer because they are handled by a higher-order reducer
@@ -161,11 +165,6 @@ const closeUploadLogic = createLogic({
   ) => {
     const { action, getState } = deps;
 
-    // Reset the upload state history branches so the next upload can start clean
-    const actions = [action];
-    stateBranchHistory.forEach((history) =>
-      actions.push(history.jumpToPast(0), history.clearHistory())
-    );
     try {
       const { cancelled } = await ensureDraftGetsSaved(
         deps,
@@ -185,7 +184,7 @@ const closeUploadLogic = createLogic({
     next({
       // we want to write to local storage but also keep this as a batched action
       ...clearUploadDraft(),
-      ...batchActions(actions),
+      ...batchActions([action, ...resetHistoryActions]),
     });
   },
 });

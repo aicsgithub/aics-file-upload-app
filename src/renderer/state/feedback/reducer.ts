@@ -324,7 +324,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       action.type === CLOSE_UPLOAD,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
-      folderTreeOpen: false,
       setMountPointNotificationVisible: false,
       uploadError: undefined,
     }),

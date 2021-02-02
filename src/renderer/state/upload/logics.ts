@@ -52,7 +52,10 @@ import {
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
 import { closeUpload, openEditFileMetadataTab } from "../route/actions";
-import { handleStartingNewUploadJob } from "../route/logics";
+import {
+  handleStartingNewUploadJob,
+  resetHistoryActions,
+} from "../route/logics";
 import {
   getSelectedBarcode,
   getSelectedJob,
@@ -298,7 +301,7 @@ const initiateUploadLogic = createLogic({
         getLoggedInUser(getState())
       )
     );
-    dispatch(closeUpload());
+    dispatch(batchActions([...resetHistoryActions]));
     try {
       await fms.uploadFiles(
         startUploadResponse,
