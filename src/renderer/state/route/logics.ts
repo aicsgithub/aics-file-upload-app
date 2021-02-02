@@ -52,6 +52,7 @@ import {
 import {
   AsyncRequest,
   Logger,
+  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependenciesWithAction,
@@ -71,7 +72,7 @@ import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { openEditFileMetadataTabSucceeded } from "./actions";
+import { openEditFileMetadataTabSucceeded, selectPage } from "./actions";
 import { CLOSE_UPLOAD, OPEN_EDIT_FILE_METADATA_TAB } from "./constants";
 import { OpenEditFileMetadataTabAction } from "./types";
 
@@ -130,6 +131,7 @@ export const handleStartingNewUploadJob = (
   getApplicationMenu: () => Menu | null
 ): AnyAction[] => {
   const actions = [
+    selectPage(Page.AddCustomData),
     clearUploadDraft(),
     clearUploadHistory(),
     clearSelectionHistory(),

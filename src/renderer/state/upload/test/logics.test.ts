@@ -33,7 +33,7 @@ import { REQUEST_FAILED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { getCurrentJobName } from "../../job/selectors";
-import { selectPage } from "../../route/actions";
+import { closeUpload, selectPage } from "../../route/actions";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -2100,7 +2100,7 @@ describe("Upload logics", () => {
       );
       store.dispatch(updateAndRetryUpload());
       await logicMiddleware.whenComplete();
-      expect(actions.includesMatch(selectPage(Page.UploadSummary))).to.be.true;
+      expect(actions.includesMatch(closeUpload())).to.be.true;
       expect(actions.includesType(REQUEST_FAILED)).to.be.false;
       expect(jssClient.updateJob.called).to.be.true;
       expect(fms.retryUpload.called).to.be.true;
@@ -2128,7 +2128,7 @@ describe("Upload logics", () => {
       );
       store.dispatch(updateAndRetryUpload());
       await logicMiddleware.whenComplete();
-      expect(actions.includesMatch(selectPage(Page.UploadSummary))).to.be.true;
+      expect(actions.includesMatch(closeUpload())).to.be.true;
       expect(
         actions.includesMatch(
           requestFailed(
