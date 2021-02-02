@@ -158,7 +158,7 @@ class UploadSummary extends React.Component<Props, {}> {
       <div className={classNames(styles.container, className)}>
         <div className={styles.section}>
           <div className={styles.header}>
-            <Row className={styles.title}>
+            <Row>
               <h2>Your Uploads</h2>
             </Row>
             <Row type="flex" justify="space-between" align="middle">
