@@ -1,11 +1,12 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { selectPage } from "../../state/route/actions";
+import { selectPage, selectView } from "../../state/route/actions";
 import { getView } from "../../state/route/selectors";
 import { Page } from "../../state/types";
 import { getUpload } from "../../state/upload/selectors";
 import NotificationViewer from "../NotificationViewer";
+import SettingsModal from "../SettingsModal";
 
 import NavigationButton from "./NavigationButton";
 
@@ -33,6 +34,14 @@ export default function NavigationBar() {
         onSelect={() => dispatch(selectPage(Page.UploadSummary))}
         title="Upload Status"
       />
+      <NavigationButton
+        icon="setting"
+        iconTheme="filled"
+        isSelected={view === Page.Settings}
+        onSelect={() => dispatch(selectView(Page.Settings))}
+        title="Settings"
+      />
+      <SettingsModal visible={view === Page.Settings} />
     </div>
   );
 }

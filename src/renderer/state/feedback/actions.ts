@@ -10,6 +10,7 @@ import {
   CLEAR_UPLOAD_ERROR,
   CLOSE_MODAL,
   CLOSE_NOTIFICATION_CENTER,
+  CLOSE_SETTINGS,
   CLOSE_SET_MOUNT_POINT_NOTIFICATION,
   OPEN_MODAL,
   OPEN_SET_MOUNT_POINT_NOTIFICATION,
@@ -28,6 +29,7 @@ import {
   CloseModalAction,
   CloseNotificationCenter,
   CloseSetMountPointNotificationAction,
+  CloseSettingsAction,
   OpenModalAction,
   OpenSetMountPointNotificationAction,
   RemoveRequestInProgressAction,
@@ -182,5 +184,11 @@ export function clearUploadError(): ClearUploadErrorAction {
 export function closeNotificationCenter(): CloseNotificationCenter {
   return {
     type: CLOSE_NOTIFICATION_CENTER,
+  };
+}
+
+export function closeSettings(): CloseSettingsAction {
+  return {
+    type: CLOSE_SETTINGS,
   };
 }

@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
+  OPEN_SETTINGS_EDITOR,
   OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
   SAFELY_CLOSE_WINDOW,
   SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED,
@@ -34,6 +35,7 @@ import {
 } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
+import { selectView } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import {
   gatherSettings,
@@ -46,7 +48,6 @@ import { openUploadDraft, saveUploadDraft } from "../../state/upload/actions";
 import AddCustomData from "../AddCustomData";
 import NavigationBar from "../NavigationBar";
 import OpenTemplateModal from "../OpenTemplateModal";
-import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -140,8 +141,12 @@ export default function App() {
     ipcRenderer.on(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
       dispatch(openUploadDraft())
     );
+    ipcRenderer.on(OPEN_SETTINGS_EDITOR, () =>
+      dispatch(selectView(Page.Settings))
+    );
 
     return function cleanUp() {
+      ipcRenderer.removeAllListeners(OPEN_SETTINGS_EDITOR);
       ipcRenderer.removeAllListeners(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED);
       ipcRenderer.removeAllListeners(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
       ipcRenderer.removeAllListeners(OPEN_UPLOAD_DRAFT_MENU_ITEM_CLICKED);
@@ -233,7 +238,6 @@ export default function App() {
       />
       <TemplateEditorModal />
       <OpenTemplateModal />
-      <SettingsEditorModal />
     </div>
   );
 }

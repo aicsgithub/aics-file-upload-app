@@ -41,3 +41,4 @@ export const CLOSE_NOTIFICATION_CENTER = makeConstant(
   BRANCH_NAME,
   "close-notification-center"
 );
+export const CLOSE_SETTINGS = makeConstant(BRANCH_NAME, "close-settings");

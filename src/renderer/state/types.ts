@@ -256,6 +256,7 @@ export type ModalName = "openTemplate" | "settings" | "templateEditor";
 export enum Page {
   AddCustomData = "AddCustomData",
   Notifications = "Notifications",
+  Settings = "Settings",
   UploadSummary = "UploadSummary",
 }
 

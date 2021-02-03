@@ -77,3 +77,7 @@ export interface ClearUploadErrorAction {
 export interface CloseNotificationCenter {
   type: string;
 }
+
+export interface CloseSettingsAction {
+  type: string;
+}

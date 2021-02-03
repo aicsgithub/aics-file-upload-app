@@ -1,16 +1,13 @@
-import { Badge, Button, Icon, Modal, Switch } from "antd";
+import { Badge, Icon, Modal } from "antd";
 import * as classNames from "classnames";
 import * as moment from "moment";
 import * as React from "react";
-import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { closeNotificationCenter } from "../../state/feedback/actions";
 import { getEventsByNewest } from "../../state/feedback/selectors";
 import { selectView } from "../../state/route/actions";
 import { getView } from "../../state/route/selectors";
-import { updateSettings } from "../../state/setting/actions";
-import { getEnabledNotifications } from "../../state/setting/selectors";
 import { AlertType, Page } from "../../state/types";
 import NavigationButton from "../NavigationBar/NavigationButton";
 
@@ -56,40 +53,6 @@ export default function NotificationViewer() {
   const allEvents = useSelector(getEventsByNewest);
   const unreadEventsCount = useSelector(getUnreadEventsCount);
   const view = useSelector(getView);
-  const [showSettings, setShowSettings] = useState(false);
-
-  const enabledNotifications = useSelector(getEnabledNotifications);
-  // We keep a draft of the user's notification settings, because we don't want
-  // to make use of them until they click "Apply".
-  const [enabledNotificationsDraft, setEnabledNotificationsDraft] = useState(
-    enabledNotifications
-  );
-
-  // Reset the draft enabled notifications whenever the ones in the store
-  // change. This is technically derived state, which should be avoided, but
-  // it was the simplest solution in this case.
-  useEffect(() => setEnabledNotificationsDraft(enabledNotifications), [
-    enabledNotifications,
-  ]);
-
-  function changeEnabledNotification(checked: boolean, type: AlertType) {
-    setEnabledNotificationsDraft((prev) => ({
-      ...prev,
-      [type]: checked,
-    }));
-  }
-
-  function applySettings() {
-    setShowSettings(false);
-    dispatch(
-      updateSettings({ enabledNotifications: enabledNotificationsDraft })
-    );
-  }
-
-  function cancelSettings() {
-    setShowSettings(false);
-    setEnabledNotificationsDraft(enabledNotifications);
-  }
 
   function renderEventsPage() {
     if (filteredEvents.length > 0) {
@@ -119,62 +82,10 @@ export default function NotificationViewer() {
         type="setting"
         theme="filled"
         className={styles.settingsIcon}
-        onClick={() => setShowSettings(true)}
+        onClick={() => dispatch(selectView(Page.Settings))}
       />
     </div>
   );
-
-  const settingsItems = [
-    {
-      type: AlertType.SUCCESS,
-      label: "Success",
-    },
-    {
-      type: AlertType.ERROR,
-      label: "Error",
-    },
-    {
-      type: AlertType.WARN,
-      label: "Warning",
-    },
-    {
-      type: AlertType.INFO,
-      label: "Info",
-    },
-    {
-      type: AlertType.DRAFT_SAVED,
-      label: "Draft Saved",
-    },
-  ];
-
-  const settingsPage = (
-    <>
-      <div className={styles.settingsTitle}>Notification Settings</div>
-      <div className={styles.toggleLabel}>Show in Notification Center</div>
-      {settingsItems.map(({ type, label }) => (
-        <div key={type} className={styles.settingsContainer}>
-          <div className={styles.notificationType}>
-            {getIcon(type)} {label}
-          </div>
-          <div className={styles.toggle}>
-            <Switch
-              checked={enabledNotificationsDraft[type]}
-              onChange={(checked) => changeEnabledNotification(checked, type)}
-            />
-          </div>
-        </div>
-      ))}
-      <div className={styles.settingsButtons}>
-        <Button type="danger" onClick={cancelSettings}>
-          Cancel
-        </Button>
-        <Button type="primary" onClick={applySettings}>
-          Apply
-        </Button>
-      </div>
-    </>
-  );
-
   return (
     <>
       <Badge count={unreadEventsCount} offset={[-8, 8]}>
@@ -195,7 +106,7 @@ export default function NotificationViewer() {
         closable={false}
         wrapClassName="notification-modal"
       >
-        {showSettings ? settingsPage : renderEventsPage()}
+        {renderEventsPage()}
       </Modal>
     </>
   );

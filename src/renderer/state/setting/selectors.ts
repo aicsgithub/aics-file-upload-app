@@ -2,6 +2,8 @@ import { createSelector } from "reselect";
 
 import { State } from "../types";
 
+export const getSettings = (state: State) => state.setting;
+
 export const getAssociateByWorkflow = (state: State) =>
   state.setting.associateByWorkflow;
 export const getLimsHost = (state: State) => state.setting.limsHost;
