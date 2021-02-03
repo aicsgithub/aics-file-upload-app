@@ -2,8 +2,6 @@ import { createSelector } from "reselect";
 
 import { State } from "../types";
 
-export const getSettings = (state: State) => state.setting;
-
 export const getAssociateByWorkflow = (state: State) =>
   state.setting.associateByWorkflow;
 export const getLimsHost = (state: State) => state.setting.limsHost;
@@ -17,6 +15,17 @@ export const getLoggedInUser = (state: State) => state.setting.username;
 export const getTemplateId = (state: State) => state.setting.templateId;
 export const getEnabledNotifications = (state: State) =>
   state.setting.enabledNotifications;
+
+export const getEditableSettings = createSelector(
+  [getEnabledNotifications, getShowUploadHint, getShowTemplateHint],
+  (enabledNotifications, showUploadHint, showTemplateHint) => {
+    return {
+      enabledNotifications,
+      showUploadHint,
+      showTemplateHint,
+    };
+  }
+);
 
 export const getLimsUrl = createSelector(
   [getLimsProtocol, getLimsHost, getLimsPort],

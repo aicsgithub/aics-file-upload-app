@@ -1,42 +1,21 @@
-import { Button, Icon, Modal, Switch } from "antd";
-import classNames from "classnames";
-import { pick } from "lodash";
+import { Button, Modal } from "antd";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { setMountPoint, updateSettings } from "../../state/setting/actions";
-import { initialState } from "../../state/setting/reducer";
-import { getSettings } from "../../state/setting/selectors";
+import {
+  getEditableSettings,
+  getMountPoint,
+} from "../../state/setting/selectors";
 import {
   AlertType,
   EnabledNotifications,
   SettingStateBranch,
 } from "../../state/types";
 
-const styles = require("./styles.pcss");
+import SettingToggle from "./SettingToggle";
 
-const iconPropsLookup = {
-  [AlertType.WARN]: {
-    type: "warning",
-    className: classNames(styles.icon, styles.warn),
-  },
-  [AlertType.SUCCESS]: {
-    type: "check-circle",
-    className: classNames(styles.icon, styles.success),
-  },
-  [AlertType.ERROR]: {
-    type: "exclamation-circle",
-    className: classNames(styles.icon, styles.error),
-  },
-  [AlertType.INFO]: {
-    type: "info-circle",
-    className: classNames(styles.icon, styles.info),
-  },
-  [AlertType.DRAFT_SAVED]: {
-    type: "save",
-    className: classNames(styles.icon, styles.save),
-  },
-};
+const styles = require("./styles.pcss");
 
 const genericSettingsItems = [
   {
@@ -74,34 +53,20 @@ const notificationSettingsItems = [
   },
 ];
 
-// Not all properties within the SettingStateBranch are directly user-editable
-const editableSettings = [
-  "showUploadHint",
-  "showTemplateHint",
-  "enabledNotifications",
-];
-
-function getIcon(type: AlertType) {
-  return <Icon theme="filled" {...iconPropsLookup[type]} />;
-}
-
 export default function SettingsModal({ visible }: { visible: boolean }) {
   const dispatch = useDispatch();
-  const settings = useSelector(getSettings);
-
-  const editableState = pick(initialState, editableSettings) as Partial<
-    SettingStateBranch
-  >;
+  const mountPoint = useSelector(getMountPoint);
+  const editableSettings = useSelector(getEditableSettings);
   const [settingsDraft, setSettingsDraft] = React.useState<
     Partial<SettingStateBranch>
-  >(editableState);
+  >(editableSettings);
 
+  // Reset the draft settings whenever the ones in the store
+  // change. This is technically derived state, which should be avoided, but
+  // it was the simplest solution in this case.
   React.useEffect(() => {
-    const editableState = pick(initialState, editableSettings) as Partial<
-      SettingStateBranch
-    >;
-    setSettingsDraft(editableState);
-  }, [settings]);
+    setSettingsDraft(editableSettings);
+  }, [editableSettings]);
 
   function changeEnabledNotification(checked: boolean, type: AlertType) {
     setSettingsDraft({
@@ -113,51 +78,6 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
     });
   }
 
-  const genericSettings = (
-    <>
-      <h3>Hint Settings</h3>
-      <div className={styles.toggleLabel}>Show Hints</div>
-      {genericSettingsItems.map(({ dataField, type, label }) => (
-        <div key={label} className={styles.settingsContainer}>
-          <div className={styles.settingLabel}>
-            {getIcon(type)} {label}
-          </div>
-          <div className={styles.toggle}>
-            <Switch
-              checked={settingsDraft[dataField as "showUploadHint"]}
-              onChange={(checked) =>
-                setSettingsDraft({ ...settingsDraft, [dataField]: checked })
-              }
-            />
-          </div>
-        </div>
-      ))}
-    </>
-  );
-
-  const notificationSettings = (
-    <>
-      <h3 className={styles.settingsTitle}>Notification Settings</h3>
-      <div className={styles.toggleLabel}>Show in Notification Center</div>
-      {notificationSettingsItems.map(({ type, label }) => (
-        <div key={label} className={styles.settingsContainer}>
-          <div className={styles.settingLabel}>
-            {getIcon(type)} {label}
-          </div>
-          <div className={styles.toggle}>
-            <Switch
-              checked={
-                settingsDraft.enabledNotifications &&
-                settingsDraft.enabledNotifications[type]
-              }
-              onChange={(checked) => changeEnabledNotification(checked, type)}
-            />
-          </div>
-        </div>
-      ))}
-    </>
-  );
-
   return (
     <Modal
       closable={false}
@@ -168,16 +88,43 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
       wrapClassName="settings-modal"
       visible={visible}
     >
-      {genericSettings}
+      <h3 className={styles.settingsTitle}>Hint Settings</h3>
+      <div className={styles.toggleLabel}>Show Hints</div>
+      {genericSettingsItems.map(({ dataField, type, label }) => (
+        <SettingToggle
+          iconType={type}
+          isChecked={!!settingsDraft[dataField as "showUploadHint"]}
+          key={label}
+          label={label}
+          onChange={(checked) =>
+            setSettingsDraft({ ...settingsDraft, [dataField]: checked })
+          }
+        />
+      ))}
       <hr />
-      {notificationSettings}
+      <h3 className={styles.settingsTitle}>Notification Settings</h3>
+      <div className={styles.toggleLabel}>Show in Notification Center</div>
+      {notificationSettingsItems.map(({ type, label }) => (
+        <SettingToggle
+          iconType={type}
+          isChecked={
+            !!(
+              settingsDraft.enabledNotifications &&
+              settingsDraft.enabledNotifications[type]
+            )
+          }
+          key={label}
+          label={label}
+          onChange={(checked) => changeEnabledNotification(checked, type)}
+        />
+      ))}
       <hr />
       <h3>Advanced Settings</h3>
       <div className={styles.toggleLabel}>Update</div>
       <div className={styles.settingsContainer}>
         <div className={styles.settingLabel}>Allen Drive Mount Point</div>
         <div className={styles.toggle}>
-          {settings.mountPoint}{" "}
+          {mountPoint}{" "}
           <Button
             className={styles.mountPointButton}
             icon="edit"
