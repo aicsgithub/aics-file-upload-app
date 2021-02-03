@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { updateSettings } from "../../setting/actions";
 import {
   mockSelection,
   nonEmptyStateForInitiatingUpload,
@@ -41,6 +42,21 @@ describe("route reducer", () => {
       );
       expect(result.page).to.equal(Page.AddCustomData);
       expect(result.page).to.equal(Page.AddCustomData);
+    });
+  });
+
+  describe("updateSettings", () => {
+    it("Sets view back to the page", () => {
+      const routeStateBefore = {
+        view: Page.Settings,
+        page: Page.UploadSummary,
+      };
+      const expectedRouteState = {
+        view: Page.UploadSummary,
+        page: Page.UploadSummary,
+      };
+      const result = reducer(routeStateBefore, updateSettings({}));
+      expect(result).to.deep.equal(expectedRouteState);
     });
   });
 });

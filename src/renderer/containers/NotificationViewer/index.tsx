@@ -4,42 +4,16 @@ import * as moment from "moment";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import AlertIcon from "../../components/AlertIcon";
 import { closeNotificationCenter } from "../../state/feedback/actions";
 import { getEventsByNewest } from "../../state/feedback/selectors";
 import { selectView } from "../../state/route/actions";
-import { AlertType, Page } from "../../state/types";
+import { Page } from "../../state/types";
 import NavigationButton from "../NavigationBar/NavigationButton";
 
 import { getFilteredEvents, getUnreadEventsCount } from "./selectors";
 
 const styles = require("./styles.pcss");
-
-const iconPropsLookup = {
-  [AlertType.WARN]: {
-    type: "warning",
-    className: classNames(styles.icon, styles.warn),
-  },
-  [AlertType.SUCCESS]: {
-    type: "check-circle",
-    className: classNames(styles.icon, styles.success),
-  },
-  [AlertType.ERROR]: {
-    type: "exclamation-circle",
-    className: classNames(styles.icon, styles.error),
-  },
-  [AlertType.INFO]: {
-    type: "info-circle",
-    className: classNames(styles.icon, styles.info),
-  },
-  [AlertType.DRAFT_SAVED]: {
-    type: "save",
-    className: classNames(styles.icon, styles.save),
-  },
-};
-
-function getIcon(type: AlertType) {
-  return <Icon theme="filled" {...iconPropsLookup[type]} />;
-}
 
 function formatDate(date: Date): string {
   return moment(date).format("MM/DD/YYYY [at] HH:mm A");
@@ -65,7 +39,9 @@ export default function NotificationViewer({
             [styles.unread]: !event.viewed,
           })}
         >
-          <div className={styles.iconContainer}>{getIcon(event.type)}</div>
+          <div className={styles.iconContainer}>
+            <AlertIcon type={event.type} />
+          </div>
           <div className={styles.message}>{event.message}</div>
           <div className={styles.timestamp}>{formatDate(event.date)}</div>
         </div>
@@ -83,7 +59,6 @@ export default function NotificationViewer({
       <Icon
         type="setting"
         theme="filled"
-        className={styles.settingsIcon}
         onClick={() => dispatch(selectView(Page.Settings))}
       />
     </div>
