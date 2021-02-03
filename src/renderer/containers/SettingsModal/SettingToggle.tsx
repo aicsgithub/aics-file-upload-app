@@ -17,7 +17,8 @@ export default function SettingToggle(props: Props) {
   return (
     <div key={props.label} className={styles.settingsContainer}>
       <div className={styles.settingLabel}>
-        <AlertIcon type={props.iconType} /> {props.label}
+        <AlertIcon type={props.iconType} />
+        &nbsp;{props.label}
       </div>
       <div className={styles.toggle}>
         <Switch checked={props.isChecked} onChange={props.onChange} />
