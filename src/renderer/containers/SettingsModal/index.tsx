@@ -1,12 +1,17 @@
 import { Button, Icon, Modal, Switch } from "antd";
 import classNames from "classnames";
+import { pick } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { closeSettings } from "../../state/route/actions";
 import { setMountPoint, updateSettings } from "../../state/setting/actions";
+import { initialState } from "../../state/setting/reducer";
 import { getSettings } from "../../state/setting/selectors";
-import { AlertType, SettingStateBranch } from "../../state/types";
+import {
+  AlertType,
+  EnabledNotifications,
+  SettingStateBranch,
+} from "../../state/types";
 
 const styles = require("./styles.pcss");
 
@@ -69,6 +74,13 @@ const notificationSettingsItems = [
   },
 ];
 
+// Not all properties within the SettingStateBranch are directly user-editable
+const editableSettings = [
+  "showUploadHint",
+  "showTemplateHint",
+  "enabledNotifications",
+];
+
 function getIcon(type: AlertType) {
   return <Icon theme="filled" {...iconPropsLookup[type]} />;
 }
@@ -77,9 +89,19 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
   const dispatch = useDispatch();
   const settings = useSelector(getSettings);
 
-  const [settingsDraft, setSettingsDraft] = React.useState<SettingStateBranch>(
-    settings
-  );
+  const editableState = pick(initialState, editableSettings) as Partial<
+    SettingStateBranch
+  >;
+  const [settingsDraft, setSettingsDraft] = React.useState<
+    Partial<SettingStateBranch>
+  >(editableState);
+
+  React.useEffect(() => {
+    const editableState = pick(initialState, editableSettings) as Partial<
+      SettingStateBranch
+    >;
+    setSettingsDraft(editableState);
+  }, [settings]);
 
   function changeEnabledNotification(checked: boolean, type: AlertType) {
     setSettingsDraft({
@@ -87,7 +109,7 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
       enabledNotifications: {
         ...settingsDraft.enabledNotifications,
         [type]: checked,
-      },
+      } as EnabledNotifications,
     });
   }
 
@@ -124,7 +146,10 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
           </div>
           <div className={styles.toggle}>
             <Switch
-              checked={settingsDraft.enabledNotifications[type]}
+              checked={
+                settingsDraft.enabledNotifications &&
+                settingsDraft.enabledNotifications[type]
+              }
               onChange={(checked) => changeEnabledNotification(checked, type)}
             />
           </div>
@@ -133,35 +158,14 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
     </>
   );
 
-  const footer = (
-    <div className={styles.settingsButtons}>
-      <Button type="danger" onClick={() => dispatch(closeSettings())}>
-        Cancel
-      </Button>
-      <Button
-        type="primary"
-        onClick={() =>
-          dispatch(
-            updateSettings({
-              ...settingsDraft,
-              mountPoint: settings.mountPoint,
-            })
-          )
-        }
-      >
-        Apply
-      </Button>
-    </div>
-  );
-
   return (
     <Modal
       closable={false}
-      footer={footer}
+      footer={null}
       mask={false}
-      onCancel={() => dispatch(closeSettings())}
+      onCancel={() => dispatch(updateSettings(settingsDraft))}
       title={<div className={styles.modalHeader}>Settings</div>}
-      wrapClassName="notification-modal"
+      wrapClassName="settings-modal"
       visible={visible}
     >
       {genericSettings}

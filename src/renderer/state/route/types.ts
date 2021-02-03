@@ -6,10 +6,6 @@ export interface AppPageConfig {
   container: JSX.Element;
 }
 
-export interface CloseSettingsAction {
-  type: string;
-}
-
 export interface CloseUploadAction {
   type: string;
 }

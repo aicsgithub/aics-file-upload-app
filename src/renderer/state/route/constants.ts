@@ -2,7 +2,6 @@ import { makeConstant } from "../util";
 
 const BRANCH_NAME = "route";
 
-export const CLOSE_SETTINGS = makeConstant(BRANCH_NAME, "close-settings");
 export const CLOSE_UPLOAD = makeConstant(BRANCH_NAME, "close-upload");
 export const OPEN_EDIT_FILE_METADATA_TAB = makeConstant(
   BRANCH_NAME,

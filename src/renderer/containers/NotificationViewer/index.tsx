@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { closeNotificationCenter } from "../../state/feedback/actions";
 import { getEventsByNewest } from "../../state/feedback/selectors";
 import { selectView } from "../../state/route/actions";
-import { getView } from "../../state/route/selectors";
 import { AlertType, Page } from "../../state/types";
 import NavigationButton from "../NavigationBar/NavigationButton";
 
@@ -46,13 +45,16 @@ function formatDate(date: Date): string {
   return moment(date).format("MM/DD/YYYY [at] HH:mm A");
 }
 
-export default function NotificationViewer() {
+export default function NotificationViewer({
+  isSelected,
+}: {
+  isSelected: boolean;
+}) {
   const dispatch = useDispatch();
 
   const filteredEvents = useSelector(getFilteredEvents);
   const allEvents = useSelector(getEventsByNewest);
   const unreadEventsCount = useSelector(getUnreadEventsCount);
-  const view = useSelector(getView);
 
   function renderEventsPage() {
     if (filteredEvents.length > 0) {
@@ -92,14 +94,14 @@ export default function NotificationViewer() {
         <NavigationButton
           icon="bell"
           iconTheme="filled"
-          isSelected={view === Page.Notifications}
+          isSelected={isSelected}
           onSelect={() => dispatch(selectView(Page.Notifications))}
           title="Notifications"
         />
       </Badge>
       <Modal
         title={modalHeader}
-        visible={view === Page.Notifications}
+        visible={isSelected}
         mask={false}
         footer={null}
         onCancel={() => dispatch(closeNotificationCenter())}

@@ -9,19 +9,9 @@ import { INITIATE_UPLOAD, REPLACE_UPLOAD } from "../upload/constants";
 import { InitiateUploadAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
-import {
-  CLOSE_SETTINGS,
-  CLOSE_UPLOAD,
-  SELECT_PAGE,
-  SELECT_VIEW,
-} from "./constants";
+import { CLOSE_UPLOAD, SELECT_PAGE, SELECT_VIEW } from "./constants";
 import { getPage } from "./selectors";
-import {
-  CloseSettingsAction,
-  CloseUploadAction,
-  SelectPageAction,
-  SelectViewAction,
-} from "./types";
+import { CloseUploadAction, SelectPageAction, SelectViewAction } from "./types";
 
 export const initialState: RouteStateBranch = {
   page: Page.UploadSummary,
@@ -32,14 +22,6 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
   [CLOSE_NOTIFICATION_CENTER]: {
     accepts: (action: AnyAction): action is CloseNotificationCenter =>
       action.type === CLOSE_NOTIFICATION_CENTER,
-    perform: (state: RouteStateBranch) => ({
-      ...state,
-      view: state.page,
-    }),
-  },
-  [CLOSE_SETTINGS]: {
-    accepts: (action: AnyAction): action is CloseSettingsAction =>
-      action.type === CLOSE_SETTINGS,
     perform: (state: RouteStateBranch) => ({
       ...state,
       view: state.page,

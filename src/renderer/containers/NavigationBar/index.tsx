@@ -33,7 +33,7 @@ export default function NavigationBar() {
 
   return (
     <div className={styles.container}>
-      <NotificationViewer />
+      <NotificationViewer isSelected={view === Page.Notifications} />
       <NavigationButton
         icon="upload"
         isSelected={view === Page.AddCustomData}
@@ -54,10 +54,7 @@ export default function NavigationBar() {
         onSelect={() => dispatch(selectView(Page.Settings))}
         title="Settings"
       />
-      <SettingsModal
-        key={`${view === Page.Settings}`}
-        visible={view === Page.Settings}
-      />
+      <SettingsModal visible={view === Page.Settings} />
     </div>
   );
 }
