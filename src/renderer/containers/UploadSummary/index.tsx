@@ -1,4 +1,4 @@
-import { Button, Col, Empty, Icon, Radio, Row, Spin, Table } from "antd";
+import { Col, Empty, Radio, Row, Spin, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
@@ -153,38 +153,13 @@ class UploadSummary extends React.Component<Props, {}> {
   }
 
   public render() {
-    const { className, jobFilter, jobs, page, requestingJobs } = this.props;
-    const buttonLabel =
-      page !== Page.UploadSummary ? (
-        <>Resume Upload</>
-      ) : (
-        <>
-          <Icon type="plus" />
-          &nbsp;New Upload
-        </>
-      );
+    const { className, jobFilter, jobs, requestingJobs } = this.props;
     return (
       <div className={classNames(styles.container, className)}>
         <div className={styles.section}>
           <div className={styles.header}>
-            <Row
-              type="flex"
-              justify="space-between"
-              align="middle"
-              className={styles.title}
-            >
-              <Col>
-                <h2>Your Uploads</h2>
-              </Col>
-              <Col>
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={this.startNewUpload}
-                >
-                  {buttonLabel}
-                </Button>
-              </Col>
+            <Row>
+              <h2>Your Uploads</h2>
             </Row>
             <Row type="flex" justify="space-between" align="middle">
               <Col>
@@ -228,15 +203,6 @@ class UploadSummary extends React.Component<Props, {}> {
 
   private selectJobFilter = (e: RadioChangeEvent): void => {
     this.props.selectJobFilter(e.target.value);
-  };
-
-  private startNewUpload = (): void => {
-    // If the current page is UploadSummary we must just be a view
-    if (this.props.page !== Page.UploadSummary) {
-      this.props.selectView(this.props.page);
-    } else {
-      this.props.selectPage(Page.UploadSummary, Page.AddCustomData);
-    }
   };
 
   private retryJob = (row: UploadSummaryTableRow) => () => {

@@ -1,0 +1,42 @@
+.container {
+    --bar-right-and-left-padding: 0.25em;
+
+    background-color: var(--border-color);
+    padding: 8vh var(--bar-right-and-left-padding) 0 var(--bar-right-and-left-padding);
+    width: var(--navigation-bar-width);
+}
+
+.button {
+    align-items: center;
+    background-color: var(--border-color);
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    font-size: 10px;
+    height: 65px;
+    margin: 0 0 2em 0;
+    padding-top: 5px;
+    /* Width is the width of the entire bar minus the left and right padding */
+    width: calc(var(--navigation-bar-width) - 2 * var(--bar-right-and-left-padding));
+
+    & .button-icon {
+        font-size: 30px;
+    }
+
+    & .button-title {
+        line-height: 1.1em;
+        white-space: normal;
+    }
+}
+
+.button:hover {
+    background-color: #1fb586;
+    color: white;
+}
+
+.button:focus, .button:active, .selected-button {
+    background-color: #1DA57A;
+    color: white;
+    cursor: default;
+}

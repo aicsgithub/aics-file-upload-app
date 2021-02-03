@@ -4,12 +4,9 @@ import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
 import { RESET_HISTORY } from "../metadata/constants";
+import { CLOSE_UPLOAD, OPEN_EDIT_FILE_METADATA_TAB } from "../route/constants";
 import {
-  CLOSE_UPLOAD_TAB,
-  OPEN_EDIT_FILE_METADATA_TAB,
-} from "../route/constants";
-import {
-  CloseUploadTabAction,
+  CloseUploadAction,
   OpenEditFileMetadataTabAction,
 } from "../route/types";
 import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
@@ -165,9 +162,9 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       wells: getWells(replacementState),
     }),
   },
-  [CLOSE_UPLOAD_TAB]: {
-    accepts: (action: AnyAction): action is CloseUploadTabAction =>
-      action.type === CLOSE_UPLOAD_TAB,
+  [CLOSE_UPLOAD]: {
+    accepts: (action: AnyAction): action is CloseUploadAction =>
+      action.type === CLOSE_UPLOAD,
     perform: (state: SelectionStateBranch) => ({
       ...state,
       ...uploadTabSelectionInitialState,
@@ -181,7 +178,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       action: OpenEditFileMetadataTabAction
     ) => ({
       ...state,
-      folderTreeOpen: false, // there's no use to this when editing files already uploaded
       job: action.payload,
     }),
   },

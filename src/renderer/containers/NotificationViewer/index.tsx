@@ -7,9 +7,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { closeNotificationCenter } from "../../state/feedback/actions";
 import { getEventsByNewest } from "../../state/feedback/selectors";
+import { selectView } from "../../state/route/actions";
+import { getView } from "../../state/route/selectors";
 import { updateSettings } from "../../state/setting/actions";
 import { getEnabledNotifications } from "../../state/setting/selectors";
-import { AlertType } from "../../state/types";
+import { AlertType, Page } from "../../state/types";
+import NavigationButton from "../NavigationBar/NavigationButton";
 
 import { getFilteredEvents, getUnreadEventsCount } from "./selectors";
 
@@ -52,7 +55,7 @@ export default function NotificationViewer() {
   const filteredEvents = useSelector(getFilteredEvents);
   const allEvents = useSelector(getEventsByNewest);
   const unreadEventsCount = useSelector(getUnreadEventsCount);
-  const [showEvents, setShowEvents] = useState(false);
+  const view = useSelector(getView);
   const [showSettings, setShowSettings] = useState(false);
 
   const enabledNotifications = useSelector(getEnabledNotifications);
@@ -68,11 +71,6 @@ export default function NotificationViewer() {
   useEffect(() => setEnabledNotificationsDraft(enabledNotifications), [
     enabledNotifications,
   ]);
-
-  function closeModal() {
-    setShowEvents(false);
-    dispatch(closeNotificationCenter());
-  }
 
   function changeEnabledNotification(checked: boolean, type: AlertType) {
     setEnabledNotificationsDraft((prev) => ({
@@ -180,19 +178,20 @@ export default function NotificationViewer() {
   return (
     <>
       <Badge count={unreadEventsCount} offset={[-8, 8]}>
-        <Icon
-          type="bell"
-          theme="filled"
-          className={classNames(styles.icon, styles.notificationBell)}
-          onClick={() => setShowEvents(true)}
+        <NavigationButton
+          icon="bell"
+          iconTheme="filled"
+          isSelected={view === Page.Notifications}
+          onSelect={() => dispatch(selectView(Page.Notifications))}
+          title="Notifications"
         />
       </Badge>
       <Modal
         title={modalHeader}
-        visible={showEvents}
+        visible={view === Page.Notifications}
         mask={false}
         footer={null}
-        onCancel={closeModal}
+        onCancel={() => dispatch(closeNotificationCenter())}
         closable={false}
         wrapClassName="notification-modal"
       >

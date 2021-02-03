@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { closeModal } from "../../feedback/actions";
-import { closeUploadTab } from "../../route/actions";
+import { closeUpload } from "../../route/actions";
 import {
   getMockStateWithHistory,
   mockAnnotationDraft,
@@ -29,11 +29,11 @@ describe("template reducer", () => {
       );
     });
   });
-  describe("closeUploadTab", () => {
+  describe("closeUpload", () => {
     it("clears appliedTemplate", () => {
       const result = reducer(
         nonEmptyStateForInitiatingUpload.template,
-        closeUploadTab()
+        closeUpload()
       );
       expect(result.present.appliedTemplate).to.be.undefined;
     });

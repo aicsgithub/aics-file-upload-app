@@ -254,8 +254,8 @@ export interface MetadataStateBranch {
 export type ModalName = "openTemplate" | "settings" | "templateEditor";
 
 export enum Page {
-  DragAndDrop = "DragAndDrop",
   AddCustomData = "AddCustomData",
+  Notifications = "Notifications",
   UploadSummary = "UploadSummary",
 }
 

@@ -6,15 +6,12 @@ export interface AppPageConfig {
   container: JSX.Element;
 }
 
-export interface CloseUploadTabAction {
+export interface CloseUploadAction {
   type: string;
 }
 
 export interface SelectPageAction {
-  payload: {
-    currentPage: Page;
-    nextPage: Page;
-  };
+  payload: Page.AddCustomData | Page.UploadSummary;
   type: string;
 }
 

@@ -52,10 +52,7 @@ import {
   getNumberAnnotationTypeId,
   getOriginalUpload,
   getTextAnnotationTypeId,
-  getUploadHistory,
 } from "../metadata/selectors";
-import { pageOrder } from "../route/constants";
-import { getPage } from "../route/selectors";
 import {
   getAllPlates,
   getExpandedUploadJobRows,
@@ -71,7 +68,6 @@ import {
 } from "../template/types";
 import {
   ExpandedRows,
-  Page,
   State,
   UploadMetadata,
   UploadStateBranch,
@@ -105,16 +101,9 @@ export const getCanRedoUpload = createSelector(
 );
 
 export const getCanUndoUpload = createSelector(
-  [getUploadPast, getPage, getCurrentUploadIndex, getUploadHistory],
-  (past, page, currentUploadIndex, uploadHistory) => {
-    if (page === Page.AddCustomData) {
-      const prevPage = pageOrder[pageOrder.indexOf(Page.AddCustomData) - 1];
-      // Selecting a template on the AddCustomData page will update the upload state branch and thus increment the
-      // upload index. However, we do not want this to be undoable from the grid.
-      return currentUploadIndex > uploadHistory[prevPage] + 1;
-    }
-    const prevPage = pageOrder[pageOrder.indexOf(Page.AddCustomData) - 1];
-    return currentUploadIndex > uploadHistory[prevPage];
+  [getCurrentUploadIndex],
+  (currentUploadIndex) => {
+    return currentUploadIndex > 0;
   }
 );
 

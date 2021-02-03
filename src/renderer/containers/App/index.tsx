@@ -1,6 +1,5 @@
 import "@aics/aics-react-labkey/dist/styles.css";
-import { message, notification, Tabs } from "antd";
-import * as classNames from "classnames";
+import { message, notification } from "antd";
 import { ipcRenderer, remote } from "electron";
 import { camelizeKeys } from "humps";
 import * as React from "react";
@@ -35,9 +34,7 @@ import {
 } from "../../state/job/actions";
 import { getIsSafeToExit } from "../../state/job/selectors";
 import { requestMetadata } from "../../state/metadata/actions";
-import { closeUploadTab, selectView } from "../../state/route/actions";
-import { getPage, getView } from "../../state/route/selectors";
-import { AppPageConfig } from "../../state/route/types";
+import { getPage } from "../../state/route/selectors";
 import {
   gatherSettings,
   setMountPoint,
@@ -47,35 +44,17 @@ import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, AsyncRequest, Page } from "../../state/types";
 import { openUploadDraft, saveUploadDraft } from "../../state/upload/actions";
 import AddCustomData from "../AddCustomData";
-import NotificationViewer from "../NotificationViewer";
+import NavigationBar from "../NavigationBar";
 import OpenTemplateModal from "../OpenTemplateModal";
 import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
 import AutoReconnectingEventSource from "./AutoReconnectingEventSource";
-import { getUploadTabName } from "./selectors";
 
 const styles = require("./styles.pcss");
 
-const { TabPane } = Tabs;
-
 const ALERT_DURATION = 2;
-
-const APP_PAGE_TO_CONFIG_MAP = new Map<Page, AppPageConfig>([
-  [
-    Page.AddCustomData,
-    {
-      container: <AddCustomData key="addCustomData" />,
-    },
-  ],
-  [
-    Page.UploadSummary,
-    {
-      container: <UploadSummary key="uploadSummary" />,
-    },
-  ],
-]);
 
 message.config({
   maxCount: 1,
@@ -93,8 +72,6 @@ export default function App() {
   const setMountPointNotificationVisible = useSelector(
     getSetMountPointNotificationVisible
   );
-  const uploadTabName = useSelector(getUploadTabName);
-  const view = useSelector(getView);
 
   // Request initial data
   useEffect(() => {
@@ -242,59 +219,12 @@ export default function App() {
     }
   }, [setMountPointNotificationVisible, dispatch]);
 
-  const pageConfig = APP_PAGE_TO_CONFIG_MAP.get(page);
-  const uploadSummaryConfig = APP_PAGE_TO_CONFIG_MAP.get(Page.UploadSummary);
-
-  if (!pageConfig || !uploadSummaryConfig) {
-    return null;
-  }
-
-  function onTabChange(
-    targetKey: string | React.MouseEvent<HTMLElement>,
-    action: "add" | "remove"
-  ): void {
-    // Currently only one tab is closable, so we are not checking targetKey. If
-    // this changes, we'll need to add a check here.
-    if (action === "remove") {
-      dispatch(closeUploadTab());
-    }
-  }
-
   return (
     <div className={styles.container}>
       <div className={styles.mainContent}>
-        <Tabs
-          activeKey={view}
-          className={styles.tabContainer}
-          hideAdd={true}
-          onChange={(view) => dispatch(selectView(view as Page))}
-          onEdit={onTabChange}
-          type="editable-card"
-          tabBarExtraContent={
-            <div style={{ marginRight: "10px" }}>
-              <NotificationViewer />
-            </div>
-          }
-        >
-          <TabPane
-            className={styles.tabContent}
-            tab="Summary"
-            key={Page.UploadSummary}
-            closable={false}
-          >
-            {uploadSummaryConfig.container}
-          </TabPane>
-          {page !== Page.UploadSummary && (
-            <TabPane
-              className={classNames(styles.uploadTab, styles.tabContent)}
-              tab={uploadTabName}
-              key={page}
-              closable={true}
-            >
-              {pageConfig.container}
-            </TabPane>
-          )}
-        </Tabs>
+        <NavigationBar />
+        {page === Page.AddCustomData && <AddCustomData />}
+        {page === Page.UploadSummary && <UploadSummary />}
       </div>
       <StatusBar
         className={styles.statusBar}

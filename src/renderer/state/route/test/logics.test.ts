@@ -48,7 +48,7 @@ import {
 import { AlertType, AsyncRequest, Logger, Page, State } from "../../types";
 import { getUploadRowKey } from "../../upload/constants";
 import { getUpload } from "../../upload/selectors";
-import { closeUploadTab, openEditFileMetadataTab } from "../actions";
+import { closeUpload, openEditFileMetadataTab } from "../actions";
 import { OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED } from "../constants";
 import { setSwitchEnvEnabled } from "../logics";
 import { getPage, getView } from "../selectors";
@@ -137,39 +137,8 @@ describe("Route logics", () => {
     });
   });
 
-  describe("selectPageLogic", () => {
-    let switchEnv: { enabled: boolean; label: string };
-    let fileMenu: {
-      label: string;
-      submenu: { items: Array<{ enabled: boolean; label: string }> };
-    };
-    let menu: Menu;
-
-    beforeEach(() => {
-      switchEnv = {
-        enabled: true,
-        label: "Switch Environment",
-      };
-      fileMenu = {
-        label: "file",
-        submenu: {
-          items: [switchEnv],
-        },
-      };
-      menu = ({
-        items: [fileMenu],
-      } as any) as Menu;
-      const getApplicationMenuStub = stub().returns(menu);
-      sandbox.replace(
-        mockReduxLogicDeps,
-        "getApplicationMenu",
-        getApplicationMenuStub
-      );
-    });
-  });
-
   /**
-   * helper function for go back and closeUploadTab logic tests
+   * helper function for go back and closeUpload logic tests
    * @param startPage the page we start on
    * @param expectedEndPage the page we expect to end at,
    * @param action action creator to dispatch
@@ -224,7 +193,7 @@ describe("Route logics", () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
         Page.UploadSummary,
-        closeUploadTab,
+        closeUpload,
         2
       );
       expect(showSaveDialogStub.called).to.be.true;
@@ -233,7 +202,7 @@ describe("Route logics", () => {
       await runShowMessageBoxTest(
         Page.AddCustomData,
         Page.AddCustomData,
-        closeUploadTab,
+        closeUpload,
         0
       );
     });

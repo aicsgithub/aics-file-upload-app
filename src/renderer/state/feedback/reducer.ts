@@ -24,12 +24,12 @@ import {
   RequestMetadataAction,
 } from "../metadata/types";
 import {
-  CLOSE_UPLOAD_TAB,
+  CLOSE_UPLOAD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
 } from "../route/constants";
 import {
-  CloseUploadTabAction,
+  CloseUploadAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
 } from "../route/types";
@@ -319,12 +319,11 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       deferredAction: undefined,
     }),
   },
-  [CLOSE_UPLOAD_TAB]: {
-    accepts: (action: AnyAction): action is CloseUploadTabAction =>
-      action.type === CLOSE_UPLOAD_TAB,
+  [CLOSE_UPLOAD]: {
+    accepts: (action: AnyAction): action is CloseUploadAction =>
+      action.type === CLOSE_UPLOAD,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
-      folderTreeOpen: false,
       setMountPointNotificationVisible: false,
       uploadError: undefined,
     }),
