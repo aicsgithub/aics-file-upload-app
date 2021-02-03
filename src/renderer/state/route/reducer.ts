@@ -1,13 +1,7 @@
 import { AnyAction } from "redux";
 
-import {
-  CLOSE_NOTIFICATION_CENTER,
-  CLOSE_SETTINGS,
-} from "../feedback/constants";
-import {
-  CloseNotificationCenter,
-  CloseSettingsAction,
-} from "../feedback/types";
+import { CLOSE_NOTIFICATION_CENTER } from "../feedback/constants";
+import { CloseNotificationCenter } from "../feedback/types";
 import { UPDATE_SETTINGS } from "../setting/constants";
 import { UpdateSettingsAction } from "../setting/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
@@ -15,9 +9,19 @@ import { INITIATE_UPLOAD, REPLACE_UPLOAD } from "../upload/constants";
 import { InitiateUploadAction, ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
-import { CLOSE_UPLOAD, SELECT_PAGE, SELECT_VIEW } from "./constants";
+import {
+  CLOSE_SETTINGS,
+  CLOSE_UPLOAD,
+  SELECT_PAGE,
+  SELECT_VIEW,
+} from "./constants";
 import { getPage } from "./selectors";
-import { CloseUploadAction, SelectPageAction, SelectViewAction } from "./types";
+import {
+  CloseSettingsAction,
+  CloseUploadAction,
+  SelectPageAction,
+  SelectViewAction,
+} from "./types";
 
 export const initialState: RouteStateBranch = {
   page: Page.UploadSummary,

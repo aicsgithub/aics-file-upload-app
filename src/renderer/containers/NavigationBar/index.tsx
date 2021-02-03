@@ -41,7 +41,10 @@ export default function NavigationBar() {
         onSelect={() => dispatch(selectView(Page.Settings))}
         title="Settings"
       />
-      <SettingsModal visible={view === Page.Settings} />
+      <SettingsModal
+        key={`${view === Page.Settings}`}
+        visible={view === Page.Settings}
+      />
     </div>
   );
 }

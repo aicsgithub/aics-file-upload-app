@@ -3,7 +3,7 @@ import classNames from "classnames";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { closeSettings } from "../../state/feedback/actions";
+import { closeSettings } from "../../state/route/actions";
 import { setMountPoint, updateSettings } from "../../state/setting/actions";
 import { getSettings } from "../../state/setting/selectors";
 import { AlertType, SettingStateBranch } from "../../state/types";
