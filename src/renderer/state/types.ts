@@ -251,7 +251,7 @@ export interface MetadataStateBranch {
   [lookupName: string]: any;
 }
 
-export type ModalName = "openTemplate" | "settings" | "templateEditor";
+export type ModalName = "openTemplate" | "templateEditor";
 
 export enum Page {
   AddCustomData = "AddCustomData",

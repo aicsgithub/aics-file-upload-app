@@ -2,6 +2,7 @@ import { JSSJob } from "../../services/job-status-client/types";
 import { Page, UploadStateBranch } from "../types";
 
 import {
+  CLOSE_SETTINGS,
   CLOSE_UPLOAD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
@@ -9,12 +10,19 @@ import {
   SELECT_VIEW,
 } from "./constants";
 import {
+  CloseSettingsAction,
   CloseUploadAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
   SelectPageAction,
   SelectViewAction,
 } from "./types";
+
+export function closeSettings(): CloseSettingsAction {
+  return {
+    type: CLOSE_SETTINGS,
+  };
+}
 
 export function closeUpload(): CloseUploadAction {
   return {
