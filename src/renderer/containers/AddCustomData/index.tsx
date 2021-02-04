@@ -278,6 +278,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                   this.props.fileToAnnotationHasValueMap
                 }
                 massEditRow={massEditRow}
+                onFileBrowse={this.props.openFilesFromDialog}
                 redo={this.redo}
                 removeUploads={this.props.removeUploads}
                 template={appliedTemplate}
