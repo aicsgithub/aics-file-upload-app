@@ -107,12 +107,7 @@ export default function SettingsModal({ visible }: { visible: boolean }) {
       {notificationSettingsItems.map(({ type, label }) => (
         <SettingToggle
           iconType={type}
-          isChecked={
-            !!(
-              settingsDraft.enabledNotifications &&
-              settingsDraft.enabledNotifications[type]
-            )
-          }
+          isChecked={!!settingsDraft.enabledNotifications?.[type]}
           key={label}
           label={label}
           onChange={(checked) => changeEnabledNotification(checked, type)}
