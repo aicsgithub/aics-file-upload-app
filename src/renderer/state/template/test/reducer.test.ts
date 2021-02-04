@@ -72,7 +72,7 @@ describe("template reducer", () => {
     });
     it("returns prev state if payload is not 'templateEditor'", () => {
       const state = getMockStateWithHistory(initialState);
-      const result = reducer(state, closeModal("settings"));
+      const result = reducer(state, closeModal("openTemplate"));
       expect(result.present).to.deep.equal(initialState);
     });
   });

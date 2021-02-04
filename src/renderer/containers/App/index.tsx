@@ -46,7 +46,6 @@ import { openUploadDraft, saveUploadDraft } from "../../state/upload/actions";
 import AddCustomData from "../AddCustomData";
 import NavigationBar from "../NavigationBar";
 import OpenTemplateModal from "../OpenTemplateModal";
-import SettingsEditorModal from "../SettingsEditorModal";
 import TemplateEditorModal from "../TemplateEditorModal";
 import UploadSummary from "../UploadSummary";
 
@@ -233,7 +232,6 @@ export default function App() {
       />
       <TemplateEditorModal />
       <OpenTemplateModal />
-      <SettingsEditorModal />
     </div>
   );
 }
