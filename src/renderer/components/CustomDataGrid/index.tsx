@@ -73,6 +73,7 @@ interface Props {
   allWellsForSelectedPlate: Well[][];
   annotationTypes: AnnotationType[];
   associateByWorkflow: boolean;
+  canAddMoreFiles: boolean;
   canUndo: boolean;
   canRedo: boolean;
   channels: Channel[];
@@ -344,7 +345,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 }}
                 onCellExpand={this.onCellExpand}
               />
-              <DragAndDropRow onBrowse={this.props.onFileBrowse} />
+              {this.props.canAddMoreFiles && (
+                <DragAndDropRow onBrowse={this.props.onFileBrowse} />
+              )}
             </>
           ) : (
             <p className={styles.alignCenter}>No Uploads</p>
