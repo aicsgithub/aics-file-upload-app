@@ -21,7 +21,7 @@
 }
 
 .content-container {
-  height: calc(100% - 3em);
+  height: calc(100% - 5.5em);
   left: var(--navigation-bar-width);
   overflow-y: auto;
   padding: 1em;
@@ -63,4 +63,17 @@
 
 .selector {
   width: 100%;
+}
+
+.drag-and-drop-row {
+  /* Variable located in styles/variables */
+  border: var(--border);
+  text-align: center;
+  width: 100%;
+
+  & button {
+    border: none;
+    /* Variable located in styles/colors */
+    color: var(--brand-primary);
+  }
 }

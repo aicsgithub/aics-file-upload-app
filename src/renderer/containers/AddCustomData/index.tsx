@@ -269,6 +269,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                 annotationTypes={annotationTypes}
                 associateByWorkflow={isAssociatedByWorkflow}
+                canAddMoreFiles={!selectedJob}
                 canRedo={canRedo}
                 canUndo={canUndo}
                 channels={this.props.channels}
@@ -278,6 +279,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                   this.props.fileToAnnotationHasValueMap
                 }
                 massEditRow={massEditRow}
+                onFileBrowse={this.props.openFilesFromDialog}
                 redo={this.redo}
                 removeUploads={this.props.removeUploads}
                 template={appliedTemplate}
@@ -299,7 +301,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             className={styles.cancelButton}
             size="large"
             onClick={() => this.props.closeUpload()}
-            disabled={!Object.keys(uploads).length}
           >
             Cancel
           </Button>

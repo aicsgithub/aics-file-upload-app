@@ -18,6 +18,7 @@ import {
   WELL_ANNOTATION_NAME,
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
+import DragAndDropRow from "../../containers/AddCustomData/DragAndDropRow";
 import {
   AnnotationType,
   Channel,
@@ -26,6 +27,7 @@ import {
 import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import { SetAlertAction } from "../../state/feedback/types";
 import {
+  LoadFilesFromOpenDialogAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
   Well,
@@ -71,6 +73,7 @@ interface Props {
   allWellsForSelectedPlate: Well[][];
   annotationTypes: AnnotationType[];
   associateByWorkflow: boolean;
+  canAddMoreFiles: boolean;
   canUndo: boolean;
   canRedo: boolean;
   channels: Channel[];
@@ -78,6 +81,7 @@ interface Props {
   editable: boolean;
   expandedRows: ExpandedRows;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
+  onFileBrowse: (files: string[]) => LoadFilesFromOpenDialogAction;
   massEditRow: MassEditRow;
   redo: () => void;
   removeUploads: ActionCreator<RemoveUploadsAction>;
@@ -314,32 +318,37 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         </div>
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (
-            <ReactDataGrid
-              cellNavigationMode="changeRow"
-              columns={this.getColumns()}
-              enableCellSelect={true}
-              enableDragAndDrop={true}
-              getSubRowDetails={this.getSubRowDetails}
-              minHeight={
-                sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
-              }
-              onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
-              onGridSort={this.determineSort}
-              rowGetter={rowGetter}
-              rowsCount={sortedRows.length}
-              rowSelection={{
-                enableShiftSelect: true,
-                onRowsDeselected: this.deselectRows,
-                onRowsSelected: this.selectRows,
-                selectBy: {
-                  keys: {
-                    rowKey: "key",
-                    values: selectedRows,
+            <>
+              <ReactDataGrid
+                cellNavigationMode="changeRow"
+                columns={this.getColumns()}
+                enableCellSelect={true}
+                enableDragAndDrop={true}
+                getSubRowDetails={this.getSubRowDetails}
+                minHeight={
+                  sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
+                }
+                onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
+                onGridSort={this.determineSort}
+                rowGetter={rowGetter}
+                rowsCount={sortedRows.length}
+                rowSelection={{
+                  enableShiftSelect: true,
+                  onRowsDeselected: this.deselectRows,
+                  onRowsSelected: this.selectRows,
+                  selectBy: {
+                    keys: {
+                      rowKey: "key",
+                      values: selectedRows,
+                    },
                   },
-                },
-              }}
-              onCellExpand={this.onCellExpand}
-            />
+                }}
+                onCellExpand={this.onCellExpand}
+              />
+              {this.props.canAddMoreFiles && (
+                <DragAndDropRow onBrowse={this.props.onFileBrowse} />
+              )}
+            </>
           ) : (
             <p className={styles.alignCenter}>No Uploads</p>
           )}
