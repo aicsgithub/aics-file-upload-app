@@ -2,6 +2,8 @@ import { AnyAction } from "redux";
 
 import { CLOSE_NOTIFICATION_CENTER } from "../feedback/constants";
 import { CloseNotificationCenter } from "../feedback/types";
+import { UPDATE_SETTINGS } from "../setting/constants";
+import { UpdateSettingsAction } from "../setting/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
 import { INITIATE_UPLOAD, REPLACE_UPLOAD } from "../upload/constants";
 import { InitiateUploadAction, ReplaceUploadAction } from "../upload/types";
@@ -20,6 +22,14 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
   [CLOSE_NOTIFICATION_CENTER]: {
     accepts: (action: AnyAction): action is CloseNotificationCenter =>
       action.type === CLOSE_NOTIFICATION_CENTER,
+    perform: (state: RouteStateBranch) => ({
+      ...state,
+      view: state.page,
+    }),
+  },
+  [UPDATE_SETTINGS]: {
+    accepts: (action: AnyAction): action is UpdateSettingsAction =>
+      action.type === UPDATE_SETTINGS,
     perform: (state: RouteStateBranch) => ({
       ...state,
       view: state.page,

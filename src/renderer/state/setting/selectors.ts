@@ -16,6 +16,17 @@ export const getTemplateId = (state: State) => state.setting.templateId;
 export const getEnabledNotifications = (state: State) =>
   state.setting.enabledNotifications;
 
+export const getEditableSettings = createSelector(
+  [getEnabledNotifications, getShowUploadHint, getShowTemplateHint],
+  (enabledNotifications, showUploadHint, showTemplateHint) => {
+    return {
+      enabledNotifications,
+      showUploadHint,
+      showTemplateHint,
+    };
+  }
+);
+
 export const getLimsUrl = createSelector(
   [getLimsProtocol, getLimsHost, getLimsPort],
   (protocol: string, host: string, port: string) => {
