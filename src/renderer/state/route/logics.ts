@@ -188,7 +188,7 @@ const closeUploadLogic = createLogic({
       ...batchActions([
         ...resetHistoryActions,
         // If the action isn't after the resetHistoryActions then the side-effects
-        // of the actions may be reset - Sean M 02/08/21
+        // of this action may be reset - Sean M 02/08/21
         action,
       ]),
     });
