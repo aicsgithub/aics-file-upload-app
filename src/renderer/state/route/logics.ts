@@ -175,6 +175,7 @@ const closeUploadLogic = createLogic({
       if (cancelled) {
         // prevent action from getting to reducer
         reject({ type: "ignore" });
+        return;
       }
     } catch (e) {
       reject(setErrorAlert(e.message));
@@ -184,7 +185,12 @@ const closeUploadLogic = createLogic({
     next({
       // we want to write to local storage but also keep this as a batched action
       ...clearUploadDraft(),
-      ...batchActions([action, ...resetHistoryActions]),
+      ...batchActions([
+        ...resetHistoryActions,
+        // If the action isn't after the resetHistoryActions then the side-effects
+        // of the actions may be reset - Sean M 02/08/21
+        action,
+      ]),
     });
   },
 });
