@@ -7,7 +7,7 @@ import * as hash from "object-hash";
 import * as rimraf from "rimraf";
 
 import JobStatusClient from "../../job-status-client";
-import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
+import { AsyncJSSJob, JSSJobStatus } from "../../job-status-client/types";
 import {
   AICSFILES_LOGGER,
   UPLOAD_WORKER_ON_PROGRESS,
@@ -22,7 +22,7 @@ const getCopyFileTimerName = (jobId: string, originalPath: string): string =>
 
 // Child step of the CopyFilesStep in which a file is copied to the isilon
 export class CopyStep implements Step {
-  public readonly job: JSSJob<CopyFileServiceFields>;
+  public readonly job: AsyncJSSJob<CopyFileServiceFields>;
   public readonly name = StepName.CopyFilesChild;
   private readonly logger: ILogger;
   private readonly forceRemoveRecursive: typeof rimraf;
@@ -37,7 +37,7 @@ export class CopyStep implements Step {
   private readonly jss: JobStatusClient;
 
   public constructor(
-    job: JSSJob<CopyFileServiceFields>,
+    job: AsyncJSSJob<CopyFileServiceFields>,
     jss: JobStatusClient,
     getCopyWorker: () => Worker,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),

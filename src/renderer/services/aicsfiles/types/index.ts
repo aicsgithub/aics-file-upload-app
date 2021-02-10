@@ -1,6 +1,6 @@
 import { BigIntStats, PathLike, StatOptions, Stats } from "fs";
 
-import { JSSJob } from "../../job-status-client/types";
+import { AsyncJSSJob, JSSJob } from "../../job-status-client/types";
 
 export interface Uploads {
   [filePath: string]: UploadMetadata;
@@ -95,7 +95,7 @@ export interface Step {
   end: (ctx: UploadContext) => Promise<void>;
 
   // Job associated with step
-  job: JSSJob;
+  job: AsyncJSSJob;
 
   // Human readable name for step
   name: StepName;
@@ -205,7 +205,7 @@ export type UploadChildJobServiceFields =
 
 export interface UploadContext {
   uploadChildJobIds?: string[];
-  copyChildJobs?: JSSJob<CopyFileServiceFields>[];
+  copyChildJobs?: AsyncJSSJob<CopyFileServiceFields>[];
   resultFiles?: FSSResponseFile[];
   sourceFiles?: SourceFiles;
   startUploadResponse: StartUploadResponse;

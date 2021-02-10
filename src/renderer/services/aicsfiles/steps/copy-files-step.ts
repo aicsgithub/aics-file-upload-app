@@ -7,7 +7,7 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty, noop } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
-import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
+import { AsyncJSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { StepExecutor } from "../helpers/step-executor";
@@ -30,7 +30,7 @@ export interface CopyFilesFileSystemUtil {
 
 // Step 1/2 in which files are copied to a location on the isilon
 export class CopyFilesStep implements Step {
-  public readonly job: JSSJob<CopyFilesServiceFields>;
+  public readonly job: AsyncJSSJob<CopyFilesServiceFields>;
   public readonly name: StepName = StepName.CopyFiles;
   private readonly jss: JobStatusClient;
   private readonly logger: ILogger;
@@ -44,7 +44,7 @@ export class CopyFilesStep implements Step {
   private fs: CopyFilesFileSystemUtil;
 
   public constructor(
-    job: JSSJob<CopyFilesServiceFields>,
+    job: AsyncJSSJob<CopyFilesServiceFields>,
     jss: JobStatusClient,
     getCopyWorker: () => Worker,
     logger: ILogger = Logger.get(AICSFILES_LOGGER),
@@ -126,7 +126,7 @@ export class CopyFilesStep implements Step {
     return {
       ...ctx,
       sourceFiles: childJobs.reduce(
-        (sourceFiles: SourceFiles, job: JSSJob) => ({
+        (sourceFiles: SourceFiles, job: AsyncJSSJob) => ({
           ...sourceFiles,
           ...job.serviceFields.output,
         }),

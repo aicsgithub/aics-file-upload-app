@@ -11,7 +11,7 @@ import { USER_SETTINGS_KEY } from "../../../../shared/constants";
 import { LocalStorage } from "../../../types";
 import JobStatusClient from "../../job-status-client";
 import {
-  CreateJobRequest,
+  AsyncJSSJob,
   JobBase,
   JSSJob,
   JSSJobStatus,
@@ -328,7 +328,7 @@ export class Uploader {
 
   private async getUploadChildJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: JSSJob[]; ctx: UploadContext }> {
+  ): Promise<{ jobs: AsyncJSSJob[]; ctx: UploadContext }> {
     if (ctx.uploadJob) {
       this.logger.info("Getting existing upload jobs");
       return this.getExistingUploadJobs(ctx);
@@ -341,7 +341,7 @@ export class Uploader {
   private async getExistingUploadJobs(
     ctx: UploadContext
   ): Promise<{
-    jobs: JSSJob<UploadChildJobServiceFields>[];
+    jobs: AsyncJSSJob<UploadChildJobServiceFields>[];
     ctx: UploadContext;
   }> {
     const { uploadJob, uploads } = ctx;
@@ -478,13 +478,13 @@ export class Uploader {
 
   private async createUploadJobs(
     ctx: UploadContext
-  ): Promise<{ jobs: JSSJob[]; ctx: UploadContext }> {
+  ): Promise<{ jobs: AsyncJSSJob[]; ctx: UploadContext }> {
     const { startUploadResponse, uploads } = ctx;
     const parentId = startUploadResponse.jobId;
     const uploadChildJobIds = [getUUID(), getUUID()];
     const fileToSizeMap = await this.getFileSizes(uploads);
     const totalBytesToCopy = this.getTotalBytesToCopy(fileToSizeMap);
-    const createUploadChildJobRequests: CreateJobRequest[] = [
+    const createUploadChildJobRequests: AsyncJSSJob[] = [
       {
         ...this.defaultJobInfo,
         jobId: uploadChildJobIds[0],
@@ -509,7 +509,7 @@ export class Uploader {
     ];
 
     try {
-      const childJobs = await Promise.all(
+      await Promise.all(
         createUploadChildJobRequests.map((r) => this.jss.createJob(r))
       );
       return {
@@ -524,7 +524,7 @@ export class Uploader {
           totalBytesToCopy,
           uploadChildJobIds: uploadChildJobIds,
         },
-        jobs: childJobs,
+        jobs: createUploadChildJobRequests,
       };
     } catch (e) {
       const error = `Failed to create child upload job`;
@@ -538,11 +538,11 @@ export class Uploader {
     parentCopyJobId: string,
     fileToSizeMap: Map<string, number>,
     uploadJobId: string
-  ): Promise<JSSJob[]> {
+  ): Promise<AsyncJSSJob[]> {
     try {
       return await Promise.all(
-        keys(uploads).map((originalPath: string) =>
-          this.jss.createJob({
+        keys(uploads).map((originalPath: string) => {
+          const request = {
             ...this.defaultJobInfo,
             jobId: getUUID(),
             jobName: `Upload job for ${originalPath}`,
@@ -556,8 +556,10 @@ export class Uploader {
             },
             status: JSSJobStatus.WAITING,
             updateParent: true,
-          })
-        )
+          };
+          this.jss.createJob(request);
+          return request;
+        })
       );
     } catch (e) {
       const error = "Could not create copy child jobs!";
@@ -567,7 +569,7 @@ export class Uploader {
   }
 
   private getSteps(
-    jobs: JSSJob[],
+    jobs: AsyncJSSJob[],
     getCopyWorker: () => Worker,
     copyProgressCb: (
       originalFilePath: string,

@@ -68,6 +68,11 @@ export interface JSSUpdateJobRequest extends JSSServiceFields {
   status?: JSSJobStatus;
 }
 
+export interface AsyncJSSJob<T = any> extends JobBase<T> {
+  // Unique ID of the job as supplied by the client.
+  jobId: string;
+}
+
 export interface JSSJob<T = any> extends JobBase<T> {
   // Datestamp for when the job was originally created.  Required, created by JSS
   created: Date;

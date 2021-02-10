@@ -3,7 +3,7 @@ import { ILogger } from "js-logger/src/types";
 import { isEmpty } from "lodash";
 
 import JobStatusClient from "../../job-status-client";
-import { JSSJob, JSSJobStatus } from "../../job-status-client/types";
+import { AsyncJSSJob, JSSJobStatus } from "../../job-status-client/types";
 import { AICSFILES_LOGGER } from "../constants";
 import { IllegalArgumentError } from "../errors";
 import { FSSClient } from "../helpers/fss-client";
@@ -17,14 +17,14 @@ import {
 // Step 2/2 of an upload in which we notify FSS that the upload is complete for a job and send metadata
 // to be stored in the database for each file
 export class AddMetadataStep implements Step {
-  public readonly job: JSSJob<AddMetadataServiceFields>;
+  public readonly job: AsyncJSSJob<AddMetadataServiceFields>;
   public readonly name: StepName = StepName.AddMetadata;
   private readonly fss: FSSClient;
   private readonly jss: JobStatusClient;
   private readonly logger: ILogger;
 
   public constructor(
-    job: JSSJob<AddMetadataServiceFields>,
+    job: AsyncJSSJob<AddMetadataServiceFields>,
     fss: FSSClient,
     jss: JobStatusClient,
     logger: ILogger = Logger.get(AICSFILES_LOGGER)
