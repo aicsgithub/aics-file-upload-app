@@ -278,12 +278,14 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 fileToAnnotationHasValueMap={
                   this.props.fileToAnnotationHasValueMap
                 }
+                hideUploadHints={this.hideHint}
                 massEditRow={massEditRow}
                 onFileBrowse={this.props.openFilesFromDialog}
                 redo={this.redo}
                 removeUploads={this.props.removeUploads}
                 template={appliedTemplate}
                 setAlert={this.props.setAlert}
+                showUploadHint={this.props.showUploadHint}
                 toggleRowExpanded={this.props.toggleRowExpanded}
                 undo={this.undo}
                 updateMassEditRow={this.props.updateMassEditRow}

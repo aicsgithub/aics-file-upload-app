@@ -1,4 +1,4 @@
-import { Button, Tooltip } from "antd";
+import { Alert, Button, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
@@ -81,12 +81,14 @@ interface Props {
   editable: boolean;
   expandedRows: ExpandedRows;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
+  hideUploadHints: () => void;
   onFileBrowse: (files: string[]) => LoadFilesFromOpenDialogAction;
   massEditRow: MassEditRow;
   redo: () => void;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   template?: Template;
   setAlert: ActionCreator<SetAlertAction>;
+  showUploadHint: boolean;
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   undo: () => void;
   updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
@@ -233,13 +235,17 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                 [styles.massEdit]: this.state.showMassEditShadow,
               })}
             >
-              <div className={styles.whiteText}>
-                <span>Mass Edit</span>
-                <div>
-                  Make edits below and all edits will be applied to selected
-                  rows. Click Apply to complete changes.
-                </div>
-              </div>
+              {this.props.showUploadHint && (
+                <Alert
+                  afterClose={this.props.hideUploadHints}
+                  className={styles.hint}
+                  closable={true}
+                  message="Hint: Make edits below and all edits will be applied to selected rows. Click Apply to complete changes."
+                  showIcon={true}
+                  type="info"
+                  key="hint"
+                />
+              )}
               <div className={classNames(styles.dataGrid, className)}>
                 <ReactDataGrid
                   cellNavigationMode="changeRow"
