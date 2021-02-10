@@ -354,7 +354,6 @@ describe("Uploader", () => {
     });
     it("Creates new upload child jobs if uploadJob.childIds is not defined", async () => {
       fakeSuccessfulCopy();
-      jobStatusClient.createJob.resolves(mockJob);
       await uploader.retryUpload(uploads, {
         ...mockRetryableUploadJob,
         childIds: undefined,

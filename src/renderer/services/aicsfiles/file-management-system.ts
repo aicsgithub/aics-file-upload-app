@@ -7,7 +7,7 @@ import { isEmpty, noop } from "lodash";
 import { LocalStorage } from "../../types";
 import { LabkeyClient } from "../index";
 import JobStatusClient from "../job-status-client";
-import { JSSJob, JSSJobStatus } from "../job-status-client/types";
+import { AsyncJSSJob, JSSJob, JSSJobStatus } from "../job-status-client/types";
 import MMSClient from "../mms-client";
 
 import {
@@ -223,6 +223,7 @@ export class FileManagementSystem {
     startUploadResponse: StartUploadResponse,
     uploads: Uploads,
     jobName: string,
+    user: string,
     copyProgressCb: (
       originalFilePath: string,
       bytesCopied: number,
@@ -243,7 +244,7 @@ export class FileManagementSystem {
       return response;
     } catch (e) {
       this.logger.timeEnd("upload");
-      await this.failUpload(startUploadResponse.jobId, e.message);
+      await this.failUpload(startUploadResponse.jobId, user, e.message);
       throw e;
     }
   }
@@ -261,6 +262,7 @@ export class FileManagementSystem {
     if (!uploadJob.serviceFields || isEmpty(uploadJob.serviceFields.files)) {
       await this.failUpload(
         uploadJob.jobId,
+        uploadJob.user,
         "Missing serviceFields.files",
         JSSJobStatus.UNRECOVERABLE
       );
@@ -293,11 +295,12 @@ export class FileManagementSystem {
       if (e.name === UNRECOVERABLE_JOB_ERROR) {
         await this.failUpload(
           uploadJob.jobId,
+          uploadJob.user,
           e.message,
           JSSJobStatus.UNRECOVERABLE
         );
       } else {
-        await this.failUpload(uploadJob.jobId, e.message);
+        await this.failUpload(uploadJob.jobId, uploadJob.user, e.message);
       }
       throw e;
     }
@@ -314,41 +317,46 @@ export class FileManagementSystem {
    */
   public async failUpload(
     jobId: string,
+    user: string,
     failureMessage = "Job failed",
     failureStatus:
       | JSSJobStatus.FAILED
       | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED,
     serviceFields: any = {}
-  ): Promise<JSSJob[]> {
-    const failedJobs: JSSJob[] = [];
+  ): Promise<AsyncJSSJob[]> {
+    const failedJobs: AsyncJSSJob[] = [];
 
-    const failJob = async (id: string) => {
-      const failedJob = await this.jobStatusClient.updateJob(id, {
+    const failJob = async (id: string): Promise<AsyncJSSJob> => {
+      const request = {
         status: failureStatus,
         serviceFields: {
           error: failureMessage,
           ...serviceFields,
         },
-      });
+      };
+      await this.jobStatusClient.updateJob(id, request);
+      const failedJob = { jobId: id, user, ...request };
       failedJobs.push(failedJob);
       return failedJob;
     };
 
     const job = await failJob(jobId);
 
-    if (job.childIds?.length) {
-      const childJobs = await Promise.all(job.childIds.map(failJob));
+    return [job];
 
-      const childrenOfChildren: string[] = childJobs
-        .filter((childJob) => childJob.childIds?.length)
-        .flatMap((childJob) => childJob.childIds ?? "");
+    // if (job.childIds?.length) {
+    //   const childJobs = await Promise.all(job.childIds.map(failJob));
 
-      if (childrenOfChildren.length > 0) {
-        await Promise.all(childrenOfChildren.map(failJob));
-      }
-    }
+    //   const childrenOfChildren: string[] = childJobs
+    //     .filter((childJob) => childJob.childIds?.length)
+    //     .flatMap((childJob) => childJob.childIds ?? "");
 
-    return failedJobs;
+    //   if (childrenOfChildren.length > 0) {
+    //     await Promise.all(childrenOfChildren.map(failJob));
+    //   }
+    // }
+
+    // return failedJobs;
   }
 
   /*

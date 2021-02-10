@@ -277,6 +277,7 @@ const initiateUploadLogic = createLogic({
     // validate and get jobId
     let startUploadResponse: StartUploadResponse;
     const payload = getUploadPayload(getState());
+    const user = getLoggedInUser(getState());
     try {
       startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
         payload,
@@ -307,6 +308,7 @@ const initiateUploadLogic = createLogic({
         startUploadResponse,
         payload,
         jobName,
+        user,
         handleUploadProgress(
           Object.keys(payload),
           (progress: UploadProgressInfo) =>
@@ -386,9 +388,15 @@ export const cancelUploadLogic = createLogic({
       // TODO FUA-55: we need to do more than this to really stop an upload
       await Promise.all(
         Array.from(jobIdsToFail).map((jobId) =>
-          fms.failUpload(jobId, "Cancelled by user", JSSJobStatus.FAILED, {
-            cancelled: true,
-          })
+          fms.failUpload(
+            jobId,
+            uploadJob.user,
+            "Cancelled by user",
+            JSSJobStatus.FAILED,
+            {
+              cancelled: true,
+            }
+          )
         )
       );
 

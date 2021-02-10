@@ -44,7 +44,6 @@ describe("CopyStep", () => {
 
   beforeEach(() => {
     jobStatusClient = createStubInstance(JobStatusClient);
-    jobStatusClient.updateJob.resolves(mockCopyJobChild1);
     sandbox.replace(logger, "error", stub());
     sandbox.replace(rimraf, "sync", rimrafSpy);
     copyStep = new CopyStep(

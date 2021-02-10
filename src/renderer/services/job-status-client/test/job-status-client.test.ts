@@ -13,7 +13,6 @@ import {
   mockCreateJobRequest,
   badRequestResponse,
   internalServerError,
-  mockUpdateJobRequest,
   makeAxiosResponse,
 } from "./mocks";
 
@@ -36,16 +35,6 @@ describe("JobStatusClient", () => {
   });
 
   describe("createJob", () => {
-    it("Returns job created by JSS", async () => {
-      sandbox.replace(
-        httpClient,
-        "post",
-        stub().resolves(makeAxiosResponse(mockJobResponse))
-      );
-
-      const result = await jobStatusClient.createJob(mockCreateJobRequest);
-      expect(result).to.deep.equal(mockJobResponse.data[0]);
-    });
     it("Returns error response if JSS returns a 502", async () => {
       sandbox.replace(httpClient, "post", stub().rejects(badRequestResponse));
 
@@ -70,19 +59,6 @@ describe("JobStatusClient", () => {
   });
 
   describe("updateJob", () => {
-    it("Returns updated job from JSS", async () => {
-      sandbox.replace(
-        httpClient,
-        "patch",
-        stub().resolves(makeAxiosResponse(mockJobResponse))
-      );
-
-      const result = await jobStatusClient.updateJob(
-        "some_job",
-        mockUpdateJobRequest
-      );
-      expect(result).to.deep.equal(mockJobResponse.data[0]);
-    });
     it("Returns error response if JSS returns a 502", async () => {
       sandbox.replace(httpClient, "patch", stub().rejects(badGatewayResponse));
 

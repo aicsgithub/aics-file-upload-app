@@ -69,7 +69,10 @@ export const handleAbandonedJobsLogic = createLogic({
 
           // Use the most up to date version of the job, which is returned
           // after the upload is failed
-          const [updatedJob] = await fms.failUpload(abandonedJob.jobId);
+          const [updatedJob] = await fms.failUpload(
+            abandonedJob.jobId,
+            abandonedJob.user
+          );
           const fileNames = updatedJob.serviceFields.files.map(
             ({ file: { originalPath } }: AicsFilesUploadMetadata) =>
               originalPath
@@ -77,7 +80,7 @@ export const handleAbandonedJobsLogic = createLogic({
 
           try {
             await fms.retryUpload(
-              updatedJob,
+              { ...abandonedJob, ...updatedJob },
               handleUploadProgress(fileNames, (progress) =>
                 dispatch(updateUploadProgressInfo(updatedJob.jobId, progress))
               ),

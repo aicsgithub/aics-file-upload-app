@@ -11,12 +11,10 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
-import { getPage } from "../route/selectors";
 import {
   AlertType,
   AsyncRequest,
   DragAndDropFileList,
-  Page,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
@@ -37,7 +35,6 @@ import { getWellsWithModified } from "./selectors";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,
-  currentPage: Page,
   dispatch: ReduxLogicNextCb,
   done: ReduxLogicDoneCb
 ) => {
@@ -77,7 +74,7 @@ const stageFilesAndStopLoading = async (
 
 const loadFilesLogic = createLogic({
   process: async (
-    { action, getState }: ReduxLogicProcessDependencies,
+    { action }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -90,19 +87,14 @@ const loadFilesLogic = createLogic({
       getUploadFilePromise(fileToLoad.name, dirname(fileToLoad.path))
     );
 
-    await stageFilesAndStopLoading(
-      uploadFilePromises,
-      getPage(getState()),
-      dispatch,
-      done
-    );
+    await stageFilesAndStopLoading(uploadFilePromises, dispatch, done);
   },
   type: LOAD_FILES,
 });
 
 const openFilesLogic = createLogic({
   process: async (
-    { action, getState }: ReduxLogicProcessDependencies,
+    { action }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -115,12 +107,7 @@ const openFilesLogic = createLogic({
       getUploadFilePromise(basename(filePath), dirname(filePath))
     );
 
-    await stageFilesAndStopLoading(
-      uploadFilePromises,
-      getPage(getState()),
-      dispatch,
-      done
-    );
+    await stageFilesAndStopLoading(uploadFilePromises, dispatch, done);
   },
   type: OPEN_FILES,
 });
