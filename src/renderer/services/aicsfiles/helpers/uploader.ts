@@ -248,7 +248,12 @@ export class Uploader {
         ),
       ]);
       // Perform upload with new job and current job's metadata, forgoing the current job
-      return this.uploadFiles(newUploadResponse, uploads, uploadJobName);
+      return this.uploadFiles(
+        newUploadResponse,
+        uploads,
+        uploadJobName,
+        uploadJob.user
+      );
     }
     await this.jss.updateJob(uploadJob.jobId, {
       status: JSSJobStatus.RETRYING,

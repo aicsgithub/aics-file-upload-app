@@ -151,7 +151,8 @@ describe("Uploader", () => {
       const result = await uploader.uploadFiles(
         startUploadResponse,
         uploads,
-        uploadJobName
+        uploadJobName,
+        "anyone"
       );
       expect(jobStatusClient.createJob).to.have.been.calledWithMatch({
         serviceFields: {
@@ -186,7 +187,7 @@ describe("Uploader", () => {
       expect(copyWorkerStub.postMessage.called).to.be.false;
       jobStatusClient.createJob.rejects();
       await expect(
-        uploader.uploadFiles(startUploadResponse, uploads, "jobName")
+        uploader.uploadFiles(startUploadResponse, uploads, "jobName", "anyone")
       ).to.be.rejectedWith("Failed to create child upload job");
       expect(copyWorkerStub.postMessage.called).to.be.false;
     });
@@ -196,7 +197,12 @@ describe("Uploader", () => {
       storage.get.returns({
         mountPoint: differentTargetDir,
       });
-      await uploader.uploadFiles(startUploadResponse, uploads, "jobName");
+      await uploader.uploadFiles(
+        startUploadResponse,
+        uploads,
+        "jobName",
+        "anyone"
+      );
       expect(
         postMessageStub.calledWith(
           match.array.contains([differentTargetFile1, differentTargetFile2])
@@ -509,6 +515,68 @@ describe("Uploader", () => {
       fs.stat.withArgs(path2).rejects(new Error("foo"));
       await uploader.getLastModified([path1, path2]);
       expect(logger.warn).to.have.been.called;
+    });
+  });
+
+  describe("failUpload", () => {
+    it("fails an upload with no children", async () => {
+      const error = "some error";
+      const parentJobId = "parent-job-id";
+      const serviceFields = { cancelled: true };
+      const expectedFailedJob = {
+        jobId: parentJobId,
+        status: JSSJobStatus.FAILED,
+        user: mockJob.user,
+        serviceFields: {
+          error,
+          ...serviceFields,
+        },
+      };
+      const failedJobs = await uploader.failUpload(
+        parentJobId,
+        mockJob.user,
+        [],
+        error,
+        JSSJobStatus.FAILED,
+        serviceFields
+      );
+      expect(failedJobs).to.deep.equal([expectedFailedJob]);
+      expect(
+        jobStatusClient.updateJob.calledWith(
+          parentJobId,
+          match({
+            status: JSSJobStatus.FAILED,
+            serviceFields: {
+              ...serviceFields,
+              error,
+            },
+          })
+        )
+      );
+    });
+    it("fails an upload and its direct children", async () => {
+      const parentJobId = "parent-job-id";
+      const child1JobId = "child-1-job-id";
+      const child2JobId = "child-2-job-id";
+      const childJobIds = [child1JobId, child2JobId];
+      const expectedFailedParentJob = {
+        jobId: parentJobId,
+        status: JSSJobStatus.FAILED,
+        user: mockJob.user,
+        serviceFields: {
+          error: "Job failed",
+        },
+      };
+      const failedJobs = await uploader.failUpload(
+        parentJobId,
+        mockJob.user,
+        childJobIds
+      );
+      expect(failedJobs).to.deep.equal([
+        expectedFailedParentJob,
+        { ...expectedFailedParentJob, jobId: child1JobId },
+        { ...expectedFailedParentJob, jobId: child2JobId },
+      ]);
     });
   });
 });

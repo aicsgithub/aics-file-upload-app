@@ -91,7 +91,6 @@ const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
 export class FileManagementSystem {
   private readonly fss: FSSClient;
   private readonly lk: LabkeyClient;
-  private readonly jobStatusClient: JobStatusClient;
   private readonly logger: ILogger;
   private readonly uploader: Uploader;
   private readonly customMetadataQuerier: CustomMetadataQuerier;
@@ -125,7 +124,6 @@ export class FileManagementSystem {
     } = config;
     const { logLevel = "error" } = config;
 
-    this.jobStatusClient = jobStatusClient;
     this.lk = labkeyClient;
     this.uploader =
       uploader ||

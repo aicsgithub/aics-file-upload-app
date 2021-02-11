@@ -5,7 +5,6 @@ import * as Logger from "js-logger";
 import {
   createSandbox,
   createStubInstance,
-  match,
   SinonStub,
   SinonStubbedInstance,
   stub,
@@ -194,7 +193,7 @@ describe("FileManagementSystem", () => {
     });
 
     it("calls uploader.uploadFiles with uploads and jobName passed in", async () => {
-      await fms.uploadFiles(startUploadResponse, uploads, "anything");
+      await fms.uploadFiles(startUploadResponse, uploads, "anything", "anyone");
       expect(
         uploader.uploadFiles.calledWith(
           startUploadResponse,
@@ -207,7 +206,7 @@ describe("FileManagementSystem", () => {
     it("throws exception if uploader.uploadFiles throws", () => {
       uploader.uploadFiles.rejects();
       return expect(
-        fms.uploadFiles(startUploadResponse, uploads, "anything")
+        fms.uploadFiles(startUploadResponse, uploads, "anything", "anyone")
       ).to.be.rejectedWith(Error);
     });
   });
@@ -227,20 +226,9 @@ describe("FileManagementSystem", () => {
         ...mockJob,
         status: JSSJobStatus.FAILED,
       };
-      jobStatusClient.updateJob.resolves(failedJob);
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
         UnrecoverableJobError
-      );
-
-      expect(jobStatusClient.updateJob).to.have.been.calledWith(
-        failedJob.jobId,
-        {
-          status: JSSJobStatus.UNRECOVERABLE,
-          serviceFields: {
-            error: "Missing serviceFields.files",
-          },
-        }
       );
     });
 
@@ -266,123 +254,10 @@ describe("FileManagementSystem", () => {
         childIds: [],
       };
       uploader.retryUpload.rejects(new UnrecoverableJobError("mock error"));
-      jobStatusClient.updateJob.resolves(failedJob);
 
       await expect(fms.retryUpload(failedJob)).to.be.rejectedWith(
         UnrecoverableJobError
       );
-      expect(jobStatusClient.updateJob).to.have.been.calledWith(
-        failedJob.jobId,
-        {
-          status: JSSJobStatus.UNRECOVERABLE,
-          serviceFields: {
-            error: "mock error",
-          },
-        }
-      );
-    });
-  });
-
-  describe("failUpload", () => {
-    it("fails an upload with no children", async () => {
-      const error = "some error";
-      const parentJobId = "parent-job-id";
-      const serviceFields = { cancelled: true };
-      const failedParentJob = {
-        ...mockJob,
-        jobId: parentJobId,
-        serviceFields: {
-          error,
-          ...serviceFields,
-        },
-      };
-      jobStatusClient.updateJob.onFirstCall().resolves(failedParentJob);
-
-      const failedJobs = await fms.failUpload(
-        parentJobId,
-        error,
-        JSSJobStatus.FAILED,
-        serviceFields
-      );
-
-      expect(failedJobs).to.deep.equal([failedParentJob]);
-      expect(
-        jobStatusClient.updateJob.calledWith(
-          parentJobId,
-          match({
-            status: JSSJobStatus.FAILED,
-            serviceFields: {
-              ...serviceFields,
-              error,
-            },
-          })
-        )
-      );
-    });
-
-    it("fails an upload and its direct children", async () => {
-      const parentJobId = "parent-job-id";
-      const child1JobId = "child-1-job-id";
-      const child2JobId = "child-2-job-id";
-      const failedParentJob: JSSJob = {
-        ...mockJob,
-        jobId: parentJobId,
-        childIds: [child1JobId, child2JobId],
-      };
-      const failedChild1Job: JSSJob = { ...mockJob, jobId: child1JobId };
-      const failedChild2Job: JSSJob = { ...mockJob, jobId: child2JobId };
-      jobStatusClient.updateJob
-        .onFirstCall()
-        .resolves(failedParentJob)
-        .onSecondCall()
-        .resolves(failedChild1Job)
-        .onThirdCall()
-        .resolves(failedChild2Job);
-
-      const failedJobs = await fms.failUpload(parentJobId);
-
-      expect(failedJobs).to.deep.equal([
-        failedParentJob,
-        failedChild1Job,
-        failedChild2Job,
-      ]);
-    });
-
-    it("fails an upload, its direct children, and the children's children", async () => {
-      const parentJobId = "parent-job-id";
-      const child1JobId = "child-1-job-id";
-      const child2JobId = "child-2-job-id";
-      const child3JobId = "child-3-job-id";
-      const failedParentJob: JSSJob = {
-        ...mockJob,
-        jobId: parentJobId,
-        childIds: [child1JobId, child2JobId],
-      };
-      const failedChild1Job: JSSJob = {
-        ...mockJob,
-        jobId: child1JobId,
-        childIds: [child3JobId],
-      };
-      const failedChild2Job: JSSJob = { ...mockJob, jobId: child2JobId };
-      const failedChild3Job: JSSJob = { ...mockJob, jobId: child3JobId };
-      jobStatusClient.updateJob
-        .onFirstCall()
-        .resolves(failedParentJob)
-        .onSecondCall()
-        .resolves(failedChild1Job)
-        .onThirdCall()
-        .resolves(failedChild2Job)
-        .onCall(3)
-        .resolves(failedChild3Job);
-
-      const failedJobs = await fms.failUpload(parentJobId, "TEST");
-
-      expect(failedJobs).to.deep.equal([
-        failedParentJob,
-        failedChild1Job,
-        failedChild2Job,
-        failedChild3Job,
-      ]);
     });
   });
 });
