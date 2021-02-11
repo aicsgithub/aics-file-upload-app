@@ -391,6 +391,7 @@ export const cancelUploadLogic = createLogic({
           fms.failUpload(
             jobId,
             uploadJob.user,
+            uploadJob.childIds,
             "Cancelled by user",
             JSSJobStatus.FAILED,
             {

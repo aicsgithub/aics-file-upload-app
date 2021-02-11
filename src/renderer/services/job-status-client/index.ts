@@ -12,6 +12,10 @@ import JSSRequestMapper from "./jss-request-mapper";
 import JSSResponseMapper from "./jss-response-mapper";
 import { CreateJobRequest, JobQuery, JSSJob, UpdateJobRequest } from "./types";
 
+import { Connection } from "amqplib";
+
+const amqp = require("amqplib");
+
 const logLevelMap: { [logLevel: string]: ILogLevel } = Object.freeze({
   debug: Logger.DEBUG,
   error: Logger.ERROR,
@@ -27,7 +31,9 @@ const JOB_STATUS_CLIENT_LOGGER = "job-status-client";
  * Main class used by clients of this library to interact with JSS. Provides job create/read/update functionality.
  */
 export default class JobStatusClient extends HttpCacheClient {
+  private static readonly JSS_QUEUE_NAME = "jss-incoming-queue";
   private readonly logger: ILogger;
+  private readonly jssConnectionUrl: string;
 
   /***
    * Create a JobStatusClient instance.
@@ -39,6 +45,10 @@ export default class JobStatusClient extends HttpCacheClient {
   public constructor(
     httpClient: HttpClient,
     storage: LocalStorage,
+    userName: string,
+    password: string,
+    host: string,
+    port: number,
     useCache = false,
     logLevel: "debug" | "error" | "info" | "trace" | "warn" = "error"
   ) {
@@ -46,20 +56,16 @@ export default class JobStatusClient extends HttpCacheClient {
     /* eslint-disable react-hooks/rules-of-hooks */
     Logger.useDefaults({ defaultLevel: logLevelMap[logLevel] });
     this.logger = Logger.get(JOB_STATUS_CLIENT_LOGGER);
+    this.jssConnectionUrl = `amqps://${userName}:${password}@${host}:${port}/`;
   }
 
   /**
    * Creates a job and returns created job
    * @param job
    */
-  public async createJob<T = any>(job: CreateJobRequest<T>): Promise<JSSJob> {
+  public async createJob<T = any>(job: CreateJobRequest<T>): Promise<void> {
     this.logger.debug("Received create job request", job);
-    const response = await this.post<AicsSuccessResponse<JSSJob<T>>>(
-      "/jss/1.0/job/",
-      job,
-      JobStatusClient.getHttpRequestConfig()
-    );
-    return response.data[0];
+    return this.sendMessage(JSON.stringify(job));
   }
 
   /***
@@ -73,14 +79,11 @@ export default class JobStatusClient extends HttpCacheClient {
     jobId: string,
     job: UpdateJobRequest,
     patchUpdateServiceFields = true
-  ): Promise<JSSJob> {
+  ): Promise<void> {
     this.logger.debug(`Received update job request for jobId=${jobId}`, job);
-    const response = await this.patch<AicsSuccessResponse<JSSJob>>(
-      `/jss/1.0/job/${jobId}`,
-      JSSRequestMapper.map(job, patchUpdateServiceFields),
-      JobStatusClient.getHttpRequestConfig()
-    );
-    return response.data[0];
+    const request = JSSRequestMapper.map(job, patchUpdateServiceFields);
+    const message = JSON.stringify({ jobId, ...request });
+    return this.sendMessage(message);
   }
 
   /***
@@ -108,6 +111,41 @@ export default class JobStatusClient extends HttpCacheClient {
       JobStatusClient.getHttpRequestConfig()
     );
     return response.data.map((job: JSSJob) => JSSResponseMapper.map(job));
+  }
+
+  // Sends given message to the JSS message queue
+  private async sendMessage(message: string): Promise<void> {
+    await new Promise((resolve, reject) => {
+      amqp
+        .connect(this.jssConnectionUrl)
+        .then((connection: Connection) => {
+          connection
+            .createChannel()
+            .then((channel) => {
+              channel
+                .checkQueue(JobStatusClient.JSS_QUEUE_NAME)
+                .then(() => {
+                  channel.sendToQueue(
+                    JobStatusClient.JSS_QUEUE_NAME,
+                    Buffer.from(message)
+                  );
+                  resolve(message);
+                  console.log("Message sent", message); // TODO: remove
+                })
+                .catch(reject)
+                .finally(() => {
+                  channel.close();
+                  connection.close();
+                });
+            })
+            .catch((err) => {
+              this.logger.error("Error creating channel", err);
+              connection.close();
+              reject(err);
+            });
+        })
+        .catch(reject);
+    });
   }
 
   // JSS expects properties of requests to be in snake_case format and returns responses in snake_case format as well

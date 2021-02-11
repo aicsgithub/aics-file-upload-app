@@ -71,7 +71,8 @@ export const handleAbandonedJobsLogic = createLogic({
           // after the upload is failed
           const [updatedJob] = await fms.failUpload(
             abandonedJob.jobId,
-            abandonedJob.user
+            abandonedJob.user,
+            abandonedJob.childIds
           );
           const fileNames = updatedJob.serviceFields.files.map(
             ({ file: { originalPath } }: AicsFilesUploadMetadata) =>

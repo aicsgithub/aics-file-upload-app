@@ -124,6 +124,7 @@ export class Uploader {
     startUploadResponse: StartUploadResponse,
     uploads: Uploads,
     uploadJobName: string,
+    user: string,
     copyProgressCb: (
       originalFilePath: string,
       bytesCopied: number,
@@ -131,19 +132,27 @@ export class Uploader {
     ) => void = noop,
     copyProgressCbThrottleMs?: number
   ): Promise<UploadResponse> {
-    const { ctx, jobs: childJobs } = await this.getUploadChildJobs({
-      startUploadResponse,
-      uploads,
-      uploadJobName,
-    });
-    const steps: Step[] = this.getSteps(
-      childJobs,
-      this.getCopyWorker,
-      copyProgressCb,
-      copyProgressCbThrottleMs
-    );
+    let childJobs: AsyncJSSJob[] = [];
+    try {
+      const { ctx, jobs } = await this.getUploadChildJobs({
+        startUploadResponse,
+        uploads,
+        uploadJobName,
+      });
+      childJobs = jobs;
+      const steps: Step[] = this.getSteps(
+        childJobs,
+        this.getCopyWorker,
+        copyProgressCb,
+        copyProgressCbThrottleMs
+      );
 
-    return this.executeSteps(ctx, steps);
+      return this.executeSteps(ctx, steps);
+    } catch (err) {
+      const childJobIds = childJobs.map(({ jobId }) => jobId);
+      this.failUpload(startUploadResponse.jobId, user, childJobIds, err);
+      throw err;
+    }
   }
 
   /**
@@ -248,6 +257,50 @@ export class Uploader {
       },
     });
     return this.executeSteps(ctx, steps);
+  }
+
+  /**
+   * Marks a job and its children as failed in JSS.
+   * @param jobId - ID of the JSS Job to fail.
+   * @param failureMessage - Optional message that will be written to
+   * `serviceFields.error`. Defaults to "Job failed".
+   * @param failureStatus - Optional status to fail the job with. Defaults to
+   * JSSJobStatus.FAILED.
+   * @param serviceFields - Optional service fields to update the job with in addition to the error
+   */
+  public async failUpload(
+    jobId: string,
+    user: string,
+    childJobIds?: string[],
+    failureMessage = "Job failed",
+    failureStatus:
+      | JSSJobStatus.FAILED
+      | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED,
+    serviceFields: any = {}
+  ): Promise<AsyncJSSJob[]> {
+    const failedJobs: AsyncJSSJob[] = [];
+
+    const failJob = async (id: string): Promise<AsyncJSSJob> => {
+      const request = {
+        status: failureStatus,
+        serviceFields: {
+          error: failureMessage,
+          ...serviceFields,
+        },
+      };
+      await this.jss.updateJob(id, request);
+      const failedJob = { jobId: id, user, ...request };
+      failedJobs.push(failedJob);
+      return failedJob;
+    };
+
+    await failJob(jobId);
+
+    if (childJobIds?.length) {
+      await Promise.all(childJobIds.map(failJob));
+    }
+
+    return failedJobs;
   }
 
   public async getLastModified(

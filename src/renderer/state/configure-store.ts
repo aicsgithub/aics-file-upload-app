@@ -79,7 +79,16 @@ const storage = new EnvironmentAwareStorage(new Store());
 axios.defaults.adapter = require("axios/lib/adapters/xhr");
 const httpClient = axios;
 const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
-const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
+const jssClient = new JobStatusClient(
+  httpClient,
+  storage,
+  "fss-queue-user",
+  "egzTzNQCTpCCQKjW",
+  "stg-aics-dcv-006",
+  5681,
+  useCache,
+  "debug"
+);
 const mmsClient = new MMSClient(httpClient, storage, useCache);
 const labkeyClient = new LabkeyClient(httpClient, storage, useCache);
 export const reduxLogicDependencies = {

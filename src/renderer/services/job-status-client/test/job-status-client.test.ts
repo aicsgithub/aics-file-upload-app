@@ -28,7 +28,11 @@ describe("JobStatusClient", () => {
   const sandbox = createSandbox();
   const jobStatusClient = new JobStatusClient(
     httpClient,
-    (storage as any) as LocalStorage
+    (storage as any) as LocalStorage,
+    "anyUser",
+    "anyPass",
+    "anyHost",
+    -1
   );
   afterEach(() => {
     sandbox.restore();

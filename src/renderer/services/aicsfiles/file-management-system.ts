@@ -237,6 +237,7 @@ export class FileManagementSystem {
         startUploadResponse,
         uploads,
         jobName,
+        user,
         copyProgressCb,
         copyProgressCbThrottleMs
       );
@@ -244,7 +245,6 @@ export class FileManagementSystem {
       return response;
     } catch (e) {
       this.logger.timeEnd("upload");
-      await this.failUpload(startUploadResponse.jobId, user, e.message);
       throw e;
     }
   }
@@ -260,9 +260,10 @@ export class FileManagementSystem {
   ): Promise<UploadResponse> {
     this.logger.time("upload");
     if (!uploadJob.serviceFields || isEmpty(uploadJob.serviceFields.files)) {
-      await this.failUpload(
+      await this.uploader.failUpload(
         uploadJob.jobId,
         uploadJob.user,
+        uploadJob.childIds,
         "Missing serviceFields.files",
         JSSJobStatus.UNRECOVERABLE
       );
@@ -293,14 +294,20 @@ export class FileManagementSystem {
     } catch (e) {
       this.logger.timeEnd("upload");
       if (e.name === UNRECOVERABLE_JOB_ERROR) {
-        await this.failUpload(
+        await this.uploader.failUpload(
           uploadJob.jobId,
           uploadJob.user,
+          uploadJob.childIds,
           e.message,
           JSSJobStatus.UNRECOVERABLE
         );
       } else {
-        await this.failUpload(uploadJob.jobId, uploadJob.user, e.message);
+        await this.uploader.failUpload(
+          uploadJob.jobId,
+          uploadJob.user,
+          uploadJob.childIds,
+          e.message
+        );
       }
       throw e;
     }
@@ -309,6 +316,8 @@ export class FileManagementSystem {
   /**
    * Marks a job and its children as failed in JSS.
    * @param jobId - ID of the JSS Job to fail.
+   * @param user - User that created this job.
+   * @param childJobIds - Optional Job IDs of the the children of this job.
    * @param failureMessage - Optional message that will be written to
    * `serviceFields.error`. Defaults to "Job failed".
    * @param failureStatus - Optional status to fail the job with. Defaults to
@@ -318,45 +327,21 @@ export class FileManagementSystem {
   public async failUpload(
     jobId: string,
     user: string,
+    childJobIds?: string[],
     failureMessage = "Job failed",
     failureStatus:
       | JSSJobStatus.FAILED
       | JSSJobStatus.UNRECOVERABLE = JSSJobStatus.FAILED,
     serviceFields: any = {}
   ): Promise<AsyncJSSJob[]> {
-    const failedJobs: AsyncJSSJob[] = [];
-
-    const failJob = async (id: string): Promise<AsyncJSSJob> => {
-      const request = {
-        status: failureStatus,
-        serviceFields: {
-          error: failureMessage,
-          ...serviceFields,
-        },
-      };
-      await this.jobStatusClient.updateJob(id, request);
-      const failedJob = { jobId: id, user, ...request };
-      failedJobs.push(failedJob);
-      return failedJob;
-    };
-
-    const job = await failJob(jobId);
-
-    return [job];
-
-    // if (job.childIds?.length) {
-    //   const childJobs = await Promise.all(job.childIds.map(failJob));
-
-    //   const childrenOfChildren: string[] = childJobs
-    //     .filter((childJob) => childJob.childIds?.length)
-    //     .flatMap((childJob) => childJob.childIds ?? "");
-
-    //   if (childrenOfChildren.length > 0) {
-    //     await Promise.all(childrenOfChildren.map(failJob));
-    //   }
-    // }
-
-    // return failedJobs;
+    return this.uploader.failUpload(
+      jobId,
+      user,
+      childJobIds,
+      failureMessage,
+      failureStatus,
+      serviceFields
+    );
   }
 
   /*
