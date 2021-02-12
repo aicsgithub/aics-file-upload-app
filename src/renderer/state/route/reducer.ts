@@ -5,8 +5,11 @@ import { CloseNotificationCenter } from "../feedback/types";
 import { UPDATE_SETTINGS } from "../setting/constants";
 import { UpdateSettingsAction } from "../setting/types";
 import { Page, RouteStateBranch, TypeToDescriptionMap } from "../types";
-import { INITIATE_UPLOAD, REPLACE_UPLOAD } from "../upload/constants";
-import { InitiateUploadAction, ReplaceUploadAction } from "../upload/types";
+import { INITIATE_UPLOAD_SUCCEEDED, REPLACE_UPLOAD } from "../upload/constants";
+import {
+  InitiateUploadSucceededAction,
+  ReplaceUploadAction,
+} from "../upload/types";
 import { makeReducer } from "../util";
 
 import { CLOSE_UPLOAD, SELECT_PAGE, SELECT_VIEW } from "./constants";
@@ -44,9 +47,9 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       view: Page.UploadSummary,
     }),
   },
-  [INITIATE_UPLOAD]: {
-    accepts: (action: AnyAction): action is InitiateUploadAction =>
-      action.type === INITIATE_UPLOAD,
+  [INITIATE_UPLOAD_SUCCEEDED]: {
+    accepts: (action: AnyAction): action is InitiateUploadSucceededAction =>
+      action.type === INITIATE_UPLOAD_SUCCEEDED,
     perform: (state: RouteStateBranch) => ({
       ...state,
       page: Page.UploadSummary,

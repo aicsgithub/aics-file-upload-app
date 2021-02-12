@@ -84,6 +84,23 @@ export default class JobStatusClient extends HttpCacheClient {
   }
 
   /***
+   * Returns true if job exists in JSS
+   * @param jobId corresponding id for job
+   */
+  public async existsById(jobId: string): Promise<boolean> {
+    this.logger.debug(`Received get job exists request for jobId=${jobId}`);
+    try {
+      await this.get<AicsSuccessResponse<JSSJob>>(
+        `/jss/1.0/job/${jobId}`,
+        JobStatusClient.getHttpRequestConfig()
+      );
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
+  /***
    * Get job by id
    * @param jobId corresponding id for job
    */
