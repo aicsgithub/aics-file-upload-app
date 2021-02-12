@@ -415,6 +415,7 @@ describe("Upload logics", () => {
 
     it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions, and starts a web worker", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
+      jssClient.existsById.resolves(true);
       const { actions, logicMiddleware, store } = createMockReduxStore(
         {
           ...nonEmptyStateForInitiatingUpload,
@@ -468,6 +469,7 @@ describe("Upload logics", () => {
         undefined,
         uploadLogics
       );
+      jssClient.existsById.resolves(true);
       // before
       expect(fms.uploadFiles.called).to.be.false;
 
@@ -478,8 +480,10 @@ describe("Upload logics", () => {
       await logicMiddleware.whenComplete();
       expect(fms.uploadFiles.called).to.be.true;
     });
+
     it("dispatches uploadFailed if uploadFiles fails error", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
+      jssClient.existsById.resolves(true);
       fms.uploadFiles.rejects(new Error("error message"));
       const { actions, logicMiddleware, store } = createMockReduxStore(
         nonEmptyStateForInitiatingUpload,
