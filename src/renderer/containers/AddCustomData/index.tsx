@@ -1,4 +1,4 @@
-import { Alert, Button, Checkbox, Icon, Select, Spin } from "antd";
+import { Alert, Button, Checkbox, Icon, Select, Spin, Tooltip } from "antd";
 import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
@@ -339,13 +339,16 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     return (
       <>
         <div className={styles.container}>
-          <Icon
-            className={classNames(
-              styles.icon,
-              !appliedTemplate ? styles.hidden : undefined
-            )}
-            type="check-circle"
-          />
+          {appliedTemplate ? (
+            <Icon className={styles.icon} type="check-circle" />
+          ) : (
+            <Tooltip title="Select a template">
+              <Icon
+                className={classNames(styles.icon, styles.errorIcon)}
+                type="close-circle"
+              />
+            </Tooltip>
+          )}
           <LabeledInput
             className={styles.selector}
             label={`Select ${SCHEMA_SYNONYM}`}
@@ -359,53 +362,59 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           </LabeledInput>
         </div>
         <div className={styles.container}>
-          <Icon
-            className={classNames(
-              styles.icon,
-              !selectedBarcode && !hasNoPlateToUpload
-                ? styles.hidden
-                : undefined
-            )}
-            type="check-circle"
-          />
-          <LabeledInput className={styles.label} label="Select Upload Type">
-            <div className={styles.container}>
-              <LabeledInput label="Pre-Existing Barcode">
-                <BarcodeSearch
-                  barcode={selectedBarcode}
-                  disabled={this.isReadOnly}
-                  onBarcodeChange={(imagingSessionIds, barcode) => {
-                    if (barcode) {
-                      this.props.selectBarcode(barcode, imagingSessionIds);
-                    }
-                  }}
-                />
-              </LabeledInput>
-              <div className={styles.separatorText}>OR</div>
-              <LabeledInput label="Create Barcode & Plate">
-                <Select
-                  className={styles.selector}
-                  disabled={this.isReadOnly}
-                  onSelect={onCreateBarcode}
-                  placeholder="Select Barcode Prefix"
-                >
-                  {barcodePrefixes.map(({ prefixId, description }) => (
-                    <Select.Option value={prefixId} key={prefixId}>
-                      {description}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </LabeledInput>
-              <div className={styles.separatorText}>OR</div>
-              <LabeledInput label="Neither">
-                <Checkbox
-                  disabled={this.isReadOnly}
-                  checked={hasNoPlateToUpload && !this.isReadOnly}
-                  onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
-                />
-              </LabeledInput>
-            </div>
-          </LabeledInput>
+          {selectedBarcode || hasNoPlateToUpload ? (
+            <Icon className={styles.icon} type="check-circle" />
+          ) : (
+            <Tooltip title='Select/create a barcode or select "Neither"'>
+              <Icon
+                className={classNames(styles.icon, styles.errorIcon)}
+                type="close-circle"
+              />
+            </Tooltip>
+          )}
+          <div className={styles.container}>
+            <LabeledInput
+              className={styles.selector}
+              label="Pre-Existing Barcode"
+            >
+              <BarcodeSearch
+                barcode={selectedBarcode}
+                disabled={this.isReadOnly}
+                onBarcodeChange={(imagingSessionIds, barcode) => {
+                  if (barcode) {
+                    this.props.selectBarcode(barcode, imagingSessionIds);
+                  }
+                }}
+              />
+            </LabeledInput>
+            <div className={styles.separatorText}>OR</div>
+            <LabeledInput
+              className={styles.selector}
+              label="Create Barcode & Plate"
+            >
+              <Select
+                className={styles.selector}
+                disabled={this.isReadOnly}
+                onSelect={onCreateBarcode}
+                placeholder="Select Barcode Prefix"
+              >
+                {barcodePrefixes.map(({ prefixId, description }) => (
+                  <Select.Option value={prefixId} key={prefixId}>
+                    {description}
+                  </Select.Option>
+                ))}
+              </Select>
+            </LabeledInput>
+            <div className={styles.separatorText}>OR</div>
+            <LabeledInput className={styles.selector} label="Neither">
+              <Checkbox
+                disabled={this.isReadOnly}
+                checked={hasNoPlateToUpload && !this.isReadOnly}
+                onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
+              />
+              <span className={styles.helpText}>&nbsp;No Plate</span>
+            </LabeledInput>
+          </div>
         </div>
       </>
     );

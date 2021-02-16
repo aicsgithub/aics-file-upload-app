@@ -55,7 +55,6 @@ import {
 import {
   getAllPlates,
   getExpandedUploadJobRows,
-  getHasNoPlateToUpload,
   getSelectedBarcode,
   getSelectedJob,
   getWellIdToWellMap,
@@ -617,70 +616,64 @@ export const getUploadValidationErrors = createSelector(
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
     getSelectedBarcode,
-    getHasNoPlateToUpload,
   ],
   (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
     validationErrorsMap: { [key: string]: { [annotation: string]: string } },
     template?: TemplateWithTypeNames,
-    selectedBarcode?: string,
-    hasNoPlateToUpload?: boolean
+    selectedBarcode?: string
   ): string[] => {
-    const shouldHaveWells = Boolean(selectedBarcode);
-    const errors: string[] = [];
     if (!template) {
-      errors.push("A template must be selected to submit an upload");
-    } else {
-      if (!shouldHaveWells && !hasNoPlateToUpload) {
-        errors.push("An upload type must be selected to submit an upload");
-      }
-      // Iterate over each row value adding an error for each value with a non-ASCII character
-      rows.forEach((row) => {
-        Object.entries(row).forEach(([rowKey, rowValue]) => {
-          const rowValues = isArray(rowValue) ? rowValue : [rowValue];
-          rowValues.forEach((individualRowValue) => {
-            // Checks if the value has any non-ASCII characters
-            if (
-              typeof individualRowValue === "string" &&
-              /[^\0-\x7F]/.exec(individualRowValue)
-            ) {
-              errors.push(
-                `Annotations cannot have special characters like in "${individualRowValue}" for ${rowKey}`
-              );
-            }
-          });
+      return [];
+    }
+    const errors: string[] = [];
+    const shouldHaveWells = Boolean(selectedBarcode);
+    // Iterate over each row value adding an error for each value with a non-ASCII character
+    rows.forEach((row) => {
+      Object.entries(row).forEach(([rowKey, rowValue]) => {
+        const rowValues = isArray(rowValue) ? rowValue : [rowValue];
+        rowValues.forEach((individualRowValue) => {
+          // Checks if the value has any non-ASCII characters
+          if (
+            typeof individualRowValue === "string" &&
+            /[^\0-\x7F]/.exec(individualRowValue)
+          ) {
+            errors.push(
+              `Annotations cannot have special characters like in "${individualRowValue}" for ${rowKey}`
+            );
+          }
         });
       });
-      const requiredAnnotations = template.annotations
-        .filter((a) => a.required)
-        .map((a) => a.name);
-      forEach(
-        fileToAnnotationHasValueMap,
-        (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
-          const fileName = basename(file);
-          const requiredAnnotationsThatDontHaveValues = keys(
-            pickBy(
-              annotationHasValueMap,
-              (hasValue: boolean, annotationName: string) =>
-                !hasValue && requiredAnnotations.includes(annotationName)
-            )
-          );
-          if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
-            requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);
-          }
-
-          if (requiredAnnotationsThatDontHaveValues.length) {
-            const requiredAnnotationsMissingNames = requiredAnnotationsThatDontHaveValues.join(
-              ", "
-            );
-            errors.push(
-              `"${fileName}" is missing the following required annotations: ${requiredAnnotationsMissingNames}`
-            );
-          }
+    });
+    const requiredAnnotations = template.annotations
+      .filter((a) => a.required)
+      .map((a) => a.name);
+    forEach(
+      fileToAnnotationHasValueMap,
+      (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
+        const fileName = basename(file);
+        const requiredAnnotationsThatDontHaveValues = keys(
+          pickBy(
+            annotationHasValueMap,
+            (hasValue: boolean, annotationName: string) =>
+              !hasValue && requiredAnnotations.includes(annotationName)
+          )
+        );
+        if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
+          requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);
         }
-      );
-    }
+
+        if (requiredAnnotationsThatDontHaveValues.length) {
+          const requiredAnnotationsMissingNames = requiredAnnotationsThatDontHaveValues.join(
+            ", "
+          );
+          errors.push(
+            `"${fileName}" is missing the following required annotations: ${requiredAnnotationsMissingNames}`
+          );
+        }
+      }
+    );
 
     if (keys(validationErrorsMap).length) {
       errors.push(

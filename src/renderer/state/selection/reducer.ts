@@ -80,7 +80,7 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       barcode: undefined,
       imagingSessionId: undefined,
       imagingSessionIds: [],
-      hasNoPlate: action.payload,
+      hasNoPlateToUpload: action.payload,
       plate: {},
       selectedWells: [],
       wells: {},

@@ -1408,10 +1408,9 @@ describe("Upload selectors", () => {
   });
 
   describe("getUploadValidationErrors", () => {
-    it("adds error if template not applied", () => {
+    it("returns empty error array if no template is supplied", () => {
       const errors = getUploadValidationErrors(mockState);
-      expect(errors.includes("A template must be selected to submit an upload"))
-        .to.be.true;
+      expect(errors).to.be.empty;
     });
     it("adds error if non-ASCII character is provided", () => {
       const value = "Hello";
@@ -1434,27 +1433,6 @@ describe("Upload selectors", () => {
           `Annotations cannot have special characters like in "${value}" for ${annotation}`
         )
       );
-    });
-    it("adds error if no upload type is selected", () => {
-      const errors = getUploadValidationErrors({
-        ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.selection.present,
-          barcode: undefined,
-        }),
-        upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "foo" })]: {
-            barcode: "abc",
-            file: "foo",
-            key: getUploadRowKey({ file: "foo" }),
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
-          },
-        }),
-      });
-      expect(
-        errors.includes("An upload type must be selected to submit an upload")
-      ).to.be.true;
     });
     it("adds error if a row does not have a well annotation and is meant to", () => {
       const errors = getUploadValidationErrors({

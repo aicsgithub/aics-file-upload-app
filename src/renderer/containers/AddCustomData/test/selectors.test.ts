@@ -20,6 +20,7 @@ describe("AddCustomData selectors", () => {
         ...nonEmptyStateForInitiatingUpload,
         selection: getMockStateWithHistory({
           ...mockSelection,
+          hasNoPlateToUpload: true,
           job: mockFailedUploadJob,
         }),
       });
