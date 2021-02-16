@@ -76,12 +76,6 @@ export interface LabkeyPlateResponse {
   imagingSessionId: number | null;
 }
 
-export interface LabKeyWorkflow {
-  Description: string;
-  Name: string;
-  WorkflowId: number;
-}
-
 export interface LabkeyChannel {
   ContentTypeId: number;
   Description: string;
@@ -160,10 +154,4 @@ export interface LabkeyUnit {
   Description: string;
   UnitsId: number;
   Name: string;
-}
-
-export interface Workflow {
-  workflowId: number;
-  name: string;
-  description: string;
 }

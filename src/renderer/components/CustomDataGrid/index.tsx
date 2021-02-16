@@ -16,7 +16,6 @@ import {
   MAIN_FONT_WIDTH,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import DragAndDropRow from "../../containers/AddCustomData/DragAndDropRow";
 import {
@@ -72,7 +71,6 @@ type SortDirections = "ASC" | "DESC" | "NONE";
 interface Props {
   allWellsForSelectedPlate: Well[][];
   annotationTypes: AnnotationType[];
-  associateByWorkflow: boolean;
   canAddMoreFiles: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -175,29 +173,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         resizable: true,
         sortable: !forMassEdit,
         width: DEFAULT_COLUMN_WIDTH,
-      },
-    ];
-  }
-
-  private getWorkflowUploadColumns(): UploadJobColumn[] {
-    return [
-      {
-        cellClass: styles.formatterContainer,
-        editable: this.props.editable,
-        ...(this.props.editable ? { editor: Editor } : {}),
-        formatter: ({ row, value }: FormatterProps<UploadJobTableRow>) =>
-          this.renderFormat(
-            row,
-            WORKFLOW_ANNOTATION_NAME,
-            value,
-            undefined,
-            true
-          ),
-        key: WORKFLOW_ANNOTATION_NAME,
-        name: WORKFLOW_ANNOTATION_NAME,
-        resizable: true,
-        width: DEFAULT_COLUMN_WIDTH,
-        type: ColumnType.LOOKUP,
       },
     ];
   }
@@ -577,8 +552,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     let basicColumns;
     if (this.props.allWellsForSelectedPlate.length) {
       basicColumns = this.uploadColumns(this.getWellUploadColumns());
-    } else if (this.props.associateByWorkflow) {
-      basicColumns = this.uploadColumns(this.getWorkflowUploadColumns());
     } else {
       basicColumns = this.uploadColumns([]);
     }
@@ -626,8 +599,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     let basicColumns: UploadJobColumn[] = [];
     if (this.props.allWellsForSelectedPlate.length) {
       basicColumns = this.getWellUploadColumns(true);
-    } else if (this.props.associateByWorkflow) {
-      basicColumns = this.getWorkflowUploadColumns();
     }
     const schemaColumns = this.getSchemaColumns(true);
     return [numberFiles, ...basicColumns, notes, ...schemaColumns].map(

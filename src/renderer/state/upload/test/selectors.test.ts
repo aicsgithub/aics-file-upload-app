@@ -5,7 +5,6 @@ import {
   CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
 import { UploadMetadata, Uploads } from "../../../services/aicsfiles/types";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
@@ -35,7 +34,6 @@ import {
   mockTextAnnotation,
   mockWellAnnotation,
   mockWellUpload,
-  mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
@@ -678,11 +676,7 @@ describe("Upload selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes: mockAnnotationTypes,
-          annotations: [
-            mockWellAnnotation,
-            mockWorkflowAnnotation,
-            mockNotesAnnotation,
-          ],
+          annotations: [mockWellAnnotation, mockNotesAnnotation],
         },
         template: getMockStateWithHistory(
           mockTemplateStateBranchWithAppliedTemplate
@@ -698,11 +692,7 @@ describe("Upload selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes: mockAnnotationTypes,
-          annotations: [
-            mockWellAnnotation,
-            mockWorkflowAnnotation,
-            mockNotesAnnotation,
-          ],
+          annotations: [mockWellAnnotation, mockNotesAnnotation],
         },
         template: getMockStateWithHistory(
           mockTemplateStateBranchWithAppliedTemplate
@@ -722,11 +712,7 @@ describe("Upload selectors", () => {
         metadata: {
           ...mockState.metadata,
           annotationTypes: mockAnnotationTypes,
-          annotations: [
-            mockWellAnnotation,
-            mockWorkflowAnnotation,
-            mockNotesAnnotation,
-          ],
+          annotations: [mockWellAnnotation, mockNotesAnnotation],
         },
         template: getMockStateWithHistory(
           mockTemplateStateBranchWithAppliedTemplate
@@ -761,7 +747,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
-        [WORKFLOW_ANNOTATION_NAME]: ["name1"],
       });
       expect(rows).to.deep.include({
         barcode: "1235",
@@ -779,7 +764,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        [WORKFLOW_ANNOTATION_NAME]: ["name1", "name2"],
       });
       expect(rows).to.deep.include({
         barcode: "1236",
@@ -797,7 +781,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
-        [WORKFLOW_ANNOTATION_NAME]: ["name3"],
       });
     });
     it("does not show scene row if file row not expanded", () => {
@@ -835,7 +818,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("shows scene row if file row is expanded", () => {
@@ -879,7 +861,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -897,7 +878,6 @@ describe("Upload selectors", () => {
         treeDepth: 1,
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
@@ -954,7 +934,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows[1]).to.deep.equal({
         barcode: "1234",
@@ -972,7 +951,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("handles files with channels", () => {
@@ -1022,7 +1000,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1045,7 +1022,6 @@ describe("Upload selectors", () => {
         treeDepth: 1,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("handles files with scenes and channels", () => {
@@ -1117,7 +1093,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1135,7 +1110,6 @@ describe("Upload selectors", () => {
         treeDepth: 1,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1158,7 +1132,6 @@ describe("Upload selectors", () => {
         treeDepth: 2,
         [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
       expect(rows).to.deep.include({
         barcode: "1234",
@@ -1180,7 +1153,6 @@ describe("Upload selectors", () => {
         treeDepth: 1,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
     it("does not throw error for annotations that don't exist on the template", () => {
@@ -1315,7 +1287,6 @@ describe("Upload selectors", () => {
         file: "/path/to/file3",
         [NOTES_ANNOTATION_NAME]: [],
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
       };
     });
     it("returns empty object if no validation errors", () => {
@@ -1505,32 +1476,6 @@ describe("Upload selectors", () => {
       expect(
         errors.includes(
           `"foo" is missing the following required annotations: ${WELL_ANNOTATION_NAME}`
-        )
-      ).to.be.true;
-    });
-    it("adds error if a row does not have a workflow annotation and is meant to", () => {
-      const errors = getUploadValidationErrors({
-        ...nonEmptyStateForInitiatingUpload,
-        selection: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.selection.present,
-          barcode: undefined,
-        }),
-        setting: {
-          ...nonEmptyStateForInitiatingUpload.setting,
-          associateByWorkflow: true,
-        },
-        upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "foo" })]: {
-            barcode: "abc",
-            file: "foo",
-            key: getUploadRowKey({ file: "foo" }),
-            [NOTES_ANNOTATION_NAME]: [],
-          },
-        }),
-      });
-      expect(
-        errors.includes(
-          `"foo" is missing the following required annotations: ${WORKFLOW_ANNOTATION_NAME}`
         )
       ).to.be.true;
     });

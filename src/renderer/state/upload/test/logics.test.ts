@@ -12,7 +12,6 @@ import {
 import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../../constants";
 import { FileManagementSystem } from "../../../services/aicsfiles";
 import { mockJob } from "../../../services/aicsfiles/test/mocks";
@@ -608,7 +607,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         positionIndex: 0,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -638,7 +636,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         scene: 0,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -750,7 +747,6 @@ describe("Upload logics", () => {
         scene: undefined,
         subImageName: undefined,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -781,7 +777,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         positionIndex: 1,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -810,7 +805,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         scene: 1,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -841,7 +835,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         subImageName: "foo",
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1023,7 +1016,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         positionIndex: 1,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
 
       const positionAndChannelKey = getUploadRowKey({
@@ -1041,7 +1033,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         positionIndex: 1,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1072,7 +1063,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         scene: 1,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
 
       const sceneAndChannelKey = getUploadRowKey({
@@ -1090,7 +1080,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         scene: 1,
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1125,7 +1114,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         subImageName: "foo",
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
 
       const positionAndChannelKey = getUploadRowKey({
@@ -1143,7 +1131,6 @@ describe("Upload logics", () => {
         [NOTES_ANNOTATION_NAME]: [],
         subImageName: "foo",
         [WELL_ANNOTATION_NAME]: [],
-        [WORKFLOW_ANNOTATION_NAME]: [],
       });
     });
 
@@ -1316,7 +1303,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1349,7 +1335,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1383,7 +1368,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1417,7 +1401,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1450,7 +1433,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1485,7 +1467,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });
@@ -1519,7 +1500,6 @@ describe("Upload logics", () => {
             templateId: 8,
             [WELL_ANNOTATION_NAME]: [],
             wellLabels: [],
-            [WORKFLOW_ANNOTATION_NAME]: ["R&DExp", "Pipeline 4.1"],
           },
         }),
       });

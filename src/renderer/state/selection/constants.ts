@@ -3,6 +3,10 @@ import { makeConstant } from "../util";
 const BRANCH_NAME = "selection";
 
 export const SELECT_BARCODE = makeConstant(BRANCH_NAME, "select-barcode");
+export const SET_HAS_NO_PLATE_TO_UPLOAD = makeConstant(
+  BRANCH_NAME,
+  "set-has-no-plate"
+);
 export const SET_PLATE = makeConstant(BRANCH_NAME, "set-plate");
 export const SELECT_METADATA = makeConstant(BRANCH_NAME, "select-metadata");
 export const LOAD_FILES = makeConstant(BRANCH_NAME, "load-files");

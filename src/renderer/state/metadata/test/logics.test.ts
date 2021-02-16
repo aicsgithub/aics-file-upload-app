@@ -33,7 +33,6 @@ import {
   mockImagingSessions,
   mockLookupOptions,
   mockLookups,
-  mockSelectedWorkflows,
   mockState,
   mockUnit,
   mockWellAnnotation,
@@ -137,7 +136,6 @@ describe("Metadata logics", () => {
       labkeyClient.getImagingSessions.resolves(mockImagingSessions);
       labkeyClient.getLookups.resolves(mockLookups);
       labkeyClient.getUnits.resolves([mockUnit]);
-      labkeyClient.getWorkflows.resolves(mockSelectedWorkflows);
 
       const expectedAction = receiveMetadata({
         annotationLookups: mockAnnotationLookups,
@@ -147,7 +145,6 @@ describe("Metadata logics", () => {
         imagingSessions: mockImagingSessions,
         lookups: mockLookups,
         units: [mockUnit],
-        workflowOptions: mockSelectedWorkflows,
       });
       await runRequestSucceededTest(requestMetadata(), expectedAction);
     });

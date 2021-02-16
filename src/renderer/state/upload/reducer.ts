@@ -2,17 +2,18 @@ import { omit, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
-import {
-  WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
-} from "../../constants";
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
 import { CLOSE_UPLOAD } from "../route/constants";
 import { CloseUploadAction } from "../route/types";
-import { SELECT_BARCODE } from "../selection/constants";
-import { SelectBarcodeAction } from "../selection/types";
-import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
-import { AssociateByWorkflowAction } from "../setting/types";
+import {
+  SELECT_BARCODE,
+  SET_HAS_NO_PLATE_TO_UPLOAD,
+} from "../selection/constants";
+import {
+  SelectBarcodeAction,
+  SetHasNoPlateToUploadAction,
+} from "../selection/types";
 import { SET_APPLIED_TEMPLATE } from "../template/constants";
 import { SetAppliedTemplateAction } from "../template/types";
 import { TypeToDescriptionMap, UploadRowId, UploadStateBranch } from "../types";
@@ -20,7 +21,6 @@ import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
   ASSOCIATE_FILES_AND_WELLS,
-  ASSOCIATE_FILES_AND_WORKFLOWS,
   CLEAR_UPLOAD_HISTORY,
   DELETE_UPLOADS,
   getUploadRowKey,
@@ -39,7 +39,6 @@ import { getUpload } from "./selectors";
 import {
   AddUploadFilesAction,
   AssociateFilesAndWellsAction,
-  AssociateFilesAndWorkflowsAction,
   RemoveUploadsAction,
   ReplaceUploadAction,
   UndoFileWellAssociationAction,
@@ -74,16 +73,15 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           [key]: {
             ...metadata,
             [WELL_ANNOTATION_NAME]: undefined,
-            [WORKFLOW_ANNOTATION_NAME]: undefined,
           },
         }),
         {} as UploadStateBranch
       );
     },
   },
-  [ASSOCIATE_BY_WORKFLOW]: {
-    accepts: (action: AnyAction): action is AssociateByWorkflowAction =>
-      action.type === ASSOCIATE_BY_WORKFLOW,
+  [SET_HAS_NO_PLATE_TO_UPLOAD]: {
+    accepts: (action: AnyAction): action is SetHasNoPlateToUploadAction =>
+      action.type === SET_HAS_NO_PLATE_TO_UPLOAD,
     perform: (state: UploadStateBranch) => {
       return Object.entries(state).reduce(
         (nextState, [key, metadata]) => ({
@@ -91,7 +89,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
           [key]: {
             ...metadata,
             [WELL_ANNOTATION_NAME]: undefined,
-            [WORKFLOW_ANNOTATION_NAME]: undefined,
           },
         }),
         {} as UploadStateBranch
@@ -126,37 +123,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
                     ...wellIds,
                   ])
                 : wellIds,
-          },
-        };
-      }, nextState);
-    },
-  },
-  [ASSOCIATE_FILES_AND_WORKFLOWS]: {
-    accepts: (action: AnyAction): action is AssociateFilesAndWorkflowsAction =>
-      action.type === ASSOCIATE_FILES_AND_WORKFLOWS,
-    perform: (
-      state: UploadStateBranch,
-      action: AssociateFilesAndWorkflowsAction
-    ) => {
-      const nextState = { ...state };
-
-      const { fullPaths, workflows } = action.payload;
-      const workflowNames = uniq(workflows.map((w) => w.name));
-
-      return fullPaths.reduce((accum: UploadStateBranch, file: string) => {
-        const key = getUploadRowKey({ file });
-        return {
-          ...accum,
-          [key]: {
-            ...accum[key],
-            file,
-            [WORKFLOW_ANNOTATION_NAME]:
-              accum[key] && accum[key][WORKFLOW_ANNOTATION_NAME]
-                ? uniq([
-                    ...(accum[key][WORKFLOW_ANNOTATION_NAME] || []),
-                    ...workflowNames,
-                  ])
-                : workflowNames,
           },
         };
       }, nextState);

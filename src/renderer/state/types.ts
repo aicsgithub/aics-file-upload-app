@@ -10,7 +10,7 @@ import { CreateLogic } from "redux-logic/definitions/logic";
 import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
-import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
+import { WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import { UploadServiceFields } from "../services/aicsfiles/types";
@@ -28,7 +28,6 @@ import {
   LabkeyTemplate,
   Lookup,
   Unit,
-  Workflow,
 } from "../services/labkey-client/types";
 import {
   PlateResponse,
@@ -216,7 +215,6 @@ export interface UploadMetadata extends UploadRowId {
   notes?: string[]; // only one note expected but we treat this like other custom annotations
   templateId?: number;
   [WELL_ANNOTATION_NAME]?: number[];
-  [WORKFLOW_ANNOTATION_NAME]?: string[];
   [genericKey: string]: any;
 }
 
@@ -245,7 +243,6 @@ export interface MetadataStateBranch {
     template: PageToIndexMap;
     upload: PageToIndexMap;
   };
-  workflowOptions: Workflow[];
 
   // expected type is string[] but typescript index signatures won't allow explicit typing like this in this case
   [lookupName: string]: any;
@@ -286,6 +283,7 @@ export interface UploadTabSelections {
   expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
+  hasNoPlateToUpload: boolean;
   job?: JSSJob<UploadServiceFields>;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
@@ -346,7 +344,6 @@ export interface EnabledNotifications {
 }
 
 export interface SettingStateBranch extends LimsUrl {
-  associateByWorkflow: boolean;
   metadataColumns: string[];
   mountPoint?: string;
   // if true show hints on how to use the grid to enter data

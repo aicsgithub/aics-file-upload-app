@@ -17,7 +17,6 @@ import {
   LIST_DELIMITER_SPLIT,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
   StartUploadResponse,
@@ -589,7 +588,6 @@ const updateSubImagesLogic = createLogic({
       subImageNames
     );
     const update: Partial<UploadStateBranch> = {};
-    const workflows = fileRow[WORKFLOW_ANNOTATION_NAME];
 
     const uploads = getUpload(getState());
     const existingUploadsForFile: UploadMetadata[] = values(uploads).filter(
@@ -650,7 +648,6 @@ const updateSubImagesLogic = createLogic({
           scene: undefined,
           subImageName: undefined,
           [WELL_ANNOTATION_NAME]: [],
-          [WORKFLOW_ANNOTATION_NAME]: workflows,
           ...additionalAnnotations,
         };
       });
@@ -672,7 +669,6 @@ const updateSubImagesLogic = createLogic({
           key: subImageOnlyRowKey,
           [NOTES_ANNOTATION_NAME]: [],
           [WELL_ANNOTATION_NAME]: [],
-          [WORKFLOW_ANNOTATION_NAME]: workflows,
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
         };
@@ -698,7 +694,6 @@ const updateSubImagesLogic = createLogic({
             key,
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
-            [WORKFLOW_ANNOTATION_NAME]: workflows,
             [subImageKey]: subImageValue,
             ...additionalAnnotations,
           };

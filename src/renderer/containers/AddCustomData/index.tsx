@@ -1,4 +1,4 @@
-import { Alert, Button, Icon, Select, Spin } from "antd";
+import { Alert, Button, Checkbox, Icon, Select, Spin } from "antd";
 import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
@@ -44,6 +44,7 @@ import {
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
   selectBarcode,
+  setHasNoPlateToUpload,
   toggleExpandedUploadJobRow,
   updateMassEditRow,
 } from "../../state/selection/actions";
@@ -53,28 +54,23 @@ import {
   getSelectedJob,
   getWellsWithUnitsAndModified,
   getMassEditRow,
+  getHasNoPlateToUpload,
 } from "../../state/selection/selectors";
 import {
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   SelectBarcodeAction,
+  SetHasNoPlateToUploadAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
   Well,
 } from "../../state/selection/types";
+import { updateSettings } from "../../state/setting/actions";
 import {
-  associateByWorkflow,
-  updateSettings,
-} from "../../state/setting/actions";
-import {
-  getAssociateByWorkflow,
   getShowUploadHint,
   getTemplateId,
 } from "../../state/setting/selectors";
-import {
-  AssociateByWorkflowAction,
-  UpdateSettingsAction,
-} from "../../state/setting/types";
+import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import {
   AsyncRequest,
@@ -125,7 +121,6 @@ interface Props {
   annotationTypes: AnnotationType[];
   appliedTemplate?: Template;
   applyTemplate: ActionCreator<ApplyTemplateAction>;
-  associateByWorkflow: ActionCreator<AssociateByWorkflowAction>;
   barcodePrefixes: BarcodePrefix[];
   booleanAnnotationTypeId?: number;
   canRedo: boolean;
@@ -135,8 +130,8 @@ interface Props {
   channels: Channel[];
   createBarcode: ActionCreator<CreateBarcodeAction>;
   expandedRows: ExpandedRows;
-  isAssociatedByWorkflow: boolean;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
+  hasNoPlateToUpload: boolean;
   initiateUpload: ActionCreator<InitiateUploadAction>;
   jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
@@ -152,6 +147,7 @@ interface Props {
   selectedJob?: JSSJob<UploadServiceFields>;
   selectedJobIsLoading: boolean;
   setAlert: ActionCreator<SetAlertAction>;
+  setHasNoPlateToUpload: ActionCreator<SetHasNoPlateToUploadAction>;
   showUploadHint: boolean;
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
   templateIsLoading: boolean;
@@ -228,7 +224,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       canRedo,
       canSubmit,
       canUndo,
-      isAssociatedByWorkflow,
       loading,
       massEditRow,
       selectedJob,
@@ -268,7 +263,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               <CustomDataGrid
                 allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                 annotationTypes={annotationTypes}
-                associateByWorkflow={isAssociatedByWorkflow}
                 canAddMoreFiles={!selectedJob}
                 canRedo={canRedo}
                 canUndo={canUndo}
@@ -329,11 +323,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   private renderTemplateAndUploadTypeInput = () => {
     const {
       appliedTemplate,
-      associateByWorkflow,
       barcodePrefixes,
       createBarcode,
-      isAssociatedByWorkflow,
+      hasNoPlateToUpload,
       selectedBarcode,
+      setHasNoPlateToUpload,
       templateIsLoading,
     } = this.props;
     const onCreateBarcode = (selectedPrefixId: any) => {
@@ -368,7 +362,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <Icon
             className={classNames(
               styles.icon,
-              !selectedBarcode && !isAssociatedByWorkflow
+              !selectedBarcode && !hasNoPlateToUpload
                 ? styles.hidden
                 : undefined
             )}
@@ -376,11 +370,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           />
           <LabeledInput className={styles.label} label="Select Upload Type">
             <div className={styles.container}>
-              <div>
-                <div className={styles.helpText}>
-                  The barcode you enter will be used to associate your files
-                  with wells
-                </div>
+              <LabeledInput label="Pre-Existing Barcode">
                 <BarcodeSearch
                   barcode={selectedBarcode}
                   disabled={this.isReadOnly}
@@ -390,13 +380,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     }
                   }}
                 />
-              </div>
+              </LabeledInput>
               <div className={styles.separatorText}>OR</div>
-              <div>
-                <div className={styles.helpText}>
-                  Selecting a barcode prefix will prompt you to create a plate
-                  in LabKey with said prefix
-                </div>
+              <LabeledInput label="Create Barcode & Plate">
                 <Select
                   className={styles.selector}
                   disabled={this.isReadOnly}
@@ -409,22 +395,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                     </Select.Option>
                   ))}
                 </Select>
-              </div>
+              </LabeledInput>
               <div className={styles.separatorText}>OR</div>
-              <div>
-                <div className={styles.helpText}>
-                  If you do not have a plate to associate your files with you
-                  can select to associate with workflows
-                </div>
-                <Button
-                  disabled={isAssociatedByWorkflow || this.isReadOnly}
-                  onClick={() => associateByWorkflow(true)}
-                >
-                  {isAssociatedByWorkflow
-                    ? "Selected"
-                    : "Associate with Workflows"}
-                </Button>
-              </div>
+              <LabeledInput label="Neither">
+                <Checkbox
+                  disabled={this.isReadOnly}
+                  checked={hasNoPlateToUpload && !this.isReadOnly}
+                  onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
+                />
+              </LabeledInput>
             </div>
           </LabeledInput>
         </div>
@@ -519,7 +498,7 @@ function mapStateToProps(state: State) {
     channels: getChannels(state),
     expandedRows: getExpandedUploadJobRows(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
-    isAssociatedByWorkflow: getAssociateByWorkflow(state),
+    hasNoPlateToUpload: getHasNoPlateToUpload(state),
     loading: getIsLoading(state),
     templateIsLoading: getRequestsInProgressContains(
       state,
@@ -545,7 +524,6 @@ function mapStateToProps(state: State) {
 
 const dispatchToPropsMap = {
   applyTemplate,
-  associateByWorkflow,
   closeUpload,
   createBarcode,
   initiateUpload,
@@ -555,6 +533,7 @@ const dispatchToPropsMap = {
   removeUploads,
   selectBarcode,
   setAlert,
+  setHasNoPlateToUpload,
   submitFileMetadataUpdate,
   toggleRowExpanded: toggleExpandedUploadJobRow,
   updateAndRetryUpload,
