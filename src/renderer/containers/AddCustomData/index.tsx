@@ -340,11 +340,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       <>
         <div className={styles.container}>
           {appliedTemplate ? (
-            <Icon className={styles.icon} type="check-circle" />
+            <Icon className={styles.icon} theme="filled" type="check-circle" />
           ) : (
             <Tooltip title="Select a template">
               <Icon
                 className={classNames(styles.icon, styles.errorIcon)}
+                theme="filled"
                 type="close-circle"
               />
             </Tooltip>
@@ -363,11 +364,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         </div>
         <div className={styles.container}>
           {selectedBarcode || hasNoPlateToUpload ? (
-            <Icon className={styles.icon} type="check-circle" />
+            <Icon className={styles.icon} theme="filled" type="check-circle" />
           ) : (
             <Tooltip title='Select/create a barcode or select "Neither"'>
               <Icon
                 className={classNames(styles.icon, styles.errorIcon)}
+                theme="filled"
                 type="close-circle"
               />
             </Tooltip>
