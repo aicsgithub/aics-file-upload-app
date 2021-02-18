@@ -1,7 +1,13 @@
 import { includes, last } from "lodash";
 import { createSelector } from "reselect";
 
-import { AppEvent, AsyncRequest, ModalName, State } from "../types";
+import {
+  AppEvent,
+  AsyncRequest,
+  ModalName,
+  State,
+  TutorialStep,
+} from "../types";
 
 // BASIC SELECTORS
 export const getIsLoading = (state: State) => state.feedback.isLoading;
@@ -36,4 +42,31 @@ export const getRecentEvent = createSelector(
 export const getEventsByNewest = createSelector(
   [getEvents],
   (events: AppEvent[]) => [...events].reverse()
+);
+
+const TUTORIAL_ORDER = [
+  TutorialStep.MASS_EDIT,
+  TutorialStep.ADD_SCENES,
+  TutorialStep.INPUT_MULTIPLE_VALUES,
+];
+
+export const getCurrentTutorialOrder = createSelector(
+  [getTutorialStep],
+  (current?: TutorialStep) => {
+    console.log(current);
+    let next;
+    let previous;
+    const currentIndex = TUTORIAL_ORDER.findIndex((step) => step === current);
+    if (currentIndex > -1) {
+      if (currentIndex > 0) {
+        previous = TUTORIAL_ORDER[currentIndex - 1];
+      }
+      if (currentIndex < TUTORIAL_ORDER.length - 1) {
+        next = TUTORIAL_ORDER[currentIndex + 1];
+      }
+    }
+    const x = { previous, current, next };
+    console.log(x);
+    return x;
+  }
 );

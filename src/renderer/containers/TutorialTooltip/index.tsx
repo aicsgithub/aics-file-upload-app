@@ -4,49 +4,31 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { setTutorialTooltipStep } from "../../state/feedback/actions";
-import { getTutorialStep } from "../../state/feedback/selectors";
+import { getCurrentTutorialOrder } from "../../state/feedback/selectors";
 import { updateSettings } from "../../state/setting/actions";
 import { getShowUploadHint } from "../../state/setting/selectors";
 import { TutorialStep } from "../../state/types";
 
 const styles = require("./styles.pcss");
 
-interface TutorialInfo {
-  title: string;
-  message: string;
-  next?: TutorialStep;
-  previous?: TutorialStep;
-}
-
-const STEP_TO_INFO: { [step: number]: TutorialInfo } = {
-  [TutorialStep.MASS_EDIT]: {
-    title: "Mass Edit",
-    message: "Select rows and click here to edit multiple rows at once",
-    next: TutorialStep.ADD_SCENES,
-  },
-  [TutorialStep.ADD_SCENES]: {
-    title: "Sub Images, Channels, Scenes",
-    message: "Click here to add sub images, channels, and scenes to your files",
-    previous: TutorialStep.MASS_EDIT,
-  },
-};
-
 interface Props {
   children: React.ReactNode;
   disabled?: boolean;
+  placement?: "left" | "right" | "top" | "bottom";
+  message: string;
   step: TutorialStep;
+  title: string;
 }
 
 export default function TutorialTooltip(props: Props) {
   const dispatch = useDispatch();
-  const currentStep = useSelector(getTutorialStep);
   const showUploadHint = useSelector(getShowUploadHint);
-  const { title, message, next, previous } = STEP_TO_INFO[props.step];
+  const { previous, current, next } = useSelector(getCurrentTutorialOrder);
 
   const content = (
     <div className={styles.contentContainer}>
-      <h4>Hint: {title}</h4>
-      <p>{message}</p>
+      <h4>Hint: {props.title}</h4>
+      <p>{props.message}</p>
       <div className={styles.footer}>
         <div>
           <Button
@@ -65,7 +47,7 @@ export default function TutorialTooltip(props: Props) {
           />
           <Button
             className={styles.footerButton}
-            icon="caret-right"
+            icon={isNil(next) ? "check" : "caret-right"}
             onClick={() => dispatch(setTutorialTooltipStep(next))}
           />
         </div>
@@ -76,8 +58,8 @@ export default function TutorialTooltip(props: Props) {
   return (
     <Popover
       content={content}
-      placement="right"
-      visible={currentStep === props.step && !props.disabled && showUploadHint}
+      placement={props.placement}
+      visible={current === props.step && !props.disabled && showUploadHint}
     >
       {props.children}
     </Popover>

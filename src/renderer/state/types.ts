@@ -172,6 +172,7 @@ export interface SearchResultRow {
 export enum TutorialStep {
   MASS_EDIT,
   ADD_SCENES,
+  INPUT_MULTIPLE_VALUES,
 }
 
 export interface FeedbackStateBranch {

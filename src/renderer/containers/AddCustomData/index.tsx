@@ -462,23 +462,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         />
       );
     }
-    if (
-      this.props.appliedTemplate &&
-      this.props.showUploadHint &&
-      !this.isReadOnly
-    ) {
-      alerts.push(
-        <Alert
-          afterClose={this.hideHint}
-          className={styles.alert}
-          closable={true}
-          message="Hint: You can add multiple values for Text and Number annotations using commas!"
-          showIcon={true}
-          type="info"
-          key="hint"
-        />
-      );
-    }
     return alerts;
   };
 

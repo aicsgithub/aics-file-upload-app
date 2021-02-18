@@ -129,7 +129,10 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
           </Tooltip>
           <TutorialTooltip
             disabled={!this.props.showTutorial}
+            placement="right"
             step={TutorialStep.ADD_SCENES}
+            title="Sub Images, Channels, Scenes"
+            message="Click here to add sub images, channels, and scenes to your files"
           >
             <Tooltip
               className={styles.addSceneIcon}
