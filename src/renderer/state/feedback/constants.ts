@@ -41,3 +41,7 @@ export const CLOSE_NOTIFICATION_CENTER = makeConstant(
   BRANCH_NAME,
   "close-notification-center"
 );
+export const SET_TUTORIAL_TOOLTIP_STEP = makeConstant(
+  BRANCH_NAME,
+  "set-tutorial-tooltip-step"
+);

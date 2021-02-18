@@ -1,5 +1,6 @@
 import { AnyAction } from "redux";
 
+import { TutorialStep } from "../../containers/TutorialTooltip";
 import { AlertType, AppAlert, AsyncRequest, ModalName } from "../types";
 
 import {
@@ -16,6 +17,7 @@ import {
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
   SET_DEFERRED_ACTION,
+  SET_TUTORIAL_TOOLTIP_STEP,
   START_LOADING,
   STOP_LOADING,
 } from "./constants";
@@ -33,6 +35,7 @@ import {
   RemoveRequestInProgressAction,
   SetAlertAction,
   SetDeferredActionAction,
+  SetTutorialTooltipStep,
   StartLoadingAction,
   StopLoadingAction,
 } from "./types";
@@ -182,5 +185,14 @@ export function clearUploadError(): ClearUploadErrorAction {
 export function closeNotificationCenter(): CloseNotificationCenter {
   return {
     type: CLOSE_NOTIFICATION_CENTER,
+  };
+}
+
+export function setTutorialTooltipStep(
+  tutorialTooltip?: TutorialStep
+): SetTutorialTooltipStep {
+  return {
+    payload: tutorialTooltip,
+    type: SET_TUTORIAL_TOOLTIP_STEP,
   };
 }

@@ -7,6 +7,9 @@ import { ReactNode } from "react";
 import * as React from "react";
 
 import { CHANNEL_ANNOTATION_NAME } from "../../../constants";
+import TutorialTooltip, {
+  TutorialStep,
+} from "../../../containers/TutorialTooltip";
 import { Channel } from "../../../services/labkey-client/types";
 import { UploadJobTableRow } from "../../../state/upload/types";
 import LabeledInput from "../../LabeledInput";
@@ -25,6 +28,7 @@ interface Props extends FormatterProps<UploadJobTableRow> {
   ) => void;
   channelOptions: Channel[];
   fileOptions: string[];
+  showTutorial: boolean;
 }
 
 type subImage = "name" | "position" | "scene";
@@ -116,14 +120,30 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
 
     return (
       <div>
-        <Tooltip mouseLeaveDelay={0} title={value} className={styles.fileCell}>
-          <span className={styles.fileCellText}>{fileName}</span>
-          <Icon
-            className={styles.addSceneIcon}
-            onClick={this.openModal}
-            type={isEditing ? "edit" : "plus-circle"}
-          />
-        </Tooltip>
+        <div className={styles.fileCell}>
+          <Tooltip
+            mouseLeaveDelay={0}
+            title={value}
+            className={styles.fileCellText}
+          >
+            {fileName}
+          </Tooltip>
+          <TutorialTooltip
+            disabled={!this.props.showTutorial}
+            step={TutorialStep.ADD_SCENES}
+          >
+            <Tooltip
+              className={styles.addSceneIcon}
+              mouseLeaveDelay={0}
+              title="Click here to add sub images, channels, and scenes to your files"
+            >
+              <Icon
+                onClick={this.openModal}
+                type={isEditing ? "edit" : "plus-circle"}
+              />
+            </Tooltip>
+          </TutorialTooltip>
+        </div>
         <Modal
           width="50%"
           title={title}

@@ -2,6 +2,7 @@ import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
+import { TutorialStep } from "../../containers/TutorialTooltip";
 import { REQUEST_FAILED } from "../constants";
 import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
@@ -107,6 +108,7 @@ import {
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
   SET_DEFERRED_ACTION,
+  SET_TUTORIAL_TOOLTIP_STEP,
   START_LOADING,
   STOP_LOADING,
 } from "./constants";
@@ -125,6 +127,7 @@ import {
   RemoveRequestInProgressAction,
   SetAlertAction,
   SetDeferredActionAction,
+  SetTutorialTooltipStep,
   StartLoadingAction,
   StopLoadingAction,
 } from "./types";
@@ -159,6 +162,7 @@ export const initialState: FeedbackStateBranch = {
   setMountPointNotificationVisible: false,
   uploadError: undefined,
   visibleModals: [],
+  tutorialTooltip: TutorialStep.MASS_EDIT,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
@@ -199,6 +203,14 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
         alert: updatedPayload,
       };
     },
+  },
+  [SET_TUTORIAL_TOOLTIP_STEP]: {
+    accepts: (action: AnyAction): action is SetTutorialTooltipStep =>
+      action.type === SET_TUTORIAL_TOOLTIP_STEP,
+    perform: (state: FeedbackStateBranch, action: SetTutorialTooltipStep) => ({
+      ...state,
+      tutorialTooltip: action.payload,
+    }),
   },
   [START_LOADING]: {
     accepts: (action: AnyAction): action is StartLoadingAction =>

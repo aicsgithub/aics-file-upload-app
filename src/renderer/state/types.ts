@@ -11,6 +11,7 @@ import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
+import { TutorialStep } from "../containers/TutorialTooltip";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import { UploadServiceFields } from "../services/aicsfiles/types";
@@ -176,6 +177,7 @@ export interface FeedbackStateBranch {
   isLoading: boolean;
   requestsInProgress: string[];
   setMountPointNotificationVisible: boolean;
+  tutorialTooltip?: TutorialStep;
   uploadError?: string;
   visibleModals: ModalName[];
 }

@@ -19,6 +19,9 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import DragAndDropRow from "../../containers/AddCustomData/DragAndDropRow";
+import TutorialTooltip, {
+  TutorialStep,
+} from "../../containers/TutorialTooltip";
 import {
   AnnotationType,
   Channel,
@@ -303,17 +306,22 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               type="link"
             />
           </Tooltip>
-          <Tooltip title="Edit" mouseLeaveDelay={0}>
-            <Button
-              onClick={() =>
-                this.openMassEditGrid(sortedRows, this.getColumns())
-              }
-              disabled={isEmpty(selectedRows)}
-              icon="edit"
-              type="link"
-            />
-          </Tooltip>
-          <Tooltip title="Delete Selected Row" mouseLeaveDelay={0}>
+          <TutorialTooltip
+            disabled={!Object.keys(uploads).length}
+            step={TutorialStep.MASS_EDIT}
+          >
+            <Tooltip title="Edit Selected Rows All at Once" mouseLeaveDelay={0}>
+              <Button
+                onClick={() =>
+                  this.openMassEditGrid(sortedRows, this.getColumns())
+                }
+                disabled={isEmpty(selectedRows)}
+                icon="edit"
+                type="link"
+              />
+            </Tooltip>
+          </TutorialTooltip>
+          <Tooltip title="Delete Selected Rows" mouseLeaveDelay={0}>
             <Button
               onClick={this.removeSelectedRows}
               disabled={isEmpty(selectedRows)}
@@ -425,6 +433,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               key={row.key}
               row={row}
               value={value}
+              showTutorial={row.siblingIndex === 0 && row.treeDepth === 0}
             />
           ),
         key: "file",

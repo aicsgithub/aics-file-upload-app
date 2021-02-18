@@ -22,6 +22,7 @@ export const getSetMountPointNotificationVisible = (state: State) =>
   state.feedback.setMountPointNotificationVisible;
 export const getTemplateEditorVisible = (state: State) =>
   !!state.feedback.visibleModals.find((m: ModalName) => m === "templateEditor");
+export const getTutorialStep = (state: State) => state.feedback.tutorialTooltip;
 export const getOpenTemplateModalVisible = (state: State) =>
   !!state.feedback.visibleModals.find((m: ModalName) => m === "openTemplate");
 export const getUploadError = (state: State) => state.feedback.uploadError;
