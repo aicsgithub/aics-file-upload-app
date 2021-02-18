@@ -377,7 +377,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
           <div className={styles.container}>
             <LabeledInput
               className={styles.selector}
-              label="Pre-Existing Barcode"
+              label="Select Pre-Existing Barcode"
             >
               <BarcodeSearch
                 barcode={selectedBarcode}
