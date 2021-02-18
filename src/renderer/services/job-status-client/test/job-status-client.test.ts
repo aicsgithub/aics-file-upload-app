@@ -140,6 +140,26 @@ describe("JobStatusClient", () => {
     });
   });
 
+  describe("existsById", () => {
+    it("Returns true when job successfully retrieved from JSS", async () => {
+      sandbox.replace(
+        httpClient,
+        "get",
+        stub().resolves(makeAxiosResponse(mockJobResponse))
+      );
+
+      const jobExists = await jobStatusClient.existsById("some_job");
+      expect(jobExists).to.be.true;
+    });
+
+    it("Returns false if JSS returns an error", async () => {
+      sandbox.replace(httpClient, "get", stub().rejects(badGatewayResponse));
+
+      const jobExists = await jobStatusClient.existsById("some_job");
+      expect(jobExists).to.be.false;
+    });
+  });
+
   describe("getJobs", () => {
     const mockQuery: JobQuery = {
       user: "foo",
