@@ -272,7 +272,6 @@ const addUploadFilesLogic = createLogic({
   ) => {
     const selectedTemplate = getAppliedTemplate(getState())?.templateId;
     const savedTemplate = getTemplateId(getState());
-    console.log(selectedTemplate, savedTemplate);
     if (selectedTemplate) {
       dispatch(applyTemplate(selectedTemplate));
     } else if (savedTemplate) {
