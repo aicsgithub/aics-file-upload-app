@@ -11,7 +11,6 @@ import { StateWithHistory } from "redux-undo";
 
 import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME, WORKFLOW_ANNOTATION_NAME } from "../constants";
-import { TutorialStep } from "../containers/TutorialTooltip";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
 import { UploadServiceFields } from "../services/aicsfiles/types";
@@ -168,6 +167,11 @@ export interface PageToIndexMap {
 
 export interface SearchResultRow {
   [key: string]: string | number | undefined;
+}
+
+export enum TutorialStep {
+  MASS_EDIT,
+  ADD_SCENES,
 }
 
 export interface FeedbackStateBranch {

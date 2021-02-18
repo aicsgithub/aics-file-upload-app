@@ -2,7 +2,6 @@ import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
-import { TutorialStep } from "../../containers/TutorialTooltip";
 import { REQUEST_FAILED } from "../constants";
 import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
@@ -58,6 +57,7 @@ import {
   FeedbackStateBranch,
   HTTP_STATUS,
   RequestFailedAction,
+  TutorialStep,
   TypeToDescriptionMap,
 } from "../types";
 import {
@@ -160,9 +160,9 @@ export const initialState: FeedbackStateBranch = {
   isLoading: false,
   requestsInProgress: [],
   setMountPointNotificationVisible: false,
+  tutorialTooltip: TutorialStep.MASS_EDIT,
   uploadError: undefined,
   visibleModals: [],
-  tutorialTooltip: TutorialStep.MASS_EDIT,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {

@@ -1,7 +1,12 @@
 import { AnyAction } from "redux";
 
-import { TutorialStep } from "../../containers/TutorialTooltip";
-import { AlertType, AppAlert, AsyncRequest, ModalName } from "../types";
+import {
+  AlertType,
+  AppAlert,
+  AsyncRequest,
+  ModalName,
+  TutorialStep,
+} from "../types";
 
 export interface StartLoadingAction {
   type: string;

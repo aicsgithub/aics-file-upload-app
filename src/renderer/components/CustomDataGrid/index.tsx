@@ -19,9 +19,7 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import DragAndDropRow from "../../containers/AddCustomData/DragAndDropRow";
-import TutorialTooltip, {
-  TutorialStep,
-} from "../../containers/TutorialTooltip";
+import TutorialTooltip from "../../containers/TutorialTooltip";
 import {
   AnnotationType,
   Channel,
@@ -39,6 +37,7 @@ import {
   AlertType,
   ExpandedRows,
   MassEditRow,
+  TutorialStep,
   UploadMetadata,
 } from "../../state/types";
 import {

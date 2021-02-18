@@ -7,13 +7,9 @@ import { setTutorialTooltipStep } from "../../state/feedback/actions";
 import { getTutorialStep } from "../../state/feedback/selectors";
 import { updateSettings } from "../../state/setting/actions";
 import { getShowUploadHint } from "../../state/setting/selectors";
+import { TutorialStep } from "../../state/types";
 
 const styles = require("./styles.pcss");
-
-export enum TutorialStep {
-  MASS_EDIT,
-  ADD_SCENES,
-}
 
 interface TutorialInfo {
   title: string;

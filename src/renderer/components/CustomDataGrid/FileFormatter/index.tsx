@@ -7,10 +7,9 @@ import { ReactNode } from "react";
 import * as React from "react";
 
 import { CHANNEL_ANNOTATION_NAME } from "../../../constants";
-import TutorialTooltip, {
-  TutorialStep,
-} from "../../../containers/TutorialTooltip";
+import TutorialTooltip from "../../../containers/TutorialTooltip";
 import { Channel } from "../../../services/labkey-client/types";
+import { TutorialStep } from "../../../state/types";
 import { UploadJobTableRow } from "../../../state/upload/types";
 import LabeledInput from "../../LabeledInput";
 import PrinterFormatInput from "../../PrinterFormatInput";
