@@ -12,7 +12,6 @@ import {
   isNil,
   keys,
   omit,
-  pickBy,
   reduce,
   uniq,
   values,
@@ -653,12 +652,8 @@ export const getUploadValidationErrors = createSelector(
       fileToAnnotationHasValueMap,
       (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
         const fileName = basename(file);
-        const requiredAnnotationsThatDontHaveValues = keys(
-          pickBy(
-            annotationHasValueMap,
-            (hasValue: boolean, annotationName: string) =>
-              !hasValue && requiredAnnotations.includes(annotationName)
-          )
+        const requiredAnnotationsThatDontHaveValues = requiredAnnotations.filter(
+          (annotation) => !annotationHasValueMap[annotation]
         );
         if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
           requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);

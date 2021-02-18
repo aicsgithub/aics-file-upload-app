@@ -65,6 +65,7 @@ import {
   UploadMetadata,
 } from "../../types";
 import {
+  addUploadFiles,
   applyTemplate,
   associateFilesAndWells,
   cancelUpload,
@@ -1554,6 +1555,55 @@ describe("Upload logics", () => {
       // after
       const upload = getUpload(store.getState());
       expect(upload[uploadRowKey][annotation]).to.deep.equal([]);
+    });
+  });
+
+  describe("addUploadFilesLogic", () => {
+    it("applies selected templated over saved template", async () => {
+      // arrange
+      const templateId = 17;
+      const badTemplateId = 4;
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...mockState,
+        template: getMockStateWithHistory({
+          ...mockTemplateStateBranch,
+          appliedTemplate: {
+            ...mockTemplateWithManyValues,
+            templateId,
+          },
+        }),
+        setting: {
+          ...mockState.setting,
+          templateId: badTemplateId,
+        },
+      });
+
+      // act
+      store.dispatch(addUploadFiles([]));
+      await logicMiddleware.whenComplete();
+
+      // assert
+      expect(actions.includesMatch(applyTemplate(badTemplateId))).to.be.false;
+      expect(actions.includesMatch(applyTemplate(templateId))).to.be.true;
+    });
+
+    it("applies saved template", async () => {
+      // arrange
+      const templateId = 17;
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...mockState,
+        setting: {
+          ...mockState.setting,
+          templateId,
+        },
+      });
+
+      // act
+      store.dispatch(addUploadFiles([]));
+      await logicMiddleware.whenComplete();
+
+      // assert
+      expect(actions.includesMatch(applyTemplate(templateId))).to.be.true;
     });
   });
 

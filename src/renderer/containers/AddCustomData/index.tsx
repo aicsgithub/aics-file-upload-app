@@ -66,10 +66,7 @@ import {
   Well,
 } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
-import {
-  getShowUploadHint,
-  getTemplateId,
-} from "../../state/setting/selectors";
+import { getShowUploadHint } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import {
@@ -141,7 +138,6 @@ interface Props {
   massEditRow: MassEditRow;
   openFilesFromDialog: (files: string[]) => LoadFilesFromOpenDialogAction;
   removeUploads: ActionCreator<RemoveUploadsAction>;
-  savedTemplateId?: number;
   selectBarcode: ActionCreator<SelectBarcodeAction>;
   selectedBarcode?: string;
   selectedJob?: JSSJob<UploadServiceFields>;
@@ -206,15 +202,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         this.props.selectedJob.status
       )
     );
-  }
-
-  public componentDidMount() {
-    const templateId = this.props.appliedTemplate
-      ? this.props.appliedTemplate.templateId
-      : this.props.savedTemplateId;
-    if (templateId) {
-      this.props.applyTemplate(templateId);
-    }
   }
 
   public render() {
@@ -520,7 +507,6 @@ function mapStateToProps(state: State) {
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
     massEditRow: getMassEditRow(state),
-    savedTemplateId: getTemplateId(state),
     selectedBarcode: getSelectedBarcode(state),
     selectedJob: getSelectedJob(state),
     showUploadHint: getShowUploadHint(state),

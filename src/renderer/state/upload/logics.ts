@@ -60,7 +60,7 @@ import {
   getSelectedJob,
   getSelectedWellIds,
 } from "../selection/selectors";
-import { getLoggedInUser } from "../setting/selectors";
+import { getLoggedInUser, getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
@@ -68,6 +68,7 @@ import {
   HTTP_STATUS,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
+  ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependenciesWithAction,
@@ -81,6 +82,7 @@ import { batchActions, handleUploadProgress } from "../util";
 
 import {
   addUploadFiles,
+  applyTemplate,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
@@ -94,6 +96,7 @@ import {
   uploadFailed,
 } from "./actions";
 import {
+  ADD_UPLOAD_FILES,
   APPLY_TEMPLATE,
   ASSOCIATE_FILES_AND_WELLS,
   CANCEL_UPLOAD,
@@ -259,6 +262,25 @@ const applyTemplateLogic = createLogic({
     done();
   },
   type: APPLY_TEMPLATE,
+});
+
+const addUploadFilesLogic = createLogic({
+  process: (
+    { getState }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const selectedTemplate = getAppliedTemplate(getState())?.templateId;
+    const savedTemplate = getTemplateId(getState());
+    console.log(selectedTemplate, savedTemplate);
+    if (selectedTemplate) {
+      dispatch(applyTemplate(selectedTemplate));
+    } else if (savedTemplate) {
+      dispatch(applyTemplate(savedTemplate));
+    }
+    done();
+  },
+  type: ADD_UPLOAD_FILES,
 });
 
 const initiateUploadLogic = createLogic({
@@ -1208,6 +1230,7 @@ const updateAndRetryUploadLogic = createLogic({
 });
 
 export default [
+  addUploadFilesLogic,
   applyTemplateLogic,
   associateFilesAndWellsLogic,
   cancelUploadLogic,
