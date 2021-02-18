@@ -53,7 +53,6 @@ const TUTORIAL_ORDER = [
 export const getCurrentTutorialOrder = createSelector(
   [getTutorialStep],
   (current?: TutorialStep) => {
-    console.log(current);
     let next;
     let previous;
     const currentIndex = TUTORIAL_ORDER.findIndex((step) => step === current);
@@ -65,8 +64,6 @@ export const getCurrentTutorialOrder = createSelector(
         next = TUTORIAL_ORDER[currentIndex + 1];
       }
     }
-    const x = { previous, current, next };
-    console.log(x);
-    return x;
+    return { previous, current, next };
   }
 );
