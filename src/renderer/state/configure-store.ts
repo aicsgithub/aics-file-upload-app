@@ -12,6 +12,7 @@ import {
   applyMiddleware,
   combineReducers,
   createStore,
+  Middleware,
 } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
@@ -158,13 +159,23 @@ const storageWriter = () => (next: any) => (action: AnyAction) => {
   return next(action);
 };
 
-export default function createReduxStore(initialState?: State) {
+interface CreateReduxStoreParams {
+  initialState?: State;
+  middleware?: Middleware[];
+}
+
+export default function createReduxStore(params: CreateReduxStoreParams = {}) {
   const logicMiddleware = createLogicMiddleware(logics, reduxLogicDependencies);
-  const middleware = applyMiddleware(logicMiddleware, autoSaver, storageWriter);
+  const middleware = applyMiddleware(
+    logicMiddleware,
+    autoSaver,
+    storageWriter,
+    ...(params.middleware || [])
+  );
   const rootReducer = enableBatching<State>(combineReducers(reducers));
 
-  if (initialState) {
-    return createStore(rootReducer, initialState, middleware);
+  if (params.initialState) {
+    return createStore(rootReducer, params.initialState, middleware);
   }
 
   return createStore(rootReducer, middleware);
