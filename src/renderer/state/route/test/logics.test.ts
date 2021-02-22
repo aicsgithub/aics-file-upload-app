@@ -183,7 +183,7 @@ describe("Route logics", () => {
     return { actions, showMessageBoxStub, store };
   };
 
-  describe("closeUploadTabLogic", () => {
+  describe("resetUploadLogic", () => {
     it("goes to UploadSummary page given user clicks Save Upload Draft from dialog", async () => {
       const showSaveDialogStub = stub().resolves({
         cancelled: false,

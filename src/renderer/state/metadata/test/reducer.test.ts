@@ -1,9 +1,9 @@
 import { expect } from "chai";
 
 import {
-  closeUpload,
   openEditFileMetadataTab,
   openEditFileMetadataTabSucceeded,
+  resetUpload,
 } from "../../route/actions";
 import {
   mockState,
@@ -75,14 +75,14 @@ describe("metadata reducer", () => {
       expect(result.currentUploadFilePath).to.not.be.undefined;
     });
   });
-  describe("closeUpload", () => {
+  describe("resetUpload", () => {
     it("clears currentUploadFilePath", () => {
       const result = reducer(
         {
           ...initialState,
           currentUploadFilePath: filePath,
         },
-        closeUpload()
+        resetUpload()
       );
       expect(result.currentUpload).to.be.undefined;
     });
@@ -92,7 +92,7 @@ describe("metadata reducer", () => {
           ...initialState,
           originalUpload: {},
         },
-        closeUpload()
+        resetUpload()
       );
       expect(result.originalUpload).to.be.undefined;
     });
