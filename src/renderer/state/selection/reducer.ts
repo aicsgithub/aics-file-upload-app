@@ -4,10 +4,10 @@ import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
 import { RESET_HISTORY } from "../metadata/constants";
-import { CLOSE_UPLOAD, OPEN_EDIT_FILE_METADATA_TAB } from "../route/constants";
+import { OPEN_EDIT_FILE_METADATA_TAB, RESET_UPLOAD } from "../route/constants";
 import {
-  CloseUploadAction,
   OpenEditFileMetadataTabAction,
+  ResetUploadAction,
 } from "../route/types";
 import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
 import { AssociateByWorkflowAction } from "../setting/types";
@@ -162,9 +162,9 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       wells: getWells(replacementState),
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: (state: SelectionStateBranch) => ({
       ...state,
       ...uploadTabSelectionInitialState,

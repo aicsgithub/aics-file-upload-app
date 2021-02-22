@@ -7,8 +7,8 @@ import {
   WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
-import { CLOSE_UPLOAD } from "../route/constants";
-import { CloseUploadAction } from "../route/types";
+import { RESET_UPLOAD } from "../route/constants";
+import { ResetUploadAction } from "../route/types";
 import { SELECT_BARCODE } from "../selection/constants";
 import { SelectBarcodeAction } from "../selection/types";
 import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
@@ -252,9 +252,9 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       ...getUpload(replacementState),
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: () => ({}),
   },
   [SET_APPLIED_TEMPLATE]: {

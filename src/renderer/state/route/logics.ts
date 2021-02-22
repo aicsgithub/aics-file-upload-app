@@ -72,8 +72,16 @@ import { getUploadRowKey } from "../upload/constants";
 import { getCanSaveUploadDraft } from "../upload/selectors";
 import { batchActions } from "../util";
 
-import { openEditFileMetadataTabSucceeded, selectPage } from "./actions";
-import { CLOSE_UPLOAD, OPEN_EDIT_FILE_METADATA_TAB } from "./constants";
+import {
+  openEditFileMetadataTabSucceeded,
+  resetUpload,
+  selectPage,
+} from "./actions";
+import {
+  CLOSE_UPLOAD,
+  OPEN_EDIT_FILE_METADATA_TAB,
+  START_NEW_UPLOAD,
+} from "./constants";
 import { OpenEditFileMetadataTabAction } from "./types";
 
 // have to cast here because Electron's typings for MenuItem is incomplete
@@ -156,8 +164,8 @@ export const handleStartingNewUploadJob = (
   return actions;
 };
 
-const closeUploadLogic = createLogic({
-  type: CLOSE_UPLOAD,
+const resetUploadLogic = createLogic({
+  type: [CLOSE_UPLOAD, START_NEW_UPLOAD],
   validate: async (
     deps: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb,
@@ -187,6 +195,7 @@ const closeUploadLogic = createLogic({
       ...clearUploadDraft(),
       ...batchActions([
         ...resetHistoryActions,
+        resetUpload(),
         // If the action isn't after the resetHistoryActions then the side-effects
         // of this action may be reset - Sean M 02/08/21
         action,
@@ -450,4 +459,4 @@ const openEditFileMetadataTabLogic = createLogic({
   },
 });
 
-export default [closeUploadLogic, openEditFileMetadataTabLogic];
+export default [openEditFileMetadataTabLogic, resetUploadLogic];

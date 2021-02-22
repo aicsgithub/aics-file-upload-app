@@ -1,4 +1,4 @@
-import { Col, Empty, Radio, Row, Spin, Table } from "antd";
+import { Button, Col, Empty, Radio, Row, Spin, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
@@ -23,12 +23,14 @@ import {
   openEditFileMetadataTab,
   selectPage,
   selectView,
+  startNewUpload,
 } from "../../state/route/actions";
 import { getPage } from "../../state/route/selectors";
 import {
   OpenEditFileMetadataTabAction,
   SelectPageAction,
   SelectViewAction,
+  StartNewUploadAction,
 } from "../../state/route/types";
 import {
   AsyncRequest,
@@ -73,6 +75,7 @@ interface Props {
   selectPage: ActionCreator<SelectPageAction>;
   selectView: ActionCreator<SelectViewAction>;
   selectJobFilter: ActionCreator<SelectJobFilterAction>;
+  startNewUpload: ActionCreator<StartNewUploadAction>;
   upload: UploadStateBranch;
 }
 
@@ -175,6 +178,15 @@ class UploadSummary extends React.Component<Props, {}> {
                   ))}
                 </Radio.Group>
               </Col>
+              <Col>
+                <Button
+                  className={styles.createNewUploadButton}
+                  icon="plus"
+                  onClick={this.props.startNewUpload}
+                >
+                  Create New Upload
+                </Button>
+              </Col>
             </Row>
           </div>
           {jobs.length ? (
@@ -248,6 +260,7 @@ const dispatchToPropsMap = {
   selectJobFilter,
   selectPage,
   selectView,
+  startNewUpload,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);

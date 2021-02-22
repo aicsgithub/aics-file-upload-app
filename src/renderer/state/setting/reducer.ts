@@ -3,8 +3,8 @@ import { userInfo } from "os";
 import { AnyAction } from "redux";
 
 import { LIMS_HOST, LIMS_PORT, LIMS_PROTOCOL } from "../../../shared/constants";
-import { CLOSE_UPLOAD } from "../route/constants";
-import { CloseUploadAction } from "../route/types";
+import { RESET_UPLOAD } from "../route/constants";
+import { ResetUploadAction } from "../route/types";
 import { SET_PLATE } from "../selection/constants";
 import { SetPlateAction } from "../selection/types";
 import { SAVE_TEMPLATE_SUCCEEDED } from "../template/constants";
@@ -53,9 +53,9 @@ const actionToConfigMap: TypeToDescriptionMap<SettingStateBranch> = {
       ...action.payload,
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: (state: SettingStateBranch) => ({
       ...state,
       associateByWorkflow: false,

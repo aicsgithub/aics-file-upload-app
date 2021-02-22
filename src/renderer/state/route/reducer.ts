@@ -12,9 +12,19 @@ import {
 } from "../upload/types";
 import { makeReducer } from "../util";
 
-import { CLOSE_UPLOAD, SELECT_PAGE, SELECT_VIEW } from "./constants";
+import {
+  CLOSE_UPLOAD,
+  SELECT_PAGE,
+  SELECT_VIEW,
+  START_NEW_UPLOAD,
+} from "./constants";
 import { getPage } from "./selectors";
-import { CloseUploadAction, SelectPageAction, SelectViewAction } from "./types";
+import {
+  CloseUploadAction,
+  SelectPageAction,
+  SelectViewAction,
+  StartNewUploadAction,
+} from "./types";
 
 export const initialState: RouteStateBranch = {
   page: Page.UploadSummary,
@@ -45,6 +55,15 @@ const actionToConfigMap: TypeToDescriptionMap<RouteStateBranch> = {
       ...state,
       page: Page.UploadSummary,
       view: Page.UploadSummary,
+    }),
+  },
+  [START_NEW_UPLOAD]: {
+    accepts: (action: AnyAction): action is StartNewUploadAction =>
+      action.type === START_NEW_UPLOAD,
+    perform: (state: RouteStateBranch) => ({
+      ...state,
+      page: Page.AddCustomData,
+      view: Page.AddCustomData,
     }),
   },
   [INITIATE_UPLOAD_SUCCEEDED]: {

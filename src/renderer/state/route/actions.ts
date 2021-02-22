@@ -5,20 +5,36 @@ import {
   CLOSE_UPLOAD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  RESET_UPLOAD,
   SELECT_PAGE,
   SELECT_VIEW,
+  START_NEW_UPLOAD,
 } from "./constants";
 import {
   CloseUploadAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
+  ResetUploadAction,
   SelectPageAction,
   SelectViewAction,
+  StartNewUploadAction,
 } from "./types";
 
 export function closeUpload(): CloseUploadAction {
   return {
     type: CLOSE_UPLOAD,
+  };
+}
+
+export function startNewUpload(): StartNewUploadAction {
+  return {
+    type: START_NEW_UPLOAD,
+  };
+}
+
+export function resetUpload(): ResetUploadAction {
+  return {
+    type: RESET_UPLOAD,
   };
 }
 

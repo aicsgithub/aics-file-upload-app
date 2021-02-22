@@ -24,14 +24,14 @@ import {
   RequestMetadataAction,
 } from "../metadata/types";
 import {
-  CLOSE_UPLOAD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  RESET_UPLOAD,
 } from "../route/constants";
 import {
-  CloseUploadAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
+  ResetUploadAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
@@ -319,9 +319,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       deferredAction: undefined,
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       setMountPointNotificationVisible: false,
