@@ -5,13 +5,11 @@ import { createLogic } from "redux-logic";
 
 import {
   PREFERRED_TEMPLATE_ID,
-  SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
   USER_SETTINGS_KEY,
 } from "../../../shared/constants";
 import { LimsUrl } from "../../../shared/types";
 import { closeSetMountPointNotification, setAlert } from "../feedback/actions";
 import { getSetMountPointNotificationVisible } from "../feedback/selectors";
-import { requestMetadata } from "../metadata/actions";
 import {
   AlertType,
   ReduxLogicDoneCb,
@@ -23,13 +21,13 @@ import {
 import { batchActions } from "../util";
 
 import { updateSettings } from "./actions";
-import { GATHER_SETTINGS, SET_MOUNT_POINT, UPDATE_SETTINGS } from "./constants";
 import {
-  getLimsHost,
-  getLimsPort,
-  getLoggedInUser,
-  getMountPoint,
-} from "./selectors";
+  GATHER_SETTINGS,
+  OPEN_ENVIRONMENT_DIALOG,
+  SET_MOUNT_POINT,
+  UPDATE_SETTINGS,
+} from "./constants";
+import { getMountPoint } from "./selectors";
 
 export const updateSettingsLogic = createLogic({
   process: (
@@ -38,14 +36,7 @@ export const updateSettingsLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const state = getState();
-    const host = getLimsHost(state);
-    const port = getLimsPort(state);
-    const username = getLoggedInUser(state);
     const mountPoint = getMountPoint(state);
-
-    if (ctx.host !== host || ctx.port !== port || ctx.username !== username) {
-      dispatch(requestMetadata());
-    }
 
     if (mountPoint && mountPoint !== ctx.mountPoint) {
       dispatch(
@@ -67,10 +58,7 @@ export const updateSettingsLogic = createLogic({
     try {
       // payload is a partial of the Setting State branch so it could be undefined.
       if (action.payload) {
-        ctx.host = getLimsHost(getState());
-        ctx.port = getLimsPort(getState());
         ctx.mountPoint = getMountPoint(getState());
-        ctx.username = getLoggedInUser(getState());
 
         map(action.payload, (value: any, key: string) => {
           storage.set(`${USER_SETTINGS_KEY}.${key}`, value);
@@ -188,11 +176,11 @@ const setMountPointLogic = createLogic({
   type: SET_MOUNT_POINT,
 });
 
-const switchEnvironmentLogic = createLogic({
+const openEnvironmentDialogLogic = createLogic({
   process: async (
-    { dialog }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
+    { dialog, storage, remote }: ReduxLogicProcessDependencies,
+    dispatch,
+    done
   ) => {
     const { response: buttonIndex } = await dialog.showMessageBox({
       buttons: ["Cancel", "Local", "Staging", "Production"],
@@ -218,16 +206,31 @@ const switchEnvironmentLogic = createLogic({
           limsProtocol: "http",
         },
       };
-      dispatch(updateSettings(urlMap[buttonIndex]));
+      const env = urlMap[buttonIndex];
+      // Persist selected environment to user settings
+      try {
+        Object.entries(env).map(([key, value]) =>
+          storage.set(`${USER_SETTINGS_KEY}.${key}`, value)
+        );
+      } catch (e) {
+        dispatch(
+          setAlert({
+            message: "Failed to persist settings",
+            type: AlertType.WARN,
+          })
+        );
+      }
+      // Reload the app with the newly selected environment
+      remote.getCurrentWindow().reload();
     }
     done();
   },
-  type: SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
+  type: OPEN_ENVIRONMENT_DIALOG,
 });
 
 export default [
   gatherSettingsLogic,
   setMountPointLogic,
-  switchEnvironmentLogic,
+  openEnvironmentDialogLogic,
   updateSettingsLogic,
 ];

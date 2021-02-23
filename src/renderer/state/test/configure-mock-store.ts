@@ -65,6 +65,9 @@ export interface ReduxLogicDependencies {
   };
   mmsClient: SinonStubbedInstance<MMSClient>;
   readFile: SinonStub;
+  remote: {
+    getCurrentWindow: SinonStub;
+  };
   storage: SinonStubbedInstance<EnvironmentAwareStorage>;
   writeFile: SinonStub;
 }
@@ -116,6 +119,10 @@ export const ipcRenderer = {
   send: stub(),
 };
 
+export const remote = {
+  getCurrentWindow: stub(),
+};
+
 export const mockReduxLogicDeps: ReduxLogicDependencies = {
   dialog,
   fms,
@@ -128,6 +135,7 @@ export const mockReduxLogicDeps: ReduxLogicDependencies = {
   logger,
   mmsClient,
   readFile: stub().resolves("foo"),
+  remote,
   storage,
   writeFile: stub().resolves(),
 };

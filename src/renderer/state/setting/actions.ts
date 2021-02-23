@@ -1,11 +1,15 @@
-import { SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED } from "../../../shared/constants";
 import { SettingStateBranch } from "../types";
 
-import { GATHER_SETTINGS, SET_MOUNT_POINT, UPDATE_SETTINGS } from "./constants";
+import {
+  GATHER_SETTINGS,
+  OPEN_ENVIRONMENT_DIALOG,
+  SET_MOUNT_POINT,
+  UPDATE_SETTINGS,
+} from "./constants";
 import {
   GatherSettingsAction,
   SetMountPointAction,
-  SwitchEnvironmentAction,
+  OpenEnvironmentDialogAction,
   UpdateSettingsAction,
 } from "./types";
 
@@ -31,8 +35,8 @@ export function setMountPoint(): SetMountPointAction {
   };
 }
 
-export function switchEnvironment(): SwitchEnvironmentAction {
+export function openEnvironmentDialog(): OpenEnvironmentDialogAction {
   return {
-    type: SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED,
+    type: OPEN_ENVIRONMENT_DIALOG,
   };
 }

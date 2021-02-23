@@ -38,7 +38,7 @@ import { getPage } from "../../state/route/selectors";
 import {
   gatherSettings,
   setMountPoint,
-  switchEnvironment,
+  openEnvironmentDialog,
 } from "../../state/setting/actions";
 import { getLimsUrl, getLoggedInUser } from "../../state/setting/selectors";
 import { AlertType, AsyncRequest, Page } from "../../state/types";
@@ -131,7 +131,7 @@ export default function App() {
   // Event handlers for menu events
   useEffect(() => {
     ipcRenderer.on(SWITCH_ENVIRONMENT_MENU_ITEM_CLICKED, () =>
-      dispatch(switchEnvironment())
+      dispatch(openEnvironmentDialog())
     );
     ipcRenderer.on(SAVE_UPLOAD_DRAFT_MENU_ITEM_CLICKED, () =>
       dispatch(saveUploadDraft(true))

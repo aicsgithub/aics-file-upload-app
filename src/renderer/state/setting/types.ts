@@ -14,6 +14,6 @@ export interface SetMountPointAction {
   type: string;
 }
 
-export interface SwitchEnvironmentAction {
+export interface OpenEnvironmentDialogAction {
   type: string;
 }

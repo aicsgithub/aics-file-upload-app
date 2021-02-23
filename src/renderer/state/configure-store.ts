@@ -25,7 +25,7 @@ import { FSSClient } from "../services/aicsfiles/helpers/fss-client";
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";
 import { getCurrentUploadFilePath } from "./metadata/selectors";
-import { AlertType, State } from "./types";
+import { AlertType, ReduxLogicExtraDependencies, State } from "./types";
 
 import {
   enableBatching,
@@ -82,7 +82,7 @@ const useCache = Boolean(process.env.ELECTRON_WEBPACK_USE_CACHE) || false;
 const jssClient = new JobStatusClient(httpClient, storage, useCache, "debug");
 const mmsClient = new MMSClient(httpClient, storage, useCache);
 const labkeyClient = new LabkeyClient(httpClient, storage, useCache);
-export const reduxLogicDependencies = {
+export const reduxLogicDependencies: ReduxLogicExtraDependencies = {
   dialog: remote.dialog,
   fms: new FileManagementSystem({
     fs: defaultFs,
@@ -104,6 +104,7 @@ export const reduxLogicDependencies = {
   logger: Logger,
   mmsClient,
   readFile,
+  remote,
   storage,
   writeFile,
 };
