@@ -4,6 +4,7 @@ import {
   Menu,
   MessageBoxOptions,
   OpenDialogOptions,
+  Remote,
 } from "electron";
 import { AnyAction } from "redux";
 import { CreateLogic } from "redux-logic/definitions/logic";
@@ -83,6 +84,7 @@ export interface ReduxLogicExtraDependencies {
   logger: Logger;
   mmsClient: MMSClient;
   readFile: (filePath: string, encoding?: string) => Promise<string | Buffer>;
+  remote: Remote;
   storage: LocalStorage;
   writeFile: (filePath: string, content: string | Buffer) => Promise<void>;
 }

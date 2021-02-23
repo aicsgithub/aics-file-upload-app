@@ -1,9 +1,16 @@
 import { expect } from "chai";
 import { Store } from "redux";
-import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
+import {
+  createStubInstance,
+  SinonStubbedInstance,
+  stub,
+  replace,
+  restore,
+} from "sinon";
 
 import { LabkeyClient } from "../../../services";
 import EnvironmentAwareStorage from "../../EnvironmentAwareStorage";
+import { setAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { requestMetadata } from "../../metadata/actions";
 import {
@@ -11,9 +18,13 @@ import {
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import { mockState } from "../../test/mocks";
-import { SettingStateBranch } from "../../types";
-import { gatherSettings, updateSettings } from "../actions";
-import settingsLogics, { updateSettingsLogic } from "../logics";
+import { AlertType } from "../../types";
+import {
+  gatherSettings,
+  openEnvironmentDialog,
+  updateSettings,
+} from "../actions";
+import { updateSettingsLogic } from "../logics";
 import {
   getLimsHost,
   getShowTemplateHint,
@@ -24,7 +35,6 @@ import {
 describe("Setting logics", () => {
   const localhost = "localhost";
   const stagingHost = "staging";
-  const sandbox = createSandbox();
   let labkeyClient: SinonStubbedInstance<LabkeyClient>;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
 
@@ -32,13 +42,13 @@ describe("Setting logics", () => {
     labkeyClient = createStubInstance(LabkeyClient);
     storage = createStubInstance(EnvironmentAwareStorage);
     // Stub `get` specifically, since it is a class property and not on the prototype
-    storage.get = sandbox.stub();
-    sandbox.replace(mockReduxLogicDeps, "storage", storage);
-    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
+    storage.get = stub();
+    replace(mockReduxLogicDeps, "storage", storage);
+    replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
   });
 
   afterEach(() => {
-    sandbox.restore();
+    restore();
   });
 
   describe("updateSettingsLogic", () => {
@@ -97,32 +107,6 @@ describe("Setting logics", () => {
       expect(getShowTemplateHint(store.getState())).to.be.false;
     });
 
-    const testActionsDispatched = async (
-      updateSettingsParam: Partial<SettingStateBranch>
-    ) => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        undefined,
-        settingsLogics
-      );
-      expect(actions.includesMatch(requestMetadata())).to.be.false;
-      store.dispatch(updateSettings(updateSettingsParam));
-      await logicMiddleware.whenComplete();
-      expect(actions.includesMatch(requestMetadata())).to.be.true;
-    };
-
-    it("requests metadata again if host changes", async () => {
-      await testActionsDispatched({ limsHost: "foo" });
-    });
-
-    it("requests metadata again if port changes", async () => {
-      await testActionsDispatched({ limsPort: "500" });
-    });
-
-    it("requests metadata again if username changes", async () => {
-      await testActionsDispatched({ username: "bar" });
-    });
-
     it("Doesn't retrieve metadata if neither host or port changed", () => {
       const { actions } = createMockReduxStore(mockState, undefined, [
         updateSettingsLogic,
@@ -146,6 +130,85 @@ describe("Setting logics", () => {
       // after
       expect(getLimsHost(store.getState())).to.equal(stagingHost);
       expect(getAlert(store.getState())).to.not.be.undefined;
+    });
+  });
+
+  describe("openEnvironmentDialogLogic", () => {
+    it("updates settings in storage and reloads the app", async () => {
+      // Arrange
+      const dialogMock = {
+        showMessageBox: stub().resolves({ response: 1 }),
+        showOpenDialog: stub(),
+        showSaveDialog: stub(),
+      };
+
+      const storageMock = createStubInstance(EnvironmentAwareStorage);
+
+      const reloadStub = stub();
+      const remoteMock = {
+        getCurrentWindow: stub().returns({ reload: reloadStub }),
+      };
+
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        undefined,
+        {
+          ...mockReduxLogicDeps,
+          dialog: dialogMock,
+          remote: remoteMock,
+          storage: storageMock,
+        }
+      );
+
+      // Act
+      store.dispatch(openEnvironmentDialog());
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(dialogMock.showMessageBox).to.have.been.calledOnce;
+      // `set` will be called once for each key of the LIMS URL settings
+      expect(storageMock.set).to.have.been.calledThrice;
+      expect(reloadStub).to.have.been.calledOnce;
+      expect(actions.list).to.deep.equal([openEnvironmentDialog()]);
+    });
+
+    it("encounters an error when persisting user settings", async () => {
+      // Arrange
+      const dialogMock = {
+        showMessageBox: stub().resolves({ response: 1 }),
+        showOpenDialog: stub(),
+        showSaveDialog: stub(),
+      };
+
+      const storageMock = createStubInstance(EnvironmentAwareStorage);
+      storageMock.set.throws(new Error("Problem persisting settings!"));
+
+      const reloadStub = stub();
+      const remoteMock = {
+        getCurrentWindow: stub().returns({ reload: reloadStub }),
+      };
+
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        undefined,
+        {
+          ...mockReduxLogicDeps,
+          dialog: dialogMock,
+          remote: remoteMock,
+          storage: storageMock,
+        }
+      );
+
+      // Act
+      store.dispatch(openEnvironmentDialog());
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(actions.list).to.deep.equal([
+        openEnvironmentDialog(),
+        setAlert({
+          message: "Failed to persist settings",
+          type: AlertType.WARN,
+        }),
+      ]);
     });
   });
 
