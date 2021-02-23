@@ -1,10 +1,5 @@
 import { SettingStateBranch } from "../types";
 
-export interface AssociateByWorkflowAction {
-  payload: boolean;
-  type: string;
-}
-
 export interface UpdateSettingsAction {
   payload: Partial<SettingStateBranch>;
   type: string;

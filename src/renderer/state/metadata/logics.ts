@@ -84,7 +84,6 @@ const requestMetadataLogic = createLogic({
           labkeyClient.getImagingSessions(),
           labkeyClient.getLookups(),
           labkeyClient.getUnits(),
-          labkeyClient.getWorkflows(),
         ]);
       const [
         annotationLookups,
@@ -94,7 +93,6 @@ const requestMetadataLogic = createLogic({
         imagingSessions,
         lookups,
         units,
-        workflowOptions,
       ] = await getWithRetry(request, dispatch);
       dispatch(
         receiveMetadata({
@@ -105,7 +103,6 @@ const requestMetadataLogic = createLogic({
           imagingSessions,
           lookups,
           units,
-          workflowOptions,
         })
       );
     } catch (e) {

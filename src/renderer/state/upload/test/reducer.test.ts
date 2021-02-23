@@ -1,9 +1,6 @@
 import { expect } from "chai";
 
-import {
-  WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
-} from "../../../constants";
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { closeUpload } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import { UploadStateBranch } from "../../types";
@@ -24,7 +21,6 @@ describe("upload reducer", () => {
         barcode: "1235",
         file: "/path2",
         [WELL_ANNOTATION_NAME]: [1, 2],
-        [WORKFLOW_ANNOTATION_NAME]: ["workflow 1", "workflow 2"],
       },
     };
   });

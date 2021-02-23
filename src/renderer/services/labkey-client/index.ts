@@ -27,10 +27,8 @@ import {
   LabkeyResponse,
   LabkeyTemplate,
   LabkeyUnit,
-  LabKeyWorkflow,
   Lookup,
   Unit,
-  Workflow,
 } from "./types";
 
 const LK_FILEMETADATA_SCHEMA = "filemetadata";
@@ -68,7 +66,6 @@ export default class LabkeyClient extends HttpCacheClient {
     this.getTemplates = this.getTemplates.bind(this);
     this.getUnits = this.getUnits.bind(this);
     this.getColumnValues = this.getColumnValues.bind(this);
-    this.getWorkflows = this.getWorkflows.bind(this);
     this.getChannels = this.getChannels.bind(this);
     this.getTemplateHasBeenUsed = this.getTemplateHasBeenUsed.bind(this);
     this.getPlateBarcodeAndAllImagingSessionIdsFromWellId = this.getPlateBarcodeAndAllImagingSessionIdsFromWellId.bind(
@@ -306,22 +303,6 @@ export default class LabkeyClient extends HttpCacheClient {
     // labkey casing may be different than what is saved in the Lookup table
     columnName = response.columnModel[0].dataIndex;
     return response.rows.map((columnValue: any) => columnValue[columnName]);
-  }
-
-  /**
-   * Retrieves all workflows
-   */
-  public async getWorkflows(): Promise<Workflow[]> {
-    const query = LabkeyClient.getSelectRowsURL(
-      LK_MICROSCOPY_SCHEMA,
-      "Workflow"
-    );
-    const response = await this.get(query);
-    return response.rows.map((workflow: LabKeyWorkflow) => ({
-      description: workflow.Description,
-      name: workflow.Name,
-      workflowId: workflow.WorkflowId,
-    }));
   }
 
   public async getChannels(): Promise<Channel[]> {

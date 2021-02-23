@@ -43,6 +43,11 @@ export interface SelectBarcodeAction extends AutoSaveAction {
   type: string;
 }
 
+export interface SetHasNoPlateToUploadAction {
+  payload: boolean;
+  type: string;
+}
+
 export interface SetPlateAction extends AutoSaveAction {
   payload: {
     imagingSessionIds: Array<number | null>;

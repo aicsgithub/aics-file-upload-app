@@ -30,7 +30,6 @@ import {
   MINUTE_AS_MS,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
   UploadMetadata as AicsFilesUploadMetadata,
@@ -60,7 +59,6 @@ import {
   getSelectedJob,
   getWellIdToWellMap,
 } from "../selection/selectors";
-import { getAssociateByWorkflow } from "../setting/selectors";
 import { getCompleteAppliedTemplate } from "../template/selectors";
 import {
   TemplateAnnotationWithTypeName,
@@ -194,7 +192,6 @@ const convertToUploadJobRow = (
   numberSiblings: number,
   siblingIndex: number,
   treeDepth: number,
-  template?: TemplateWithTypeNames,
   hasSubRows = false,
   channelIds: string[] = [],
   positionIndexes: number[] = [],
@@ -222,7 +219,6 @@ const convertToUploadJobRow = (
     subImageNames,
     treeDepth,
     wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
-    [WORKFLOW_ANNOTATION_NAME]: metadata[WORKFLOW_ANNOTATION_NAME] || [],
   };
 };
 
@@ -242,7 +238,6 @@ const getFileToMetadataMap = createSelector(
 
 const getChannelOnlyRows = (
   allMetadataForFile: UploadMetadataWithDisplayFields[],
-  template?: TemplateWithTypeNames,
   treeDepth = 1
 ) => {
   const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
@@ -253,8 +248,7 @@ const getChannelOnlyRows = (
         c,
         channelMetadata.length + subImageOnlyRows.length,
         siblingIndex,
-        treeDepth,
-        template
+        treeDepth
       )
   );
 };
@@ -262,8 +256,7 @@ const getChannelOnlyRows = (
 const getSubImageChannelRows = (
   allMetadataForSubImage: UploadMetadataWithDisplayFields[],
   treeDepth: number,
-  subImageParentMetadata?: UploadMetadataWithDisplayFields,
-  template?: TemplateWithTypeNames
+  subImageParentMetadata?: UploadMetadataWithDisplayFields
 ) => {
   const sceneChannelMetadata = subImageParentMetadata
     ? without(allMetadataForSubImage, subImageParentMetadata)
@@ -274,8 +267,7 @@ const getSubImageChannelRows = (
         u,
         sceneChannelMetadata.length,
         sceneChannelSiblingIndex,
-        treeDepth,
-        template
+        treeDepth
       )
   );
 };
@@ -284,9 +276,7 @@ const getSubImageRows = (
   allMetadataForFile: UploadMetadataWithDisplayFields[],
   numberChannelOnlyRows: number,
   expandedRows: ExpandedRows,
-  file: string,
-  subImageRowTreeDepth: number,
-  template?: TemplateWithTypeNames
+  subImageRowTreeDepth: number
 ) => {
   const subImageRows: UploadJobTableRow[] = [];
   const subImageMetadata = allMetadataForFile.filter(isSubImageRow);
@@ -313,7 +303,6 @@ const getSubImageRows = (
           numberSiblingsUnderFile,
           index + numberChannelOnlyRows,
           subImageRowTreeDepth,
-          template,
           allMetadataForSubImage.length > 1
         );
         subImageRows.push(subImageRow);
@@ -322,8 +311,7 @@ const getSubImageRows = (
             ...getSubImageChannelRows(
               allMetadataForSubImage,
               subImageRowTreeDepth + 1,
-              subImageOnlyMetadata,
-              template
+              subImageOnlyMetadata
             )
           );
         }
@@ -332,8 +320,7 @@ const getSubImageRows = (
           ...getSubImageChannelRows(
             allMetadataForSubImage,
             subImageRowTreeDepth,
-            subImageOnlyMetadata,
-            template
+            subImageOnlyMetadata
           )
         );
       }
@@ -345,19 +332,12 @@ const getSubImageRows = (
 
 // maps uploadMetadata to shape of data needed by react-data-grid including information about how to display subrows
 export const getUploadSummaryRows = createSelector(
-  [
-    getUploadWithCalculatedData,
-    getExpandedUploadJobRows,
-    getFileToMetadataMap,
-    getCompleteAppliedTemplate,
-  ],
+  [getExpandedUploadJobRows, getFileToMetadataMap, getCompleteAppliedTemplate],
   (
-    uploads: DisplayUploadStateBranch,
     expandedRows: ExpandedRows,
     metadataGroupedByFile: {
       [file: string]: UploadMetadataWithDisplayFields[];
-    },
-    template?: TemplateWithTypeNames
+    }
   ): UploadJobTableRow[] => {
     // contains only rows that are visible (i.e. rows whose parents are expanded)
     const visibleRows: UploadJobTableRow[] = [];
@@ -370,18 +350,12 @@ export const getUploadSummaryRows = createSelector(
         fileSiblingIndex++;
         const fileMetadata = allMetadataForFile.find(isFileRow);
         const treeDepth = fileMetadata ? 1 : 0;
-        const channelRows = getChannelOnlyRows(
-          allMetadataForFile,
-          template,
-          treeDepth
-        );
+        const channelRows = getChannelOnlyRows(allMetadataForFile, treeDepth);
         const subImageRows = getSubImageRows(
           allMetadataForFile,
           channelRows.length,
           expandedRows,
-          file,
-          treeDepth,
-          template
+          treeDepth
         );
 
         if (fileMetadata) {
@@ -418,7 +392,6 @@ export const getUploadSummaryRows = createSelector(
             keys(metadataGroupedByFile).length,
             fileSiblingIndex,
             0,
-            template,
             hasSubRows,
             allChannelIds,
             allPositionIndexes,
@@ -631,7 +604,8 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
 /**
  * This selector validates that a template has been selected, there are uploads,
  * and enforces that each file in an upload batch:
- *    - have either a well id defined OR a workflow
+ *    - have a well id defined if user has not explicitly noted
+ *      that they do not have a plate
  *    - have values for all annotations required by template
  *    - have values for annotations that match the expected type
  */
@@ -641,81 +615,65 @@ export const getUploadValidationErrors = createSelector(
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
-    getSelectedJob,
     getSelectedBarcode,
-    getAssociateByWorkflow,
   ],
   (
     rows: UploadJobTableRow[],
     fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } },
     validationErrorsMap: { [key: string]: { [annotation: string]: string } },
     template?: TemplateWithTypeNames,
-    selectedJob?: JSSJob,
-    selectedBarcode?: string,
-    isAssociatedByWorkflow?: boolean
+    selectedBarcode?: string
   ): string[] => {
-    const shouldHaveWells = Boolean(selectedBarcode);
-    const shouldHaveWorkflows = isAssociatedByWorkflow;
-    const errors: string[] = [];
     if (!template) {
-      errors.push("A template must be selected to submit an upload");
-    } else {
-      if (!shouldHaveWells && !shouldHaveWorkflows) {
-        errors.push("An upload type must be selected to submit an upload");
-      }
-      // Iterate over each row value adding an error for each value with a non-ASCII character
-      rows.forEach((row) => {
-        Object.entries(row).forEach(([rowKey, rowValue]) => {
-          const rowValues = isArray(rowValue) ? rowValue : [rowValue];
-          rowValues.forEach((individualRowValue) => {
-            // Checks if the value has any non-ASCII characters
-            if (
-              typeof individualRowValue === "string" &&
-              /[^\0-\x7F]/.exec(individualRowValue)
-            ) {
-              errors.push(
-                `Annotations cannot have special characters like in "${individualRowValue}" for ${rowKey}`
-              );
-            }
-          });
+      return [];
+    }
+    const errors: string[] = [];
+    const shouldHaveWells = Boolean(selectedBarcode);
+    // Iterate over each row value adding an error for each value with a non-ASCII character
+    rows.forEach((row) => {
+      Object.entries(row).forEach(([rowKey, rowValue]) => {
+        const rowValues = isArray(rowValue) ? rowValue : [rowValue];
+        rowValues.forEach((individualRowValue) => {
+          // Checks if the value has any non-ASCII characters
+          if (
+            typeof individualRowValue === "string" &&
+            /[^\0-\x7F]/.exec(individualRowValue)
+          ) {
+            errors.push(
+              `Annotations cannot have special characters like in "${individualRowValue}" for ${rowKey}`
+            );
+          }
         });
       });
-      const requiredAnnotations = template.annotations
-        .filter((a) => a.required)
-        .map((a) => a.name);
-      forEach(
-        fileToAnnotationHasValueMap,
-        (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
-          const fileName = basename(file);
-          const requiredAnnotationsThatDontHaveValues = keys(
-            pickBy(
-              annotationHasValueMap,
-              (hasValue: boolean, annotationName: string) =>
-                !hasValue && requiredAnnotations.includes(annotationName)
-            )
-          );
-          if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
-            requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);
-          } else if (
-            !annotationHasValueMap[WORKFLOW_ANNOTATION_NAME] &&
-            shouldHaveWorkflows
-          ) {
-            requiredAnnotationsThatDontHaveValues.push(
-              WORKFLOW_ANNOTATION_NAME
-            );
-          }
-
-          if (requiredAnnotationsThatDontHaveValues.length) {
-            const requiredAnnotationsMissingNames = requiredAnnotationsThatDontHaveValues.join(
-              ", "
-            );
-            errors.push(
-              `"${fileName}" is missing the following required annotations: ${requiredAnnotationsMissingNames}`
-            );
-          }
+    });
+    const requiredAnnotations = template.annotations
+      .filter((a) => a.required)
+      .map((a) => a.name);
+    forEach(
+      fileToAnnotationHasValueMap,
+      (annotationHasValueMap: { [key: string]: boolean }, file: string) => {
+        const fileName = basename(file);
+        const requiredAnnotationsThatDontHaveValues = keys(
+          pickBy(
+            annotationHasValueMap,
+            (hasValue: boolean, annotationName: string) =>
+              !hasValue && requiredAnnotations.includes(annotationName)
+          )
+        );
+        if (!annotationHasValueMap[WELL_ANNOTATION_NAME] && shouldHaveWells) {
+          requiredAnnotationsThatDontHaveValues.push(WELL_ANNOTATION_NAME);
         }
-      );
-    }
+
+        if (requiredAnnotationsThatDontHaveValues.length) {
+          const requiredAnnotationsMissingNames = requiredAnnotationsThatDontHaveValues.join(
+            ", "
+          );
+          errors.push(
+            `"${fileName}" is missing the following required annotations: ${requiredAnnotationsMissingNames}`
+          );
+        }
+      }
+    );
 
     if (keys(validationErrorsMap).length) {
       errors.push(
@@ -823,13 +781,10 @@ export const getUploadPayload = createSelector(
       metadataGroupedByFile,
       (metadata: UploadMetadata[], fullPath: string) => {
         // to support the current way of storing metadata in bob the blob, we continue to include
-        // wellIds and workflows in the microscopy block. Since a file may have 1 or more scenes and channels
+        // wellIds in the microscopy block. Since a file may have 1 or more scenes and channels
         // per file, we set these values to a uniq list of all of the values found across each "dimension"
         const wellIds = uniq(
           flatMap(metadata, (m) => m[WELL_ANNOTATION_NAME] || [])
-        ).filter((w) => !!w);
-        const workflows = uniq(
-          flatMap(metadata, (m) => m[WORKFLOW_ANNOTATION_NAME] || [])
         ).filter((w) => !!w);
         const fileKey = metadata[0]?.fileId || fullPath;
         result = {
@@ -851,7 +806,6 @@ export const getUploadPayload = createSelector(
             },
             microscopy: {
               ...(wellIds.length && { wellIds }),
-              ...(workflows.length && { workflows }),
             },
           },
         };
