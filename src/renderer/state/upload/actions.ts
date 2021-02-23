@@ -3,7 +3,6 @@ import {
   TEMP_UPLOAD_STORAGE_KEY,
 } from "../../../shared/constants";
 import { JSSJobStatus } from "../../services/job-status-client/types";
-import { Workflow } from "../../services/labkey-client/types";
 import {
   State,
   UploadMetadata,
@@ -14,7 +13,6 @@ import {
 import {
   APPLY_TEMPLATE,
   ASSOCIATE_FILES_AND_WELLS,
-  ASSOCIATE_FILES_AND_WORKFLOWS,
   CANCEL_UPLOAD,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
@@ -48,7 +46,6 @@ import {
   AddUploadFilesAction,
   ApplyTemplateAction,
   AssociateFilesAndWellsAction,
-  AssociateFilesAndWorkflowsAction,
   CancelUploadAction,
   CancelUploadFailedAction,
   CancelUploadSucceededAction,
@@ -117,20 +114,6 @@ export function undoFileWellAssociation(
       wellIds, // if empty, this gets populated with the wells that are selected in logics
     },
     type: UNDO_FILE_WELL_ASSOCIATION,
-  };
-}
-
-export function associateFilesAndWorkflows(
-  fullPaths: string[],
-  workflows: Workflow[]
-): AssociateFilesAndWorkflowsAction {
-  return {
-    autoSave: true,
-    payload: {
-      fullPaths,
-      workflows,
-    },
-    type: ASSOCIATE_FILES_AND_WORKFLOWS,
   };
 }
 

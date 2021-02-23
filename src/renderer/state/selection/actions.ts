@@ -16,6 +16,7 @@ import {
   SELECT_BARCODE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_WELLS,
+  SET_HAS_NO_PLATE_TO_UPLOAD,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
@@ -28,6 +29,7 @@ import {
   SelectBarcodeAction,
   SelectImagingSessionIdAction,
   SelectWellsAction,
+  SetHasNoPlateToUploadAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -61,6 +63,15 @@ export function selectBarcode(
     autoSave: true,
     payload: { barcode, imagingSessionIds },
     type: SELECT_BARCODE,
+  };
+}
+
+export function setHasNoPlateToUpload(
+  hasNoPlateToUpload: boolean
+): SetHasNoPlateToUploadAction {
+  return {
+    payload: hasNoPlateToUpload,
+    type: SET_HAS_NO_PLATE_TO_UPLOAD,
   };
 }
 

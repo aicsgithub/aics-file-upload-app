@@ -21,6 +21,8 @@ import {
 import { Well } from "./types";
 
 // BASIC SELECTORS
+export const getHasNoPlateToUpload = (state: State) =>
+  state.selection.present.hasNoPlateToUpload;
 export const getSelectedBarcode = (state: State) =>
   state.selection.present.barcode;
 export const getSelectedPlates = (state: State) =>

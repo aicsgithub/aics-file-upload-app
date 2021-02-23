@@ -11,11 +11,7 @@ import {
   SCHEMA_SYNONYM,
 } from "../../../shared/constants";
 import FormControl from "../../components/FormControl";
-import {
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
-} from "../../constants";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { Annotation } from "../../services/labkey-client/types";
 import { closeModal } from "../../state/feedback/actions";
 import {
@@ -202,11 +198,7 @@ class TemplateEditorModal extends React.Component<
     } = this.state;
     const appliedAnnotationNames = template.annotations
       .map((a) => a.name)
-      .concat(
-        WORKFLOW_ANNOTATION_NAME,
-        WELL_ANNOTATION_NAME,
-        NOTES_ANNOTATION_NAME
-      );
+      .concat(WELL_ANNOTATION_NAME, NOTES_ANNOTATION_NAME);
     const filteredAnnotations = allAnnotations.filter(
       (a) => !includes(appliedAnnotationNames, a.name)
     );

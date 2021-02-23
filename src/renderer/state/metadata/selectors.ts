@@ -1,11 +1,7 @@
 import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
-import {
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
-} from "../../constants";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import {
   Annotation,
   AnnotationOption,
@@ -36,8 +32,6 @@ export const getSelectionHistory = (state: State) =>
 export const getTemplateHistory = (state: State) =>
   state.metadata.history.template;
 export const getUploadHistory = (state: State) => state.metadata.history.upload;
-export const getWorkflowOptions = (state: State) =>
-  state.metadata.workflowOptions;
 export const getBarcodeSearchResults = (state: State) =>
   state.metadata.barcodeSearchResults;
 export const getTemplates = (state: State) => state.metadata.templates;
@@ -118,7 +112,6 @@ const getAnnotation = (annotationName: string) =>
 
 export const getNotesAnnotation = getAnnotation(NOTES_ANNOTATION_NAME);
 export const getWellAnnotation = getAnnotation(WELL_ANNOTATION_NAME);
-export const getWorkflowAnnotation = getAnnotation(WORKFLOW_ANNOTATION_NAME);
 
 export const getAnnotationsWithAnnotationOptions = createSelector(
   [getAnnotations, getAnnotationOptions],

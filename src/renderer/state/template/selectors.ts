@@ -13,7 +13,6 @@ import {
   getNotesAnnotation,
   getTemplates,
   getWellAnnotation,
-  getWorkflowAnnotation,
 } from "../metadata/selectors";
 import { AnnotationDraft, State, TemplateDraft } from "../types";
 
@@ -167,20 +166,18 @@ export const getSaveTemplateRequest = createSelector(
   }
 );
 
-// includes annotation info for required fields - well, workflow
+// includes annotation info for required fields - well
 // and fills out annotation type name
 export const getCompleteAppliedTemplate = createSelector(
   [
     getNotesAnnotation,
     getWellAnnotation,
-    getWorkflowAnnotation,
     getAppliedTemplate,
     getAnnotationTypes,
   ],
   (
     notes?: Annotation,
     well?: Annotation,
-    workflow?: Annotation,
     appliedTemplate?: Template,
     annotationTypes?: AnnotationType[]
   ): TemplateWithTypeNames | undefined => {
@@ -188,8 +185,8 @@ export const getCompleteAppliedTemplate = createSelector(
       return undefined;
     }
 
-    if (!well || !workflow || !notes) {
-      throw new Error("Could not get well, workflow, or notes annotation");
+    if (!well || !notes) {
+      throw new Error("Could not get well or notes annotation");
     }
 
     if (!annotationTypes) {
@@ -215,11 +212,6 @@ export const getCompleteAppliedTemplate = createSelector(
         }),
         {
           ...well,
-          required: false,
-          type: ColumnType.LOOKUP,
-        },
-        {
-          ...workflow,
           required: false,
           type: ColumnType.LOOKUP,
         },

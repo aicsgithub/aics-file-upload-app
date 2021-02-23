@@ -40,9 +40,9 @@ import {
   clearSelectionHistory,
   jumpToPastSelection,
   selectBarcode,
+  setHasNoPlateToUpload,
   setPlate,
 } from "../selection/actions";
-import { associateByWorkflow } from "../setting/actions";
 import { getMountPoint } from "../setting/selectors";
 import {
   clearTemplateHistory,
@@ -360,7 +360,7 @@ const openEditFileMetadataTabLogic = createLogic({
           return;
         }
       } else {
-        actions.push(associateByWorkflow(true));
+        actions.push(setHasNoPlateToUpload(true));
       }
 
       // Currently we only allow applying one template at a time

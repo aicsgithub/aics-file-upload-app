@@ -9,8 +9,6 @@ import {
   OpenEditFileMetadataTabAction,
   ResetUploadAction,
 } from "../route/types";
-import { ASSOCIATE_BY_WORKFLOW } from "../setting/constants";
-import { AssociateByWorkflowAction } from "../setting/types";
 import {
   SelectionStateBranch,
   TypeToDescriptionMap,
@@ -27,12 +25,14 @@ import {
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
   SELECT_WELLS,
+  SET_HAS_NO_PLATE_TO_UPLOAD,
   SET_PLATE,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
 import {
   getExpandedUploadJobRows,
+  getHasNoPlateToUpload,
   getSelectedBarcode,
   getSelectedImagingSessionId,
   getSelectedImagingSessionIds,
@@ -44,6 +44,7 @@ import {
   SelectImagingSessionIdAction,
   SelectMetadataAction,
   SelectWellsAction,
+  SetHasNoPlateToUploadAction,
   SetPlateAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -54,6 +55,7 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
   expandedUploadJobRows: {},
   imagingSessionId: undefined,
   imagingSessionIds: [],
+  hasNoPlateToUpload: false,
   job: undefined,
   plate: {},
   selectedWells: [],
@@ -67,14 +69,18 @@ export const initialState: SelectionStateBranch = {
 };
 
 const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
-  [ASSOCIATE_BY_WORKFLOW]: {
-    accepts: (action: AnyAction): action is AssociateByWorkflowAction =>
-      action.type === ASSOCIATE_BY_WORKFLOW,
-    perform: (state: SelectionStateBranch) => ({
+  [SET_HAS_NO_PLATE_TO_UPLOAD]: {
+    accepts: (action: AnyAction): action is SetHasNoPlateToUploadAction =>
+      action.type === SET_HAS_NO_PLATE_TO_UPLOAD,
+    perform: (
+      state: SelectionStateBranch,
+      action: SetHasNoPlateToUploadAction
+    ) => ({
       ...state,
       barcode: undefined,
       imagingSessionId: undefined,
       imagingSessionIds: [],
+      hasNoPlateToUpload: action.payload,
       plate: {},
       selectedWells: [],
       wells: {},
@@ -96,6 +102,7 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       { payload: { imagingSessionIds, plate, wells } }: SetPlateAction
     ) => ({
       ...state,
+      hasNoPlateToUpload: false,
       imagingSessionId: imagingSessionIds[0] ?? undefined,
       imagingSessionIds,
       plate,
@@ -158,6 +165,7 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       expandedUploadJobRows: getExpandedUploadJobRows(replacementState),
       imagingSessionId: getSelectedImagingSessionId(replacementState),
       imagingSessionIds: getSelectedImagingSessionIds(replacementState),
+      hasNoPlateToUpload: getHasNoPlateToUpload(replacementState),
       plate: getSelectedPlates(replacementState),
       wells: getWells(replacementState),
     }),

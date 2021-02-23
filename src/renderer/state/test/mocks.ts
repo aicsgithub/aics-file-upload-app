@@ -1,10 +1,6 @@
 import { StateWithHistory } from "redux-undo";
 
-import {
-  NOTES_ANNOTATION_NAME,
-  WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
-} from "../../constants";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
 import {
   AddMetadataServiceFields,
@@ -21,7 +17,6 @@ import {
   LabkeyChannel,
   Lookup,
   Unit,
-  Workflow,
   ImagingSession,
   BarcodePrefix,
 } from "../../services/labkey-client/types";
@@ -93,15 +88,6 @@ export const mockWellAnnotation: Annotation = {
   name: WELL_ANNOTATION_NAME,
 };
 
-export const mockWorkflowAnnotation: Annotation = {
-  ...mockAuditInfo,
-  annotationId: 4,
-  annotationTypeId: 6,
-  description: "Workflow associated with this file",
-  exposeToFileUploadApp: true,
-  name: WORKFLOW_ANNOTATION_NAME,
-};
-
 export const mockNotesAnnotation: Annotation = {
   ...mockAuditInfo,
   annotationId: 3,
@@ -152,7 +138,6 @@ export const mockAnnotations = [
   mockFavoriteColorAnnotation,
   mockIntervalAnnotation,
   mockWellAnnotation,
-  mockWorkflowAnnotation,
   mockNotesAnnotation,
   mockUnusableStructureAnnotation,
 ];
@@ -225,6 +210,7 @@ export const mockSelection: SelectionStateBranch = {
   expandedUploadJobRows: {},
   imagingSessionId: undefined,
   imagingSessionIds: [null, 1],
+  hasNoPlateToUpload: false,
   plate: mockPlate,
   massEditRow: { massEditNumberOfFiles: 0 },
   selectedWells: [],
@@ -239,7 +225,6 @@ export const mockWellUpload: UploadStateBranch = {
     file: "/path/to/file1",
     key: getUploadRowKey({ file: "/path/to/file1" }),
     [WELL_ANNOTATION_NAME]: [1],
-    [WORKFLOW_ANNOTATION_NAME]: ["name1"],
   },
   [getUploadRowKey({ file: "/path/to/file2" })]: {
     barcode: "1235",
@@ -247,7 +232,6 @@ export const mockWellUpload: UploadStateBranch = {
     file: "/path/to/file2",
     key: getUploadRowKey({ file: "/path/to/file2" }),
     [WELL_ANNOTATION_NAME]: [2],
-    [WORKFLOW_ANNOTATION_NAME]: ["name1", "name2"],
   },
   [getUploadRowKey({ file: "/path/to/file3" })]: {
     barcode: "1236",
@@ -255,7 +239,6 @@ export const mockWellUpload: UploadStateBranch = {
     file: "/path/to/file3",
     key: getUploadRowKey({ file: "/path/to/file3" }),
     [WELL_ANNOTATION_NAME]: [1, 2, 3],
-    [WORKFLOW_ANNOTATION_NAME]: ["name3"],
   },
   [getUploadRowKey({ file: "/path/to/file3", positionIndex: 1 })]: {
     barcode: "1236",
@@ -367,16 +350,6 @@ export const mockTemplateWithManyValues: Template = {
     },
     {
       ...mockAuditInfo,
-      annotationId: 18,
-      annotationOptions: ["R&DExp", "Pipeline 4.1"],
-      annotationTypeId: 6,
-      description:
-        "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH)",
-      name: WORKFLOW_ANNOTATION_NAME,
-      required: false,
-    },
-    {
-      ...mockAuditInfo,
       annotationId: 22,
       annotationTypeId: 1,
       description:
@@ -433,13 +406,6 @@ export const mockSelectedWells: GridCell[] = [
   new GridCell(0, 1),
   new GridCell(1, 0),
   new GridCell(1, 1),
-];
-
-export const mockSelectedWorkflows: Workflow[] = [
-  { workflowId: 1, name: "name1", description: "cool workflow" },
-  { workflowId: 2, name: "name2", description: "cool workflow" },
-  { workflowId: 3, name: "name3", description: "cool workflow" },
-  { workflowId: 4, name: "name4", description: "cool workflow" },
 ];
 
 export const mockSuccessfulUploadJob: JSSJob = {
@@ -613,10 +579,6 @@ export const mockAnnotationLookups: AnnotationLookup[] = [
   {
     annotationId: mockWellAnnotation.annotationId,
     lookupId: 1,
-  },
-  {
-    annotationId: mockWorkflowAnnotation.annotationId,
-    lookupId: 2,
   },
 ];
 

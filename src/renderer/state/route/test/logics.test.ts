@@ -23,8 +23,8 @@ import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { getAlert } from "../../feedback/selectors";
 import { getFileMetadataForJob } from "../../metadata/selectors";
+import { setHasNoPlateToUpload } from "../../selection/actions";
 import { getSelectedPlate } from "../../selection/selectors";
-import { associateByWorkflow } from "../../setting/actions";
 import { getAppliedTemplate } from "../../template/selectors";
 import { Actions } from "../../test/action-tracker";
 import {
@@ -302,7 +302,6 @@ describe("Route logics", () => {
           job: undefined,
           plate: {},
           selectedWells: [],
-          selectedWorkflows: [],
           stagedFiles: [],
           wells: {},
         }),
@@ -536,7 +535,6 @@ describe("Route logics", () => {
           fileType: "image",
           modified: "foo",
           modifiedBy: "bar",
-          Workflow: ["Pipeline 5"],
         },
       ]);
       const { actions, logicMiddleware, store } = createMockReduxStore(
@@ -547,7 +545,7 @@ describe("Route logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(getSelectedPlate(store.getState())).to.be.undefined;
-      expect(actions.includesMatch(associateByWorkflow(true)));
+      expect(actions.includesMatch(setHasNoPlateToUpload(true)));
     });
     it("sets upload error if something goes wrong while trying to get and set plate info", async () => {
       stubMethods({});

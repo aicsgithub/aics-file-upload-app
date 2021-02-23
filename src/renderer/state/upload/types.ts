@@ -2,11 +2,9 @@ import {
   CHANNEL_ANNOTATION_NAME,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob } from "../../services/job-status-client/types";
-import { Workflow } from "../../services/labkey-client/types";
 import {
   AutoSaveAction,
   State,
@@ -97,23 +95,12 @@ export interface UploadJobTableRow extends UploadRowId {
 
   // human readable identifier of well, such as "A1"
   wellLabels: string[];
-
-  // all workflows associated with this file model
-  [WORKFLOW_ANNOTATION_NAME]: string[];
 }
 
 export interface AssociateFilesAndWellsAction extends AutoSaveAction {
   payload: {
     rowIds: UploadRowId[];
     wellIds: number[];
-  };
-  type: string;
-}
-
-export interface AssociateFilesAndWorkflowsAction extends AutoSaveAction {
-  payload: {
-    fullPaths: string[];
-    workflows: Workflow[];
   };
   type: string;
 }

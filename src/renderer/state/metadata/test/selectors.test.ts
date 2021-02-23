@@ -6,7 +6,6 @@ import {
   mockNotesAnnotation,
   mockState,
   mockWellAnnotation,
-  mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import {
@@ -18,7 +17,6 @@ import {
   getNotesAnnotation,
   getUniqueBarcodeSearchResults,
   getWellAnnotation,
-  getWorkflowAnnotation,
 } from "../selectors";
 
 describe("Metadata selectors", () => {
@@ -92,7 +90,7 @@ describe("Metadata selectors", () => {
   describe("getAnnotations", () => {
     it("returns only annotations that are meant to be exposed in this app", () => {
       const result = getAnnotations(nonEmptyStateForInitiatingUpload);
-      expect(result).to.be.length(5);
+      expect(result).to.be.length(4);
     });
     it("returns empty array if no annotations found", () => {
       const result = getAnnotations({
@@ -170,16 +168,6 @@ describe("Metadata selectors", () => {
     });
     it("returns undefined if Well annotation not found", () => {
       const result = getWellAnnotation(mockState);
-      expect(result).to.be.undefined;
-    });
-  });
-  describe("getWorkflowAnnotation", () => {
-    it("returns annotation named Workflow if found", () => {
-      const result = getWorkflowAnnotation(nonEmptyStateForInitiatingUpload);
-      expect(result).to.equal(mockWorkflowAnnotation);
-    });
-    it("returns undefined if Workflow annotation not found", () => {
-      const result = getWorkflowAnnotation(mockState);
       expect(result).to.be.undefined;
     });
   });

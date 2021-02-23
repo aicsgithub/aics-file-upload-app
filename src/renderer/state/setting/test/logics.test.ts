@@ -127,7 +127,7 @@ describe("Setting logics", () => {
       const { actions } = createMockReduxStore(mockState, undefined, [
         updateSettingsLogic,
       ]);
-      store.dispatch(updateSettings({ associateByWorkflow: true }));
+      store.dispatch(updateSettings({ showUploadHint: true }));
       expect(actions.includesMatch(requestMetadata())).to.be.false;
     });
 

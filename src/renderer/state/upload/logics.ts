@@ -17,7 +17,6 @@ import {
   LIST_DELIMITER_SPLIT,
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
-  WORKFLOW_ANNOTATION_NAME,
 } from "../../constants";
 import {
   StartUploadResponse,
@@ -61,7 +60,7 @@ import {
   getSelectedJob,
   getSelectedWellIds,
 } from "../selection/selectors";
-import { getLoggedInUser } from "../setting/selectors";
+import { getLoggedInUser, getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
 import {
@@ -69,6 +68,7 @@ import {
   HTTP_STATUS,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
+  ReduxLogicProcessDependencies,
   ReduxLogicProcessDependenciesWithAction,
   ReduxLogicRejectCb,
   ReduxLogicTransformDependenciesWithAction,
@@ -82,6 +82,7 @@ import { batchActions, handleUploadProgress } from "../util";
 
 import {
   addUploadFiles,
+  applyTemplate,
   cancelUploadFailed,
   cancelUploadSucceeded,
   editFileMetadataFailed,
@@ -95,6 +96,7 @@ import {
   uploadFailed,
 } from "./actions";
 import {
+  ADD_UPLOAD_FILES,
   APPLY_TEMPLATE,
   ASSOCIATE_FILES_AND_WELLS,
   CANCEL_UPLOAD,
@@ -260,6 +262,24 @@ const applyTemplateLogic = createLogic({
     done();
   },
   type: APPLY_TEMPLATE,
+});
+
+const addUploadFilesLogic = createLogic({
+  process: (
+    { getState }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const selectedTemplate = getAppliedTemplate(getState())?.templateId;
+    const savedTemplate = getTemplateId(getState());
+    if (selectedTemplate) {
+      dispatch(applyTemplate(selectedTemplate));
+    } else if (savedTemplate) {
+      dispatch(applyTemplate(savedTemplate));
+    }
+    done();
+  },
+  type: ADD_UPLOAD_FILES,
 });
 
 const initiateUploadLogic = createLogic({
@@ -606,7 +626,6 @@ const updateSubImagesLogic = createLogic({
       subImageNames
     );
     const update: Partial<UploadStateBranch> = {};
-    const workflows = fileRow[WORKFLOW_ANNOTATION_NAME];
 
     const uploads = getUpload(getState());
     const existingUploadsForFile: UploadMetadata[] = values(uploads).filter(
@@ -667,7 +686,6 @@ const updateSubImagesLogic = createLogic({
           scene: undefined,
           subImageName: undefined,
           [WELL_ANNOTATION_NAME]: [],
-          [WORKFLOW_ANNOTATION_NAME]: workflows,
           ...additionalAnnotations,
         };
       });
@@ -689,7 +707,6 @@ const updateSubImagesLogic = createLogic({
           key: subImageOnlyRowKey,
           [NOTES_ANNOTATION_NAME]: [],
           [WELL_ANNOTATION_NAME]: [],
-          [WORKFLOW_ANNOTATION_NAME]: workflows,
           [subImageKey]: subImageValue,
           ...additionalAnnotations,
         };
@@ -715,7 +732,6 @@ const updateSubImagesLogic = createLogic({
             key,
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
-            [WORKFLOW_ANNOTATION_NAME]: workflows,
             [subImageKey]: subImageValue,
             ...additionalAnnotations,
           };
@@ -1213,6 +1229,7 @@ const updateAndRetryUploadLogic = createLogic({
 });
 
 export default [
+  addUploadFilesLogic,
   applyTemplateLogic,
   associateFilesAndWellsLogic,
   cancelUploadLogic,

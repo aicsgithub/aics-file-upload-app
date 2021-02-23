@@ -15,10 +15,6 @@ export const ASSOCIATE_FILES_AND_WELLS = makeConstant(
   BRANCH_NAME,
   "associate-files-and-wells"
 );
-export const ASSOCIATE_FILES_AND_WORKFLOWS = makeConstant(
-  BRANCH_NAME,
-  "associate-files-and-workflows"
-);
 export const CANCEL_UPLOAD = makeConstant(BRANCH_NAME, "cancel-upload");
 export const CANCEL_UPLOAD_SUCCEEDED = makeConstant(
   BRANCH_NAME,
@@ -66,10 +62,6 @@ export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
 export const UNDO_FILE_WELL_ASSOCIATION = makeConstant(
   BRANCH_NAME,
   "undo-file-well-association"
-);
-export const UNDO_FILE_WORKFLOW_ASSOCIATION = makeConstant(
-  BRANCH_NAME,
-  "undo-file-workflow-association"
 );
 export const UPDATE_AND_RETRY_UPLOAD = makeConstant(
   BRANCH_NAME,

@@ -51,7 +51,6 @@ export const initialState: MetadataStateBranch = {
   templates: [],
   units: [],
   users: [],
-  workflowOptions: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {

@@ -11,7 +11,6 @@ import {
   mockTemplateDraft,
   mockTemplateStateBranch,
   mockWellAnnotation,
-  mockWorkflowAnnotation,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { State } from "../../types";
@@ -157,7 +156,7 @@ describe("Template selectors", () => {
   });
 
   describe("getCompleteAppliedTemplate", () => {
-    it("adds annotations for notes, wells, and workflows", () => {
+    it("adds annotations for notes and wells", () => {
       const result = getCompleteAppliedTemplate(
         nonEmptyStateForInitiatingUpload
       );
@@ -166,7 +165,6 @@ describe("Template selectors", () => {
         const annotationIds = result.annotations.map((a) => a.annotationId);
         expect(annotationIds).to.contain(mockNotesAnnotation.annotationId);
         expect(annotationIds).to.contain(mockWellAnnotation.annotationId);
-        expect(annotationIds).to.contain(mockWorkflowAnnotation.annotationId);
       }
     });
     it("returns undefined if template has not been applied", () => {
@@ -179,11 +177,7 @@ describe("Template selectors", () => {
           ...nonEmptyStateForInitiatingUpload,
           metadata: {
             ...nonEmptyStateForInitiatingUpload.metadata,
-            annotations: [
-              mockWellAnnotation,
-              mockWorkflowAnnotation,
-              mockFavoriteColorAnnotation,
-            ],
+            annotations: [mockWellAnnotation, mockFavoriteColorAnnotation],
           },
         })
       ).to.throw();
@@ -194,26 +188,7 @@ describe("Template selectors", () => {
           ...nonEmptyStateForInitiatingUpload,
           metadata: {
             ...nonEmptyStateForInitiatingUpload.metadata,
-            annotations: [
-              mockNotesAnnotation,
-              mockWorkflowAnnotation,
-              mockFavoriteColorAnnotation,
-            ],
-          },
-        })
-      ).to.throw();
-    });
-    it("throws error if workflow annotation not found", () => {
-      expect(() =>
-        getCompleteAppliedTemplate({
-          ...nonEmptyStateForInitiatingUpload,
-          metadata: {
-            ...nonEmptyStateForInitiatingUpload.metadata,
-            annotations: [
-              mockWellAnnotation,
-              mockNotesAnnotation,
-              mockFavoriteColorAnnotation,
-            ],
+            annotations: [mockNotesAnnotation, mockFavoriteColorAnnotation],
           },
         })
       ).to.throw();
