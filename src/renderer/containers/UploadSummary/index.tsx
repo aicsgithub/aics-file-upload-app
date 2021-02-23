@@ -19,27 +19,15 @@ import {
 import { selectJobFilter } from "../../state/job/actions";
 import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
 import { SelectJobFilterAction } from "../../state/job/types";
-import {
-  openEditFileMetadataTab,
-  selectPage,
-  selectView,
-} from "../../state/route/actions";
-import { getPage } from "../../state/route/selectors";
-import {
-  OpenEditFileMetadataTabAction,
-  SelectPageAction,
-  SelectViewAction,
-} from "../../state/route/types";
+import { openEditFileMetadataTab } from "../../state/route/actions";
+import { OpenEditFileMetadataTabAction } from "../../state/route/types";
 import {
   AsyncRequest,
   JobFilter,
-  Page,
   State,
-  UploadStateBranch,
   UploadSummaryTableRow,
 } from "../../state/types";
 import { cancelUpload, retryUpload } from "../../state/upload/actions";
-import { getUpload } from "../../state/upload/selectors";
 import {
   CancelUploadAction,
   RetryUploadAction,
@@ -66,14 +54,10 @@ interface Props {
   jobFilter: JobFilter;
   jobs: UploadSummaryTableRow[];
   openEditFileMetadataTab: ActionCreator<OpenEditFileMetadataTabAction>;
-  page: Page;
   requestsInProgress: Array<string | AsyncRequest>;
   requestingJobs: boolean;
   retryUpload: ActionCreator<RetryUploadAction>;
-  selectPage: ActionCreator<SelectPageAction>;
-  selectView: ActionCreator<SelectViewAction>;
   selectJobFilter: ActionCreator<SelectJobFilterAction>;
-  upload: UploadStateBranch;
 }
 
 class UploadSummary extends React.Component<Props, {}> {
@@ -234,10 +218,8 @@ function mapStateToProps(state: State) {
   return {
     jobFilter: getJobFilter(state),
     jobs: getJobsForTable(state),
-    page: getPage(state),
     requestsInProgress: getRequestsInProgress(state),
     requestingJobs: getRequestsInProgressContains(state, AsyncRequest.GET_JOBS),
-    upload: getUpload(state),
   };
 }
 
@@ -246,8 +228,6 @@ const dispatchToPropsMap = {
   openEditFileMetadataTab,
   retryUpload,
   selectJobFilter,
-  selectPage,
-  selectView,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);

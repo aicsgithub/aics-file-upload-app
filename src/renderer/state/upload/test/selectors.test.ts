@@ -1444,6 +1444,7 @@ describe("Upload selectors", () => {
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "foo" })]: {
             barcode: "abc",
+            "Favorite Color": 1,
             file: "foo",
             key: getUploadRowKey({ file: "foo" }),
             [NOTES_ANNOTATION_NAME]: [],
