@@ -471,6 +471,14 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           type,
         };
 
+        if (required) {
+          column.headerRenderer = ({ column }: { column: UploadJobColumn }) => (
+            <Tooltip title={`${column.name} is required`} mouseLeaveDelay={0}>
+              {column.name}*
+            </Tooltip>
+          );
+        }
+
         // dates are handled completely differently from other data types because right now the best
         // way to edit multiple dates is through a modal with a grid. this should probably change in the future.
         if (editable) {
