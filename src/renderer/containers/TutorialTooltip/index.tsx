@@ -20,6 +20,12 @@ interface Props {
   title: string;
 }
 
+/**
+ * This container renders a tooltip over the given children to provide context to what usage
+ * the children are meant to provide. The purpose of this is to serve as a sort of tutorial
+ * to more discrete features. It uses the state to control whether any given instance
+ * of this container's tooltip is meant to be visible, but can be disabled via props.
+ */
 export default function TutorialTooltip(props: Props) {
   const dispatch = useDispatch();
   const showUploadHint = useSelector(getShowUploadHint);
