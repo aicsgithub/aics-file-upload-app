@@ -101,7 +101,6 @@ interface CustomDataState {
   addValuesRow?: UploadJobTableRow;
   selectedRows: string[];
   showMassEditGrid: boolean;
-  showMassEditShadow: boolean;
   sortColumn?: SortableColumns;
   sortDirection?: SortDirections;
 }
@@ -182,7 +181,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     this.state = {
       selectedRows: [],
       showMassEditGrid: false,
-      showMassEditShadow: true,
     };
   }
 
@@ -202,14 +200,8 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
       <>
         {this.state.showMassEditGrid && (
           <>
-            {this.state.showMassEditShadow && (
-              <div className={styles.shadowBox} />
-            )}
-            <div
-              className={classNames({
-                [styles.massEdit]: this.state.showMassEditShadow,
-              })}
-            >
+            <div className={styles.shadowBox} />
+            <div className={styles.massEdit}>
               {this.props.showUploadHint && (
                 <Alert
                   afterClose={this.props.hideUploadHints}
@@ -706,9 +698,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     const { updated } = e;
     if (updated) {
       this.props.updateMassEditRow({ ...this.props.massEditRow, ...e.updated });
-      this.setState({
-        showMassEditShadow: false,
-      });
     }
   };
 
