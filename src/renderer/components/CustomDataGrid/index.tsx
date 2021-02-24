@@ -88,6 +88,7 @@ interface Props {
   removeUploads: ActionCreator<RemoveUploadsAction>;
   template?: Template;
   setAlert: ActionCreator<SetAlertAction>;
+  showErrorsForRequiredFields: boolean;
   showUploadHint: boolean;
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   undo: () => void;
@@ -359,7 +360,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     let error;
     if (!forMassEditRows) {
       const showFieldIsRequiredError =
-        required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+        required &&
+        this.props.showErrorsForRequiredFields &&
+        !this.props.fileToAnnotationHasValueMap[row.file][label];
       if (showFieldIsRequiredError) {
         error = `${label} is required`;
       } else if (

@@ -10,7 +10,6 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../../state/test/mocks";
 import { AsyncRequest } from "../../../state/types";
-import { getUploadRowKey } from "../../../state/upload/constants";
 import { getCanSubmitUpload, getUploadInProgress } from "../selectors";
 
 describe("AddCustomData selectors", () => {
@@ -26,11 +25,11 @@ describe("AddCustomData selectors", () => {
       });
       expect(result).to.be.true;
     });
-    it("returns true if working on new upload, no validation errors, and no requests in progress", () => {
+    it("returns true if working on new upload and no requests in progress", () => {
       const result = getCanSubmitUpload(nonEmptyStateForInitiatingUpload);
       expect(result).to.be.true;
     });
-    it("returns true if editing an upload and has made changes, no validation errors, and no requests in progress", () => {
+    it("returns true if editing an upload and has made changes and no requests in progress", () => {
       const result = getCanSubmitUpload({
         ...nonEmptyStateForInitiatingUpload,
         metadata: {
@@ -39,18 +38,6 @@ describe("AddCustomData selectors", () => {
         },
       });
       expect(result).to.be.true;
-    });
-    it("returns false if there are validation errors", () => {
-      const result = getCanSubmitUpload({
-        ...nonEmptyStateForInitiatingUpload,
-        upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "/path/to/file3" })]: {
-            file: "/path/to/file3",
-            [WELL_ANNOTATION_NAME]: [],
-          },
-        }),
-      });
-      expect(result).to.be.false;
     });
     it("returns false if there are requests in progress related to uploading that job", () => {
       const result = getCanSubmitUpload({

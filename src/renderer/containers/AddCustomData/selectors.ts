@@ -14,10 +14,7 @@ import {
   getSelectedJob,
 } from "../../state/selection/selectors";
 import { AsyncRequest, UploadStateBranch } from "../../state/types";
-import {
-  getUpload,
-  getUploadValidationErrors,
-} from "../../state/upload/selectors";
+import { getUpload } from "../../state/upload/selectors";
 
 export const getUploadInProgress = createSelector(
   [getRequestsInProgress, getCurrentJobName],
@@ -36,7 +33,6 @@ export const getUploadInProgress = createSelector(
 
 export const getCanSubmitUpload = createSelector(
   [
-    getUploadValidationErrors,
     getRequestsInProgress,
     getUpload,
     getOriginalUpload,
@@ -47,7 +43,6 @@ export const getCanSubmitUpload = createSelector(
     getHasNoPlateToUpload,
   ],
   (
-    validationErrors: string[],
     requestsInProgress: string[],
     upload: UploadStateBranch,
     originalUpload?: UploadStateBranch,
@@ -71,15 +66,12 @@ export const getCanSubmitUpload = createSelector(
     const requestsInProgressRelatedToUpload = requestsInProgress.filter((r) =>
       uploadRelatedRequests.includes(r)
     );
-    const noValidationErrorsOrRequestsInProgress =
-      validationErrors.length === 0 &&
-      requestsInProgressRelatedToUpload.length === 0;
+    const noRequestsInProgress = requestsInProgressRelatedToUpload.length === 0;
     if (selectedJob && FAILED_STATUSES.includes(selectedJob.status)) {
       return true;
     }
     return originalUpload
-      ? noValidationErrorsOrRequestsInProgress &&
-          !isEqual(upload, originalUpload)
-      : noValidationErrorsOrRequestsInProgress;
+      ? noRequestsInProgress && !isEqual(upload, originalUpload)
+      : noRequestsInProgress;
   }
 );

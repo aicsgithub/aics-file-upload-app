@@ -166,6 +166,7 @@ interface Props {
 
 interface AddCustomDataState {
   selectedFiles: string[];
+  submitAttempted: boolean;
 }
 
 // On Windows, file browsers cannot look for directories and files at the same time
@@ -183,6 +184,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     super(props);
     this.state = {
       selectedFiles: [],
+      submitAttempted: false,
     };
 
     // During the "Create Barcode" path the user will create a plate, triggering this. From here we can proceed
@@ -266,6 +268,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 removeUploads={this.props.removeUploads}
                 template={appliedTemplate}
                 setAlert={this.props.setAlert}
+                showErrorsForRequiredFields={this.state.submitAttempted}
                 showUploadHint={this.props.showUploadHint}
                 toggleRowExpanded={this.props.toggleRowExpanded}
                 undo={this.undo}
@@ -426,7 +429,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         />
       );
     }
-    if (this.props.validationErrors.length > 0) {
+    if (this.props.validationErrors.length > 0 && this.state.submitAttempted) {
       alerts.push(
         <Alert
           className={styles.alert}
@@ -443,15 +446,18 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   };
 
   private submit = (): void => {
-    if (this.props.selectedJob) {
-      if (this.props.selectedJob.status === JSSJobStatus.SUCCEEDED) {
-        this.props.submitFileMetadataUpdate();
+    this.setState({ submitAttempted: true });
+    if (this.props.validationErrors.length === 0) {
+      if (this.props.selectedJob) {
+        if (this.props.selectedJob.status === JSSJobStatus.SUCCEEDED) {
+          this.props.submitFileMetadataUpdate();
+        }
+        if (this.props.selectedJob.status === JSSJobStatus.FAILED) {
+          this.props.updateAndRetryUpload();
+        }
+      } else {
+        this.props.initiateUpload();
       }
-      if (this.props.selectedJob.status === JSSJobStatus.FAILED) {
-        this.props.updateAndRetryUpload();
-      }
-    } else {
-      this.props.initiateUpload();
     }
   };
 
