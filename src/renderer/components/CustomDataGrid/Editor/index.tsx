@@ -37,7 +37,7 @@ interface EditorState {
 class Editor extends editors.EditorBase<EditorProps, EditorState> {
   // This ref is here so that the DataGrid doesn't throw a fit, normally it
   // would use this to .focus() the input
-  public divRef = React.createRef<HTMLDivElement>();
+  public container = React.createRef<HTMLDivElement>();
   public input = React.createRef<Input>();
 
   public constructor(props: EditorProps) {
@@ -94,21 +94,9 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         );
         break;
       case ColumnType.NUMBER:
-        return (
-          <Input
-            ref={this.input}
-            defaultValue={this.state.value}
-            onBlur={this.props.onCommit}
-          />
-        );
       case ColumnType.TEXT:
-        return (
-          <Input
-            ref={this.input}
-            defaultValue={this.state.value}
-            onBlur={this.props.onCommit}
-          />
-        );
+        input = <Input ref={this.input} defaultValue={this.state.value} />;
+        break;
       case ColumnType.LOOKUP:
         input = (
           <LookupSearch
@@ -125,12 +113,16 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         Logger.error("Invalid column type supplied");
         input = "ERROR";
     }
-    return <div ref={this.divRef}>{input}</div>;
+
+    return (
+      <div ref={this.container} onBlur={this.props.onCommit}>
+        {input}
+      </div>
+    );
   }
 
   // Should return an object of key/value pairs to be merged back to the row
   public getValue = () => {
-    let { value } = this.state;
     const {
       column: { key, type },
     } = this.props;
@@ -139,7 +131,7 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
       (type === ColumnType.TEXT || type === ColumnType.NUMBER) &&
       this.input.current
     ) {
-      value = this.input.current.input.value;
+      const value = this.input.current.input.value;
       let formattedString = trim(value);
       if (value.endsWith(LIST_DELIMITER_SPLIT)) {
         formattedString = value.substring(0, value.length - 1);
@@ -147,17 +139,13 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
       return { [key]: formattedString };
     }
 
-    return { [key]: value };
+    return { [key]: this.state.value };
   };
 
   public getInputNode = (): Element | Text | null => {
-    const {
-      column: { type },
-    } = this.props;
-    return (type === ColumnType.TEXT || type === ColumnType.NUMBER) &&
-      this.input.current
+    return this.input.current
       ? this.input.current.input
-      : this.divRef.current;
+      : this.container.current;
   };
 
   private handleOnChange = (value: any[] | string) => {

@@ -217,17 +217,13 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               )}
               <div className={classNames(styles.dataGrid, className)}>
                 <ReactDataGrid
-                  cellNavigationMode="changeRow"
+                  cellNavigationMode="loopOverRow"
                   columns={this.getMassEditColumns()}
                   enableCellSelect={true}
-                  enableDragAndDrop={true}
                   minHeight={GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING}
                   onGridRowsUpdated={(e) => this.updateMassEditRows(e)}
                   rowGetter={massEditRowGetter}
                   rowsCount={1}
-                  rowSelection={{
-                    showCheckbox: false,
-                  }}
                 />
               </div>
               <div className={styles.alignCenter}>
@@ -311,7 +307,6 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
                   cellNavigationMode="changeRow"
                   columns={this.getColumns()}
                   enableCellSelect={true}
-                  enableDragAndDrop={true}
                   getSubRowDetails={this.getSubRowDetails}
                   minHeight={
                     sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
