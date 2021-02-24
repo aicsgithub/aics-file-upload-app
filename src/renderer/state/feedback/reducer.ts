@@ -24,14 +24,14 @@ import {
   RequestMetadataAction,
 } from "../metadata/types";
 import {
-  CLOSE_UPLOAD,
   OPEN_EDIT_FILE_METADATA_TAB,
   OPEN_EDIT_FILE_METADATA_TAB_SUCCEEDED,
+  RESET_UPLOAD,
 } from "../route/constants";
 import {
-  CloseUploadAction,
   OpenEditFileMetadataTabAction,
   OpenEditFileMetadataTabSucceededAction,
+  ResetUploadAction,
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
@@ -57,6 +57,7 @@ import {
   FeedbackStateBranch,
   HTTP_STATUS,
   RequestFailedAction,
+  TutorialStep,
   TypeToDescriptionMap,
 } from "../types";
 import {
@@ -107,6 +108,7 @@ import {
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
   SET_DEFERRED_ACTION,
+  SET_TUTORIAL_TOOLTIP_STEP,
   START_LOADING,
   STOP_LOADING,
 } from "./constants";
@@ -125,6 +127,7 @@ import {
   RemoveRequestInProgressAction,
   SetAlertAction,
   SetDeferredActionAction,
+  SetTutorialTooltipStep,
   StartLoadingAction,
   StopLoadingAction,
 } from "./types";
@@ -157,6 +160,7 @@ export const initialState: FeedbackStateBranch = {
   isLoading: false,
   requestsInProgress: [],
   setMountPointNotificationVisible: false,
+  tutorialTooltip: TutorialStep.MASS_EDIT,
   uploadError: undefined,
   visibleModals: [],
 };
@@ -199,6 +203,14 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
         alert: updatedPayload,
       };
     },
+  },
+  [SET_TUTORIAL_TOOLTIP_STEP]: {
+    accepts: (action: AnyAction): action is SetTutorialTooltipStep =>
+      action.type === SET_TUTORIAL_TOOLTIP_STEP,
+    perform: (state: FeedbackStateBranch, action: SetTutorialTooltipStep) => ({
+      ...state,
+      tutorialTooltip: action.payload,
+    }),
   },
   [START_LOADING]: {
     accepts: (action: AnyAction): action is StartLoadingAction =>
@@ -319,9 +331,9 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       deferredAction: undefined,
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       setMountPointNotificationVisible: false,

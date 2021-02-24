@@ -32,6 +32,10 @@ cache:
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
 
+# Create a dotenv file that will be read by electron-webpack at build-time
+before_script:
+  - echo "ELECTRON_WEBPACK_APP_AMPLITUDE_API_KEY=$ELECTRON_WEBPACK_APP_AMPLITUDE_API_KEY" > .env
+
 script:
   - yarn compile-prod
   - |
@@ -48,8 +52,13 @@ script:
     else
       CSC_LINK=${CSC_LINK} CSC_KEY_PASSWORD=${CSC_KEY_PASSWORD} yarn dist
     fi
+
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/wine
+
+# Clean up artifact created in before_script
+after_script:
+  - rm -f .env
 
 branches:
   only:

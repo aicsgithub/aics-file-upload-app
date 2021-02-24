@@ -1,6 +1,12 @@
 import { AnyAction } from "redux";
 
-import { AlertType, AppAlert, AsyncRequest, ModalName } from "../types";
+import {
+  AlertType,
+  AppAlert,
+  AsyncRequest,
+  ModalName,
+  TutorialStep,
+} from "../types";
 
 export interface StartLoadingAction {
   type: string;
@@ -75,5 +81,10 @@ export interface ClearUploadErrorAction {
 }
 
 export interface CloseNotificationCenter {
+  type: string;
+}
+
+export interface SetTutorialTooltipStep {
+  payload?: TutorialStep;
   type: string;
 }

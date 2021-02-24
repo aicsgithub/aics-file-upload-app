@@ -170,6 +170,12 @@ export interface SearchResultRow {
   [key: string]: string | number | undefined;
 }
 
+export enum TutorialStep {
+  MASS_EDIT,
+  ADD_SCENES,
+  INPUT_MULTIPLE_VALUES,
+}
+
 export interface FeedbackStateBranch {
   alert?: AppAlert;
   deferredAction?: AnyAction; // action to dispatch when modal closes
@@ -177,6 +183,7 @@ export interface FeedbackStateBranch {
   isLoading: boolean;
   requestsInProgress: string[];
   setMountPointNotificationVisible: boolean;
+  tutorialTooltip?: TutorialStep;
   uploadError?: string;
   visibleModals: ModalName[];
 }

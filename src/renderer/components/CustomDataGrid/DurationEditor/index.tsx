@@ -93,10 +93,25 @@ export default class DurationEditor extends editors.EditorBase<
     }
   };
 
+  private onBlur = (event: React.FocusEvent<Element>) => {
+    // Commit changes if the element gaining the focus this element is losing
+    // is not at least a child of this element.
+    if (
+      event.relatedTarget instanceof Node &&
+      !event.currentTarget.contains(event.relatedTarget)
+    ) {
+      this.props.onCommit();
+    }
+  };
+
   public render() {
     return (
       <div ref={this.editorRef} onKeyDown={this.handleKeyDown}>
-        <Input.Group compact className={styles.durationEditorContainer}>
+        <Input.Group
+          compact
+          onBlur={this.onBlur}
+          className={styles.durationEditorContainer}
+        >
           <Input
             value={this.state.days}
             onChange={(e) =>

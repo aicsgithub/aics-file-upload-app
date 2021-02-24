@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { closeUpload, openEditFileMetadataTab } from "../../route/actions";
+import { resetUpload, openEditFileMetadataTab } from "../../route/actions";
 import {
   getMockStateWithHistory,
   mockPlate,
@@ -70,9 +70,9 @@ describe("selection reducer", () => {
       expect(present.user).to.equal(mockSelection.user);
     });
   });
-  describe("closeUpload", () => {
+  describe("resetUpload", () => {
     it("resets upload tab selections", () => {
-      const result = reducer(nonEmptySelectionsState.selection, closeUpload());
+      const result = reducer(nonEmptySelectionsState.selection, resetUpload());
       const { present } = result;
       expect(present.barcode).to.equal(initialState.barcode);
       expect(present.expandedUploadJobRows).to.deep.equal(

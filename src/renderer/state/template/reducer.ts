@@ -4,8 +4,8 @@ import undoable, { UndoableOptions } from "redux-undo";
 import { CLOSE_MODAL } from "../feedback/constants";
 import { CloseModalAction } from "../feedback/types";
 import { RESET_HISTORY } from "../metadata/constants";
-import { CLOSE_UPLOAD } from "../route/constants";
-import { CloseUploadAction } from "../route/types";
+import { RESET_UPLOAD } from "../route/constants";
+import { ResetUploadAction } from "../route/types";
 import { TemplateStateBranch, TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
@@ -81,9 +81,9 @@ const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
       appliedTemplate: getAppliedTemplate(replacementState),
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: (state: TemplateStateBranch) => ({
       ...state,
       appliedTemplate: undefined,
