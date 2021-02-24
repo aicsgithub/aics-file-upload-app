@@ -1,0 +1,45 @@
+.content-container {
+    & h4, & p {
+        color: #ffffff;
+    }
+
+    & h4 {
+        font-weight: bold;
+    }
+}
+
+:global(.ant-popover) {
+    z-index: 0;
+}
+
+:global(.ant-popover-inner), :global(.ant-popover-arrow) {
+    /* Color chosen based off of brand-primary, made darker for contrast */
+    background-color: #10654A;
+    border-color: #10654A !important;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer-button {
+    border: none;
+    background: none !important;
+    color: #ffffff;
+    padding: 0;
+
+    & span {
+        text-decoration: underline;
+    }
+}
+
+.footer-button:hover {
+    border: none;
+    background: none;
+    color: #ffffff;
+
+    & span {
+        text-decoration: none;
+    }
+}

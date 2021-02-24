@@ -57,6 +57,7 @@ import {
   FeedbackStateBranch,
   HTTP_STATUS,
   RequestFailedAction,
+  TutorialStep,
   TypeToDescriptionMap,
 } from "../types";
 import {
@@ -107,6 +108,7 @@ import {
   REMOVE_REQUEST_IN_PROGRESS,
   SET_ALERT,
   SET_DEFERRED_ACTION,
+  SET_TUTORIAL_TOOLTIP_STEP,
   START_LOADING,
   STOP_LOADING,
 } from "./constants";
@@ -125,6 +127,7 @@ import {
   RemoveRequestInProgressAction,
   SetAlertAction,
   SetDeferredActionAction,
+  SetTutorialTooltipStep,
   StartLoadingAction,
   StopLoadingAction,
 } from "./types";
@@ -157,6 +160,7 @@ export const initialState: FeedbackStateBranch = {
   isLoading: false,
   requestsInProgress: [],
   setMountPointNotificationVisible: false,
+  tutorialTooltip: TutorialStep.MASS_EDIT,
   uploadError: undefined,
   visibleModals: [],
 };
@@ -199,6 +203,14 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
         alert: updatedPayload,
       };
     },
+  },
+  [SET_TUTORIAL_TOOLTIP_STEP]: {
+    accepts: (action: AnyAction): action is SetTutorialTooltipStep =>
+      action.type === SET_TUTORIAL_TOOLTIP_STEP,
+    perform: (state: FeedbackStateBranch, action: SetTutorialTooltipStep) => ({
+      ...state,
+      tutorialTooltip: action.payload,
+    }),
   },
   [START_LOADING]: {
     accepts: (action: AnyAction): action is StartLoadingAction =>

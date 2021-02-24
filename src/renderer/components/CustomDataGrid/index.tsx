@@ -18,6 +18,7 @@ import {
   WELL_ANNOTATION_NAME,
 } from "../../constants";
 import DragAndDropRow from "../../containers/AddCustomData/DragAndDropRow";
+import TutorialTooltip from "../../containers/TutorialTooltip";
 import {
   AnnotationType,
   Channel,
@@ -35,6 +36,7 @@ import {
   AlertType,
   ExpandedRows,
   MassEditRow,
+  TutorialStep,
   UploadMetadata,
 } from "../../state/types";
 import {
@@ -278,17 +280,25 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               type="link"
             />
           </Tooltip>
-          <Tooltip title="Edit" mouseLeaveDelay={0}>
-            <Button
-              onClick={() =>
-                this.openMassEditGrid(sortedRows, this.getColumns())
-              }
-              disabled={isEmpty(selectedRows)}
-              icon="edit"
-              type="link"
-            />
-          </Tooltip>
-          <Tooltip title="Delete Selected Row" mouseLeaveDelay={0}>
+          <TutorialTooltip
+            disabled={!Object.keys(uploads).length}
+            placement="right"
+            step={TutorialStep.MASS_EDIT}
+            title="Mass Edit"
+            message="Select rows and click here to edit multiple rows at once"
+          >
+            <Tooltip title="Edit Selected Rows All at Once" mouseLeaveDelay={0}>
+              <Button
+                onClick={() =>
+                  this.openMassEditGrid(sortedRows, this.getColumns())
+                }
+                disabled={isEmpty(selectedRows)}
+                icon="edit"
+                type="link"
+              />
+            </Tooltip>
+          </TutorialTooltip>
+          <Tooltip title="Delete Selected Rows" mouseLeaveDelay={0}>
             <Button
               onClick={this.removeSelectedRows}
               disabled={isEmpty(selectedRows)}
@@ -300,32 +310,38 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         <div className={classNames(styles.dataGrid, className)}>
           {sortedRows.length ? (
             <>
-              <ReactDataGrid
-                cellNavigationMode="changeRow"
-                columns={this.getColumns()}
-                enableCellSelect={true}
-                enableDragAndDrop={true}
-                getSubRowDetails={this.getSubRowDetails}
-                minHeight={
-                  sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
-                }
-                onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
-                onGridSort={this.determineSort}
-                rowGetter={rowGetter}
-                rowsCount={sortedRows.length}
-                rowSelection={{
-                  enableShiftSelect: true,
-                  onRowsDeselected: this.deselectRows,
-                  onRowsSelected: this.selectRows,
-                  selectBy: {
-                    keys: {
-                      rowKey: "key",
-                      values: selectedRows,
+              <TutorialTooltip
+                step={TutorialStep.INPUT_MULTIPLE_VALUES}
+                title="Add Multiple Values"
+                message="You can add multiple values for Text and Number annotations using commas!"
+              >
+                <ReactDataGrid
+                  cellNavigationMode="changeRow"
+                  columns={this.getColumns()}
+                  enableCellSelect={true}
+                  enableDragAndDrop={true}
+                  getSubRowDetails={this.getSubRowDetails}
+                  minHeight={
+                    sortedRows.length * GRID_ROW_HEIGHT + GRID_BOTTOM_PADDING
+                  }
+                  onGridRowsUpdated={(e) => this.updateRows(e, sortedRows)}
+                  onGridSort={this.determineSort}
+                  rowGetter={rowGetter}
+                  rowsCount={sortedRows.length}
+                  rowSelection={{
+                    enableShiftSelect: true,
+                    onRowsDeselected: this.deselectRows,
+                    onRowsSelected: this.selectRows,
+                    selectBy: {
+                      keys: {
+                        rowKey: "key",
+                        values: selectedRows,
+                      },
                     },
-                  },
-                }}
-                onCellExpand={this.onCellExpand}
-              />
+                  }}
+                  onCellExpand={this.onCellExpand}
+                />
+              </TutorialTooltip>
               {this.props.canAddMoreFiles && (
                 <DragAndDropRow onBrowse={this.props.onFileBrowse} />
               )}
@@ -400,6 +416,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
               key={row.key}
               row={row}
               value={value}
+              showTutorial={row.siblingIndex === 0 && row.treeDepth === 0}
             />
           ),
         key: "file",
