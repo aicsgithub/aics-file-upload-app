@@ -1,4 +1,4 @@
-import { Divider, Icon, Select } from "antd";
+import { Divider, Icon, Select, Form } from "antd";
 import * as classNames from "classnames";
 import { sortBy } from "lodash";
 import { ReactNode } from "react";
@@ -20,6 +20,7 @@ interface TemplateSearchProps {
   className?: string;
   defaultOpen?: boolean;
   disabled?: boolean;
+  error?: boolean;
   onSelect: (selectedTemplateId: number) => void;
   value?: number;
 }
@@ -42,6 +43,7 @@ export default function TemplateSearch(props: TemplateSearchProps) {
     className,
     defaultOpen,
     disabled,
+    error,
     onSelect,
     value,
   } = props;
@@ -61,59 +63,63 @@ export default function TemplateSearch(props: TemplateSearchProps) {
   );
   const sortedTemplates = sortBy(filteredTemplates, ["Name"]);
   return (
-    <Select
-      className={classNames(styles.container, className)}
-      defaultOpen={defaultOpen}
-      disabled={disabled || (loading && !templates)}
-      dropdownRender={(menu: ReactNode | undefined) => (
-        <div>
-          {menu}
-          {allowCreate && (
-            <>
-              <Divider className={styles.divider} />
-              <div
-                className={styles.createTemplate}
-                /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
-                 * I am hoping that we can change this to onClick after we upgrade antd to the latest version in FUA-6
-                 * */
-                onMouseDown={(e) =>
-                  setElClicked(e.target === null ? undefined : e.target)
-                }
-                onMouseUp={(e) => {
-                  if (elClicked === e.target) {
-                    setOpen(false);
-                    setElClicked(undefined);
-                    dispatch(openTemplateEditor());
+    <Form.Item validateStatus={error ? "error" : ""}>
+      <Select
+        className={classNames(styles.container, className)}
+        defaultOpen={defaultOpen}
+        disabled={disabled || (loading && !templates)}
+        dropdownRender={(menu: ReactNode | undefined) => (
+          <div>
+            {menu}
+            {allowCreate && (
+              <>
+                <Divider className={styles.divider} />
+                <div
+                  className={styles.createTemplate}
+                  /* this is not onClick because of a bug here https://github.com/ant-design/ant-design/issues/16209
+                   * I am hoping that we can change this to onClick after we upgrade antd to the latest version in FUA-6
+                   * */
+                  onMouseDown={(e) =>
+                    setElClicked(e.target === null ? undefined : e.target)
                   }
-                }}
-              >
-                <Icon className={styles.icon} type="plus-circle" />
-                <span className={styles.text}>Create {SCHEMA_SYNONYM}</span>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-      loading={loading && !templates}
-      onDropdownVisibleChange={(visible: boolean) => {
-        if (!elClicked) {
-          setOpen(visible);
-        }
-      }}
-      onSelect={(templateId: number) => {
-        onSelect(templateId);
-        setOpen(false);
-      }}
-      open={open}
-      placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
-      showSearch={true}
-      value={value}
-    >
-      {sortedTemplates.map(({ Name: name, TemplateId: id }: LabkeyTemplate) => (
-        <Select.Option key={name} value={id}>
-          {name}
-        </Select.Option>
-      ))}
-    </Select>
+                  onMouseUp={(e) => {
+                    if (elClicked === e.target) {
+                      setOpen(false);
+                      setElClicked(undefined);
+                      dispatch(openTemplateEditor());
+                    }
+                  }}
+                >
+                  <Icon className={styles.icon} type="plus-circle" />
+                  <span className={styles.text}>Create {SCHEMA_SYNONYM}</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+        loading={loading && !templates}
+        onDropdownVisibleChange={(visible: boolean) => {
+          if (!elClicked) {
+            setOpen(visible);
+          }
+        }}
+        onSelect={(templateId: number) => {
+          onSelect(templateId);
+          setOpen(false);
+        }}
+        open={open}
+        placeholder={`Select a ${SCHEMA_SYNONYM.toLowerCase()} name`}
+        showSearch={true}
+        value={value}
+      >
+        {sortedTemplates.map(
+          ({ Name: name, TemplateId: id }: LabkeyTemplate) => (
+            <Select.Option key={name} value={id}>
+              {name}
+            </Select.Option>
+          )
+        )}
+      </Select>
+    </Form.Item>
   );
 }

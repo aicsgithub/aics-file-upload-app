@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Icon,
-  Select,
-  Spin,
-  Tooltip,
-  Form,
-} from "antd";
+import { Alert, Button, Checkbox, Icon, Select, Spin, Form } from "antd";
 import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
@@ -329,6 +320,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       setHasNoPlateToUpload,
       templateIsLoading,
     } = this.props;
+    const { submitAttempted } = this.state;
     const onCreateBarcode = (selectedPrefixId: any) => {
       createBarcode(
         find(barcodePrefixes, (prefix) => prefix.prefixId === selectedPrefixId)
@@ -336,22 +328,11 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     };
 
     const uploadTypeError =
-      this.state.submitAttempted && !(selectedBarcode || hasNoPlateToUpload);
+      submitAttempted && !(selectedBarcode || hasNoPlateToUpload);
 
     return (
       <>
         <div className={styles.container}>
-          {appliedTemplate ? (
-            <Icon className={styles.icon} theme="filled" type="check-circle" />
-          ) : (
-            <Tooltip title="Select a template">
-              <Icon
-                className={classNames(styles.icon, styles.errorIcon)}
-                theme="filled"
-                type="close-circle"
-              />
-            </Tooltip>
-          )}
           <LabeledInput
             className={styles.selector}
             label={`Select ${SCHEMA_SYNONYM}`}
@@ -359,7 +340,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             <TemplateSearch
               allowCreate={true}
               disabled={templateIsLoading || this.isReadOnly}
-              value={appliedTemplate ? appliedTemplate.templateId : undefined}
+              error={submitAttempted && !appliedTemplate}
+              value={appliedTemplate?.templateId}
               onSelect={this.props.applyTemplate}
             />
           </LabeledInput>
@@ -437,11 +419,23 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       );
     }
     if (this.state.submitAttempted) {
+      if (!this.props.appliedTemplate) {
+        alerts.push(
+          <Alert
+            className={styles.alert}
+            message="Please select a template."
+            type="error"
+            showIcon={true}
+            key="upload-type-not-selected"
+          />
+        );
+      }
+
       if (!(this.props.selectedBarcode || this.props.hasNoPlateToUpload)) {
         alerts.push(
           <Alert
             className={styles.alert}
-            message='Please select or create a barcode, or select "No Plate"'
+            message='Please select or create a barcode, or select "No Plate".'
             type="error"
             showIcon={true}
             key="upload-type-not-selected"
