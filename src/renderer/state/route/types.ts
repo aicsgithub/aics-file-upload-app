@@ -10,6 +10,14 @@ export interface CloseUploadAction {
   type: string;
 }
 
+export interface StartNewUploadAction {
+  type: string;
+}
+
+export interface ResetUploadAction {
+  type: string;
+}
+
 export interface SelectPageAction {
   payload: Page.AddCustomData | Page.UploadSummary;
   type: string;

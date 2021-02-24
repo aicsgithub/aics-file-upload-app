@@ -1,4 +1,4 @@
-import { Col, Empty, Radio, Row, Spin, Table } from "antd";
+import { Button, Col, Empty, Radio, Row, Spin, Table } from "antd";
 import { RadioChangeEvent } from "antd/es/radio";
 import { ColumnProps } from "antd/lib/table";
 import * as classNames from "classnames";
@@ -19,8 +19,14 @@ import {
 import { selectJobFilter } from "../../state/job/actions";
 import { getJobFilter, getJobsForTable } from "../../state/job/selectors";
 import { SelectJobFilterAction } from "../../state/job/types";
-import { openEditFileMetadataTab } from "../../state/route/actions";
-import { OpenEditFileMetadataTabAction } from "../../state/route/types";
+import {
+  openEditFileMetadataTab,
+  startNewUpload,
+} from "../../state/route/actions";
+import {
+  OpenEditFileMetadataTabAction,
+  StartNewUploadAction,
+} from "../../state/route/types";
 import {
   AsyncRequest,
   JobFilter,
@@ -58,6 +64,7 @@ interface Props {
   requestingJobs: boolean;
   retryUpload: ActionCreator<RetryUploadAction>;
   selectJobFilter: ActionCreator<SelectJobFilterAction>;
+  startNewUpload: ActionCreator<StartNewUploadAction>;
 }
 
 class UploadSummary extends React.Component<Props, {}> {
@@ -159,6 +166,15 @@ class UploadSummary extends React.Component<Props, {}> {
                   ))}
                 </Radio.Group>
               </Col>
+              <Col>
+                <Button
+                  className={styles.createNewUploadButton}
+                  icon="plus"
+                  onClick={this.props.startNewUpload}
+                >
+                  Create New Upload
+                </Button>
+              </Col>
             </Row>
           </div>
           {jobs.length ? (
@@ -228,6 +244,7 @@ const dispatchToPropsMap = {
   openEditFileMetadataTab,
   retryUpload,
   selectJobFilter,
+  startNewUpload,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(UploadSummary);

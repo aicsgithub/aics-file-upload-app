@@ -4,8 +4,8 @@ import undoable, { UndoableOptions } from "redux-undo";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { RESET_HISTORY } from "../metadata/constants";
-import { CLOSE_UPLOAD } from "../route/constants";
-import { CloseUploadAction } from "../route/types";
+import { RESET_UPLOAD } from "../route/constants";
+import { ResetUploadAction } from "../route/types";
 import {
   SELECT_BARCODE,
   SET_HAS_NO_PLATE_TO_UPLOAD,
@@ -218,9 +218,9 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
       ...getUpload(replacementState),
     }),
   },
-  [CLOSE_UPLOAD]: {
-    accepts: (action: AnyAction): action is CloseUploadAction =>
-      action.type === CLOSE_UPLOAD,
+  [RESET_UPLOAD]: {
+    accepts: (action: AnyAction): action is ResetUploadAction =>
+      action.type === RESET_UPLOAD,
     perform: () => ({}),
   },
   [SET_APPLIED_TEMPLATE]: {

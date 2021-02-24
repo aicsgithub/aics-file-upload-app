@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { closeUpload } from "../../route/actions";
+import { resetUpload } from "../../route/actions";
 import { getMockStateWithHistory, mockState } from "../../test/mocks";
 import { UploadStateBranch } from "../../types";
 import { replaceUpload, updateUpload, updateUploads } from "../actions";
@@ -64,9 +64,9 @@ describe("upload reducer", () => {
       expect(present.bar).to.equal(uploadPartial);
     });
   });
-  describe("closeUpload", () => {
+  describe("resetUpload", () => {
     it("clears all uploads", () => {
-      const result = reducer(getMockStateWithHistory(uploads), closeUpload());
+      const result = reducer(getMockStateWithHistory(uploads), resetUpload());
       const { present } = result;
       expect(present).to.be.empty;
     });
