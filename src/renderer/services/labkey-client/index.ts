@@ -208,7 +208,7 @@ export default class LabkeyClient extends HttpCacheClient {
     searchString: string
   ): Promise<LabkeyPlateResponse[]> {
     const query = LabkeyClient.getSelectRowsURL("microscopy", "Plate", [
-      `query.barcode~contains=${searchString}`,
+      `query.barcode~contains=${encodeURIComponent(searchString)}`,
       `query.maxRows=30`,
     ]);
 
