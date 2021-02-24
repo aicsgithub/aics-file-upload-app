@@ -8,11 +8,7 @@ import {
 import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { getCurrentJobName } from "../../state/job/selectors";
 import { getOriginalUpload } from "../../state/metadata/selectors";
-import {
-  getHasNoPlateToUpload,
-  getSelectedBarcode,
-  getSelectedJob,
-} from "../../state/selection/selectors";
+import { getSelectedJob } from "../../state/selection/selectors";
 import { AsyncRequest, UploadStateBranch } from "../../state/types";
 import { getUpload } from "../../state/upload/selectors";
 
@@ -39,8 +35,6 @@ export const getCanSubmitUpload = createSelector(
     getSelectedJob,
     getCurrentJobName,
     getUploadInProgress,
-    getSelectedBarcode,
-    getHasNoPlateToUpload,
   ],
   (
     requestsInProgress: string[],
@@ -48,15 +42,9 @@ export const getCanSubmitUpload = createSelector(
     originalUpload?: UploadStateBranch,
     selectedJob?: JSSJob,
     currentJobName?: string,
-    uploadInProgress?: boolean,
-    selectedBarcode?: string,
-    hasNoPlateToUpload?: boolean
+    uploadInProgress?: boolean
   ): boolean => {
-    if (
-      uploadInProgress ||
-      !Object.keys(upload).length ||
-      (!selectedBarcode && !hasNoPlateToUpload)
-    ) {
+    if (uploadInProgress || !Object.keys(upload).length) {
       return false;
     }
     const uploadRelatedRequests = [

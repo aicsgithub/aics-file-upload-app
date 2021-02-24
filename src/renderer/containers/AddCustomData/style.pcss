@@ -71,3 +71,10 @@
     color: var(--brand-primary);
   }
 }
+
+.no-plate-checkbox-error {
+  & :global(.ant-checkbox) {
+    /* Variable located in styles/colors */
+    border: 1px solid var(--ant-validation-error);
+  }
+}

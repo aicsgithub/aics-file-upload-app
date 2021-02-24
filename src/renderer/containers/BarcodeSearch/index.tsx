@@ -33,6 +33,7 @@ type BarcodeSearchProps = ConnectedProps<typeof connector> & {
   barcode?: string;
   className?: string;
   disabled?: boolean; // temporary
+  error?: boolean;
   onBarcodeChange: OnBarcodeChange;
 };
 
@@ -56,6 +57,7 @@ const BarcodeSearch: React.FunctionComponent<BarcodeSearchProps> = ({
   barcodeSearchResults,
   className,
   disabled,
+  error,
   getBarcodeSearchResults: dispatchGetBarcodeSearchResults,
   loading,
   onBarcodeChange,
@@ -63,6 +65,7 @@ const BarcodeSearch: React.FunctionComponent<BarcodeSearchProps> = ({
   <LookupSearch
     className={className}
     disabled={disabled}
+    error={error}
     getDisplayFromOption={(result: BarcodeSelectorOption) => result.barcode}
     lookupAnnotationName="barcodeSearchResults"
     mode="default"
