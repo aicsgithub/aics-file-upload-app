@@ -94,21 +94,9 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
         );
         break;
       case ColumnType.NUMBER:
-        return (
-          <Input
-            ref={this.input}
-            defaultValue={this.state.value}
-            onBlur={this.props.onCommit}
-          />
-        );
       case ColumnType.TEXT:
-        return (
-          <Input
-            ref={this.input}
-            defaultValue={this.state.value}
-            onBlur={this.props.onCommit}
-          />
-        );
+        input = <Input ref={this.input} defaultValue={this.state.value} />;
+        break;
       case ColumnType.LOOKUP:
         input = (
           <LookupSearch
