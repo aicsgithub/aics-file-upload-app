@@ -131,13 +131,13 @@ class FileFormatter extends React.Component<Props, FileFormatterState> {
             disabled={!this.props.showTutorial}
             placement="right"
             step={TutorialStep.ADD_SCENES}
-            title="Sub Images, Channels, Scenes"
-            message="Click here to add sub images, channels, and scenes to your files"
+            title="Scenes, positions, or FOVs"
+            message="Click here to add scenes, positions, or FOVs to your files"
           >
             <Tooltip
               className={styles.addSceneIcon}
               mouseLeaveDelay={0}
-              title="Click here to add sub images, channels, and scenes to your files"
+              title="Click here to add scenes, positions, or FOVs to your files"
             >
               <Icon
                 onClick={this.openModal}
