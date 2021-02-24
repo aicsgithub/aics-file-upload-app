@@ -64,6 +64,7 @@ export default function TutorialTooltip(props: Props) {
   return (
     <Popover
       content={content}
+      overlayClassName={styles.popover}
       placement={props.placement}
       visible={current === props.step && !props.disabled && showUploadHint}
     >
