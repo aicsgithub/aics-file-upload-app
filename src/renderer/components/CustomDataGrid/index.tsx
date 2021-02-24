@@ -442,7 +442,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   };
 
   private getSchemaColumns = (forMassEditRows = false): UploadJobColumn[] => {
-    const { annotationTypes, editable, template } = this.props;
+    const {
+      annotationTypes,
+      editable,
+      template,
+      showErrorsForRequiredFields,
+    } = this.props;
     if (!template || !template.annotations) {
       return [];
     }
@@ -464,7 +469,17 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         }
 
         const type = annotationType.name;
-        const column: UploadJobColumn = {
+        const column: UploadJobColumn & {
+          // The version of React Data Grid we are using has a bug where
+          // columns do not update as expected in certain situations. In our
+          // case, we were having an issue with validation errors not showing up
+          // in the rows after a user clicks "Upload" until there was another
+          // interaction with the grid. Adding this field which will change from
+          // 'false' to 'true' in this scenario will make the grid update as
+          // expected. This was inspired by this suggestion:
+          // https://github.com/adazzle/react-data-grid/issues/709#issuecomment-452647471
+          showErrorsForRequiredFields: boolean;
+        } = {
           cellClass: styles.formatterContainer,
           dropdownValues: annotationOptions,
           editable,
@@ -472,6 +487,7 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           name,
           resizable: true,
           type,
+          showErrorsForRequiredFields,
         };
 
         if (required) {
