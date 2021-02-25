@@ -239,59 +239,65 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         onOpen={this.props.openFilesFromDialog}
         openDialogOptions={openDialogOptions}
       >
-        <div className={styles.contentContainer}>
-          {selectedJob && <JobOverviewDisplay job={selectedJob} />}
-          {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
-          {templateIsLoading || selectedJobIsLoading ? (
-            <div className={styles.spinContainer}>
-              <div>Loading...</div>
-              <Spin />
-            </div>
-          ) : (
-            <>
-              {this.renderValidationAlerts()}
-              <CustomDataGrid
-                allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
-                annotationTypes={annotationTypes}
-                canAddMoreFiles={!selectedJob}
-                canRedo={canRedo}
-                canUndo={canUndo}
-                channels={this.props.channels}
-                editable={!this.isReadOnly}
-                expandedRows={this.props.expandedRows}
-                fileToAnnotationHasValueMap={
-                  this.props.fileToAnnotationHasValueMap
-                }
-                hideUploadHints={this.hideHint}
-                massEditRow={massEditRow}
-                onFileBrowse={this.props.openFilesFromDialog}
-                redo={this.redo}
-                removeUploads={this.props.removeUploads}
-                template={appliedTemplate}
-                setAlert={this.props.setAlert}
-                showErrorsForRequiredFields={this.state.submitAttempted}
-                showUploadHint={this.props.showUploadHint}
-                toggleRowExpanded={this.props.toggleRowExpanded}
-                undo={this.undo}
-                updateMassEditRow={this.props.updateMassEditRow}
-                updateSubImages={this.props.updateSubImages}
-                updateUpload={this.props.updateUpload}
-                updateUploadRows={this.props.updateUploadRows}
-                uploads={uploads}
-                validationErrors={uploadRowKeyToAnnotationErrorMap}
-              />
-              {uploadError && (
-                <Alert
-                  className={styles.alert}
-                  message="Upload Failed"
-                  description={this.props.uploadError}
-                  type="error"
-                  showIcon={true}
-                  key="upload-failed"
-                />
+        <div className={styles.contentRoot}>
+          <div className={styles.contentAbs}>
+            <div className={styles.contentContainer}>
+              {selectedJob && <JobOverviewDisplay job={selectedJob} />}
+              {!selectedJobIsLoading && this.renderTemplateAndUploadTypeInput()}
+              {templateIsLoading || selectedJobIsLoading ? (
+                <div className={styles.spinContainer}>
+                  <div>Loading...</div>
+                  <Spin />
+                </div>
+              ) : (
+                <>
+                  {this.renderValidationAlerts()}
+                  <CustomDataGrid
+                    allWellsForSelectedPlate={
+                      this.props.allWellsForSelectedPlate
+                    }
+                    annotationTypes={annotationTypes}
+                    canAddMoreFiles={!selectedJob}
+                    canRedo={canRedo}
+                    canUndo={canUndo}
+                    channels={this.props.channels}
+                    editable={!this.isReadOnly}
+                    expandedRows={this.props.expandedRows}
+                    fileToAnnotationHasValueMap={
+                      this.props.fileToAnnotationHasValueMap
+                    }
+                    hideUploadHints={this.hideHint}
+                    massEditRow={massEditRow}
+                    onFileBrowse={this.props.openFilesFromDialog}
+                    redo={this.redo}
+                    removeUploads={this.props.removeUploads}
+                    template={appliedTemplate}
+                    setAlert={this.props.setAlert}
+                    showErrorsForRequiredFields={this.state.submitAttempted}
+                    showUploadHint={this.props.showUploadHint}
+                    toggleRowExpanded={this.props.toggleRowExpanded}
+                    undo={this.undo}
+                    updateMassEditRow={this.props.updateMassEditRow}
+                    updateSubImages={this.props.updateSubImages}
+                    updateUpload={this.props.updateUpload}
+                    updateUploadRows={this.props.updateUploadRows}
+                    uploads={uploads}
+                    validationErrors={uploadRowKeyToAnnotationErrorMap}
+                  />
+                  {uploadError && (
+                    <Alert
+                      className={styles.alert}
+                      message="Upload Failed"
+                      description={this.props.uploadError}
+                      type="error"
+                      showIcon={true}
+                      key="upload-failed"
+                    />
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
         <div className={styles.saveButtonContainer}>
           <Button
