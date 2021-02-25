@@ -6,9 +6,9 @@ import * as os from "os";
 export default class ApplicationInfoService {
   public static getApplicationVersion(): string {
     // Must be injected at build-time
-    const applicationVersion = process.env.npm_package_version;
+    const applicationVersion = process.env.APPLICATION_VERSION;
     if (!applicationVersion) {
-      throw new Error("npm_package_version must be defined");
+      throw new Error("APPLICATION_VERSION must be defined");
     }
     return applicationVersion;
   }

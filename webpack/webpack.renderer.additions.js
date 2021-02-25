@@ -2,13 +2,21 @@ const path = require("path");
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const tsImportPluginFactory = require("ts-import-plugin");
+const webpack = require("webpack");
+
+const packageJson = require("../package.json");
 
 const getCssLoaders = require("./css-loaders");
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 module.exports = {
-  plugins: [new MiniCssExtractPlugin("style.pcss")],
+  plugins: [
+    new MiniCssExtractPlugin("style.pcss"),
+    new webpack.DefinePlugin({
+      "process.env.APPLICATION_VERSION": JSON.stringify(packageJson.version),
+    }),
+  ],
   module: {
     rules: [
       {
