@@ -23,6 +23,8 @@ jobs:
           node-version: 12
 
       - name: Install deps and compile app
+        env:
+          ELECTRON_WEBPACK_APP_AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
         run: |
           yarn --link-duplicates
           yarn compile-prod
@@ -30,7 +32,6 @@ jobs:
       - name: Build artifact and release
         uses: samuelmeuli/action-electron-builder@v1.6.0
         env:
-          ELECTRON_WEBPACK_APP_AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
