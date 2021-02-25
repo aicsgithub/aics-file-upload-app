@@ -88,6 +88,7 @@ interface Props {
   removeUploads: ActionCreator<RemoveUploadsAction>;
   template?: Template;
   setAlert: ActionCreator<SetAlertAction>;
+  showErrorsForRequiredFields: boolean;
   showUploadHint: boolean;
   toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   undo: () => void;
@@ -359,7 +360,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
     let error;
     if (!forMassEditRows) {
       const showFieldIsRequiredError =
-        required && !this.props.fileToAnnotationHasValueMap[row.file][label];
+        required &&
+        this.props.showErrorsForRequiredFields &&
+        !this.props.fileToAnnotationHasValueMap[row.file][label];
       if (showFieldIsRequiredError) {
         error = `${label} is required`;
       } else if (
@@ -439,7 +442,12 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   };
 
   private getSchemaColumns = (forMassEditRows = false): UploadJobColumn[] => {
-    const { annotationTypes, editable, template } = this.props;
+    const {
+      annotationTypes,
+      editable,
+      template,
+      showErrorsForRequiredFields,
+    } = this.props;
     if (!template || !template.annotations) {
       return [];
     }
@@ -461,7 +469,17 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
         }
 
         const type = annotationType.name;
-        const column: UploadJobColumn = {
+        const column: UploadJobColumn & {
+          // The version of React Data Grid we are using has a bug where
+          // columns do not update as expected in certain situations. In our
+          // case, we were having an issue with validation errors not showing up
+          // in the rows after a user clicks "Upload" until there was another
+          // interaction with the grid. Adding this field which will change from
+          // 'false' to 'true' in this scenario will make the grid update as
+          // expected. This was inspired by this suggestion:
+          // https://github.com/adazzle/react-data-grid/issues/709#issuecomment-452647471
+          showErrorsForRequiredFields: boolean;
+        } = {
           cellClass: styles.formatterContainer,
           dropdownValues: annotationOptions,
           editable,
@@ -469,7 +487,16 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
           name,
           resizable: true,
           type,
+          showErrorsForRequiredFields,
         };
+
+        if (required) {
+          column.headerRenderer = ({ column }: { column: UploadJobColumn }) => (
+            <Tooltip title={`${column.name} is required`} mouseLeaveDelay={0}>
+              {column.name}*
+            </Tooltip>
+          );
+        }
 
         // dates are handled completely differently from other data types because right now the best
         // way to edit multiple dates is through a modal with a grid. this should probably change in the future.

@@ -1,4 +1,4 @@
-import { Alert, Button, Checkbox, Icon, Select, Spin, Tooltip } from "antd";
+import { Alert, Button, Checkbox, Icon, Select, Spin, Form } from "antd";
 import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
@@ -166,6 +166,7 @@ interface Props {
 
 interface AddCustomDataState {
   selectedFiles: string[];
+  submitAttempted: boolean;
 }
 
 // On Windows, file browsers cannot look for directories and files at the same time
@@ -183,6 +184,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     super(props);
     this.state = {
       selectedFiles: [],
+      submitAttempted: false,
     };
 
     // During the "Create Barcode" path the user will create a plate, triggering this. From here we can proceed
@@ -216,6 +218,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       selectedJob,
       selectedJobIsLoading,
       templateIsLoading,
+      uploadError,
       uploadInProgress,
       uploadRowKeyToAnnotationErrorMap,
       uploads,
@@ -246,7 +249,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             </div>
           ) : (
             <>
-              {this.renderAlerts()}
+              {this.renderValidationAlerts()}
               <CustomDataGrid
                 allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                 annotationTypes={annotationTypes}
@@ -266,6 +269,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 removeUploads={this.props.removeUploads}
                 template={appliedTemplate}
                 setAlert={this.props.setAlert}
+                showErrorsForRequiredFields={this.state.submitAttempted}
                 showUploadHint={this.props.showUploadHint}
                 toggleRowExpanded={this.props.toggleRowExpanded}
                 undo={this.undo}
@@ -276,6 +280,16 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 uploads={uploads}
                 validationErrors={uploadRowKeyToAnnotationErrorMap}
               />
+              {uploadError && (
+                <Alert
+                  className={styles.alert}
+                  message="Upload Failed"
+                  description={this.props.uploadError}
+                  type="error"
+                  showIcon={true}
+                  key="upload-failed"
+                />
+              )}
             </>
           )}
         </div>
@@ -317,50 +331,50 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       setHasNoPlateToUpload,
       templateIsLoading,
     } = this.props;
+    const { submitAttempted } = this.state;
     const onCreateBarcode = (selectedPrefixId: any) => {
       createBarcode(
         find(barcodePrefixes, (prefix) => prefix.prefixId === selectedPrefixId)
       );
     };
 
+    const templateError = submitAttempted && !appliedTemplate;
+    const uploadTypeError =
+      submitAttempted && !(selectedBarcode || hasNoPlateToUpload);
+
     return (
       <>
+        {templateError && (
+          <Alert
+            className={styles.alert}
+            message="Please select a template."
+            type="error"
+            showIcon={true}
+            key="template-not-selected"
+          />
+        )}
+        <LabeledInput
+          className={styles.selector}
+          label={`Select ${SCHEMA_SYNONYM}`}
+        >
+          <TemplateSearch
+            allowCreate={true}
+            disabled={templateIsLoading || this.isReadOnly}
+            error={templateError}
+            value={appliedTemplate?.templateId}
+            onSelect={this.props.applyTemplate}
+          />
+        </LabeledInput>
+        {uploadTypeError && (
+          <Alert
+            className={styles.alert}
+            message='Please select or create a barcode, or select "No Plate".'
+            type="error"
+            showIcon={true}
+            key="upload-type-not-selected"
+          />
+        )}
         <div className={styles.container}>
-          {appliedTemplate ? (
-            <Icon className={styles.icon} theme="filled" type="check-circle" />
-          ) : (
-            <Tooltip title="Select a template">
-              <Icon
-                className={classNames(styles.icon, styles.errorIcon)}
-                theme="filled"
-                type="close-circle"
-              />
-            </Tooltip>
-          )}
-          <LabeledInput
-            className={styles.selector}
-            label={`Select ${SCHEMA_SYNONYM}`}
-          >
-            <TemplateSearch
-              allowCreate={true}
-              disabled={templateIsLoading || this.isReadOnly}
-              value={appliedTemplate ? appliedTemplate.templateId : undefined}
-              onSelect={this.props.applyTemplate}
-            />
-          </LabeledInput>
-        </div>
-        <div className={styles.container}>
-          {selectedBarcode || hasNoPlateToUpload ? (
-            <Icon className={styles.icon} theme="filled" type="check-circle" />
-          ) : (
-            <Tooltip title='Select/create a barcode or select "Neither"'>
-              <Icon
-                className={classNames(styles.icon, styles.errorIcon)}
-                theme="filled"
-                type="close-circle"
-              />
-            </Tooltip>
-          )}
           <div className={styles.container}>
             <LabeledInput
               className={styles.selector}
@@ -369,6 +383,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               <BarcodeSearch
                 barcode={selectedBarcode}
                 disabled={this.isReadOnly}
+                error={uploadTypeError}
                 onBarcodeChange={(imagingSessionIds, barcode) => {
                   if (barcode) {
                     this.props.selectBarcode(barcode, imagingSessionIds);
@@ -381,22 +396,27 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               className={styles.selector}
               label="Create Barcode & Plate"
             >
-              <Select
-                className={styles.selector}
-                disabled={this.isReadOnly}
-                onSelect={onCreateBarcode}
-                placeholder="Select Barcode Prefix"
-              >
-                {barcodePrefixes.map(({ prefixId, description }) => (
-                  <Select.Option value={prefixId} key={prefixId}>
-                    {description}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Form.Item validateStatus={uploadTypeError ? "error" : ""}>
+                <Select
+                  className={styles.selector}
+                  disabled={this.isReadOnly}
+                  onSelect={onCreateBarcode}
+                  placeholder="Select Barcode Prefix"
+                >
+                  {barcodePrefixes.map(({ prefixId, description }) => (
+                    <Select.Option value={prefixId} key={prefixId}>
+                      {description}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </LabeledInput>
             <div className={styles.separatorText}>OR</div>
             <LabeledInput className={styles.selector} label="Neither">
               <Checkbox
+                className={classNames({
+                  [styles.noPlateCheckboxError]: uploadTypeError,
+                })}
                 disabled={this.isReadOnly}
                 checked={hasNoPlateToUpload && !this.isReadOnly}
                 onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
@@ -409,24 +429,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   };
 
-  private renderAlerts = (): ReactNodeArray => {
+  private renderValidationAlerts = (): ReactNodeArray => {
     const alerts: ReactNodeArray = [];
     if (!Object.keys(this.props.uploads).length) {
       return alerts;
     }
-    if (this.props.uploadError) {
-      alerts.push(
-        <Alert
-          className={styles.alert}
-          message="Upload Failed"
-          description={this.props.uploadError}
-          type="error"
-          showIcon={true}
-          key="upload-failed"
-        />
-      );
-    }
-    if (this.props.validationErrors.length > 0) {
+    if (this.state.submitAttempted && this.props.validationErrors.length > 0) {
       alerts.push(
         <Alert
           className={styles.alert}
@@ -443,15 +451,32 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
   };
 
   private submit = (): void => {
-    if (this.props.selectedJob) {
-      if (this.props.selectedJob.status === JSSJobStatus.SUCCEEDED) {
-        this.props.submitFileMetadataUpdate();
+    const {
+      validationErrors,
+      selectedBarcode,
+      hasNoPlateToUpload,
+      selectedJob,
+      submitFileMetadataUpdate,
+      updateAndRetryUpload,
+      initiateUpload,
+    } = this.props;
+
+    this.setState({ submitAttempted: true });
+
+    if (
+      validationErrors.length === 0 &&
+      (selectedBarcode || hasNoPlateToUpload)
+    ) {
+      if (selectedJob) {
+        if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
+          submitFileMetadataUpdate();
+        }
+        if (selectedJob.status === JSSJobStatus.FAILED) {
+          updateAndRetryUpload();
+        }
+      } else {
+        initiateUpload();
       }
-      if (this.props.selectedJob.status === JSSJobStatus.FAILED) {
-        this.props.updateAndRetryUpload();
-      }
-    } else {
-      this.props.initiateUpload();
     }
   };
 

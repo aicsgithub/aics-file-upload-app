@@ -14,6 +14,8 @@
 
 .alert {
   margin-bottom: 1em;
+  max-height: 10em;
+  overflow-y: auto;
 }
 
 .content-container {
@@ -69,5 +71,12 @@
     border: none;
     /* Variable located in styles/colors */
     color: var(--brand-primary);
+  }
+}
+
+.no-plate-checkbox-error {
+  & :global(.ant-checkbox) {
+    /* Variable located in styles/colors */
+    border: 1px solid var(--ant-validation-error);
   }
 }
