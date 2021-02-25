@@ -166,7 +166,7 @@ export default class LabkeyClient extends HttpCacheClient {
     schema: string,
     table: string,
     column: string,
-    searchString?: string
+    searchString = ""
   ): Promise<string[]> {
     const additionalQueries = [
       `query.columns=${column}`,
@@ -174,7 +174,7 @@ export default class LabkeyClient extends HttpCacheClient {
     ];
     if (!isEmpty(searchString)) {
       additionalQueries.push(
-        `query.${column}~contains=${searchString}`,
+        `query.${column}~contains=${encodeURIComponent(searchString)}`,
         `query.maxRows=30`
       );
     }
@@ -351,7 +351,7 @@ export default class LabkeyClient extends HttpCacheClient {
     barcode: string
   ): Promise<Array<number | null>> {
     const query = LabkeyClient.getSelectRowsURL(LK_MICROSCOPY_SCHEMA, "Plate", [
-      `query.barcode~eq=${barcode}`,
+      `query.barcode~eq=${encodeURIComponent(barcode)}`,
     ]);
     const response = await this.get(query);
     if (response.rows.length) {
