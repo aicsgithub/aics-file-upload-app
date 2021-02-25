@@ -218,6 +218,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       selectedJob,
       selectedJobIsLoading,
       templateIsLoading,
+      uploadError,
       uploadInProgress,
       uploadRowKeyToAnnotationErrorMap,
       uploads,
@@ -248,7 +249,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             </div>
           ) : (
             <>
-              {this.renderAlerts()}
+              {this.renderValidationAlerts()}
               <CustomDataGrid
                 allWellsForSelectedPlate={this.props.allWellsForSelectedPlate}
                 annotationTypes={annotationTypes}
@@ -279,6 +280,16 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 uploads={uploads}
                 validationErrors={uploadRowKeyToAnnotationErrorMap}
               />
+              {uploadError && (
+                <Alert
+                  className={styles.alert}
+                  message="Upload Failed"
+                  description={this.props.uploadError}
+                  type="error"
+                  showIcon={true}
+                  key="upload-failed"
+                />
+              )}
             </>
           )}
         </div>
@@ -327,25 +338,42 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       );
     };
 
+    const templateError = submitAttempted && !appliedTemplate;
     const uploadTypeError =
       submitAttempted && !(selectedBarcode || hasNoPlateToUpload);
 
     return (
       <>
-        <div className={styles.container}>
-          <LabeledInput
-            className={styles.selector}
-            label={`Select ${SCHEMA_SYNONYM}`}
-          >
-            <TemplateSearch
-              allowCreate={true}
-              disabled={templateIsLoading || this.isReadOnly}
-              error={submitAttempted && !appliedTemplate}
-              value={appliedTemplate?.templateId}
-              onSelect={this.props.applyTemplate}
-            />
-          </LabeledInput>
-        </div>
+        {templateError && (
+          <Alert
+            className={styles.alert}
+            message="Please select a template."
+            type="error"
+            showIcon={true}
+            key="template-not-selected"
+          />
+        )}
+        <LabeledInput
+          className={styles.selector}
+          label={`Select ${SCHEMA_SYNONYM}`}
+        >
+          <TemplateSearch
+            allowCreate={true}
+            disabled={templateIsLoading || this.isReadOnly}
+            error={templateError}
+            value={appliedTemplate?.templateId}
+            onSelect={this.props.applyTemplate}
+          />
+        </LabeledInput>
+        {uploadTypeError && (
+          <Alert
+            className={styles.alert}
+            message='Please select or create a barcode, or select "No Plate".'
+            type="error"
+            showIcon={true}
+            key="upload-type-not-selected"
+          />
+        )}
         <div className={styles.container}>
           <div className={styles.container}>
             <LabeledInput
@@ -401,61 +429,23 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   };
 
-  private renderAlerts = (): ReactNodeArray => {
+  private renderValidationAlerts = (): ReactNodeArray => {
     const alerts: ReactNodeArray = [];
     if (!Object.keys(this.props.uploads).length) {
       return alerts;
     }
-    if (this.props.uploadError) {
+    if (this.state.submitAttempted && this.props.validationErrors.length > 0) {
       alerts.push(
         <Alert
           className={styles.alert}
-          message="Upload Failed"
-          description={this.props.uploadError}
-          type="error"
+          message={this.props.validationErrors.map((e) => (
+            <div key={e}>{e}</div>
+          ))}
           showIcon={true}
-          key="upload-failed"
+          type="error"
+          key="validation-errors"
         />
       );
-    }
-    if (this.state.submitAttempted) {
-      if (!this.props.appliedTemplate) {
-        alerts.push(
-          <Alert
-            className={styles.alert}
-            message="Please select a template."
-            type="error"
-            showIcon={true}
-            key="upload-type-not-selected"
-          />
-        );
-      }
-
-      if (!(this.props.selectedBarcode || this.props.hasNoPlateToUpload)) {
-        alerts.push(
-          <Alert
-            className={styles.alert}
-            message='Please select or create a barcode, or select "No Plate".'
-            type="error"
-            showIcon={true}
-            key="upload-type-not-selected"
-          />
-        );
-      }
-
-      if (this.props.validationErrors.length > 0) {
-        alerts.push(
-          <Alert
-            className={styles.alert}
-            message={this.props.validationErrors.map((e) => (
-              <div key={e}>{e}</div>
-            ))}
-            showIcon={true}
-            type="error"
-            key="validation-errors"
-          />
-        );
-      }
     }
     return alerts;
   };
