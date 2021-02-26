@@ -50,7 +50,11 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
 } from "../metadata/selectors";
-import { closeUpload, openEditFileMetadataTab } from "../route/actions";
+import {
+  closeUpload,
+  openEditFileMetadataTab,
+  resetUpload,
+} from "../route/actions";
 import {
   handleStartingNewUploadJob,
   resetHistoryActions,
@@ -1092,7 +1096,11 @@ const submitFileMetadataUpdateLogic = createLogic({
     }
 
     dispatch(
-      batchActions([editFileMetadataSucceeded(ctx.jobName), closeUpload()])
+      batchActions([
+        editFileMetadataSucceeded(ctx.jobName),
+        closeUpload(),
+        resetUpload(),
+      ])
     );
     done();
   },

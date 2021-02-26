@@ -33,7 +33,7 @@ import { REQUEST_FAILED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
 import { getCurrentJobName } from "../../job/selectors";
-import { closeUpload, selectPage } from "../../route/actions";
+import { closeUpload, resetUpload } from "../../route/actions";
 import { setAppliedTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
@@ -76,7 +76,6 @@ import {
   initiateUpload,
   initiateUploadFailed,
   openUploadDraft,
-  replaceUpload,
   retryUpload,
   saveUploadDraft,
   saveUploadDraftSuccess,
@@ -94,6 +93,7 @@ import {
   INITIATE_UPLOAD,
   INITIATE_UPLOAD_FAILED,
   INITIATE_UPLOAD_SUCCEEDED,
+  REPLACE_UPLOAD,
   SAVE_UPLOAD_DRAFT_SUCCESS,
 } from "../constants";
 import uploadLogics, { cancelUploadLogic } from "../logics";
@@ -412,7 +412,8 @@ describe("Upload logics", () => {
       store.dispatch(initiateUpload());
       await logicMiddleware.whenComplete();
       expect(actions.includesMatch(initiateUpload())).to.be.false;
-      expect(actions.includesMatch(setErrorAlert("Nothing to upload")));
+      expect(actions.includesMatch(setErrorAlert("Nothing to upload"))).to.be
+        .true;
     });
 
     it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions, and starts a web worker", async () => {
@@ -446,7 +447,6 @@ describe("Upload logics", () => {
       ).to.be.true;
       expect(actions.list.find((a) => a.type === INITIATE_UPLOAD_SUCCEEDED)).to
         .not.be.undefined;
-      expect(actions.includesMatch(selectPage(Page.UploadSummary)));
     });
 
     it("sets error alert describing fail job start on failed JSS check", async () => {
@@ -1797,7 +1797,7 @@ describe("Upload logics", () => {
       expect(openDialogStub.called).to.be.false;
     });
     it("sets error alert if something goes wrong while trying to save", async () => {
-      const writeFileStub = stub().rejects("uh oh!");
+      const writeFileStub = stub().rejects(new Error("uh oh!"));
       sandbox.replace(mockReduxLogicDeps, "writeFile", writeFileStub);
       const showMessageStub = stub().resolves({ response: 2 });
       const showSaveDialogStub = stub().resolves({
@@ -1815,7 +1815,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(setErrorAlert("Could not save draft: uh oh!"))
-      );
+      ).to.be.true;
     });
     it("shows open dialog and replaces upload using data from reading file selected by user", async () => {
       const showMessageBoxStub = stub().resolves({ response: 1 });
@@ -1823,7 +1823,7 @@ describe("Upload logics", () => {
         cancelled: false,
         filePaths: ["/foo"],
       });
-      const readFileStub = stub().resolves(mockState);
+      const readFileStub = stub().resolves(JSON.stringify(mockState));
       sandbox.replace(dialog, "showMessageBox", showMessageBoxStub);
       sandbox.replace(dialog, "showOpenDialog", showOpenDialogStub);
       sandbox.replace(mockReduxLogicDeps, "readFile", readFileStub);
@@ -1835,11 +1835,11 @@ describe("Upload logics", () => {
       await logicMiddleware.whenComplete();
 
       expect(showOpenDialogStub.called).to.be.true;
-      expect(actions.includesMatch(replaceUpload("/foo", mockState)));
+      expect(actions.includesMatch({ type: REPLACE_UPLOAD })).to.be.true;
     });
   });
   describe("submitFileMetadataUpdateLogic", () => {
-    let mockStateForEditingMetadata: State | undefined;
+    let mockStateForEditingMetadata: State;
     let catUpload: UploadMetadata | undefined;
     let jobName: string;
     beforeEach(() => {
@@ -1875,18 +1875,18 @@ describe("Upload logics", () => {
     });
     it("sets error alert if no applied template", () => {
       const { actions, store } = createMockReduxStore({
-        ...mockState,
+        ...mockStateForEditingMetadata,
         template: getMockStateWithHistory({
-          ...mockState.template.present,
-          appliedTemplate: mockMMSTemplate,
+          ...mockTemplateStateBranch,
+          appliedTemplate: undefined,
         }),
       });
       store.dispatch(submitFileMetadataUpdate());
       expect(
         actions.includesMatch(
-          setErrorAlert("Cannot submit update: no template has been applied")
+          setErrorAlert("Cannot submit update: no template has been applied.")
         )
-      );
+      ).to.be.true;
     });
     it("adds jobName to payload if current job is defined", async () => {
       const { actions, logicMiddleware, store } = createMockReduxStore(
@@ -1923,8 +1923,9 @@ describe("Upload logics", () => {
         .true;
       expect(mmsClient.editFileMetadata.calledWith("dog", match.object)).to.be
         .false;
-      expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
-      expect(actions.includesMatch(selectPage(Page.UploadSummary)));
+      expect(actions.includesMatch(editFileMetadataSucceeded(jobName))).to.be
+        .true;
+      expect(actions.includesMatch(resetUpload())).to.be.true;
     });
     it("ignores 404s when deleting files", async () => {
       mmsClient.deleteFileMetadata.rejects({
@@ -1940,7 +1941,8 @@ describe("Upload logics", () => {
       expect(mmsClient.deleteFileMetadata.called).to.be.true;
       expect(jssClient.updateJob.called).to.be.true;
       expect(mmsClient.editFileMetadata.called).to.be.true;
-      expect(actions.includesMatch(editFileMetadataSucceeded(jobName)));
+      expect(actions.includesMatch(editFileMetadataSucceeded(jobName))).to.be
+        .true;
     });
     it("dispatches editFileMetadataFailed when deleting file fails (non-404)", async () => {
       mmsClient.deleteFileMetadata.rejects({
@@ -1965,7 +1967,7 @@ describe("Upload logics", () => {
         actions.includesMatch(
           editFileMetadataFailed("Could not delete file dog: foo", jobName)
         )
-      );
+      ).to.be.true;
     });
     it("dispatches editFileMetadataFailed when updating job fails", async () => {
       jssClient.updateJob.rejects(new Error("foo"));
@@ -2004,7 +2006,7 @@ describe("Upload logics", () => {
         actions.includesMatch(
           editFileMetadataFailed("Could not edit files: foo", jobName)
         )
-      );
+      ).to.be.true;
     });
   });
   describe("cancelUpload", () => {
