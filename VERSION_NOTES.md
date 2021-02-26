@@ -1,5 +1,14 @@
 # Version Notes
 
+## 2.0.0 (02/26/21)
+- Version 2 released! This includes:
+  - New navigation sidebar
+  - Integration of features from previous upload wizard into a single page
+  - Ability to upload without a plate or workflow
+  - More intuitive validation error behavior
+  - New tooltip system for highlighting hard to discover features
+- Various minor fixes and usability enhancements
+
 ## 1.0.59 (01/29/21)
 - Feature: Added new duration annotation type
 - Feature: Added ability to add options to dropdown annotations
