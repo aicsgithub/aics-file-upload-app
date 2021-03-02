@@ -5,6 +5,7 @@ import {
   LIMS_HOST,
   LIMS_PORT,
   LIMS_PROTOCOL,
+  USER_SETTINGS_KEY,
 } from "../../../../shared/constants";
 import EnvironmentAwareStorage from "../../../state/EnvironmentAwareStorage";
 import { LocalStorage } from "../../../types";
@@ -15,25 +16,22 @@ describe("HttpCacheClient", () => {
   const url = "/foo";
   const limsURL = `${LIMS_PROTOCOL}://${LIMS_HOST}:${LIMS_PORT}`;
   const data = [{}];
-  const response = { data };
-  const getStub = stub().resolves(response);
-  const postStub = stub().resolves(response);
-  const putStub = stub().resolves(response);
-  const patchStub = stub().resolves(response);
-  const deleteStub = stub().resolves(response);
-  const httpClient = ({
-    get: getStub,
-    post: postStub,
-    put: putStub,
-    patch: patchStub,
-    delete: deleteStub,
-  } as any) as HttpClient;
+  let httpClient: HttpClient;
   let storage: SinonStubbedInstance<EnvironmentAwareStorage>;
 
   beforeEach(() => {
     storage = createStubInstance(EnvironmentAwareStorage);
     // Stub `get` specifically, since it is a class property and not on the prototype
     storage.get = stub();
+
+    const response = { data };
+    httpClient = {
+      get: stub().resolves(response),
+      post: stub().resolves(response),
+      put: stub().resolves(response),
+      patch: stub().resolves(response),
+      delete: stub().resolves(response),
+    };
   });
 
   it("doesn't use cache if useCache is false", async () => {
@@ -98,5 +96,31 @@ describe("HttpCacheClient", () => {
     );
     const result = await httpCacheClient.get(url);
     expect(result).to.equal(data);
+  });
+  it("gets LIMS host and port from user settings", async () => {
+    storage.get
+      .withArgs(USER_SETTINGS_KEY)
+      .returns({ limsHost: "prod", limsPort: 1234 });
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      false
+    );
+    await httpCacheClient.get(url);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(httpClient.get).to.have.been.calledOnceWith("http://prod:1234/foo");
+  });
+  it("uses default LIMS host and port", async () => {
+    storage.get.withArgs(USER_SETTINGS_KEY).returns(undefined);
+    const httpCacheClient = new HttpCacheClient(
+      httpClient,
+      (storage as any) as LocalStorage,
+      false
+    );
+    await httpCacheClient.get(url);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(httpClient.get).to.have.been.calledOnceWith(
+      "http://localhost:8080/foo"
+    );
   });
 });

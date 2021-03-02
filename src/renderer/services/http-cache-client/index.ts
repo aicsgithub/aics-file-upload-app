@@ -10,6 +10,12 @@ import {
 import { LocalStorage } from "../../types";
 import { HttpClient } from "../types";
 
+// TODO: Remove this once we have better typing around user settings
+interface LimsSettings {
+  limsHost?: string;
+  limsPort?: string;
+}
+
 export default class HttpCacheClient {
   private httpClient: HttpClient;
   private localStorage: LocalStorage;
@@ -184,11 +190,13 @@ export default class HttpCacheClient {
   };
 
   private get limsUrl() {
-    const userSettings = this.localStorage.get(USER_SETTINGS_KEY);
+    const userSettings: LimsSettings | undefined = this.localStorage.get(
+      USER_SETTINGS_KEY
+    );
     let host = LIMS_HOST;
     let port = LIMS_PORT;
     const protocol = LIMS_PROTOCOL;
-    if (userSettings) {
+    if (userSettings?.limsHost && userSettings?.limsPort) {
       host = userSettings.limsHost;
       port = userSettings.limsPort;
     }
