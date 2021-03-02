@@ -2,7 +2,7 @@ import { Alert, Button, Tooltip } from "antd";
 import * as classNames from "classnames";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import Logger from "js-logger";
-import { castArray, isEmpty, isNil, without } from "lodash";
+import { castArray, isEmpty, isNil, without, omit } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import ReactDataGrid from "react-data-grid";
@@ -741,7 +741,9 @@ class CustomDataGrid extends React.Component<Props, CustomDataState> {
   };
 
   private updateRowsWithMassEditInfo = () => {
-    const massEditRow = this.props.massEditRow;
+    // `massEditNumberOfFiles` is added when the mass editor is opened, and will
+    // cause unwanted behavior if it is copied to the mass edited rows.
+    const massEditRow = omit(this.props.massEditRow, "massEditNumberOfFiles");
     const updateRow: Partial<UploadMetadata> = {};
     Object.keys(massEditRow).map((key) => {
       if (Array.isArray(massEditRow[key])) {
