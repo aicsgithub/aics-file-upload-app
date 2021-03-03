@@ -42,6 +42,8 @@ import { AnnotationDraft, AsyncRequest, State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
 import AnnotationListItem from "./AnnotationListItem";
+import TemplateSearch from "../../components/TemplateSearch";
+import LabeledInput from "../../components/LabeledInput";
 
 const styles = require("./styles.pcss");
 const COLUMN_TEMPLATE_DESCRIPTION = `A ${SCHEMA_SYNONYM} defines a group of annotations to associate with files.
@@ -89,6 +91,7 @@ interface TemplateEditorModalState {
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
   showErrorAlert: boolean;
+  copiedTemplate?: number;
 }
 
 class TemplateEditorModal extends React.Component<
@@ -102,6 +105,7 @@ class TemplateEditorModal extends React.Component<
       annotationNameSearch: undefined,
       selectedAnnotation: undefined,
       showErrorAlert: false,
+      copiedTemplate: undefined,
     };
   }
 
@@ -239,6 +243,17 @@ class TemplateEditorModal extends React.Component<
         )}
         <div className={styles.body}>
           <div className={styles.formContainer}>
+            <LabeledInput
+                className={styles.selector}
+                label="Copy Existing Template"
+            >
+              <TemplateSearch
+                  allowCreate={false}
+                  value={this.state.copiedTemplate}
+                  onSelect={this.addExistingTemplate}
+              />
+            </LabeledInput>
+            <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
             <FormControl
               label="Add Existing Annotation"
               className={classNames(styles.search, styles.formControl)}
@@ -367,6 +382,10 @@ class TemplateEditorModal extends React.Component<
     const { annotations: oldAnnotations } = this.props.template;
     const annotations = [...oldAnnotations, draft];
     this.props.updateTemplateDraft({ annotations });
+  };
+
+  private addExistingTemplate = (templateId: number) => {
+    console.log(templateId) // TODO
   };
 }
 
