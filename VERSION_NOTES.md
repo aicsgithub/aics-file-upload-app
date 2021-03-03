@@ -1,5 +1,9 @@
 # Version Notes
 
+## 2.0.1 (03/02/21)
+- Bugfix: Can't associate files with wells after using mass editors
+- Bugfix: Network errors after changing settings
+
 ## 2.0.0 (02/26/21)
 - Version 2 released! This includes:
   - New navigation sidebar
