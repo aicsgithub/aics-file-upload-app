@@ -333,7 +333,7 @@ class TemplateEditorModal extends React.Component<
         )}
         removeAnnotation={this.removeAnnotation(annotation)}
         tables={tables}
-        template={template}oldAnnotations
+        template={template}
         updateAnnotation={this.updateAnnotation}
       />
     );

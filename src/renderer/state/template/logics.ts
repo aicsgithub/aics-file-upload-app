@@ -7,7 +7,7 @@ import { requestFailed } from "../actions";
 import { setAlert } from "../feedback/actions";
 import { requestTemplates } from "../metadata/actions";
 import {
-  getAnnotationLookups, getAnnotations,
+  getAnnotationLookups,
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
   getLookupAnnotationTypeId,
@@ -255,10 +255,40 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
   ) => {
     const state = getState();
     const templateId = action.payload;
+    const annotationTypes = getAnnotationTypes(state);
+    const { annotations: currentAnnotations } = getTemplateDraft(state)
+
     try {
       const { annotations: newAnnotations } = await mmsClient.getTemplate(templateId);
-      const { annotations: currentAnnotations } = getTemplateDraft(state)
-      const annotations: AnnotationDraft[] = [...currentAnnotations, ...newAnnotations]
+      const newAnnotationDrafts = newAnnotations.map((annotation, index) => {
+        const annotationType = annotationTypes.find(
+            (at) => at.annotationTypeId === annotation.annotationTypeId
+        );
+
+        const {
+          annotationId,
+          annotationOptions,
+          annotationTypeId,
+          description,
+          lookupSchema,
+          lookupTable,
+          name,
+        } = annotation;
+
+        return {
+          annotationId,
+          annotationOptions,
+          annotationTypeId,
+          annotationTypeName: annotationType.name,
+          description,
+          index: currentAnnotations.length + index,
+          lookupSchema,
+          lookupTable,
+          name,
+          required: false,
+        }
+      });
+      const annotations: AnnotationDraft[] = [...currentAnnotations, ...newAnnotationDrafts]
       next(updateTemplateDraft({annotations}));
     } catch (e) {
       next(
