@@ -61,15 +61,9 @@ before committing, you can find instructions
 
 For an overview of our build pipeline, see [Confluence](http://confluence.corp.alleninstitute.org/display/SF/File+Upload+App+CI+Pipeline)
 
-Travis CI will package and publish a new version of the app for all tagged commits of the form /^v*\d+\.\d+\.\d+(-\S*)?$/.
-For example, these will all get built:
-
-1.0.5
-1.21.5
-1.0.5-snapshot
-1.0.5-feature-autoupdate
-v1.0.5
-v1.0.5-snapshot.0
+GitHub Actions will package and publish a new version of the app for all tagged commits that start with "v".
+We create tags for snapshots and releases, so the triggering tags will generally look like
+"v2.0.1-snapshot-0" or "v2.0.1".
 
 ## Release workflow
 
@@ -85,21 +79,20 @@ yarn version --prerelease --preid=snapshot
 The last command will create a git tag, update the version in package.json, and a commit with the snapshot version in the message.
 If the package.json version was 1.0.55, running this command will change it to 1.0.56-snapshot.0.
 
-In order to trigger a build in Travis CI in order to create the packaged app, push your changes to the remote:
+In order to trigger a build in GitHub Actions to create the packaged app, push your changes to the remote:
 
 ```bash
 git push --tags && git push
 ```
 
-You can view the Travis build in progress here: https://travis-ci.com/github/aicsgithub/aics-file-upload-app
-You will need to sign in with the AICS github account. Account info [here](https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/ansible-platform/browse/playbooks/vars/vaults/vault_production.yml#527)
+You can view the GitHub Actions build in progress here: https://github.com/aicsgithub/aics-file-upload-app/actions
 
 ### Step 2: Test the Snapshot
 The snapshot will be stored in the [file-upload-app.allencell.org S3 bucket](https://s3.console.aws.amazon.com/s3/buckets/file-upload-app.allencell.org/?region=us-west-2&tab=objects). 
 You can find the download link for the snapshot by navigating to that bucket and clicking on the snapshot. Alternatively, if you do not have s3 access, you can access download links in [Confluence](http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application#FileUploadApplication-DownloadLinks)
 
-Run a set of smoke tests for each packaged version of the app. At minimum:
-* Upload a file and view the upload, ensuring that the metadata looks correct
+Run a set of smoke tests for each packaged version of the app. At minimum upload a file and view the upload,
+ensuring that the metadata looks correct
 
 Ideally, you should try out the app in all platforms before each big release: Windows, Linux, and Mac.
 
@@ -112,7 +105,7 @@ git checkout master
 git pull
 ```
 
-Create the release using the `yarn version` command. By default, it increments the patch version.
+Create the release using the `yarn version` command. It will ask you to enter the new version.
 
 ```bash
 yarn version
@@ -129,11 +122,11 @@ git commit -m "update version notes"
 git push --tags && git push
 ```
 
-You can look at the Travis build by going to https://travis-ci.com/github/aicsgithub/aics-file-upload-app.
+You can look at the GitHub Actions build by going to https://github.com/aicsgithub/aics-file-upload-app/actions.
 
 ### Step 4: Update Confluence links
-Update the download links in confluence: http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application
-And notify people in the #file-upload-app slack channel
+Update the download links in Confluence: http://confluence.corp.alleninstitute.org/display/SF/File+Upload+Application
+And notify people in the #file-upload-app Slack channel
 
 ### Packaging the app locally
 
@@ -144,4 +137,4 @@ app, you can run `yarn build-executable`. The executable will be built to the
 ## Mirroring
 
 The mirror for this repo is at https://github.com/aicsgithub/aics-file-upload-app in order to
-enable electron packaging on Travis CI.
+enable electron packaging in GitHub Actions.
