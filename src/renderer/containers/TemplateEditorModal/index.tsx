@@ -29,7 +29,7 @@ import { openTemplateEditor } from "../../state/selection/actions";
 import { updateSettings } from "../../state/setting/actions";
 import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
-  addExistingAnnotation,
+  addExistingAnnotation, addExistingTemplate,
   removeAnnotations,
   saveTemplate,
   updateTemplateDraft,
@@ -71,6 +71,7 @@ const mapStateToProps = (state: State) => ({
 
 const dispatchToPropsMap = {
   addAnnotation: addExistingAnnotation,
+  addExistingTemplate,
   closeModal,
   getAnnotations: requestAnnotations,
   openModal: openTemplateEditor,
@@ -332,7 +333,7 @@ class TemplateEditorModal extends React.Component<
         )}
         removeAnnotation={this.removeAnnotation(annotation)}
         tables={tables}
-        template={template}
+        template={template}oldAnnotations
         updateAnnotation={this.updateAnnotation}
       />
     );
@@ -385,7 +386,8 @@ class TemplateEditorModal extends React.Component<
   };
 
   private addExistingTemplate = (templateId: number) => {
-    console.log(templateId) // TODO
+    // const { annotations } = this.props.template
+    this.props.addExistingTemplate(templateId)
   };
 }
 

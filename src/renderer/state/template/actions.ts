@@ -5,6 +5,7 @@ import { TemplateDraft, UploadStateBranch } from "../types";
 
 import {
   ADD_ANNOTATION,
+  ADD_EXISTING_TEMPLATE,
   CLEAR_TEMPLATE_DRAFT,
   CLEAR_TEMPLATE_HISTORY,
   JUMP_TO_PAST_TEMPLATE,
@@ -18,6 +19,7 @@ import {
 } from "./constants";
 import {
   AddExistingAnnotationAction,
+  AddExistingTemplateAction,
   ClearTemplateDraftAction,
   ClearTemplateHistoryAction,
   JumpToPastTemplateAction,
@@ -37,6 +39,15 @@ export function addExistingAnnotation(
     payload: annotation,
     type: ADD_ANNOTATION,
   };
+}
+
+export function addExistingTemplate(
+    templateId: number,
+): AddExistingTemplateAction {
+  return {
+    payload: templateId,
+    type: ADD_EXISTING_TEMPLATE
+  }
 }
 
 export function clearTemplateDraft(): ClearTemplateDraftAction {

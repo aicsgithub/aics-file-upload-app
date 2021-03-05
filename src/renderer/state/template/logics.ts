@@ -7,7 +7,7 @@ import { requestFailed } from "../actions";
 import { setAlert } from "../feedback/actions";
 import { requestTemplates } from "../metadata/actions";
 import {
-  getAnnotationLookups,
+  getAnnotationLookups, getAnnotations,
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
   getLookupAnnotationTypeId,
@@ -31,14 +31,15 @@ import {
   setAppliedTemplate,
   updateTemplateDraft,
 } from "./actions";
-import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
+import {ADD_ANNOTATION, ADD_EXISTING_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE} from "./constants";
 import {
   getAppliedTemplate,
   getSaveTemplateRequest,
   getTemplateDraft,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
-import { SaveTemplateAction } from "./types";
+import {SaveTemplateAction} from "./types";
+import {ApplyTemplateAction} from "../upload/types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
@@ -243,8 +244,41 @@ const saveTemplateLogic = createLogic({
   },
 });
 
+const applyExistingTemplateAnnotationsLogic = createLogic({
+  transform: async (
+      {
+        action,
+        getState,
+        mmsClient,
+      }: ReduxLogicTransformDependenciesWithAction<ApplyTemplateAction>,
+      next: ReduxLogicNextCb,
+  ) => {
+    const state = getState();
+    const templateId = action.payload;
+    try {
+      const { annotations: newAnnotations } = await mmsClient.getTemplate(templateId);
+      const { annotations: currentAnnotations } = getTemplateDraft(state)
+      const annotations: AnnotationDraft[] = [...currentAnnotations, ...newAnnotations]
+      next(updateTemplateDraft({annotations}));
+    } catch (e) {
+      next(
+          requestFailed(
+              `Could not add annotations from template: ${get(
+                  e,
+                  ["response", "data", "error"],
+                  e.message
+              )}`,
+              AsyncRequest.GET_TEMPLATE
+          )
+      );
+    }
+  },
+  type: ADD_EXISTING_TEMPLATE,
+});
+
 export default [
   addExistingAnnotationLogic,
   removeAnnotationsLogic,
   saveTemplateLogic,
+  applyExistingTemplateAnnotationsLogic
 ];
