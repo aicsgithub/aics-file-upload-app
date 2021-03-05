@@ -36,6 +36,7 @@ import {
   getAppliedTemplate,
   getSaveTemplateRequest,
   getTemplateDraft,
+  getTemplateDraftAnnotations,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
 import {SaveTemplateAction} from "./types";
@@ -256,7 +257,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
     const state = getState();
     const templateId = action.payload;
     const annotationTypes = getAnnotationTypes(state);
-    const { annotations: currentAnnotations } = getTemplateDraft(state)
+    const currentAnnotations = getTemplateDraftAnnotations(state);
 
     try {
       const { annotations: newAnnotations } = await mmsClient.getTemplate(templateId);
@@ -274,6 +275,13 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
           lookupTable,
           name,
         } = annotation;
+
+        if (!annotationType) {
+          throw new Error(
+              `Annotation "${name}" does not have a valid annotationTypeId: ${annotationTypeId}.
+                     Contact Software.`
+          );
+        }
 
         return {
           annotationId,

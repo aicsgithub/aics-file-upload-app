@@ -29,7 +29,8 @@ import { openTemplateEditor } from "../../state/selection/actions";
 import { updateSettings } from "../../state/setting/actions";
 import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
-  addExistingAnnotation, addExistingTemplate,
+  addExistingAnnotation,
+  addExistingTemplate,
   removeAnnotations,
   saveTemplate,
   updateTemplateDraft,
@@ -244,17 +245,6 @@ class TemplateEditorModal extends React.Component<
         )}
         <div className={styles.body}>
           <div className={styles.formContainer}>
-            <LabeledInput
-                className={styles.selector}
-                label="Copy Existing Template"
-            >
-              <TemplateSearch
-                  allowCreate={false}
-                  value={this.state.copiedTemplate}
-                  onSelect={this.addExistingTemplate}
-              />
-            </LabeledInput>
-            <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
             <FormControl
               label="Add Existing Annotation"
               className={classNames(styles.search, styles.formControl)}
@@ -272,6 +262,17 @@ class TemplateEditorModal extends React.Component<
                 ))}
               </Select>
             </FormControl>
+            <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
+            <LabeledInput
+                className={styles.selector}
+                label="Copy Existing Template"
+            >
+              <TemplateSearch
+                  allowCreate={false}
+                  value={this.state.copiedTemplate}
+                  onSelect={this.addExistingTemplate}
+              />
+            </LabeledInput>
             <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
             <AnnotationForm
               addAnnotation={this.addNewAnnotation}
