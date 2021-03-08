@@ -31,7 +31,12 @@ import {
   setAppliedTemplate,
   updateTemplateDraft,
 } from "./actions";
-import {ADD_ANNOTATION, ADD_EXISTING_TEMPLATE, REMOVE_ANNOTATIONS, SAVE_TEMPLATE} from "./constants";
+import {
+  ADD_ANNOTATION,
+  ADD_EXISTING_TEMPLATE,
+  REMOVE_ANNOTATIONS,
+  SAVE_TEMPLATE,
+} from "./constants";
 import {
   getAppliedTemplate,
   getSaveTemplateRequest,
@@ -39,8 +44,8 @@ import {
   getTemplateDraftAnnotations,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
-import {SaveTemplateAction} from "./types";
-import {ApplyTemplateAction} from "../upload/types";
+import { SaveTemplateAction } from "./types";
+import { ApplyTemplateAction } from "../upload/types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
@@ -247,12 +252,12 @@ const saveTemplateLogic = createLogic({
 
 const applyExistingTemplateAnnotationsLogic = createLogic({
   transform: async (
-      {
-        action,
-        getState,
-        mmsClient,
-      }: ReduxLogicTransformDependenciesWithAction<ApplyTemplateAction>,
-      next: ReduxLogicNextCb,
+    {
+      action,
+      getState,
+      mmsClient,
+    }: ReduxLogicTransformDependenciesWithAction<ApplyTemplateAction>,
+    next: ReduxLogicNextCb
   ) => {
     const state = getState();
     const templateId = action.payload;
@@ -260,10 +265,12 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
     const currentAnnotations = getTemplateDraftAnnotations(state);
 
     try {
-      const { annotations: newAnnotations } = await mmsClient.getTemplate(templateId);
+      const { annotations: newAnnotations } = await mmsClient.getTemplate(
+        templateId
+      );
       const newAnnotationDrafts = newAnnotations.map((annotation, index) => {
         const annotationType = annotationTypes.find(
-            (at) => at.annotationTypeId === annotation.annotationTypeId
+          (at) => at.annotationTypeId === annotation.annotationTypeId
         );
 
         const {
@@ -278,7 +285,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
 
         if (!annotationType) {
           throw new Error(
-              `Annotation "${name}" does not have a valid annotationTypeId: ${annotationTypeId}.
+            `Annotation "${name}" does not have a valid annotationTypeId: ${annotationTypeId}.
                      Contact Software.`
           );
         }
@@ -294,20 +301,23 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
           lookupTable,
           name,
           required: false,
-        }
+        };
       });
-      const annotations: AnnotationDraft[] = [...currentAnnotations, ...newAnnotationDrafts]
-      next(updateTemplateDraft({annotations}));
+      const annotations: AnnotationDraft[] = [
+        ...currentAnnotations,
+        ...newAnnotationDrafts,
+      ];
+      next(updateTemplateDraft({ annotations }));
     } catch (e) {
       next(
-          requestFailed(
-              `Could not add annotations from template: ${get(
-                  e,
-                  ["response", "data", "error"],
-                  e.message
-              )}`,
-              AsyncRequest.GET_TEMPLATE
-          )
+        requestFailed(
+          `Could not add annotations from template: ${get(
+            e,
+            ["response", "data", "error"],
+            e.message
+          )}`,
+          AsyncRequest.GET_TEMPLATE
+        )
       );
     }
   },
@@ -318,5 +328,5 @@ export default [
   addExistingAnnotationLogic,
   removeAnnotationsLogic,
   saveTemplateLogic,
-  applyExistingTemplateAnnotationsLogic
+  applyExistingTemplateAnnotationsLogic,
 ];

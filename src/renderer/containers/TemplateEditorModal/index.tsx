@@ -264,13 +264,13 @@ class TemplateEditorModal extends React.Component<
             </FormControl>
             <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
             <LabeledInput
-                className={styles.selector}
-                label="Copy Existing Template"
+              className={styles.selector}
+              label="Copy Existing Template"
             >
               <TemplateSearch
-                  allowCreate={false}
-                  value={this.state.copiedTemplate}
-                  onSelect={this.addExistingTemplate}
+                allowCreate={false}
+                value={this.state.copiedTemplate}
+                onSelect={this.addExistingTemplate}
               />
             </LabeledInput>
             <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
@@ -387,8 +387,7 @@ class TemplateEditorModal extends React.Component<
   };
 
   private addExistingTemplate = (templateId: number) => {
-    // const { annotations } = this.props.template
-    this.props.addExistingTemplate(templateId)
+    this.props.addExistingTemplate(templateId);
   };
 }
 

@@ -13,8 +13,8 @@ export interface AddExistingAnnotationAction {
 }
 
 export interface AddExistingTemplateAction {
-  payload: number,
-  type: string
+  payload: number;
+  type: string;
 }
 
 // if dropdown, annotationOptions array is supplied

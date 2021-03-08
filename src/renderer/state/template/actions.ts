@@ -42,12 +42,12 @@ export function addExistingAnnotation(
 }
 
 export function addExistingTemplate(
-    templateId: number,
+  templateId: number
 ): AddExistingTemplateAction {
   return {
     payload: templateId,
-    type: ADD_EXISTING_TEMPLATE
-  }
+    type: ADD_EXISTING_TEMPLATE,
+  };
 }
 
 export function clearTemplateDraft(): ClearTemplateDraftAction {

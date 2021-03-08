@@ -3,7 +3,10 @@ import { makeConstant } from "../util";
 const BRANCH_NAME = "template";
 
 export const ADD_ANNOTATION = makeConstant(BRANCH_NAME, "add-annotation");
-export const ADD_EXISTING_TEMPLATE = makeConstant(BRANCH_NAME, 'add-existing-template');
+export const ADD_EXISTING_TEMPLATE = makeConstant(
+  BRANCH_NAME,
+  "add-existing-template"
+);
 export const CLEAR_TEMPLATE_DRAFT = makeConstant(
   BRANCH_NAME,
   "clear-template-draft"
