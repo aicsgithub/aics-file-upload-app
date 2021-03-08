@@ -11,6 +11,8 @@ import {
   SCHEMA_SYNONYM,
 } from "../../../shared/constants";
 import FormControl from "../../components/FormControl";
+import LabeledInput from "../../components/LabeledInput";
+import TemplateSearch from "../../components/TemplateSearch";
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { Annotation } from "../../services/labkey-client/types";
 import { closeModal } from "../../state/feedback/actions";
@@ -43,8 +45,6 @@ import { AnnotationDraft, AsyncRequest, State } from "../../state/types";
 
 import AnnotationForm from "./AnnotationForm";
 import AnnotationListItem from "./AnnotationListItem";
-import TemplateSearch from "../../components/TemplateSearch";
-import LabeledInput from "../../components/LabeledInput";
 
 const styles = require("./styles.pcss");
 const COLUMN_TEMPLATE_DESCRIPTION = `A ${SCHEMA_SYNONYM} defines a group of annotations to associate with files.
