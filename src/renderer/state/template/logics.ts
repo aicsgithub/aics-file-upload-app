@@ -25,6 +25,7 @@ import {
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
 import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
+import { ApplyTemplateAction } from "../upload/types";
 
 import {
   saveTemplateSucceeded,
@@ -45,7 +46,6 @@ import {
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
 import { SaveTemplateAction } from "./types";
-import { ApplyTemplateAction } from "../upload/types";
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
