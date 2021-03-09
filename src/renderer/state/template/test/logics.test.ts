@@ -32,6 +32,7 @@ import {
 import { AsyncRequest, State } from "../../types";
 import {
   addExistingAnnotation,
+  addExistingTemplate,
   removeAnnotations,
   saveTemplate,
   saveTemplateSucceeded,
@@ -425,6 +426,22 @@ describe("Template Logics", () => {
           )
         )
       );
+    });
+  });
+
+  describe("addExistingTemplateLogic", () => {
+    it("adds annotations from selected template", async () => {
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
+      const { logicMiddleware, store } = createMockReduxStore(startState);
+
+      let state = store.getState();
+      expect(getTemplateDraftAnnotations(state).length).to.equal(0);
+
+      store.dispatch(addExistingTemplate(1));
+      await logicMiddleware.whenComplete();
+
+      state = store.getState();
+      expect(getTemplateDraftAnnotations(state).length).to.equal(1);
     });
   });
 });
