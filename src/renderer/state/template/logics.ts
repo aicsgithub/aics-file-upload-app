@@ -281,6 +281,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
           lookupSchema,
           lookupTable,
           name,
+          required,
         } = annotation;
 
         if (!annotationType) {
@@ -300,7 +301,7 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
           lookupSchema,
           lookupTable,
           name,
-          required: false,
+          required,
         };
       });
       const annotations: AnnotationDraft[] = [
