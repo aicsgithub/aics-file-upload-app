@@ -1,6 +1,6 @@
 import { Input, Select, Radio } from "antd";
 import Logger from "js-logger";
-import { trim } from "lodash";
+import { isArray, trim } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
@@ -41,21 +41,12 @@ class Editor extends editors.EditorBase<EditorProps, EditorState> {
 
   public constructor(props: EditorProps) {
     super(props);
-    let value: any[] | string = [...(props.value ?? [])];
+    let value: any[] | string = isArray(props.value) ? [...props.value] : [];
     if (
       props.column.type === ColumnType.TEXT ||
       props.column.type === ColumnType.NUMBER
     ) {
-      if (props.column.type === ColumnType.NUMBER) {
-        value = value.filter((v) => !Number.isNaN(Number(v)));
-      }
       value = value.join(LIST_DELIMITER_JOIN);
-    } else if (props.column.type === ColumnType.BOOLEAN) {
-      value = value.map(Boolean);
-    } else if (props.column.type === ColumnType.DROPDOWN) {
-      value = value.filter((v: string) =>
-        this.props.column.dropdownValues?.includes(v)
-      );
     }
     this.state = { value };
   }
