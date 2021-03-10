@@ -120,10 +120,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
 
   private onDragEnter = (e: React.DragEvent<HTMLDivElement>): void => {
     // Ignore non-file drag events
-    if (
-      e.dataTransfer.items.length &&
-      e.dataTransfer.items[0].kind === "file"
-    ) {
+    if (e.dataTransfer.items[0]?.kind === "file") {
       e.preventDefault();
       // Prevent drag and drop events from stacking (like notes over upload job page)
       e.stopPropagation();
@@ -133,10 +130,7 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
 
   private onDragLeave = (e: React.DragEvent<HTMLDivElement>): void => {
     // Ignore non-file drag events
-    if (
-      e.dataTransfer.items.length &&
-      e.dataTransfer.items[0].kind === "file"
-    ) {
+    if (e.dataTransfer.items[0]?.kind === "file") {
       e.preventDefault();
       // Prevent drag and drop events from stacking (like notes over upload job page)
       e.stopPropagation();
