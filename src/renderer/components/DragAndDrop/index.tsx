@@ -119,30 +119,41 @@ class DragAndDrop extends React.Component<DragAndDropProps, DragAndDropState> {
   };
 
   private onDragEnter = (e: React.DragEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    // Prevent drag and drop events from stacking (like notes over upload job page)
-    e.stopPropagation();
-    this.setState({ dragEnterCount: this.state.dragEnterCount + 1 });
+    // Ignore non-file drag events
+    if (e.dataTransfer.items[0]?.kind === "file") {
+      e.preventDefault();
+      // Prevent drag and drop events from stacking (like notes over upload job page)
+      e.stopPropagation();
+      this.setState({ dragEnterCount: this.state.dragEnterCount + 1 });
+    }
   };
 
   private onDragLeave = (e: React.DragEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    // Prevent drag and drop events from stacking (like notes over upload job page)
-    e.stopPropagation();
-    this.setState({
-      dragEnterCount:
-        // Ensure the drag enter count can never be negative since that would require
-        // a file originating from the file upload app and moved elsewhere
-        this.state.dragEnterCount - 1 <= 0 ? 0 : this.state.dragEnterCount - 1,
-    });
+    // Ignore non-file drag events
+    if (e.dataTransfer.items[0]?.kind === "file") {
+      e.preventDefault();
+      // Prevent drag and drop events from stacking (like notes over upload job page)
+      e.stopPropagation();
+      this.setState({
+        dragEnterCount:
+          // Ensure the drag enter count can never be negative since that would require
+          // a file originating from the file upload app and moved elsewhere
+          this.state.dragEnterCount - 1 <= 0
+            ? 0
+            : this.state.dragEnterCount - 1,
+      });
+    }
   };
 
   private onDrop = (e: React.DragEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    // Prevent drag and drop events from stacking (like notes over upload job page)
-    e.stopPropagation();
-    this.setState({ dragEnterCount: 0 });
-    this.props.onDrop(e.dataTransfer.files);
+    // Ignore empty drop events
+    if (e.dataTransfer.files.length) {
+      e.preventDefault();
+      // Prevent drag and drop events from stacking (like notes over upload job page)
+      e.stopPropagation();
+      this.setState({ dragEnterCount: 0 });
+      this.props.onDrop(e.dataTransfer.files);
+    }
   };
 
   get isHovered(): boolean {
