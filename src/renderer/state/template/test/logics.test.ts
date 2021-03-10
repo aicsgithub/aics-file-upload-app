@@ -441,7 +441,10 @@ describe("Template Logics", () => {
       await logicMiddleware.whenComplete();
 
       state = store.getState();
-      expect(getTemplateDraftAnnotations(state).length).to.equal(1);
+      const annotations = getTemplateDraftAnnotations(state);
+      expect(annotations.length).to.equal(1);
+      expect(annotations[0].annotationId).to.equal(1);
+      expect(annotations[0].name).to.equal("Favorite Color");
     });
   });
 });
