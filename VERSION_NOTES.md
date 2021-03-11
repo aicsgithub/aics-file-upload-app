@@ -1,5 +1,9 @@
 # Version Notes
 
+## 2.0.2 (03/11/21)
+- Bugfix: Odd behavior when typing values after selecting a cell with a single click
+- Bugfix: Fix propagating to cells by dragging from the corner of a cell
+
 ## 2.0.1 (03/02/21)
 - Bugfix: Can't associate files with wells after using mass editors
 - Bugfix: Network errors after changing settings
