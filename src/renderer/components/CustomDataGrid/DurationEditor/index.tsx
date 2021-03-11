@@ -1,4 +1,5 @@
 import { Input } from "antd";
+import { isArray } from "lodash";
 import * as React from "react";
 import { editors } from "react-data-grid";
 
@@ -34,7 +35,7 @@ export default class DurationEditor extends editors.EditorBase<
   public constructor(props: Props) {
     super(props);
 
-    if (props.value.length === 1) {
+    if (isArray(props.value) && props.value.length === 1) {
       const initialDuration = props.value[0];
       this.state = {
         days: initialDuration.days.toString(),

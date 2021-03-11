@@ -1,13 +1,12 @@
 import { Button, DatePicker, Modal } from "antd";
 import ButtonGroup from "antd/lib/button/button-group";
-import { isEmpty, without } from "lodash";
+import { isArray, isEmpty, without } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import * as ReactDataGrid from "react-data-grid";
 
 import { DATE_FORMAT, DATETIME_FORMAT } from "../../../constants";
 import { ColumnType } from "../../../services/labkey-client/types";
-import { convertToArray } from "../../../util";
 import { FormatterProps } from "../types";
 
 const styles = require("./styles.pcss");
@@ -66,13 +65,9 @@ class DatesEditor extends React.Component<Props, DatesEditorState> {
 
   constructor(props: Props) {
     super(props);
-    const values =
-      convertToArray(props.value).length === 0
-        ? [null]
-        : convertToArray(props.value);
     this.state = {
       selectedRows: [],
-      values,
+      values: isArray(props.value) ? props.value : [null],
       visible: true,
     };
   }
