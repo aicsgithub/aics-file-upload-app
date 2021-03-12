@@ -122,7 +122,7 @@
     "less": "3.9.0",
     "less-loader": "4.1.0",
     "lint-staged": ">=10",
-    "madge": "^3.9.2",
+    "madge": "^4.0.1",
     "mocha": "8.2.1",
     "mock-css-modules": "2.0.0",
     "postcss-import": "12.0.1",
