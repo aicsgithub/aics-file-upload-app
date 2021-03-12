@@ -25,17 +25,24 @@ import {
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
 import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
+import { ApplyTemplateAction } from "../upload/types";
 
 import {
   saveTemplateSucceeded,
   setAppliedTemplate,
   updateTemplateDraft,
 } from "./actions";
-import { ADD_ANNOTATION, REMOVE_ANNOTATIONS, SAVE_TEMPLATE } from "./constants";
+import {
+  ADD_ANNOTATION,
+  ADD_EXISTING_TEMPLATE,
+  REMOVE_ANNOTATIONS,
+  SAVE_TEMPLATE,
+} from "./constants";
 import {
   getAppliedTemplate,
   getSaveTemplateRequest,
   getTemplateDraft,
+  getTemplateDraftAnnotations,
   getWarnAboutTemplateVersionMessage,
 } from "./selectors";
 import { SaveTemplateAction } from "./types";
@@ -243,8 +250,84 @@ const saveTemplateLogic = createLogic({
   },
 });
 
+const applyExistingTemplateAnnotationsLogic = createLogic({
+  transform: async (
+    {
+      action,
+      getState,
+      mmsClient,
+    }: ReduxLogicTransformDependenciesWithAction<ApplyTemplateAction>,
+    next: ReduxLogicNextCb
+  ) => {
+    const state = getState();
+    const templateId = action.payload;
+    const annotationTypes = getAnnotationTypes(state);
+    const currentAnnotations = getTemplateDraftAnnotations(state);
+
+    try {
+      const { annotations: newAnnotations } = await mmsClient.getTemplate(
+        templateId
+      );
+      const newAnnotationDrafts = newAnnotations.map((annotation, index) => {
+        const annotationType = annotationTypes.find(
+          (at) => at.annotationTypeId === annotation.annotationTypeId
+        );
+
+        const {
+          annotationId,
+          annotationOptions,
+          annotationTypeId,
+          description,
+          lookupSchema,
+          lookupTable,
+          name,
+          required,
+        } = annotation;
+
+        if (!annotationType) {
+          throw new Error(
+            `Annotation "${name}" does not have a valid annotationTypeId: ${annotationTypeId}.
+                     Contact Software.`
+          );
+        }
+
+        return {
+          annotationId,
+          annotationOptions,
+          annotationTypeId,
+          annotationTypeName: annotationType.name,
+          description,
+          index: currentAnnotations.length + index,
+          lookupSchema,
+          lookupTable,
+          name,
+          required,
+        };
+      });
+      const annotations: AnnotationDraft[] = [
+        ...currentAnnotations,
+        ...newAnnotationDrafts,
+      ];
+      next(updateTemplateDraft({ annotations }));
+    } catch (e) {
+      next(
+        requestFailed(
+          `Could not add annotations from template: ${get(
+            e,
+            ["response", "data", "error"],
+            e.message
+          )}`,
+          AsyncRequest.GET_TEMPLATE
+        )
+      );
+    }
+  },
+  type: ADD_EXISTING_TEMPLATE,
+});
+
 export default [
   addExistingAnnotationLogic,
   removeAnnotationsLogic,
   saveTemplateLogic,
+  applyExistingTemplateAnnotationsLogic,
 ];

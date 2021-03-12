@@ -12,6 +12,11 @@ export interface AddExistingAnnotationAction {
   type: string;
 }
 
+export interface AddExistingTemplateAction {
+  payload: number;
+  type: string;
+}
+
 // if dropdown, annotationOptions array is supplied
 export interface AnnotationWithOptions extends Annotation {
   annotationOptions?: string[];
