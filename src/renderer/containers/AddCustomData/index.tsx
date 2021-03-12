@@ -8,7 +8,6 @@ import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
 import { PLATE_CREATED, SCHEMA_SYNONYM } from "../../../shared/constants";
-import CustomDataGrid from "../../components/CustomDataGrid";
 import DragAndDrop from "../../components/DragAndDrop";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
@@ -108,6 +107,7 @@ import {
   UploadJobTableRow,
 } from "../../state/upload/types";
 import BarcodeSearch from "../BarcodeSearch";
+import CustomDataTable from "../CustomDataTable";
 
 import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 
@@ -208,19 +208,13 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
   public render() {
     const {
-      annotationTypes,
-      appliedTemplate,
-      canRedo,
       canSubmit,
-      canUndo,
       loading,
-      massEditRow,
       selectedJob,
       selectedJobIsLoading,
       templateIsLoading,
       uploadError,
       uploadInProgress,
-      uploadRowKeyToAnnotationErrorMap,
       uploads,
     } = this.props;
     let saveButtonText = "Upload";
@@ -252,38 +246,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               ) : (
                 <>
                   {this.renderValidationAlerts()}
-                  <CustomDataGrid
-                    allWellsForSelectedPlate={
-                      this.props.allWellsForSelectedPlate
-                    }
-                    annotationTypes={annotationTypes}
-                    canAddMoreFiles={!selectedJob}
-                    canRedo={canRedo}
-                    canUndo={canUndo}
-                    channels={this.props.channels}
-                    editable={!this.isReadOnly}
-                    expandedRows={this.props.expandedRows}
-                    fileToAnnotationHasValueMap={
-                      this.props.fileToAnnotationHasValueMap
-                    }
-                    hideUploadHints={this.hideHint}
-                    massEditRow={massEditRow}
-                    onFileBrowse={this.props.openFilesFromDialog}
-                    redo={this.redo}
-                    removeUploads={this.props.removeUploads}
-                    template={appliedTemplate}
-                    setAlert={this.props.setAlert}
-                    showErrorsForRequiredFields={this.state.submitAttempted}
-                    showUploadHint={this.props.showUploadHint}
-                    toggleRowExpanded={this.props.toggleRowExpanded}
-                    undo={this.undo}
-                    updateMassEditRow={this.props.updateMassEditRow}
-                    updateSubImages={this.props.updateSubImages}
-                    updateUpload={this.props.updateUpload}
-                    updateUploadRows={this.props.updateUploadRows}
-                    uploads={uploads}
-                    validationErrors={uploadRowKeyToAnnotationErrorMap}
-                  />
+                  <CustomDataTable />
                   {uploadError && (
                     <Alert
                       className={styles.alert}
@@ -485,16 +448,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       }
     }
   };
-
-  private undo = (): void => {
-    this.props.jumpToUpload(-1);
-  };
-
-  private redo = (): void => {
-    this.props.jumpToUpload(1);
-  };
-
-  private hideHint = () => this.props.updateSettings({ showUploadHint: false });
 }
 
 function mapStateToProps(state: State) {
