@@ -171,11 +171,11 @@ export default class LabkeyClient extends HttpCacheClient {
     const additionalQueries = [
       `query.columns=${column}`,
       `query.sort=${column}`,
+      `query.maxRows=100`,
     ];
     if (!isEmpty(searchString)) {
       additionalQueries.push(
-        `query.${column}~contains=${encodeURIComponent(searchString)}`,
-        `query.maxRows=30`
+        `query.${column}~contains=${encodeURIComponent(searchString)}`
       );
     }
     const lookupOptionsQuery = LabkeyClient.getSelectRowsURL(
