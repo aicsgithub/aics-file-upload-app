@@ -2,27 +2,28 @@ import * as path from "path";
 
 import React from "react";
 import { useSelector } from "react-redux";
-import { Column, useTable } from "react-table";
+import { useTable, useExpanded } from "react-table";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getUpload } from "../../state/upload/selectors";
 
-import Editor from "./Cell";
+import Cell, { CustomColumn } from "./Cell";
 import FilenameCell from "./CustomCells/FilenameCell";
 import NotesCell from "./CustomCells/NotesCell";
+import Header from "./Header";
 
-const DEFAULT_COLUMNS: Column[] = [
+const DEFAULT_COLUMNS: CustomColumn[] = [
   {
     accessor: "Filename",
     Cell: FilenameCell,
-    Header: "File",
+    description: "Filename of file supplied",
   },
   {
     accessor: NOTES_ANNOTATION_NAME,
     Cell: NotesCell,
-    Header: NOTES_ANNOTATION_NAME,
+    description: "Any additional text data (not ideal for querying)",
   },
 ];
 
@@ -40,8 +41,8 @@ export default function CustomDataTable() {
           return {
             type,
             accessor: annotation.name,
-            Header: annotation.name,
             editable: true,
+            description: annotation.description,
             dropdownValues: annotation.annotationOptions,
           };
         })
@@ -50,9 +51,13 @@ export default function CustomDataTable() {
   }, [annotationTypes, template]);
   const data = React.useMemo(() => {
     return Object.entries(upload).map(([rowId, uploadData]) => ({
+      // Rather than supply our own (if still necessary after subRows
+      // is figured out), use custom getRowId()
       rowId,
       ...uploadData,
       Filename: path.basename(uploadData.file),
+      // TODO: The way we organize our data needs to be pivoted
+      subRows: [{ subRows: [{ subRows: [] }] }],
     }));
   }, [upload]);
 
@@ -68,20 +73,21 @@ export default function CustomDataTable() {
     headerGroups,
     rows,
     prepareRow,
-  } = useTable({
-    columns,
-    // Defines the default cell renderer
-    defaultColumn: {
-      Cell: Editor,
+  } = useTable(
+    {
+      columns,
+      // Defines the default column properties, can be overriden per column
+      defaultColumn: { Cell, Header },
+      data,
+      // onCellUpdate isn't part of the API, but
+      // anything we put into these options will
+      // automatically be available on the instance.
+      // That way we can call this function from our
+      // cell renderer!
+      onCellUpdate,
     },
-    data,
-    // onCellUpdate isn't part of the API, but
-    // anything we put into these options will
-    // automatically be available on the instance.
-    // That way we can call this function from our
-    // cell renderer!
-    onCellUpdate,
-  });
+    useExpanded
+  );
 
   return (
     <table {...getTableProps()}>
@@ -105,6 +111,7 @@ export default function CustomDataTable() {
       <tbody {...getTableBodyProps()}>
         {rows.map((row) => {
           prepareRow(row);
+          console.log(row.subRows);
           return (
             <tr {...row.getRowProps()} key={row.getRowProps().key}>
               {row.cells.map((cell) => (

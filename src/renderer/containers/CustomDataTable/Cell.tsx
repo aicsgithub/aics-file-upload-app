@@ -9,12 +9,19 @@ const { Option } = Select;
 
 interface CustomRow extends Row {
   original: any;
+
+  // These props come from using the useExpanded plugin
+  canExpand: boolean;
+  depth: number;
+  isExpanded: boolean;
+  getToggleRowExpandedProps: (props: any) => void;
 }
 
-type CustomColumn = Column & {
-  type: ColumnType;
-  editable?: boolean;
+export type CustomColumn = Column & {
+  description?: string;
   dropdownValues?: string[];
+  editable?: boolean;
+  type?: ColumnType;
 };
 
 export type CustomCell = CellType & {
@@ -41,7 +48,7 @@ export default function Cell({
 
   if (!isEditing || !editable) {
     return (
-      <Tooltip title={value} visible={value === undefined ? false : undefined}>
+      <Tooltip title={`${value}`}>
         <div
           onBlur={onBlur}
           onDoubleClick={() => setIsEditing(true)}
@@ -98,7 +105,6 @@ export default function Cell({
           mode="multiple"
           onBlur={onBlur}
           onChange={setValue}
-          // TODO: Try removing width: 100%
           value={value as any}
           style={{ borderRadius: "unset", boxShadow: "none", width: "100%" }}
         >

@@ -7,7 +7,6 @@ import { CustomCell } from "../Cell";
 
 export default function FilenameCell({ row, value }: CustomCell) {
   //   const dispatch = useDispatch();
-  const isEditing = false; // useSelector(...?)'
   function openSubFileSelectionModal() {
     // dispatch(openSubFileSelectionModal(value));
   }
@@ -23,6 +22,14 @@ export default function FilenameCell({ row, value }: CustomCell) {
         whiteSpace: "nowrap",
       }}
     >
+      {row.canExpand && (
+        <Icon
+          type={row.isExpanded ? "caret-down" : "caret-right"}
+          {...row.getToggleRowExpandedProps({
+            style: { marginTop: "4px", paddingLeft: `${row.depth * 2}rem` },
+          })}
+        />
+      )}
       <Tooltip mouseLeaveDelay={0} title={value} style={{ width: "70px" }}>
         <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
           {value}
@@ -41,7 +48,7 @@ export default function FilenameCell({ row, value }: CustomCell) {
         >
           <Icon
             onClick={openSubFileSelectionModal}
-            type={isEditing ? "edit" : "plus-circle"}
+            type={row.canExpand ? "edit" : "plus-circle"}
             style={{ marginTop: "4px" }}
           />
         </Tooltip>
