@@ -41,6 +41,7 @@ import {
   UPLOAD_FAILED,
   UPLOAD_SUCCEEDED,
   ADD_UPLOAD_FILES,
+  UPDATE_TABLE_CELL,
 } from "./constants";
 import {
   AddUploadFilesAction,
@@ -231,6 +232,21 @@ export function updateUpload(
       upload,
     },
     type: UPDATE_UPLOAD,
+  };
+}
+
+export function updateUploadRowValue(
+  rowId: string,
+  columnId: string,
+  value: any
+) {
+  return {
+    payload: {
+      rowId,
+      columnId,
+      value,
+    },
+    type: UPDATE_TABLE_CELL, // TODO
   };
 }
 

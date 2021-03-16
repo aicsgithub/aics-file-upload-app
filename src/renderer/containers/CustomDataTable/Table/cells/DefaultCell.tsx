@@ -1,69 +1,46 @@
 import { Checkbox, Input, InputNumber, Select, Tooltip } from "antd";
 import React from "react";
-import { Cell as CellType, Column, Row } from "react-table";
+import { useDispatch } from "react-redux";
 
-import { ColumnType } from "../../services/labkey-client/types";
-import LookupSearch from "../LookupSearch";
+import { ColumnType } from "../../../../services/labkey-client/types";
+import { updateUploadRowValue } from "../../../../state/upload/actions";
+import LookupSearch from "../../../LookupSearch";
+import { CustomCell } from "../../types";
+
+const styles = require("../styles.pcss");
 
 const { Option } = Select;
 
-interface CustomRow extends Row {
-  original: any;
-
-  // These props come from using the useExpanded plugin
-  canExpand: boolean;
-  depth: number;
-  isExpanded: boolean;
-  getToggleRowExpandedProps: (props: any) => void;
-}
-
-export type CustomColumn = Column & {
-  description?: string;
-  dropdownValues?: string[];
-  editable?: boolean;
-  type?: ColumnType;
-};
-
-export type CustomCell = CellType & {
-  row: CustomRow;
-  column: CustomColumn;
-  onCellUpdate: (rowId: string, columnId: string, value: any) => void;
-};
-
-export default function Cell({
+export default function DefaultCell({
   value: initialValue,
   row: {
     original: { rowId },
   },
-  column: { id, type, editable, dropdownValues },
-  onCellUpdate, // This is a custom function that we supplied to our table instance
+  column: { id: columnId, type, isReadOnly, dropdownValues },
 }: CustomCell) {
-  const [value, setValue] = React.useState<any[] | undefined>(initialValue);
+  const dispatch = useDispatch();
+  const [value, setValue] = React.useState(initialValue);
   const [isEditing, setIsEditing] = React.useState(false);
 
   function onBlur() {
     setIsEditing(false);
-    onCellUpdate(rowId, id, value);
+    if (value !== initialValue) {
+      dispatch(updateUploadRowValue(rowId, columnId, value));
+    }
   }
 
-  if (!isEditing || !editable) {
+  if (!isEditing || isReadOnly) {
     return (
       <Tooltip title={`${value}`}>
         <div
+          className={styles.readOnlyCell}
           onBlur={onBlur}
           onDoubleClick={() => setIsEditing(true)}
-          style={{
-            height: "30px",
-            width: "100px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
         >
-          {editable && (
+          {!isReadOnly && (
             <input
+              className={styles.hidden}
               onFocus={() => setIsEditing(true)}
-              style={{ border: "none", height: 0, width: 0 }}
             />
           )}
           {`${value}`}
@@ -71,6 +48,7 @@ export default function Cell({
       </Tooltip>
     );
   }
+  console.log(type, initialValue, value);
 
   switch (type) {
     case ColumnType.BOOLEAN:
@@ -80,7 +58,6 @@ export default function Cell({
             autoFocus
             checked={Boolean(value)}
             onChange={() => value && setValue([!value[0]])}
-            style={{ width: "100%", margin: "auto" }}
           />
         </div>
       );
@@ -99,14 +76,14 @@ export default function Cell({
     case ColumnType.DROPDOWN:
       return (
         <Select
-          allowClear={true}
-          autoFocus={true}
-          defaultOpen={true}
+          autoFocus
+          allowClear
+          defaultOpen
+          className={styles.defaultCell}
           mode="multiple"
           onBlur={onBlur}
           onChange={setValue}
-          value={value as any}
-          style={{ borderRadius: "unset", boxShadow: "none", width: "100%" }}
+          value={value}
         >
           {dropdownValues?.map((dropdownValue: string) => (
             <Option key={dropdownValue}>{dropdownValue}</Option>
@@ -116,10 +93,11 @@ export default function Cell({
     case ColumnType.LOOKUP:
       return (
         <LookupSearch
+          className={styles.defaultCell}
           onBlur={onBlur}
           defaultOpen={true}
           mode="multiple"
-          lookupAnnotationName={id}
+          lookupAnnotationName={columnId}
           selectSearchValue={setValue}
           value={value}
         />
@@ -127,20 +105,20 @@ export default function Cell({
     case ColumnType.NUMBER:
       return (
         <InputNumber
+          className={styles.defaultCell}
           onBlur={onBlur}
           onChange={(v) => v && setValue(v as any)}
-          value={value as any}
-          style={{ borderRadius: "unset", boxShadow: "none", width: "100%" }}
+          value={value}
         />
       );
     case ColumnType.TEXT:
       return (
         <Input
           autoFocus
+          className={styles.defaultCell}
           onBlur={onBlur}
           onChange={(e) => setValue(e.target.value as any)}
-          value={value as any}
-          style={{ borderRadius: "unset", boxShadow: "none", width: "100%" }}
+          value={value}
         />
       );
     default:
