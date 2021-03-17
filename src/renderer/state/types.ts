@@ -223,6 +223,7 @@ export interface UploadMetadata extends UploadRowId {
   barcode?: string;
   notes?: string[]; // only one note expected but we treat this like other custom annotations
   templateId?: number;
+  subFiles?: UploadStateBranch;
   [WELL_ANNOTATION_NAME]?: number[];
   [genericKey: string]: any;
 }

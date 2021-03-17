@@ -1,4 +1,4 @@
-import { Checkbox, Input, InputNumber, Select, Tooltip } from "antd";
+import { Checkbox, Input, Select, Tooltip } from "antd";
 import React from "react";
 import { useDispatch } from "react-redux";
 
@@ -103,14 +103,6 @@ export default function DefaultCell({
         />
       );
     case ColumnType.NUMBER:
-      return (
-        <InputNumber
-          className={styles.defaultCell}
-          onBlur={onBlur}
-          onChange={(v) => v && setValue(v as any)}
-          value={value}
-        />
-      );
     case ColumnType.TEXT:
       return (
         <Input

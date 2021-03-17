@@ -15,9 +15,7 @@ import TemplateSearch from "../../components/TemplateSearch";
 import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
-  AnnotationType,
   BarcodePrefix,
-  Channel,
   LabkeyTemplate,
 } from "../../services/labkey-client/types";
 import { Template } from "../../services/mms-client/types";
@@ -30,10 +28,8 @@ import {
 import { SetAlertAction } from "../../state/feedback/types";
 import { createBarcode } from "../../state/metadata/actions";
 import {
-  getAnnotationTypes,
   getBarcodePrefixes,
   getBooleanAnnotationTypeId,
-  getChannels,
   getTemplates,
 } from "../../state/metadata/selectors";
 import { CreateBarcodeAction } from "../../state/metadata/types";
@@ -44,15 +40,10 @@ import {
   openFilesFromDialog,
   selectBarcode,
   setHasNoPlateToUpload,
-  toggleExpandedUploadJobRow,
-  updateMassEditRow,
 } from "../../state/selection/actions";
 import {
-  getExpandedUploadJobRows,
   getSelectedBarcode,
   getSelectedJob,
-  getWellsWithUnitsAndModified,
-  getMassEditRow,
   getHasNoPlateToUpload,
 } from "../../state/selection/selectors";
 import {
@@ -60,35 +51,19 @@ import {
   LoadFilesFromOpenDialogAction,
   SelectBarcodeAction,
   SetHasNoPlateToUploadAction,
-  ToggleExpandedUploadJobRowAction,
-  UpdateMassEditRowAction,
-  Well,
 } from "../../state/selection/types";
 import { updateSettings } from "../../state/setting/actions";
-import { getShowUploadHint } from "../../state/setting/selectors";
 import { UpdateSettingsAction } from "../../state/setting/types";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import {
-  AsyncRequest,
-  DragAndDropFileList,
-  ExpandedRows,
-  MassEditRow,
-  State,
-} from "../../state/types";
+import { AsyncRequest, DragAndDropFileList, State } from "../../state/types";
 import {
   applyTemplate,
   initiateUpload,
-  jumpToUpload,
   removeUploads,
   submitFileMetadataUpdate,
   updateAndRetryUpload,
-  updateSubImages,
-  updateUpload,
-  updateUploadRows,
 } from "../../state/upload/actions";
 import {
-  getCanRedoUpload,
-  getCanUndoUpload,
   getFileToAnnotationHasValueMap,
   getUploadKeyToAnnotationErrorMap,
   getUploadSummaryRows,
@@ -97,13 +72,9 @@ import {
 import {
   ApplyTemplateAction,
   InitiateUploadAction,
-  JumpToUploadAction,
   RemoveUploadsAction,
   SubmitFileMetadataUpdateAction,
   UpdateAndRetryUploadAction,
-  UpdateSubImagesAction,
-  UpdateUploadAction,
-  UpdateUploadRowsAction,
   UploadJobTableRow,
 } from "../../state/upload/types";
 import BarcodeSearch from "../BarcodeSearch";
@@ -114,28 +85,20 @@ import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 const styles = require("./style.pcss");
 
 interface Props {
-  allWellsForSelectedPlate: Well[][];
-  annotationTypes: AnnotationType[];
   appliedTemplate?: Template;
   applyTemplate: ActionCreator<ApplyTemplateAction>;
   barcodePrefixes: BarcodePrefix[];
   booleanAnnotationTypeId?: number;
-  canRedo: boolean;
   canSubmit: boolean;
-  canUndo: boolean;
   closeUpload: ActionCreator<CloseUploadAction>;
-  channels: Channel[];
   createBarcode: ActionCreator<CreateBarcodeAction>;
-  expandedRows: ExpandedRows;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
   hasNoPlateToUpload: boolean;
   initiateUpload: ActionCreator<InitiateUploadAction>;
-  jumpToUpload: ActionCreator<JumpToUploadAction>;
   loading: boolean;
   loadFilesFromDragAndDrop: (
     files: DragAndDropFileList
   ) => LoadFilesFromDragAndDropAction;
-  massEditRow: MassEditRow;
   openFilesFromDialog: (files: string[]) => LoadFilesFromOpenDialogAction;
   removeUploads: ActionCreator<RemoveUploadsAction>;
   selectBarcode: ActionCreator<SelectBarcodeAction>;
@@ -144,17 +107,11 @@ interface Props {
   selectedJobIsLoading: boolean;
   setAlert: ActionCreator<SetAlertAction>;
   setHasNoPlateToUpload: ActionCreator<SetHasNoPlateToUploadAction>;
-  showUploadHint: boolean;
   submitFileMetadataUpdate: ActionCreator<SubmitFileMetadataUpdateAction>;
   templateIsLoading: boolean;
   templates: LabkeyTemplate[];
-  toggleRowExpanded: ActionCreator<ToggleExpandedUploadJobRowAction>;
   updateAndRetryUpload: ActionCreator<UpdateAndRetryUploadAction>;
-  updateMassEditRow: ActionCreator<UpdateMassEditRowAction>;
   updateSettings: ActionCreator<UpdateSettingsAction>;
-  updateSubImages: ActionCreator<UpdateSubImagesAction>;
-  updateUpload: ActionCreator<UpdateUploadAction>;
-  updateUploadRows: ActionCreator<UpdateUploadRowsAction>;
   uploadError?: string;
   uploadInProgress: boolean;
   uploadRowKeyToAnnotationErrorMap: {
@@ -452,16 +409,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
 
 function mapStateToProps(state: State) {
   return {
-    allWellsForSelectedPlate: getWellsWithUnitsAndModified(state),
-    annotationTypes: getAnnotationTypes(state),
     appliedTemplate: getAppliedTemplate(state),
     barcodePrefixes: getBarcodePrefixes(state),
     booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
-    canRedo: getCanRedoUpload(state),
     canSubmit: getCanSubmitUpload(state),
-    canUndo: getCanUndoUpload(state),
-    channels: getChannels(state),
-    expandedRows: getExpandedUploadJobRows(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
     hasNoPlateToUpload: getHasNoPlateToUpload(state),
     loading: getIsLoading(state),
@@ -473,10 +424,8 @@ function mapStateToProps(state: State) {
       state,
       AsyncRequest.GET_FILE_METADATA_FOR_JOB
     ),
-    massEditRow: getMassEditRow(state),
     selectedBarcode: getSelectedBarcode(state),
     selectedJob: getSelectedJob(state),
-    showUploadHint: getShowUploadHint(state),
     templates: getTemplates(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
@@ -491,7 +440,6 @@ const dispatchToPropsMap = {
   closeUpload,
   createBarcode,
   initiateUpload,
-  jumpToUpload,
   loadFilesFromDragAndDrop,
   openFilesFromDialog,
   removeUploads,
@@ -499,13 +447,8 @@ const dispatchToPropsMap = {
   setAlert,
   setHasNoPlateToUpload,
   submitFileMetadataUpdate,
-  toggleRowExpanded: toggleExpandedUploadJobRow,
   updateAndRetryUpload,
-  updateMassEditRow,
   updateSettings,
-  updateSubImages,
-  updateUpload,
-  updateUploadRows,
 };
 
 export default connect(mapStateToProps, dispatchToPropsMap)(AddCustomData);

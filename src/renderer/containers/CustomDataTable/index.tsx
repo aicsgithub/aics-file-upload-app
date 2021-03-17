@@ -3,7 +3,7 @@ import * as path from "path";
 import { Checkbox } from "antd";
 import React from "react";
 import { useSelector } from "react-redux";
-import { useTable, useExpanded, useRowSelect } from "react-table";
+import { useTable, useExpanded, useRowSelect, useSortBy } from "react-table";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
@@ -15,7 +15,9 @@ import DefaultCell from "./Table/cells/DefaultCell";
 import FilenameCell from "./Table/cells/FilenameCell";
 import NotesCell from "./Table/cells/NotesCell";
 import DefaultHeader from "./Table/DefaultHeader";
-import { CustomCell, CustomColumn } from "./types";
+import TableFooter from "./TableFooter";
+import TableToolHeader from "./TableToolHeader";
+import { CustomCell, CustomColumn, CustomTable } from "./types";
 
 const DEFAULT_COLUMNS: CustomColumn[] = [
   {
@@ -45,6 +47,7 @@ export default function CustomDataTable() {
   const upload = useSelector(getUpload);
   const template = useSelector(getAppliedTemplate);
   const annotationTypes = useSelector(getAnnotationTypes);
+  const [isMassEditing, setIsMassEditing] = React.useState(false);
 
   const columns = React.useMemo(() => {
     const columns = template
@@ -65,6 +68,16 @@ export default function CustomDataTable() {
   }, [annotationTypes, template]);
 
   const data = React.useMemo(() => {
+    // TODO: this won't work, not empty
+    if (isMassEditing) {
+      const [rowId, uploadData] = Object.entries(upload)[0];
+      return [
+        {
+          rowId,
+          ...uploadData,
+        },
+      ];
+    }
     return Object.entries(upload).map(([rowId, uploadData]) => ({
       // Rather than supply our own (if still necessary after subRows
       // is figured out), use custom getRowId()
@@ -74,9 +87,9 @@ export default function CustomDataTable() {
       // TODO: The way we organize our data needs to be pivoted
       subRows: [{ subRows: [{ subRows: [] }] }],
     }));
-  }, [upload]);
+  }, [upload, isMassEditing]);
 
-  const tableInstance = useTable(
+  const tableInstance: CustomTable = useTable(
     {
       columns,
       // Defines the default column properties, can be overriden per column
@@ -84,19 +97,24 @@ export default function CustomDataTable() {
       data,
     },
     // optional plugins
+    useSortBy,
     useExpanded,
     useRowSelect
+    // useBlockLayout, // Makes element widths adjustable
   );
 
-  if (!template || !Object.keys(upload).length) {
+  if (!template || !data.length) {
     return null;
   }
 
   return (
     <div>
-      {/* TODO: Header */}
+      <TableToolHeader
+        selectedRows={tableInstance.selectedFlatRows || []}
+        setIsMassEditing={setIsMassEditing}
+      />
       <Table tableInstance={tableInstance} />
-      {/* TODO: Footer */}
+      <TableFooter />
     </div>
   );
 }

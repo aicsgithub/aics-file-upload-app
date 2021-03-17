@@ -113,7 +113,10 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     }
 
     return (
-      <Form.Item validateStatus={this.props.error ? "error" : ""}>
+      <Form.Item
+        className={styles.form}
+        validateStatus={this.props.error ? "error" : ""}
+      >
         <Select
           allowClear={true}
           className={classNames(

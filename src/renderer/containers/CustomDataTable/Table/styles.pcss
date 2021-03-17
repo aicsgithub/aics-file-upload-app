@@ -1,3 +1,8 @@
+.table-container {
+    /* Variable located in styles/variables */
+    border-right: var(--border);
+}
+
 .cell-icon {
     margin-top: 4px;
 }
@@ -7,7 +12,8 @@
 }
 
 .table-cell {
-    border: 1px solid black;
+    /* Variable located in styles/variables */
+    border: var(--border);
     height: 30px;
     width: 100px;
 }
@@ -16,27 +22,28 @@
     display: flex;
     height: 30px;
     overflow: hidden;
-    textOverflow: ellipsis;
+    text-overflow: ellipsis;
     width: 100px;
-    whiteSpace: nowrap;
+    white-space: nowrap;
 }
 
-.default-cell {
-    border-radius: unset;
+.default-cell, .default-cell > * {
+    border-radius: unset !important;
     box-shadow: none;
-    width: 100%;
+    margin: 0;
+    width: 100% !important;
 }
 
 .read-only-cell {
     height: 30px;
     width: 100px;
     overflow: hidden;
-    textOverflow: ellipsis;
-    whiteSpace: nowrap;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .hidden {
     border: none;
-    height: none;
-    width: none;
+    height: 0;
+    width: 0;
 }

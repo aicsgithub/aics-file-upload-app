@@ -1,8 +1,12 @@
-import { Cell, Column, Row } from "react-table";
+import { Cell, Column, Row, TableInstance } from "react-table";
 
 import { ColumnType } from "../../services/labkey-client/types";
 
-interface CustomRow extends Row {
+export interface CustomTable extends TableInstance {
+  selectedFlatRows?: CustomRow[];
+}
+
+export interface CustomRow extends Row {
   // This contains whatever the row data originally was
   original: any;
 
@@ -22,6 +26,10 @@ export type CustomColumn = Column & {
   dropdownValues?: string[];
   isReadOnly?: boolean;
   type?: ColumnType;
+
+  // These props come from useSortedBy plugin
+  isSorted?: boolean;
+  isSortedDesc?: boolean;
 };
 
 export type CustomCell = Cell & {
@@ -31,3 +39,6 @@ export type CustomCell = Cell & {
   // This prop comes from useRowSelect plugin
   getToggleAllRowsSelectedProps: () => any;
 };
+
+// TODO: Remove if unused
+export type CellValue = string[] | boolean | Date;
