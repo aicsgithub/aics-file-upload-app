@@ -1,9 +1,14 @@
 import * as path from "path";
 
-import { Checkbox } from "antd";
 import React from "react";
 import { useSelector } from "react-redux";
-import { useTable, useExpanded, useRowSelect, useSortBy } from "react-table";
+import {
+  useTable,
+  useExpanded,
+  useRowSelect,
+  useSortBy,
+  useBlockLayout,
+} from "react-table";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
@@ -14,6 +19,7 @@ import Table from "./Table";
 import DefaultCell from "./Table/cells/DefaultCell";
 import FilenameCell from "./Table/cells/FilenameCell";
 import NotesCell from "./Table/cells/NotesCell";
+import SelectionCell from "./Table/cells/SelectionCell";
 import DefaultHeader from "./Table/DefaultHeader";
 import TableFooter from "./TableFooter";
 import TableToolHeader from "./TableToolHeader";
@@ -25,11 +31,12 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
     Header: function CheckboxHeader({
       getToggleAllRowsSelectedProps,
     }: CustomCell) {
-      return <Checkbox {...getToggleAllRowsSelectedProps()} />;
+      return <SelectionCell {...getToggleAllRowsSelectedProps()} />;
     },
     Cell: function CheckboxCell({ row }: CustomCell) {
-      return <Checkbox {...row.getToggleRowSelectedProps()} />;
+      return <SelectionCell {...row.getToggleRowSelectedProps()} />;
     },
+    width: 35,
   },
   {
     accessor: "File",
@@ -93,14 +100,18 @@ export default function CustomDataTable() {
     {
       columns,
       // Defines the default column properties, can be overriden per column
-      defaultColumn: { Cell: DefaultCell, Header: DefaultHeader },
+      defaultColumn: {
+        Cell: DefaultCell,
+        Header: DefaultHeader,
+        maxWidth: 100,
+      },
       data,
     },
     // optional plugins
     useSortBy,
     useExpanded,
-    useRowSelect
-    // useBlockLayout, // Makes element widths adjustable
+    useRowSelect,
+    useBlockLayout // Makes element widths adjustable
   );
 
   if (!template || !data.length) {
@@ -108,13 +119,13 @@ export default function CustomDataTable() {
   }
 
   return (
-    <div>
+    <>
       <TableToolHeader
         selectedRows={tableInstance.selectedFlatRows || []}
         setIsMassEditing={setIsMassEditing}
       />
       <Table tableInstance={tableInstance} />
       <TableFooter />
-    </div>
+    </>
   );
 }

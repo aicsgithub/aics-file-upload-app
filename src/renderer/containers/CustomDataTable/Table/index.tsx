@@ -24,7 +24,7 @@ export default function Table(props: { tableInstance: TableInstance }) {
                   {...column.getHeaderProps(
                     column.getSortByToggleProps && column.getSortByToggleProps()
                   )}
-                  className={styles.tableCell}
+                  className={styles.tableHeader}
                   key={column.getHeaderProps().key}
                 >
                   {column.render("Header")}

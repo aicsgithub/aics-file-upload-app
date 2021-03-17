@@ -22,33 +22,34 @@ export default function DefaultCell({
   const [value, setValue] = React.useState(initialValue);
   const [isEditing, setIsEditing] = React.useState(false);
 
+  if (isReadOnly) {
+    return (
+      <Tooltip title={`${value}`}>
+        <div className={styles.readOnlyCell}>{`${value}`}</div>
+      </Tooltip>
+    );
+  }
+
+  if (!isEditing) {
+    return (
+      <Tooltip title={`${value}`}>
+        <div
+          className={styles.readOnlyCell}
+          onDoubleClick={() => setIsEditing(true)}
+        >
+          <input className={styles.hidden} onFocus={() => setIsEditing(true)} />
+          {`${value}`}
+        </div>
+      </Tooltip>
+    );
+  }
+
   function onBlur() {
     setIsEditing(false);
     if (value !== initialValue) {
       dispatch(updateUploadRowValue(rowId, columnId, value));
     }
   }
-
-  if (!isEditing || isReadOnly) {
-    return (
-      <Tooltip title={`${value}`}>
-        <div
-          className={styles.readOnlyCell}
-          onBlur={onBlur}
-          onDoubleClick={() => setIsEditing(true)}
-        >
-          {!isReadOnly && (
-            <input
-              className={styles.hidden}
-              onFocus={() => setIsEditing(true)}
-            />
-          )}
-          {`${value}`}
-        </div>
-      </Tooltip>
-    );
-  }
-  console.log(type, initialValue, value);
 
   switch (type) {
     case ColumnType.BOOLEAN:
