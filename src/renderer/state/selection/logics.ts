@@ -30,8 +30,9 @@ import {
   OPEN_FILES,
   SELECT_BARCODE,
   SELECT_WELLS,
+  STOP_CELL_DRAG,
 } from "./constants";
-import { getWellsWithModified } from "./selectors";
+import { getCellAtDragStart, getWellsWithModified } from "./selectors";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,
@@ -157,9 +158,28 @@ const selectWellsLogic = createLogic({
   type: SELECT_WELLS,
 });
 
+const stopCellDragLogic = createLogic({
+  transform: (
+    { action, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb
+  ) => {
+    const cellAtStart = getCellAtDragStart(getState());
+    const cellAtEnd = action.payload;
+    console.log("cellAtStart", cellAtStart);
+    console.log("cellAtEnd", cellAtEnd);
+    // if (cellAtStart && cellAtStart.columnId === cellAtEnd.columnId) {
+    //   console.log("Successful drag!");
+    //   // TODO: Spread values over rows
+    // }
+    next(action);
+  },
+  type: STOP_CELL_DRAG,
+});
+
 export default [
   loadFilesLogic,
   openFilesLogic,
   selectBarcodeLogic,
   selectWellsLogic,
+  stopCellDragLogic,
 ];

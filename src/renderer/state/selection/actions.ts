@@ -18,6 +18,8 @@ import {
   SELECT_WELLS,
   SET_HAS_NO_PLATE_TO_UPLOAD,
   SET_PLATE,
+  START_CELL_DRAG,
+  STOP_CELL_DRAG,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
@@ -31,6 +33,8 @@ import {
   SelectWellsAction,
   SetHasNoPlateToUploadAction,
   SetPlateAction,
+  StartCellDragAction,
+  StopCellDragAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
 } from "./types";
@@ -52,6 +56,23 @@ export function openFilesFromDialog(
     autoSave: true,
     payload: files,
     type: OPEN_FILES,
+  };
+}
+
+export function startCellDrag(
+  yCoordinate: number,
+  columnId: string
+): StartCellDragAction {
+  return {
+    payload: { yCoordinate, columnId },
+    type: START_CELL_DRAG,
+  };
+}
+
+export function stopCellDrag(yCoordinate: number): StopCellDragAction {
+  return {
+    payload: yCoordinate,
+    type: STOP_CELL_DRAG,
   };
 }
 

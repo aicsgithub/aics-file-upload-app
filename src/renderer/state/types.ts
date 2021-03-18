@@ -288,8 +288,14 @@ export interface SelectionStateBranch extends UploadTabSelections {
   user: string;
 }
 
+export interface UploadKeyValue {
+  columnId: string;
+  yCoordinate: number;
+}
+
 export interface UploadTabSelections {
   barcode?: string;
+  cellAtDragStart?: UploadKeyValue;
   expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;

@@ -6,6 +6,8 @@ const styles = require("./styles.pcss");
 interface CustomHeaderGroup extends HeaderGroup {
   // This prop is defined by useSortedBy plugin
   getSortByToggleProps?: () => {};
+  // This prop is defined by useResizeColumns plugin
+  getResizerProps?: () => {};
 }
 
 export default function Table(props: { tableInstance: TableInstance }) {
@@ -21,13 +23,20 @@ export default function Table(props: { tableInstance: TableInstance }) {
             >
               {headerGroup.headers.map((column: CustomHeaderGroup) => (
                 <th
-                  {...column.getHeaderProps(
-                    column.getSortByToggleProps && column.getSortByToggleProps()
-                  )}
+                  {...column.getHeaderProps()}
                   className={styles.tableHeader}
                   key={column.getHeaderProps().key}
                 >
-                  {column.render("Header")}
+                  <div
+                    {...(column.getResizerProps && column.getResizerProps())}
+                    className={styles.columnResizer}
+                  />
+                  <div
+                    {...(column.getSortByToggleProps &&
+                      column.getSortByToggleProps())}
+                  >
+                    {column.render("Header")}
+                  </div>
                 </th>
               ))}
             </tr>

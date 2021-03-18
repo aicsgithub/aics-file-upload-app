@@ -8,11 +8,19 @@
 .table-cell, .table-header {
     /* Variable located in styles/variables */
     border: var(--border);
-    font-size: smaller;
 }
 
 .table-cell {
     height: 35px;
+    padding: 0;
+    margin: 0;
+}
+
+.table-cell:hover {
+    /* Variable found in styles/variables.pcss */
+    border: var(--border);
+    /* Variable equivalent to --brand-primary with half opacity */
+    border-color: rgba(29, 165, 122, .5);
 }
 
 .table-header {
@@ -22,7 +30,7 @@
 }
 
 .cell-icon {
-    margin-top: 4px;
+    margin: auto;
 }
 
 .header {
@@ -31,35 +39,77 @@
 
 .file-cell {
     display: flex;
-    height: 30px;
+    height: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100px;
     white-space: nowrap;
 }
 
 .selection-cell {
     display: flex;
     justify-content: center;
+    margin-top: 3px;
 }
 
 .default-cell, .default-cell > * {
     border-radius: unset !important;
     box-shadow: none;
     margin: 0;
-    width: 100% !important;
 }
 
-.read-only-cell {
-    height: 30px;
-    width: 100px;
+.read-only-cell-container {
+    height: 100%;
+    position: relative;
+    width: 100%;
+}
+
+.read-only-cell, .file-cell-input {
+    border: none;
+    height: 100%;
+    outline: none;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    width: 100%;
+}
+
+.read-only-cell:focus, .highlight {
+    /* Variable found in styles/variables.pcss */
+    border: var(--border);
+    /* Variable found in styles/colors.pcss */
+    border-color: var(--brand-primary);
+}
+
+.drag-box {
+    /* Variable found in styles/colors.pcss */
+    background-color: var(--brand-primary);
+    bottom: 0;
+    height: 10px;
+    position: absolute;
+    right: 0;
+    width: 10px;
+}
+
+.invisible {
+    background-color: transparent;
+}
+
+.column-resizer {
+    display: inline-block;
+    width: 10px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translateX(50%);
+    z-index: 1;
 }
 
 .hidden {
     border: none;
+    display: block;
     height: 0;
+    margin: 0;
+    padding: 0;
     width: 0;
 }

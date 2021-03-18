@@ -30,6 +30,9 @@ export type CustomColumn = Column & {
   // These props come from useSortedBy plugin
   isSorted?: boolean;
   isSortedDesc?: boolean;
+
+  // This prop comes from the useResizeColumns plugin
+  disableResizing?: boolean;
 };
 
 export type CustomCell = Cell & {

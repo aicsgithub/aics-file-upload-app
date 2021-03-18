@@ -27,6 +27,8 @@ import {
   SELECT_WELLS,
   SET_HAS_NO_PLATE_TO_UPLOAD,
   SET_PLATE,
+  START_CELL_DRAG,
+  STOP_CELL_DRAG,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
@@ -46,12 +48,15 @@ import {
   SelectWellsAction,
   SetHasNoPlateToUploadAction,
   SetPlateAction,
+  StartCellDragAction,
+  StopCellDragAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
 } from "./types";
 
 const uploadTabSelectionInitialState: UploadTabSelections = {
   barcode: undefined,
+  cellAtDragStart: undefined,
   expandedUploadJobRows: {},
   imagingSessionId: undefined,
   imagingSessionIds: [],
@@ -176,6 +181,22 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch) => ({
       ...state,
       ...uploadTabSelectionInitialState,
+    }),
+  },
+  [START_CELL_DRAG]: {
+    accepts: (action: AnyAction): action is StartCellDragAction =>
+      action.type === START_CELL_DRAG,
+    perform: (state: SelectionStateBranch, action: StartCellDragAction) => ({
+      ...state,
+      cellAtDragStart: action.payload,
+    }),
+  },
+  [STOP_CELL_DRAG]: {
+    accepts: (action: AnyAction): action is StopCellDragAction =>
+      action.type === STOP_CELL_DRAG,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      cellAtDragStart: undefined,
     }),
   },
   [OPEN_EDIT_FILE_METADATA_TAB]: {

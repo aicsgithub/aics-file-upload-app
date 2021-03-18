@@ -7,6 +7,7 @@ import {
   ImagingSessionIdToWellsMap,
   MassEditRow,
   MetadataStateBranch,
+  UploadKeyValue,
 } from "../types";
 
 export interface SelectMetadataAction {
@@ -77,6 +78,16 @@ export interface ToggleExpandedUploadJobRowAction {
 }
 
 export interface SelectImagingSessionIdAction extends AutoSaveAction {
+  payload: number;
+  type: string;
+}
+
+export interface StartCellDragAction {
+  payload: UploadKeyValue;
+  type: string;
+}
+
+export interface StopCellDragAction {
   payload: number;
   type: string;
 }

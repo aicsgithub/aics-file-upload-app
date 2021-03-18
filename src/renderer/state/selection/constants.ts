@@ -25,6 +25,8 @@ export const SELECT_IMAGING_SESSION_ID = makeConstant(
   BRANCH_NAME,
   "select-imaging-session-id"
 );
+export const START_CELL_DRAG = makeConstant(BRANCH_NAME, "start-cell-drag");
+export const STOP_CELL_DRAG = makeConstant(BRANCH_NAME, "stop-cell-drag");
 export const UPDATE_MASS_EDIT_ROW = makeConstant(
   BRANCH_NAME,
   "update-mass-edit-row"

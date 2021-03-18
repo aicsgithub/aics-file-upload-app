@@ -8,6 +8,7 @@ import {
   useRowSelect,
   useSortBy,
   useBlockLayout,
+  useResizeColumns,
 } from "react-table";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
@@ -28,6 +29,7 @@ import { CustomCell, CustomColumn, CustomTable } from "./types";
 const DEFAULT_COLUMNS: CustomColumn[] = [
   {
     id: "selection",
+    disableResizing: true,
     Header: function CheckboxHeader({
       getToggleAllRowsSelectedProps,
     }: CustomCell) {
@@ -36,17 +38,19 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
     Cell: function CheckboxCell({ row }: CustomCell) {
       return <SelectionCell {...row.getToggleRowSelectedProps()} />;
     },
-    width: 35,
+    maxWidth: 35,
   },
   {
     accessor: "File",
     Cell: FilenameCell,
     description: "Filename of file supplied",
+    width: 200,
   },
   {
     accessor: NOTES_ANNOTATION_NAME,
     Cell: NotesCell,
     description: "Any additional text data (not ideal for querying)",
+    maxWidth: 50,
   },
 ];
 
@@ -103,7 +107,9 @@ export default function CustomDataTable() {
       defaultColumn: {
         Cell: DefaultCell,
         Header: DefaultHeader,
-        maxWidth: 100,
+        minWidth: 30,
+        width: 100,
+        maxWidth: 500,
       },
       data,
     },
@@ -111,7 +117,8 @@ export default function CustomDataTable() {
     useSortBy,
     useExpanded,
     useRowSelect,
-    useBlockLayout // Makes element widths adjustable
+    useBlockLayout, // Makes element widths adjustable
+    useResizeColumns
   );
 
   if (!template || !data.length) {

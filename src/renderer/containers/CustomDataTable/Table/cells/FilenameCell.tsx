@@ -1,4 +1,5 @@
 import { Icon, Tooltip } from "antd";
+import classNames from "classnames";
 import React from "react";
 
 import { TutorialStep } from "../../../../state/types";
@@ -8,6 +9,7 @@ import { CustomCell } from "../../types";
 const styles = require("../styles.pcss");
 
 export default function FilenameCell({ column, row, value }: CustomCell) {
+  const [isHighlighted, setIsHighlighted] = React.useState(false);
   const [isSubFileModalOpen, setIsSubFileModalOpen] = React.useState(false);
 
   // TODO: Remove
@@ -16,7 +18,12 @@ export default function FilenameCell({ column, row, value }: CustomCell) {
   }
 
   return (
-    <div className={styles.fileCell}>
+    <div
+      className={classNames(
+        styles.fileCell,
+        isHighlighted ? styles.highlight : undefined
+      )}
+    >
       {row.canExpand && (
         <Icon
           className={styles.cellIcon}
@@ -27,10 +34,16 @@ export default function FilenameCell({ column, row, value }: CustomCell) {
           })}
         />
       )}
-      <Tooltip mouseLeaveDelay={0} title={value}>
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-          {value}
-        </span>
+      <Tooltip mouseLeaveDelay={0} title={row.original.file}>
+        <input
+          readOnly
+          tabIndex={-1}
+          className={styles.fileCellInput}
+          onBlur={() => setIsHighlighted(false)}
+          onFocus={() => setIsHighlighted(true)}
+          onClick={() => setIsHighlighted(true)}
+          value={value}
+        />
       </Tooltip>
       {!column.isReadOnly && (
         <TutorialTooltip

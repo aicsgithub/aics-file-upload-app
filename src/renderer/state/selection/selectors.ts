@@ -21,6 +21,8 @@ import {
 import { Well } from "./types";
 
 // BASIC SELECTORS
+export const getCellAtDragStart = (state: State) =>
+  state.selection.present.cellAtDragStart;
 export const getHasNoPlateToUpload = (state: State) =>
   state.selection.present.hasNoPlateToUpload;
 export const getSelectedBarcode = (state: State) =>
