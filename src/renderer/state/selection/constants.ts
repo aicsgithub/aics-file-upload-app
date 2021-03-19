@@ -33,6 +33,14 @@ export const SELECT_IMAGING_SESSION_ID = makeConstant(
   BRANCH_NAME,
   "select-imaging-session-id"
 );
+export const ADD_ROW_TO_DRAG_EVENT = makeConstant(
+  BRANCH_NAME,
+  "add-row-to-drag-event"
+);
+export const REMOVE_ROW_FROM_DRAG_EVENT = makeConstant(
+  BRANCH_NAME,
+  "remove-row-from-drag-event"
+);
 export const START_CELL_DRAG = makeConstant(BRANCH_NAME, "start-cell-drag");
 export const STOP_CELL_DRAG = makeConstant(BRANCH_NAME, "stop-cell-drag");
 export const UPDATE_MASS_EDIT_ROW = makeConstant(

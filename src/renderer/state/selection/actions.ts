@@ -9,6 +9,7 @@ import {
 } from "../types";
 
 import {
+  ADD_ROW_TO_DRAG_EVENT,
   APPLY_MASS_EDIT,
   CANCEL_MASS_EDIT,
   CLEAR_SELECTION_HISTORY,
@@ -17,6 +18,7 @@ import {
   LOAD_FILES,
   OPEN_FILES,
   OPEN_SUB_FILE_SELECTION_MODAL,
+  REMOVE_ROW_FROM_DRAG_EVENT,
   SELECT_BARCODE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_WELLS,
@@ -29,6 +31,7 @@ import {
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
 import {
+  AddRowToDragEventAction,
   ApplyMassEditAction,
   CancelMassEditAction,
   ClearSelectionHistoryAction,
@@ -37,6 +40,7 @@ import {
   LoadFilesFromDragAndDropAction,
   LoadFilesFromOpenDialogAction,
   OpenSubFileSelectionModalAction,
+  RemoveRowFromDragEventAction,
   SelectBarcodeAction,
   SelectImagingSessionIdAction,
   SelectWellsAction,
@@ -103,12 +107,29 @@ export function openSubFileSelectionModal(
   };
 }
 
+export function addRowToDragEvent(rowId: string): AddRowToDragEventAction {
+  return {
+    payload: rowId,
+    type: ADD_ROW_TO_DRAG_EVENT,
+  };
+}
+
+export function removeRowFromDragEvent(
+  rowId: string
+): RemoveRowFromDragEventAction {
+  return {
+    payload: rowId,
+    type: REMOVE_ROW_FROM_DRAG_EVENT,
+  };
+}
+
 export function startCellDrag(
   yCoordinate: number,
+  rowId: string,
   columnId: string
 ): StartCellDragAction {
   return {
-    payload: { yCoordinate, columnId },
+    payload: { yCoordinate, rowId, columnId },
     type: START_CELL_DRAG,
   };
 }

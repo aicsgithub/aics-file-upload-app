@@ -27,6 +27,7 @@ import {
   UploadFile,
 } from "../types";
 import { addUploadFiles, updateUploadRows } from "../upload/actions";
+import { getUpload } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { selectWells, setPlate } from "./actions";
@@ -37,9 +38,12 @@ import {
   SELECT_BARCODE,
   SELECT_WELLS,
   START_MASS_EDIT,
+  STOP_CELL_DRAG,
 } from "./constants";
 import {
+  getCellAtDragStart,
   getMassEditRow,
+  getRowsSelectedForDragEvent,
   getRowsSelectedForMassEdit,
   getWellsWithModified,
 } from "./selectors";
@@ -232,6 +236,33 @@ const applyMassEditLogic = createLogic({
   type: APPLY_MASS_EDIT,
 });
 
+const stopCellDragLogic = createLogic({
+  process: (
+    { ctx, getState }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { cellAtDragStart, rowIds } = ctx;
+    if (rowIds) {
+      const upload = getUpload(getState());
+      const value = upload[cellAtDragStart.rowId][cellAtDragStart.columnId];
+      dispatch(updateUploadRows(rowIds, { [cellAtDragStart.columnId]: value }));
+    }
+    done();
+  },
+  transform: (
+    { action, ctx, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb
+  ) => {
+    const cellAtDragStart = getCellAtDragStart(getState());
+    const rowIds = getRowsSelectedForDragEvent(getState());
+    ctx.cellAtDragStart = cellAtDragStart;
+    ctx.rowIds = rowIds;
+    next(action);
+  },
+  type: STOP_CELL_DRAG,
+});
+
 export default [
   applyMassEditLogic,
   loadFilesLogic,
@@ -239,4 +270,5 @@ export default [
   selectBarcodeLogic,
   selectWellsLogic,
   startMassEditLogic,
+  stopCellDragLogic,
 ];

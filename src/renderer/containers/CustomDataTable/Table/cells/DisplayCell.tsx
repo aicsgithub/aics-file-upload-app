@@ -5,10 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { ColumnType } from "../../../../services/labkey-client/types";
 import {
+  addRowToDragEvent,
+  removeRowFromDragEvent,
   startCellDrag,
   stopCellDrag,
 } from "../../../../state/selection/actions";
-import { getCellAtDragStart } from "../../../../state/selection/selectors";
+import {
+  getCellAtDragStart,
+  getRowsSelectedForDragEvent,
+} from "../../../../state/selection/selectors";
 import { updateUpload } from "../../../../state/upload/actions";
 import { CustomCell } from "../../types";
 
@@ -24,12 +29,22 @@ interface Props extends CustomCell {
 export default function DisplayCell(props: Props) {
   const dispatch = useDispatch();
   const cellAtDragStart = useSelector(getCellAtDragStart);
-  const [isHighlighted, setIsHighlighted] = React.useState(false);
+  const rowsFromDragEvent = useSelector(getRowsSelectedForDragEvent);
+  const [isActive, setIsActive] = React.useState(false);
   const inputEl = React.useRef<HTMLInputElement>(null);
   const {
     column: { id: columnId, type },
+    row: { id: rowId },
     value,
   } = props;
+
+  let isHighlighted = isActive;
+  if (!isHighlighted && cellAtDragStart?.columnId === columnId) {
+    isHighlighted = [
+      cellAtDragStart.rowId,
+      ...(rowsFromDragEvent || []),
+    ].includes(rowId);
+  }
 
   // When a cell is being dragged add an event listener for cells
   // in the same column to check if this cell needs to be highlighted
@@ -42,17 +57,25 @@ export default function DisplayCell(props: Props) {
         if (cellAtDragStart.yCoordinate <= thisCell.top) {
           // If the current position is below or within this element
           if (mouseY >= thisCell.top) {
-            setIsHighlighted(true);
+            if (!isHighlighted) {
+              console.log("addRowToDragEvent", rowId);
+              dispatch(addRowToDragEvent(rowId));
+            }
           } else if (isHighlighted) {
-            setIsHighlighted(false);
+            console.log("removeRowFromDragEvent", rowId);
+            dispatch(removeRowFromDragEvent(rowId));
           }
           // If the origin is below this element
         } else if (cellAtDragStart.yCoordinate >= thisCell.bottom) {
           // If the current position is above or within this element
           if (mouseY <= thisCell.bottom) {
-            setIsHighlighted(true);
+            if (!isHighlighted) {
+              console.log("addRowToDragEvent", rowId);
+              dispatch(addRowToDragEvent(rowId));
+            }
           } else if (isHighlighted) {
-            setIsHighlighted(false);
+            console.log("removeRowFromDragEvent", rowId);
+            dispatch(removeRowFromDragEvent(rowId));
           }
         }
       }
@@ -64,7 +87,7 @@ export default function DisplayCell(props: Props) {
       document.removeEventListener("dragover", onDragOver);
     }
     return () => document.removeEventListener("dragover", onDragOver);
-  }, [cellAtDragStart, columnId, isHighlighted]);
+  }, [cellAtDragStart, columnId, rowId, isHighlighted, dispatch]);
 
   const displayValue = React.useMemo(() => {
     if (!value.length) {
@@ -103,8 +126,7 @@ export default function DisplayCell(props: Props) {
   }
 
   function onDragStart(e: React.MouseEvent) {
-    setIsHighlighted(true);
-    dispatch(startCellDrag(e.clientY, columnId));
+    dispatch(startCellDrag(e.clientY, rowId, columnId));
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -131,9 +153,9 @@ export default function DisplayCell(props: Props) {
             isHighlighted ? styles.highlight : undefined
           )}
           onKeyDown={onKeyDown}
-          onBlur={() => setIsHighlighted(false)}
+          onBlur={() => setIsActive(false)}
           onClick={() =>
-            isHighlighted ? props.onStartEditing() : setIsHighlighted(true)
+            isHighlighted ? props.onStartEditing() : setIsActive(true)
           }
           onDoubleClick={props.onStartEditing}
           value={displayValue}

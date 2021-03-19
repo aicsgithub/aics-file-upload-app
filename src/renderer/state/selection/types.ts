@@ -91,6 +91,16 @@ export interface SelectImagingSessionIdAction extends AutoSaveAction {
   type: string;
 }
 
+export interface AddRowToDragEventAction {
+  payload: string;
+  type: string;
+}
+
+export interface RemoveRowFromDragEventAction {
+  payload: string;
+  type: string;
+}
+
 export interface StartCellDragAction {
   payload: UploadKeyValue;
   type: string;

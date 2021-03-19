@@ -1,5 +1,6 @@
 import { userInfo } from "os";
 
+import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
@@ -19,12 +20,14 @@ import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
+  ADD_ROW_TO_DRAG_EVENT,
   APPLY_MASS_EDIT,
   CANCEL_MASS_EDIT,
   CLEAR_SELECTION_HISTORY,
   CLOSE_SUB_FILE_SELECTION_MODAL,
   JUMP_TO_PAST_SELECTION,
   OPEN_SUB_FILE_SELECTION_MODAL,
+  REMOVE_ROW_FROM_DRAG_EVENT,
   SELECT_BARCODE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
@@ -47,10 +50,12 @@ import {
   getWells,
 } from "./selectors";
 import {
+  AddRowToDragEventAction,
   ApplyMassEditAction,
   CancelMassEditAction,
   CloseSubFileSelectionModalAction,
   OpenSubFileSelectionModalAction,
+  RemoveRowFromDragEventAction,
   SelectBarcodeAction,
   SelectImagingSessionIdAction,
   SelectMetadataAction,
@@ -240,6 +245,34 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       ...uploadTabSelectionInitialState,
     }),
   },
+  [ADD_ROW_TO_DRAG_EVENT]: {
+    accepts: (action: AnyAction): action is AddRowToDragEventAction =>
+      action.type === ADD_ROW_TO_DRAG_EVENT,
+    perform: (
+      state: SelectionStateBranch,
+      action: AddRowToDragEventAction
+    ) => ({
+      ...state,
+      rowsSelectedForDragEvent: uniq([
+        ...(state.rowsSelectedForDragEvent || []),
+        action.payload,
+      ]),
+    }),
+  },
+  [REMOVE_ROW_FROM_DRAG_EVENT]: {
+    accepts: (action: AnyAction): action is RemoveRowFromDragEventAction =>
+      action.type === REMOVE_ROW_FROM_DRAG_EVENT,
+    perform: (
+      state: SelectionStateBranch,
+      action: RemoveRowFromDragEventAction
+    ) => ({
+      ...state,
+      rowsSelectedForDragEvent: without(
+        state.rowsSelectedForDragEvent || [],
+        action.payload
+      ),
+    }),
+  },
   [START_CELL_DRAG]: {
     accepts: (action: AnyAction): action is StartCellDragAction =>
       action.type === START_CELL_DRAG,
@@ -254,6 +287,7 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
     perform: (state: SelectionStateBranch) => ({
       ...state,
       cellAtDragStart: undefined,
+      rowsSelectedForDragEvent: undefined,
     }),
   },
   [OPEN_EDIT_FILE_METADATA_TAB]: {
