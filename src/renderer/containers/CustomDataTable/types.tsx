@@ -1,8 +1,9 @@
 import { Cell, Column, Row, TableInstance } from "react-table";
 
 import { ColumnType } from "../../services/labkey-client/types";
+import { UploadMetadata } from "../../state/types";
 
-export interface CustomTable extends TableInstance {
+export interface CustomTable extends TableInstance<any> {
   selectedFlatRows?: CustomRow[];
 }
 
@@ -20,7 +21,7 @@ export interface CustomRow extends Row {
   getToggleRowSelectedProps: () => any;
 }
 
-export type CustomColumn = Column & {
+export type CustomColumn = Column<UploadMetadata> & {
   // Custom props supplied in column definition
   description?: string;
   dropdownValues?: string[];

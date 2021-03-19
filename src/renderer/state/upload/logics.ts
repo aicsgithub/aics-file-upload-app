@@ -59,7 +59,9 @@ import {
   handleStartingNewUploadJob,
   resetHistoryActions,
 } from "../route/logics";
+import { updateMassEditRow } from "../selection/actions";
 import {
+  getMassEditRow,
   getSelectedBarcode,
   getSelectedJob,
   getSelectedWellIds,
@@ -858,6 +860,7 @@ const updateUploadLogic = createLogic({
     const { upload } = action.payload;
     const state = getState();
     const template = getAppliedTemplate(state);
+    const isMassEditing = getMassEditRow(state);
     const annotationTypes = getAnnotationTypes(state);
 
     if (!template || !annotationTypes) {
@@ -865,13 +868,23 @@ const updateUploadLogic = createLogic({
     } else {
       try {
         const formattedUpload = formatUpload(upload, template, annotationTypes);
-        next({
-          ...action,
-          payload: {
-            ...action.payload,
-            upload: formattedUpload,
-          },
-        });
+        console.log(
+          "updateUploadLogic",
+          formattedUpload,
+          upload,
+          isMassEditing
+        );
+        if (isMassEditing) {
+          next(updateMassEditRow(formattedUpload));
+        } else {
+          next({
+            ...action,
+            payload: {
+              ...action.payload,
+              upload: formattedUpload,
+            },
+          });
+        }
       } catch (e) {
         logger.error(
           "Something went wrong while updating metadata: ",

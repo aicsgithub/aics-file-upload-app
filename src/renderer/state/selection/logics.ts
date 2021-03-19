@@ -3,6 +3,7 @@ import { basename, dirname } from "path";
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { createLogic } from "redux-logic";
 
+import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
 import {
   getPlateInfo,
@@ -11,28 +12,37 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
+import { getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,
   AsyncRequest,
   DragAndDropFileList,
+  MassEditRow,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   UploadFile,
 } from "../types";
-import { addUploadFiles } from "../upload/actions";
+import { addUploadFiles, updateUploadRows } from "../upload/actions";
 import { batchActions } from "../util";
 
 import { selectWells, setPlate } from "./actions";
 import {
+  APPLY_MASS_EDIT,
   LOAD_FILES,
   OPEN_FILES,
   SELECT_BARCODE,
   SELECT_WELLS,
-  STOP_CELL_DRAG,
+  START_MASS_EDIT,
 } from "./constants";
-import { getCellAtDragStart, getWellsWithModified } from "./selectors";
+import {
+  getMassEditRow,
+  getRowsSelectedForMassEdit,
+  getWellsWithModified,
+} from "./selectors";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,
@@ -158,28 +168,75 @@ const selectWellsLogic = createLogic({
   type: SELECT_WELLS,
 });
 
-const stopCellDragLogic = createLogic({
+// Initialize massEditRow with necessary template annotations
+const startMassEditLogic = createLogic({
   transform: (
     { action, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb,
+    reject?: ReduxLogicRejectCb
+  ) => {
+    const template = getAppliedTemplate(getState());
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!template || !booleanAnnotationTypeId) {
+      reject && reject(action);
+      return;
+    }
+    const { annotations } = template;
+    const massEditRow = annotations.reduce(
+      (row, annotation) => ({
+        ...row,
+        [annotation.name]: [],
+      }),
+      {}
+    );
+    next({
+      ...action,
+      payload: {
+        massEditRow,
+        rowsSelectedForMassEdit: action.payload,
+      },
+    });
+  },
+  type: START_MASS_EDIT,
+});
+
+const applyMassEditLogic = createLogic({
+  process: (
+    { ctx }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { rowIds, massEditRow } = ctx;
+    const rowData = Object.entries(massEditRow as MassEditRow).reduce(
+      (row, [key, value]) => ({
+        ...row,
+        ...((value.length || key === NOTES_ANNOTATION_NAME) && {
+          [key]: value,
+        }),
+      }),
+      {}
+    );
+    dispatch(updateUploadRows(rowIds, rowData));
+    done();
+  },
+  transform: (
+    { action, ctx, getState }: ReduxLogicTransformDependencies,
     next: ReduxLogicNextCb
   ) => {
-    const cellAtStart = getCellAtDragStart(getState());
-    const cellAtEnd = action.payload;
-    console.log("cellAtStart", cellAtStart);
-    console.log("cellAtEnd", cellAtEnd);
-    // if (cellAtStart && cellAtStart.columnId === cellAtEnd.columnId) {
-    //   console.log("Successful drag!");
-    //   // TODO: Spread values over rows
-    // }
+    const massEditRow = getMassEditRow(getState());
+    const rowIds = getRowsSelectedForMassEdit(getState());
+    ctx.massEditRow = massEditRow;
+    ctx.rowIds = rowIds;
     next(action);
   },
-  type: STOP_CELL_DRAG,
+  type: APPLY_MASS_EDIT,
 });
 
 export default [
+  applyMassEditLogic,
   loadFilesLogic,
   openFilesLogic,
   selectBarcodeLogic,
   selectWellsLogic,
-  stopCellDragLogic,
+  startMassEditLogic,
 ];

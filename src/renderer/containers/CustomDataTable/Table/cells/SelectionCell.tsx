@@ -5,7 +5,7 @@ const styles = require("../styles.pcss");
 
 export default function SelectionCell(props: {}) {
   return (
-    <div className={styles.selectionCell}>
+    <div className={styles.checkboxContainer}>
       <Checkbox {...props} />
     </div>
   );

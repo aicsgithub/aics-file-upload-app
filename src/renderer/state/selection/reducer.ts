@@ -19,8 +19,12 @@ import { ReplaceUploadAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
+  APPLY_MASS_EDIT,
+  CANCEL_MASS_EDIT,
   CLEAR_SELECTION_HISTORY,
+  CLOSE_SUB_FILE_SELECTION_MODAL,
   JUMP_TO_PAST_SELECTION,
+  OPEN_SUB_FILE_SELECTION_MODAL,
   SELECT_BARCODE,
   SELECT_IMAGING_SESSION_ID,
   SELECT_METADATA,
@@ -28,6 +32,7 @@ import {
   SET_HAS_NO_PLATE_TO_UPLOAD,
   SET_PLATE,
   START_CELL_DRAG,
+  START_MASS_EDIT,
   STOP_CELL_DRAG,
   TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
@@ -42,6 +47,10 @@ import {
   getWells,
 } from "./selectors";
 import {
+  ApplyMassEditAction,
+  CancelMassEditAction,
+  CloseSubFileSelectionModalAction,
+  OpenSubFileSelectionModalAction,
   SelectBarcodeAction,
   SelectImagingSessionIdAction,
   SelectMetadataAction,
@@ -49,6 +58,7 @@ import {
   SetHasNoPlateToUploadAction,
   SetPlateAction,
   StartCellDragAction,
+  StartMassEditAction,
   StopCellDragAction,
   ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
@@ -62,18 +72,65 @@ const uploadTabSelectionInitialState: UploadTabSelections = {
   imagingSessionIds: [],
   hasNoPlateToUpload: false,
   job: undefined,
+  massEditRow: undefined,
   plate: {},
   selectedWells: [],
+  rowsSelectedForMassEdit: undefined,
+  subFileSelectionModalFile: undefined,
   wells: {},
 };
 
 export const initialState: SelectionStateBranch = {
   ...uploadTabSelectionInitialState,
-  massEditRow: {},
   user: userInfo().username,
 };
 
 const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
+  [START_MASS_EDIT]: {
+    accepts: (action: AnyAction): action is StartMassEditAction =>
+      action.type === START_MASS_EDIT,
+    perform: (state: SelectionStateBranch, action: StartMassEditAction) => ({
+      ...state,
+      ...action.payload,
+    }),
+  },
+  [APPLY_MASS_EDIT]: {
+    accepts: (action: AnyAction): action is ApplyMassEditAction =>
+      action.type === APPLY_MASS_EDIT,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      massEditRow: undefined,
+      rowsSelectedForMassEdit: undefined,
+    }),
+  },
+  [CANCEL_MASS_EDIT]: {
+    accepts: (action: AnyAction): action is CancelMassEditAction =>
+      action.type === CANCEL_MASS_EDIT,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      massEditRow: undefined,
+      rowsSelectedForMassEdit: undefined,
+    }),
+  },
+  [CLOSE_SUB_FILE_SELECTION_MODAL]: {
+    accepts: (action: AnyAction): action is CloseSubFileSelectionModalAction =>
+      action.type === CLOSE_SUB_FILE_SELECTION_MODAL,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      subFileSelectionModalFile: undefined,
+    }),
+  },
+  [OPEN_SUB_FILE_SELECTION_MODAL]: {
+    accepts: (action: AnyAction): action is OpenSubFileSelectionModalAction =>
+      action.type === OPEN_SUB_FILE_SELECTION_MODAL,
+    perform: (
+      state: SelectionStateBranch,
+      action: OpenSubFileSelectionModalAction
+    ) => ({
+      ...state,
+      subFileSelectionModalFile: action.payload,
+    }),
+  },
   [SET_HAS_NO_PLATE_TO_UPLOAD]: {
     accepts: (action: AnyAction): action is SetHasNoPlateToUploadAction =>
       action.type === SET_HAS_NO_PLATE_TO_UPLOAD,
@@ -218,7 +275,10 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       action: UpdateMassEditRowAction
     ) => ({
       ...state,
-      massEditRow: action.payload,
+      massEditRow: {
+        ...state.massEditRow,
+        ...action.payload,
+      },
     }),
   },
 };

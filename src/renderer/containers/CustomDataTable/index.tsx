@@ -11,16 +11,22 @@ import {
   useResizeColumns,
 } from "react-table";
 
-import { NOTES_ANNOTATION_NAME } from "../../constants";
+import SubFileSelectionModal from "../../components/SubFileSelectionModal.tsx";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
+import { getMassEditRow } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
+import { getUploadRowKey } from "../../state/upload/constants";
 import { getUpload } from "../../state/upload/selectors";
+import MassEditTable from "../MassEditTable";
 
 import Table from "./Table";
 import DefaultCell from "./Table/cells/DefaultCell";
 import FilenameCell from "./Table/cells/FilenameCell";
 import NotesCell from "./Table/cells/NotesCell";
+import ReadOnlyCell from "./Table/cells/ReadOnlyCell";
 import SelectionCell from "./Table/cells/SelectionCell";
+import WellCell from "./Table/cells/WellCell";
 import DefaultHeader from "./Table/DefaultHeader";
 import TableFooter from "./TableFooter";
 import TableToolHeader from "./TableToolHeader";
@@ -57,8 +63,10 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
 export default function CustomDataTable() {
   const upload = useSelector(getUpload);
   const template = useSelector(getAppliedTemplate);
+  const isMassEditing = useSelector(getMassEditRow);
   const annotationTypes = useSelector(getAnnotationTypes);
-  const [isMassEditing, setIsMassEditing] = React.useState(false);
+  const isReadOnly = false; // TODO: useSelector(getUploadIsReadOnly);
+  console.log(isMassEditing);
 
   const columns = React.useMemo(() => {
     const columns = template
@@ -66,43 +74,39 @@ export default function CustomDataTable() {
           const type = annotationTypes.find(
             (type) => type.annotationTypeId === annotation.annotationTypeId
           )?.name;
+          let Cell;
+          if (isReadOnly) {
+            Cell = ReadOnlyCell;
+          } else if (annotation.name === WELL_ANNOTATION_NAME) {
+            Cell = WellCell;
+          }
           return {
             type,
+            isReadOnly,
             accessor: annotation.name,
-            isReadOnly: false, // TODO:
             description: annotation.description,
             dropdownValues: annotation.annotationOptions,
+            ...(Cell && { Cell }),
           };
         })
       : [];
-    return DEFAULT_COLUMNS.concat(columns);
-  }, [annotationTypes, template]);
+    return [...DEFAULT_COLUMNS, ...columns];
+  }, [annotationTypes, template, isReadOnly]);
 
   const data = React.useMemo(() => {
-    // TODO: this won't work, not empty
-    if (isMassEditing) {
-      const [rowId, uploadData] = Object.entries(upload)[0];
-      return [
-        {
-          rowId,
-          ...uploadData,
-        },
-      ];
-    }
-    return Object.entries(upload).map(([rowId, uploadData]) => ({
-      // Rather than supply our own (if still necessary after subRows
-      // is figured out), use custom getRowId()
-      rowId,
+    return Object.values(upload).map((uploadData) => ({
       ...uploadData,
       File: path.basename(uploadData.file),
       // TODO: The way we organize our data needs to be pivoted
-      subRows: [{ subRows: [{ subRows: [] }] }],
+      // subRows: [{ subRows: [{ subRows: [] }] }],
     }));
-  }, [upload, isMassEditing]);
+  }, [upload]);
+  console.log("upload, data", upload, data);
 
   const tableInstance: CustomTable = useTable(
     {
       columns,
+      getRowId: React.useMemo(() => getUploadRowKey, []),
       // Defines the default column properties, can be overriden per column
       defaultColumn: {
         Cell: DefaultCell,
@@ -127,12 +131,11 @@ export default function CustomDataTable() {
 
   return (
     <>
-      <TableToolHeader
-        selectedRows={tableInstance.selectedFlatRows || []}
-        setIsMassEditing={setIsMassEditing}
-      />
+      {isMassEditing && <MassEditTable />}
+      <TableToolHeader selectedRows={tableInstance.selectedFlatRows || []} />
       <Table tableInstance={tableInstance} />
       <TableFooter />
+      <SubFileSelectionModal />
     </>
   );
 }

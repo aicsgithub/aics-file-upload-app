@@ -281,7 +281,6 @@ export interface SelectionStateBranch extends UploadTabSelections {
   expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
-  massEditRow: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
@@ -301,7 +300,10 @@ export interface UploadTabSelections {
   imagingSessionIds: Array<number | null>;
   hasNoPlateToUpload: boolean;
   job?: JSSJob<UploadServiceFields>;
+  massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
+  rowsSelectedForMassEdit?: string[];
+  subFileSelectionModalFile?: string;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
 }

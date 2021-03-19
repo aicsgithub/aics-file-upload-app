@@ -34,10 +34,14 @@ export const getSelectedWells = (state: State) =>
   state.selection.present.selectedWells;
 export const getSelectedUser = (state: State) => state.selection.present.user;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
+export const getRowsSelectedForMassEdit = (state: State) =>
+  state.selection.present.rowsSelectedForMassEdit;
 export const getSelectedImagingSessionId = (state: State) =>
   state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) =>
   state.selection.present.imagingSessionIds;
+export const getSubFileSelectionModalFile = (state: State) =>
+  state.selection.present.subFileSelectionModalFile;
 export const getExpandedUploadJobRows = (state: State) =>
   state.selection.present.expandedUploadJobRows;
 export const getSelectedJob = (state: State) => state.selection.present.job;

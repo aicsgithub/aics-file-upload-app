@@ -36,6 +36,15 @@ export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
   type: string;
 }
 
+export interface CloseSubFileSelectionModalAction {
+  type: string;
+}
+
+export interface OpenSubFileSelectionModalAction {
+  payload: string;
+  type: string;
+}
+
 export interface SelectBarcodeAction extends AutoSaveAction {
   payload: {
     barcode: string;
@@ -88,11 +97,23 @@ export interface StartCellDragAction {
 }
 
 export interface StopCellDragAction {
-  payload: number;
   type: string;
 }
 
 export interface UpdateMassEditRowAction {
   payload: MassEditRow;
+  type: string;
+}
+
+export interface StartMassEditAction {
+  payload: string[];
+  type: string;
+}
+
+export interface ApplyMassEditAction {
+  type: string;
+}
+
+export interface CancelMassEditAction {
   type: string;
 }

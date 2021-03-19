@@ -10,11 +10,14 @@ interface CustomHeaderGroup extends HeaderGroup {
   getResizerProps?: () => {};
 }
 
-export default function Table(props: { tableInstance: TableInstance }) {
+export default function Table(props: { tableInstance: TableInstance<any> }) {
   const { tableInstance } = props;
   return (
     <div className={styles.tableContainer}>
-      <table {...tableInstance.getTableProps()}>
+      <table
+        className={styles.tableContainer}
+        {...tableInstance.getTableProps()}
+      >
         <thead>
           {tableInstance.headerGroups.map((headerGroup) => (
             <tr

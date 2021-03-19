@@ -1,164 +1,113 @@
 import { Checkbox, Input, Select, Tooltip } from "antd";
 import classNames from "classnames";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
-import { WELL_ANNOTATION_NAME } from "../../../../constants";
 import { ColumnType } from "../../../../services/labkey-client/types";
-import {
-  startCellDrag,
-  stopCellDrag,
-} from "../../../../state/selection/actions";
-import { getCellAtDragStart } from "../../../../state/selection/selectors";
-import { updateUploadRowValue } from "../../../../state/upload/actions";
+import { updateUpload } from "../../../../state/upload/actions";
 import LookupSearch from "../../../LookupSearch";
 import { CustomCell } from "../../types";
 
-import WellCell from "./WellCell";
+import DisplayCell from "./DisplayCell";
 
 const styles = require("../styles.pcss");
 
 const { Option } = Select;
 
-export default function DefaultCell({
-  value: initialValue,
-  row: {
-    original: { rowId },
-  },
-  column: { id: columnId, type, isReadOnly, dropdownValues },
-}: CustomCell) {
+const INITIAL_DURATION = { days: "0", hours: "0", minutes: "0", seconds: "0" };
+
+export default function DefaultCell(props: CustomCell) {
   const dispatch = useDispatch();
-  const cellAtDragStart = useSelector(getCellAtDragStart);
+  const initialValue = props.value;
   const [value, setValue] = React.useState(initialValue);
   const [isEditing, setIsEditing] = React.useState(false);
-  const [isHighlighted, setIsHighlighted] = React.useState(false);
-  const inputEl = React.useRef<HTMLInputElement>(null);
 
-  // When a cell is being dragged add an event listener for cells
-  // in the same column to check if this cell needs to be highlighted
+  // MassEditing or pasting will result in an external update
   React.useEffect(() => {
-    function onDragOver(e: Event) {
-      if (cellAtDragStart && inputEl.current) {
-        const { clientY: mouseY } = (e as any) as React.MouseEvent;
-        const thisCell = inputEl.current.getBoundingClientRect();
-        // If the origin is above this element
-        if (cellAtDragStart.yCoordinate <= thisCell.top) {
-          // If the current position is below or within this element
-          if (mouseY >= thisCell.top) {
-            setIsHighlighted(true);
-          } else if (isHighlighted) {
-            setIsHighlighted(false);
-          }
-          // If the origin is below this element
-        } else if (cellAtDragStart.yCoordinate >= thisCell.bottom) {
-          // If the current position is above or within this element
-          if (mouseY <= thisCell.bottom) {
-            setIsHighlighted(true);
-          } else if (isHighlighted) {
-            setIsHighlighted(false);
-          }
-        }
-      }
-    }
-    // Add event listener to cell drag if the cell is in the same column
-    if (cellAtDragStart && cellAtDragStart.columnId === columnId) {
-      document.addEventListener("dragover", onDragOver);
-    } else {
-      document.removeEventListener("dragover", onDragOver);
-    }
-    return () => document.removeEventListener("dragover", onDragOver);
-  }, [cellAtDragStart, columnId, isHighlighted]);
-
-  if (isReadOnly) {
-    return (
-      <Tooltip title={`${value}`}>
-        <input readOnly className={styles.readOnlyCell} value={value} />
-      </Tooltip>
-    );
-  }
-
-  function onDragStart(e: React.MouseEvent) {
-    setIsHighlighted(true);
-    dispatch(startCellDrag(e.clientY, columnId));
-  }
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key !== "Tab") {
-      setIsEditing(true);
-    }
-  }
+    setValue(initialValue);
+  }, [initialValue]);
 
   if (!isEditing) {
-    return (
-      <Tooltip title={`${value}`}>
-        {/* This input is solely for keyboard navigation */}
-        <input className={styles.hidden} onFocus={() => setIsEditing(true)} />
-        <div className={styles.readOnlyCellContainer}>
-          <input
-            readOnly
-            ref={inputEl}
-            tabIndex={-1}
-            className={classNames(
-              styles.readOnlyCell,
-              isHighlighted ? styles.highlight : undefined
-            )}
-            onKeyDown={onKeyDown}
-            onBlur={() => setIsHighlighted(false)}
-            onClick={() =>
-              isHighlighted ? setIsEditing(true) : setIsHighlighted(true)
-            }
-            onDoubleClick={() => setIsEditing(true)}
-            value={value}
-          />
-          <div
-            draggable
-            className={classNames(
-              styles.dragBox,
-              isHighlighted ? undefined : styles.invisible
-            )}
-            onDragStart={onDragStart}
-            onDragEnd={(e) => dispatch(stopCellDrag(e.clientY))}
-          />
-        </div>
-      </Tooltip>
-    );
+    return <DisplayCell {...props} onStartEditing={() => setIsEditing(true)} />;
   }
 
-  function onBlur() {
+  function onStopEditing() {
     setIsEditing(false);
-    setIsHighlighted(false);
-    if (value !== initialValue) {
-      dispatch(updateUploadRowValue(rowId, columnId, value));
+    if (value !== props.value) {
+      dispatch(updateUpload(props.row.id, { [props.column.id]: value }));
     }
   }
 
-  // Well is our only dynamically rendered custom editor
-  if (columnId === WELL_ANNOTATION_NAME) {
-    return <WellCell />;
+  function onBlur(event: React.FocusEvent) {
+    // The duration editor has multiple inputs within itself
+    // we only want to trigger this if it is going to the next cell
+    if (
+      props.column.type !== ColumnType.DURATION ||
+      (event.relatedTarget instanceof Node &&
+        !event.currentTarget.contains(event.relatedTarget))
+    ) {
+      onStopEditing();
+    }
   }
 
-  switch (type) {
+  switch (props.column.type) {
     case ColumnType.BOOLEAN:
       return (
-        <div onBlur={onBlur} style={{ display: "flex", width: "100%" }}>
+        <div className={styles.checkboxContainer} onBlur={onBlur}>
           <Checkbox
             autoFocus
-            checked={Boolean(value)}
-            onChange={() => value && setValue([!value[0]])}
+            checked={value[0]}
+            onChange={() => setValue([!value[0]])}
           />
         </div>
       );
     case ColumnType.DATE:
     case ColumnType.DATETIME:
       return <div onBlur={onBlur}>TBD</div>;
-    case ColumnType.DURATION:
+    case ColumnType.DURATION: {
+      const duration = value.length ? value : [{ ...INITIAL_DURATION }];
       return (
-        <Input.Group compact onBlur={onBlur}>
-          <Input autoFocus value={0} addonAfter="D" />
-          <Input value={0} addonAfter="H" />
-          <Input value={0} addonAfter="M" />
-          <Input value={0} addonAfter="S" />
+        <Input.Group
+          compact
+          className={classNames(styles.defaultCell, styles.durationInput)}
+          onBlur={onBlur}
+        >
+          <Tooltip visible title="D">
+            <Input
+              autoFocus
+              value={duration[0].days}
+              onChange={(e) =>
+                setValue([{ ...duration[0], days: e.target.value }])
+              }
+            />
+          </Tooltip>
+          <Tooltip visible title="H">
+            <Input
+              value={duration[0].hours}
+              onChange={(e) =>
+                setValue([{ ...duration[0], hours: e.target.value }])
+              }
+            />
+          </Tooltip>
+          <Tooltip visible title="M">
+            <Input
+              value={duration[0].minutes}
+              onChange={(e) =>
+                setValue([{ ...duration[0], minutes: e.target.value }])
+              }
+            />
+          </Tooltip>
+          <Tooltip visible title="S">
+            <Input
+              value={duration[0].seconds}
+              onChange={(e) =>
+                setValue([{ ...duration[0], seconds: e.target.value }])
+              }
+            />
+          </Tooltip>
         </Input.Group>
       );
+    }
     case ColumnType.DROPDOWN:
       return (
         <Select
@@ -171,7 +120,7 @@ export default function DefaultCell({
           onChange={setValue}
           value={value}
         >
-          {dropdownValues?.map((dropdownValue: string) => (
+          {props.column.dropdownValues?.map((dropdownValue: string) => (
             <Option key={dropdownValue}>{dropdownValue}</Option>
           ))}
         </Select>
@@ -180,10 +129,10 @@ export default function DefaultCell({
       return (
         <LookupSearch
           className={styles.defaultCell}
-          onBlur={onBlur}
+          onBlur={onStopEditing}
           defaultOpen={true}
           mode="multiple"
-          lookupAnnotationName={columnId}
+          lookupAnnotationName={props.column.id}
           selectSearchValue={setValue}
           value={value}
         />
@@ -195,13 +144,15 @@ export default function DefaultCell({
           autoFocus
           className={styles.defaultCell}
           onBlur={onBlur}
-          onChange={(e) => setValue(e.target.value as any)}
-          value={value}
+          onChange={(e) =>
+            setValue(e.target.value.split(",").map((v) => v.trim()))
+          }
+          value={value.join(", ")}
         />
       );
     default:
       // Error-case shouldn't occur
-      console.error("Invalid column type", type);
+      console.error("Invalid column type", props.column.type);
       return null;
   }
 }
