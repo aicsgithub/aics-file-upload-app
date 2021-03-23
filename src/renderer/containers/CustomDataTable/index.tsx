@@ -10,12 +10,13 @@ import {
   TableInstance,
 } from "react-table";
 
-import SubFileSelectionModal from "../../components/SubFileSelectionModal.tsx";
 import { getMassEditRow } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
+import { UploadMetadata } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getUploadAsTableRows } from "../../state/upload/selectors";
 import MassEditTable from "../MassEditTable";
+import SubFileSelectionModal from "../SubFileSelectionModal";
 
 import { getColumnsForTable } from "./selectors";
 import Table from "./Table";
@@ -24,6 +25,8 @@ import { CustomRow } from "./Table/DefaultCells/DisplayCell";
 import DefaultHeader from "./Table/Headers/DefaultHeader";
 import TableFooter from "./TableFooter";
 import TableToolHeader from "./TableToolHeader";
+
+const ARRAY_SORT = "ARRAY_SORT";
 
 interface Props {
   hasSubmitBeenAttempted: boolean;
@@ -58,12 +61,28 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
       })),
     [columnDefinitions, hasSubmitBeenAttempted]
   );
+  // Necessary to supply our own custom sorting since the
+  // row values are arrays for which react-table does not
+  // handle by default at the moment - Sean M 03/23/21
+  const sortTypes = React.useMemo(
+    () => ({
+      [ARRAY_SORT]: (
+        rowA: UploadMetadata,
+        rowB: UploadMetadata,
+        columnId: string
+      ) =>
+        `${rowA.original[columnId]}`.localeCompare(
+          `${rowB.original[columnId]}`
+        ),
+    }),
+    []
+  );
   console.log("rows, data", rows, data);
 
   const tableInstance: CustomTable = useTable(
     {
       columns,
-      getRowId: React.useMemo(() => getUploadRowKey, []),
+      data,
       // Defines the default column properties, can be overriden per column
       defaultColumn: {
         Cell: DefaultCell,
@@ -71,14 +90,24 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
         minWidth: 30,
         width: 100,
         maxWidth: 500,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: The react-table typing does not account for the typing
+        // of plugings as such this is not known by the typing though
+        // is necessary for the useSortBy plugin to know how which sorting
+        // method to use by default for columns. This specific sortType
+        // is a custom one that we supplied - Sean M 03/23/21
+        sortType: ARRAY_SORT,
       },
-      data,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore: The react-table typing does not account for the hooks
-      // provided by plugins as such this is not known by the typing though
-      // is necessary to prevent expanded rows from collapsing on update
-      // this comes from the useExpanded plugin - Sean M 03/23/21
+      getRowId: React.useMemo(() => getUploadRowKey, []),
+      // This comes from the useSortBy plugin and prevents
+      // sorting from reseting after data is modified - Sean M 03/23/21
       autoResetExpanded: false,
+      // Similarly to the above property this comes from a plugin, useSortBy,
+      // and prevents sorting from reseting after data is modified
+      autoResetSortBy: false,
+      // This comes from the useSortBy plugin and adds additional sorting
+      // options as a function of the column's "sortType" specified
+      sortTypes,
     },
     // optional plugins
     useSortBy,

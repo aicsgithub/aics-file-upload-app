@@ -2,8 +2,8 @@ import { Radio, Select } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
 import React, { ReactNode } from "react";
 
-import LabeledInput from "../LabeledInput";
-import PrinterFormatInput from "../PrinterFormatInput";
+import LabeledInput from "../../components/LabeledInput";
+import PrinterFormatInput from "../../components/PrinterFormatInput";
 
 const styles = require("./styles.pcss");
 

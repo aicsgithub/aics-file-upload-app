@@ -32,7 +32,7 @@ const DEFAULT_COLUMNS = [
 ];
 
 /*
-  This component is responsible for rendering a one row table meant to apply
+  This component is responsible for rendering one row table meant to apply
   edits to pre-selected upload files in bulk. This works by supplying the row
   data & column definitions to react-table's "useTable" hook which then 
   provides hooks to use to turn a display table into an interactive table

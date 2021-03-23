@@ -5,14 +5,14 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import LabeledInput from "../../components/LabeledInput";
+import PrinterFormatInput from "../../components/PrinterFormatInput";
 import { getChannels } from "../../state/metadata/selectors";
 import { closeSubFileSelectionModal } from "../../state/selection/actions";
 import { getSubFileSelectionModalFile } from "../../state/selection/selectors";
 import { updateSubImages } from "../../state/upload/actions";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getUploadAsTableRows } from "../../state/upload/selectors";
-import LabeledInput from "../LabeledInput";
-import PrinterFormatInput from "../PrinterFormatInput";
 
 import SubImageInput, { SubImageType } from "./SubImageInput";
 

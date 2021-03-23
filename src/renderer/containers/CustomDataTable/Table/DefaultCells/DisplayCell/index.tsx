@@ -48,6 +48,7 @@ export type CustomColumn = Column<UploadMetadata> & {
   // These props come from useSortedBy plugin
   isSorted?: boolean;
   isSortedDesc?: boolean;
+  sortType?: string;
 
   // This prop comes from the useResizeColumns plugin
   disableResizing?: boolean;

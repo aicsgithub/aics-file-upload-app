@@ -25,7 +25,7 @@ const SELECTION_COLUMN: CustomColumn = {
   maxWidth: 35,
 };
 
-const WELL_COLUMN = {
+const WELL_COLUMN: CustomColumn = {
   accessor: "wellLabels",
   Header: WellHeader,
   Cell: WellCell,
