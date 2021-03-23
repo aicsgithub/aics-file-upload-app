@@ -45,6 +45,7 @@ import {
   getSelectedBarcode,
   getSelectedJob,
   getHasNoPlateToUpload,
+  getIsSelectedJobInFlight,
 } from "../../state/selection/selectors";
 import {
   LoadFilesFromDragAndDropAction,
@@ -65,7 +66,6 @@ import {
 } from "../../state/upload/actions";
 import {
   getFileToAnnotationHasValueMap,
-  getUploadKeyToAnnotationErrorMap,
   getUploadSummaryRows,
   getUploadValidationErrors,
 } from "../../state/upload/selectors";
@@ -94,6 +94,7 @@ interface Props {
   createBarcode: ActionCreator<CreateBarcodeAction>;
   fileToAnnotationHasValueMap: { [file: string]: { [key: string]: boolean } };
   hasNoPlateToUpload: boolean;
+  isReadOnly: boolean;
   initiateUpload: ActionCreator<InitiateUploadAction>;
   loading: boolean;
   loadFilesFromDragAndDrop: (
@@ -114,9 +115,6 @@ interface Props {
   updateSettings: ActionCreator<UpdateSettingsAction>;
   uploadError?: string;
   uploadInProgress: boolean;
-  uploadRowKeyToAnnotationErrorMap: {
-    [key: string]: { [annotationName: string]: string };
-  };
   uploads: UploadJobTableRow[];
   validationErrors: string[];
 }
@@ -154,15 +152,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     );
   }
 
-  public get isReadOnly() {
-    return (
-      !!this.props.selectedJob &&
-      ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(
-        this.props.selectedJob.status
-      )
-    );
-  }
-
   public render() {
     const {
       canSubmit,
@@ -184,7 +173,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
     }
     return (
       <DragAndDrop
-        disabled={Boolean(selectedJob) || this.isReadOnly}
+        disabled={Boolean(selectedJob)}
         overlayChildren={!Object.keys(uploads).length && !loading}
         onDrop={this.props.loadFilesFromDragAndDrop}
         onOpen={this.props.openFilesFromDialog}
@@ -203,7 +192,9 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               ) : (
                 <>
                   {this.renderValidationAlerts()}
-                  <CustomDataTable />
+                  <CustomDataTable
+                    hasSubmitBeenAttempted={this.state.submitAttempted}
+                  />
                   {uploadError && (
                     <Alert
                       className={styles.alert}
@@ -252,6 +243,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       appliedTemplate,
       barcodePrefixes,
       createBarcode,
+      isReadOnly,
       hasNoPlateToUpload,
       selectedBarcode,
       setHasNoPlateToUpload,
@@ -285,7 +277,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         >
           <TemplateSearch
             allowCreate={true}
-            disabled={templateIsLoading || this.isReadOnly}
+            disabled={templateIsLoading || isReadOnly}
             error={templateError}
             value={appliedTemplate?.templateId}
             onSelect={this.props.applyTemplate}
@@ -308,7 +300,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             >
               <BarcodeSearch
                 barcode={selectedBarcode}
-                disabled={this.isReadOnly}
+                disabled={isReadOnly}
                 error={uploadTypeError}
                 onBarcodeChange={(imagingSessionIds, barcode) => {
                   if (barcode) {
@@ -325,7 +317,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               <Form.Item validateStatus={uploadTypeError ? "error" : ""}>
                 <Select
                   className={styles.selector}
-                  disabled={this.isReadOnly}
+                  disabled={isReadOnly}
                   onSelect={onCreateBarcode}
                   placeholder="Select Barcode Prefix"
                 >
@@ -343,8 +335,8 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 className={classNames({
                   [styles.noPlateCheckboxError]: uploadTypeError,
                 })}
-                disabled={this.isReadOnly}
-                checked={hasNoPlateToUpload && !this.isReadOnly}
+                disabled={isReadOnly}
+                checked={hasNoPlateToUpload && !isReadOnly}
                 onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
               />
               <span className={styles.helpText}>&nbsp;No Plate</span>
@@ -414,6 +406,7 @@ function mapStateToProps(state: State) {
     booleanAnnotationTypeId: getBooleanAnnotationTypeId(state),
     canSubmit: getCanSubmitUpload(state),
     fileToAnnotationHasValueMap: getFileToAnnotationHasValueMap(state),
+    isReadOnly: getIsSelectedJobInFlight(state),
     hasNoPlateToUpload: getHasNoPlateToUpload(state),
     loading: getIsLoading(state),
     templateIsLoading: getRequestsInProgressContains(
@@ -429,7 +422,6 @@ function mapStateToProps(state: State) {
     templates: getTemplates(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
-    uploadRowKeyToAnnotationErrorMap: getUploadKeyToAnnotationErrorMap(state),
     uploads: getUploadSummaryRows(state),
     validationErrors: getUploadValidationErrors(state),
   };

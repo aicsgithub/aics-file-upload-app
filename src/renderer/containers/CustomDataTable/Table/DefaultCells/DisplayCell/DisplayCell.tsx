@@ -1,23 +1,65 @@
-import { Tooltip } from "antd";
+import { Icon, Tooltip } from "antd";
 import classNames from "classnames";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Cell, Column, Row } from "react-table";
 
-import { ColumnType } from "../../../../services/labkey-client/types";
+import { ColumnType } from "../../../../../services/labkey-client/types";
 import {
   addRowToDragEvent,
   removeRowFromDragEvent,
   startCellDrag,
   stopCellDrag,
-} from "../../../../state/selection/actions";
+} from "../../../../../state/selection/actions";
 import {
   getCellAtDragStart,
   getRowsSelectedForDragEvent,
-} from "../../../../state/selection/selectors";
-import { updateUpload } from "../../../../state/upload/actions";
-import { CustomCell } from "../../types";
+} from "../../../../../state/selection/selectors";
+import { UploadMetadata } from "../../../../../state/types";
+import { updateUpload } from "../../../../../state/upload/actions";
+import { getUploadRowKey } from "../../../../../state/upload/constants";
+import { getFileToAnnotationHasValueMap } from "../../../../../state/upload/selectors";
 
-const styles = require("../styles.pcss");
+const styles = require("./styles.pcss");
+
+export interface CustomRow extends Row {
+  // This contains whatever the row data originally was
+  original: any;
+
+  // These props come from using the useExpanded plugin
+  canExpand: boolean;
+  depth: number;
+  isExpanded: boolean;
+  getToggleRowExpandedProps: (props: any) => void;
+
+  // This prop comes from useRowSelect plugin
+  getToggleRowSelectedProps: () => any;
+}
+
+export type CustomColumn = Column<UploadMetadata> & {
+  // Custom props supplied in column definition
+  description?: string;
+  dropdownValues?: string[];
+  isReadOnly?: boolean;
+  isRequired?: boolean;
+  hasSubmitBeenAttempted?: boolean;
+  type?: ColumnType;
+
+  // These props come from useSortedBy plugin
+  isSorted?: boolean;
+  isSortedDesc?: boolean;
+
+  // This prop comes from the useResizeColumns plugin
+  disableResizing?: boolean;
+};
+
+export type CustomCell = Cell & {
+  row: CustomRow;
+  column: CustomColumn;
+
+  // This prop comes from useRowSelect plugin
+  getToggleAllRowsSelectedProps: () => any;
+};
 
 interface Props extends CustomCell {
   onStartEditing: () => void;
@@ -30,6 +72,9 @@ export default function DisplayCell(props: Props) {
   const dispatch = useDispatch();
   const cellAtDragStart = useSelector(getCellAtDragStart);
   const rowsFromDragEvent = useSelector(getRowsSelectedForDragEvent);
+  const fileToAnnotationHasValueMap = useSelector(
+    getFileToAnnotationHasValueMap
+  );
   const [isActive, setIsActive] = React.useState(false);
   const inputEl = React.useRef<HTMLInputElement>(null);
   const {
@@ -46,6 +91,15 @@ export default function DisplayCell(props: Props) {
     ].includes(rowId);
   }
 
+  // We want to display a validation error in this cell if there is no value
+  // for a row (OR the rows subrows)
+  const shouldShowError =
+    props.column.hasSubmitBeenAttempted &&
+    props.column.isRequired &&
+    !fileToAnnotationHasValueMap[getUploadRowKey(props.row.original.file)]?.[
+      props.column.id
+    ];
+
   // When a cell is being dragged add an event listener for cells
   // in the same column to check if this cell needs to be highlighted
   React.useEffect(() => {
@@ -58,11 +112,9 @@ export default function DisplayCell(props: Props) {
           // If the current position is below or within this element
           if (mouseY >= thisCell.top) {
             if (!isHighlighted) {
-              console.log("addRowToDragEvent", rowId);
               dispatch(addRowToDragEvent(rowId));
             }
           } else if (isHighlighted) {
-            console.log("removeRowFromDragEvent", rowId);
             dispatch(removeRowFromDragEvent(rowId));
           }
           // If the origin is below this element
@@ -70,11 +122,9 @@ export default function DisplayCell(props: Props) {
           // If the current position is above or within this element
           if (mouseY <= thisCell.bottom) {
             if (!isHighlighted) {
-              console.log("addRowToDragEvent", rowId);
               dispatch(addRowToDragEvent(rowId));
             }
           } else if (isHighlighted) {
-            console.log("removeRowFromDragEvent", rowId);
             dispatch(removeRowFromDragEvent(rowId));
           }
         }
@@ -87,7 +137,7 @@ export default function DisplayCell(props: Props) {
       document.removeEventListener("dragover", onDragOver);
     }
     return () => document.removeEventListener("dragover", onDragOver);
-  }, [cellAtDragStart, columnId, rowId, isHighlighted, dispatch]);
+  }, [rowId, columnId, cellAtDragStart, isHighlighted, dispatch]);
 
   const displayValue = React.useMemo(() => {
     if (!value.length) {
@@ -160,6 +210,15 @@ export default function DisplayCell(props: Props) {
           onDoubleClick={props.onStartEditing}
           value={displayValue}
         />
+        {shouldShowError && (
+          <Tooltip title={`${props.column.id} is required`}>
+            <Icon
+              className={styles.errorIcon}
+              type="close-circle"
+              theme="filled"
+            />
+          </Tooltip>
+        )}
         <div
           draggable
           className={classNames(

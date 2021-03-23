@@ -44,7 +44,6 @@ import {
   getFileIdsToDelete,
   getFileToAnnotationHasValueMap,
   getUploadFileNames,
-  getUploadFiles,
   getUploadKeyToAnnotationErrorMap,
   getUploadPayload,
   getUploadSummaryRows,
@@ -742,7 +741,6 @@ describe("Upload selectors", () => {
         numberSiblings: 3,
         positionIndexes: [],
         scenes: [],
-        siblingIndex: 0,
         subImageNames: [],
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [1],
@@ -818,66 +816,6 @@ describe("Upload selectors", () => {
         treeDepth: 0,
         [WELL_ANNOTATION_NAME]: [],
         wellLabels: [],
-      });
-    });
-    it("shows scene row if file row is expanded", () => {
-      const rows = getUploadSummaryRows({
-        ...mockState,
-        selection: getMockStateWithHistory({
-          ...mockSelection,
-          expandedUploadJobRows: {
-            [getUploadRowKey({ file: "/path/to/file1" })]: true,
-          },
-        }),
-        upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "/path/to/file1" })]: {
-            barcode: "1234",
-            file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
-          },
-          [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
-            barcode: "1234",
-            file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
-            positionIndex: 1,
-            [WELL_ANNOTATION_NAME]: [2],
-          },
-        }),
-      });
-      expect(rows.length).to.equal(2);
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        file: "/path/to/file1",
-        group: true,
-        key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndexes: [1],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 0,
-        [WELL_ANNOTATION_NAME]: [],
-        wellLabels: [],
-      });
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        file: "/path/to/file1",
-        group: false,
-        key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndex: 1,
-        positionIndexes: [],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 1,
-        [WELL_ANNOTATION_NAME]: [2],
-        wellLabels: ["A2"],
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
@@ -958,9 +896,6 @@ describe("Upload selectors", () => {
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
-          expandedUploadJobRows: {
-            [getUploadRowKey({ file: "/path/to/file1" })]: true,
-          },
         }),
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
@@ -1029,13 +964,6 @@ describe("Upload selectors", () => {
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
-          expandedUploadJobRows: {
-            [getUploadRowKey({ file: "/path/to/file1" })]: true,
-            [getUploadRowKey({
-              file: "/path/to/file1",
-              positionIndex: 1,
-            })]: true,
-          },
         }),
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
@@ -1371,19 +1299,6 @@ describe("Upload selectors", () => {
             "BAD did not match expected type: Date or DateTime",
         },
       });
-    });
-  });
-
-  describe("getUploadFiles", () => {
-    it("returns a unique set of files to be uploaded", () => {
-      const result = getUploadFiles({
-        ...nonEmptyStateForInitiatingUpload,
-      });
-      expect(result.sort()).to.deep.equal([
-        "/path/to/file1",
-        "/path/to/file2",
-        "/path/to/file3",
-      ]);
     });
   });
 

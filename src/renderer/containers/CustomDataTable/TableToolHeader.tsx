@@ -4,6 +4,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { startMassEdit } from "../../state/selection/actions";
+import { getIsSelectedJobInFlight } from "../../state/selection/selectors";
 import { TutorialStep } from "../../state/types";
 import { jumpToUpload, removeUploads } from "../../state/upload/actions";
 import {
@@ -12,7 +13,7 @@ import {
 } from "../../state/upload/selectors";
 import TutorialTooltip from "../TutorialTooltip";
 
-import { CustomRow } from "./types";
+import { CustomRow } from "./Table/DefaultCells/DisplayCell/DisplayCell";
 
 const styles = require("./styles.pcss");
 
@@ -24,7 +25,12 @@ export default function TableToolHeader(props: Props) {
   const dispatch = useDispatch();
   const canUndo = useSelector(getCanUndoUpload);
   const canRedo = useSelector(getCanRedoUpload);
+  const isReadOnly = useSelector(getIsSelectedJobInFlight);
   const selectedRowIds = props.selectedRows.map((row) => row.id);
+
+  if (isReadOnly) {
+    return null;
+  }
 
   return (
     <div className={styles.tableToolHeader}>

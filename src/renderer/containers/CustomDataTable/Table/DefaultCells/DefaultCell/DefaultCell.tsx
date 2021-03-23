@@ -3,14 +3,12 @@ import classNames from "classnames";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { ColumnType } from "../../../../services/labkey-client/types";
-import { updateUpload } from "../../../../state/upload/actions";
-import LookupSearch from "../../../LookupSearch";
-import { CustomCell } from "../../types";
+import { ColumnType } from "../../../../../services/labkey-client/types";
+import { updateUpload } from "../../../../../state/upload/actions";
+import LookupSearch from "../../../../LookupSearch";
+import DisplayCell, { CustomCell } from "../DisplayCell/DisplayCell";
 
-import DisplayCell from "./DisplayCell";
-
-const styles = require("../styles.pcss");
+const styles = require("./styles.pcss");
 
 const { Option } = Select;
 
@@ -26,6 +24,11 @@ export default function DefaultCell(props: CustomCell) {
   React.useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
+
+  // During load state transitions the value isn't guaranteed to be anything
+  if (!initialValue) {
+    return null;
+  }
 
   if (!isEditing) {
     return <DisplayCell {...props} onStartEditing={() => setIsEditing(true)} />;
@@ -69,7 +72,7 @@ export default function DefaultCell(props: CustomCell) {
       return (
         <Input.Group
           compact
-          className={classNames(styles.defaultCell, styles.durationInput)}
+          className={classNames(styles.defaultInput, styles.durationInput)}
           onBlur={onBlur}
         >
           <Tooltip visible title="D">
@@ -114,7 +117,7 @@ export default function DefaultCell(props: CustomCell) {
           autoFocus
           allowClear
           defaultOpen
-          className={styles.defaultCell}
+          className={styles.defaultInput}
           mode="multiple"
           onBlur={onBlur}
           onChange={setValue}
@@ -128,7 +131,7 @@ export default function DefaultCell(props: CustomCell) {
     case ColumnType.LOOKUP:
       return (
         <LookupSearch
-          className={styles.defaultCell}
+          className={styles.defaultInput}
           onBlur={onStopEditing}
           defaultOpen={true}
           mode="multiple"
@@ -142,7 +145,7 @@ export default function DefaultCell(props: CustomCell) {
       return (
         <Input
           autoFocus
-          className={styles.defaultCell}
+          className={styles.defaultInput}
           onBlur={onBlur}
           onChange={(e) =>
             setValue(e.target.value.split(",").map((v) => v.trim()))

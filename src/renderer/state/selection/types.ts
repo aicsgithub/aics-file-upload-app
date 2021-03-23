@@ -81,11 +81,6 @@ export interface ClearSelectionHistoryAction extends AutoSaveAction {
   type: string;
 }
 
-export interface ToggleExpandedUploadJobRowAction {
-  payload: string;
-  type: string;
-}
-
 export interface SelectImagingSessionIdAction extends AutoSaveAction {
   payload: number;
   type: string;

@@ -1,14 +1,18 @@
 import { basename } from "path";
 
 import { Alert, Modal, Select } from "antd";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { getChannels } from "../../state/metadata/selectors";
 import { closeSubFileSelectionModal } from "../../state/selection/actions";
 import { getSubFileSelectionModalFile } from "../../state/selection/selectors";
-import { getUploadFileNames } from "../../state/upload/selectors";
+import { updateSubImages } from "../../state/upload/actions";
+import { getUploadRowKey } from "../../state/upload/constants";
+import { getUploadSummaryRows } from "../../state/upload/selectors";
 import LabeledInput from "../LabeledInput";
+import PrinterFormatInput from "../PrinterFormatInput";
 
 import SubImageInput, { SubImageType } from "./SubImageInput";
 
@@ -16,38 +20,80 @@ const styles = require("./styles.pcss");
 
 function SubFileSelectionModal({ file }: { file: string }) {
   const dispatch = useDispatch();
-  const fileOptions = useSelector(getUploadFileNames);
   const channelOptions = useSelector(getChannels);
-  // TODO: Need to get the dimension info for the file as is to initialize these
+  const uploads = useSelector(getUploadSummaryRows);
 
-  const [files, setFiles] = React.useState<string[]>([]);
-  const [channelIds, setChannelIds] = React.useState<string[]>([]);
-  const [positionIndexes, setPositionIndexes] = React.useState<string>("");
-  const [scenes, setScenes] = React.useState<string>("");
-  const [subImageNames, setSubImageNames] = React.useState<string[]>([]);
+  // Determine initial state from corresponding upload row
+  const row = React.useMemo(() => {
+    console.log(file, "useMemo");
+    const row = uploads.find(({ key }) => key === file);
+    let initialSubImageType;
+    if (!isEmpty(row?.subImageNames)) {
+      initialSubImageType = SubImageType.GENERIC;
+    } else if (!isEmpty(row?.scenes)) {
+      initialSubImageType = SubImageType.SCENE;
+    } else {
+      initialSubImageType = SubImageType.POSITION;
+    }
+    return {
+      fileName: basename(file),
+      fileOptions: uploads.map(({ file }) => file),
+      initialSubImageType,
+      initialPositions: row?.positionIndexes.join(", ") || "",
+      initialChannels: row?.channelIds || [],
+      initialSubImageNames: row?.subImageNames || [],
+      initialScenes: row?.scenes.join(", ") || "",
+    };
+  }, [uploads, file]);
+
+  const [files, setFiles] = React.useState<string[]>([file]);
+  const [channelIds, setChannelIds] = React.useState<string[]>(
+    row.initialChannels
+  );
+  const [positionIndexes, setPositionIndexes] = React.useState<string>(
+    row.initialPositions
+  );
+  const [scenes, setScenes] = React.useState<string>(row.initialScenes);
+  const [subImageNames, setSubImageNames] = React.useState<string[]>(
+    row.initialSubImageNames
+  );
   const [subImageType, setSubImageType] = React.useState<SubImageType>(
-    SubImageType.SCENE
+    row.initialSubImageType
   );
   const [error, setError] = React.useState<string>();
 
-  const fileName = basename(file);
-
   function onSubmit() {
-    // dispatch(addScenes(
-    //   files,
-    //   PrinterFormatInput.extractValues(positionIndexes) || [],
-    //   channelIds,
-    //   PrinterFormatInput.extractValues(scenes) || [],
-    //   subImageNames
-    // ));
+    files.forEach((selectedFile: string) => {
+      const row = uploads.find(
+        (upload) =>
+          getUploadRowKey(upload) === getUploadRowKey({ file: selectedFile })
+      );
+      if (row) {
+        dispatch(
+          updateSubImages(row, {
+            positionIndexes:
+              PrinterFormatInput.extractValues(positionIndexes) || [],
+            channelIds,
+            scenes: PrinterFormatInput.extractValues(scenes) || [],
+            subImageNames,
+          })
+        );
+      }
+    });
   }
-  const canSubmit = false;
+
+  const canSubmit =
+    !error &&
+    (!isEmpty(channelIds) ||
+      !isEmpty(positionIndexes) ||
+      !isEmpty(scenes) ||
+      !isEmpty(subImageNames));
 
   return (
     <Modal
       visible
       width="50%"
-      title={`Adjust scenes, positions, & channels for ${fileName}`}
+      title={`Adjust scenes, positions, & channels for ${row.fileName}`}
       onOk={onSubmit}
       onCancel={() => dispatch(closeSubFileSelectionModal())}
       okButtonProps={{ disabled: !canSubmit }}
@@ -82,7 +128,7 @@ function SubFileSelectionModal({ file }: { file: string }) {
           mode="tags"
           value={files}
         >
-          {fileOptions.split(", ").map((file: string) => (
+          {row.fileOptions.map((file: string) => (
             <Select.Option key={file} value={file}>
               {file}
             </Select.Option>

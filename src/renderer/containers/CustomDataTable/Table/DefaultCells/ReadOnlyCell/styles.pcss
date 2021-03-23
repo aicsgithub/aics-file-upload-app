@@ -1,0 +1,16 @@
+.read-only-cell, {
+    border: none;
+    height: 100%;
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.read-only-cell:focus {
+    /* Variable found in styles/variables.pcss */
+    border: var(--border);
+    /* Variable found in styles/colors.pcss */
+    border-color: var(--brand-primary);
+}

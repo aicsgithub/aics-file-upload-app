@@ -272,13 +272,8 @@ export interface RouteStateBranch {
   view: Page;
 }
 
-export interface ExpandedRows {
-  [rowKey: string]: boolean;
-}
-
 export interface SelectionStateBranch extends UploadTabSelections {
   barcode?: string;
-  expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
   plate: ImagingSessionIdToPlateMap;
@@ -296,7 +291,6 @@ export interface UploadKeyValue {
 export interface UploadTabSelections {
   barcode?: string;
   cellAtDragStart?: UploadKeyValue;
-  expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
   hasNoPlateToUpload: boolean;

@@ -2,9 +2,10 @@ import { Button } from "antd";
 import { OpenDialogOptions, remote } from "electron";
 import { isEmpty } from "lodash";
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { openFilesFromDialog } from "../../state/selection/actions";
+import { getIsSelectedJobInFlight } from "../../state/selection/selectors";
 
 const styles = require("./styles.pcss");
 
@@ -17,7 +18,7 @@ const openDialogOptions: OpenDialogOptions = {
 
 export default function TableFooter() {
   const dispatch = useDispatch();
-  const isReadOnly = false; // useSelector(getIsReadOnly);
+  const isReadOnly = useSelector(getIsSelectedJobInFlight);
 
   if (isReadOnly) {
     return null;

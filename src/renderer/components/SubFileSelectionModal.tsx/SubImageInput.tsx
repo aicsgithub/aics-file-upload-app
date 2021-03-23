@@ -1,4 +1,5 @@
 import { Radio, Select } from "antd";
+import { RadioChangeEvent } from "antd/lib/radio";
 import React, { ReactNode } from "react";
 
 import LabeledInput from "../LabeledInput";
@@ -26,13 +27,24 @@ export enum SubImageType {
 
 export default function SubImageInput(props: Props) {
   function onPrinterInput(values: string, error?: string) {
-    if (error) {
-      props.onValidationError(error);
-    } else if (props.subImageType === SubImageType.POSITION) {
+    props.onValidationError(error || "");
+    if (props.subImageType === SubImageType.POSITION) {
       props.setPositionIndexes(values);
     } else {
       props.setScenes(values);
     }
+  }
+
+  function onSubImageTypeChange(e: RadioChangeEvent) {
+    // Reset old value for type before changing to new type
+    if (props.subImageType === SubImageType.POSITION) {
+      props.setPositionIndexes("");
+    } else if (props.subImageType === SubImageType.SCENE) {
+      props.setScenes("");
+    } else {
+      props.setSubImageNames([]);
+    }
+    props.setSubImageType(e.target.value);
   }
 
   let label: string;
@@ -75,10 +87,7 @@ export default function SubImageInput(props: Props) {
   return (
     <div className={styles.subImageGroup}>
       <LabeledInput label="Sub Image Type" className={styles.subImageType}>
-        <Radio.Group
-          onChange={(e) => props.setSubImageType(e.target.value)}
-          value={props.subImageType}
-        >
+        <Radio.Group onChange={onSubImageTypeChange} value={props.subImageType}>
           <Radio.Button value={SubImageType.POSITION}>Position</Radio.Button>
           <Radio.Button value={SubImageType.SCENE}>Scene</Radio.Button>
           <Radio.Button value={SubImageType.GENERIC}>Name</Radio.Button>

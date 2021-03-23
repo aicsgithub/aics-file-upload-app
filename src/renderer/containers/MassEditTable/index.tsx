@@ -12,10 +12,10 @@ import {
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import Table from "../CustomDataTable/Table";
-import DefaultCell from "../CustomDataTable/Table/cells/DefaultCell";
-import NotesCell from "../CustomDataTable/Table/cells/NotesCell";
-import ReadOnlyCell from "../CustomDataTable/Table/cells/ReadOnlyCell";
-import DefaultHeader from "../CustomDataTable/Table/DefaultHeader";
+import NotesCell from "../CustomDataTable/Table/CustomCells/NotesCell/NotesCell";
+import DefaultCell from "../CustomDataTable/Table/DefaultCells/DefaultCell/DefaultCell";
+import ReadOnlyCell from "../CustomDataTable/Table/DefaultCells/ReadOnlyCell/ReadOnlyCell";
+import DefaultHeader from "../CustomDataTable/Table/DefaultHeader/DefaultHeader";
 
 const styles = require("./styles.pcss");
 

@@ -3,6 +3,8 @@ import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
 import { GridCell } from "../../entities";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
+import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {
   PlateResponse,
@@ -44,8 +46,6 @@ export const getSelectedImagingSessionIds = (state: State) =>
   state.selection.present.imagingSessionIds;
 export const getSubFileSelectionModalFile = (state: State) =>
   state.selection.present.subFileSelectionModalFile;
-export const getExpandedUploadJobRows = (state: State) =>
-  state.selection.present.expandedUploadJobRows;
 export const getSelectedJob = (state: State) => state.selection.present.job;
 export const getMassEditRow = (state: State) =>
   state.selection.present.massEditRow;
@@ -211,4 +211,11 @@ export const getAllPlates = createSelector(
   (selectedPlates: ImagingSessionIdToPlateMap) => {
     return flatten(values(selectedPlates));
   }
+);
+
+export const getIsSelectedJobInFlight = createSelector(
+  [getSelectedJob],
+  (selectedJob?: JSSJob<UploadServiceFields>): boolean =>
+    !!selectedJob &&
+    ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(selectedJob.status)
 );

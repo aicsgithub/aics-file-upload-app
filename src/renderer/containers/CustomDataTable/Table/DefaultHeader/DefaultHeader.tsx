@@ -1,7 +1,7 @@
 import { Icon, Tooltip } from "antd";
 import React from "react";
 
-import { CustomCell } from "../types";
+import { CustomCell } from "../DefaultCells/DisplayCell/DisplayCell";
 
 const styles = require("./styles.pcss");
 
@@ -9,7 +9,7 @@ export default function DefaultHeader({ column }: CustomCell) {
   return (
     <Tooltip title={column.description}>
       <div className={styles.header}>
-        {column.id}
+        {column.id} {column.isRequired && "* "}
         {column.isSorted && (
           <Icon type={column.isSortedDesc ? "caret-down" : "caret-up"} />
         )}

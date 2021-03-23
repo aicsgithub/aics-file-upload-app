@@ -296,7 +296,6 @@ describe("Route logics", () => {
         selection: getMockStateWithHistory({
           ...mockState.selection.present,
           barcode: undefined,
-          expandedUploadJobRows: {},
           imagingSessionId: undefined,
           imagingSessionIds: [],
           job: undefined,

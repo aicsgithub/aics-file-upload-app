@@ -15,8 +15,8 @@ import {
   TypeToDescriptionMap,
   UploadTabSelections,
 } from "../types";
-import { REPLACE_UPLOAD } from "../upload/constants";
-import { ReplaceUploadAction } from "../upload/types";
+import { REPLACE_UPLOAD, UPDATE_SUB_IMAGES } from "../upload/constants";
+import { ReplaceUploadAction, UpdateSubImagesAction } from "../upload/types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
@@ -37,11 +37,9 @@ import {
   START_CELL_DRAG,
   START_MASS_EDIT,
   STOP_CELL_DRAG,
-  TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
 import {
-  getExpandedUploadJobRows,
   getHasNoPlateToUpload,
   getSelectedBarcode,
   getSelectedImagingSessionId,
@@ -65,14 +63,12 @@ import {
   StartCellDragAction,
   StartMassEditAction,
   StopCellDragAction,
-  ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
 } from "./types";
 
 const uploadTabSelectionInitialState: UploadTabSelections = {
   barcode: undefined,
   cellAtDragStart: undefined,
-  expandedUploadJobRows: {},
   imagingSessionId: undefined,
   imagingSessionIds: [],
   hasNoPlateToUpload: false,
@@ -115,6 +111,14 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       ...state,
       massEditRow: undefined,
       rowsSelectedForMassEdit: undefined,
+    }),
+  },
+  [UPDATE_SUB_IMAGES]: {
+    accepts: (action: AnyAction): action is UpdateSubImagesAction =>
+      action.type === UPDATE_SUB_IMAGES,
+    perform: (state: SelectionStateBranch) => ({
+      ...state,
+      subFileSelectionModalFile: undefined,
     }),
   },
   [CLOSE_SUB_FILE_SELECTION_MODAL]: {
@@ -194,20 +198,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       };
     },
   },
-  [TOGGLE_EXPANDED_UPLOAD_JOB_ROW]: {
-    accepts: (action: AnyAction): action is ToggleExpandedUploadJobRowAction =>
-      action.type === TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
-    perform: (
-      state: SelectionStateBranch,
-      action: ToggleExpandedUploadJobRowAction
-    ) => ({
-      ...state,
-      expandedUploadJobRows: {
-        ...state.expandedUploadJobRows,
-        [action.payload]: !state.expandedUploadJobRows[action.payload],
-      },
-    }),
-  },
   [SELECT_IMAGING_SESSION_ID]: {
     accepts: (action: AnyAction): action is SelectImagingSessionIdAction =>
       action.type === SELECT_IMAGING_SESSION_ID,
@@ -229,7 +219,6 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       ...state,
       ...uploadTabSelectionInitialState,
       barcode: getSelectedBarcode(replacementState),
-      expandedUploadJobRows: getExpandedUploadJobRows(replacementState),
       imagingSessionId: getSelectedImagingSessionId(replacementState),
       imagingSessionIds: getSelectedImagingSessionIds(replacementState),
       hasNoPlateToUpload: getHasNoPlateToUpload(replacementState),

@@ -63,17 +63,11 @@ export interface UploadJobTableRow extends UploadRowId {
   // Keeps track of all channelIds - used only on the top-level row
   [CHANNEL_ANNOTATION_NAME]: string[];
 
-  // react-data-grid property needed for nested rows. if true, row will show carat for expanding/collapsing row
-  group: boolean;
-
-  // a makeshift hash of filepath, scene, and channel - used by ant.d Table to identify rows
-  key: string;
+  // react-table property for discovering sub rows for any given row
+  subRows: UploadJobTableRow[];
 
   // notes associated with the file
   [NOTES_ANNOTATION_NAME]?: string;
-
-  // react-data-grid property needed for nested rows. identifies how many rows exist at this level of the tree.
-  numberSiblings: number;
 
   // Keeps track of all positionIndexes - used only on the top-level row
   positionIndexes: number[];
@@ -81,14 +75,8 @@ export interface UploadJobTableRow extends UploadRowId {
   // Keeps track of all scenes - used only on top-level row
   scenes: number[];
 
-  // react-data-grid property needed for nested rows
-  siblingIndex?: number;
-
   // Keeps track of all sub image names - used only on top-level row
   subImageNames: string[];
-
-  // react-data-grid property needed for nested rows
-  treeDepth?: number;
 
   // all wellIds associated with this file model
   [WELL_ANNOTATION_NAME]?: number[];

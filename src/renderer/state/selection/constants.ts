@@ -25,10 +25,6 @@ export const CLEAR_SELECTION_HISTORY = makeConstant(
   BRANCH_NAME,
   "clear-history"
 );
-export const TOGGLE_EXPANDED_UPLOAD_JOB_ROW = makeConstant(
-  BRANCH_NAME,
-  "toggle-expanded-upload-job-row"
-);
 export const SELECT_IMAGING_SESSION_ID = makeConstant(
   BRANCH_NAME,
   "select-imaging-session-id"

@@ -604,6 +604,8 @@ const updateSubImagesLogic = createLogic({
       scenes,
       subImageNames,
     } = action.payload;
+    console.log("Update sub images received");
+    const fileRowKey = getUploadRowKey(fileRow);
     let notEmptySubImageParams = 0;
     if (!isEmpty(positionIndexes)) {
       notEmptySubImageParams++;
@@ -665,8 +667,8 @@ const updateSubImagesLogic = createLogic({
     // If there are subimages for a file, remove the well associations from the file row
     // Also add channels as an annotation
     if (!isEmpty(subImages)) {
-      update[fileRow.key] = {
-        ...uploads[fileRow.key],
+      update[fileRowKey] = {
+        ...uploads[fileRowKey],
         [WELL_ANNOTATION_NAME]: [],
         ...(channelIds.length && {
           [CHANNEL_ANNOTATION_NAME]: channelIds,
@@ -686,7 +688,6 @@ const updateSubImagesLogic = createLogic({
         update[key] = {
           channelId,
           file: fileRow.file,
-          key,
           [NOTES_ANNOTATION_NAME]: [],
           positionIndex: undefined,
           scene: undefined,
@@ -710,7 +711,6 @@ const updateSubImagesLogic = createLogic({
         update[subImageOnlyRowKey] = {
           channelId: undefined,
           file: fileRow.file,
-          key: subImageOnlyRowKey,
           [NOTES_ANNOTATION_NAME]: [],
           [WELL_ANNOTATION_NAME]: [],
           [subImageKey]: subImageValue,
@@ -735,7 +735,6 @@ const updateSubImagesLogic = createLogic({
           update[key] = {
             channelId,
             file: fileRow.file,
-            key,
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
             [subImageKey]: subImageValue,
@@ -772,7 +771,13 @@ const updateSubImagesLogic = createLogic({
             subImageName,
           })
       );
-    next(batchActions([updateUploads(update), removeUploads(rowKeysToDelete)]));
+    next(
+      batchActions([
+        action,
+        updateUploads(update),
+        removeUploads(rowKeysToDelete),
+      ])
+    );
   },
 });
 

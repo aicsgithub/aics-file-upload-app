@@ -27,7 +27,6 @@ import {
   START_CELL_DRAG,
   START_MASS_EDIT,
   STOP_CELL_DRAG,
-  TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   UPDATE_MASS_EDIT_ROW,
 } from "./constants";
 import {
@@ -49,7 +48,6 @@ import {
   StartCellDragAction,
   StartMassEditAction,
   StopCellDragAction,
-  ToggleExpandedUploadJobRowAction,
   UpdateMassEditRowAction,
 } from "./types";
 
@@ -204,15 +202,6 @@ export function clearSelectionHistory(): ClearSelectionHistoryAction {
   return {
     autoSave: true,
     type: CLEAR_SELECTION_HISTORY,
-  };
-}
-
-export function toggleExpandedUploadJobRow(
-  rowKey: string
-): ToggleExpandedUploadJobRowAction {
-  return {
-    payload: rowKey,
-    type: TOGGLE_EXPANDED_UPLOAD_JOB_ROW,
   };
 }
 

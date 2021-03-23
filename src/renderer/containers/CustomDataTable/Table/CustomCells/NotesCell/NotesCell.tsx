@@ -1,9 +1,9 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import NoteIcon from "../../../../components/NoteIcon";
-import { updateUpload } from "../../../../state/upload/actions";
-import { CustomCell } from "../../types";
+import NoteIcon from "../../../../../components/NoteIcon";
+import { updateUpload } from "../../../../../state/upload/actions";
+import { CustomCell } from "../../DefaultCells/DisplayCell/DisplayCell";
 
 export default function NotesCell({
   value: initialValue,
