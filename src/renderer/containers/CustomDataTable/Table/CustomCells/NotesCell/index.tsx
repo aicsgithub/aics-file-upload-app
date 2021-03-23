@@ -3,8 +3,13 @@ import { useDispatch } from "react-redux";
 
 import NoteIcon from "../../../../../components/NoteIcon";
 import { updateUpload } from "../../../../../state/upload/actions";
-import { CustomCell } from "../../DefaultCells/DisplayCell/DisplayCell";
+import { CustomCell } from "../../DefaultCells/DisplayCell";
 
+/**
+ * This is used in the react-tables when a user is editing a Notes
+ * annotation cell. It displays a clickable icon that triggers a
+ * modal for editing long text notes or drag & dropping txt files.
+ */
 export default function NotesCell({
   value: initialValue,
   row,

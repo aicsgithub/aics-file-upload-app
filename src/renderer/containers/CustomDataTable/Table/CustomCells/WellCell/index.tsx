@@ -3,6 +3,7 @@ import { intersection, isEmpty } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { WELL_ANNOTATION_NAME } from "../../../../../constants";
 import { getSelectedWellIds } from "../../../../../state/selection/selectors";
 import {
   associateFilesAndWells,
@@ -10,31 +11,32 @@ import {
 } from "../../../../../state/upload/actions";
 import ImagingSessionSelector from "../../../../ImagingSessionSelector";
 import Plate from "../../../../PlateContainer";
-import DisplayCell, {
-  CustomCell,
-} from "../../DefaultCells/DisplayCell/DisplayCell";
+import DisplayCell, { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
 
 /**
- * This is used in the CustomDataTable when a user is editing a Well annotation cell.
+ * This is used in the react-tables when a user is editing a Well annotation cell.
  * It displays the currently selected well labels and a popover with the plate UI for associating more wells.
  */
 export default function WellCell(props: CustomCell) {
   const dispatch = useDispatch();
   const selectedWells = useSelector(getSelectedWellIds);
   const [isEditing, setIsEditing] = React.useState(false);
+  const associatedWells = props.row.original[WELL_ANNOTATION_NAME];
 
   // Disable association button if no wells are selected or if
   // all of the wells have already been associated with
   const isAssociatiateButtonDisabled =
     isEmpty(selectedWells) ||
-    intersection(selectedWells, props.value).length === selectedWells.length;
+    intersection(selectedWells, associatedWells).length ===
+      selectedWells.length;
 
   // Disable remove association button if no wells are selected or if none
   // of the wells selected have been associated with the row yet
   const isRemoveButtonDisabled =
-    isEmpty(selectedWells) || !intersection(props.value, selectedWells).length;
+    isEmpty(selectedWells) ||
+    !intersection(associatedWells, selectedWells).length;
 
   const content = (
     <div className={styles.container}>
@@ -75,8 +77,13 @@ export default function WellCell(props: CustomCell) {
       visible={isEditing}
       content={content}
       title="Associate Wells with this row by selecting wells and clicking Associate"
+      onVisibleChange={() => setIsEditing(false)}
     >
-      <DisplayCell {...props} onStartEditing={() => setIsEditing(true)} />
+      <DisplayCell
+        {...props}
+        onTabExit={() => setIsEditing(false)}
+        onStartEditing={() => setIsEditing(true)}
+      />
     </Popover>
   );
 }

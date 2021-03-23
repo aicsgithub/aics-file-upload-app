@@ -3,17 +3,16 @@ import { isEmpty } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { startMassEdit } from "../../state/selection/actions";
-import { getIsSelectedJobInFlight } from "../../state/selection/selectors";
-import { TutorialStep } from "../../state/types";
-import { jumpToUpload, removeUploads } from "../../state/upload/actions";
+import { startMassEdit } from "../../../state/selection/actions";
+import { getIsSelectedJobInFlight } from "../../../state/selection/selectors";
+import { TutorialStep } from "../../../state/types";
+import { jumpToUpload, removeUploads } from "../../../state/upload/actions";
 import {
   getCanRedoUpload,
   getCanUndoUpload,
-} from "../../state/upload/selectors";
-import TutorialTooltip from "../TutorialTooltip";
-
-import { CustomRow } from "./Table/DefaultCells/DisplayCell/DisplayCell";
+} from "../../../state/upload/selectors";
+import TutorialTooltip from "../../TutorialTooltip";
+import { CustomRow } from "../Table/DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
 
@@ -21,6 +20,10 @@ interface Props {
   selectedRows: CustomRow[];
 }
 
+/*
+  TableToolHeader renders a header tool bar meant for the top
+  of the CustomDataTable.
+*/
 export default function TableToolHeader(props: Props) {
   const dispatch = useDispatch();
   const canUndo = useSelector(getCanUndoUpload);

@@ -97,7 +97,7 @@ import {
   SAVE_UPLOAD_DRAFT_SUCCESS,
 } from "../constants";
 import uploadLogics, { cancelUploadLogic } from "../logics";
-import { getUpload, getUploadSummaryRows } from "../selectors";
+import { getUpload, getUploadAsTableRows } from "../selectors";
 import { UpdateSubImagesPayload, UploadJobTableRow } from "../types";
 
 describe("Upload logics", () => {
@@ -616,7 +616,7 @@ describe("Upload logics", () => {
           },
         }),
       };
-      fileRow = getUploadSummaryRows(oneFileUploadMockState).find(
+      fileRow = getUploadAsTableRows(oneFileUploadMockState).find(
         (r) => r.key === fileRowKey
       );
       expect(fileRow).to.not.be.undefined;

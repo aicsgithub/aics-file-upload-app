@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import { ColumnType } from "../../../../../services/labkey-client/types";
 import { updateUpload } from "../../../../../state/upload/actions";
 import LookupSearch from "../../../../LookupSearch";
-import DisplayCell, { CustomCell } from "../DisplayCell/DisplayCell";
+import DisplayCell, { CustomCell } from "../DisplayCell";
 
 const styles = require("./styles.pcss");
 
@@ -14,6 +14,11 @@ const { Option } = Select;
 
 const INITIAL_DURATION = { days: "0", hours: "0", minutes: "0", seconds: "0" };
 
+/*
+  This component is responsible by default for react-tables for
+  displaying the value supplied as well as creating an interactive
+  editor based on the column's annotation type
+*/
 export default function DefaultCell(props: CustomCell) {
   const dispatch = useDispatch();
   const initialValue = props.value;

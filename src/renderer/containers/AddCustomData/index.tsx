@@ -66,7 +66,7 @@ import {
 } from "../../state/upload/actions";
 import {
   getFileToAnnotationHasValueMap,
-  getUploadSummaryRows,
+  getUploadAsTableRows,
   getUploadValidationErrors,
 } from "../../state/upload/selectors";
 import {
@@ -422,7 +422,7 @@ function mapStateToProps(state: State) {
     templates: getTemplates(state),
     uploadError: getUploadError(state),
     uploadInProgress: getUploadInProgress(state),
-    uploads: getUploadSummaryRows(state),
+    uploads: getUploadAsTableRows(state),
     validationErrors: getUploadValidationErrors(state),
   };
 }

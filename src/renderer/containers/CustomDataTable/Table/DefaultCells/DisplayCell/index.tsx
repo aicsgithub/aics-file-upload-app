@@ -63,10 +63,14 @@ export type CustomCell = Cell & {
 
 interface Props extends CustomCell {
   onStartEditing: () => void;
+  onTabExit?: () => void;
 }
 
 /*
-    TODO: docstring
+  This component is responsible for rendering a non-editable display
+  of the data. Notably this component also allows cells be dragged
+  across a column to essentially copy its value across the cells dragged
+  over.
 */
 export default function DisplayCell(props: Props) {
   const dispatch = useDispatch();
@@ -179,16 +183,26 @@ export default function DisplayCell(props: Props) {
     dispatch(startCellDrag(e.clientY, rowId, columnId));
   }
 
-  function onKeyDown(e: React.KeyboardEvent) {
+  function onDisplayInputKeyDown(e: React.KeyboardEvent) {
     if (e.key !== "Tab" && !e.ctrlKey && !e.metaKey && !e.altKey) {
       props.onStartEditing();
     }
   }
 
+  const onHiddenInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Tab") {
+      props.onTabExit && props.onTabExit();
+    }
+  };
+
   return (
     <Tooltip title={displayValue}>
       {/* This input is solely for keyboard navigation */}
-      <input className={styles.hidden} onFocus={props.onStartEditing} />
+      <input
+        className={styles.hidden}
+        onFocus={props.onStartEditing}
+        onKeyDown={props.onTabExit ? onHiddenInputKeyDown : undefined}
+      />
       <div
         className={styles.readOnlyCellContainer}
         onCopy={onCopy}
@@ -202,7 +216,7 @@ export default function DisplayCell(props: Props) {
             styles.readOnlyCell,
             isHighlighted ? styles.highlight : undefined
           )}
-          onKeyDown={onKeyDown}
+          onKeyDown={onDisplayInputKeyDown}
           onBlur={() => setIsActive(false)}
           onClick={() =>
             isHighlighted ? props.onStartEditing() : setIsActive(true)

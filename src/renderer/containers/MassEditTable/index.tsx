@@ -4,22 +4,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { useBlockLayout, useResizeColumns, useTable } from "react-table";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
-import { getAnnotationTypes } from "../../state/metadata/selectors";
+import { ROW_COUNT_COLUMN } from "../../state/constants";
 import { applyMassEdit, cancelMassEdit } from "../../state/selection/actions";
-import {
-  getMassEditRow,
-  getRowsSelectedForMassEdit,
-} from "../../state/selection/selectors";
-import { getAppliedTemplate } from "../../state/template/selectors";
+import { getMassEditRowAsTableRow } from "../../state/selection/selectors";
+import { getTemplateColumnsForTable } from "../CustomDataTable/selectors";
 import Table from "../CustomDataTable/Table";
-import NotesCell from "../CustomDataTable/Table/CustomCells/NotesCell/NotesCell";
-import DefaultCell from "../CustomDataTable/Table/DefaultCells/DefaultCell/DefaultCell";
-import ReadOnlyCell from "../CustomDataTable/Table/DefaultCells/ReadOnlyCell/ReadOnlyCell";
-import DefaultHeader from "../CustomDataTable/Table/DefaultHeader/DefaultHeader";
+import NotesCell from "../CustomDataTable/Table/CustomCells/NotesCell";
+import DefaultCell from "../CustomDataTable/Table/DefaultCells/DefaultCell";
+import ReadOnlyCell from "../CustomDataTable/Table/DefaultCells/ReadOnlyCell";
+import DefaultHeader from "../CustomDataTable/Table/Headers/DefaultHeader";
 
 const styles = require("./styles.pcss");
 
-const ROW_COUNT_COLUMN = "# Files Selected";
 const DEFAULT_COLUMNS = [
   {
     accessor: ROW_COUNT_COLUMN,
@@ -35,38 +31,25 @@ const DEFAULT_COLUMNS = [
   },
 ];
 
+/*
+  This component is responsible for rendering a one row table meant to apply
+  edits to pre-selected upload files in bulk. This works by supplying the row
+  data & column definitions to react-table's "useTable" hook which then 
+  provides hooks to use to turn a display table into an interactive table
+  with a lot of the logic managed for us. Majority of the logic can be found
+  by finding the "Cell" component specified by the column.
+*/
 export default function MassEditTable() {
   const dispatch = useDispatch();
-  const massEditRow = useSelector(getMassEditRow);
-  const template = useSelector(getAppliedTemplate);
-  const annotationTypes = useSelector(getAnnotationTypes);
-  const rowsSelectedForMassEdit = useSelector(getRowsSelectedForMassEdit);
+  const row = useSelector(getMassEditRowAsTableRow);
+  const templateColumns = useSelector(getTemplateColumnsForTable);
 
-  const columns = React.useMemo(() => {
-    const columns = template
-      ? template.annotations.map((annotation) => {
-          const type = annotationTypes.find(
-            (type) => type.annotationTypeId === annotation.annotationTypeId
-          )?.name;
-          return {
-            type,
-            accessor: annotation.name,
-            description: annotation.description,
-            dropdownValues: annotation.annotationOptions,
-          };
-        })
-      : [];
-    return [...DEFAULT_COLUMNS, ...columns];
-  }, [annotationTypes, template]);
-
-  const data: any[] = React.useMemo(() => {
-    return [
-      {
-        ...massEditRow,
-        [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit?.length,
-      },
-    ];
-  }, [massEditRow, rowsSelectedForMassEdit]);
+  // TODO: Try adjusting typing here...
+  const data: any[] = React.useMemo(() => [row], [row]);
+  const columns = React.useMemo(
+    () => [...DEFAULT_COLUMNS, ...templateColumns],
+    [templateColumns]
+  );
 
   const tableInstance = useTable(
     {

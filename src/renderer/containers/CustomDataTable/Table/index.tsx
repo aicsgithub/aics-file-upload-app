@@ -10,6 +10,13 @@ interface CustomHeaderGroup extends HeaderGroup {
   getResizerProps?: () => {};
 }
 
+/*
+  This stateless component renders a table meant for connecting to
+  and utilitizng a react-table instance through interactive hooks.
+  The "Header" & "Cell" rendered are determined by the Header & Cell
+  properties of the column definition supplied for that column or
+  by the defaultColumn properties supplied to react-table.
+*/
 export default function Table(props: { tableInstance: TableInstance<any> }) {
   const { tableInstance } = props;
   return (

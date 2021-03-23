@@ -46,10 +46,9 @@ import {
   getUploadFileNames,
   getUploadKeyToAnnotationErrorMap,
   getUploadPayload,
-  getUploadSummaryRows,
-  getUploadValidationErrors,
   getUploadWithCalculatedData,
 } from "../selectors";
+import { getUploadAsTableRows, getUploadValidationErrors } from "../selectors";
 import { FileType, MMSAnnotationValueRequest } from "../types";
 
 const orderAnnotationValueRequests = (
@@ -722,9 +721,9 @@ describe("Upload selectors", () => {
     });
   });
 
-  describe("getUploadSummaryRows", () => {
+  describe("getUploadAsTableRows", () => {
     it("handles files without scenes or channels", () => {
-      const rows = getUploadSummaryRows({
+      const rows = getUploadAsTableRows({
         ...mockState,
         selection: getMockStateWithHistory(mockSelection),
         upload: getMockStateWithHistory(mockWellUpload),
@@ -782,7 +781,7 @@ describe("Upload selectors", () => {
       });
     });
     it("does not show scene row if file row not expanded", () => {
-      const rows = getUploadSummaryRows({
+      const rows = getUploadAsTableRows({
         ...mockState,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file1" })]: {
@@ -819,7 +818,7 @@ describe("Upload selectors", () => {
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
-      const rows = getUploadSummaryRows({
+      const rows = getUploadAsTableRows({
         ...mockState,
         selection: getMockStateWithHistory(mockSelection),
         upload: getMockStateWithHistory({
@@ -892,7 +891,7 @@ describe("Upload selectors", () => {
       });
     });
     it("handles files with channels", () => {
-      const rows = getUploadSummaryRows({
+      const rows = getUploadAsTableRows({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
@@ -960,7 +959,7 @@ describe("Upload selectors", () => {
       });
     });
     it("handles files with scenes and channels", () => {
-      const rows = getUploadSummaryRows({
+      const rows = getUploadAsTableRows({
         ...mockState,
         selection: getMockStateWithHistory({
           ...mockSelection,
@@ -1086,7 +1085,7 @@ describe("Upload selectors", () => {
     it("does not throw error for annotations that don't exist on the template", () => {
       const file = "/path/to/file1";
       const getRows = () =>
-        getUploadSummaryRows({
+        getUploadAsTableRows({
           ...nonEmptyStateForInitiatingUpload,
           template: getMockStateWithHistory({
             ...mockState.template.present,

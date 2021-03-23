@@ -4,8 +4,8 @@ import { isEmpty } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { openFilesFromDialog } from "../../state/selection/actions";
-import { getIsSelectedJobInFlight } from "../../state/selection/selectors";
+import { openFilesFromDialog } from "../../../state/selection/actions";
+import { getIsSelectedJobInFlight } from "../../../state/selection/selectors";
 
 const styles = require("./styles.pcss");
 
@@ -16,6 +16,10 @@ const openDialogOptions: OpenDialogOptions = {
   title: "Browse for folders, or drag and drop files/folders onto app",
 };
 
+/*
+  TableFooter is used to display an interactive prompt for users
+  to drag and drop or browse for additional files to upload.
+*/
 export default function TableFooter() {
   const dispatch = useDispatch();
   const isReadOnly = useSelector(getIsSelectedJobInFlight);

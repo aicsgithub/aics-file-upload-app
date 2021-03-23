@@ -266,8 +266,9 @@ const getSubImageRows = (
   return subImageRows;
 };
 
-// maps uploadMetadata to shape of data needed by react-table including information about how to display subrows
-export const getUploadSummaryRows = createSelector(
+// Maps UploadMetadata to shape of data needed by react-table
+// including information about how to display subrows
+export const getUploadAsTableRows = createSelector(
   [getFileToMetadataMap],
   (metadataGroupedByFile): UploadJobTableRow[] => {
     return Object.values(metadataGroupedByFile).flatMap(
@@ -513,7 +514,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
  */
 export const getUploadValidationErrors = createSelector(
   [
-    getUploadSummaryRows,
+    getUploadAsTableRows,
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,

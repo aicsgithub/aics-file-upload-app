@@ -11,31 +11,17 @@ import {
 } from "react-table";
 
 import SubFileSelectionModal from "../../components/SubFileSelectionModal.tsx";
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
-import { getAnnotationTypes } from "../../state/metadata/selectors";
-import {
-  getIsSelectedJobInFlight,
-  getMassEditRow,
-  getSelectedBarcode,
-} from "../../state/selection/selectors";
+import { getMassEditRow } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getUploadRowKey } from "../../state/upload/constants";
-import { getUploadSummaryRows } from "../../state/upload/selectors";
+import { getUploadAsTableRows } from "../../state/upload/selectors";
 import MassEditTable from "../MassEditTable";
 
+import { getColumnsForTable } from "./selectors";
 import Table from "./Table";
-import FilenameCell from "./Table/CustomCells/FilenameCell/FilenameCell";
-import NotesCell from "./Table/CustomCells/NotesCell/NotesCell";
-import SelectionCell from "./Table/CustomCells/SelectionCell/SelectionCell";
-import WellCell from "./Table/CustomCells/WellCell/WellCell";
-import DefaultCell from "./Table/DefaultCells/DefaultCell/DefaultCell";
-import {
-  CustomCell,
-  CustomColumn,
-  CustomRow,
-} from "./Table/DefaultCells/DisplayCell/DisplayCell";
-import ReadOnlyCell from "./Table/DefaultCells/ReadOnlyCell/ReadOnlyCell";
-import DefaultHeader from "./Table/DefaultHeader/DefaultHeader";
+import DefaultCell from "./Table/DefaultCells/DefaultCell";
+import { CustomRow } from "./Table/DefaultCells/DisplayCell";
+import DefaultHeader from "./Table/Headers/DefaultHeader";
 import TableFooter from "./TableFooter";
 import TableToolHeader from "./TableToolHeader";
 
@@ -48,82 +34,30 @@ interface CustomTable extends TableInstance<any> {
   selectedFlatRows?: CustomRow[];
 }
 
-const SELECTION_COLUMN: CustomColumn = {
-  id: "selection",
-  disableResizing: true,
-  Header: function CheckboxHeader({
-    getToggleAllRowsSelectedProps,
-  }: CustomCell) {
-    return <SelectionCell {...getToggleAllRowsSelectedProps()} />;
-  },
-  Cell: function CheckboxCell({ row }: CustomCell) {
-    return <SelectionCell {...row.getToggleRowSelectedProps()} />;
-  },
-  maxWidth: 35,
-};
-
-const WELL_COLUMN = {
-  accessor: WELL_ANNOTATION_NAME,
-  Cell: WellCell,
-  // This description was pulled from LK 03/22/21
-  description: "A well on a plate (that has been entered into the Plate UI)",
-  isRequired: true,
-};
-
-const DEFAULT_COLUMNS: CustomColumn[] = [
-  {
-    accessor: "File",
-    Cell: FilenameCell,
-    description: "Filename of file supplied",
-    width: 200,
-  },
-  {
-    accessor: NOTES_ANNOTATION_NAME,
-    Cell: NotesCell,
-    description: "Any additional text data (not ideal for querying)",
-    maxWidth: 50,
-  },
-];
-
+/*
+  This componenet is responsible for rendering the table users enter their
+  custom data into. The majority of this component is ruled by the utility
+  package "react-table." This works by supplying the row data & column
+  definitions to react-table's "useTable" hook which then provides hooks
+  to use to turn a display table into an interactive table with a lot
+  of the logic like row selection managed for us. Majority of the logic
+  can be found by finding the "Cell" component specified by the column.
+*/
 export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
-  const rows = useSelector(getUploadSummaryRows);
+  const rows = useSelector(getUploadAsTableRows);
   const template = useSelector(getAppliedTemplate);
-  const hasPlate = useSelector(getSelectedBarcode);
   const isMassEditing = useSelector(getMassEditRow);
-  const annotationTypes = useSelector(getAnnotationTypes);
-  const isReadOnly = useSelector(getIsSelectedJobInFlight);
+  const columnDefinitions = useSelector(getColumnsForTable);
 
-  const columns = React.useMemo(() => {
-    let columns: CustomColumn[] = [];
-    if (template) {
-      columns = template.annotations.map((annotation) => ({
-        type: annotationTypes.find(
-          (type) => type.annotationTypeId === annotation.annotationTypeId
-        )?.name,
-        hasSubmitBeenAttempted,
-        accessor: annotation.name,
-        description: annotation.description,
-        dropdownValues: annotation.annotationOptions,
-        isRequired: annotation.required,
-      }));
-    }
-    if (hasPlate) {
-      columns = [{ ...WELL_COLUMN, hasSubmitBeenAttempted }, ...columns];
-    }
-    if (isReadOnly) {
-      return [...DEFAULT_COLUMNS, ...columns].map((column) => ({
+  const data = React.useMemo(() => rows, [rows]);
+  const columns = React.useMemo(
+    () =>
+      columnDefinitions.map((column) => ({
         ...column,
-        isReadOnly: true,
-        Cell: ReadOnlyCell,
-      }));
-    }
-    return [SELECTION_COLUMN, ...DEFAULT_COLUMNS, ...columns];
-  }, [annotationTypes, template, isReadOnly, hasSubmitBeenAttempted, hasPlate]);
-  console.log(columns);
-
-  const data = React.useMemo(() => {
-    return rows;
-  }, [rows]);
+        hasSubmitBeenAttempted,
+      })),
+    [columnDefinitions, hasSubmitBeenAttempted]
+  );
   console.log("rows, data", rows, data);
 
   const tableInstance: CustomTable = useTable(
@@ -139,7 +73,11 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
         maxWidth: 500,
       },
       data,
-      // Prevents expanded rows from collapsing on update (useExpanded)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore: The react-table typing does not account for the hooks
+      // provided by plugins as such this is not known by the typing though
+      // is necessary to prevent expanded rows from collapsing on update
+      // this comes from the useExpanded plugin - Sean M 03/23/21
       autoResetExpanded: false,
     },
     // optional plugins

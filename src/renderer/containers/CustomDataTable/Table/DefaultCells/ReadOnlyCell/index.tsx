@@ -1,7 +1,7 @@
 import { Tooltip } from "antd";
 import React from "react";
 
-import { CustomCell } from "../DisplayCell/DisplayCell";
+import { CustomCell } from "../DisplayCell";
 
 const styles = require("./styles.pcss");
 

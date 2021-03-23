@@ -13,10 +13,12 @@ import {
   WellResponse,
 } from "../../services/mms-client/types";
 import { getWellLabel } from "../../util";
+import { ROW_COUNT_COLUMN } from "../constants";
 import { getImagingSessions, getUnits } from "../metadata/selectors";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
+  MassEditRow,
   State,
 } from "../types";
 
@@ -218,4 +220,13 @@ export const getIsSelectedJobInFlight = createSelector(
   (selectedJob?: JSSJob<UploadServiceFields>): boolean =>
     !!selectedJob &&
     ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(selectedJob.status)
+);
+
+// Maps MassEditRow to shape of data needed by react-table
+export const getMassEditRowAsTableRow = createSelector(
+  [getMassEditRow, getRowsSelectedForMassEdit],
+  (massEditRow, rowsSelectedForMassEdit): MassEditRow => ({
+    ...(massEditRow && massEditRow),
+    [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit?.length,
+  })
 );

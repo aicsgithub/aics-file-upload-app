@@ -10,7 +10,7 @@ import { closeSubFileSelectionModal } from "../../state/selection/actions";
 import { getSubFileSelectionModalFile } from "../../state/selection/selectors";
 import { updateSubImages } from "../../state/upload/actions";
 import { getUploadRowKey } from "../../state/upload/constants";
-import { getUploadSummaryRows } from "../../state/upload/selectors";
+import { getUploadAsTableRows } from "../../state/upload/selectors";
 import LabeledInput from "../LabeledInput";
 import PrinterFormatInput from "../PrinterFormatInput";
 
@@ -21,7 +21,7 @@ const styles = require("./styles.pcss");
 function SubFileSelectionModal({ file }: { file: string }) {
   const dispatch = useDispatch();
   const channelOptions = useSelector(getChannels);
-  const uploads = useSelector(getUploadSummaryRows);
+  const uploads = useSelector(getUploadAsTableRows);
 
   // Determine initial state from corresponding upload row
   const row = React.useMemo(() => {

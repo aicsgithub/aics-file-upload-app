@@ -9,10 +9,15 @@ import { useDispatch } from "react-redux";
 import { openSubFileSelectionModal } from "../../../../../state/selection/actions";
 import { TutorialStep } from "../../../../../state/types";
 import TutorialTooltip from "../../../../TutorialTooltip";
-import { CustomCell } from "../../DefaultCells/DisplayCell/DisplayCell";
+import { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
 
+/**
+ * This is used in the react-tables when a user for displaying the file path
+ * or sub row title. It displays the file name along with clickable icons
+ * for interacting with and editing sub rows.
+ */
 export default function FilenameCell({ column, row, value: file }: CustomCell) {
   const dispatch = useDispatch();
   const [isHighlighted, setIsHighlighted] = React.useState(false);
