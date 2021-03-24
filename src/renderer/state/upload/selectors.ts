@@ -184,7 +184,6 @@ const convertToUploadJobRow = (
 ): UploadJobTableRow => {
   return {
     ...metadata,
-    File: metadata.file,
     subRows,
     [CHANNEL_ANNOTATION_NAME]: channelIds,
     [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME]

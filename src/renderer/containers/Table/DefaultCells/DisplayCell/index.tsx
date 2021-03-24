@@ -68,6 +68,29 @@ interface Props extends CustomCell {
   onTabExit?: () => void;
 }
 
+export const useDisplayValue = (value: any[], type?: ColumnType) =>
+  React.useMemo(() => {
+    if (!value.length) {
+      return "";
+    }
+    switch (type) {
+      case ColumnType.BOOLEAN:
+        return value[0] ? "Yes" : "No";
+      case ColumnType.DATE:
+        return value
+          .map((d: string) => moment(d).format("M/D/YYYY"))
+          .join(", ");
+      case ColumnType.DATETIME:
+        return value
+          .map((d: string) => moment(d).format("M/D/YYYY H:m:s"))
+          .join(", ");
+      case ColumnType.DURATION:
+        return `${value[0].days}D ${value[0].hours}H ${value[0].minutes}M ${value[0].seconds}S`;
+      default:
+        return value.join(", ");
+    }
+  }, [value, type]);
+
 /*
   This component is responsible for rendering a non-editable display
   of the data. Notably this component also allows cells be dragged
@@ -83,8 +106,9 @@ export default function DisplayCell(props: Props) {
   );
   const [isActive, setIsActive] = React.useState(false);
   const inputEl = React.useRef<HTMLInputElement>(null);
+  const displayValue = useDisplayValue(props.value, props.column.type);
   const {
-    column: { id: columnId, type },
+    column: { id: columnId },
     row: { id: rowId },
     value,
   } = props;
@@ -144,28 +168,6 @@ export default function DisplayCell(props: Props) {
     }
     return () => document.removeEventListener("dragover", onDragOver);
   }, [rowId, columnId, cellAtDragStart, isHighlighted, dispatch]);
-
-  const displayValue = React.useMemo(() => {
-    if (!value.length) {
-      return "";
-    }
-    switch (type) {
-      case ColumnType.BOOLEAN:
-        return value[0] ? "Yes" : "No";
-      case ColumnType.DATE:
-        return value
-          .map((d: string) => moment(d).format("M/D/YYYY"))
-          .join(", ");
-      case ColumnType.DATETIME:
-        return value
-          .map((d: string) => moment(d).format("M/D/YYYY H:m:s"))
-          .join(", ");
-      case ColumnType.DURATION:
-        return `${value[0].days}D ${value[0].hours}H ${value[0].minutes}M ${value[0].seconds}S`;
-      default:
-        return value.join(", ");
-    }
-  }, [value, type]);
 
   function onCopy() {
     const copyData = JSON.stringify({

@@ -1,6 +1,6 @@
 import { createSelector } from "reselect";
 
-import { NOTES_ANNOTATION_NAME } from "../../constants";
+import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { ColumnType } from "../../services/labkey-client/types";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
 import {
@@ -15,7 +15,6 @@ import WellCell from "../Table/CustomCells/WellCell";
 import { CustomColumn } from "../Table/DefaultCells/DisplayCell";
 import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
 import SelectionHeader from "../Table/Headers/SelectionHeader";
-import WellHeader from "../Table/Headers/WellHeader";
 
 const SELECTION_COLUMN: CustomColumn = {
   id: "selection",
@@ -27,7 +26,7 @@ const SELECTION_COLUMN: CustomColumn = {
 
 const WELL_COLUMN: CustomColumn = {
   accessor: "wellLabels",
-  Header: WellHeader,
+  id: WELL_ANNOTATION_NAME,
   Cell: WellCell,
   // This description was pulled from LK 03/22/21
   description: "A well on a plate (that has been entered into the Plate UI)",
@@ -37,7 +36,8 @@ const WELL_COLUMN: CustomColumn = {
 
 const DEFAULT_COLUMNS: CustomColumn[] = [
   {
-    accessor: "File",
+    accessor: "file",
+    id: "File",
     Cell: FilenameCell,
     description: "Filename of file supplied",
     width: 200,

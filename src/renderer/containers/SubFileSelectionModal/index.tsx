@@ -149,7 +149,7 @@ function SubFileSelectionModal({ file }: { file: string }) {
         <Select
           className={styles.input}
           allowClear={true}
-          onChange={setChannelIds}
+          onChange={(ids: any) => setChannelIds(ids)}
           placeholder="Select Channels"
           mode="tags"
           value={channelIds}

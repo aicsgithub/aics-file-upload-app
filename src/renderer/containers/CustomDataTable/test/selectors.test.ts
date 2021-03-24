@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { mockJob } from "../../../services/aicsfiles/test/mocks";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
@@ -11,7 +12,6 @@ import {
   mockTemplateStateBranch,
 } from "../../../state/test/mocks";
 import WellCell from "../../Table/CustomCells/WellCell";
-import WellHeader from "../../Table/Headers/WellHeader";
 import { getColumnsForTable, getTemplateColumnsForTable } from "../selectors";
 
 describe("CustomDataTable selectors", () => {
@@ -73,7 +73,7 @@ describe("CustomDataTable selectors", () => {
       const expected = [
         {
           accessor: "wellLabels",
-          Header: WellHeader,
+          id: WELL_ANNOTATION_NAME,
           Cell: WellCell,
           // This description was pulled from LK 03/22/21
           description:

@@ -101,7 +101,7 @@ export default function DefaultCell(props: CustomCell) {
           onCancel={onCancel}
           onOk={onStopEditing}
           title={`Adjust ${props.column.id} for ${basename(
-            props.row.original.File
+            props.row.original.file
           )}`}
           width="50%"
         >

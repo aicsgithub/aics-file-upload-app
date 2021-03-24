@@ -4,7 +4,10 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { startMassEdit } from "../../../state/selection/actions";
-import { getIsSelectedJobInFlight } from "../../../state/selection/selectors";
+import {
+  getIsSelectedJobInFlight,
+  getSelectedJob,
+} from "../../../state/selection/selectors";
 import { TutorialStep } from "../../../state/types";
 import { jumpToUpload, removeUploads } from "../../../state/upload/actions";
 import {
@@ -28,6 +31,7 @@ export default function TableToolHeader(props: Props) {
   const dispatch = useDispatch();
   const canUndo = useSelector(getCanUndoUpload);
   const canRedo = useSelector(getCanRedoUpload);
+  const selectedJob = useSelector(getSelectedJob);
   const isReadOnly = useSelector(getIsSelectedJobInFlight);
   const selectedRowIds = props.selectedRows.map((row) => row.id);
 
@@ -71,7 +75,7 @@ export default function TableToolHeader(props: Props) {
       <Tooltip title="Delete Selected Rows" mouseLeaveDelay={0}>
         <Button
           onClick={() => dispatch(removeUploads(selectedRowIds))}
-          disabled={isEmpty(props.selectedRows)}
+          disabled={isEmpty(props.selectedRows) || !!selectedJob}
           icon="delete"
           type="link"
         />
