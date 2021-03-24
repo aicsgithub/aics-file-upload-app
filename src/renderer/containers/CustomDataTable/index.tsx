@@ -76,7 +76,6 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     }),
     []
   );
-  console.log("Rows:", rows);
 
   const tableInstance: CustomTable = useTable(
     {
