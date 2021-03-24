@@ -726,22 +726,43 @@ describe("Upload selectors", () => {
       const rows = getUploadAsTableRows({
         ...mockState,
         selection: getMockStateWithHistory(mockSelection),
-        upload: getMockStateWithHistory(mockWellUpload),
+        upload: getMockStateWithHistory({
+          [getUploadRowKey({ file: "/path/to/file1" })]: {
+            barcode: "1234",
+            ["Favorite Color"]: ["Red"],
+            file: "/path/to/file1",
+            key: getUploadRowKey({ file: "/path/to/file1" }),
+            [WELL_ANNOTATION_NAME]: [1],
+          },
+          [getUploadRowKey({ file: "/path/to/file2" })]: {
+            barcode: "1235",
+            ["Favorite Color"]: ["Red"],
+            file: "/path/to/file2",
+            key: getUploadRowKey({ file: "/path/to/file2" }),
+            [WELL_ANNOTATION_NAME]: [2],
+          },
+          [getUploadRowKey({ file: "/path/to/file3" })]: {
+            barcode: "1236",
+            ["Favorite Color"]: ["Red"],
+            file: "/path/to/file3",
+            key: getUploadRowKey({ file: "/path/to/file3" }),
+            [WELL_ANNOTATION_NAME]: [1, 2, 3],
+          },
+        }),
       });
       expect(rows.length).to.equal(3); // no rows expanded yet so excluding the row with a positionIndex
       expect(rows).to.deep.include({
         barcode: "1234",
         [CHANNEL_ANNOTATION_NAME]: [],
         ["Favorite Color"]: ["Red"],
+        File: "/path/to/file1",
         file: "/path/to/file1",
-        group: false,
         key: getUploadRowKey({ file: "/path/to/file1" }),
         [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 3,
         positionIndexes: [],
         scenes: [],
         subImageNames: [],
-        treeDepth: 0,
+        subRows: [],
         [WELL_ANNOTATION_NAME]: [1],
         wellLabels: ["A1"],
       });
@@ -750,15 +771,13 @@ describe("Upload selectors", () => {
         [CHANNEL_ANNOTATION_NAME]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file2",
-        group: false,
         key: getUploadRowKey({ file: "/path/to/file2" }),
+        File: "/path/to/file2",
         [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 3,
         positionIndexes: [],
         scenes: [],
-        siblingIndex: 1,
         subImageNames: [],
-        treeDepth: 0,
+        subRows: [],
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
       });
@@ -767,54 +786,15 @@ describe("Upload selectors", () => {
         [CHANNEL_ANNOTATION_NAME]: [],
         ["Favorite Color"]: ["Red"],
         file: "/path/to/file3",
-        group: true,
         key: getUploadRowKey({ file: "/path/to/file3" }),
         [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 3,
-        positionIndexes: [1],
+        File: "/path/to/file3",
+        positionIndexes: [],
         scenes: [],
-        siblingIndex: 2,
         subImageNames: [],
-        treeDepth: 0,
+        subRows: [],
         [WELL_ANNOTATION_NAME]: [1, 2, 3],
         wellLabels: ["A1", "A2", "B1"],
-      });
-    });
-    it("does not show scene row if file row not expanded", () => {
-      const rows = getUploadAsTableRows({
-        ...mockState,
-        upload: getMockStateWithHistory({
-          [getUploadRowKey({ file: "/path/to/file1" })]: {
-            barcode: "1234",
-            file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
-            [WELL_ANNOTATION_NAME]: [],
-          },
-          [getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 })]: {
-            barcode: "1235",
-            file: "/path/to/file1",
-            [NOTES_ANNOTATION_NAME]: [],
-            positionIndex: 1,
-            [WELL_ANNOTATION_NAME]: [2],
-          },
-        }),
-      });
-      expect(rows.length).to.equal(1);
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        file: "/path/to/file1",
-        group: true,
-        key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndexes: [1],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 0,
-        [WELL_ANNOTATION_NAME]: [],
-        wellLabels: [],
       });
     });
     it("shows scene and channel only rows if file row is not present", () => {
@@ -855,20 +835,18 @@ describe("Upload selectors", () => {
         channelId: "Raw 405nm",
         [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
-        group: false,
         key: getUploadRowKey({
           file: "/path/to/file1",
           positionIndex: undefined,
           channelId: "Raw 405nm",
         }),
         [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 2,
+        File: "/path/to/file1",
         positionIndex: undefined,
         positionIndexes: [],
         scenes: [],
-        siblingIndex: 0,
         subImageNames: [],
-        treeDepth: 0,
+        subRows: [],
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
       });
@@ -876,16 +854,14 @@ describe("Upload selectors", () => {
         barcode: "1234",
         [CHANNEL_ANNOTATION_NAME]: [],
         file: "/path/to/file1",
-        group: false,
         key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
         [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 2,
+        File: "/path/to/file1",
         positionIndex: 1,
         positionIndexes: [],
         scenes: [],
-        siblingIndex: 1,
         subImageNames: [],
-        treeDepth: 0,
+        subRows: [],
         [WELL_ANNOTATION_NAME]: [2],
         wellLabels: ["A2"],
       });
@@ -918,45 +894,8 @@ describe("Upload selectors", () => {
           },
         }),
       });
-      expect(rows.length).to.equal(2);
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
-        file: "/path/to/file1",
-        group: true,
-        key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndexes: [],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 0,
-        [WELL_ANNOTATION_NAME]: [1],
-        wellLabels: ["A1"],
-      });
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        channelId: "Raw 405nm",
-        file: "/path/to/file1",
-        group: false,
-        key: getUploadRowKey({
-          file: "/path/to/file1",
-          positionIndex: undefined,
-          channelId: "Raw 405nm",
-        }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndex: undefined,
-        positionIndexes: [],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 1,
-        [WELL_ANNOTATION_NAME]: [],
-        wellLabels: [],
-      });
+      expect(rows).to.be.lengthOf(1);
+      expect(rows[0].subRows).to.be.lengthOf(1);
     });
     it("handles files with scenes and channels", () => {
       const rows = getUploadAsTableRows({
@@ -1004,83 +943,8 @@ describe("Upload selectors", () => {
           },
         }),
       });
-      expect(rows.length).to.equal(4);
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: ["Raw 405nm"],
-        file: "/path/to/file1",
-        group: true,
-        key: getUploadRowKey({ file: "/path/to/file1" }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndexes: [1],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 0,
-        [WELL_ANNOTATION_NAME]: [],
-        wellLabels: [],
-      });
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        file: "/path/to/file1",
-        group: true,
-        key: getUploadRowKey({ file: "/path/to/file1", positionIndex: 1 }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 2,
-        positionIndex: 1,
-        positionIndexes: [],
-        scenes: [],
-        siblingIndex: 1,
-        subImageNames: [],
-        treeDepth: 1,
-        [WELL_ANNOTATION_NAME]: [],
-        wellLabels: [],
-      });
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        channelId: "Raw 405nm",
-        file: "/path/to/file1",
-        group: false,
-        key: getUploadRowKey({
-          file: "/path/to/file1",
-          positionIndex: 1,
-          channelId: "Raw 405nm",
-        }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 1,
-        positionIndex: 1,
-        positionIndexes: [],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 2,
-        [WELL_ANNOTATION_NAME]: [1],
-        wellLabels: ["A1"],
-      });
-      expect(rows).to.deep.include({
-        barcode: "1234",
-        channelId: "Raw 405nm",
-        [CHANNEL_ANNOTATION_NAME]: [],
-        file: "/path/to/file1",
-        group: false,
-        key: getUploadRowKey({
-          file: "/path/to/file1",
-          positionIndex: undefined,
-          channelId: "Raw 405nm",
-        }),
-        [NOTES_ANNOTATION_NAME]: undefined,
-        numberSiblings: 2,
-        positionIndexes: [],
-        scenes: [],
-        siblingIndex: 0,
-        subImageNames: [],
-        treeDepth: 1,
-        [WELL_ANNOTATION_NAME]: [],
-        wellLabels: [],
-      });
+      expect(rows).to.be.lengthOf(1);
+      expect(rows[0].subRows).to.be.lengthOf(2);
     });
     it("does not throw error for annotations that don't exist on the template", () => {
       const file = "/path/to/file1";

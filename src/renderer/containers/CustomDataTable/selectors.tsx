@@ -32,6 +32,7 @@ const WELL_COLUMN: CustomColumn = {
   // This description was pulled from LK 03/22/21
   description: "A well on a plate (that has been entered into the Plate UI)",
   isRequired: true,
+  width: 100,
 };
 
 const DEFAULT_COLUMNS: CustomColumn[] = [

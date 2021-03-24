@@ -1,5 +1,7 @@
 import { expect } from "chai";
 
+import { mockJob } from "../../../services/aicsfiles/test/mocks";
+import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
   CellPopulation,
   PlateResponse,
@@ -20,6 +22,7 @@ import { State } from "../../types";
 import {
   getAllPlates,
   getAllWells,
+  getIsSelectedJobInFlight,
   getSelectedImagingSession,
   getSelectedPlate,
   getSelectedPlateId,
@@ -442,6 +445,62 @@ describe("Selections selectors", () => {
         wellId: 10,
       });
       expect(result.size).to.equal(7);
+    });
+  });
+
+  describe("getIsSelectedJobInFlight", () => {
+    it("returns false without job selected", () => {
+      // Act
+      const result = getIsSelectedJobInFlight(mockState);
+
+      // Assert
+      expect(result).to.be.false;
+    });
+
+    [JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].forEach((status) => {
+      it(`returns false with job selected and job status ${status}`, () => {
+        // Act
+        const state = {
+          ...mockState,
+          selection: getMockStateWithHistory({
+            ...mockSelection,
+            job: {
+              ...mockJob,
+              status,
+            },
+          }),
+        };
+        const result = getIsSelectedJobInFlight(state);
+
+        // Assert
+        expect(result).to.be.false;
+      });
+    });
+
+    [
+      JSSJobStatus.UNRECOVERABLE,
+      JSSJobStatus.WORKING,
+      JSSJobStatus.RETRYING,
+      JSSJobStatus.WAITING,
+      JSSJobStatus.BLOCKED,
+    ].forEach((status) => {
+      it(`returns true with job selected and job status ${status}`, () => {
+        // Act
+        const state = {
+          ...mockState,
+          selection: getMockStateWithHistory({
+            ...mockSelection,
+            job: {
+              ...mockJob,
+              status,
+            },
+          }),
+        };
+        const result = getIsSelectedJobInFlight(state);
+
+        // Assert
+        expect(result).to.be.true;
+      });
     });
   });
 });

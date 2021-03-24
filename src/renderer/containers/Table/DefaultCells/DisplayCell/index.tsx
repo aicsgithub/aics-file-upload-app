@@ -206,52 +206,59 @@ export default function DisplayCell(props: Props) {
   };
 
   return (
-    <Tooltip title={displayValue}>
-      {/* This input is solely for keyboard navigation */}
-      <input
-        className={styles.hidden}
-        onFocus={props.onStartEditing}
-        onKeyDown={props.onTabExit ? onHiddenInputKeyDown : undefined}
-      />
-      <div
-        className={styles.readOnlyCellContainer}
-        onCopy={onCopy}
-        onPaste={onPaste}
-      >
+    <Tooltip
+      arrowPointAtCenter
+      autoAdjustOverflow
+      mouseLeaveDelay={0}
+      title={displayValue}
+    >
+      <div className={styles.tooltipAnchor}>
+        {/* This input is solely for keyboard navigation */}
         <input
-          readOnly
-          ref={inputEl}
-          tabIndex={-1}
-          className={classNames(
-            styles.readOnlyCell,
-            isHighlighted ? styles.highlight : undefined
-          )}
-          onKeyDown={onDisplayInputKeyDown}
-          onBlur={() => setIsActive(false)}
-          onClick={() =>
-            isHighlighted ? props.onStartEditing() : setIsActive(true)
-          }
-          onDoubleClick={props.onStartEditing}
-          value={displayValue}
+          className={styles.hidden}
+          onFocus={props.onStartEditing}
+          onKeyDown={props.onTabExit ? onHiddenInputKeyDown : undefined}
         />
-        {shouldShowError && (
-          <Tooltip title={`${props.column.id} is required`}>
-            <Icon
-              className={styles.errorIcon}
-              type="close-circle"
-              theme="filled"
-            />
-          </Tooltip>
-        )}
         <div
-          draggable
-          className={classNames(
-            styles.dragBox,
-            isHighlighted ? undefined : styles.invisible
+          className={styles.readOnlyCellContainer}
+          onCopy={onCopy}
+          onPaste={onPaste}
+        >
+          <input
+            readOnly
+            ref={inputEl}
+            tabIndex={-1}
+            className={classNames(
+              styles.readOnlyCell,
+              isHighlighted ? styles.highlight : undefined
+            )}
+            onKeyDown={onDisplayInputKeyDown}
+            onBlur={() => setIsActive(false)}
+            onClick={() =>
+              isHighlighted ? props.onStartEditing() : setIsActive(true)
+            }
+            onDoubleClick={props.onStartEditing}
+            value={displayValue}
+          />
+          {shouldShowError && (
+            <Tooltip title={`${props.column.id} is required`}>
+              <Icon
+                className={styles.errorIcon}
+                type="close-circle"
+                theme="filled"
+              />
+            </Tooltip>
           )}
-          onDragStart={onDragStart}
-          onDragEnd={() => dispatch(stopCellDrag())}
-        />
+          <div
+            draggable
+            className={classNames(
+              styles.dragBox,
+              isHighlighted ? undefined : styles.invisible
+            )}
+            onDragStart={onDragStart}
+            onDragEnd={() => dispatch(stopCellDrag())}
+          />
+        </div>
       </div>
     </Tooltip>
   );

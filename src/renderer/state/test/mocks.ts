@@ -211,7 +211,6 @@ export const mockSelection: SelectionStateBranch = {
   imagingSessionIds: [null, 1],
   hasNoPlateToUpload: false,
   plate: mockPlate,
-  massEditRow: { massEditNumberOfFiles: 0 },
   selectedWells: [],
   user: "fake_user",
   wells: mockWells,

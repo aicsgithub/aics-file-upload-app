@@ -11,7 +11,12 @@ const styles = require("./styles.pcss");
 */
 export default function ReadOnlyCell(props: CustomCell) {
   return (
-    <Tooltip title={props.value}>
+    <Tooltip
+      arrowPointAtCenter
+      autoAdjustOverflow
+      mouseLeaveDelay={0}
+      title={props.value}
+    >
       <input readOnly className={styles.readOnlyCell} value={props.value} />
     </Tooltip>
   );

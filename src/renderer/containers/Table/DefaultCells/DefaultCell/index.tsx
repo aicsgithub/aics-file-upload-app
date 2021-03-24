@@ -130,7 +130,7 @@ export default function DefaultCell(props: CustomCell) {
                   onChange={(d) =>
                     setValue([
                       ...value.slice(0, index),
-                      d?.toString(),
+                      d?.toDate(),
                       ...value.slice(index + 1),
                     ])
                   }
@@ -204,7 +204,7 @@ export default function DefaultCell(props: CustomCell) {
           className={styles.defaultInput}
           mode="multiple"
           onBlur={onBlur}
-          onChange={setValue}
+          onChange={(v: any) => setValue(v as string[])}
           value={value}
         >
           {props.column.dropdownValues?.map((dropdownValue: string) => (

@@ -1,5 +1,4 @@
-import { Icon, Modal } from "antd";
-import TextArea from "antd/es/input/TextArea";
+import { Icon, Input, Modal, Tooltip } from "antd";
 import { OpenDialogOptions, remote } from "electron";
 import React from "react";
 import { useDispatch } from "react-redux";
@@ -13,6 +12,8 @@ import { onDrop, onOpen } from "../../../../util";
 import { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
+
+const { TextArea } = Input;
 
 // Only want user to be able to select 1 file & it must be of type .txt
 const openDialogOptions: OpenDialogOptions = {
@@ -179,12 +180,14 @@ function NotesCell(props: CustomCell) {
           </>
         )}
       </Modal>
-      <div className={styles.alignCenter} onContextMenu={onContextMenu}>
-        <Icon
-          onClick={() => setIsModalOpen(true)}
-          type={notes ? "file-text" : "plus-circle"}
-        />
-      </div>
+      <Tooltip title={notes ? `${notes.substring(0, 50)}...` : ""}>
+        <div className={styles.alignCenter} onContextMenu={onContextMenu}>
+          <Icon
+            onClick={() => setIsModalOpen(true)}
+            type={notes ? "file-text" : "plus-circle"}
+          />
+        </div>
+      </Tooltip>
     </>
   );
 }

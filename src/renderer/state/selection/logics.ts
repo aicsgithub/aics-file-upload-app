@@ -214,6 +214,7 @@ const applyMassEditLogic = createLogic({
     const rowData = Object.entries(massEditRow as MassEditRow).reduce(
       (row, [key, value]) => ({
         ...row,
+        // Exclude empty values
         ...((value.length || key === NOTES_ANNOTATION_NAME) && {
           [key]: value,
         }),
