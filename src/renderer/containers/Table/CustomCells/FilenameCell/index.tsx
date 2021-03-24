@@ -6,9 +6,9 @@ import { isNil } from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { openSubFileSelectionModal } from "../../../../../state/selection/actions";
-import { TutorialStep } from "../../../../../state/types";
-import TutorialTooltip from "../../../../TutorialTooltip";
+import { openSubFileSelectionModal } from "../../../../state/selection/actions";
+import { TutorialStep } from "../../../../state/types";
+import TutorialTooltip from "../../../TutorialTooltip";
 import { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");

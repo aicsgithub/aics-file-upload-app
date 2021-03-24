@@ -7,15 +7,14 @@ import {
   getSelectedBarcode,
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
-
-import FilenameCell from "./Table/CustomCells/FilenameCell";
-import NotesCell from "./Table/CustomCells/NotesCell";
-import SelectionCell from "./Table/CustomCells/SelectionCell";
-import WellCell from "./Table/CustomCells/WellCell";
-import { CustomColumn } from "./Table/DefaultCells/DisplayCell";
-import ReadOnlyCell from "./Table/DefaultCells/ReadOnlyCell";
-import SelectionHeader from "./Table/Headers/SelectionHeader";
-import WellHeader from "./Table/Headers/WellHeader";
+import FilenameCell from "../Table/CustomCells/FilenameCell";
+import NotesCell from "../Table/CustomCells/NotesCell";
+import SelectionCell from "../Table/CustomCells/SelectionCell";
+import WellCell from "../Table/CustomCells/WellCell";
+import { CustomColumn } from "../Table/DefaultCells/DisplayCell";
+import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
+import SelectionHeader from "../Table/Headers/SelectionHeader";
+import WellHeader from "../Table/Headers/WellHeader";
 
 const SELECTION_COLUMN: CustomColumn = {
   id: "selection",

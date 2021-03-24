@@ -3,14 +3,14 @@ import { intersection, isEmpty } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { WELL_ANNOTATION_NAME } from "../../../../../constants";
-import { getSelectedWellIds } from "../../../../../state/selection/selectors";
+import { WELL_ANNOTATION_NAME } from "../../../../constants";
+import { getSelectedWellIds } from "../../../../state/selection/selectors";
 import {
   associateFilesAndWells,
   undoFileWellAssociation,
-} from "../../../../../state/upload/actions";
-import ImagingSessionSelector from "../../../../ImagingSessionSelector";
-import Plate from "../../../../PlateContainer";
+} from "../../../../state/upload/actions";
+import ImagingSessionSelector from "../../../ImagingSessionSelector";
+import Plate from "../../../PlateContainer";
 import DisplayCell, { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");

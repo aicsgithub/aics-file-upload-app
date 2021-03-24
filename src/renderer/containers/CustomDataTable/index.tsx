@@ -17,12 +17,12 @@ import { getUploadRowKey } from "../../state/upload/constants";
 import { getUploadAsTableRows } from "../../state/upload/selectors";
 import MassEditTable from "../MassEditTable";
 import SubFileSelectionModal from "../SubFileSelectionModal";
+import Table from "../Table";
+import DefaultCell from "../Table/DefaultCells/DefaultCell";
+import { CustomRow } from "../Table/DefaultCells/DisplayCell";
+import DefaultHeader from "../Table/Headers/DefaultHeader";
 
 import { getColumnsForTable } from "./selectors";
-import Table from "./Table";
-import DefaultCell from "./Table/DefaultCells/DefaultCell";
-import { CustomRow } from "./Table/DefaultCells/DisplayCell";
-import DefaultHeader from "./Table/Headers/DefaultHeader";
 import TableFooter from "./TableFooter";
 import TableToolHeader from "./TableToolHeader";
 
@@ -77,7 +77,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     }),
     []
   );
-  console.log("rows, data", rows, data);
+  console.log("Rows:", rows);
 
   const tableInstance: CustomTable = useTable(
     {

@@ -1,24 +1,25 @@
 import { Icon, Tooltip } from "antd";
 import classNames from "classnames";
+import moment from "moment";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Cell, Column, Row } from "react-table";
 
-import { ColumnType } from "../../../../../services/labkey-client/types";
+import { ColumnType } from "../../../../services/labkey-client/types";
 import {
   addRowToDragEvent,
   removeRowFromDragEvent,
   startCellDrag,
   stopCellDrag,
-} from "../../../../../state/selection/actions";
+} from "../../../../state/selection/actions";
 import {
   getCellAtDragStart,
   getRowsSelectedForDragEvent,
-} from "../../../../../state/selection/selectors";
-import { UploadMetadata } from "../../../../../state/types";
-import { updateUpload } from "../../../../../state/upload/actions";
-import { getUploadRowKey } from "../../../../../state/upload/constants";
-import { getFileToAnnotationHasValueMap } from "../../../../../state/upload/selectors";
+} from "../../../../state/selection/selectors";
+import { UploadMetadata } from "../../../../state/types";
+import { updateUpload } from "../../../../state/upload/actions";
+import { getUploadRowKey } from "../../../../state/upload/constants";
+import { getFileToAnnotationHasValueMap } from "../../../../state/upload/selectors";
 
 const styles = require("./styles.pcss");
 
@@ -151,6 +152,14 @@ export default function DisplayCell(props: Props) {
     switch (type) {
       case ColumnType.BOOLEAN:
         return value[0] ? "Yes" : "No";
+      case ColumnType.DATE:
+        return value
+          .map((d: string) => moment(d).format("M/D/YYYY"))
+          .join(", ");
+      case ColumnType.DATETIME:
+        return value
+          .map((d: string) => moment(d).format("M/D/YYYY H:m:s"))
+          .join(", ");
       case ColumnType.DURATION:
         return `${value[0].days}D ${value[0].hours}H ${value[0].minutes}M ${value[0].seconds}S`;
       default:

@@ -11,8 +11,8 @@ import {
   getCanRedoUpload,
   getCanUndoUpload,
 } from "../../../state/upload/selectors";
+import { CustomRow } from "../../Table/DefaultCells/DisplayCell";
 import TutorialTooltip from "../../TutorialTooltip";
-import { CustomRow } from "../Table/DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
 

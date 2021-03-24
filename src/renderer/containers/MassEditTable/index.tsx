@@ -8,11 +8,11 @@ import { ROW_COUNT_COLUMN } from "../../state/constants";
 import { applyMassEdit, cancelMassEdit } from "../../state/selection/actions";
 import { getMassEditRowAsTableRow } from "../../state/selection/selectors";
 import { getTemplateColumnsForTable } from "../CustomDataTable/selectors";
-import Table from "../CustomDataTable/Table";
-import NotesCell from "../CustomDataTable/Table/CustomCells/NotesCell";
-import DefaultCell from "../CustomDataTable/Table/DefaultCells/DefaultCell";
-import ReadOnlyCell from "../CustomDataTable/Table/DefaultCells/ReadOnlyCell";
-import DefaultHeader from "../CustomDataTable/Table/Headers/DefaultHeader";
+import Table from "../Table";
+import NotesCell from "../Table/CustomCells/NotesCell";
+import DefaultCell from "../Table/DefaultCells/DefaultCell";
+import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
+import DefaultHeader from "../Table/Headers/DefaultHeader";
 
 const styles = require("./styles.pcss");
 

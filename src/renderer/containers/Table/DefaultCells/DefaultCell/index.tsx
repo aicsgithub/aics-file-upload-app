@@ -1,11 +1,25 @@
-import { Checkbox, Input, Select, Tooltip } from "antd";
+import { basename } from "path";
+
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  Icon,
+  Input,
+  Modal,
+  Select,
+  Tooltip,
+} from "antd";
 import classNames from "classnames";
+import { isNil } from "lodash";
+import moment from "moment";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { ColumnType } from "../../../../../services/labkey-client/types";
-import { updateUpload } from "../../../../../state/upload/actions";
-import LookupSearch from "../../../../LookupSearch";
+import { DATETIME_FORMAT, DATE_FORMAT } from "../../../../constants";
+import { ColumnType } from "../../../../services/labkey-client/types";
+import { updateUpload } from "../../../../state/upload/actions";
+import LookupSearch from "../../../LookupSearch";
 import DisplayCell, { CustomCell } from "../DisplayCell";
 
 const styles = require("./styles.pcss");
@@ -42,7 +56,11 @@ export default function DefaultCell(props: CustomCell) {
   function onStopEditing() {
     setIsEditing(false);
     if (value !== props.value) {
-      dispatch(updateUpload(props.row.id, { [props.column.id]: value }));
+      dispatch(
+        updateUpload(props.row.id, {
+          [props.column.id]: value.filter((v: any[]) => !isNil(v)),
+        })
+      );
     }
   }
 
@@ -58,6 +76,11 @@ export default function DefaultCell(props: CustomCell) {
     }
   }
 
+  function onCancel() {
+    setIsEditing(false);
+    setValue(initialValue);
+  }
+
   switch (props.column.type) {
     case ColumnType.BOOLEAN:
       return (
@@ -71,7 +94,63 @@ export default function DefaultCell(props: CustomCell) {
       );
     case ColumnType.DATE:
     case ColumnType.DATETIME:
-      return <div onBlur={onBlur}>TBD</div>;
+      return (
+        <Modal
+          visible
+          okText="Save"
+          onCancel={onCancel}
+          onOk={onStopEditing}
+          title={`Adjust ${props.column.id} for ${basename(
+            props.row.original.File
+          )}`}
+          width="50%"
+        >
+          {(value.length ? value : [undefined]).map(
+            (date: Date | undefined, index: number) => (
+              <div key={date?.toString() || ""} className={styles.dateInput}>
+                <Tooltip title={date ? "Delete this date" : ""}>
+                  <Icon
+                    className={date ? undefined : styles.hidden}
+                    type="delete"
+                    onClick={() =>
+                      setValue([
+                        ...value.slice(0, index),
+                        ...value.slice(index + 1),
+                      ])
+                    }
+                  />
+                </Tooltip>
+                <DatePicker
+                  autoFocus={true}
+                  allowClear={false}
+                  className={styles.datePicker}
+                  showTime={props.column.type === ColumnType.DATETIME}
+                  placeholder="Add a Date"
+                  value={date ? moment(date) : undefined}
+                  onChange={(d) =>
+                    setValue([
+                      ...value.slice(0, index),
+                      d?.toString(),
+                      ...value.slice(index + 1),
+                    ])
+                  }
+                  format={
+                    props.column.type === ColumnType.DATETIME
+                      ? DATETIME_FORMAT
+                      : DATE_FORMAT
+                  }
+                />
+              </div>
+            )
+          )}
+          <Button
+            className={styles.datePlusButton}
+            disabled={!value.length || !value[value.length - 1]}
+            icon="plus"
+            onClick={() => setValue([...value, undefined])}
+          />
+        </Modal>
+      );
     case ColumnType.DURATION: {
       const duration = value.length ? value : [{ ...INITIAL_DURATION }];
       return (

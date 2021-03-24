@@ -1,6 +1,6 @@
 import React from "react";
 
-import { WELL_ANNOTATION_NAME } from "../../../../../constants";
+import { WELL_ANNOTATION_NAME } from "../../../../constants";
 import { CustomCell } from "../../DefaultCells/DisplayCell";
 import DefaultHeader from "../DefaultHeader";
 
