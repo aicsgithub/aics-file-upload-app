@@ -32,8 +32,7 @@ interface Props {
   hasSubmitBeenAttempted: boolean;
 }
 
-// TODO: Try specifying generic type
-interface CustomTable extends TableInstance<any> {
+interface CustomTable extends TableInstance<UploadMetadata> {
   selectedFlatRows?: CustomRow[];
 }
 
@@ -77,7 +76,6 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     }),
     []
   );
-  console.log("Rows:", rows);
 
   const tableInstance: CustomTable = useTable(
     {
@@ -88,7 +86,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
         Cell: DefaultCell,
         Header: DefaultHeader,
         minWidth: 30,
-        width: 100,
+        width: 150,
         maxWidth: 500,
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore: The react-table typing does not account for the typing

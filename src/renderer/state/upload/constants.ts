@@ -72,7 +72,6 @@ export const JUMP_TO_UPLOAD = makeConstant(BRANCH_NAME, "jump-to-upload");
 export const RETRY_UPLOAD = makeConstant(BRANCH_NAME, "retry-upload");
 export const SAVE_UPLOAD_DRAFT = makeConstant(BRANCH_NAME, "save-upload-draft");
 export const UPDATE_SUB_IMAGES = makeConstant(BRANCH_NAME, "update-sub-images");
-export const UPDATE_TABLE_CELL = makeConstant(BRANCH_NAME, "update-table-cell");
 export const UPDATE_UPLOAD = makeConstant(BRANCH_NAME, "update-upload");
 export const UPDATE_UPLOAD_ROWS = makeConstant(
   BRANCH_NAME,

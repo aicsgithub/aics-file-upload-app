@@ -604,7 +604,6 @@ const updateSubImagesLogic = createLogic({
       scenes,
       subImageNames,
     } = action.payload;
-    console.log("Update sub images received");
     const fileRowKey = getUploadRowKey(fileRow);
     let notEmptySubImageParams = 0;
     if (!isEmpty(positionIndexes)) {
@@ -873,12 +872,6 @@ const updateUploadLogic = createLogic({
     } else {
       try {
         const formattedUpload = formatUpload(upload, template, annotationTypes);
-        console.log(
-          "updateUploadLogic",
-          formattedUpload,
-          upload,
-          isMassEditing
-        );
         if (isMassEditing) {
           next(updateMassEditRow(formattedUpload));
         } else {

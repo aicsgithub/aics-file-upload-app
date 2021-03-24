@@ -1,6 +1,7 @@
 import { createSelector } from "reselect";
 
 import { NOTES_ANNOTATION_NAME } from "../../constants";
+import { ColumnType } from "../../services/labkey-client/types";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
 import {
   getIsSelectedJobInFlight,
@@ -48,6 +49,18 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
   },
 ];
 
+function getColumnWidthForType(type?: ColumnType): number {
+  switch (type) {
+    case ColumnType.BOOLEAN:
+      return 75;
+    case ColumnType.NUMBER:
+    case ColumnType.TEXT:
+      return 100;
+    default:
+      return 150;
+  }
+}
+
 export const getTemplateColumnsForTable = createSelector(
   [getAnnotationTypes, getAppliedTemplate, getSelectedBarcode],
   (annotationTypes, template, hasPlate): CustomColumn[] => {
@@ -56,15 +69,19 @@ export const getTemplateColumnsForTable = createSelector(
     }
     return [
       ...(hasPlate ? [WELL_COLUMN] : []),
-      ...template.annotations.map((annotation) => ({
-        accessor: annotation.name,
-        description: annotation.description,
-        dropdownValues: annotation.annotationOptions,
-        isRequired: annotation.required,
-        type: annotationTypes.find(
+      ...template.annotations.map((annotation) => {
+        const type = annotationTypes.find(
           (type) => type.annotationTypeId === annotation.annotationTypeId
-        )?.name,
-      })),
+        )?.name;
+        return {
+          type,
+          accessor: annotation.name,
+          description: annotation.description,
+          dropdownValues: annotation.annotationOptions,
+          isRequired: annotation.required,
+          width: getColumnWidthForType(type),
+        };
+      }),
     ];
   }
 );

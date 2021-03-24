@@ -82,7 +82,6 @@ function NotesCell(props: CustomCell) {
   const [isEditing, setIsEditing] = React.useState(!props.value);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [notes, setNotes] = React.useState<string | undefined>(props.value);
-  console.log(props.value, notes, isEditing, isModalOpen);
 
   async function onFileDrop(files: DragAndDropFileList) {
     const notes = await onDrop(files, (error) =>

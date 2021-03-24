@@ -44,7 +44,6 @@ export default function MassEditTable() {
   const row = useSelector(getMassEditRowAsTableRow);
   const templateColumns = useSelector(getTemplateColumnsForTable);
 
-  // TODO: Try adjusting typing here...
   const data: any[] = React.useMemo(() => [row], [row]);
   const columns = React.useMemo(
     () => [...DEFAULT_COLUMNS, ...templateColumns],
@@ -59,7 +58,7 @@ export default function MassEditTable() {
         Cell: DefaultCell,
         Header: DefaultHeader,
         minWidth: 30,
-        width: 100,
+        width: 150,
         maxWidth: 500,
       },
       data,
