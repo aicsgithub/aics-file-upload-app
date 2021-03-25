@@ -38,7 +38,7 @@ import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { Duration } from "../../types";
-import { getWellLabel, titleCase } from "../../util";
+import { getWellLabelAndImagingSessionName, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
@@ -110,31 +110,6 @@ const standardizeUploadMetadata = (metadata: UploadMetadata) => {
   });
 
   return result;
-};
-
-// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
-export const getWellLabelAndImagingSessionName = (
-  wellId: number,
-  imagingSessions: ImagingSession[],
-  selectedPlates: PlateResponse[],
-  wellIdToWell: Map<number, WellResponse>
-) => {
-  const well = wellIdToWell.get(wellId);
-  let label = "ERROR";
-  if (well) {
-    label = getWellLabel({ col: well.col, row: well.row });
-    const plate = selectedPlates.find((p) => p.plateId === well.plateId);
-
-    if (plate && plate.imagingSessionId) {
-      const imagingSession = imagingSessions.find(
-        (is) => is.imagingSessionId === plate.imagingSessionId
-      );
-      if (imagingSession) {
-        label += ` (${imagingSession.name})`;
-      }
-    }
-  }
-  return label;
 };
 
 export const getUploadWithCalculatedData = createSelector(

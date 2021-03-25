@@ -25,6 +25,10 @@ export enum SubImageType {
   SCENE = "scene",
 }
 
+/*
+  This is a component for rendering a different input
+  depending on the sub image/file type supplied.
+*/
 export default function SubImageInput(props: Props) {
   function onPrinterInput(values: string, error?: string) {
     props.onValidationError(error || "");

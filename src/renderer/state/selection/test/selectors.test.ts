@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { WELL_ANNOTATION_NAME } from "../../../constants";
 import { mockJob } from "../../../services/aicsfiles/test/mocks";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import {
@@ -8,6 +9,7 @@ import {
   Solution,
   WellResponse,
 } from "../../../services/mms-client/types";
+import { ROW_COUNT_COLUMN } from "../../constants";
 import {
   getMockStateWithHistory,
   mockPlate,
@@ -23,6 +25,7 @@ import {
   getAllPlates,
   getAllWells,
   getIsSelectedJobInFlight,
+  getMassEditRowAsTableRow,
   getSelectedImagingSession,
   getSelectedPlate,
   getSelectedPlateId,
@@ -500,6 +503,58 @@ describe("Selections selectors", () => {
 
         // Assert
         expect(result).to.be.true;
+      });
+    });
+  });
+
+  describe("getMassEditRowAsTableRow", () => {
+    it("returns row with count and wellLabels", () => {
+      // Arrange
+      const wellId1 = 4;
+      const wellId2 = 7;
+      const massEditRow = {
+        CellLine: ["AICS-0"],
+        Color: ["Blue", "Green"],
+        [WELL_ANNOTATION_NAME]: [wellId1, wellId2],
+      };
+      const rowsSelectedForMassEdit = ["1", "39", "62"];
+      const state = {
+        ...mockState,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          massEditRow,
+          rowsSelectedForMassEdit,
+          wells: {
+            0: [
+              {
+                row: 0,
+                col: 0,
+                plateId: 13,
+                wellId: wellId1,
+                cellPopulations: [],
+                solutions: [],
+              },
+              {
+                row: 0,
+                col: 1,
+                plateId: 13,
+                wellId: wellId2,
+                cellPopulations: [],
+                solutions: [],
+              },
+            ],
+          },
+        }),
+      };
+
+      // Act
+      const result = getMassEditRowAsTableRow(state);
+
+      // Assert
+      expect(result).to.deep.equal({
+        ...massEditRow,
+        [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit.length,
+        wellLabels: ["A1", "A2"],
       });
     });
   });

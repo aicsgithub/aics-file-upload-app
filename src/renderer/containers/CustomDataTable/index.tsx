@@ -90,14 +90,14 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
         maxWidth: 500,
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore: The react-table typing does not account for the typing
-        // of plugings as such this is not known by the typing though
+        // of plugins as such this is not known by typescript though
         // is necessary for the useSortBy plugin to know how which sorting
         // method to use by default for columns. This specific sortType
-        // is a custom one that we supplied - Sean M 03/23/21
+        // is a custom one that we supply - Sean M 03/23/21
         sortType: ARRAY_SORT,
       },
       getRowId: React.useMemo(() => getUploadRowKey, []),
-      // This comes from the useSortBy plugin and prevents
+      // This comes from the useExpanded plugin and prevents
       // sorting from reseting after data is modified - Sean M 03/23/21
       autoResetExpanded: false,
       // Similarly to the above property this comes from a plugin, useSortBy,
@@ -114,6 +114,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     useBlockLayout, // Makes element widths adjustable
     useResizeColumns
   );
+  console.log(rows);
 
   if (!template || !data.length) {
     return null;

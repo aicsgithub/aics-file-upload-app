@@ -1,5 +1,3 @@
-import { basename } from "path";
-
 import {
   Button,
   Checkbox,
@@ -100,9 +98,7 @@ export default function DefaultCell(props: CustomCell) {
           okText="Save"
           onCancel={onCancel}
           onOk={onStopEditing}
-          title={`Adjust ${props.column.id} for ${basename(
-            props.row.original.file
-          )}`}
+          title={`Adjust ${props.column.id}`}
           width="50%"
         >
           {(value.length ? value : [undefined]).map(

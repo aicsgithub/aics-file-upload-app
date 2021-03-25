@@ -11,10 +11,6 @@ const BRANCH_NAME = "upload";
 
 export const ADD_UPLOAD_FILES = makeConstant(BRANCH_NAME, "add-upload-files");
 export const APPLY_TEMPLATE = makeConstant(BRANCH_NAME, "apply-template");
-export const ASSOCIATE_FILES_AND_WELLS = makeConstant(
-  BRANCH_NAME,
-  "associate-files-and-wells"
-);
 export const CANCEL_UPLOAD = makeConstant(BRANCH_NAME, "cancel-upload");
 export const CANCEL_UPLOAD_SUCCEEDED = makeConstant(
   BRANCH_NAME,
@@ -58,10 +54,6 @@ export const SAVE_UPLOAD_DRAFT_SUCCESS = makeConstant(
 export const SUBMIT_FILE_METADATA_UPDATE = makeConstant(
   BRANCH_NAME,
   "submit-file-metadata-update"
-);
-export const UNDO_FILE_WELL_ASSOCIATION = makeConstant(
-  BRANCH_NAME,
-  "undo-file-well-association"
 );
 export const UPDATE_AND_RETRY_UPLOAD = makeConstant(
   BRANCH_NAME,

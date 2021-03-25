@@ -85,23 +85,6 @@ export interface UploadJobTableRow extends UploadRowId {
   wellLabels: string[];
 }
 
-export interface AssociateFilesAndWellsAction extends AutoSaveAction {
-  payload: {
-    rowIds: UploadRowId[];
-    wellIds: number[];
-  };
-  type: string;
-}
-
-export interface UndoFileWellAssociationAction extends AutoSaveAction {
-  payload: {
-    deleteUpload: boolean; // whether or not to delete this part of upload if no well associations left
-    rowId: UploadRowId;
-    wellIds: number[];
-  };
-  type: string;
-}
-
 export interface JumpToPastUploadAction extends AutoSaveAction {
   index: number;
   type: string;

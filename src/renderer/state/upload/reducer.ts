@@ -1,4 +1,4 @@
-import { omit, uniq, without } from "lodash";
+import { omit } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
@@ -20,7 +20,6 @@ import { TypeToDescriptionMap, UploadRowId, UploadStateBranch } from "../types";
 import { getReduxUndoFilterFn, makeReducer } from "../util";
 
 import {
-  ASSOCIATE_FILES_AND_WELLS,
   CLEAR_UPLOAD_HISTORY,
   DELETE_UPLOADS,
   getUploadRowKey,
@@ -29,7 +28,6 @@ import {
   JUMP_TO_UPLOAD,
   REPLACE_UPLOAD,
   RETRY_UPLOAD,
-  UNDO_FILE_WELL_ASSOCIATION,
   UPDATE_UPLOAD,
   UPDATE_UPLOAD_ROWS,
   UPDATE_UPLOADS,
@@ -38,10 +36,8 @@ import {
 import { getUpload } from "./selectors";
 import {
   AddUploadFilesAction,
-  AssociateFilesAndWellsAction,
   RemoveUploadsAction,
   ReplaceUploadAction,
-  UndoFileWellAssociationAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
   UpdateUploadsAction,
@@ -93,69 +89,6 @@ const actionToConfigMap: TypeToDescriptionMap<UploadStateBranch> = {
         }),
         {} as UploadStateBranch
       );
-    },
-  },
-  [ASSOCIATE_FILES_AND_WELLS]: {
-    accepts: (action: AnyAction): action is AssociateFilesAndWellsAction =>
-      action.type === ASSOCIATE_FILES_AND_WELLS,
-    perform: (
-      state: UploadStateBranch,
-      action: AssociateFilesAndWellsAction
-    ) => {
-      const nextState = { ...state };
-
-      const { wellIds, rowIds } = action.payload;
-
-      return rowIds.reduce((accum: UploadStateBranch, id) => {
-        const key = getUploadRowKey(id);
-        return {
-          ...accum,
-          [key]: {
-            ...accum[key],
-            file: id.file,
-            positionIndex: id.positionIndex,
-            scene: id.scene,
-            subImageName: id.subImageName,
-            [WELL_ANNOTATION_NAME]:
-              accum[key] && accum[key][WELL_ANNOTATION_NAME]
-                ? uniq([
-                    ...(accum[key][WELL_ANNOTATION_NAME] || []),
-                    ...wellIds,
-                  ])
-                : wellIds,
-          },
-        };
-      }, nextState);
-    },
-  },
-  [UNDO_FILE_WELL_ASSOCIATION]: {
-    accepts: (action: AnyAction): action is UndoFileWellAssociationAction =>
-      action.type === UNDO_FILE_WELL_ASSOCIATION,
-    perform: (
-      state: UploadStateBranch,
-      action: UndoFileWellAssociationAction
-    ) => {
-      const { deleteUpload, rowId, wellIds: wellIdsToRemove } = action.payload;
-      const key = getUploadRowKey(rowId);
-      if (!state[key]) {
-        return state;
-      }
-      const wellIds = without(
-        state[key][WELL_ANNOTATION_NAME] || [],
-        ...wellIdsToRemove
-      );
-      if (!wellIds.length && deleteUpload) {
-        const stateWithoutFile = { ...state };
-        delete stateWithoutFile[key];
-        return stateWithoutFile;
-      }
-      return {
-        ...state,
-        [key]: {
-          ...state[key],
-          [WELL_ANNOTATION_NAME]: wellIds,
-        },
-      };
     },
   },
   [DELETE_UPLOADS]: {

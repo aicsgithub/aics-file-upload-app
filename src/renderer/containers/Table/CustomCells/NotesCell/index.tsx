@@ -1,5 +1,6 @@
 import { Icon, Input, Modal, Tooltip } from "antd";
 import { OpenDialogOptions, remote } from "electron";
+import { castArray } from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
 import { Dispatch } from "redux";
@@ -25,12 +26,12 @@ const openDialogOptions: OpenDialogOptions = {
 function getContextMenuItems(
   dispatch: Dispatch,
   props: CustomCell,
-  notes?: string
+  notes: string
 ) {
   return remote.Menu.buildFromTemplate([
     {
       click: () => {
-        navigator.clipboard.writeText(notes || "");
+        navigator.clipboard.writeText(notes);
         dispatch(
           updateUpload(props.row.id, {
             [props.column.id]: undefined,
@@ -42,7 +43,7 @@ function getContextMenuItems(
     },
     {
       click: () => {
-        navigator.clipboard.writeText(notes || "");
+        navigator.clipboard.writeText(notes);
       },
       enabled: !!notes,
       label: "Copy",
@@ -80,12 +81,17 @@ function getContextMenuItems(
  */
 function NotesCell(props: CustomCell) {
   const dispatch = useDispatch();
-  const [isEditing, setIsEditing] = React.useState(!props.value);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [notes, setNotes] = React.useState<string | undefined>(props.value);
+  const [isEditing, setIsEditing] = React.useState(
+    !props.value || !props.value.length
+  );
+  const [notes, setNotes] = React.useState<string[]>(
+    props.value ? castArray(props.value) : []
+  );
+  const note = notes.length ? notes[0] : undefined;
 
   async function onFileDrop(files: DragAndDropFileList) {
-    const notes = await onDrop(files, (error) =>
+    const droppedNotes = await onDrop(files, (error) =>
       dispatch(
         setAlert({
           message: error,
@@ -93,11 +99,11 @@ function NotesCell(props: CustomCell) {
         })
       )
     );
-    setNotes(notes);
+    setNotes([droppedNotes]);
   }
 
   async function onFileOpen(files: string[]) {
-    const notes = await onOpen(files, (error) =>
+    const openedNotes = await onOpen(files, (error) =>
       dispatch(
         setAlert({
           message: error,
@@ -105,13 +111,13 @@ function NotesCell(props: CustomCell) {
         })
       )
     );
-    setNotes(notes);
+    setNotes([openedNotes]);
   }
 
   function onOk() {
     setIsEditing(false);
     setIsModalOpen(false);
-    const trimmedNotes = notes?.trim();
+    const trimmedNotes = note?.trim();
     dispatch(
       updateUpload(props.row.id, {
         [props.column.id]: trimmedNotes ? [trimmedNotes] : undefined,
@@ -122,12 +128,12 @@ function NotesCell(props: CustomCell) {
   function onCancel() {
     setIsEditing(false);
     setIsModalOpen(false);
-    setNotes(props.value);
+    setNotes(props.value ? castArray(props.value) : []);
   }
 
   const onContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    getContextMenuItems(dispatch, props, notes).popup();
+    getContextMenuItems(dispatch, props, note || "").popup();
   };
 
   return (
@@ -148,10 +154,10 @@ function NotesCell(props: CustomCell) {
           >
             <TextArea
               className={styles.useFullWidth}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => setNotes([e.target.value])}
               placeholder="Type notes for file here or drag/drop a file below"
               autoSize={{ minRows: 4, maxRows: 12 }}
-              value={notes}
+              value={note}
             />
             <p className={styles.dragAndDropNote}>
               <strong>Note:</strong> Notes must be file type .txt
@@ -172,7 +178,7 @@ function NotesCell(props: CustomCell) {
               />
             )}
             {/* New line formatting might be important for viewing, so preserve it in view */}
-            {notes?.split("\n").map((line, i) => (
+            {note?.split("\n").map((line, i) => (
               // Using an index as a key is not recommended, but it is safe in
               // this case
               <p key={i}>{line}</p>
@@ -180,11 +186,11 @@ function NotesCell(props: CustomCell) {
           </>
         )}
       </Modal>
-      <Tooltip title={notes ? `${notes.substring(0, 50)}...` : ""}>
+      <Tooltip title={note ? `${note?.substring(0, 50)}...` : ""}>
         <div className={styles.alignCenter} onContextMenu={onContextMenu}>
           <Icon
             onClick={() => setIsModalOpen(true)}
-            type={notes ? "file-text" : "plus-circle"}
+            type={note ? "file-text" : "plus-circle"}
           />
         </div>
       </Tooltip>

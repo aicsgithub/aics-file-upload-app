@@ -2,6 +2,7 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
 import { UploadServiceFields } from "../../services/aicsfiles/types";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
@@ -12,7 +13,7 @@ import {
   SolutionLot,
   WellResponse,
 } from "../../services/mms-client/types";
-import { getWellLabel } from "../../util";
+import { getWellLabel, getWellLabelAndImagingSessionName } from "../../util";
 import { ROW_COUNT_COLUMN } from "../constants";
 import { getImagingSessions, getUnits } from "../metadata/selectors";
 import {
@@ -224,9 +225,29 @@ export const getIsSelectedJobInFlight = createSelector(
 
 // Maps MassEditRow to shape of data needed by react-table
 export const getMassEditRowAsTableRow = createSelector(
-  [getMassEditRow, getRowsSelectedForMassEdit],
-  (massEditRow, rowsSelectedForMassEdit): MassEditRow => ({
+  [
+    getMassEditRow,
+    getRowsSelectedForMassEdit,
+    getImagingSessions,
+    getAllPlates,
+    getWellIdToWellMap,
+  ],
+  (
+    massEditRow,
+    rowsSelectedForMassEdit,
+    imagingSessions,
+    plates,
+    wellIdToWellLabelMap
+  ): MassEditRow => ({
     ...(massEditRow && massEditRow),
     [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit?.length,
+    wellLabels: (massEditRow?.[WELL_ANNOTATION_NAME] || []).map((id: number) =>
+      getWellLabelAndImagingSessionName(
+        id,
+        imagingSessions,
+        plates,
+        wellIdToWellLabelMap
+      )
+    ),
   })
 );

@@ -68,9 +68,9 @@ interface Props extends CustomCell {
   onTabExit?: () => void;
 }
 
-export const useDisplayValue = (value: any[], type?: ColumnType) =>
+export const useDisplayValue = (value?: any[], type?: ColumnType) =>
   React.useMemo(() => {
-    if (!value.length) {
+    if (!value || !value.length) {
       return "";
     }
     switch (type) {
@@ -126,9 +126,9 @@ export default function DisplayCell(props: Props) {
   const shouldShowError =
     props.column.hasSubmitBeenAttempted &&
     props.column.isRequired &&
-    !fileToAnnotationHasValueMap[getUploadRowKey(props.row.original.file)]?.[
-      props.column.id
-    ];
+    !fileToAnnotationHasValueMap[
+      getUploadRowKey({ file: props.row.original.file })
+    ]?.[props.column.id];
 
   // When a cell is being dragged add an event listener for cells
   // in the same column to check if this cell needs to be highlighted

@@ -32,17 +32,18 @@ const DEFAULT_COLUMNS = [
 ];
 
 /*
-  This component is responsible for rendering one row table meant to apply
+  This component is responsible for rendering a one row table meant to apply
   edits to pre-selected upload files in bulk. This works by supplying the row
   data & column definitions to react-table's "useTable" hook which then 
   provides hooks to use to turn a display table into an interactive table
-  with a lot of the logic managed for us. Majority of the logic can be found
-  by finding the "Cell" component specified by the column.
+  with a lot of the logic managed for us. Majority of the logic we implement
+  can be found by finding the "Cell" component specified by the column.
 */
 export default function MassEditTable() {
   const dispatch = useDispatch();
   const row = useSelector(getMassEditRowAsTableRow);
   const templateColumns = useSelector(getTemplateColumnsForTable);
+  console.log("MassEditRow", row);
 
   const data: any[] = React.useMemo(() => [row], [row]);
   const columns = React.useMemo(

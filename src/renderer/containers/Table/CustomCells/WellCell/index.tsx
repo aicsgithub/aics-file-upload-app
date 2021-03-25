@@ -1,14 +1,11 @@
 import { Button, Popover } from "antd";
-import { intersection, isEmpty } from "lodash";
+import { intersection, isEmpty, uniq, without } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { WELL_ANNOTATION_NAME } from "../../../../constants";
 import { getSelectedWellIds } from "../../../../state/selection/selectors";
-import {
-  associateFilesAndWells,
-  undoFileWellAssociation,
-} from "../../../../state/upload/actions";
+import { updateUpload } from "../../../../state/upload/actions";
 import ImagingSessionSelector from "../../../ImagingSessionSelector";
 import Plate from "../../../PlateContainer";
 import DisplayCell, { CustomCell } from "../../DefaultCells/DisplayCell";
@@ -23,7 +20,7 @@ export default function WellCell(props: CustomCell) {
   const dispatch = useDispatch();
   const selectedWells = useSelector(getSelectedWellIds);
   const [isEditing, setIsEditing] = React.useState(false);
-  const associatedWells = props.row.original[WELL_ANNOTATION_NAME];
+  const associatedWells = props.row.original[WELL_ANNOTATION_NAME] || [];
 
   // Disable association button if no wells are selected or if
   // all of the wells have already been associated with
@@ -38,15 +35,29 @@ export default function WellCell(props: CustomCell) {
     isEmpty(selectedWells) ||
     !intersection(associatedWells, selectedWells).length;
 
+  function onAssociate() {
+    dispatch(
+      updateUpload(props.row.id, {
+        [WELL_ANNOTATION_NAME]: uniq([...associatedWells, ...selectedWells]),
+      })
+    );
+  }
+
+  function onDissociate() {
+    dispatch(
+      updateUpload(props.row.id, {
+        [WELL_ANNOTATION_NAME]: without(associatedWells, ...selectedWells),
+      })
+    );
+  }
+
   const content = (
     <div className={styles.container}>
       <div className={styles.row}>
         <ImagingSessionSelector className={styles.imagingSessionSelector} />
         <div className={styles.btns}>
           <Button
-            onClick={() =>
-              dispatch(associateFilesAndWells([props.row.original]))
-            }
+            onClick={onAssociate}
             size="small"
             type="primary"
             className={styles.associateBtn}
@@ -55,9 +66,7 @@ export default function WellCell(props: CustomCell) {
             Associate
           </Button>
           <Button
-            onClick={() =>
-              dispatch(undoFileWellAssociation(props.row.original, false))
-            }
+            onClick={onDissociate}
             disabled={isRemoveButtonDisabled}
             size="small"
           >

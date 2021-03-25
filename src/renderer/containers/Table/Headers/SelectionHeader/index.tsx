@@ -6,8 +6,8 @@ import { CustomCell } from "../../DefaultCells/DisplayCell";
 const styles = require("./styles.pcss");
 
 /*
-    This renders a checkbox that controls the selection state
-    of every row
+  This renders a checkbox that controls the selection state
+  of every row
 */
 export default function SelectionHeader(props: CustomCell) {
   return (

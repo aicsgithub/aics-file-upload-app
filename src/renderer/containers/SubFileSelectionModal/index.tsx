@@ -18,6 +18,10 @@ import SubImageInput, { SubImageType } from "./SubImageInput";
 
 const styles = require("./styles.pcss");
 
+/*
+  This modal allows users to add scenes, positions, channels, or
+  custom "sub image names" to their files.
+*/
 function SubFileSelectionModal({ file }: { file: string }) {
   const dispatch = useDispatch();
   const channelOptions = useSelector(getChannels);

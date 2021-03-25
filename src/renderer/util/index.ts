@@ -30,6 +30,7 @@ import {
   ImageModelMetadata,
   UploadMetadata as FMSUploadMetadata,
 } from "../services/aicsfiles/types";
+import { ImagingSession } from "../services/labkey-client/types";
 import MMSClient from "../services/mms-client";
 import {
   GetPlateResponse,
@@ -123,6 +124,31 @@ export function getWellLabel(well?: AicsGridCell, noneText = "None"): string {
   const col = well.col + 1;
   return `${row}${col}`;
 }
+
+// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
+export const getWellLabelAndImagingSessionName = (
+  wellId: number,
+  imagingSessions: ImagingSession[],
+  selectedPlates: PlateResponse[],
+  wellIdToWell: Map<number, WellResponse>
+) => {
+  const well = wellIdToWell.get(wellId);
+  let label = "ERROR";
+  if (well) {
+    label = getWellLabel({ col: well.col, row: well.row });
+    const plate = selectedPlates.find((p) => p.plateId === well.plateId);
+
+    if (plate && plate.imagingSessionId) {
+      const imagingSession = imagingSessions.find(
+        (is) => is.imagingSessionId === plate.imagingSessionId
+      );
+      if (imagingSession) {
+        label += ` (${imagingSession.name})`;
+      }
+    }
+  }
+  return label;
+};
 
 /***
  * Returns number representing sort order of first string param compared to second string param
