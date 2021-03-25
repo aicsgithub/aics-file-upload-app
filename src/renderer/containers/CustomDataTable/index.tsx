@@ -36,6 +36,15 @@ interface CustomTable extends TableInstance<UploadMetadata> {
   selectedFlatRows?: CustomRow[];
 }
 
+// Custom sorting methods for react-table
+const sortTypes = {
+  [ARRAY_SORT]: (
+    rowA: UploadMetadata,
+    rowB: UploadMetadata,
+    columnId: string
+  ) => `${rowA.original[columnId]}`.localeCompare(`${rowB.original[columnId]}`),
+};
+
 /*
   This componenet is responsible for rendering the table users enter their
   custom data into. The majority of this component is ruled by the utility
@@ -60,22 +69,6 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
       })),
     [columnDefinitions, hasSubmitBeenAttempted]
   );
-  // Necessary to supply our own custom sorting since the
-  // row values are arrays for which react-table does not
-  // handle by default at the moment - Sean M 03/23/21
-  const sortTypes = React.useMemo(
-    () => ({
-      [ARRAY_SORT]: (
-        rowA: UploadMetadata,
-        rowB: UploadMetadata,
-        columnId: string
-      ) =>
-        `${rowA.original[columnId]}`.localeCompare(
-          `${rowB.original[columnId]}`
-        ),
-    }),
-    []
-  );
 
   const tableInstance: CustomTable = useTable(
     {
@@ -96,7 +89,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
         // is a custom one that we supply - Sean M 03/23/21
         sortType: ARRAY_SORT,
       },
-      getRowId: React.useMemo(() => getUploadRowKey, []),
+      getRowId: getUploadRowKey,
       // This comes from the useExpanded plugin and prevents
       // sorting from reseting after data is modified - Sean M 03/23/21
       autoResetExpanded: false,
@@ -104,7 +97,10 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
       // and prevents sorting from reseting after data is modified
       autoResetSortBy: false,
       // This comes from the useSortBy plugin and adds additional sorting
-      // options as a function of the column's "sortType" specified
+      // options as a function of the column's "sortType" specified.
+      // This is currently necessary since the row values are arrays
+      // for which react-table does not handle by default.
+      // See useSortBy plugin - Sean M 03/23/21
       sortTypes,
     },
     // optional plugins
