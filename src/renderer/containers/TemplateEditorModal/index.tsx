@@ -11,6 +11,8 @@ import {
   SCHEMA_SYNONYM,
 } from "../../../shared/constants";
 import FormControl from "../../components/FormControl";
+import LabeledInput from "../../components/LabeledInput";
+import TemplateSearch from "../../components/TemplateSearch";
 import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
 import { Annotation } from "../../services/labkey-client/types";
 import { closeModal } from "../../state/feedback/actions";
@@ -30,6 +32,7 @@ import { updateSettings } from "../../state/setting/actions";
 import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
   addExistingAnnotation,
+  addExistingTemplate,
   removeAnnotations,
   saveTemplate,
   updateTemplateDraft,
@@ -69,6 +72,7 @@ const mapStateToProps = (state: State) => ({
 
 const dispatchToPropsMap = {
   addAnnotation: addExistingAnnotation,
+  addExistingTemplate,
   closeModal,
   getAnnotations: requestAnnotations,
   openModal: openTemplateEditor,
@@ -89,6 +93,7 @@ interface TemplateEditorModalState {
   annotationNameSearch?: string;
   selectedAnnotation?: AnnotationDraft;
   showErrorAlert: boolean;
+  copiedTemplate?: number;
 }
 
 class TemplateEditorModal extends React.Component<
@@ -102,6 +107,7 @@ class TemplateEditorModal extends React.Component<
       annotationNameSearch: undefined,
       selectedAnnotation: undefined,
       showErrorAlert: false,
+      copiedTemplate: undefined,
     };
   }
 
@@ -257,6 +263,17 @@ class TemplateEditorModal extends React.Component<
               </Select>
             </FormControl>
             <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
+            <LabeledInput
+              className={styles.selector}
+              label="Copy Existing Template"
+            >
+              <TemplateSearch
+                allowCreate={false}
+                value={this.state.copiedTemplate}
+                onSelect={this.addExistingTemplate}
+              />
+            </LabeledInput>
+            <div className={styles.or}>-&nbsp;Or&nbsp;-</div>
             <AnnotationForm
               addAnnotation={this.addNewAnnotation}
               annotationTypes={annotationTypes}
@@ -367,6 +384,10 @@ class TemplateEditorModal extends React.Component<
     const { annotations: oldAnnotations } = this.props.template;
     const annotations = [...oldAnnotations, draft];
     this.props.updateTemplateDraft({ annotations });
+  };
+
+  private addExistingTemplate = (templateId: number) => {
+    this.props.addExistingTemplate(templateId);
   };
 }
 
