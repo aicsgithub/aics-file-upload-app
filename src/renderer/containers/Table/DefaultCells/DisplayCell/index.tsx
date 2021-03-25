@@ -161,7 +161,7 @@ export default function DisplayCell(props: Props) {
       }
     }
     // Add event listener to cell drag if the cell is in the same column
-    if (cellAtDragStart && cellAtDragStart.columnId === columnId) {
+    if (cellAtDragStart?.columnId === columnId) {
       document.addEventListener("dragover", onDragOver);
     } else {
       document.removeEventListener("dragover", onDragOver);
