@@ -84,6 +84,38 @@ import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 
 const styles = require("./style.pcss");
 
+const StepOneSvg = () => (
+  <svg viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor">
+    <text
+      x="510"
+      y="555"
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize="600px"
+      fontFamily="sans-serif"
+    >
+      1
+    </text>
+    <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+  </svg>
+);
+
+const StepTwoSvg = () => (
+  <svg viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor">
+    <text
+      x="510"
+      y="555"
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize="600px"
+      fontFamily="sans-serif"
+    >
+      2
+    </text>
+    <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+  </svg>
+);
+
 interface Props {
   appliedTemplate?: Template;
   applyTemplate: ActionCreator<ApplyTemplateAction>;
@@ -273,7 +305,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         )}
         <div className={styles.stepContainer}>
           <div className={styles.stepIcon}>
-            <Icon type="check-circle" />
+            {appliedTemplate ? (
+              <Icon
+                type="check-circle"
+                theme="filled"
+                style={{ color: "var(--info)" }}
+              />
+            ) : (
+              <Icon component={StepOneSvg} />
+            )}
           </div>
           <div className={styles.stepForm}>
             <LabeledInput
@@ -301,7 +341,15 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
         )}
         <div className={styles.stepContainer}>
           <div className={styles.stepIcon}>
-            <Icon type="check-circle" />
+            {selectedBarcode || hasNoPlateToUpload ? (
+              <Icon
+                type="check-circle"
+                theme="filled"
+                style={{ color: "var(--info)" }}
+              />
+            ) : (
+              <Icon component={StepTwoSvg} />
+            )}
           </div>
           <div className={styles.stepForm}>
             <div className={styles.container}>
