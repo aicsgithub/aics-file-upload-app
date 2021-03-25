@@ -1,6 +1,10 @@
 import { createSelector } from "reselect";
 
-import { NOTES_ANNOTATION_NAME, WELL_ANNOTATION_NAME } from "../../constants";
+import {
+  MAIN_FONT_WIDTH,
+  NOTES_ANNOTATION_NAME,
+  WELL_ANNOTATION_NAME,
+} from "../../constants";
 import { ColumnType } from "../../services/labkey-client/types";
 import { getAnnotationTypes } from "../../state/metadata/selectors";
 import {
@@ -8,6 +12,7 @@ import {
   getSelectedBarcode,
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
+import { getTextWidth } from "../../util";
 import FilenameCell from "../Table/CustomCells/FilenameCell";
 import NotesCell from "../Table/CustomCells/NotesCell";
 import SelectionCell from "../Table/CustomCells/SelectionCell";
@@ -50,15 +55,35 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
   },
 ];
 
-function getColumnWidthForType(type?: ColumnType): number {
+const MAX_HEADER_WIDTH = 200;
+
+// Determine best width for column based on its type and header name
+// tries to account for the header text width up to an upper limit
+// to prevent extreme widths
+function getColumnWidthForType(column: string, type?: ColumnType): number {
+  // Find the max width between the words in the column header
+  // so we can prevent words from breaking into pieces
+  const maxWidth = column
+    .split(" ")
+    .reduce(
+      (widthSoFar, word) =>
+        Math.max(widthSoFar, getTextWidth("14px Nunito", word)),
+      0
+    );
+
+  // Multiply by font width
+  const maxFontWidth = maxWidth + 3 * MAIN_FONT_WIDTH;
+
+  // Ensure minimum for type is met without creating too large
+  // of headers
   switch (type) {
     case ColumnType.BOOLEAN:
-      return 75;
+      return Math.min(Math.max(75, maxFontWidth), MAX_HEADER_WIDTH);
     case ColumnType.NUMBER:
     case ColumnType.TEXT:
-      return 100;
+      return Math.min(Math.max(100, maxFontWidth), MAX_HEADER_WIDTH);
     default:
-      return 150;
+      return Math.min(Math.max(150, maxFontWidth), MAX_HEADER_WIDTH);
   }
 }
 
@@ -80,7 +105,7 @@ export const getTemplateColumnsForTable = createSelector(
           description: annotation.description,
           dropdownValues: annotation.annotationOptions,
           isRequired: annotation.required,
-          width: getColumnWidthForType(type),
+          width: getColumnWidthForType(annotation.name, type),
         };
       }),
     ];

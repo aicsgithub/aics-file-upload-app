@@ -29,7 +29,7 @@ describe("CustomDataTable selectors", () => {
       annotationId: index,
       name,
       description: `${name} description`,
-      annotationTypeId: index === 0 ? 0 : 2,
+      annotationTypeId: index === 0 ? 0 : 1,
       annotationOptions: [],
       required: false,
     })
@@ -58,12 +58,12 @@ describe("CustomDataTable selectors", () => {
       expect(actual).to.be.lengthOf(3);
       expect(actual).deep.equal(
         annotations.map((a, index) => ({
-          type: index === 0 ? ColumnType.LOOKUP : ColumnType.BOOLEAN,
+          type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
           accessor: a.name,
           description: a.description,
           dropdownValues: [],
           isRequired: false,
-          width: index === 0 ? 150 : 75,
+          width: index === 0 ? 150 : 100,
         }))
       );
     });
@@ -82,12 +82,12 @@ describe("CustomDataTable selectors", () => {
           width: 100,
         },
         ...annotations.map((a, index) => ({
-          type: index === 0 ? ColumnType.LOOKUP : ColumnType.BOOLEAN,
+          type: index === 0 ? ColumnType.LOOKUP : ColumnType.TEXT,
           accessor: a.name,
           description: a.description,
           dropdownValues: [],
           isRequired: false,
-          width: index === 0 ? 150 : 75,
+          width: index === 0 ? 150 : 100,
         })),
       ];
 
