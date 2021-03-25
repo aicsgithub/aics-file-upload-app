@@ -308,7 +308,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 className={styles.stepIconComplete}
               />
             ) : (
-              <Icon component={StepOneSvg} />
+              <Icon
+                component={StepOneSvg}
+                className={classNames({
+                  [styles.stepIconError]: templateError,
+                })}
+              />
             )}
           </div>
           <div className={styles.stepForm}>
@@ -344,7 +349,12 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 className={styles.stepIconComplete}
               />
             ) : (
-              <Icon component={StepTwoSvg} />
+              <Icon
+                component={StepTwoSvg}
+                className={classNames({
+                  [styles.stepIconError]: uploadTypeError,
+                })}
+              />
             )}
           </div>
           <div className={styles.stepForm}>
