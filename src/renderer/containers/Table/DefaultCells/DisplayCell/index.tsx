@@ -20,6 +20,7 @@ import { UploadMetadata } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { getUploadRowKey } from "../../../../state/upload/constants";
 import { getFileToAnnotationHasValueMap } from "../../../../state/upload/selectors";
+import { Duration } from "../../../../types";
 
 const styles = require("./styles.pcss");
 
@@ -84,8 +85,15 @@ export const useDisplayValue = (value?: any[], type?: ColumnType) =>
         return value
           .map((d: string) => moment(d).format("M/D/YYYY H:m:s"))
           .join(", ");
-      case ColumnType.DURATION:
-        return `${value[0].days}D ${value[0].hours}H ${value[0].minutes}M ${value[0].seconds}S`;
+      case ColumnType.DURATION: {
+        const { days, hours, minutes, seconds } = value[0] as Duration;
+        return (
+          (days ? `${days}D ` : "") +
+          (hours ? `${hours}H ` : "") +
+          (minutes ? `${minutes}M ` : "") +
+          (seconds ? `${seconds}S ` : "")
+        ).trim();
+      }
       default:
         return value.join(", ");
     }
