@@ -43,7 +43,6 @@ export default function MassEditTable() {
   const dispatch = useDispatch();
   const row = useSelector(getMassEditRowAsTableRow);
   const templateColumns = useSelector(getTemplateColumnsForTable);
-  console.log("MassEditRow", row);
 
   const data: any[] = React.useMemo(() => [row], [row]);
   const columns = React.useMemo(

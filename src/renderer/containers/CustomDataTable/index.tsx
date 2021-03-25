@@ -114,7 +114,6 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     useBlockLayout, // Makes element widths adjustable
     useResizeColumns
   );
-  console.log(rows);
 
   if (!template || !data.length) {
     return null;
