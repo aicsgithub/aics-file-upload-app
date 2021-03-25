@@ -305,7 +305,7 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               <Icon
                 type="check-circle"
                 theme="filled"
-                style={{ color: "var(--info)" }}
+                className={styles.stepIconComplete}
               />
             ) : (
               <Icon component={StepOneSvg} />
@@ -341,63 +341,61 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
               <Icon
                 type="check-circle"
                 theme="filled"
-                style={{ color: "var(--info)" }}
+                className={styles.stepIconComplete}
               />
             ) : (
               <Icon component={StepTwoSvg} />
             )}
           </div>
           <div className={styles.stepForm}>
-            <div className={styles.container}>
-              <div className={styles.container}>
-                <LabeledInput
-                  className={styles.selector}
-                  label="Select Pre-Existing Barcode"
-                >
-                  <BarcodeSearch
-                    barcode={selectedBarcode}
+            <div className={styles.barcodeFormContainer}>
+              <LabeledInput
+                className={styles.selector}
+                label="Select Pre-Existing Barcode"
+              >
+                <BarcodeSearch
+                  barcode={selectedBarcode}
+                  disabled={isReadOnly}
+                  error={uploadTypeError}
+                  onBarcodeChange={(imagingSessionIds, barcode) => {
+                    if (barcode) {
+                      this.props.selectBarcode(barcode, imagingSessionIds);
+                    }
+                  }}
+                />
+              </LabeledInput>
+              <div className={styles.separatorText}>OR</div>
+              <LabeledInput
+                className={styles.selector}
+                label="Create Barcode & Plate"
+              >
+                <Form.Item validateStatus={uploadTypeError ? "error" : ""}>
+                  <Select
+                    className={styles.selector}
                     disabled={isReadOnly}
-                    error={uploadTypeError}
-                    onBarcodeChange={(imagingSessionIds, barcode) => {
-                      if (barcode) {
-                        this.props.selectBarcode(barcode, imagingSessionIds);
-                      }
-                    }}
-                  />
-                </LabeledInput>
-                <div className={styles.separatorText}>OR</div>
-                <LabeledInput
-                  className={styles.selector}
-                  label="Create Barcode & Plate"
-                >
-                  <Form.Item validateStatus={uploadTypeError ? "error" : ""}>
-                    <Select
-                      className={styles.selector}
-                      disabled={isReadOnly}
-                      onSelect={onCreateBarcode}
-                      placeholder="Select Barcode Prefix"
-                    >
-                      {barcodePrefixes.map(({ prefixId, description }) => (
-                        <Select.Option value={prefixId} key={prefixId}>
-                          {description}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </LabeledInput>
-                <div className={styles.separatorText}>OR</div>
-                <LabeledInput className={styles.selector} label="Neither">
-                  <Checkbox
-                    className={classNames({
-                      [styles.noPlateCheckboxError]: uploadTypeError,
-                    })}
-                    disabled={isReadOnly}
-                    checked={hasNoPlateToUpload && !isReadOnly}
-                    onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
-                  />
-                  <span className={styles.helpText}>&nbsp;No Plate</span>
-                </LabeledInput>
-              </div>
+                    onSelect={onCreateBarcode}
+                    placeholder="Select Barcode Prefix"
+                  >
+                    {barcodePrefixes.map(({ prefixId, description }) => (
+                      <Select.Option value={prefixId} key={prefixId}>
+                        {description}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </LabeledInput>
+              <div className={styles.separatorText}>OR</div>
+              <LabeledInput className={styles.selector} label="Neither">
+                <Checkbox
+                  className={classNames({
+                    [styles.noPlateCheckboxError]: uploadTypeError,
+                  })}
+                  disabled={isReadOnly}
+                  checked={hasNoPlateToUpload && !isReadOnly}
+                  onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
+                />
+                <span className={styles.helpText}>&nbsp;No Plate</span>
+              </LabeledInput>
             </div>
           </div>
         </div>
