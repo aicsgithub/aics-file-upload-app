@@ -1,4 +1,5 @@
 import { Alert, Button, Checkbox, Icon, Select, Spin, Form } from "antd";
+import { CustomIconComponentProps } from "antd/lib/icon";
 import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
@@ -84,37 +85,32 @@ import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 
 const styles = require("./style.pcss");
 
-const StepOneSvg = () => (
-  <svg viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor">
-    <text
-      x="510"
-      y="555"
-      textAnchor="middle"
-      dominantBaseline="middle"
-      fontSize="600px"
-      fontFamily="sans-serif"
-    >
-      1
-    </text>
-    <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
-  </svg>
-);
+function createStepSvg(
+  stepNum: number,
+  displayName: string
+): React.ComponentType<CustomIconComponentProps> {
+  const componentFunc: React.ComponentType<CustomIconComponentProps> = () => (
+    <svg viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor">
+      <text
+        x="510"
+        y="555"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="600px"
+        fontFamily="sans-serif"
+      >
+        {stepNum}
+      </text>
+      <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+    </svg>
+  );
+  // https://reactjs.org/docs/react-component.html#displayname
+  componentFunc.displayName = displayName;
+  return componentFunc;
+}
 
-const StepTwoSvg = () => (
-  <svg viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor">
-    <text
-      x="510"
-      y="555"
-      textAnchor="middle"
-      dominantBaseline="middle"
-      fontSize="600px"
-      fontFamily="sans-serif"
-    >
-      2
-    </text>
-    <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
-  </svg>
-);
+const StepOneSvg = createStepSvg(1, "StepOneSvg");
+const StepTwoSvg = createStepSvg(2, "StepTwoSvg");
 
 interface Props {
   appliedTemplate?: Template;
