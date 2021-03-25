@@ -24,7 +24,7 @@ const styles = require("./styles.pcss");
 
 const { Option } = Select;
 
-const INITIAL_DURATION = { days: "0", hours: "0", minutes: "0", seconds: "0" };
+const INITIAL_DURATION = { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
 /*
   This component is responsible by default for react-tables for
@@ -67,8 +67,8 @@ export default function DefaultCell(props: CustomCell) {
     // we only want to trigger this if it is going to the next cell
     if (
       props.column.type !== ColumnType.DURATION ||
-      (event.relatedTarget instanceof Node &&
-        !event.currentTarget.contains(event.relatedTarget))
+      !(event.relatedTarget instanceof Node) ||
+      !event.currentTarget.contains(event.relatedTarget)
     ) {
       onStopEditing();
     }
@@ -77,6 +77,16 @@ export default function DefaultCell(props: CustomCell) {
   function onCancel() {
     setIsEditing(false);
     setValue(initialValue);
+  }
+
+  const duration = value.length ? value[0] : { ...INITIAL_DURATION };
+  function onDurationChange(key: string, input: string) {
+    let value = 0;
+    if (input) {
+      const inputAsNumber = Number(input);
+      value = isNaN(inputAsNumber) ? duration[key] : inputAsNumber;
+    }
+    setValue([{ ...duration, [key]: value }]);
   }
 
   switch (props.column.type) {
@@ -147,50 +157,36 @@ export default function DefaultCell(props: CustomCell) {
           />
         </Modal>
       );
-    case ColumnType.DURATION: {
-      const duration = value.length ? value : [{ ...INITIAL_DURATION }];
+    case ColumnType.DURATION:
       return (
         <Input.Group
           compact
           className={classNames(styles.defaultInput, styles.durationInput)}
           onBlur={onBlur}
         >
-          <Tooltip visible title="D">
-            <Input
-              autoFocus
-              value={duration[0].days}
-              onChange={(e) =>
-                setValue([{ ...duration[0], days: e.target.value }])
-              }
-            />
-          </Tooltip>
-          <Tooltip visible title="H">
-            <Input
-              value={duration[0].hours}
-              onChange={(e) =>
-                setValue([{ ...duration[0], hours: e.target.value }])
-              }
-            />
-          </Tooltip>
-          <Tooltip visible title="M">
-            <Input
-              value={duration[0].minutes}
-              onChange={(e) =>
-                setValue([{ ...duration[0], minutes: e.target.value }])
-              }
-            />
-          </Tooltip>
-          <Tooltip visible title="S">
-            <Input
-              value={duration[0].seconds}
-              onChange={(e) =>
-                setValue([{ ...duration[0], seconds: e.target.value }])
-              }
-            />
-          </Tooltip>
+          <Input
+            autoFocus
+            addonAfter="D"
+            value={duration.days}
+            onChange={(e) => onDurationChange("days", e.target.value)}
+          />
+          <Input
+            addonAfter="H"
+            value={duration.hours}
+            onChange={(e) => onDurationChange("hours", e.target.value)}
+          />
+          <Input
+            addonAfter="M"
+            value={duration.minutes}
+            onChange={(e) => onDurationChange("minutes", e.target.value)}
+          />
+          <Input
+            addonAfter="S"
+            value={duration.seconds}
+            onChange={(e) => onDurationChange("seconds", e.target.value)}
+          />
         </Input.Group>
       );
-    }
     case ColumnType.DROPDOWN:
       return (
         <Select
