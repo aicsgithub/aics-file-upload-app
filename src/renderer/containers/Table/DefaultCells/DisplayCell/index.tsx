@@ -147,8 +147,8 @@ export default function DisplayCell(props: Props) {
       cellAtDragStart?.columnId === columnId &&
       !rowsFromDragEvent.find((row) => row.index === rowIndex)
     ) {
-      let min = rowIndex;
-      let max = rowIndex;
+      let min = cellAtDragStart.rowIndex;
+      let max = cellAtDragStart.rowIndex;
       rowsFromDragEvent.forEach((row) => {
         min = Math.min(min, row.index);
         max = Math.max(max, row.index);
@@ -165,38 +165,32 @@ export default function DisplayCell(props: Props) {
 
   function onDragEnter() {
     if (cellAtDragStart) {
-      // On drag entry if this cell hasn't been highlighted
-      // we know we need to add it to our list of rows dragged over
+      if (rowsFromDragEvent) {
+        // Check if previously dragged over cells are now irrelevant
+        // due to the user now dragging a different direction
+        let rowsToRemove;
+        if (cellAtDragStart.rowIndex === rowIndex) {
+          rowsToRemove = rowsFromDragEvent;
+        } else if (cellAtDragStart.rowIndex > rowIndex) {
+          rowsToRemove = rowsFromDragEvent.filter(
+            ({ index }) => index < rowIndex || index > cellAtDragStart.rowIndex
+          );
+        } else {
+          rowsToRemove = rowsFromDragEvent.filter(
+            ({ index }) => index > rowIndex || index < cellAtDragStart.rowIndex
+          );
+        }
+        if (rowsToRemove.length) {
+          dispatch(removeRowsFromDragEvent(rowsToRemove.map((row) => row.id)));
+        }
+      }
       if (
         !rowsFromDragEvent ||
         !rowsFromDragEvent.find((row) => row.index === rowIndex)
       ) {
+        // On drag entry if this cell hasn't been dragged over
+        // we know we need to add it to our list of rows dragged over
         dispatch(addRowToDragEvent(rowId, rowIndex));
-      } else if (rowsFromDragEvent) {
-        // If this cell has already been highlighted before we
-        // must be backtracking across rows we've dragged over
-        // before and need to clean up any now irrelevant ones
-        if (cellAtDragStart.rowIndex > rowIndex) {
-          const lowerIndexRows = rowsFromDragEvent
-            .filter(
-              (row) =>
-                row.index < rowIndex || row.index > cellAtDragStart.rowIndex
-            )
-            .map((row) => row.id);
-          if (lowerIndexRows.length) {
-            dispatch(removeRowsFromDragEvent(lowerIndexRows));
-          }
-        } else {
-          const higherIndexRows = rowsFromDragEvent
-            .filter(
-              (row) =>
-                row.index > rowIndex || row.index < cellAtDragStart.rowIndex
-            )
-            .map((row) => row.id);
-          if (higherIndexRows.length) {
-            dispatch(removeRowsFromDragEvent(higherIndexRows));
-          }
-        }
       }
     }
   }
@@ -240,7 +234,7 @@ export default function DisplayCell(props: Props) {
       arrowPointAtCenter
       autoAdjustOverflow
       mouseLeaveDelay={0}
-      title={displayValue}
+      title={cellAtDragStart ? "" : displayValue}
     >
       <div className={styles.tooltipAnchor} onDragEnter={onDragEnter}>
         {/* This input is solely for keyboard navigation */}
