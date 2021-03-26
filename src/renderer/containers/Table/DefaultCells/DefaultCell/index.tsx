@@ -1,30 +1,13 @@
-import {
-  Button,
-  Checkbox,
-  DatePicker,
-  Icon,
-  Input,
-  Modal,
-  Select,
-  Tooltip,
-} from "antd";
-import classNames from "classnames";
 import { isNil } from "lodash";
-import moment from "moment";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { DATETIME_FORMAT, DATE_FORMAT } from "../../../../constants";
-import { ColumnType } from "../../../../services/labkey-client/types";
 import { updateUpload } from "../../../../state/upload/actions";
-import LookupSearch from "../../../LookupSearch";
 import DisplayCell, { CustomCell } from "../DisplayCell";
 
+import DefaultEditor from "./DefaultEditor";
+
 const styles = require("./styles.pcss");
-
-const { Option } = Select;
-
-const INITIAL_DURATION = { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
 /*
   This component is responsible by default for react-tables for
@@ -62,176 +45,21 @@ export default function DefaultCell(props: CustomCell) {
     }
   }
 
-  function onBlur(event: React.FocusEvent) {
-    // The duration editor has multiple inputs within itself
-    // we only want to trigger this if it is going to the next cell
-    if (
-      props.column.type !== ColumnType.DURATION ||
-      !(event.relatedTarget instanceof Node) ||
-      !event.currentTarget.contains(event.relatedTarget)
-    ) {
+  function onKeyPress(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
       onStopEditing();
     }
   }
 
-  function onCancel() {
-    setIsEditing(false);
-    setValue(initialValue);
-  }
-
-  const duration = value.length ? value[0] : { ...INITIAL_DURATION };
-  function onDurationChange(key: string, input: string) {
-    let value = 0;
-    if (input) {
-      const inputAsNumber = Number(input);
-      value = isNaN(inputAsNumber) ? duration[key] : inputAsNumber;
-    }
-    setValue([{ ...duration, [key]: value }]);
-  }
-
-  switch (props.column.type) {
-    case ColumnType.BOOLEAN:
-      return (
-        <div className={styles.checkboxContainer} onBlur={onBlur}>
-          <Checkbox
-            autoFocus
-            checked={value[0]}
-            onChange={() => setValue([!value[0]])}
-          />
-        </div>
-      );
-    case ColumnType.DATE:
-    case ColumnType.DATETIME:
-      return (
-        <Modal
-          visible
-          okText="Save"
-          onCancel={onCancel}
-          onOk={onStopEditing}
-          title={`Adjust ${props.column.id}`}
-          width="50%"
-        >
-          {(value.length ? value : [undefined]).map(
-            (date: Date | undefined, index: number) => (
-              <div key={date?.toString() || ""} className={styles.dateInput}>
-                <Tooltip title={date ? "Delete this date" : ""}>
-                  <Icon
-                    className={date ? undefined : styles.hidden}
-                    type="delete"
-                    onClick={() =>
-                      setValue([
-                        ...value.slice(0, index),
-                        ...value.slice(index + 1),
-                      ])
-                    }
-                  />
-                </Tooltip>
-                <DatePicker
-                  autoFocus={true}
-                  allowClear={false}
-                  className={styles.datePicker}
-                  showTime={props.column.type === ColumnType.DATETIME}
-                  placeholder="Add a Date"
-                  value={date ? moment(date) : undefined}
-                  onChange={(d) =>
-                    setValue([
-                      ...value.slice(0, index),
-                      d?.toDate(),
-                      ...value.slice(index + 1),
-                    ])
-                  }
-                  format={
-                    props.column.type === ColumnType.DATETIME
-                      ? DATETIME_FORMAT
-                      : DATE_FORMAT
-                  }
-                />
-              </div>
-            )
-          )}
-          <Button
-            className={styles.datePlusButton}
-            disabled={!value.length || !value[value.length - 1]}
-            icon="plus"
-            onClick={() => setValue([...value, undefined])}
-          />
-        </Modal>
-      );
-    case ColumnType.DURATION:
-      return (
-        <Input.Group
-          compact
-          className={classNames(styles.defaultInput, styles.durationInput)}
-          onBlur={onBlur}
-        >
-          <Input
-            autoFocus
-            addonAfter="D"
-            value={duration.days}
-            onChange={(e) => onDurationChange("days", e.target.value)}
-          />
-          <Input
-            addonAfter="H"
-            value={duration.hours}
-            onChange={(e) => onDurationChange("hours", e.target.value)}
-          />
-          <Input
-            addonAfter="M"
-            value={duration.minutes}
-            onChange={(e) => onDurationChange("minutes", e.target.value)}
-          />
-          <Input
-            addonAfter="S"
-            value={duration.seconds}
-            onChange={(e) => onDurationChange("seconds", e.target.value)}
-          />
-        </Input.Group>
-      );
-    case ColumnType.DROPDOWN:
-      return (
-        <Select
-          autoFocus
-          allowClear
-          defaultOpen
-          className={styles.defaultInput}
-          mode="multiple"
-          onBlur={onBlur}
-          onChange={(v: any) => setValue(v as string[])}
-          value={value}
-        >
-          {props.column.dropdownValues?.map((dropdownValue: string) => (
-            <Option key={dropdownValue}>{dropdownValue}</Option>
-          ))}
-        </Select>
-      );
-    case ColumnType.LOOKUP:
-      return (
-        <LookupSearch
-          className={styles.defaultInput}
-          onBlur={onStopEditing}
-          defaultOpen={true}
-          mode="multiple"
-          lookupAnnotationName={props.column.id}
-          selectSearchValue={setValue}
-          value={value}
-        />
-      );
-    case ColumnType.NUMBER:
-    case ColumnType.TEXT:
-      return (
-        <Input
-          autoFocus
-          className={styles.defaultInput}
-          onBlur={onBlur}
-          onChange={(e) =>
-            setValue(e.target.value.split(",").map((v) => v.trim()))
-          }
-          value={value.join(", ")}
-        />
-      );
-    default:
-      // Error-case shouldn't occur
-      console.error("Invalid column type", props.column.type);
-      return null;
-  }
+  return (
+    <div className={styles.editorContainer} onKeyPress={onKeyPress}>
+      <DefaultEditor
+        column={props.column}
+        value={value}
+        initialValue={initialValue}
+        setValue={setValue}
+        onStopEditing={onStopEditing}
+      />
+    </div>
+  );
 }

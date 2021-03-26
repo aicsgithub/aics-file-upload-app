@@ -24,6 +24,8 @@ import { Duration } from "../../../../types";
 
 const styles = require("./styles.pcss");
 
+export type ColumnValue = string[] | number[] | boolean[] | Date[] | Duration[];
+
 export interface CustomRow extends Row {
   // This contains whatever the row data originally was
   original: any;
@@ -57,8 +59,9 @@ export type CustomColumn = Column<UploadMetadata> & {
 };
 
 export type CustomCell = Cell & {
-  row: CustomRow;
   column: CustomColumn;
+  row: CustomRow;
+  value: ColumnValue;
 
   // This prop comes from useRowSelect plugin
   getToggleAllRowsSelectedProps: () => any;
