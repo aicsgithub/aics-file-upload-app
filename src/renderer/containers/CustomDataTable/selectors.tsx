@@ -79,6 +79,8 @@ function getColumnWidthForType(column: string, type?: ColumnType): number {
   switch (type) {
     case ColumnType.BOOLEAN:
       return Math.min(Math.max(75, maxFontWidth), MAX_HEADER_WIDTH);
+    case ColumnType.DURATION:
+      return 200;
     case ColumnType.NUMBER:
     case ColumnType.TEXT:
       return Math.min(Math.max(100, maxFontWidth), MAX_HEADER_WIDTH);
