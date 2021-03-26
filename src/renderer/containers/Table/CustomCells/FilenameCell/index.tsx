@@ -48,10 +48,9 @@ export default function FilenameCell({ column, row, value: file }: CustomCell) {
 
   return (
     <div
-      className={classNames(
-        styles.fileCell,
-        isHighlighted ? styles.highlight : undefined
-      )}
+      className={classNames(styles.fileCell, {
+        [styles.highlight]: isHighlighted,
+      })}
       style={{ paddingLeft: `${row.depth * 15}px` }}
     >
       {row.canExpand && (

@@ -238,10 +238,9 @@ export default function DisplayCell(props: Props) {
             readOnly
             ref={inputEl}
             tabIndex={-1}
-            className={classNames(
-              styles.readOnlyCell,
-              isHighlighted ? styles.highlight : undefined
-            )}
+            className={classNames(styles.readOnlyCell, {
+              [styles.highlight]: isHighlighted,
+            })}
             onKeyDown={onDisplayInputKeyDown}
             onBlur={() => setIsActive(false)}
             onClick={() =>
@@ -261,10 +260,9 @@ export default function DisplayCell(props: Props) {
           )}
           <div
             draggable
-            className={classNames(
-              styles.dragBox,
-              isHighlighted ? undefined : styles.invisible
-            )}
+            className={classNames(styles.dragBox, {
+              [styles.invisible]: !isHighlighted,
+            })}
             onDragStart={onDragStart}
             onDragEnd={() => dispatch(stopCellDrag())}
           />
