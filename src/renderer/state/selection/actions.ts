@@ -105,29 +105,32 @@ export function openSubFileSelectionModal(
   };
 }
 
-export function addRowToDragEvent(rowId: string): AddRowToDragEventAction {
+export function addRowToDragEvent(
+  id: string,
+  index: number
+): AddRowToDragEventAction {
   return {
-    payload: rowId,
+    payload: { id, index },
     type: ADD_ROW_TO_DRAG_EVENT,
   };
 }
 
-export function removeRowFromDragEvent(
-  rowId: string
+export function removeRowsFromDragEvent(
+  rowIds: string[]
 ): RemoveRowFromDragEventAction {
   return {
-    payload: rowId,
+    payload: rowIds,
     type: REMOVE_ROW_FROM_DRAG_EVENT,
   };
 }
 
 export function startCellDrag(
-  yCoordinate: number,
   rowId: string,
+  rowIndex: number,
   columnId: string
 ): StartCellDragAction {
   return {
-    payload: { yCoordinate, rowId, columnId },
+    payload: { rowId, rowIndex, columnId },
     type: START_CELL_DRAG,
   };
 }

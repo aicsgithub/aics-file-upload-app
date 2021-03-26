@@ -1,6 +1,5 @@
 import { userInfo } from "os";
 
-import { uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import undoable, { UndoableOptions } from "redux-undo";
 
@@ -242,10 +241,11 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       action: AddRowToDragEventAction
     ) => ({
       ...state,
-      rowsSelectedForDragEvent: uniq([
-        ...(state.rowsSelectedForDragEvent || []),
-        action.payload,
-      ]),
+      rowsSelectedForDragEvent: state.rowsSelectedForDragEvent?.find(
+        (row) => row.id === action.payload.id
+      )
+        ? state.rowsSelectedForDragEvent
+        : [...(state.rowsSelectedForDragEvent || []), action.payload],
     }),
   },
   [REMOVE_ROW_FROM_DRAG_EVENT]: {
@@ -256,9 +256,8 @@ const actionToConfigMap: TypeToDescriptionMap<SelectionStateBranch> = {
       action: RemoveRowFromDragEventAction
     ) => ({
       ...state,
-      rowsSelectedForDragEvent: without(
-        state.rowsSelectedForDragEvent || [],
-        action.payload
+      rowsSelectedForDragEvent: state.rowsSelectedForDragEvent?.filter(
+        (row) => !action.payload.includes(row.id)
       ),
     }),
   },

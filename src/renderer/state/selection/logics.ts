@@ -25,6 +25,7 @@ import {
   ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   UploadFile,
+  UploadRow,
 } from "../types";
 import { addUploadFiles, updateUploadRows } from "../upload/actions";
 import { getUpload } from "../upload/selectors";
@@ -243,8 +244,9 @@ const stopCellDragLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const { cellAtDragStart, rowIds } = ctx;
-    if (rowIds) {
+    const { cellAtDragStart, rows } = ctx;
+    if (cellAtDragStart && rows?.length) {
+      const rowIds = rows.map((row: UploadRow) => row.id);
       const upload = getUpload(getState());
       const value = upload[cellAtDragStart.rowId][cellAtDragStart.columnId];
       dispatch(updateUploadRows(rowIds, { [cellAtDragStart.columnId]: value }));
@@ -256,9 +258,9 @@ const stopCellDragLogic = createLogic({
     next: ReduxLogicNextCb
   ) => {
     const cellAtDragStart = getCellAtDragStart(getState());
-    const rowIds = getRowsSelectedForDragEvent(getState());
+    const rows = getRowsSelectedForDragEvent(getState());
     ctx.cellAtDragStart = cellAtDragStart;
-    ctx.rowIds = rowIds;
+    ctx.rows = rows;
     next(action);
   },
   type: STOP_CELL_DRAG,

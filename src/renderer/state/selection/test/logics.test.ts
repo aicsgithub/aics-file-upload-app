@@ -430,11 +430,17 @@ describe("Selection logics", () => {
     it("send update for rows selected", async () => {
       // Arrange
       const uploadValue = "false";
-      const rowsSelectedForDragEvent = ["21", "3", "9", "18"];
+      const rowIdsSelectedForDragEvent = ["21", "3", "9", "18"];
+      const rowsSelectedForDragEvent = rowIdsSelectedForDragEvent.map(
+        (id, index) => ({
+          id,
+          index,
+        })
+      );
       const cellAtDragStart = {
         rowId: "14",
         columnId: "Is Aligned?",
-        yCoordinate: 23,
+        rowIndex: 2,
       };
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
@@ -458,7 +464,7 @@ describe("Selection logics", () => {
       // Assert
       expect(
         actions.includesMatch(
-          updateUploadRows(rowsSelectedForDragEvent, {
+          updateUploadRows(rowIdsSelectedForDragEvent, {
             [cellAtDragStart.columnId]: uploadValue,
           })
         )

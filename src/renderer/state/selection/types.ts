@@ -87,12 +87,15 @@ export interface SelectImagingSessionIdAction extends AutoSaveAction {
 }
 
 export interface AddRowToDragEventAction {
-  payload: string;
+  payload: {
+    id: string;
+    index: number;
+  };
   type: string;
 }
 
 export interface RemoveRowFromDragEventAction {
-  payload: string;
+  payload: string[];
   type: string;
 }
 

@@ -285,7 +285,12 @@ export interface SelectionStateBranch extends UploadTabSelections {
 export interface UploadKeyValue {
   columnId: string;
   rowId: string;
-  yCoordinate: number;
+  rowIndex: number;
+}
+
+export interface UploadRow {
+  id: string;
+  index: number;
 }
 
 export interface UploadTabSelections {
@@ -297,7 +302,7 @@ export interface UploadTabSelections {
   job?: JSSJob<UploadServiceFields>;
   massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
-  rowsSelectedForDragEvent?: string[];
+  rowsSelectedForDragEvent?: UploadRow[];
   rowsSelectedForMassEdit?: string[];
   subFileSelectionModalFile?: string;
   wells: ImagingSessionIdToWellsMap;
