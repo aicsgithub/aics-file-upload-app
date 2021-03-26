@@ -1,0 +1,42 @@
+.column-resizer {
+    display: inline-block;
+    width: 10px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translateX(50%);
+    z-index: 1;
+}
+
+.table-container {
+    background-color: var(--app-foreground-color);
+    /* Variable located in styles/variables */
+    border-right: var(--border);
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.table-cell, .table-header {
+    /* Variable located in styles/variables */
+    border: var(--border);
+}
+
+.table-cell {
+    height: 35px;
+    padding: 0;
+    margin: 0;
+}
+
+.table-cell:hover {
+    /* Variable found in styles/variables.pcss */
+    border: var(--border);
+    /* Variable equivalent to --brand-primary with half opacity */
+    border-color: rgba(29, 165, 122, .5);
+}
+
+.table-header {
+    max-height: 105px;
+    overflow: hidden;
+    user-select: none;
+}

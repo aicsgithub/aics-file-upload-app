@@ -1,0 +1,58 @@
+.drag-box {
+    /* Variable found in styles/colors.pcss */
+    background-color: var(--brand-primary);
+    bottom: 0;
+    height: 10px;
+    position: absolute;
+    right: 0;
+    width: 10px;
+}
+
+.error-icon {
+    bottom: 30%;
+    /* Variable found in styles/colors.pcss */
+    color: var(--error);
+    position: absolute;
+    right: 4px;
+}
+
+.hidden {
+    border: none;
+    display: block;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    width: 0;
+}
+
+.invisible {
+    background-color: transparent;
+}
+
+.read-only-cell-container {
+    height: 100%;
+    position: relative;
+    width: 100%;
+}
+
+.read-only-cell, .file-cell-input {
+    border: none;
+    height: 100%;
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.read-only-cell:focus, .highlight {
+    /* Variable found in styles/variables.pcss */
+    border: var(--border);
+    /* Variable found in styles/colors.pcss */
+    border-color: var(--brand-primary);
+}
+
+.tooltip-anchor {
+    height: 100%;
+    width: 100%;
+}

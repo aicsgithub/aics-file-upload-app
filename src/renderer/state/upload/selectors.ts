@@ -38,7 +38,7 @@ import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";
 import { Duration } from "../../types";
-import { getWellLabel, titleCase } from "../../util";
+import { getWellLabelAndImagingSessionName, titleCase } from "../../util";
 import {
   getBooleanAnnotationTypeId,
   getDateAnnotationTypeId,
@@ -53,7 +53,6 @@ import {
 } from "../metadata/selectors";
 import {
   getAllPlates,
-  getExpandedUploadJobRows,
   getSelectedBarcode,
   getSelectedJob,
   getWellIdToWellMap,
@@ -63,20 +62,9 @@ import {
   TemplateAnnotationWithTypeName,
   TemplateWithTypeNames,
 } from "../template/types";
-import {
-  ExpandedRows,
-  State,
-  UploadMetadata,
-  UploadStateBranch,
-} from "../types";
+import { State, UploadMetadata, UploadStateBranch } from "../types";
 
-import {
-  getUploadRowKey,
-  isChannelOnlyRow,
-  isFileRow,
-  isSubImageOnlyRow,
-  isSubImageRow,
-} from "./constants";
+import { isChannelOnlyRow, isFileRow, isSubImageRow } from "./constants";
 import {
   DisplayUploadStateBranch,
   FileType,
@@ -124,31 +112,6 @@ const standardizeUploadMetadata = (metadata: UploadMetadata) => {
   return result;
 };
 
-// This returns a human-readable version of a well using the label (e.g. "A1", "B2") and the imaging session name
-export const getWellLabelAndImagingSessionName = (
-  wellId: number,
-  imagingSessions: ImagingSession[],
-  selectedPlates: PlateResponse[],
-  wellIdToWell: Map<number, WellResponse>
-) => {
-  const well = wellIdToWell.get(wellId);
-  let label = "ERROR";
-  if (well) {
-    label = getWellLabel({ col: well.col, row: well.row });
-    const plate = selectedPlates.find((p) => p.plateId === well.plateId);
-
-    if (plate && plate.imagingSessionId) {
-      const imagingSession = imagingSessions.find(
-        (is) => is.imagingSessionId === plate.imagingSessionId
-      );
-      if (imagingSession) {
-        label += ` (${imagingSession.name})`;
-      }
-    }
-  }
-  return label;
-};
-
 export const getUploadWithCalculatedData = createSelector(
   [getUpload, getImagingSessions, getAllPlates, getWellIdToWellMap],
   (
@@ -188,10 +151,7 @@ export const getUploadWithCalculatedData = createSelector(
 
 const convertToUploadJobRow = (
   metadata: UploadMetadataWithDisplayFields,
-  numberSiblings: number,
-  siblingIndex: number,
-  treeDepth: number,
-  hasSubRows = false,
+  subRows: UploadJobTableRow[] = [],
   channelIds: string[] = [],
   positionIndexes: number[] = [],
   scenes: number[] = [],
@@ -199,24 +159,15 @@ const convertToUploadJobRow = (
 ): UploadJobTableRow => {
   return {
     ...metadata,
+    subRows,
     [CHANNEL_ANNOTATION_NAME]: channelIds,
-    group: hasSubRows,
-    key: getUploadRowKey({
-      channelId: metadata.channelId,
-      file: metadata.file,
-      positionIndex: metadata.positionIndex,
-      scene: metadata.scene,
-      subImageName: metadata.subImageName,
-    }),
     [NOTES_ANNOTATION_NAME]: metadata[NOTES_ANNOTATION_NAME]
       ? metadata[NOTES_ANNOTATION_NAME][0]
       : undefined,
-    numberSiblings,
+    [WELL_ANNOTATION_NAME]: metadata[WELL_ANNOTATION_NAME] || [],
     positionIndexes,
     scenes,
-    siblingIndex,
     subImageNames,
-    treeDepth,
     wellLabels: metadata.wellLabels ? metadata.wellLabels.sort() : [],
   };
 };
@@ -236,46 +187,24 @@ const getFileToMetadataMap = createSelector(
 );
 
 const getChannelOnlyRows = (
-  allMetadataForFile: UploadMetadataWithDisplayFields[],
-  treeDepth = 1
+  allMetadataForFile: UploadMetadataWithDisplayFields[]
 ) => {
   const channelMetadata = allMetadataForFile.filter(isChannelOnlyRow);
-  const subImageOnlyRows = allMetadataForFile.filter(isSubImageOnlyRow);
-  return channelMetadata.map(
-    (c: UploadMetadataWithDisplayFields, siblingIndex: number) =>
-      convertToUploadJobRow(
-        c,
-        channelMetadata.length + subImageOnlyRows.length,
-        siblingIndex,
-        treeDepth
-      )
-  );
+  return channelMetadata.map((c) => convertToUploadJobRow(c));
 };
 
 const getSubImageChannelRows = (
   allMetadataForSubImage: UploadMetadataWithDisplayFields[],
-  treeDepth: number,
   subImageParentMetadata?: UploadMetadataWithDisplayFields
 ) => {
   const sceneChannelMetadata = subImageParentMetadata
     ? without(allMetadataForSubImage, subImageParentMetadata)
     : allMetadataForSubImage;
-  return sceneChannelMetadata.map(
-    (u: UploadMetadataWithDisplayFields, sceneChannelSiblingIndex: number) =>
-      convertToUploadJobRow(
-        u,
-        sceneChannelMetadata.length,
-        sceneChannelSiblingIndex,
-        treeDepth
-      )
-  );
+  return sceneChannelMetadata.map((s) => convertToUploadJobRow(s));
 };
 
 const getSubImageRows = (
-  allMetadataForFile: UploadMetadataWithDisplayFields[],
-  numberChannelOnlyRows: number,
-  expandedRows: ExpandedRows,
-  subImageRowTreeDepth: number
+  allMetadataForFile: UploadMetadataWithDisplayFields[]
 ) => {
   const subImageRows: UploadJobTableRow[] = [];
   const subImageMetadata = allMetadataForFile.filter(isSubImageRow);
@@ -284,41 +213,23 @@ const getSubImageRows = (
     ({ positionIndex, scene, subImageName }: UploadMetadataWithDisplayFields) =>
       positionIndex || scene || subImageName
   );
-  const numberSiblingsUnderFile =
-    numberChannelOnlyRows + keys(metadataGroupedBySubImage).length;
 
   forEach(
     values(metadataGroupedBySubImage),
-    (
-      allMetadataForSubImage: UploadMetadataWithDisplayFields[],
-      index: number
-    ) => {
+    (allMetadataForSubImage: UploadMetadataWithDisplayFields[]) => {
       const subImageOnlyMetadata = allMetadataForSubImage.find((m) =>
         isNil(m.channel)
       );
       if (subImageOnlyMetadata) {
         const subImageRow = convertToUploadJobRow(
           subImageOnlyMetadata,
-          numberSiblingsUnderFile,
-          index + numberChannelOnlyRows,
-          subImageRowTreeDepth,
-          allMetadataForSubImage.length > 1
+          getSubImageChannelRows(allMetadataForSubImage, subImageOnlyMetadata)
         );
         subImageRows.push(subImageRow);
-        if (expandedRows[subImageRow.key]) {
-          subImageRows.push(
-            ...getSubImageChannelRows(
-              allMetadataForSubImage,
-              subImageRowTreeDepth + 1,
-              subImageOnlyMetadata
-            )
-          );
-        }
       } else {
         subImageRows.push(
           ...getSubImageChannelRows(
             allMetadataForSubImage,
-            subImageRowTreeDepth,
             subImageOnlyMetadata
           )
         );
@@ -329,86 +240,53 @@ const getSubImageRows = (
   return subImageRows;
 };
 
-// maps uploadMetadata to shape of data needed by react-data-grid including information about how to display subrows
-export const getUploadSummaryRows = createSelector(
-  [getExpandedUploadJobRows, getFileToMetadataMap, getCompleteAppliedTemplate],
-  (
-    expandedRows: ExpandedRows,
-    metadataGroupedByFile: {
-      [file: string]: UploadMetadataWithDisplayFields[];
-    }
-  ): UploadJobTableRow[] => {
-    // contains only rows that are visible (i.e. rows whose parents are expanded)
-    const visibleRows: UploadJobTableRow[] = [];
-
-    // populate visibleRows
-    let fileSiblingIndex = -1;
-    forEach(
-      metadataGroupedByFile,
-      (allMetadataForFile: UploadMetadataWithDisplayFields[], file: string) => {
-        fileSiblingIndex++;
+// Maps UploadMetadata to shape of data needed by react-table
+// including information about how to display subrows
+export const getUploadAsTableRows = createSelector(
+  [getFileToMetadataMap],
+  (metadataGroupedByFile): UploadJobTableRow[] => {
+    return Object.values(metadataGroupedByFile).flatMap(
+      (allMetadataForFile) => {
         const fileMetadata = allMetadataForFile.find(isFileRow);
-        const treeDepth = fileMetadata ? 1 : 0;
-        const channelRows = getChannelOnlyRows(allMetadataForFile, treeDepth);
-        const subImageRows = getSubImageRows(
-          allMetadataForFile,
-          channelRows.length,
-          expandedRows,
-          treeDepth
-        );
+        const channelRows = getChannelOnlyRows(allMetadataForFile);
+        const subImageRows = getSubImageRows(allMetadataForFile);
 
-        if (fileMetadata) {
-          // file rows are always visible
-          const hasSubRows = channelRows.length + subImageRows.length > 0;
-          const allChannelIds = uniq(
-            allMetadataForFile
-              .filter((m: UploadMetadataWithDisplayFields) => !!m.channelId)
-              .map(
-                (m: UploadMetadataWithDisplayFields) => m.channelId
-              ) as string[]
-          );
-          const allPositionIndexes: number[] = uniq(
-            allMetadataForFile
-              .filter(
-                (m: UploadMetadataWithDisplayFields) => !isNil(m.positionIndex)
-              )
-              .map((m: UploadMetadataWithDisplayFields) => m.positionIndex)
-          ) as number[];
-          const allScenes: number[] = uniq(
-            allMetadataForFile
-              .filter((m: UploadMetadataWithDisplayFields) => !isNil(m.scene))
-              .map((m: UploadMetadataWithDisplayFields) => m.scene)
-          ) as number[];
-          const allSubImageNames: string[] = uniq(
-            allMetadataForFile
-              .filter(
-                (m: UploadMetadataWithDisplayFields) => !isNil(m.subImageName)
-              )
-              .map((m: UploadMetadataWithDisplayFields) => m.subImageName)
-          ) as string[];
-          const fileRow = convertToUploadJobRow(
+        if (!fileMetadata) {
+          return [...channelRows, ...subImageRows];
+        }
+
+        const allChannelIds = uniq(
+          allMetadataForFile
+            .filter((m) => !!m.channelId)
+            .map((m) => m.channelId) as string[]
+        );
+        const allPositionIndexes: number[] = uniq(
+          allMetadataForFile
+            .filter((m) => !isNil(m.positionIndex))
+            .map((m) => m.positionIndex) as number[]
+        );
+        const allScenes: number[] = uniq(
+          allMetadataForFile
+            .filter((m) => !isNil(m.scene))
+            .map((m) => m.scene) as number[]
+        );
+        const allSubImageNames: string[] = uniq(
+          allMetadataForFile
+            .filter((m) => !isNil(m.subImageName))
+            .map((m) => m.subImageName) as string[]
+        );
+        return [
+          convertToUploadJobRow(
             fileMetadata,
-            keys(metadataGroupedByFile).length,
-            fileSiblingIndex,
-            0,
-            hasSubRows,
+            [...channelRows, ...subImageRows],
             allChannelIds,
             allPositionIndexes,
             allScenes,
             allSubImageNames
-          );
-          visibleRows.push(fileRow);
-
-          if (expandedRows[getUploadRowKey({ file })]) {
-            visibleRows.push(...channelRows, ...subImageRows);
-          }
-        } else {
-          visibleRows.push(...channelRows, ...subImageRows);
-        }
+          ),
+        ];
       }
     );
-
-    return visibleRows;
   }
 );
 
@@ -610,7 +488,7 @@ export const getUploadKeyToAnnotationErrorMap = createSelector(
  */
 export const getUploadValidationErrors = createSelector(
   [
-    getUploadSummaryRows,
+    getUploadAsTableRows,
     getFileToAnnotationHasValueMap,
     getUploadKeyToAnnotationErrorMap,
     getCompleteAppliedTemplate,
@@ -819,12 +697,6 @@ export const getUploadFileNames = createSelector(
     )
       .sort()
       .join(", ")
-);
-
-export const getUploadFiles = createSelector(
-  [getUpload],
-  (upload: UploadStateBranch) =>
-    uniq(values(upload).map((u: UploadMetadata) => u.file))
 );
 
 export const getCanSaveUploadDraft = createSelector(

@@ -113,7 +113,10 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
     }
 
     return (
-      <Form.Item validateStatus={this.props.error ? "error" : ""}>
+      <Form.Item
+        className={styles.form}
+        validateStatus={this.props.error ? "error" : ""}
+      >
         <Select
           allowClear={true}
           className={classNames(
@@ -135,7 +138,7 @@ class LookupSearch extends React.Component<Props, { searchValue?: string }> {
           // and wanting onChange to take in either a string or string[]. I think this is called
           // "type narrowing in discriminated unions":
           // https://stackoverflow.com/questions/50870423/discriminated-union-of-generic-type
-          onChange={selectSearchValue}
+          onChange={(v) => selectSearchValue(v)}
           onSearch={this.onSearch}
           placeholder={placeholder}
           showSearch={true}

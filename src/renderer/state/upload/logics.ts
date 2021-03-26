@@ -59,11 +59,8 @@ import {
   handleStartingNewUploadJob,
   resetHistoryActions,
 } from "../route/logics";
-import {
-  getSelectedBarcode,
-  getSelectedJob,
-  getSelectedWellIds,
-} from "../selection/selectors";
+import { updateMassEditRow } from "../selection/actions";
+import { getMassEditRow, getSelectedJob } from "../selection/selectors";
 import { getLoggedInUser, getTemplateId } from "../setting/selectors";
 import { setAppliedTemplate } from "../template/actions";
 import { getAppliedTemplate } from "../template/selectors";
@@ -78,7 +75,6 @@ import {
   ReduxLogicTransformDependenciesWithAction,
   UploadMetadata,
   UploadProgressInfo,
-  UploadRowId,
   UploadStateBranch,
   UploadSummaryTableRow,
 } from "../types";
@@ -102,7 +98,6 @@ import {
 import {
   ADD_UPLOAD_FILES,
   APPLY_TEMPLATE,
-  ASSOCIATE_FILES_AND_WELLS,
   CANCEL_UPLOAD,
   getUploadRowKey,
   INITIATE_UPLOAD,
@@ -111,7 +106,6 @@ import {
   RETRY_UPLOAD,
   SAVE_UPLOAD_DRAFT,
   SUBMIT_FILE_METADATA_UPDATE,
-  UNDO_FILE_WELL_ASSOCIATION,
   UPDATE_AND_RETRY_UPLOAD,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
@@ -126,98 +120,17 @@ import {
 } from "./selectors";
 import {
   ApplyTemplateAction,
-  AssociateFilesAndWellsAction,
   CancelUploadAction,
   InitiateUploadAction,
   OpenUploadDraftAction,
   RetryUploadAction,
   SaveUploadDraftAction,
   SubmitFileMetadataUpdateAction,
-  UndoFileWellAssociationAction,
   UpdateAndRetryUploadAction,
   UpdateSubImagesAction,
   UpdateUploadAction,
   UpdateUploadRowsAction,
 } from "./types";
-
-const associateFilesAndWellsLogic = createLogic({
-  type: ASSOCIATE_FILES_AND_WELLS,
-  validate: (
-    {
-      action,
-      getState,
-    }: ReduxLogicTransformDependenciesWithAction<AssociateFilesAndWellsAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const { rowIds } = action.payload;
-    if (isEmpty(action.payload.rowIds)) {
-      reject(
-        setErrorAlert("Cannot associate files and wells: No files selected")
-      );
-      return;
-    }
-
-    const rowWithChannel = rowIds.find((id: UploadRowId) => id.channelId);
-    if (rowWithChannel) {
-      reject(setErrorAlert("Cannot associate wells with a channel row"));
-    }
-
-    const state = getState();
-    const wellIds = getSelectedWellIds(state);
-
-    if (!getSelectedBarcode(state)) {
-      reject(
-        setErrorAlert("Cannot associate files and wells: No plate selected")
-      );
-      return;
-    }
-
-    if (isEmpty(wellIds)) {
-      reject(
-        setErrorAlert("Cannot associate files and wells: No wells selected")
-      );
-      return;
-    }
-
-    action.payload = {
-      ...action.payload,
-      wellIds,
-    };
-    next(action);
-  },
-});
-
-const undoFileWellAssociationLogic = createLogic({
-  type: UNDO_FILE_WELL_ASSOCIATION,
-  validate: (
-    {
-      action,
-      getState,
-    }: ReduxLogicTransformDependenciesWithAction<UndoFileWellAssociationAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const state = getState();
-    const wellIds = isEmpty(action.payload.wellIds)
-      ? getSelectedWellIds(state)
-      : action.payload.wellIds;
-    if (isEmpty(wellIds)) {
-      reject(
-        setErrorAlert(
-          "Cannot undo file and well associations: No wells selected"
-        )
-      );
-      return;
-    }
-
-    action.payload = {
-      ...action.payload,
-      wellIds,
-    };
-    next(action);
-  },
-});
 
 const applyTemplateLogic = createLogic({
   process: async (
@@ -602,6 +515,7 @@ const updateSubImagesLogic = createLogic({
       scenes,
       subImageNames,
     } = action.payload;
+    const fileRowKey = getUploadRowKey(fileRow);
     let notEmptySubImageParams = 0;
     if (!isEmpty(positionIndexes)) {
       notEmptySubImageParams++;
@@ -663,8 +577,8 @@ const updateSubImagesLogic = createLogic({
     // If there are subimages for a file, remove the well associations from the file row
     // Also add channels as an annotation
     if (!isEmpty(subImages)) {
-      update[fileRow.key] = {
-        ...uploads[fileRow.key],
+      update[fileRowKey] = {
+        ...uploads[fileRowKey],
         [WELL_ANNOTATION_NAME]: [],
         ...(channelIds.length && {
           [CHANNEL_ANNOTATION_NAME]: channelIds,
@@ -684,7 +598,6 @@ const updateSubImagesLogic = createLogic({
         update[key] = {
           channelId,
           file: fileRow.file,
-          key,
           [NOTES_ANNOTATION_NAME]: [],
           positionIndex: undefined,
           scene: undefined,
@@ -708,7 +621,6 @@ const updateSubImagesLogic = createLogic({
         update[subImageOnlyRowKey] = {
           channelId: undefined,
           file: fileRow.file,
-          key: subImageOnlyRowKey,
           [NOTES_ANNOTATION_NAME]: [],
           [WELL_ANNOTATION_NAME]: [],
           [subImageKey]: subImageValue,
@@ -733,7 +645,6 @@ const updateSubImagesLogic = createLogic({
           update[key] = {
             channelId,
             file: fileRow.file,
-            key,
             [NOTES_ANNOTATION_NAME]: [],
             [WELL_ANNOTATION_NAME]: [],
             [subImageKey]: subImageValue,
@@ -770,7 +681,13 @@ const updateSubImagesLogic = createLogic({
             subImageName,
           })
       );
-    next(batchActions([updateUploads(update), removeUploads(rowKeysToDelete)]));
+    next(
+      batchActions([
+        action,
+        updateUploads(update),
+        removeUploads(rowKeysToDelete),
+      ])
+    );
   },
 });
 
@@ -858,6 +775,7 @@ const updateUploadLogic = createLogic({
     const { upload } = action.payload;
     const state = getState();
     const template = getAppliedTemplate(state);
+    const isMassEditing = getMassEditRow(state);
     const annotationTypes = getAnnotationTypes(state);
 
     if (!template || !annotationTypes) {
@@ -865,13 +783,17 @@ const updateUploadLogic = createLogic({
     } else {
       try {
         const formattedUpload = formatUpload(upload, template, annotationTypes);
-        next({
-          ...action,
-          payload: {
-            ...action.payload,
-            upload: formattedUpload,
-          },
-        });
+        if (isMassEditing) {
+          next(updateMassEditRow(formattedUpload));
+        } else {
+          next({
+            ...action,
+            payload: {
+              ...action.payload,
+              upload: formattedUpload,
+            },
+          });
+        }
       } catch (e) {
         logger.error(
           "Something went wrong while updating metadata: ",
@@ -1239,14 +1161,12 @@ const updateAndRetryUploadLogic = createLogic({
 export default [
   addUploadFilesLogic,
   applyTemplateLogic,
-  associateFilesAndWellsLogic,
   cancelUploadLogic,
   initiateUploadLogic,
   openUploadLogic,
   retryUploadLogic,
   saveUploadDraftLogic,
   submitFileMetadataUpdateLogic,
-  undoFileWellAssociationLogic,
   updateAndRetryUploadLogic,
   updateSubImagesLogic,
   updateUploadLogic,

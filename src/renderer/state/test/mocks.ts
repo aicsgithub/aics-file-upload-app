@@ -207,12 +207,10 @@ export const mockPlate: ImagingSessionIdToPlateMap = {
 
 export const mockSelection: SelectionStateBranch = {
   barcode: undefined,
-  expandedUploadJobRows: {},
   imagingSessionId: undefined,
   imagingSessionIds: [null, 1],
   hasNoPlateToUpload: false,
   plate: mockPlate,
-  massEditRow: { massEditNumberOfFiles: 0 },
   selectedWells: [],
   user: "fake_user",
   wells: mockWells,

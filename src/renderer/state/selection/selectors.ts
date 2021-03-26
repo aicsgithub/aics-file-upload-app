@@ -2,7 +2,10 @@ import { AicsGridCell } from "@aics/aics-react-labkey";
 import { flatten, isEmpty, isNil, sortBy, values } from "lodash";
 import { createSelector } from "reselect";
 
+import { WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
+import { UploadServiceFields } from "../../services/aicsfiles/types";
+import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {
   PlateResponse,
@@ -10,17 +13,23 @@ import {
   SolutionLot,
   WellResponse,
 } from "../../services/mms-client/types";
-import { getWellLabel } from "../../util";
+import { getWellLabel, getWellLabelAndImagingSessionName } from "../../util";
+import { ROW_COUNT_COLUMN } from "../constants";
 import { getImagingSessions, getUnits } from "../metadata/selectors";
 import {
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
+  MassEditRow,
   State,
 } from "../types";
 
 import { Well } from "./types";
 
 // BASIC SELECTORS
+export const getCellAtDragStart = (state: State) =>
+  state.selection.present.cellAtDragStart;
+export const getRowsSelectedForDragEvent = (state: State) =>
+  state.selection.present.rowsSelectedForDragEvent;
 export const getHasNoPlateToUpload = (state: State) =>
   state.selection.present.hasNoPlateToUpload;
 export const getSelectedBarcode = (state: State) =>
@@ -32,12 +41,14 @@ export const getSelectedWells = (state: State) =>
   state.selection.present.selectedWells;
 export const getSelectedUser = (state: State) => state.selection.present.user;
 export const getCurrentSelectionIndex = (state: State) => state.selection.index;
+export const getRowsSelectedForMassEdit = (state: State) =>
+  state.selection.present.rowsSelectedForMassEdit;
 export const getSelectedImagingSessionId = (state: State) =>
   state.selection.present.imagingSessionId;
 export const getSelectedImagingSessionIds = (state: State) =>
   state.selection.present.imagingSessionIds;
-export const getExpandedUploadJobRows = (state: State) =>
-  state.selection.present.expandedUploadJobRows;
+export const getSubFileSelectionModalFile = (state: State) =>
+  state.selection.present.subFileSelectionModalFile;
 export const getSelectedJob = (state: State) => state.selection.present.job;
 export const getMassEditRow = (state: State) =>
   state.selection.present.massEditRow;
@@ -203,4 +214,40 @@ export const getAllPlates = createSelector(
   (selectedPlates: ImagingSessionIdToPlateMap) => {
     return flatten(values(selectedPlates));
   }
+);
+
+export const getIsSelectedJobInFlight = createSelector(
+  [getSelectedJob],
+  (selectedJob?: JSSJob<UploadServiceFields>): boolean =>
+    !!selectedJob &&
+    ![JSSJobStatus.SUCCEEDED, JSSJobStatus.FAILED].includes(selectedJob.status)
+);
+
+// Maps MassEditRow to shape of data needed by react-table
+export const getMassEditRowAsTableRow = createSelector(
+  [
+    getMassEditRow,
+    getRowsSelectedForMassEdit,
+    getImagingSessions,
+    getAllPlates,
+    getWellIdToWellMap,
+  ],
+  (
+    massEditRow,
+    rowsSelectedForMassEdit,
+    imagingSessions,
+    plates,
+    wellIdToWellLabelMap
+  ): MassEditRow => ({
+    ...(massEditRow && massEditRow),
+    [ROW_COUNT_COLUMN]: rowsSelectedForMassEdit?.length,
+    wellLabels: (massEditRow?.[WELL_ANNOTATION_NAME] || []).map((id: number) =>
+      getWellLabelAndImagingSessionName(
+        id,
+        imagingSessions,
+        plates,
+        wellIdToWellLabelMap
+      )
+    ),
+  })
 );

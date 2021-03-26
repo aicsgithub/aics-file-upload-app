@@ -3,6 +3,7 @@ import { basename, dirname } from "path";
 import { AicsGridCell } from "@aics/aics-react-labkey";
 import { createLogic } from "redux-logic";
 
+import { NOTES_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
 import {
   getPlateInfo,
@@ -11,27 +12,42 @@ import {
 } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert, startLoading, stopLoading } from "../feedback/actions";
+import { getBooleanAnnotationTypeId } from "../metadata/selectors";
+import { getAppliedTemplate } from "../template/selectors";
 import {
   AlertType,
   AsyncRequest,
   DragAndDropFileList,
+  MassEditRow,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicRejectCb,
   ReduxLogicTransformDependencies,
   UploadFile,
+  UploadRow,
 } from "../types";
-import { addUploadFiles } from "../upload/actions";
+import { addUploadFiles, updateUploadRows } from "../upload/actions";
+import { getUpload } from "../upload/selectors";
 import { batchActions } from "../util";
 
 import { selectWells, setPlate } from "./actions";
 import {
+  APPLY_MASS_EDIT,
   LOAD_FILES,
   OPEN_FILES,
   SELECT_BARCODE,
   SELECT_WELLS,
+  START_MASS_EDIT,
+  STOP_CELL_DRAG,
 } from "./constants";
-import { getWellsWithModified } from "./selectors";
+import {
+  getCellAtDragStart,
+  getMassEditRow,
+  getRowsSelectedForDragEvent,
+  getRowsSelectedForMassEdit,
+  getWellsWithModified,
+} from "./selectors";
 
 const stageFilesAndStopLoading = async (
   uploadFilePromises: Array<Promise<UploadFile>>,
@@ -157,9 +173,105 @@ const selectWellsLogic = createLogic({
   type: SELECT_WELLS,
 });
 
+// Initialize massEditRow with necessary template annotations
+const startMassEditLogic = createLogic({
+  transform: (
+    { action, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb,
+    reject?: ReduxLogicRejectCb
+  ) => {
+    const template = getAppliedTemplate(getState());
+    const booleanAnnotationTypeId = getBooleanAnnotationTypeId(getState());
+    if (!template || !booleanAnnotationTypeId) {
+      reject && reject(action);
+      return;
+    }
+    const { annotations } = template;
+    const massEditRow = annotations.reduce(
+      (row, annotation) => ({
+        ...row,
+        [annotation.name]: [],
+      }),
+      {}
+    );
+    next({
+      ...action,
+      payload: {
+        massEditRow,
+        rowsSelectedForMassEdit: action.payload,
+      },
+    });
+  },
+  type: START_MASS_EDIT,
+});
+
+const applyMassEditLogic = createLogic({
+  process: (
+    { ctx }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { rowIds, massEditRow } = ctx;
+    const rowData = Object.entries(massEditRow as MassEditRow).reduce(
+      (row, [key, value]) => ({
+        ...row,
+        // Exclude empty values
+        ...((value.length || key === NOTES_ANNOTATION_NAME) && {
+          [key]: value,
+        }),
+      }),
+      {}
+    );
+    dispatch(updateUploadRows(rowIds, rowData));
+    done();
+  },
+  transform: (
+    { action, ctx, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb
+  ) => {
+    const massEditRow = getMassEditRow(getState());
+    const rowIds = getRowsSelectedForMassEdit(getState());
+    ctx.massEditRow = massEditRow;
+    ctx.rowIds = rowIds;
+    next(action);
+  },
+  type: APPLY_MASS_EDIT,
+});
+
+const stopCellDragLogic = createLogic({
+  process: (
+    { ctx, getState }: ReduxLogicProcessDependencies,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { cellAtDragStart, rows } = ctx;
+    if (cellAtDragStart && rows?.length) {
+      const rowIds = rows.map((row: UploadRow) => row.id);
+      const upload = getUpload(getState());
+      const value = upload[cellAtDragStart.rowId][cellAtDragStart.columnId];
+      dispatch(updateUploadRows(rowIds, { [cellAtDragStart.columnId]: value }));
+    }
+    done();
+  },
+  transform: (
+    { action, ctx, getState }: ReduxLogicTransformDependencies,
+    next: ReduxLogicNextCb
+  ) => {
+    const cellAtDragStart = getCellAtDragStart(getState());
+    const rows = getRowsSelectedForDragEvent(getState());
+    ctx.cellAtDragStart = cellAtDragStart;
+    ctx.rows = rows;
+    next(action);
+  },
+  type: STOP_CELL_DRAG,
+});
+
 export default [
+  applyMassEditLogic,
   loadFilesLogic,
   openFilesLogic,
   selectBarcodeLogic,
   selectWellsLogic,
+  startMassEditLogic,
+  stopCellDragLogic,
 ];

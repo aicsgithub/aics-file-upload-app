@@ -7,6 +7,7 @@ import {
   ImagingSessionIdToWellsMap,
   MassEditRow,
   MetadataStateBranch,
+  UploadKeyValue,
 } from "../types";
 
 export interface SelectMetadataAction {
@@ -32,6 +33,15 @@ export interface LoadFilesFromDragAndDropAction extends AutoSaveAction {
 
 export interface LoadFilesFromOpenDialogAction extends AutoSaveAction {
   payload: string[];
+  type: string;
+}
+
+export interface CloseSubFileSelectionModalAction {
+  type: string;
+}
+
+export interface OpenSubFileSelectionModalAction {
+  payload: string;
   type: string;
 }
 
@@ -71,17 +81,47 @@ export interface ClearSelectionHistoryAction extends AutoSaveAction {
   type: string;
 }
 
-export interface ToggleExpandedUploadJobRowAction {
-  payload: string;
-  type: string;
-}
-
 export interface SelectImagingSessionIdAction extends AutoSaveAction {
   payload: number;
   type: string;
 }
 
+export interface AddRowToDragEventAction {
+  payload: {
+    id: string;
+    index: number;
+  };
+  type: string;
+}
+
+export interface RemoveRowFromDragEventAction {
+  payload: string[];
+  type: string;
+}
+
+export interface StartCellDragAction {
+  payload: UploadKeyValue;
+  type: string;
+}
+
+export interface StopCellDragAction {
+  type: string;
+}
+
 export interface UpdateMassEditRowAction {
   payload: MassEditRow;
+  type: string;
+}
+
+export interface StartMassEditAction {
+  payload: string[];
+  type: string;
+}
+
+export interface ApplyMassEditAction {
+  type: string;
+}
+
+export interface CancelMassEditAction {
   type: string;
 }

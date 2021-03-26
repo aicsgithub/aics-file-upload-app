@@ -1,0 +1,44 @@
+.shadow-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(168, 168, 168, 0.84);
+    z-index: 50;
+}
+
+.mass-edit-table-container {
+    position: relative;
+    z-index: 100;
+}
+
+.hint {
+    margin-bottom: 10px;
+}
+
+.button-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.button-row > button {
+    border: none;
+    color: white;
+}
+
+.button-row > button:first-child {
+    margin-right: 10px;
+}
+
+.apply-button {
+    /* Variable located in styles/colors */
+    background-color: var(--brand-primary);
+}
+
+.cancel-button {
+    /* Variable located in styles/colors */
+    background-color: var(--error);
+}

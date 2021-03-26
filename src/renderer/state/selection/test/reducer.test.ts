@@ -15,7 +15,6 @@ import { setPlate } from "../actions";
 import reducer from "../reducer";
 import { initialState } from "../reducer";
 import {
-  getExpandedUploadJobRows,
   getSelectedBarcode,
   getSelectedImagingSessionId,
   getSelectedImagingSessionIds,
@@ -33,7 +32,6 @@ describe("selection reducer", () => {
         ...nonEmptyStateForInitiatingUpload.selection.present,
         annotation: "Dataset",
         barcode: "1234",
-        expandedUploadJobRows: { "/path/to/file": true },
         files: ["file1", "file2"],
         imagingSessionId: undefined,
         imagingSessionIds: [null, 1],
@@ -52,9 +50,6 @@ describe("selection reducer", () => {
       const { present } = result;
       expect(present.barcode).to.equal(
         getSelectedBarcode(nonEmptySelectionsState)
-      );
-      expect(present.expandedUploadJobRows).to.equal(
-        getExpandedUploadJobRows(nonEmptySelectionsState)
       );
       expect(present.imagingSessionId).to.equal(
         getSelectedImagingSessionId(nonEmptySelectionsState)
@@ -75,9 +70,6 @@ describe("selection reducer", () => {
       const result = reducer(nonEmptySelectionsState.selection, resetUpload());
       const { present } = result;
       expect(present.barcode).to.equal(initialState.barcode);
-      expect(present.expandedUploadJobRows).to.deep.equal(
-        initialState.expandedUploadJobRows
-      );
       expect(present.imagingSessionId).to.equal(initialState.imagingSessionId);
       expect(present.imagingSessionIds).to.deep.equal(
         initialState.imagingSessionIds

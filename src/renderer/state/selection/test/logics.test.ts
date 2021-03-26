@@ -5,6 +5,7 @@ import { createSandbox, SinonStubbedInstance, createStubInstance } from "sinon";
 
 import selections from "../";
 import { feedback } from "../../";
+import { NOTES_ANNOTATION_NAME } from "../../../constants";
 import MMSClient from "../../../services/mms-client";
 import {
   GetPlateResponse,
@@ -25,9 +26,18 @@ import {
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AsyncRequest, DragAndDropFileList, Page } from "../../types";
+import { updateUploadRows } from "../../upload/actions";
 import { getUpload } from "../../upload/selectors";
-import { selectBarcode, selectWells } from "../actions";
 import {
+  applyMassEdit,
+  selectBarcode,
+  selectWells,
+  startMassEdit,
+  stopCellDrag,
+} from "../actions";
+import {
+  getMassEditRow,
+  getRowsSelectedForMassEdit,
   getSelectedBarcode,
   getSelectedImagingSessionIds,
   getSelectedPlateId,
@@ -355,6 +365,110 @@ describe("Selection logics", () => {
 
       // after
       expect(getSelectedWells(store.getState()).length).to.equal(4);
+    });
+  });
+
+  describe("startMassEditLogic", () => {
+    it("sets rows selected & added empty row object", () => {
+      // Arrange
+      const { store } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+      });
+      const selectedRowIds = ["1", "3", "17"];
+      // (sanity-check)
+      expect(getMassEditRow(store.getState())).to.be.undefined;
+      expect(getRowsSelectedForMassEdit(store.getState())).to.be.undefined;
+
+      // Act
+      store.dispatch(startMassEdit(selectedRowIds));
+
+      // Assert
+      expect(getMassEditRow(store.getState())).to.deep.equal({
+        "Favorite Color": [],
+      });
+      expect(getRowsSelectedForMassEdit(store.getState())).to.deep.equal(
+        selectedRowIds
+      );
+    });
+  });
+
+  describe("applyMassEditLogic", () => {
+    it("applies non-empty data to rows", async () => {
+      // Arrange
+      const massEditRow = {
+        color: ["blue", "green"],
+        [NOTES_ANNOTATION_NAME]: "hello",
+      };
+      const rowsSelectedForMassEdit = ["1", "100", "2"];
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          rowsSelectedForMassEdit,
+          massEditRow: {
+            ...massEditRow,
+            // Add some junk to test exclusion
+            CellLine: [],
+          },
+        }),
+      });
+
+      // Act
+      store.dispatch(applyMassEdit());
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          updateUploadRows(rowsSelectedForMassEdit, massEditRow)
+        )
+      ).to.be.true;
+    });
+  });
+
+  describe("stopCellDragLogic", () => {
+    it("send update for rows selected", async () => {
+      // Arrange
+      const uploadValue = "false";
+      const rowIdsSelectedForDragEvent = ["21", "3", "9", "18"];
+      const rowsSelectedForDragEvent = rowIdsSelectedForDragEvent.map(
+        (id, index) => ({
+          id,
+          index,
+        })
+      );
+      const cellAtDragStart = {
+        rowId: "14",
+        columnId: "Is Aligned?",
+        rowIndex: 2,
+      };
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...nonEmptyStateForInitiatingUpload,
+        selection: getMockStateWithHistory({
+          ...mockSelection,
+          cellAtDragStart,
+          rowsSelectedForDragEvent,
+        }),
+        upload: getMockStateWithHistory({
+          [cellAtDragStart.rowId]: {
+            file: "/some/path/to/a/file.txt",
+            [cellAtDragStart.columnId]: uploadValue,
+          },
+        }),
+      });
+
+      // Act
+      store.dispatch(stopCellDrag());
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          updateUploadRows(rowIdsSelectedForDragEvent, {
+            [cellAtDragStart.columnId]: uploadValue,
+          })
+        )
+      ).to.be.true;
     });
   });
 });

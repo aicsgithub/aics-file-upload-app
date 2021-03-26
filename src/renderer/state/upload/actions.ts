@@ -12,7 +12,6 @@ import {
 
 import {
   APPLY_TEMPLATE,
-  ASSOCIATE_FILES_AND_WELLS,
   CANCEL_UPLOAD,
   CANCEL_UPLOAD_FAILED,
   CANCEL_UPLOAD_SUCCEEDED,
@@ -32,7 +31,6 @@ import {
   SAVE_UPLOAD_DRAFT,
   SAVE_UPLOAD_DRAFT_SUCCESS,
   SUBMIT_FILE_METADATA_UPDATE,
-  UNDO_FILE_WELL_ASSOCIATION,
   UPDATE_AND_RETRY_UPLOAD,
   UPDATE_SUB_IMAGES,
   UPDATE_UPLOAD,
@@ -45,7 +43,6 @@ import {
 import {
   AddUploadFilesAction,
   ApplyTemplateAction,
-  AssociateFilesAndWellsAction,
   CancelUploadAction,
   CancelUploadFailedAction,
   CancelUploadSucceededAction,
@@ -65,7 +62,6 @@ import {
   SaveUploadDraftAction,
   SaveUploadDraftSuccessAction,
   SubmitFileMetadataUpdateAction,
-  UndoFileWellAssociationAction,
   UpdateAndRetryUploadAction,
   UpdateSubImagesAction,
   UpdateSubImagesPayload,
@@ -84,36 +80,6 @@ export function addUploadFiles(
     autoSave: true,
     payload: uploadFiles,
     type: ADD_UPLOAD_FILES,
-  };
-}
-
-export function associateFilesAndWells(
-  rowIds: UploadRowId[]
-): AssociateFilesAndWellsAction {
-  return {
-    autoSave: true,
-    payload: {
-      rowIds,
-      wellIds: [], // this gets populated with the wells that are selected in logics
-    },
-    type: ASSOCIATE_FILES_AND_WELLS,
-  };
-}
-
-// For undoing the well associations for a single upload row
-export function undoFileWellAssociation(
-  rowId: UploadRowId,
-  deleteUpload = true,
-  wellIds: number[] = []
-): UndoFileWellAssociationAction {
-  return {
-    autoSave: true,
-    payload: {
-      deleteUpload,
-      rowId,
-      wellIds, // if empty, this gets populated with the wells that are selected in logics
-    },
-    type: UNDO_FILE_WELL_ASSOCIATION,
   };
 }
 

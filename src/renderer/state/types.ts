@@ -223,6 +223,7 @@ export interface UploadMetadata extends UploadRowId {
   barcode?: string;
   notes?: string[]; // only one note expected but we treat this like other custom annotations
   templateId?: number;
+  subFiles?: UploadStateBranch;
   [WELL_ANNOTATION_NAME]?: number[];
   [genericKey: string]: any;
 }
@@ -271,30 +272,39 @@ export interface RouteStateBranch {
   view: Page;
 }
 
-export interface ExpandedRows {
-  [rowKey: string]: boolean;
-}
-
 export interface SelectionStateBranch extends UploadTabSelections {
   barcode?: string;
-  expandedUploadJobRows: ExpandedRows;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
-  massEditRow: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
   user: string;
 }
 
+export interface UploadKeyValue {
+  columnId: string;
+  rowId: string;
+  rowIndex: number;
+}
+
+export interface UploadRow {
+  id: string;
+  index: number;
+}
+
 export interface UploadTabSelections {
   barcode?: string;
-  expandedUploadJobRows: ExpandedRows;
+  cellAtDragStart?: UploadKeyValue;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
   hasNoPlateToUpload: boolean;
   job?: JSSJob<UploadServiceFields>;
+  massEditRow?: MassEditRow;
   plate: ImagingSessionIdToPlateMap;
+  rowsSelectedForDragEvent?: UploadRow[];
+  rowsSelectedForMassEdit?: string[];
+  subFileSelectionModalFile?: string;
   wells: ImagingSessionIdToWellsMap;
   selectedWells: AicsGridCell[];
 }
