@@ -1,4 +1,5 @@
 import { Alert, Button, Checkbox, Icon, Select, Spin, Form } from "antd";
+import { CustomIconComponentProps } from "antd/lib/icon";
 import classNames from "classnames";
 import { ipcRenderer, OpenDialogOptions } from "electron";
 import { find } from "lodash";
@@ -83,6 +84,33 @@ import CustomDataTable from "../CustomDataTable";
 import { getCanSubmitUpload, getUploadInProgress } from "./selectors";
 
 const styles = require("./style.pcss");
+
+function createStepSvg(
+  stepNum: number,
+  displayName: string
+): React.ComponentType<CustomIconComponentProps> {
+  const componentFunc: React.ComponentType<CustomIconComponentProps> = () => (
+    <svg viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor">
+      <text
+        x="510"
+        y="555"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="600px"
+        fontFamily="sans-serif"
+      >
+        {stepNum}
+      </text>
+      <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+    </svg>
+  );
+  // https://reactjs.org/docs/react-component.html#displayname
+  componentFunc.displayName = displayName;
+  return componentFunc;
+}
+
+const StepOneSvg = createStepSvg(1, "StepOneSvg");
+const StepTwoSvg = createStepSvg(2, "StepTwoSvg");
 
 interface Props {
   appliedTemplate?: Template;
@@ -271,18 +299,38 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             key="template-not-selected"
           />
         )}
-        <LabeledInput
-          className={styles.selector}
-          label={`Select ${SCHEMA_SYNONYM}`}
-        >
-          <TemplateSearch
-            allowCreate={true}
-            disabled={templateIsLoading || isReadOnly}
-            error={templateError}
-            value={appliedTemplate?.templateId}
-            onSelect={this.props.applyTemplate}
-          />
-        </LabeledInput>
+        <div className={styles.stepContainer}>
+          <div className={styles.stepIcon}>
+            {appliedTemplate ? (
+              <Icon
+                type="check-circle"
+                theme="filled"
+                className={styles.stepIconComplete}
+              />
+            ) : (
+              <Icon
+                component={StepOneSvg}
+                className={classNames({
+                  [styles.stepIconError]: templateError,
+                })}
+              />
+            )}
+          </div>
+          <div className={styles.stepForm}>
+            <LabeledInput
+              className={styles.selector}
+              label={`Select ${SCHEMA_SYNONYM}`}
+            >
+              <TemplateSearch
+                allowCreate={true}
+                disabled={templateIsLoading || isReadOnly}
+                error={templateError}
+                value={appliedTemplate?.templateId}
+                onSelect={this.props.applyTemplate}
+              />
+            </LabeledInput>
+          </div>
+        </div>
         {uploadTypeError && (
           <Alert
             className={styles.alert}
@@ -292,55 +340,73 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
             key="upload-type-not-selected"
           />
         )}
-        <div className={styles.container}>
-          <div className={styles.container}>
-            <LabeledInput
-              className={styles.selector}
-              label="Select Pre-Existing Barcode"
-            >
-              <BarcodeSearch
-                barcode={selectedBarcode}
-                disabled={isReadOnly}
-                error={uploadTypeError}
-                onBarcodeChange={(imagingSessionIds, barcode) => {
-                  if (barcode) {
-                    this.props.selectBarcode(barcode, imagingSessionIds);
-                  }
-                }}
+        <div className={styles.stepContainer}>
+          <div className={styles.stepIcon}>
+            {selectedBarcode || hasNoPlateToUpload ? (
+              <Icon
+                type="check-circle"
+                theme="filled"
+                className={styles.stepIconComplete}
               />
-            </LabeledInput>
-            <div className={styles.separatorText}>OR</div>
-            <LabeledInput
-              className={styles.selector}
-              label="Create Barcode & Plate"
-            >
-              <Form.Item validateStatus={uploadTypeError ? "error" : ""}>
-                <Select
-                  className={styles.selector}
-                  disabled={isReadOnly}
-                  onSelect={onCreateBarcode}
-                  placeholder="Select Barcode Prefix"
-                >
-                  {barcodePrefixes.map(({ prefixId, description }) => (
-                    <Select.Option value={prefixId} key={prefixId}>
-                      {description}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </LabeledInput>
-            <div className={styles.separatorText}>OR</div>
-            <LabeledInput className={styles.selector} label="Neither">
-              <Checkbox
+            ) : (
+              <Icon
+                component={StepTwoSvg}
                 className={classNames({
-                  [styles.noPlateCheckboxError]: uploadTypeError,
+                  [styles.stepIconError]: uploadTypeError,
                 })}
-                disabled={isReadOnly}
-                checked={hasNoPlateToUpload && !isReadOnly}
-                onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
               />
-              <span className={styles.helpText}>&nbsp;No Plate</span>
-            </LabeledInput>
+            )}
+          </div>
+          <div className={styles.stepForm}>
+            <div className={styles.barcodeFormContainer}>
+              <LabeledInput
+                className={styles.selector}
+                label="Select Pre-Existing Barcode"
+              >
+                <BarcodeSearch
+                  barcode={selectedBarcode}
+                  disabled={isReadOnly}
+                  error={uploadTypeError}
+                  onBarcodeChange={(imagingSessionIds, barcode) => {
+                    if (barcode) {
+                      this.props.selectBarcode(barcode, imagingSessionIds);
+                    }
+                  }}
+                />
+              </LabeledInput>
+              <div className={styles.separatorText}>OR</div>
+              <LabeledInput
+                className={styles.selector}
+                label="Create Barcode & Plate"
+              >
+                <Form.Item validateStatus={uploadTypeError ? "error" : ""}>
+                  <Select
+                    className={styles.selector}
+                    disabled={isReadOnly}
+                    onSelect={onCreateBarcode}
+                    placeholder="Select Barcode Prefix"
+                  >
+                    {barcodePrefixes.map(({ prefixId, description }) => (
+                      <Select.Option value={prefixId} key={prefixId}>
+                        {description}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </LabeledInput>
+              <div className={styles.separatorText}>OR</div>
+              <LabeledInput className={styles.selector} label="Neither">
+                <Checkbox
+                  className={classNames({
+                    [styles.noPlateCheckboxError]: uploadTypeError,
+                  })}
+                  disabled={isReadOnly}
+                  checked={hasNoPlateToUpload && !isReadOnly}
+                  onClick={() => setHasNoPlateToUpload(!hasNoPlateToUpload)}
+                />
+                <span className={styles.helpText}>&nbsp;No Plate</span>
+              </LabeledInput>
+            </div>
           </div>
         </div>
       </>

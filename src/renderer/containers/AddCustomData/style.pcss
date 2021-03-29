@@ -1,6 +1,9 @@
-.container {
+.barcode-form-container {
   display: flex;
   width: 100%;
+  /* A negative margin is needed to achieve the intended spacing, as margins
+   don't collapse in flexbox.*/
+  margin-bottom: -1em;
 }
 
 .error-icon {
@@ -82,4 +85,29 @@ container to work inside Flexbox. https://stackoverflow.com/a/47377149/13334958
     /* Variable located in styles/colors */
     border: 1px solid var(--ant-validation-error);
   }
+}
+
+.step-container {
+  display: flex;
+  align-items: center;
+}
+
+.step-icon {
+  font-size: 2.5em;
+  margin-right: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.step-icon-complete {
+  /* Variable located in styles/colors */
+  color: var(--brand-primary);
+}
+
+.step-icon-error {
+  /* Variable located in styles/colors */
+  color: var(--error);
+}
+
+.step-form {
+  flex-basis: 100%;
 }
