@@ -1,5 +1,10 @@
 # Version Notes
 
+## 2.1.0 (03/31/21)
+- Feature: New upload metadata editor
+- Feature: Improved UX around upload data entry steps
+- Feature: Use existing template as basis when creating new
+
 ## 2.0.2 (03/11/21)
 - Bugfix: Odd behavior when typing values after selecting a cell with a single click
 - Bugfix: Fix propagating to cells by dragging from the corner of a cell
