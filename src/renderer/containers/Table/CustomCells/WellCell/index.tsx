@@ -94,7 +94,7 @@ export default function WellCell(props: CustomCell) {
         onCancel={() => setIsEditing(false)}
         footer={null}
         width="625px"
-        bodyStyle={{ minHeight: "450px" }}
+        centered
       >
         {content}
       </Modal>
