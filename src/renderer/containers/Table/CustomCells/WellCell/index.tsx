@@ -95,6 +95,7 @@ export default function WellCell(props: CustomCell) {
         footer={null}
         width="625px"
         centered
+        destroyOnClose
       >
         {content}
       </Modal>
