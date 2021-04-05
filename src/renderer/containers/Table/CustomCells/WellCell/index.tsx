@@ -1,4 +1,4 @@
-import { Button, Popover } from "antd";
+import { Button, Modal } from "antd";
 import { intersection, isEmpty, uniq, without } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -81,18 +81,24 @@ export default function WellCell(props: CustomCell) {
   );
 
   return (
-    <Popover
-      placement="bottom"
-      visible={isEditing}
-      content={content}
-      title="Associate Wells with this row by selecting wells and clicking Associate"
-      onVisibleChange={() => setIsEditing(false)}
-    >
+    <>
       <DisplayCell
         {...props}
         onTabExit={() => setIsEditing(false)}
         onStartEditing={() => setIsEditing(true)}
       />
-    </Popover>
+      <Modal
+        title="Associate Wells with this row by selecting wells and clicking Associate"
+        visible={isEditing}
+        mask={false}
+        onCancel={() => setIsEditing(false)}
+        footer={null}
+        width="625px"
+        centered
+        destroyOnClose
+      >
+        {content}
+      </Modal>
+    </>
   );
 }
