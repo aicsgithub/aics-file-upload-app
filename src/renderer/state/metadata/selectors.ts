@@ -50,17 +50,6 @@ export const getAnnotations = createSelector(
     allAnnotations.filter((annotation) => annotation.exposeToFileUploadApp)
 );
 
-// These annotations are used purely for displaying data to users in the File Explorer
-export const getForbiddenAnnotationNames = createSelector(
-  [getAllAnnotations],
-  (allAnnotations: Annotation[]): Set<string> =>
-    new Set(
-      allAnnotations
-        .filter((annotation) => !annotation.exposeToFileUploadApp)
-        .map(({ name }) => name)
-    )
-);
-
 // COMPOSED SELECTORS
 export const getUniqueBarcodeSearchResults = createSelector(
   [getBarcodeSearchResults],

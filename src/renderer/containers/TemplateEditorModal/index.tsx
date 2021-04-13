@@ -1,31 +1,30 @@
-import { Alert, Input, List, Modal, Spin } from "antd";
+import { Alert, Button, Checkbox, Input, Modal, Popover, Spin, Table, Tooltip } from "antd";
+import { ipcRenderer } from "electron";
 import { trim } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
+  OPEN_TEMPLATE_MENU_ITEM_CLICKED,
   SCHEMA_SYNONYM,
 } from "../../../shared/constants";
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { Annotation } from "../../services/labkey-client/types";
-import { closeModal } from "../../state/feedback/actions";
+import { closeModal, openModal } from "../../state/feedback/actions";
 import {
-  getRequestsInProgress,
   getTemplateEditorVisible,
 } from "../../state/feedback/selectors";
+import { requestAnnotations } from "../../state/metadata/actions";
 import {
   getAnnotationsWithAnnotationOptions,
-  getAnnotationTypes,
-  getForbiddenAnnotationNames,
-  getLookups,
 } from "../../state/metadata/selectors";
 import { getShowTemplateHint } from "../../state/setting/selectors";
 import {
   addExistingTemplate,
   saveTemplate,
 } from "../../state/template/actions";
+import { AnnotationWithOptions } from "../../state/template/types";
 import AnnotationEditorModal from "./AnnotationEditorModal";
 
 const styles = require("./styles.pcss");
@@ -40,22 +39,31 @@ interface Props {
 
 export default function TemplateEditorModal(props: Props) {
   const dispatch = useDispatch();
-  const lookups = useSelector(getLookups);
   const visible = useSelector(getTemplateEditorVisible);
-  const annotationTypes = useSelector(getAnnotationTypes);
   const showTemplateHint = useSelector(getShowTemplateHint);
-  const requestsInProgress = useSelector(getRequestsInProgress);
   const allAnnotations = useSelector(getAnnotationsWithAnnotationOptions);
-  const forbiddenAnnotationNames = useSelector(getForbiddenAnnotationNames);
 
   const [name, setName] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showErrors, setShowErrors] = React.useState(false);
-  const [annotations, setAnnotations] = React.useState<Annotation[]>([]);
-  const [showAnnotationEditor, setShowAnnotationEditor] = React.useState(false);
+  const [annotations, setAnnotations] = React.useState<AnnotationWithOptions[]>([]);
+  const [showAnnotationEditor, setShowAnnotationEditor] = React.useState<Partial<AnnotationWithOptions>>();
+  const [focusedAnnotation, setFocusedAnnotation] = React.useState<AnnotationWithOptions>();
 
   const templateId = undefined;
   const errors: string[] = [];
+
+  // TODO: Get around this..?
+  React.useEffect(() => {
+    function showModal() {
+      dispatch(requestAnnotations());
+      dispatch(openModal("templateEditor"));
+    }
+    ipcRenderer.on(OPEN_TEMPLATE_MENU_ITEM_CLICKED, showModal);
+    return () => {
+      ipcRenderer.removeListener(OPEN_TEMPLATE_MENU_ITEM_CLICKED, showModal);
+    }
+  }, [dispatch])
 
   React.useEffect(() => {
     // TODO: Request other data, set loading
@@ -69,8 +77,55 @@ export default function TemplateEditorModal(props: Props) {
     }
   }, [templateId]);
 
+
+
+const columns = [
+  {
+    dataIndex: "displayName",
+    ellipsis: true,
+    key: "displayName",
+    title: "Name",
+    width: "100%",
+    render: (name: string, row: AnnotationWithOptions) => (
+      <Tooltip overlay={row.description}>
+        {name}
+      </Tooltip>
+    ),
+  },
+  {
+    align: "center",
+    dataIndex: "required",
+    key: "required",
+    render: (required: boolean) => <Checkbox checked={required} onChange={() => console.log("hey")} />,
+    title: "Required",
+    width: "130px",
+  },
+  {
+    align: "right",
+    key: "actions",
+    render: (_: any, row: AnnotationWithOptions) => (
+      <>
+        <Button
+          icon="search"
+          onClick={() => setFocusedAnnotation(row)}
+        />
+        <Button
+          icon="edit"
+          onClick={() => setShowAnnotationEditor(row)}
+        />
+        <Button
+          icon="delete"
+          onClick={() => onRemoveAnnotation(row)}
+        />
+      </>
+    ),
+    title: "Actions",
+    width: "180px",
+  },
+]
+
   function onSave() {
-    if (!errors.length) {
+    if (name && annotations.length) {
       dispatch(saveTemplate(name, annotations));
     } else if (!showErrors) {
       setShowErrors(true);
@@ -81,16 +136,42 @@ export default function TemplateEditorModal(props: Props) {
     dispatch(closeModal("templateEditor"));
   }
 
-  function onRenderAnnotationItem() {
-    return (
-      <div>hello</div>
-    )
+  function onRemoveAnnotation(annotation: AnnotationWithOptions) {
+    setAnnotations(annotations.filter(a => annotation.name !== a.name));
+    if (focusedAnnotation === annotation) {
+      setFocusedAnnotation(undefined);
+    }
   }
+
+  const annotationOptionList = (
+    <div className={styles.annotationOptionPopover}>
+      {allAnnotations
+      .filter(a => a.exposeToFileUploadApp)
+      .filter(a => !annotations.find(a2 => a2.annotationId === a.annotationId))
+      .map(a => (
+        <Button
+          onClick={() => setAnnotations([...annotations, a])}
+        >
+          <Tooltip overlay={a.description}>
+            {a.name}
+          </Tooltip>
+        </Button>
+      ))
+      }
+      <hr />
+      <Button
+        onClick={() => setShowAnnotationEditor({})}
+      >
+        Create new Annotation
+      </Button>
+    </div>
+
+  )
 
   const isEditing = Boolean(templateId);
   const title = isEditing
     ? `Edit ${SCHEMA_SYNONYM}: ${name}`
-    : `New ${SCHEMA_SYNONYM}`;
+    : `Create ${SCHEMA_SYNONYM}`;
   return (
     <>
       <Modal
@@ -152,22 +233,44 @@ export default function TemplateEditorModal(props: Props) {
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
               </FormControl>
             )}
-            <div className={styles.listContainer}>
-              <List
-                className={styles.list}
+            <div className={styles.annotationListHeader}>
+              <h4>Annotations</h4>
+              <Popover
+                content={annotationOptionList}
+              >
+                <Button
+                  icon="plus"
+                  className={styles.addAnnotationButton}
+                  onClick={() => console.log("click")}
+                />
+              </Popover>
+            </div>
+            <div className={styles.annotationContainer}>
+              <div>
+              <Table
+                columns={columns}
                 dataSource={annotations}
-                header={<h4>Annotations</h4>}
-                itemLayout="vertical"
-                renderItem={onRenderAnnotationItem}
               />
+              </div>
+              {focusedAnnotation && (
+                <div>
+                  {focusedAnnotation.name}
+                  {focusedAnnotation.description}
+                  {focusedAnnotation.annotationTypeId}
+                  {focusedAnnotation.annotationOptions}
+                  {focusedAnnotation.lookup}
+                  {focusedAnnotation.created}
+                  {focusedAnnotation.createdBy}
+                </div>
+              )}
             </div>
           </>
         )}
       </Modal>
       <AnnotationEditorModal
-        visible={showAnnotationEditor}
+        annotation={showAnnotationEditor}
         onSave={() => console.log("hey")}
-        onCancel={() => setShowAnnotationEditor(false)}
+        onCancel={() => setShowAnnotationEditor(undefined)}
       />
     </>
   );

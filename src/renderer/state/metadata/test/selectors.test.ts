@@ -12,7 +12,6 @@ import {
   getAnnotations,
   getAnnotationsWithAnnotationOptions,
   getBooleanAnnotationTypeId,
-  getForbiddenAnnotationNames,
   getLookupAnnotationTypeId,
   getNotesAnnotation,
   getUniqueBarcodeSearchResults,
@@ -94,25 +93,6 @@ describe("Metadata selectors", () => {
     });
     it("returns empty array if no annotations found", () => {
       const result = getAnnotations({
-        ...mockState,
-        metadata: {
-          ...mockState.metadata,
-          annotations: [],
-        },
-      });
-      expect(result).to.be.empty;
-    });
-  });
-
-  describe("getForbiddenAnnotations", () => {
-    it("returns only annotations that are not meant to be exposed in this app", () => {
-      const result = getForbiddenAnnotationNames(
-        nonEmptyStateForInitiatingUpload
-      );
-      expect(result).to.be.length(1);
-    });
-    it("returns empty array if no annotations found", () => {
-      const result = getForbiddenAnnotationNames({
         ...mockState,
         metadata: {
           ...mockState.metadata,
