@@ -29,8 +29,6 @@ export const getBarcodePrefixes = (state: State) =>
   state.metadata.barcodePrefixes;
 export const getSelectionHistory = (state: State) =>
   state.metadata.history.selection;
-export const getTemplateHistory = (state: State) =>
-  state.metadata.history.template;
 export const getUploadHistory = (state: State) => state.metadata.history.upload;
 export const getBarcodeSearchResults = (state: State) =>
   state.metadata.barcodeSearchResults;

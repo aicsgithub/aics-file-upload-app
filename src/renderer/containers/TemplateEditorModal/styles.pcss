@@ -44,13 +44,24 @@
     padding-top: 2px;
 }
 
+.annotation-label {
+    display: flex;
+    margin-bottom: 0.5em;
+}
+
 .annotation-container {
     display: flex;
 }
 
 .annotation-container > * {
     flex: auto;
+    max-height: 300px;
+    overflow-y: auto;
     width: 50%;
+}
+
+.annotation-container > *:first-child {
+    margin-right: 1em;
 }
 
 .annotation-list-header {
@@ -67,13 +78,26 @@
 }
 
 .annotation-option-popover {
-    height: 100px;
+    display: flex;
+    flex-direction: column;
+    height: 200px;
     overflow-y: auto;
-    width: 200px;
 }
 
 .annotation-option-popover > button {
     border: none;
+    text-align: left;
+}
+
+.create-annotation-button {
+    background-color: var(--brand-primary);
+    border: none;
+    color: white;
+    width: 100%;
+}
+
+.create-annotation-button:hover {
+    border: 1px solid var(--brand-primary);
 }
 
 .highlighted {

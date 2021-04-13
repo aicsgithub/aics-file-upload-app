@@ -1,50 +1,21 @@
 import { AnyAction } from "redux";
-import undoable, { UndoableOptions } from "redux-undo";
 
 import { CLOSE_MODAL } from "../feedback/constants";
 import { CloseModalAction } from "../feedback/types";
-import { RESET_HISTORY } from "../metadata/constants";
 import { RESET_UPLOAD } from "../route/constants";
 import { ResetUploadAction } from "../route/types";
 import { TemplateStateBranch, TypeToDescriptionMap } from "../types";
 import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
-import { getReduxUndoFilterFn, makeReducer } from "../util";
+import { makeReducer } from "../util";
 
-import {
-  CLEAR_TEMPLATE_DRAFT,
-  CLEAR_TEMPLATE_HISTORY,
-  DEFAULT_TEMPLATE_DRAFT,
-  JUMP_TO_PAST_TEMPLATE,
-  JUMP_TO_TEMPLATE,
-  SET_APPLIED_TEMPLATE,
-  START_TEMPLATE_DRAFT,
-  UPDATE_TEMPLATE_DRAFT,
-} from "./constants";
+import { DEFAULT_TEMPLATE_DRAFT, SET_APPLIED_TEMPLATE } from "./constants";
 import { getAppliedTemplate } from "./selectors";
-import {
-  ClearTemplateDraftAction,
-  SetAppliedTemplateAction,
-  StartTemplateDraftAction,
-  UpdateTemplateDraftAction,
-} from "./types";
+import { SetAppliedTemplateAction } from "./types";
 
-export const initialState: TemplateStateBranch = {
-  appliedTemplate: undefined,
-  draft: DEFAULT_TEMPLATE_DRAFT,
-  original: undefined,
-  originalTemplateHasBeenUsed: undefined,
-};
+export const initialState: TemplateStateBranch = {};
 
 const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
-  [CLEAR_TEMPLATE_DRAFT]: {
-    accepts: (action: AnyAction): action is ClearTemplateDraftAction =>
-      action.type === CLEAR_TEMPLATE_DRAFT,
-    perform: (state: TemplateStateBranch) => ({
-      ...state,
-      draft: { ...DEFAULT_TEMPLATE_DRAFT },
-    }),
-  },
   [SET_APPLIED_TEMPLATE]: {
     accepts: (action: AnyAction): action is SetAppliedTemplateAction =>
       action.type === SET_APPLIED_TEMPLATE,
@@ -54,20 +25,6 @@ const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
     ) => ({
       ...state,
       appliedTemplate: action.payload.template,
-    }),
-  },
-  [UPDATE_TEMPLATE_DRAFT]: {
-    accepts: (action: AnyAction): action is UpdateTemplateDraftAction =>
-      action.type === UPDATE_TEMPLATE_DRAFT,
-    perform: (
-      state: TemplateStateBranch,
-      action: UpdateTemplateDraftAction
-    ) => ({
-      ...state,
-      draft: {
-        ...state.draft,
-        ...action.payload,
-      },
     }),
   },
   [REPLACE_UPLOAD]: {
@@ -104,33 +61,9 @@ const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
       return state;
     },
   },
-  [START_TEMPLATE_DRAFT]: {
-    accepts: (action: AnyAction): action is StartTemplateDraftAction =>
-      action.type === START_TEMPLATE_DRAFT,
-    perform: (
-      state: TemplateStateBranch,
-      {
-        payload: { draft, original, originalTemplateHasBeenUsed },
-      }: StartTemplateDraftAction
-    ) => ({
-      ...state,
-      draft,
-      original,
-      originalTemplateHasBeenUsed,
-    }),
-  },
 };
 
-const template = makeReducer<TemplateStateBranch>(
+export default makeReducer<TemplateStateBranch>(
   actionToConfigMap,
   initialState
 );
-const options: UndoableOptions = {
-  clearHistoryType: CLEAR_TEMPLATE_HISTORY,
-  filter: getReduxUndoFilterFn([]),
-  initTypes: [RESET_HISTORY],
-  jumpToPastType: JUMP_TO_PAST_TEMPLATE,
-  jumpType: JUMP_TO_TEMPLATE,
-  limit: 100,
-};
-export default undoable(template, options);

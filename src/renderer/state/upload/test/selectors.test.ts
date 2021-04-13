@@ -692,9 +692,7 @@ describe("Upload selectors", () => {
           annotationTypes: mockAnnotationTypes,
           annotations: [mockWellAnnotation, mockNotesAnnotation],
         },
-        template: getMockStateWithHistory(
-          mockTemplateStateBranchWithAppliedTemplate
-        ),
+        template: mockTemplateStateBranchWithAppliedTemplate,
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file: "/path/to/file3" })]: mockWellUpload[
             getUploadRowKey({ file: "/path/to/file3" })
@@ -712,9 +710,7 @@ describe("Upload selectors", () => {
           annotationTypes: mockAnnotationTypes,
           annotations: [mockWellAnnotation, mockNotesAnnotation],
         },
-        template: getMockStateWithHistory(
-          mockTemplateStateBranchWithAppliedTemplate
-        ),
+        template: mockTemplateStateBranchWithAppliedTemplate,
         upload: getMockStateWithHistory(mockWellUpload),
       });
       expect(jobName).to.equal("file1, file2, file3");
@@ -946,8 +942,8 @@ describe("Upload selectors", () => {
       const getRows = () =>
         getUploadAsTableRows({
           ...nonEmptyStateForInitiatingUpload,
-          template: getMockStateWithHistory({
-            ...mockState.template.present,
+          template: {
+            ...mockState.template,
             appliedTemplate: {
               ...mockAuditInfo,
               annotations: [mockFavoriteColorTemplateAnnotation],
@@ -956,7 +952,7 @@ describe("Upload selectors", () => {
               templateId: 1,
               version: 1,
             },
-          }),
+          },
           upload: getMockStateWithHistory({
             [getUploadRowKey({ file })]: {
               barcode: "1234",
@@ -1048,10 +1044,10 @@ describe("Upload selectors", () => {
     ) => {
       return getUploadKeyToAnnotationErrorMap({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: mockTemplateWithManyValues,
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             ...goodUploadRow,
@@ -1078,10 +1074,10 @@ describe("Upload selectors", () => {
     it("returns empty object if no validation errors", () => {
       const result = getUploadKeyToAnnotationErrorMap({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: mockTemplateWithManyValues,
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: goodUploadRow,
         }),

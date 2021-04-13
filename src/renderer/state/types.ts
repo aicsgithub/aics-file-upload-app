@@ -273,6 +273,7 @@ export interface RouteStateBranch {
 }
 
 export interface SelectionStateBranch extends UploadTabSelections {
+  appliedTemplate?: Template;
   barcode?: string;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
@@ -327,31 +328,8 @@ export interface UploadFile {
   loadFiles(): Promise<Array<Promise<UploadFile>>>;
 }
 
-export interface AnnotationDraft {
-  annotationId?: number;
-  annotationOptions?: string[];
-  annotationTypeId: number;
-  annotationTypeName: string;
-  description?: string;
-  index: number;
-  name?: string;
-  lookupSchema?: string;
-  lookupTable?: string;
-  required: boolean;
-}
-
-export interface TemplateDraft {
-  annotations: AnnotationDraft[];
-  name?: string;
-  templateId?: number;
-  version?: number;
-}
-
 export interface TemplateStateBranch {
   appliedTemplate?: Template;
-  draft: TemplateDraft;
-  original?: Template;
-  originalTemplateHasBeenUsed?: boolean;
 }
 
 export interface EnabledNotifications {
@@ -394,7 +372,7 @@ export interface State {
   setting: SettingStateBranch;
 
   // Annotation template
-  template: StateWithHistory<TemplateStateBranch>;
+  template: TemplateStateBranch;
 
   // Tracks current upload metadata (no jobId).
   upload: StateWithHistory<UploadStateBranch>;

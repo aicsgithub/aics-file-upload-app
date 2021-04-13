@@ -40,11 +40,10 @@ describe("metadata reducer", () => {
     });
   });
   describe("resetHistory", () => {
-    it("resets selection, template, and upload history", () => {
+    it("resets selection and upload history", () => {
       const result = reducer(initialState, resetHistory());
       expect(result.history).to.deep.equal({
         selection: {},
-        template: {},
         upload: {},
       });
     });
@@ -57,7 +56,6 @@ describe("metadata reducer", () => {
       );
       expect(result.history.selection[Page.AddCustomData]).to.equal(1);
       expect(result.history.upload[Page.AddCustomData]).to.equal(2);
-      expect(result.history.template[Page.AddCustomData]).to.equal(3);
     });
   });
   describe("clearFileMetadataForJob", () => {

@@ -32,7 +32,6 @@ import {
   getBooleanAnnotationTypeId,
   getCurrentUploadFilePath,
   getSelectionHistory,
-  getTemplateHistory,
   getUploadHistory,
   getWellAnnotation,
 } from "../metadata/selectors";
@@ -44,11 +43,7 @@ import {
   setPlate,
 } from "../selection/actions";
 import { getMountPoint } from "../setting/selectors";
-import {
-  clearTemplateHistory,
-  jumpToPastTemplate,
-  setAppliedTemplate,
-} from "../template/actions";
+import { setAppliedTemplate } from "../template/actions";
 import {
   AsyncRequest,
   Logger,
@@ -119,11 +114,6 @@ const stateBranchHistory = [
     jumpToPast: jumpToPastSelection,
   },
   {
-    clearHistory: clearTemplateHistory,
-    getHistory: getTemplateHistory,
-    jumpToPast: jumpToPastTemplate,
-  },
-  {
     clearHistory: clearUploadHistory,
     getHistory: getUploadHistory,
     jumpToPast: jumpToPastUpload,
@@ -147,7 +137,6 @@ export const handleStartingNewUploadJob = (
     clearUploadDraft(),
     clearUploadHistory(),
     clearSelectionHistory(),
-    clearTemplateHistory(),
   ];
   const isMountedAsExpected = existsSync(
     makePosixPathCompatibleWithPlatform("/allen/aics", platform())
