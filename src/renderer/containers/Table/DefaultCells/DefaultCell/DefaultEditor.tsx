@@ -11,12 +11,14 @@ import {
 import classNames from "classnames";
 import moment from "moment";
 import React from "react";
+import { ColumnInstance } from "react-table";
 
 import { DATETIME_FORMAT, DATE_FORMAT } from "../../../../constants";
 import { ColumnType } from "../../../../services/labkey-client/types";
+import { UploadJobTableRow } from "../../../../state/upload/types";
 import { Duration } from "../../../../types";
 import LookupSearch from "../../../LookupSearch";
-import { ColumnValue, CustomColumn } from "../DisplayCell";
+import { ColumnValue } from "../../types";
 
 const styles = require("./styles.pcss");
 
@@ -26,9 +28,9 @@ const INITIAL_DURATION = { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
 interface Props {
   value: ColumnValue;
-  column: CustomColumn;
+  column: ColumnInstance<UploadJobTableRow>;
   initialValue: ColumnValue;
-  setValue: (value?: ColumnValue) => void;
+  setValue: (value: ColumnValue) => void;
   onStopEditing: () => void;
 }
 
@@ -199,7 +201,7 @@ export default function DefaultEditor(props: Props) {
           className={styles.defaultInput}
           onBlur={props.onStopEditing}
           mode="multiple"
-          lookupAnnotationName={props.column.id as string}
+          lookupAnnotationName={props.column.id}
           selectSearchValue={props.setValue}
           value={props.value as string[]}
         />

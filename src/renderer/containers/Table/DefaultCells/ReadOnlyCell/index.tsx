@@ -1,8 +1,10 @@
 import { Tooltip } from "antd";
 import { castArray } from "lodash";
 import React from "react";
+import { CellProps } from "react-table";
 
-import { CustomCell, useDisplayValue } from "../DisplayCell";
+import { UploadJobTableRow } from "../../../../state/upload/types";
+import { useDisplayValue } from "../DisplayCell";
 
 const styles = require("./styles.pcss");
 
@@ -10,7 +12,7 @@ const styles = require("./styles.pcss");
   This component renders a read only text display showcasing the data
   for this particular cell. Features like cell-dragging are N/A.
 */
-export default function ReadOnlyCell(props: CustomCell) {
+export default function ReadOnlyCell(props: CellProps<UploadJobTableRow>) {
   const displayValue = useDisplayValue(
     castArray(props.value),
     props.column.type

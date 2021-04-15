@@ -8,23 +8,25 @@ import {
   useBlockLayout,
   useResizeColumns,
   TableInstance,
+  SortByFn,
+  Row,
 } from "react-table";
 
 import { getMassEditRow } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
-import { UploadMetadata } from "../../state/types";
 import { getUploadRowKey } from "../../state/upload/constants";
 import { getUploadAsTableRows } from "../../state/upload/selectors";
+import { UploadJobTableRow } from "../../state/upload/types";
 import MassEditTable from "../MassEditTable";
 import SubFileSelectionModal from "../SubFileSelectionModal";
 import Table from "../Table";
 import DefaultCell from "../Table/DefaultCells/DefaultCell";
-import { CustomRow } from "../Table/DefaultCells/DisplayCell";
 import DefaultHeader from "../Table/Headers/DefaultHeader";
 
 import { getColumnsForTable } from "./selectors";
 import TableFooter from "./TableFooter";
 import TableToolHeader from "./TableToolHeader";
+import { CustomColumn } from "./types";
 
 const ARRAY_SORT = "ARRAY_SORT";
 
@@ -32,15 +34,11 @@ interface Props {
   hasSubmitBeenAttempted: boolean;
 }
 
-interface CustomTable extends TableInstance<UploadMetadata> {
-  selectedFlatRows?: CustomRow[];
-}
-
 // Custom sorting methods for react-table
-const sortTypes = {
+const sortTypes: Record<string, SortByFn<UploadJobTableRow>> = {
   [ARRAY_SORT]: (
-    rowA: UploadMetadata,
-    rowB: UploadMetadata,
+    rowA: Row<UploadJobTableRow>,
+    rowB: Row<UploadJobTableRow>,
     columnId: string
   ) => `${rowA.original[columnId]}`.localeCompare(`${rowB.original[columnId]}`),
 };
@@ -61,7 +59,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
   const columnDefinitions = useSelector(getColumnsForTable);
 
   const data = React.useMemo(() => rows, [rows]);
-  const columns = React.useMemo(
+  const columns: CustomColumn[] = React.useMemo(
     () =>
       columnDefinitions.map((column) => ({
         ...column,
@@ -70,7 +68,7 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
     [columnDefinitions, hasSubmitBeenAttempted]
   );
 
-  const tableInstance: CustomTable = useTable(
+  const tableInstance: TableInstance<UploadJobTableRow> = useTable(
     {
       columns,
       data,
@@ -81,12 +79,6 @@ export default function CustomDataTable({ hasSubmitBeenAttempted }: Props) {
         minWidth: 30,
         width: 150,
         maxWidth: 500,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore: The react-table typing does not account for the typing
-        // of plugins as such this is not known by typescript though
-        // is necessary for the useSortBy plugin to know how which sorting
-        // method to use by default for columns. This specific sortType
-        // is a custom one that we supply - Sean M 03/23/21
         sortType: ARRAY_SORT,
       },
       getRowId: getUploadRowKey,

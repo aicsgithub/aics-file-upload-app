@@ -3,7 +3,7 @@ import classNames from "classnames";
 import moment from "moment";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Cell, Column, Row } from "react-table";
+import { CellProps } from "react-table";
 
 import { ColumnType } from "../../../../services/labkey-client/types";
 import {
@@ -16,63 +16,21 @@ import {
   getCellAtDragStart,
   getRowsSelectedForDragEvent,
 } from "../../../../state/selection/selectors";
-import { UploadMetadata } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { getUploadRowKey } from "../../../../state/upload/constants";
 import { getFileToAnnotationHasValueMap } from "../../../../state/upload/selectors";
+import { UploadJobTableRow } from "../../../../state/upload/types";
 import { Duration } from "../../../../types";
+import { ColumnValue } from "../../types";
 
 const styles = require("./styles.pcss");
 
-export type ColumnValue = string[] | number[] | boolean[] | Date[] | Duration[];
-
-export interface CustomRow extends Row {
-  // This contains whatever the row data originally was
-  original: any;
-
-  // These props come from using the useExpanded plugin
-  canExpand: boolean;
-  depth: number;
-  isExpanded: boolean;
-  getToggleRowExpandedProps: (props: any) => void;
-
-  // This prop comes from useRowSelect plugin
-  getToggleRowSelectedProps: () => any;
-}
-
-export type CustomColumn = Column<UploadMetadata> & {
-  // Custom props supplied in column definition
-  description?: string;
-  dropdownValues?: string[];
-  isReadOnly?: boolean;
-  isRequired?: boolean;
-  hasSubmitBeenAttempted?: boolean;
-  type?: ColumnType;
-
-  // These props come from useSortedBy plugin
-  isSorted?: boolean;
-  isSortedDesc?: boolean;
-  sortType?: string;
-
-  // This prop comes from the useResizeColumns plugin
-  disableResizing?: boolean;
-};
-
-export type CustomCell = Cell & {
-  column: CustomColumn;
-  row: CustomRow;
-  value: ColumnValue;
-
-  // This prop comes from useRowSelect plugin
-  getToggleAllRowsSelectedProps: () => any;
-};
-
-interface Props extends CustomCell {
+interface Props extends CellProps<UploadJobTableRow> {
   onStartEditing: () => void;
   onTabExit?: () => void;
 }
 
-export const useDisplayValue = (value?: any[], type?: ColumnType) =>
+export const useDisplayValue = (value?: ColumnValue, type?: ColumnType) =>
   React.useMemo(() => {
     if (!value || !value.length) {
       return "";
@@ -81,12 +39,12 @@ export const useDisplayValue = (value?: any[], type?: ColumnType) =>
       case ColumnType.BOOLEAN:
         return value[0] ? "Yes" : "No";
       case ColumnType.DATE:
-        return value
-          .map((d: string) => moment(d).format("M/D/YYYY"))
+        return (value as Date[])
+          .map((d) => moment(d).format("M/D/YYYY"))
           .join(", ");
       case ColumnType.DATETIME:
-        return value
-          .map((d: string) => moment(d).format("M/D/YYYY H:m:s"))
+        return (value as Date[])
+          .map((d) => moment(d).format("M/D/YYYY H:m:s"))
           .join(", ");
       case ColumnType.DURATION: {
         const { days, hours, minutes, seconds } = value[0] as Duration;

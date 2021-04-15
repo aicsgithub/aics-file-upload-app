@@ -2,6 +2,7 @@ import { Button, Tooltip } from "antd";
 import { isEmpty } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Row } from "react-table";
 
 import { startMassEdit } from "../../../state/selection/actions";
 import {
@@ -14,13 +15,13 @@ import {
   getCanRedoUpload,
   getCanUndoUpload,
 } from "../../../state/upload/selectors";
-import { CustomRow } from "../../Table/DefaultCells/DisplayCell";
+import { UploadJobTableRow } from "../../../state/upload/types";
 import TutorialTooltip from "../../TutorialTooltip";
 
 const styles = require("./styles.pcss");
 
 interface Props {
-  selectedRows: CustomRow[];
+  selectedRows: Row<UploadJobTableRow>[];
 }
 
 /*

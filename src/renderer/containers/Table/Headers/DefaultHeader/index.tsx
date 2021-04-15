@@ -1,19 +1,19 @@
 import { Icon, Tooltip } from "antd";
 import React from "react";
+import { HeaderProps } from "react-table";
 
-import { CustomCell } from "../../DefaultCells/DisplayCell";
+import { UploadJobTableRow } from "../../../../state/upload/types";
 
 const styles = require("./styles.pcss");
-
-interface Props extends CustomCell {
-  name?: string;
-}
 
 /*
   This component renders an interactive header rendered by default for
   all react-tables.
 */
-export default function DefaultHeader({ column, name }: Props) {
+export default function DefaultHeader({
+  column,
+  name,
+}: HeaderProps<UploadJobTableRow>) {
   return (
     <Tooltip title={column.description}>
       <div className={styles.header}>

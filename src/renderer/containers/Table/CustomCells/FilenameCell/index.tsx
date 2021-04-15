@@ -5,11 +5,12 @@ import classNames from "classnames";
 import { isNil } from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
+import { CellProps } from "react-table";
 
 import { openSubFileSelectionModal } from "../../../../state/selection/actions";
 import { TutorialStep } from "../../../../state/types";
+import { UploadJobTableRow } from "../../../../state/upload/types";
 import TutorialTooltip from "../../../TutorialTooltip";
-import { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
 
@@ -18,7 +19,11 @@ const styles = require("./styles.pcss");
  * or sub row title. It displays the file name along with clickable icons
  * for interacting with and editing sub rows.
  */
-export default function FilenameCell({ column, row, value: file }: CustomCell) {
+export default function FilenameCell({
+  column,
+  row,
+  value: file,
+}: CellProps<UploadJobTableRow, string>) {
   const dispatch = useDispatch();
   const [isHighlighted, setIsHighlighted] = React.useState(false);
   const { positionIndex, scene, subImageName, channelId } = row.original;
