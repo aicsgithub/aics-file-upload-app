@@ -7,6 +7,10 @@ export const CREATE_ANNOTATION_OPTIONS = makeConstant(
   BRANCH_NAME,
   "create-annotation-options"
 );
+export const START_EDITING_TEMPLATE = makeConstant(
+  BRANCH_NAME,
+  "start-editing-template"
+);
 export const SAVE_TEMPLATE = makeConstant(BRANCH_NAME, "save-template");
 export const SAVE_TEMPLATE_SUCCEEDED = makeConstant(
   BRANCH_NAME,

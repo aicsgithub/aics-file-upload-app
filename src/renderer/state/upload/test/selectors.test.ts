@@ -115,17 +115,16 @@ describe("Upload selectors", () => {
       const file = "/path/to/image.tiff";
       const payload = getUploadPayload({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
-          ...mockState.template.present,
+        template: {
+          ...mockState.template,
           appliedTemplate: {
             ...mockAuditInfo,
             annotations: [mockFavoriteColorTemplateAnnotation],
             name: "foo",
-            [NOTES_ANNOTATION_NAME]: [],
             templateId: 1,
             version: 1,
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [getUploadRowKey({ file })]: {
             barcode: "452",
@@ -148,13 +147,13 @@ describe("Upload selectors", () => {
     it("Interprets no values for a boolean annotation as false", () => {
       const state: State = {
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.template.present,
+        template: {
+          ...nonEmptyStateForInitiatingUpload.template,
           appliedTemplate: {
             ...mockMMSTemplate,
             annotations: [mockBooleanAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           "/path/to.dot/image.tiff": {
             Qc: [],
@@ -614,12 +613,9 @@ describe("Upload selectors", () => {
       const filePath = "/path/to/file.tiff";
       const state: State = {
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           appliedTemplate: mockIntervalTemplate,
-          draft: {
-            annotations: [],
-          },
-        }),
+        },
         upload: getMockStateWithHistory({
           [filePath]: {
             file: filePath,
@@ -645,12 +641,7 @@ describe("Upload selectors", () => {
       const filePath = "/path/to/file.tiff";
       const state: State = {
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
-          appliedTemplate: mockIntervalTemplate,
-          draft: {
-            annotations: [],
-          },
-        }),
+        template: { appliedTemplate: mockIntervalTemplate },
         upload: getMockStateWithHistory({
           [filePath]: {
             file: filePath,
@@ -676,9 +667,7 @@ describe("Upload selectors", () => {
           annotationTypes: mockAnnotationTypes,
           annotations: [mockWellAnnotation, mockNotesAnnotation],
         },
-        template: getMockStateWithHistory(
-          mockTemplateStateBranchWithAppliedTemplate
-        ),
+        template: mockTemplateStateBranchWithAppliedTemplate,
         upload: getMockStateWithHistory({}),
       });
       expect(jobName).to.equal("");
@@ -948,7 +937,6 @@ describe("Upload selectors", () => {
               ...mockAuditInfo,
               annotations: [mockFavoriteColorTemplateAnnotation],
               name: "foo",
-              [NOTES_ANNOTATION_NAME]: [],
               templateId: 1,
               version: 1,
             },

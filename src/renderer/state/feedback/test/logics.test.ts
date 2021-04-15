@@ -4,26 +4,20 @@ import { SinonStubbedInstance, createStubInstance, createSandbox } from "sinon";
 
 import LabkeyClient from "../../../services/labkey-client";
 import MMSClient from "../../../services/mms-client";
+import { requestFailed } from "../../actions";
 import { openTemplateEditor } from "../../selection/actions";
-import {
-  startTemplateDraft,
-  startTemplateDraftFailed,
-} from "../../template/actions";
-import { DEFAULT_TEMPLATE_DRAFT } from "../../template/constants";
-import { getTemplateDraft } from "../../template/selectors";
+import { startEditingTemplate } from "../../template/actions";
 import {
   createMockReduxStore,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
-  getMockStateWithHistory,
-  mockFavoriteColorTemplateAnnotation,
   mockMMSTemplate,
   mockState,
   mockTemplateStateBranch,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
-import { State } from "../../types";
+import { AsyncRequest, State } from "../../types";
 import { closeModal } from "../actions";
 import { getTemplateEditorVisible } from "../selectors";
 
@@ -50,13 +44,9 @@ describe("Feedback logics", () => {
         ...mockState.feedback,
         visibleModals: ["templateEditor"],
       },
-      template: getMockStateWithHistory({
+      template: {
         ...mockTemplateStateBranch,
-        draft: {
-          annotations: [],
-          name: "My Template",
-        },
-      }),
+      },
     };
     it("sets templateEditor visibility to false when modal name is templateEditor", async () => {
       const { logicMiddleware, store } = createMockReduxStore({
@@ -71,24 +61,6 @@ describe("Feedback logics", () => {
 
       // after
       expect(getTemplateEditorVisible(store.getState())).to.be.false;
-    });
-    it("clears template draft state when templateEditor modal is closed", async () => {
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...templateEditorOpenState,
-      });
-      // before
-      expect(getTemplateDraft(store.getState())).to.not.equal(
-        DEFAULT_TEMPLATE_DRAFT
-      );
-
-      // apply
-      store.dispatch(closeModal("templateEditor"));
-      await logicMiddleware.whenComplete();
-
-      // after
-      expect(getTemplateDraft(store.getState())).to.deep.equal(
-        DEFAULT_TEMPLATE_DRAFT
-      );
     });
   });
   describe("openTemplateEditorLogic", () => {
@@ -109,40 +81,19 @@ describe("Feedback logics", () => {
       expect(actions.includesMatch(expectedAction)).to.be.true;
     };
 
-    it("dispatches startTemplateDraft given OK requests", async () => {
+    it("dispatches startEditingTemplate given OK requests", async () => {
       mmsClient.getTemplate.resolves(mockMMSTemplate);
       labkeyClient.getTemplateHasBeenUsed.resolves(true);
-      const expectedAction = startTemplateDraft(
-        mockMMSTemplate,
-        {
-          ...mockMMSTemplate,
-          annotations: [
-            {
-              ...mockFavoriteColorTemplateAnnotation,
-              annotationTypeName: "Text",
-              index: 0,
-            },
-          ],
-        },
-        true
-      );
+      const expectedAction = startEditingTemplate(mockMMSTemplate);
       await runTest(expectedAction);
     });
 
-    it("dispatches startTemplateDraftFailed if getting template fails", async () => {
+    it("dispatches requestFailed if getting template fails", async () => {
       mmsClient.getTemplate.rejects(new Error("foo"));
       labkeyClient.getTemplateHasBeenUsed.resolves(true);
-      const expectedAction = startTemplateDraftFailed(
-        "Could not retrieve template: foo"
-      );
-      await runTest(expectedAction);
-    });
-
-    it("dispatches startTemplateDraftFailed if getting template is used fails", async () => {
-      mmsClient.getTemplate.resolves(mockMMSTemplate);
-      labkeyClient.getTemplateHasBeenUsed.rejects(new Error("foo"));
-      const expectedAction = startTemplateDraftFailed(
-        "Could not retrieve template: foo"
+      const expectedAction = requestFailed(
+        "Could not retrieve template: foo",
+        AsyncRequest.GET_TEMPLATE
       );
       await runTest(expectedAction);
     });

@@ -169,7 +169,7 @@ const initialState: State = {
   route: route.initialState,
   selection: getMockStateWithHistory(selection.initialState),
   setting: setting.initialState,
-  template: getMockStateWithHistory(template.initialState),
+  template: template.initialState,
   upload: getMockStateWithHistory(upload.initialState),
 };
 

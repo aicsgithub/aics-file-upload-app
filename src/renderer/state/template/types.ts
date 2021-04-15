@@ -35,6 +35,11 @@ export interface GetTemplateAction {
   type: string;
 }
 
+export interface StartEditingTemplateAction {
+  payload: Template;
+  type: string;
+}
+
 export interface SaveTemplateAction {
   payload: {
     templateId?: number;

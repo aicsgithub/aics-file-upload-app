@@ -250,7 +250,6 @@ export interface MetadataStateBranch {
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
   history: {
     selection: PageToIndexMap;
-    template: PageToIndexMap;
     upload: PageToIndexMap;
   };
 
@@ -273,7 +272,6 @@ export interface RouteStateBranch {
 }
 
 export interface SelectionStateBranch extends UploadTabSelections {
-  appliedTemplate?: Template;
   barcode?: string;
   imagingSessionId?: number;
   imagingSessionIds: Array<number | null>;
@@ -330,6 +328,7 @@ export interface UploadFile {
 
 export interface TemplateStateBranch {
   appliedTemplate?: Template;
+  templateToEdit?: Template;
 }
 
 export interface EnabledNotifications {

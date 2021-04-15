@@ -3,7 +3,7 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import FormControl from "../../../components/FormControl";
-import { createAnnotationOptions } from "../../../state/metadata/actions";
+import { createAnnotationOptions } from "../../../state/template/actions";
 import { AnnotationWithOptions } from "../../../state/template/types";
 
 const styles = require("./styles.pcss");

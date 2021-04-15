@@ -43,7 +43,6 @@ export const initialState: MetadataStateBranch = {
   channels: [],
   history: {
     selection: {},
-    template: {},
     upload: {},
   },
   imagingSessions: [],

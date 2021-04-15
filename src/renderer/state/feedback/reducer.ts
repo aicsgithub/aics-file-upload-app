@@ -35,20 +35,15 @@ import {
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
-import { clearTemplateDraft } from "../template/actions";
 import {
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
-  START_TEMPLATE_DRAFT,
-  START_TEMPLATE_DRAFT_FAILED,
 } from "../template/constants";
 import {
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
-  StartTemplateDraftAction,
-  StartTemplateDraftFailedAction,
 } from "../template/types";
 import {
   AlertType,
@@ -308,7 +303,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       { payload }: OpenTemplateEditorAction
     ) => ({
       ...state,
-      deferredAction: clearTemplateDraft(),
       requestsInProgress: payload
         ? addRequestToInProgress(state, AsyncRequest.GET_TEMPLATE)
         : state.requestsInProgress,
@@ -566,32 +560,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: removeRequestFromInProgress(
         state,
         `${AsyncRequest.CANCEL_UPLOAD}-${jobName}`
-      ),
-    }),
-  },
-  [START_TEMPLATE_DRAFT]: {
-    accepts: (action: AnyAction): action is StartTemplateDraftAction =>
-      action.type === START_TEMPLATE_DRAFT,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        AsyncRequest.GET_TEMPLATE
-      ),
-    }),
-  },
-  [START_TEMPLATE_DRAFT_FAILED]: {
-    accepts: (action: AnyAction): action is StartTemplateDraftFailedAction =>
-      action.type === START_TEMPLATE_DRAFT_FAILED,
-    perform: (
-      state: FeedbackStateBranch,
-      action: StartTemplateDraftFailedAction
-    ) => ({
-      ...state,
-      alert: getErrorAlert(action.payload),
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        AsyncRequest.GET_TEMPLATE
       ),
     }),
   },

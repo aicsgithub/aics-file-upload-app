@@ -1,21 +1,84 @@
 import { get } from "lodash";
 import { createLogic } from "redux-logic";
 
+import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
+import { TemplateAnnotation } from "../../services/mms-client/types";
 import { getApplyTemplateInfo } from "../../util";
 import { requestFailed } from "../actions";
+import { OpenTemplateEditorAction } from "../feedback/types";
+import { getWithRetry } from "../feedback/util";
 import { requestTemplates } from "../metadata/actions";
-import { getBooleanAnnotationTypeId } from "../metadata/selectors";
+import {
+  getAnnotationTypes,
+  getBooleanAnnotationTypeId,
+} from "../metadata/selectors";
 import {
   AsyncRequest,
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
+  ReduxLogicProcessDependenciesWithAction,
 } from "../types";
 import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
 
+import { startEditingTemplate } from "./actions";
 import { saveTemplateSucceeded, setAppliedTemplate } from "./actions";
 import { SAVE_TEMPLATE } from "./constants";
 import { getAppliedTemplate } from "./selectors";
+
+const openTemplateEditorLogic = createLogic({
+  process: async (
+    {
+      action,
+      getState,
+      mmsClient,
+    }: ReduxLogicProcessDependenciesWithAction<OpenTemplateEditorAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const templateId = action.payload;
+    if (typeof templateId === "number") {
+      const annotationTypes = getAnnotationTypes(getState());
+      try {
+        const [template] = await getWithRetry(
+          () => Promise.all([mmsClient.getTemplate(templateId)]),
+          dispatch
+        );
+        dispatch(
+          startEditingTemplate({
+            ...template,
+            annotations: template.annotations.map(
+              (a: TemplateAnnotation, index: number) => {
+                const type = annotationTypes.find(
+                  (t) => t.annotationTypeId === a.annotationTypeId
+                );
+                if (!type) {
+                  throw new Error(`Could not find matching type for annotation named ${a.name},
+                       annotationTypeId: ${a.annotationTypeId}`);
+                }
+                return {
+                  ...a,
+                  annotationTypeName: type.name,
+                  index,
+                };
+              }
+            ),
+          })
+        );
+      } catch (e) {
+        const error: string | undefined = e?.response?.data?.error || e.message;
+        dispatch(
+          requestFailed(
+            "Could not get template to edit: " + error,
+            AsyncRequest.GET_TEMPLATE
+          )
+        );
+      }
+    }
+    done();
+  },
+  type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
+});
 
 const saveTemplateLogic = createLogic({
   process: async (
@@ -87,4 +150,4 @@ const saveTemplateLogic = createLogic({
   type: SAVE_TEMPLATE,
 });
 
-export default [saveTemplateLogic];
+export default [openTemplateEditorLogic, saveTemplateLogic];

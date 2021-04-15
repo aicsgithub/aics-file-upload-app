@@ -48,10 +48,10 @@ describe("CustomDataTable selectors", () => {
           ...mockState.metadata,
           annotationTypes,
         },
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
-        }),
+        },
       });
 
       // Assert
@@ -102,10 +102,10 @@ describe("CustomDataTable selectors", () => {
           ...mockSelection,
           barcode: "12345132",
         }),
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
-        }),
+        },
       });
 
       // Assert
@@ -123,10 +123,10 @@ describe("CustomDataTable selectors", () => {
           ...mockState.metadata,
           annotationTypes,
         },
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
-        }),
+        },
       });
 
       // Assert
@@ -147,10 +147,10 @@ describe("CustomDataTable selectors", () => {
           ...mockSelection,
           job: mockJob,
         }),
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate,
-        }),
+        },
       });
 
       // Assert

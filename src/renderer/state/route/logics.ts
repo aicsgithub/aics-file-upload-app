@@ -132,7 +132,7 @@ export const handleStartingNewUploadJob = (
   state: State,
   getApplicationMenu: () => Menu | null
 ): AnyAction[] => {
-  const actions = [
+  const actions: AnyAction[] = [
     selectPage(Page.AddCustomData),
     clearUploadDraft(),
     clearUploadHistory(),

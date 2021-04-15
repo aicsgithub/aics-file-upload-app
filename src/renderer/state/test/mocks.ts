@@ -122,9 +122,6 @@ export const mockIntervalTemplate: Template = {
 
 export const mockTemplateStateBranch: TemplateStateBranch = {
   appliedTemplate: undefined,
-  draft: {
-    annotations: [],
-  },
 };
 
 export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
@@ -366,7 +363,7 @@ export const mockState: State = {
   route: route.initialState,
   selection: getMockStateWithHistory(selection.initialState),
   setting: setting.initialState,
-  template: getMockStateWithHistory(template.initialState),
+  template: template.initialState,
   upload: getMockStateWithHistory(upload.initialState),
 };
 
@@ -647,9 +644,9 @@ export const nonEmptyStateForInitiatingUpload: State = {
     barcode: "1234",
     selectedWells: [{ col: 0, row: 0 }],
   }),
-  template: getMockStateWithHistory({
+  template: {
     ...mockTemplateStateBranch,
     appliedTemplate: mockMMSTemplate,
-  }),
+  },
   upload: getMockStateWithHistory(mockWellUpload),
 };

@@ -21,16 +21,13 @@ import {
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { TemplateAnnotation } from "../../services/mms-client/types";
+import { Template, TemplateAnnotation } from "../../services/mms-client/types";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import { getTemplateEditorVisible } from "../../state/feedback/selectors";
 import { requestAnnotations } from "../../state/metadata/actions";
 import { getAnnotationsWithAnnotationOptions } from "../../state/metadata/selectors";
 import { getShowTemplateHint } from "../../state/setting/selectors";
-import {
-  addExistingTemplate,
-  saveTemplate,
-} from "../../state/template/actions";
+import { saveTemplate } from "../../state/template/actions";
 import { AnnotationWithOptions } from "../../state/template/types";
 
 import CreateAnnotationModal from "./CreateAnnotationModal";
@@ -92,7 +89,7 @@ function TemplateEditorModal(props: Props) {
     TemplateAnnotation
   >();
 
-  const templateId = undefined;
+  const templateToEdit: Template | undefined = undefined;
 
   // Necessary to catch template interactions from the menu bar
   React.useEffect(() => {
@@ -106,22 +103,17 @@ function TemplateEditorModal(props: Props) {
     };
   }, [dispatch]);
 
-  // Need to request and reset data when a new template is chosen to edit
   React.useEffect(() => {
-    // TODO: Request other data, set loading
-    if (templateId) {
+    if (templateToEdit) {
       setIsLoading(true);
-      const getTemplate = async () => {
-        setName("");
-        setAnnotations([]);
-      };
-      getTemplate();
+      // setName(templateToEdit.annotations);
+      // setAnnotations(templateToEdit.annotations);
     }
-  }, [templateId]);
+  }, [templateToEdit]);
 
   function onSave() {
     if (name && annotations.length) {
-      dispatch(saveTemplate(name, annotations, templateId));
+      dispatch(saveTemplate(name, annotations, templateToEdit?.templateId));
     } else if (!showErrors) {
       setShowErrors(true);
     }
@@ -145,6 +137,10 @@ function TemplateEditorModal(props: Props) {
         required: a.name === annotation.name ? !a.required : a.required,
       }))
     );
+  }
+
+  function onCopyExistingTemplate(templateId: number) {
+    console.log("copy from existing", templateId);
   }
 
   const columns = [
@@ -205,7 +201,8 @@ function TemplateEditorModal(props: Props) {
       return [];
     }
     return FOCUSED_ANNOTATION_KEYS.flatMap(({ key, title }) => {
-      const value = focusedAnnotation[key];
+      const annotation = focusedAnnotation as { [key: string]: any };
+      const value = annotation[key];
       if (value) {
         return [{ key: title, value }];
       }
@@ -223,7 +220,7 @@ function TemplateEditorModal(props: Props) {
           )
           .map((a) => (
             <Tooltip key={a.name} overlay={a.description} placement="left">
-              <Button onClick={() => setAnnotations([...annotations, a])}>
+              <Button onClick={() => setAnnotations([...annotations, a] as any)}>
                 {a.name}
               </Button>
             </Tooltip>
@@ -239,7 +236,7 @@ function TemplateEditorModal(props: Props) {
     </>
   );
 
-  const isEditing = Boolean(templateId);
+  const isEditing = Boolean(templateToEdit);
   const title = isEditing
     ? `Edit ${SCHEMA_SYNONYM}: ${name}`
     : `Create ${SCHEMA_SYNONYM}`;
@@ -278,7 +275,7 @@ function TemplateEditorModal(props: Props) {
             >
               <TemplateSearch
                 allowCreate={false}
-                onSelect={(t) => dispatch(addExistingTemplate(t))}
+                onSelect={(t) => dispatch(onCopyExistingTemplate(t))}
               />
             </LabeledInput>
             {!isEditing && (
@@ -316,7 +313,7 @@ function TemplateEditorModal(props: Props) {
               <Table
                 rowKey="name"
                 size="small"
-                columns={columns}
+                columns={columns as any}
                 pagination={false}
                 dataSource={annotations}
               />

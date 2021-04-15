@@ -8,6 +8,7 @@ import {
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
+  START_EDITING_TEMPLATE,
 } from "./constants";
 import {
   CreateAnnotationAction,
@@ -16,6 +17,7 @@ import {
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
+  StartEditingTemplateAction,
 } from "./types";
 
 export function createAnnotation(
@@ -37,6 +39,15 @@ export function createAnnotationOptions(
       newDropdownOptions,
     },
     type: CREATE_ANNOTATION_OPTIONS,
+  };
+}
+
+export function startEditingTemplate(
+  template: Template
+): StartEditingTemplateAction {
+  return {
+    payload: template,
+    type: START_EDITING_TEMPLATE,
   };
 }
 

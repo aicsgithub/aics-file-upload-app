@@ -12,12 +12,10 @@ import {
   setPlate,
 } from "../../selection/actions";
 import {
-  clearTemplateDraft,
   saveTemplate,
   saveTemplateSucceeded,
   setAppliedTemplate,
-  startTemplateDraft,
-  startTemplateDraftFailed,
+  startEditingTemplate,
 } from "../../template/actions";
 import {
   mockFailedUploadJob,
@@ -25,7 +23,6 @@ import {
   mockPlate,
   mockSuccessfulUploadJob,
   mockWells,
-  mockTemplateDraft,
   mockWellUpload,
 } from "../../test/mocks";
 import { AlertType, AsyncRequest, FeedbackStateBranch } from "../../types";
@@ -217,10 +214,6 @@ describe("feedback reducer", () => {
       const result = reducer(initialState, openTemplateEditor());
       expect(result.visibleModals.includes("templateEditor")).to.be.true;
     });
-    it("sets clearTemplateDraft as the deferredAction", () => {
-      const result = reducer(initialState, openTemplateEditor());
-      expect(result.deferredAction).to.deep.equal(clearTemplateDraft());
-    });
     it("adds GET_TEMPLATE to requestsInProgress if payload is not falsy", () => {
       const result = reducer(initialState, openTemplateEditor(1));
       expect(result.requestsInProgress).includes(AsyncRequest.GET_TEMPLATE);
@@ -323,7 +316,7 @@ describe("feedback reducer", () => {
   });
   describe("saveTemplate", () => {
     it("adds SAVE_TEMPLATE to requestsInProgress", () => {
-      const result = reducer(initialState, saveTemplate());
+      const result = reducer(initialState, saveTemplate("myTemplate", []));
       expect(result.requestsInProgress.includes(AsyncRequest.SAVE_TEMPLATE)).to
         .be.true;
     });
@@ -487,26 +480,14 @@ describe("feedback reducer", () => {
       });
     });
   });
-  describe("startTemplateDraft", () => {
+  describe("startEditingTemplate", () => {
     it("removes GET_TEMPLATE from requestsInProgress", () => {
       const result = reducer(
         {
           ...initialState,
           requestsInProgress: [AsyncRequest.GET_TEMPLATE],
         },
-        startTemplateDraft(mockMMSTemplate, mockTemplateDraft, true)
-      );
-      expect(result.requestsInProgress).not.includes(AsyncRequest.GET_TEMPLATE);
-    });
-  });
-  describe("startTemplateDraftFailed", () => {
-    it("removes GET_TEMPLATE from requestsInProgress", () => {
-      const result = reducer(
-        {
-          ...initialState,
-          requestsInProgress: [AsyncRequest.GET_TEMPLATE],
-        },
-        startTemplateDraftFailed("error")
+        startEditingTemplate(mockMMSTemplate)
       );
       expect(result.requestsInProgress).not.includes(AsyncRequest.GET_TEMPLATE);
     });

@@ -9,9 +9,9 @@ import { REPLACE_UPLOAD } from "../upload/constants";
 import { ReplaceUploadAction } from "../upload/types";
 import { makeReducer } from "../util";
 
-import { DEFAULT_TEMPLATE_DRAFT, SET_APPLIED_TEMPLATE } from "./constants";
+import { SET_APPLIED_TEMPLATE, START_EDITING_TEMPLATE } from "./constants";
 import { getAppliedTemplate } from "./selectors";
-import { SetAppliedTemplateAction } from "./types";
+import { SetAppliedTemplateAction, StartEditingTemplateAction } from "./types";
 
 export const initialState: TemplateStateBranch = {};
 
@@ -46,6 +46,17 @@ const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
       appliedTemplate: undefined,
     }),
   },
+  [START_EDITING_TEMPLATE]: {
+    accepts: (action: AnyAction): action is StartEditingTemplateAction =>
+      action.type === START_EDITING_TEMPLATE,
+    perform: (
+      state: TemplateStateBranch,
+      action: StartEditingTemplateAction
+    ) => ({
+      ...state,
+      templateToEdit: action.payload,
+    }),
+  },
   [CLOSE_MODAL]: {
     accepts: (action: AnyAction): action is CloseModalAction =>
       action.type === CLOSE_MODAL,
@@ -53,9 +64,7 @@ const actionToConfigMap: TypeToDescriptionMap<TemplateStateBranch> = {
       if (payload === "templateEditor") {
         return {
           ...state,
-          draft: DEFAULT_TEMPLATE_DRAFT,
-          original: undefined,
-          originalTemplateHasBeenUsed: undefined,
+          templateToEdit: undefined,
         };
       }
       return state;

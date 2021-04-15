@@ -17,6 +17,8 @@ import { TemplateWithTypeNames } from "./types";
 
 export const getAppliedTemplate = (state: State) =>
   state.template.appliedTemplate;
+export const getTemplateToEdit = (state: State) =>
+  state.template.templateToEdit;
 
 // includes annotation info for required fields - well
 // and fills out annotation type name

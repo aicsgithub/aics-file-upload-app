@@ -8,7 +8,7 @@ import {
   AnnotationType,
   ColumnType,
 } from "../../../services/labkey-client/types";
-import { createAnnotation } from "../../../state/metadata/actions";
+import { createAnnotation } from "../../../state/template/actions";
 import {
   getAnnotations,
   getAnnotationTypes,
@@ -59,7 +59,7 @@ function CreateAnnotationModal(props: Props) {
       dispatch(
         createAnnotation({
           name,
-          annotationType,
+          annotationTypeId: annotationType.annotationTypeId,
           description,
           dropdownOptions,
           lookup,
