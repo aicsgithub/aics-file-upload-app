@@ -9,6 +9,8 @@ import HttpCacheClient from "../http-cache-client";
 import { AicsSuccessResponse, HttpClient } from "../types";
 
 import {
+  AnnotationRequest,
+  CreateAnnotationRequest,
   GetPlateResponse,
   SaveTemplateRequest,
   Template,
@@ -103,5 +105,10 @@ export default class MMSClient extends HttpCacheClient {
     const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
     const response = await this.get<AicsSuccessResponse<FileMetadata>>(url);
     return response.data[0];
+  }
+
+  public async createAnnotation(annotationRequest: CreateAnnotationRequest): Promise<void> {
+    const url = `${mmsURL}/1.0/annotation/`;
+    await this.post(url, annotationRequest);
   }
 }

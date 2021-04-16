@@ -29,6 +29,7 @@ import {
   UpdatePageHistoryMapAction,
 } from "./types";
 
+// TODO: Delete?
 export function requestAnnotations(): GetAnnotationsAction {
   return {
     type: GET_ANNOTATIONS,

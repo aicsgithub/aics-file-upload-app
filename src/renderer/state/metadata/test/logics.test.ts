@@ -24,8 +24,6 @@ import {
 } from "../../test/configure-mock-store";
 import {
   mockAnnotationLookups,
-  mockAnnotationOptions,
-  mockAnnotations,
   mockAnnotationTypes,
   mockAuditInfo,
   mockBarcodePrefixes,
@@ -41,7 +39,6 @@ import { AsyncRequest } from "../../types";
 import {
   createBarcode,
   receiveMetadata,
-  requestAnnotations,
   requestBarcodeSearchResults,
   requestMetadata,
   requestTemplates,
@@ -157,30 +154,7 @@ describe("Metadata logics", () => {
       );
     });
   });
-  describe("requestAnnotations", () => {
-    it("sets annotations given OK response", async () => {
-      labkeyClient.getAnnotations.resolves(mockAnnotations);
-      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
-      await runRequestSucceededTest(
-        requestAnnotations(),
-        receiveMetadata(
-          {
-            annotations: mockAnnotations,
-            annotationOptions: mockAnnotationOptions,
-          },
-          AsyncRequest.GET_ANNOTATIONS
-        )
-      );
-    });
-    it("dispatches requestFailed given not OK response", async () => {
-      labkeyClient.getAnnotations.rejects(new Error("foo"));
-      await runRequestFailedTest(
-        requestAnnotations(),
-        "Could not retrieve annotations: foo",
-        AsyncRequest.GET_ANNOTATIONS
-      );
-    });
-  });
+
   describe("requestTemplates", () => {
     it("sets templates given OK response", async () => {
       const templates: LabkeyTemplate[] = [];

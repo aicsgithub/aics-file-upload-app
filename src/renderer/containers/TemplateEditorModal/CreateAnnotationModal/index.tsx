@@ -7,13 +7,14 @@ import FormControl from "../../../components/FormControl";
 import {
   AnnotationType,
   ColumnType,
+  Lookup,
 } from "../../../services/labkey-client/types";
-import { createAnnotation } from "../../../state/template/actions";
 import {
   getAnnotations,
   getAnnotationTypes,
   getLookups,
 } from "../../../state/metadata/selectors";
+import { createAnnotation } from "../../../state/template/actions";
 
 const { TextArea } = Input;
 
@@ -35,7 +36,7 @@ function CreateAnnotationModal(props: Props) {
   const annotationTypes = useSelector(getAnnotationTypes);
 
   const [name, setName] = React.useState("");
-  const [lookup, setLookup] = React.useState();
+  const [lookupTable, setLookupTable] = React.useState<string>();
   const [description, setDescription] = React.useState("");
   const [showErrors, setShowErrors] = React.useState(false);
   const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
@@ -48,6 +49,7 @@ function CreateAnnotationModal(props: Props) {
   );
 
   function onSave() {
+    const lookup = lookups.find(l => l.tableName === lookupTable);
     if (
       name &&
       annotationType &&
@@ -62,7 +64,8 @@ function CreateAnnotationModal(props: Props) {
           annotationTypeId: annotationType.annotationTypeId,
           description,
           dropdownOptions,
-          lookup,
+          lookupSchema: lookup?.schemaName,
+          lookupTable: lookup?.tableName
         })
       );
       props.onClose();
@@ -111,7 +114,7 @@ function CreateAnnotationModal(props: Props) {
         }
       >
         <TextArea
-          value={name}
+          value={description}
           placeholder="Enter new annotation description here"
           onChange={(e) => setDescription(e.target.value)}
         />
@@ -160,21 +163,21 @@ function CreateAnnotationModal(props: Props) {
           className={styles.formControl}
           label="Lookup Reference"
           error={
-            showErrors && !lookup
-              ? "Annotation Lookup Type is required"
+            showErrors && !lookupTable
+              ? "Annotation Lookup Reference is required"
               : undefined
           }
         >
           <Select
             className={styles.select}
-            onSelect={(v: any) => setLookup(v)}
+            onSelect={(v: string) => setLookupTable(v)}
             placeholder="Select Lookup"
             showSearch={true}
-            value={lookups}
+            value={lookupTable}
           >
-            {lookups.map((lookup) => (
-              <Select.Option key={lookup.tableName}>
-                {lookup.tableName}
+            {lookups.map(({ tableName }) => (
+              <Select.Option key={tableName}>
+                {tableName}
               </Select.Option>
             ))}
           </Select>

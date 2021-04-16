@@ -7,7 +7,7 @@ import { getApplyTemplateInfo } from "../../util";
 import { requestFailed } from "../actions";
 import { OpenTemplateEditorAction } from "../feedback/types";
 import { getWithRetry } from "../feedback/util";
-import { requestTemplates } from "../metadata/actions";
+import { requestAnnotations, requestTemplates } from "../metadata/actions";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -23,8 +23,42 @@ import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
 
 import { startEditingTemplate } from "./actions";
 import { saveTemplateSucceeded, setAppliedTemplate } from "./actions";
-import { SAVE_TEMPLATE } from "./constants";
+import { CREATE_ANNOTATION, CREATE_ANNOTATION_OPTIONS, SAVE_TEMPLATE } from "./constants";
 import { getAppliedTemplate } from "./selectors";
+import { CreateAnnotationAction, CreateAnnotationOptionsAction } from "./types";
+
+const createAnnotation = createLogic({
+  process: async (
+    {
+      action,
+      mmsClient,
+    }: ReduxLogicProcessDependenciesWithAction<CreateAnnotationAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const annotationRequest = action.payload;
+    mmsClient.createAnnotation(annotationRequest);
+    dispatch(requestAnnotations());
+    // TODO: Add annotation to template
+    done();
+  },
+  type: CREATE_ANNOTATION,
+});
+
+const createAnnotationOptions = createLogic({
+  process: async (
+    {
+      action,
+    }: ReduxLogicProcessDependenciesWithAction<CreateAnnotationOptionsAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const { annotationId, newDropdownOptions } = action.payload;
+    // TODO: Update template
+    done();
+  },
+  type: CREATE_ANNOTATION_OPTIONS,
+});
 
 const openTemplateEditorLogic = createLogic({
   process: async (
@@ -150,4 +184,4 @@ const saveTemplateLogic = createLogic({
   type: SAVE_TEMPLATE,
 });
 
-export default [openTemplateEditorLogic, saveTemplateLogic];
+export default [createAnnotation, createAnnotationOptions, openTemplateEditorLogic, saveTemplateLogic];

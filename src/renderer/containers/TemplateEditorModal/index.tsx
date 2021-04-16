@@ -21,14 +21,18 @@ import {
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { Template, TemplateAnnotation } from "../../services/mms-client/types";
+import { TemplateAnnotation } from "../../services/mms-client/types";
 import { closeModal, openModal } from "../../state/feedback/actions";
-import { getTemplateEditorVisible } from "../../state/feedback/selectors";
-import { requestAnnotations } from "../../state/metadata/actions";
+import {
+  getRequestsInProgress,
+  getTemplateEditorVisible,
+} from "../../state/feedback/selectors";
 import { getAnnotationsWithAnnotationOptions } from "../../state/metadata/selectors";
 import { getShowTemplateHint } from "../../state/setting/selectors";
 import { saveTemplate } from "../../state/template/actions";
+import { getTemplateToEdit } from "../../state/template/selectors";
 import { AnnotationWithOptions } from "../../state/template/types";
+import { AsyncRequest } from "../../state/types";
 
 import CreateAnnotationModal from "./CreateAnnotationModal";
 import DropdownEditorModal from "./DropdownEditorModal";
@@ -41,6 +45,7 @@ will be added as additional columns to fill out for each file. They can be share
 
 interface Props {
   className?: string;
+  visible?: boolean;
 }
 
 const FOCUSED_ANNOTATION_KEYS = [
@@ -72,14 +77,15 @@ const FOCUSED_ANNOTATION_COLUMNS = [
  */
 function TemplateEditorModal(props: Props) {
   const dispatch = useDispatch();
+  const templateToEdit = useSelector(getTemplateToEdit);
   const showTemplateHint = useSelector(getShowTemplateHint);
+  const requestsInProgress = useSelector(getRequestsInProgress);
   const allAnnotations = useSelector(getAnnotationsWithAnnotationOptions);
 
-  const [name, setName] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [name, setName] = React.useState(templateToEdit?.name || "");
   const [showErrors, setShowErrors] = React.useState(false);
   const [annotations, setAnnotations] = React.useState<TemplateAnnotation[]>(
-    []
+    templateToEdit?.annotations || []
   );
   const [showDropdownEditor, setShowDropdownEditor] = React.useState<
     TemplateAnnotation
@@ -88,13 +94,11 @@ function TemplateEditorModal(props: Props) {
   const [focusedAnnotation, setFocusedAnnotation] = React.useState<
     TemplateAnnotation
   >();
-
-  const templateToEdit: Template | undefined = undefined;
+  const isLoading = requestsInProgress.includes(AsyncRequest.GET_TEMPLATE);
 
   // Necessary to catch template interactions from the menu bar
   React.useEffect(() => {
     function showModal() {
-      dispatch(requestAnnotations());
       dispatch(openModal("templateEditor"));
     }
     ipcRenderer.on(OPEN_TEMPLATE_MENU_ITEM_CLICKED, showModal);
@@ -105,9 +109,8 @@ function TemplateEditorModal(props: Props) {
 
   React.useEffect(() => {
     if (templateToEdit) {
-      setIsLoading(true);
-      // setName(templateToEdit.annotations);
-      // setAnnotations(templateToEdit.annotations);
+      setName(templateToEdit.name);
+      setAnnotations(templateToEdit.annotations);
     }
   }, [templateToEdit]);
 
@@ -141,6 +144,10 @@ function TemplateEditorModal(props: Props) {
 
   function onCopyExistingTemplate(templateId: number) {
     console.log("copy from existing", templateId);
+    // setLoading(true);
+    // const template = await mmsClient.getTemplate(templateId);
+    // setAnnotations([...annotations.filter(a => !template.annotations.find(ta => a.name === ta.name)), ...template.annotations]);
+    // setLoading(false);
   }
 
   const columns = [
@@ -220,7 +227,9 @@ function TemplateEditorModal(props: Props) {
           )
           .map((a) => (
             <Tooltip key={a.name} overlay={a.description} placement="left">
-              <Button onClick={() => setAnnotations([...annotations, a] as any)}>
+              <Button
+                onClick={() => setAnnotations([...annotations, a] as any)}
+              >
                 {a.name}
               </Button>
             </Tooltip>
@@ -243,7 +252,7 @@ function TemplateEditorModal(props: Props) {
   return (
     <>
       <Modal
-        visible
+        visible={props.visible}
         width="90%"
         className={props.className}
         title={title}
@@ -278,6 +287,7 @@ function TemplateEditorModal(props: Props) {
                 onSelect={(t) => dispatch(onCopyExistingTemplate(t))}
               />
             </LabeledInput>
+            <div className={styles.or}>-&nbsp;or&nbsp;-</div>
             {!isEditing && (
               <FormControl
                 className={styles.formControl}
@@ -344,8 +354,7 @@ function TemplateEditorModal(props: Props) {
 
 export default function TemplateEditorModalWrapper(props: Props) {
   const visible = useSelector(getTemplateEditorVisible);
-  if (!visible) {
-    return null;
-  }
-  return <TemplateEditorModal {...props} />;
+  return (
+    <TemplateEditorModal key={`${visible}`} visible={visible} {...props} />
+  );
 }

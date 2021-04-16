@@ -77,6 +77,8 @@ const requestMetadataLogic = createLogic({
     try {
       const request = () =>
         Promise.all([
+          labkeyClient.getAnnotations(),
+          labkeyClient.getAnnotationOptions(),
           labkeyClient.getAnnotationLookups(),
           labkeyClient.getAnnotationTypes(),
           labkeyClient.getBarcodePrefixes(),
@@ -86,6 +88,8 @@ const requestMetadataLogic = createLogic({
           labkeyClient.getUnits(),
         ]);
       const [
+        annotations,
+        annotationOptions,
         annotationLookups,
         annotationTypes,
         barcodePrefixes,
@@ -96,6 +100,8 @@ const requestMetadataLogic = createLogic({
       ] = await getWithRetry(request, dispatch);
       dispatch(
         receiveMetadata({
+          annotations,
+          annotationOptions,
           annotationLookups,
           annotationTypes,
           barcodePrefixes,

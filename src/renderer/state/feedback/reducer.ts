@@ -7,7 +7,6 @@ import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
 import {
   CREATE_BARCODE,
-  GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
@@ -16,7 +15,6 @@ import {
 } from "../metadata/constants";
 import {
   CreateBarcodeAction,
-  GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
@@ -39,11 +37,13 @@ import {
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
+  START_EDITING_TEMPLATE,
 } from "../template/constants";
 import {
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
+  StartEditingTemplateAction,
 } from "../template/types";
 import {
   AlertType,
@@ -654,6 +654,19 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: removeRequestFromInProgress(state, requestType),
     }),
   },
+  [START_EDITING_TEMPLATE]: {
+    accepts: (action: AnyAction): action is StartEditingTemplateAction =>
+      action.type === START_EDITING_TEMPLATE,
+    perform: (
+      state: FeedbackStateBranch,
+    ) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_TEMPLATE
+      ),
+    }),
+  },
   [GET_BARCODE_SEARCH_RESULTS]: {
     accepts: (action: AnyAction): action is GetBarcodeSearchResultsAction =>
       action.type === GET_BARCODE_SEARCH_RESULTS,
@@ -662,17 +675,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: addRequestToInProgress(
         state,
         AsyncRequest.GET_BARCODE_SEARCH_RESULTS
-      ),
-    }),
-  },
-  [GET_ANNOTATIONS]: {
-    accepts: (action: AnyAction): action is GetAnnotationsAction =>
-      action.type === GET_ANNOTATIONS,
-    perform: (state: FeedbackStateBranch) => ({
-      ...state,
-      requestsInProgress: addRequestToInProgress(
-        state,
-        AsyncRequest.GET_ANNOTATIONS
       ),
     }),
   },

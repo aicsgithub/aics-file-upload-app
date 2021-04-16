@@ -11,7 +11,8 @@ export interface CreateAnnotationRequest {
   description: string;
   annotationTypeId: number;
   dropdownOptions?: string[];
-  lookup?: string;
+  lookupSchema?: string;
+  lookupTable?: string;
 }
 
 export interface CreateAnnotationAction {
