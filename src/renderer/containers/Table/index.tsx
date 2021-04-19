@@ -1,14 +1,9 @@
 import React from "react";
 import { HeaderGroup, TableInstance } from "react-table";
 
-const styles = require("./styles.pcss");
+import { UploadJobTableRow } from "../../state/upload/types";
 
-interface CustomHeaderGroup extends HeaderGroup {
-  // This prop is defined by useSortedBy plugin
-  getSortByToggleProps?: () => {};
-  // This prop is defined by useResizeColumns plugin
-  getResizerProps?: () => {};
-}
+const styles = require("./styles.pcss");
 
 /*
   This stateless component renders a table meant for connecting to
@@ -17,7 +12,9 @@ interface CustomHeaderGroup extends HeaderGroup {
   properties of the column definition supplied for that column or
   by the defaultColumn properties supplied to react-table.
 */
-export default function Table(props: { tableInstance: TableInstance<any> }) {
+export default function Table(props: {
+  tableInstance: TableInstance<UploadJobTableRow>;
+}) {
   const { tableInstance } = props;
   return (
     <div className={styles.tableContainer}>
@@ -31,24 +28,26 @@ export default function Table(props: { tableInstance: TableInstance<any> }) {
               {...headerGroup.getHeaderGroupProps()}
               key={headerGroup.getHeaderGroupProps().key}
             >
-              {headerGroup.headers.map((column: CustomHeaderGroup) => (
-                <th
-                  {...column.getHeaderProps()}
-                  className={styles.tableHeader}
-                  key={column.getHeaderProps().key}
-                >
-                  <div
-                    {...(column.getResizerProps && column.getResizerProps())}
-                    className={styles.columnResizer}
-                  />
-                  <div
-                    {...(column.getSortByToggleProps &&
-                      column.getSortByToggleProps())}
+              {headerGroup.headers.map(
+                (column: HeaderGroup<UploadJobTableRow>) => (
+                  <th
+                    {...column.getHeaderProps()}
+                    className={styles.tableHeader}
+                    key={column.getHeaderProps().key}
                   >
-                    {column.render("Header")}
-                  </div>
-                </th>
-              ))}
+                    <div
+                      {...(column.getResizerProps && column.getResizerProps())}
+                      className={styles.columnResizer}
+                    />
+                    <div
+                      {...(column.getSortByToggleProps &&
+                        column.getSortByToggleProps())}
+                    >
+                      {column.render("Header")}
+                    </div>
+                  </th>
+                )
+              )}
             </tr>
           ))}
         </thead>

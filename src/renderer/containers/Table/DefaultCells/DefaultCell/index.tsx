@@ -1,9 +1,12 @@
 import { isNil } from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
+import { CellProps } from "react-table";
 
 import { updateUpload } from "../../../../state/upload/actions";
-import DisplayCell, { CustomCell } from "../DisplayCell";
+import { UploadJobTableRow } from "../../../../state/upload/types";
+import { ColumnValue } from "../../types";
+import DisplayCell from "../DisplayCell";
 
 import DefaultEditor from "./DefaultEditor";
 
@@ -14,7 +17,9 @@ const styles = require("./styles.pcss");
   displaying the value supplied as well as creating an interactive
   editor based on the column's annotation type
 */
-export default function DefaultCell(props: CustomCell) {
+export default function DefaultCell(
+  props: CellProps<UploadJobTableRow, ColumnValue>
+) {
   const dispatch = useDispatch();
   const initialValue = props.value;
   const [value, setValue] = React.useState(initialValue);
@@ -39,7 +44,7 @@ export default function DefaultCell(props: CustomCell) {
     if (value !== props.value) {
       dispatch(
         updateUpload(props.row.id, {
-          [props.column.id]: value.filter((v: any[]) => !isNil(v)),
+          [props.column.id]: (value as any[]).filter((v) => !isNil(v)),
         })
       );
     }

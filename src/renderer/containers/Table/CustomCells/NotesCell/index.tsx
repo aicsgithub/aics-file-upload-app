@@ -3,18 +3,21 @@ import { OpenDialogOptions, remote } from "electron";
 import { castArray } from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
+import { CellProps } from "react-table";
 import { Dispatch } from "redux";
 
 import DragAndDrop from "../../../../components/DragAndDrop";
 import { setAlert } from "../../../../state/feedback/actions";
 import { AlertType, DragAndDropFileList } from "../../../../state/types";
 import { updateUpload } from "../../../../state/upload/actions";
+import { UploadJobTableRow } from "../../../../state/upload/types";
 import { onDrop, onOpen } from "../../../../util";
-import { CustomCell } from "../../DefaultCells/DisplayCell";
 
 const styles = require("./styles.pcss");
 
 const { TextArea } = Input;
+
+type Props = CellProps<UploadJobTableRow, string>;
 
 // Only want user to be able to select 1 file & it must be of type .txt
 const openDialogOptions: OpenDialogOptions = {
@@ -23,11 +26,7 @@ const openDialogOptions: OpenDialogOptions = {
   title: "Open Text file",
 };
 
-function getContextMenuItems(
-  dispatch: Dispatch,
-  props: CustomCell,
-  notes: string
-) {
+function getContextMenuItems(dispatch: Dispatch, props: Props, notes: string) {
   return remote.Menu.buildFromTemplate([
     {
       click: () => {
@@ -75,11 +74,11 @@ function getContextMenuItems(
 }
 
 /**
-  This component is for rendering notes related to files and managing different 
+  This component is for rendering notes related to files and managing different
   modes of editing them. It also contains static methods for reading
   .txt files from drag or drop events.
  */
-function NotesCell(props: CustomCell) {
+function NotesCell(props: Props) {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(
@@ -198,6 +197,6 @@ function NotesCell(props: CustomCell) {
   );
 }
 
-export default function NotesCellWrapper(props: CustomCell) {
+export default function NotesCellWrapper(props: Props) {
   return <NotesCell {...props} key={props.value} />;
 }
