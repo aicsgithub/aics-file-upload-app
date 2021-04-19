@@ -1,4 +1,4 @@
-import { get, includes } from "lodash";
+import { get, includes, isNil } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
@@ -115,7 +115,7 @@ const openTemplateEditorLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     const templateId = action.payload;
-    if (typeof templateId === "number") {
+    if (!isNil(templateId)) {
       const annotationTypes = getAnnotationTypes(getState());
       try {
         const [template] = await getWithRetry(
