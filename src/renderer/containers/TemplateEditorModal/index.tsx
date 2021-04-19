@@ -44,6 +44,8 @@ import DropdownEditorModal from "./DropdownEditorModal";
 
 const styles = require("./styles.pcss");
 
+const { Search } = Input;
+
 const COLUMN_TEMPLATE_DESCRIPTION = `A ${SCHEMA_SYNONYM} defines a group of annotations to associate with files.
 When applied to a batch of files to upload, the annotations associated with that template
 will be added as additional columns to fill out for each file. They can be shared and discovered by anyone.`;
@@ -94,6 +96,9 @@ function TemplateEditorModal(props: Props) {
   ) as AsyncRequest[];
 
   const [showErrors, setShowErrors] = React.useState(false);
+  const [annotationSearchValue, setAnnotationSearchValue] = React.useState<
+    string
+  >();
   const [showDropdownEditor, setShowDropdownEditor] = React.useState<
     AnnotationDraft
   >();
@@ -243,6 +248,12 @@ function TemplateEditorModal(props: Props) {
 
   const annotationOptionList = (
     <>
+      <Search
+        allowClear
+        value={annotationSearchValue}
+        placeholder="Search annotations..."
+        onChange={(e) => setAnnotationSearchValue(e.target.value)}
+      />
       <div className={styles.annotationOptionPopover}>
         {allAnnotations
           .filter((a) => a.exposeToFileUploadApp)
@@ -250,7 +261,10 @@ function TemplateEditorModal(props: Props) {
             (a) =>
               !template.annotations.find(
                 (a2) => a2.annotationId === a.annotationId
-              )
+              ) &&
+              a.name
+                .toLowerCase()
+                .includes(annotationSearchValue?.toLowerCase() || "")
           )
           .map((a) => (
             <Tooltip key={a.name} overlay={a.description} placement="left">
