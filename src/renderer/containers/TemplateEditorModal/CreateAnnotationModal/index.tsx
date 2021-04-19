@@ -186,6 +186,9 @@ function CreateAnnotationModal(props: Props) {
   );
 }
 
+// Create a new instance of the modal whenever visiblity is toggled rather
+// than update the existing one to avoid deriving state hooks based on
+// visibility
 export default function CreateAnnotationModalWrapper(props: Props) {
   return <CreateAnnotationModal key={`${props.visible}`} {...props} />;
 }
