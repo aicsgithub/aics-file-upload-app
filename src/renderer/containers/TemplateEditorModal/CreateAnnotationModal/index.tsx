@@ -4,11 +4,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormControl from "../../../components/FormControl";
-import {
-  AnnotationType,
-  ColumnType,
-  Lookup,
-} from "../../../services/labkey-client/types";
+import { ColumnType } from "../../../services/labkey-client/types";
 import {
   getAnnotations,
   getAnnotationTypes,
@@ -39,20 +35,21 @@ function CreateAnnotationModal(props: Props) {
   const [lookupTable, setLookupTable] = React.useState<string>();
   const [description, setDescription] = React.useState("");
   const [showErrors, setShowErrors] = React.useState(false);
-  const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
+  const [annotationType, setAnnotationType] = React.useState<string>();
   const [dropdownOptions, setDropdownOptions] = React.useState<string[]>([]);
 
-  const isDropdown = annotationType?.name === ColumnType.DROPDOWN;
-  const isLookup = !isDropdown && annotationType?.name === ColumnType.LOOKUP;
+  const isDropdown = annotationType === ColumnType.DROPDOWN;
+  const isLookup = !isDropdown && annotationType === ColumnType.LOOKUP;
   const isUniqueName = !annotations.find(
     (a) => a.name.toLowerCase() === name.toLowerCase()
   );
 
   function onSave() {
-    const lookup = lookups.find(l => l.tableName === lookupTable);
+    const lookup = lookups.find((l) => l.tableName === lookupTable);
+    const type = annotationTypes.find((at) => at.name === annotationType);
     if (
       name &&
-      annotationType &&
+      type &&
       description &&
       (!isDropdown || dropdownOptions.length) &&
       (!isLookup || lookup) &&
@@ -61,11 +58,12 @@ function CreateAnnotationModal(props: Props) {
       dispatch(
         createAnnotation({
           name,
-          annotationTypeId: annotationType.annotationTypeId,
+          annotationTypeId: type.annotationTypeId,
           description,
-          dropdownOptions,
+          annotationOptions: dropdownOptions,
           lookupSchema: lookup?.schemaName,
-          lookupTable: lookup?.tableName
+          lookupTable: lookup?.tableName,
+          lookupColumn: lookup?.columnName,
         })
       );
       props.onClose();
@@ -130,7 +128,7 @@ function CreateAnnotationModal(props: Props) {
       >
         <Select
           className={styles.select}
-          onSelect={(v: AnnotationType) => setAnnotationType(v)}
+          onSelect={(v: string) => setAnnotationType(v)}
           placeholder="Select annotation data type"
           value={annotationType}
         >
@@ -175,11 +173,11 @@ function CreateAnnotationModal(props: Props) {
             showSearch={true}
             value={lookupTable}
           >
-            {lookups.map(({ tableName }) => (
-              <Select.Option key={tableName}>
-                {tableName}
-              </Select.Option>
-            ))}
+            {lookups
+              .sort((a, b) => a.tableName.localeCompare(b.tableName))
+              .map(({ tableName }) => (
+                <Select.Option key={tableName}>{tableName}</Select.Option>
+              ))}
           </Select>
         </FormControl>
       )}

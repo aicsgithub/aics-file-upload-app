@@ -615,6 +615,9 @@ describe("Upload selectors", () => {
         ...nonEmptyStateForInitiatingUpload,
         template: {
           appliedTemplate: mockIntervalTemplate,
+          draft: {
+            annotations: [],
+          },
         },
         upload: getMockStateWithHistory({
           [filePath]: {
@@ -641,7 +644,12 @@ describe("Upload selectors", () => {
       const filePath = "/path/to/file.tiff";
       const state: State = {
         ...nonEmptyStateForInitiatingUpload,
-        template: { appliedTemplate: mockIntervalTemplate },
+        template: {
+          appliedTemplate: mockIntervalTemplate,
+          draft: {
+            annotations: [],
+          },
+        },
         upload: getMockStateWithHistory({
           [filePath]: {
             file: filePath,

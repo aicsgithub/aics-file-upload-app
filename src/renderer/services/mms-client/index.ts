@@ -6,10 +6,10 @@ import {
   UploadMetadata as AicsFilesUploadMetadata,
 } from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
+import { Annotation } from "../labkey-client/types";
 import { AicsSuccessResponse, HttpClient } from "../types";
 
 import {
-  AnnotationRequest,
   CreateAnnotationRequest,
   GetPlateResponse,
   SaveTemplateRequest,
@@ -107,8 +107,14 @@ export default class MMSClient extends HttpCacheClient {
     return response.data[0];
   }
 
-  public async createAnnotation(annotationRequest: CreateAnnotationRequest): Promise<void> {
+  public async createAnnotation(
+    annotationRequest: CreateAnnotationRequest
+  ): Promise<Annotation> {
     const url = `${mmsURL}/1.0/annotation/`;
-    await this.post(url, annotationRequest);
+    const response = await this.post<AicsSuccessResponse<Annotation>>(
+      url,
+      annotationRequest
+    );
+    return response.data[0];
   }
 }

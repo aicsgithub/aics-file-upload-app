@@ -1,16 +1,15 @@
 import { Modal, Select } from "antd";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import FormControl from "../../../components/FormControl";
-import { createAnnotationOptions } from "../../../state/template/actions";
-import { AnnotationWithOptions } from "../../../state/template/types";
+import { AnnotationDraft } from "../../../state/types";
 
 const styles = require("./styles.pcss");
 
 interface Props {
-  annotation?: AnnotationWithOptions;
+  annotation?: AnnotationDraft;
   onClose: () => void;
+  onSave: (newDropdownOptions: string[]) => void;
 }
 
 /**
@@ -20,21 +19,13 @@ interface Props {
  * edits like changing the name, description, or lookup column are out of reach.
  */
 function DropdownEditorModal(props: Props) {
-  const dispatch = useDispatch();
   const [newDropdownOptions, setNewDropdownOptions] = React.useState<string[]>(
     []
   );
 
   function onSave() {
-    if (props.annotation) {
-      dispatch(
-        createAnnotationOptions(
-          props.annotation.annotationId,
-          newDropdownOptions
-        )
-      );
-      props.onClose();
-    }
+    props.onSave(newDropdownOptions);
+    props.onClose();
   }
 
   return (

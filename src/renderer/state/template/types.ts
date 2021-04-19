@@ -1,30 +1,41 @@
 import { Annotation, Audited } from "../../services/labkey-client/types";
-import { Template, TemplateAnnotation } from "../../services/mms-client/types";
+import {
+  CreateAnnotationRequest,
+  Template,
+  TemplateAnnotation,
+} from "../../services/mms-client/types";
 import {
   AutoSaveAction,
+  TemplateDraft,
   UploadStateBranch,
   WriteToStoreAction,
 } from "../types";
 
-export interface CreateAnnotationRequest {
-  name: string;
-  description: string;
-  annotationTypeId: number;
-  dropdownOptions?: string[];
-  lookupSchema?: string;
-  lookupTable?: string;
+export interface AddExistingAnnotationAction {
+  payload: Annotation;
+  type: string;
+}
+
+export interface AddExistingTemplateAction {
+  payload: number;
+  type: string;
+}
+
+// if dropdown, annotationOptions array is supplied
+export interface AnnotationWithOptions extends Annotation {
+  annotationOptions?: string[];
+}
+
+export interface ClearTemplateDraftAction {
+  type: string;
+}
+
+export interface ClearTemplateHistoryAction {
+  type: string;
 }
 
 export interface CreateAnnotationAction {
   payload: CreateAnnotationRequest;
-  type: string;
-}
-
-export interface CreateAnnotationOptionsAction {
-  payload: {
-    newDropdownOptions: string[];
-    annotationId: number;
-  };
   type: string;
 }
 
@@ -36,17 +47,17 @@ export interface GetTemplateAction {
   type: string;
 }
 
-export interface StartEditingTemplateAction {
-  payload: Template;
+export interface JumpToPastTemplateAction {
+  index: number;
+  type: string;
+}
+
+export interface RemoveAnnotationsAction {
+  payload: number[];
   type: string;
 }
 
 export interface SaveTemplateAction {
-  payload: {
-    templateId?: number;
-    name: string;
-    annotations: TemplateAnnotation[];
-  };
   type: string;
 }
 
@@ -63,11 +74,6 @@ export interface SetAppliedTemplateAction extends AutoSaveAction {
   type: string;
 }
 
-// if dropdown, annotationOptions array is supplied
-export interface AnnotationWithOptions extends Annotation {
-  annotationOptions?: string[];
-}
-
 export interface TemplateAnnotationWithTypeName extends TemplateAnnotation {
   type: string; // name of annotationType
 }
@@ -77,4 +83,22 @@ export interface TemplateWithTypeNames extends Audited {
   name: string;
   templateId: number;
   version: number;
+}
+
+export interface UpdateTemplateDraftAction {
+  payload: Partial<TemplateDraft>;
+  type: string;
+}
+
+export interface StartTemplateDraftAction {
+  payload: {
+    draft: TemplateDraft;
+    original: Template;
+  };
+  type: string;
+}
+
+export interface StartTemplateDraftFailedAction {
+  payload: string;
+  type: string;
 }

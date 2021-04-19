@@ -5,7 +5,6 @@ import {
   CLEAR_FILE_METADATA_FOR_JOB,
   CLEAR_OPTIONS_FOR_LOOKUP,
   CREATE_BARCODE,
-  GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
@@ -19,7 +18,6 @@ import {
   ClearFileMetadataForJobAction,
   ClearOptionsForLookupAction,
   CreateBarcodeAction,
-  GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
@@ -28,13 +26,6 @@ import {
   ResetHistoryAction,
   UpdatePageHistoryMapAction,
 } from "./types";
-
-// TODO: Delete?
-export function requestAnnotations(): GetAnnotationsAction {
-  return {
-    type: GET_ANNOTATIONS,
-  };
-}
 
 export function clearOptionsForLookup(
   lookupAnnotationName: keyof MetadataStateBranch

@@ -79,7 +79,6 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
       ...state,
       history: {
         selection: {},
-        template: {},
         upload: {},
       },
     }),

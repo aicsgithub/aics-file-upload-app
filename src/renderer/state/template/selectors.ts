@@ -1,3 +1,4 @@
+import { trim } from "lodash";
 import { createSelector } from "reselect";
 
 import {
@@ -11,14 +12,56 @@ import {
   getNotesAnnotation,
   getWellAnnotation,
 } from "../metadata/selectors";
-import { State } from "../types";
+import { AnnotationDraft, State, TemplateDraft } from "../types";
 
 import { TemplateWithTypeNames } from "./types";
 
 export const getAppliedTemplate = (state: State) =>
   state.template.appliedTemplate;
-export const getTemplateToEdit = (state: State) =>
-  state.template.templateToEdit;
+export const getTemplateDraft = (state: State) => state.template.draft;
+export const getOriginalTemplate = (state: State) => state.template.original;
+
+export const getSaveTemplateRequest = createSelector(
+  [getTemplateDraft],
+  (draft: TemplateDraft) => {
+    return {
+      annotations: draft.annotations.map((a: AnnotationDraft) => {
+        let annotationOptions: string[] | undefined = (
+          a.annotationOptions || []
+        )
+          .map((o: string) => trim(o))
+          .filter((o: string) => !!o);
+
+        if (a.annotationTypeName !== ColumnType.DROPDOWN) {
+          annotationOptions = undefined;
+        }
+
+        if (a.annotationId) {
+          return {
+            annotationId: a.annotationId,
+            annotationOptions,
+            // TODO lisah 5/7/20 this should be removed as part of FMS-1176
+            canHaveManyValues: true,
+            required: a.required,
+          };
+        }
+
+        return {
+          annotationOptions,
+          annotationTypeId: a.annotationTypeId,
+          // TODO lisah 5/7/20 this should be removed as part of FMS-1176
+          canHaveManyValues: true,
+          description: trim(a.description) || "",
+          lookupSchema: a.lookupSchema,
+          lookupTable: a.lookupTable,
+          name: trim(a.name) || "",
+          required: a.required,
+        };
+      }),
+      name: trim(draft.name) || "",
+    };
+  }
+);
 
 // includes annotation info for required fields - well
 // and fills out annotation type name

@@ -1,5 +1,6 @@
 import { createLogic } from "redux-logic";
 
+import { clearTemplateDraft } from "../template/actions";
 import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
@@ -12,7 +13,7 @@ import { getDeferredAction } from "./selectors";
 
 const closeModalLogic = createLogic({
   process: (
-    { getState }: ReduxLogicProcessDependencies,
+    { action, getState }: ReduxLogicProcessDependencies,
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
@@ -21,6 +22,10 @@ const closeModalLogic = createLogic({
       dispatch(deferredAction);
     }
     dispatch(clearDeferredAction());
+    if (action.payload === "templateEditor") {
+      // Clear template draft any time the draft editor is closed
+      dispatch(clearTemplateDraft());
+    }
     done();
   },
   type: CLOSE_MODAL,

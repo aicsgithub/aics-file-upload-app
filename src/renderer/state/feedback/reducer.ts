@@ -33,17 +33,22 @@ import {
 } from "../route/types";
 import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
+import { clearTemplateDraft } from "../template/actions";
 import {
+  CREATE_ANNOTATION,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
-  START_EDITING_TEMPLATE,
+  START_TEMPLATE_DRAFT,
+  START_TEMPLATE_DRAFT_FAILED,
 } from "../template/constants";
 import {
+  CreateAnnotationAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
-  StartEditingTemplateAction,
+  StartTemplateDraftAction,
+  StartTemplateDraftFailedAction,
 } from "../template/types";
 import {
   AlertType,
@@ -303,6 +308,7 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       { payload }: OpenTemplateEditorAction
     ) => ({
       ...state,
+      deferredAction: clearTemplateDraft(),
       requestsInProgress: payload
         ? addRequestToInProgress(state, AsyncRequest.GET_TEMPLATE)
         : state.requestsInProgress,
@@ -563,6 +569,32 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
+  [START_TEMPLATE_DRAFT]: {
+    accepts: (action: AnyAction): action is StartTemplateDraftAction =>
+      action.type === START_TEMPLATE_DRAFT,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_TEMPLATE
+      ),
+    }),
+  },
+  [START_TEMPLATE_DRAFT_FAILED]: {
+    accepts: (action: AnyAction): action is StartTemplateDraftFailedAction =>
+      action.type === START_TEMPLATE_DRAFT_FAILED,
+    perform: (
+      state: FeedbackStateBranch,
+      action: StartTemplateDraftFailedAction
+    ) => ({
+      ...state,
+      alert: getErrorAlert(action.payload),
+      requestsInProgress: removeRequestFromInProgress(
+        state,
+        AsyncRequest.GET_TEMPLATE
+      ),
+    }),
+  },
   [SUBMIT_FILE_METADATA_UPDATE]: {
     accepts: (action: AnyAction): action is SubmitFileMetadataUpdateAction =>
       action.type === SUBMIT_FILE_METADATA_UPDATE,
@@ -654,19 +686,6 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: removeRequestFromInProgress(state, requestType),
     }),
   },
-  [START_EDITING_TEMPLATE]: {
-    accepts: (action: AnyAction): action is StartEditingTemplateAction =>
-      action.type === START_EDITING_TEMPLATE,
-    perform: (
-      state: FeedbackStateBranch,
-    ) => ({
-      ...state,
-      requestsInProgress: removeRequestFromInProgress(
-        state,
-        AsyncRequest.GET_TEMPLATE
-      ),
-    }),
-  },
   [GET_BARCODE_SEARCH_RESULTS]: {
     accepts: (action: AnyAction): action is GetBarcodeSearchResultsAction =>
       action.type === GET_BARCODE_SEARCH_RESULTS,
@@ -675,6 +694,17 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       requestsInProgress: addRequestToInProgress(
         state,
         AsyncRequest.GET_BARCODE_SEARCH_RESULTS
+      ),
+    }),
+  },
+  [CREATE_ANNOTATION]: {
+    accepts: (action: AnyAction): action is CreateAnnotationAction =>
+      action.type === CREATE_ANNOTATION,
+    perform: (state: FeedbackStateBranch) => ({
+      ...state,
+      requestsInProgress: addRequestToInProgress(
+        state,
+        AsyncRequest.CREATE_ANNOTATION
       ),
     }),
   },

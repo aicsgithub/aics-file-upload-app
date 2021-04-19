@@ -9,8 +9,9 @@ import {
   Table,
   Tooltip,
 } from "antd";
+import { ColumnProps } from "antd/es/table";
 import { ipcRenderer } from "electron";
-import { trim } from "lodash";
+import { castArray, trim } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -21,7 +22,6 @@ import {
 import FormControl from "../../components/FormControl";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { TemplateAnnotation } from "../../services/mms-client/types";
 import { closeModal, openModal } from "../../state/feedback/actions";
 import {
   getRequestsInProgress,
@@ -29,10 +29,15 @@ import {
 } from "../../state/feedback/selectors";
 import { getAnnotationsWithAnnotationOptions } from "../../state/metadata/selectors";
 import { getShowTemplateHint } from "../../state/setting/selectors";
-import { saveTemplate } from "../../state/template/actions";
-import { getTemplateToEdit } from "../../state/template/selectors";
-import { AnnotationWithOptions } from "../../state/template/types";
-import { AsyncRequest } from "../../state/types";
+import {
+  addExistingAnnotation,
+  addExistingTemplate,
+  removeAnnotations,
+  saveTemplate,
+  updateTemplateDraft,
+} from "../../state/template/actions";
+import { getTemplateDraft } from "../../state/template/selectors";
+import { AnnotationDraft, AsyncRequest } from "../../state/types";
 
 import CreateAnnotationModal from "./CreateAnnotationModal";
 import DropdownEditorModal from "./DropdownEditorModal";
@@ -48,53 +53,63 @@ interface Props {
   visible?: boolean;
 }
 
+interface AnnotationKeys {
+  key: string;
+  value: string;
+}
+
 const FOCUSED_ANNOTATION_KEYS = [
   { key: "name", title: "Name" },
   { key: "description", title: "Description" },
-  { key: "type", title: "Data Type" },
+  { key: "annotationTypeName", title: "Data Type" },
   { key: "annotationOptions", title: "Dropdown Options" },
-  { key: "lookup", title: "Lookup Reference" },
+  { key: "lookupTable", title: "Lookup Reference" },
   { key: "created", title: "Created" },
-  { key: "createdBy", title: "Created By" },
 ];
 
-const FOCUSED_ANNOTATION_COLUMNS = [
+const FOCUSED_ANNOTATION_COLUMNS: ColumnProps<AnnotationKeys>[] = [
   {
     dataIndex: "key",
-    title: "Key",
     width: "150px",
   },
   {
     dataIndex: "value",
-    ellipsis: true,
-    title: "Value",
-    width: "100%",
   },
 ];
 
 /**
- * TODO
+ * Modal for creating or editing a user defined Template of Annotations.
+ * This editor allows users to choose a name to identify the Template with
+ * as well as choose which Annotations to include in the Template. Users can
+ * also update limited aspects of the Annotations like the dropdown options
+ * if relevant.
  */
 function TemplateEditorModal(props: Props) {
   const dispatch = useDispatch();
-  const templateToEdit = useSelector(getTemplateToEdit);
+  const template = useSelector(getTemplateDraft);
   const showTemplateHint = useSelector(getShowTemplateHint);
-  const requestsInProgress = useSelector(getRequestsInProgress);
   const allAnnotations = useSelector(getAnnotationsWithAnnotationOptions);
+  const requestsInProgress = useSelector(
+    getRequestsInProgress
+  ) as AsyncRequest[];
 
-  const [name, setName] = React.useState(templateToEdit?.name || "");
   const [showErrors, setShowErrors] = React.useState(false);
-  const [annotations, setAnnotations] = React.useState<TemplateAnnotation[]>(
-    templateToEdit?.annotations || []
-  );
   const [showDropdownEditor, setShowDropdownEditor] = React.useState<
-    TemplateAnnotation
+    AnnotationDraft
   >();
   const [showAnnotationEditor, setShowAnnotationEditor] = React.useState(false);
   const [focusedAnnotation, setFocusedAnnotation] = React.useState<
-    TemplateAnnotation
+    AnnotationDraft
   >();
-  const isLoading = requestsInProgress.includes(AsyncRequest.GET_TEMPLATE);
+
+  const isEditing = Boolean(template && template.templateId);
+  const isLoading = requestsInProgress.some((r) =>
+    [
+      AsyncRequest.GET_TEMPLATE,
+      AsyncRequest.CREATE_ANNOTATION,
+      AsyncRequest.SAVE_TEMPLATE,
+    ].includes(r)
+  );
 
   // Necessary to catch template interactions from the menu bar
   React.useEffect(() => {
@@ -107,99 +122,108 @@ function TemplateEditorModal(props: Props) {
     };
   }, [dispatch]);
 
-  React.useEffect(() => {
-    if (templateToEdit) {
-      setName(templateToEdit.name);
-      setAnnotations(templateToEdit.annotations);
+  function onNameChange(e?: React.ChangeEvent<HTMLInputElement>) {
+    dispatch(updateTemplateDraft({ name: e?.target.value || "" }));
+  }
+
+  function onUpdateTemplateAnnotation(
+    index: number,
+    update: Partial<AnnotationDraft>
+  ) {
+    const annotation = {
+      ...template.annotations[index],
+      ...update,
+    };
+    const annotations = [...template.annotations];
+    annotations[index] = annotation;
+    dispatch(updateTemplateDraft({ annotations }));
+    if (focusedAnnotation === template.annotations[index]) {
+      setFocusedAnnotation(annotation);
     }
-  }, [templateToEdit]);
+  }
+
+  function onDropdownOptionsUpdate(newDropdownOptions: string[]) {
+    if (showDropdownEditor) {
+      const index = template.annotations.findIndex(
+        (a) => a.annotationId === showDropdownEditor.annotationId
+      );
+      const annotationOptions = [
+        ...(showDropdownEditor.annotationOptions || []),
+        ...newDropdownOptions,
+      ];
+      onUpdateTemplateAnnotation(index, { annotationOptions });
+    }
+  }
+
+  function onRemoveAnnotation(index: number) {
+    dispatch(removeAnnotations([index]));
+    if (focusedAnnotation === template.annotations[index]) {
+      setFocusedAnnotation(undefined);
+    }
+  }
 
   function onSave() {
-    if (name && annotations.length) {
-      dispatch(saveTemplate(name, annotations, templateToEdit?.templateId));
+    if (template.name && trim(template.name) && template.annotations.length) {
+      dispatch(saveTemplate());
     } else if (!showErrors) {
       setShowErrors(true);
     }
   }
 
-  function onCancel() {
-    dispatch(closeModal("templateEditor"));
-  }
-
-  function onRemoveAnnotation(annotation: AnnotationWithOptions) {
-    setAnnotations(annotations.filter((a) => annotation.name !== a.name));
-    if (focusedAnnotation === annotation) {
-      setFocusedAnnotation(undefined);
-    }
-  }
-
-  function toggleAnnotationIsRequired(annotation: TemplateAnnotation) {
-    setAnnotations(
-      annotations.map((a) => ({
-        ...a,
-        required: a.name === annotation.name ? !a.required : a.required,
-      }))
-    );
-  }
-
-  function onCopyExistingTemplate(templateId: number) {
-    console.log("copy from existing", templateId);
-    // setLoading(true);
-    // const template = await mmsClient.getTemplate(templateId);
-    // setAnnotations([...annotations.filter(a => !template.annotations.find(ta => a.name === ta.name)), ...template.annotations]);
-    // setLoading(false);
-  }
-
-  const columns = [
+  const columns: ColumnProps<AnnotationDraft>[] = [
     {
       dataIndex: "name",
-      ellipsis: true,
       key: "name",
       title: "Name",
-      width: "100%",
-      render: (name: string, row: TemplateAnnotation) => (
-        <Tooltip overlay={row.description}>{name}</Tooltip>
-      ),
+      render: function TooltipName(name: string, row) {
+        return <Tooltip overlay={row.description}>{name}</Tooltip>;
+      },
     },
     {
       align: "center",
       dataIndex: "required",
       key: "required",
-      render: (required: boolean, row: TemplateAnnotation) => (
-        <Checkbox
-          checked={required}
-          onChange={() => toggleAnnotationIsRequired(row)}
-        />
-      ),
+      render: function RequiredCheckbox(required: boolean, _, index) {
+        return (
+          <Checkbox
+            checked={required}
+            onChange={() =>
+              onUpdateTemplateAnnotation(index, { required: !required })
+            }
+          />
+        );
+      },
       title: "Required",
-      width: "130px",
+      width: "125px",
     },
     {
       align: "right",
       key: "actions",
-      render: (_: any, row: TemplateAnnotation) => (
-        <>
-          <Button
-            icon="search"
-            title="View"
-            onClick={() => setFocusedAnnotation(row)}
-          />
-          {!!row.annotationOptions?.length && (
+      render: function Actions(_, row, index) {
+        return (
+          <>
             <Button
-              icon="edit"
-              disabled={!row.annotationOptions?.length}
-              onClick={() => setShowDropdownEditor(row)}
+              icon="search"
+              title="View"
+              onClick={() => setFocusedAnnotation(row)}
             />
-          )}
-          <Button
-            icon="delete"
-            title="Remove"
-            onClick={() => onRemoveAnnotation(row)}
-          />
-        </>
-      ),
+            {!!row.annotationOptions?.length && (
+              <Button
+                icon="edit"
+                disabled={!row.annotationOptions?.length}
+                onClick={() => setShowDropdownEditor(row)}
+              />
+            )}
+            <Button
+              icon="delete"
+              title="Remove"
+              onClick={() => onRemoveAnnotation(index)}
+            />
+          </>
+        );
+      },
       title: "Actions",
-      width: "180px",
+      width: "125px",
     },
   ];
 
@@ -209,7 +233,7 @@ function TemplateEditorModal(props: Props) {
     }
     return FOCUSED_ANNOTATION_KEYS.flatMap(({ key, title }) => {
       const annotation = focusedAnnotation as { [key: string]: any };
-      const value = annotation[key];
+      const value = annotation[key] && castArray(annotation[key]).join(", ");
       if (value) {
         return [{ key: title, value }];
       }
@@ -223,13 +247,14 @@ function TemplateEditorModal(props: Props) {
         {allAnnotations
           .filter((a) => a.exposeToFileUploadApp)
           .filter(
-            (a) => !annotations.find((a2) => a2.annotationId === a.annotationId)
+            (a) =>
+              !template.annotations.find(
+                (a2) => a2.annotationId === a.annotationId
+              )
           )
           .map((a) => (
             <Tooltip key={a.name} overlay={a.description} placement="left">
-              <Button
-                onClick={() => setAnnotations([...annotations, a] as any)}
-              >
+              <Button onClick={() => dispatch(addExistingAnnotation(a))}>
                 {a.name}
               </Button>
             </Tooltip>
@@ -245,7 +270,6 @@ function TemplateEditorModal(props: Props) {
     </>
   );
 
-  const isEditing = Boolean(templateToEdit);
   const title = isEditing
     ? `Edit ${SCHEMA_SYNONYM}: ${name}`
     : `Create ${SCHEMA_SYNONYM}`;
@@ -257,7 +281,7 @@ function TemplateEditorModal(props: Props) {
         className={props.className}
         title={title}
         onOk={onSave}
-        onCancel={onCancel}
+        onCancel={() => dispatch(closeModal("templateEditor"))}
         okText="Save"
         maskClosable={false}
         destroyOnClose={true} // Unmount child components
@@ -284,7 +308,7 @@ function TemplateEditorModal(props: Props) {
             >
               <TemplateSearch
                 allowCreate={false}
-                onSelect={(t) => dispatch(onCopyExistingTemplate(t))}
+                onSelect={(t) => dispatch(addExistingTemplate(t))}
               />
             </LabeledInput>
             <div className={styles.or}>-&nbsp;or&nbsp;-</div>
@@ -293,12 +317,12 @@ function TemplateEditorModal(props: Props) {
                 className={styles.formControl}
                 label="Template Name"
                 error={
-                  showErrors && !trim(name)
+                  showErrors && !trim(template.name)
                     ? "Template Name is required"
                     : undefined
                 }
               >
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
+                <Input value={template.name} onChange={onNameChange} />
               </FormControl>
             )}
             <div className={styles.annotationListHeader}>
@@ -306,26 +330,25 @@ function TemplateEditorModal(props: Props) {
                 className={styles.annotationLabel}
                 label="Annotations"
                 error={
-                  showErrors && !annotations.length
+                  showErrors && !template.annotations.length
                     ? "Must have at least one annotation"
                     : undefined
                 }
               />
               <Popover content={annotationOptionList} placement="right">
-                <Button
-                  icon="plus"
-                  className={styles.addAnnotationButton}
-                  onClick={() => console.log("click")}
-                />
+                <Button icon="plus" className={styles.addAnnotationButton} />
               </Popover>
             </div>
             <div className={styles.annotationContainer}>
               <Table
                 rowKey="name"
                 size="small"
-                columns={columns as any}
+                columns={columns}
                 pagination={false}
-                dataSource={annotations}
+                dataSource={template.annotations}
+                rowClassName={(row) =>
+                  row === focusedAnnotation ? styles.highlighted : undefined
+                }
               />
               {focusedAnnotation && (
                 <Table
@@ -346,6 +369,7 @@ function TemplateEditorModal(props: Props) {
       />
       <DropdownEditorModal
         annotation={showDropdownEditor}
+        onSave={onDropdownOptionsUpdate}
         onClose={() => setShowDropdownEditor(undefined)}
       />
     </>

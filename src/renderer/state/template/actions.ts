@@ -1,24 +1,61 @@
 import { PREFERRED_TEMPLATE_ID } from "../../../shared/constants";
-import { Template, TemplateAnnotation } from "../../services/mms-client/types";
-import { UploadStateBranch } from "../types";
+import { Annotation } from "../../services/labkey-client/types";
+import {
+  CreateAnnotationRequest,
+  Template,
+} from "../../services/mms-client/types";
+import { TemplateDraft, UploadStateBranch } from "../types";
 
 import {
+  ADD_ANNOTATION,
+  ADD_EXISTING_TEMPLATE,
+  CLEAR_TEMPLATE_DRAFT,
   CREATE_ANNOTATION,
-  CREATE_ANNOTATION_OPTIONS,
+  REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
-  START_EDITING_TEMPLATE,
+  START_TEMPLATE_DRAFT,
+  START_TEMPLATE_DRAFT_FAILED,
+  UPDATE_TEMPLATE_DRAFT,
 } from "./constants";
 import {
+  AddExistingAnnotationAction,
+  AddExistingTemplateAction,
+  ClearTemplateDraftAction,
   CreateAnnotationAction,
-  CreateAnnotationOptionsAction,
-  CreateAnnotationRequest,
+  RemoveAnnotationsAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
-  StartEditingTemplateAction,
+  StartTemplateDraftAction,
+  StartTemplateDraftFailedAction,
+  UpdateTemplateDraftAction,
 } from "./types";
+
+export function addExistingAnnotation(
+  annotation: Annotation
+): AddExistingAnnotationAction {
+  return {
+    payload: annotation,
+    type: ADD_ANNOTATION,
+  };
+}
+
+export function addExistingTemplate(
+  templateId: number
+): AddExistingTemplateAction {
+  return {
+    payload: templateId,
+    type: ADD_EXISTING_TEMPLATE,
+  };
+}
+
+export function clearTemplateDraft(): ClearTemplateDraftAction {
+  return {
+    type: CLEAR_TEMPLATE_DRAFT,
+  };
+}
 
 export function createAnnotation(
   annotationRequest: CreateAnnotationRequest
@@ -29,39 +66,15 @@ export function createAnnotation(
   };
 }
 
-export function createAnnotationOptions(
-  annotationId: number,
-  newDropdownOptions: string[]
-): CreateAnnotationOptionsAction {
+export function removeAnnotations(indexes: number[]): RemoveAnnotationsAction {
   return {
-    payload: {
-      annotationId,
-      newDropdownOptions,
-    },
-    type: CREATE_ANNOTATION_OPTIONS,
+    payload: indexes,
+    type: REMOVE_ANNOTATIONS,
   };
 }
 
-export function startEditingTemplate(
-  template: Template
-): StartEditingTemplateAction {
+export function saveTemplate(): SaveTemplateAction {
   return {
-    payload: template,
-    type: START_EDITING_TEMPLATE,
-  };
-}
-
-export function saveTemplate(
-  name: string,
-  annotations: TemplateAnnotation[],
-  templateId?: number
-): SaveTemplateAction {
-  return {
-    payload: {
-      templateId,
-      name,
-      annotations,
-    },
     type: SAVE_TEMPLATE,
   };
 }
@@ -90,5 +103,36 @@ export function setAppliedTemplate(
       uploads,
     },
     type: SET_APPLIED_TEMPLATE,
+  };
+}
+
+export function updateTemplateDraft(
+  draftUpdates: Partial<TemplateDraft>
+): UpdateTemplateDraftAction {
+  return {
+    payload: draftUpdates,
+    type: UPDATE_TEMPLATE_DRAFT,
+  };
+}
+
+export function startTemplateDraft(
+  original: Template,
+  draft: TemplateDraft
+): StartTemplateDraftAction {
+  return {
+    payload: {
+      original,
+      draft,
+    },
+    type: START_TEMPLATE_DRAFT,
+  };
+}
+
+export function startTemplateDraftFailed(
+  error: string
+): StartTemplateDraftFailedAction {
+  return {
+    payload: error,
+    type: START_TEMPLATE_DRAFT_FAILED,
   };
 }

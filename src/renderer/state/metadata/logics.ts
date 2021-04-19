@@ -24,7 +24,6 @@ import {
 import { receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,
-  GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
@@ -171,41 +170,6 @@ const getBarcodeSearchResultsLogic = createLogic({
   },
 });
 
-const requestAnnotationsLogic = createLogic({
-  process: async (
-    { labkeyClient }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    try {
-      const request = () =>
-        Promise.all([
-          labkeyClient.getAnnotations(),
-          labkeyClient.getAnnotationOptions(),
-        ]);
-      const [annotations, annotationOptions] = await getWithRetry(
-        request,
-        dispatch
-      );
-      dispatch(
-        receiveMetadata(
-          { annotationOptions, annotations },
-          AsyncRequest.GET_ANNOTATIONS
-        )
-      );
-    } catch (e) {
-      dispatch(
-        requestFailed(
-          `Could not retrieve annotations: ${e.message}`,
-          AsyncRequest.GET_ANNOTATIONS
-        )
-      );
-    }
-    done();
-  },
-  type: GET_ANNOTATIONS,
-});
-
 const requestOptionsForLookupLogic = createLogic({
   debounce: 500,
   latest: true,
@@ -323,7 +287,6 @@ const requestTemplatesLogicLogic = createLogic({
 
 export default [
   createBarcodeLogic,
-  requestAnnotationsLogic,
   getBarcodeSearchResultsLogic,
   requestMetadataLogic,
   requestOptionsForLookupLogic,

@@ -22,6 +22,7 @@ import {
   AnnotationLookup,
   AnnotationOption,
   AnnotationType,
+  Audited,
   BarcodePrefix,
   Channel,
   ImagingSession,
@@ -138,7 +139,7 @@ export enum AlertType {
 
 export enum AsyncRequest {
   CANCEL_UPLOAD = "CANCEL_UPLOAD",
-  GET_ANNOTATIONS = "GET_ANNOTATIONS",
+  CREATE_ANNOTATION = "CREATE_ANNOTATION",
   GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
   GET_PLATE = "GET_PLATE",
   GET_JOBS = "GET_JOBS",
@@ -326,9 +327,30 @@ export interface UploadFile {
   loadFiles(): Promise<Array<Promise<UploadFile>>>;
 }
 
+export interface AnnotationDraft extends Audited {
+  annotationId: number;
+  annotationOptions?: string[];
+  annotationTypeId: number;
+  annotationTypeName: string;
+  description: string;
+  index: number;
+  name: string;
+  lookupSchema?: string;
+  lookupTable?: string;
+  required: boolean;
+}
+
+export interface TemplateDraft {
+  annotations: AnnotationDraft[];
+  name?: string;
+  templateId?: number;
+  version?: number;
+}
+
 export interface TemplateStateBranch {
   appliedTemplate?: Template;
-  templateToEdit?: Template;
+  draft: TemplateDraft;
+  original?: Template;
 }
 
 export interface EnabledNotifications {

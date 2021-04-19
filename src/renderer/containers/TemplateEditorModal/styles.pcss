@@ -1,45 +1,9 @@
 .alert {
     margin-bottom: 1em;
 }
-.error-alert {
-    margin-top: 1em;
-}
-.search {
-    width: 100%;
-    flex: 0 0 auto;
-}
 
 .selector {
     margin-bottom: 0;
-}
-
-.body {
-    display: flex;
-    height: 560px; /* todo find a way to make height more dynamic */
-}
-
-.list-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.list {
-    border: var(--border);
-    overflow-y: auto;
-    padding: 0 1em;
-}
-
-.annotation-name, .tag {
-    display: inline;
-    margin-right: 1em;
-}
-
-.form-container {
-    display: flex;
-    flex-direction: column;
-    margin-right: 0.5em;
 }
 
 .add-annotation-button {
@@ -76,11 +40,6 @@
     margin-top: 3px;
 }
 
-.annotation-option {
-    display: flex;
-    justify-content: space-between;
-}
-
 .annotation-option-popover {
     display: flex;
     flex-direction: column;
@@ -105,23 +64,18 @@
 }
 
 .highlighted {
-    background-color: grey;
+    background-color: var(--brand-primary);
+    color: white;
 }
 
-.list, .form-container {
-    flex: 1;
+.highlighted:hover {
+    color: black;
 }
 
 .or {
     flex: 0 0 auto;
     width: 100%;
     text-align: center;
-}
-
-.form {
-    border: var(--border);
-    overflow-y: auto;
-    flex: 1;
 }
 
 .spin-container {

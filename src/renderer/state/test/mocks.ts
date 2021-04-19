@@ -37,11 +37,13 @@ import {
 } from "../index";
 import { Well } from "../selection/types";
 import {
+  AnnotationDraft,
   ImagingSessionIdToPlateMap,
   ImagingSessionIdToWellsMap,
   JobStateBranch,
   SelectionStateBranch,
   State,
+  TemplateDraft,
   TemplateStateBranch,
 } from "../types";
 import { UploadStateBranch } from "../types";
@@ -122,6 +124,9 @@ export const mockIntervalTemplate: Template = {
 
 export const mockTemplateStateBranch: TemplateStateBranch = {
   appliedTemplate: undefined,
+  draft: {
+    annotations: [],
+  },
 };
 
 export const mockTemplateStateBranchWithAppliedTemplate: TemplateStateBranch = {
@@ -550,6 +555,23 @@ export const nonEmptyJobStateBranch: JobStateBranch = {
     mockWorkingUploadJob,
     mockFailedUploadJob,
   ],
+};
+
+export const mockAnnotationDraft: AnnotationDraft = {
+  annotationId: 1,
+  annotationTypeId: 1,
+  annotationTypeName: "Text",
+  description: "You know what a color is",
+  index: 0,
+  name: "Color",
+  required: false,
+  ...mockAuditInfo,
+};
+
+export const mockTemplateDraft: TemplateDraft = {
+  annotations: [mockAnnotationDraft],
+  name: "My Template",
+  version: 1,
 };
 
 export const mockAnnotationLookups: AnnotationLookup[] = [

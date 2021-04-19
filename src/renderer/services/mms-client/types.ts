@@ -1,4 +1,4 @@
-export interface CreateAnnotationRequest {
+export interface CreateTemplateAnnotationRequest {
   annotationOptions?: string[];
   annotationTypeId: number;
   description: string;
@@ -9,7 +9,7 @@ export interface CreateAnnotationRequest {
 }
 
 export type AnnotationRequest =
-  | CreateAnnotationRequest
+  | CreateTemplateAnnotationRequest
   | { annotationId: number };
 
 export interface SaveTemplateRequest {
@@ -115,4 +115,18 @@ export interface TemplateAnnotation extends Audited {
   name: string;
   required: boolean;
   canHaveManyValues?: boolean;
+}
+
+export interface CreateAnnotationRequest {
+  name: string;
+  description: string;
+  annotationTypeId: number;
+
+  // Lookup Annotations should have these
+  lookupSchema?: string;
+  lookupTable?: string;
+  lookupColumn?: string;
+
+  // Dropdown Annotations should have this
+  annotationOptions?: string[];
 }
