@@ -23,7 +23,8 @@ interface Props {
 
 /**
  * This modal is for creating new annotations. A user can use
- * this form to create novel annotations that
+ * this form to create novel annotations of various types that
+ * can then be used in their template.
  */
 function CreateAnnotationModal(props: Props) {
   const dispatch = useDispatch();
@@ -32,9 +33,9 @@ function CreateAnnotationModal(props: Props) {
   const annotationTypes = useSelector(getAnnotationTypes);
 
   const [name, setName] = React.useState("");
-  const [lookupTable, setLookupTable] = React.useState<string>();
   const [description, setDescription] = React.useState("");
   const [showErrors, setShowErrors] = React.useState(false);
+  const [lookupTable, setLookupTable] = React.useState<string>();
   const [annotationType, setAnnotationType] = React.useState<string>();
   const [dropdownOptions, setDropdownOptions] = React.useState<string[]>([]);
 

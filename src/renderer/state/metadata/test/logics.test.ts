@@ -24,6 +24,8 @@ import {
 } from "../../test/configure-mock-store";
 import {
   mockAnnotationLookups,
+  mockAnnotationOptions,
+  mockAnnotations,
   mockAnnotationTypes,
   mockAuditInfo,
   mockBarcodePrefixes,
@@ -126,6 +128,8 @@ describe("Metadata logics", () => {
   describe("requestMetadata", () => {
     it("sets metadata given OK response", async () => {
       const channels = [mockChannel];
+      labkeyClient.getAnnotations.resolves(mockAnnotations);
+      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
       labkeyClient.getAnnotationLookups.resolves(mockAnnotationLookups);
       labkeyClient.getAnnotationTypes.resolves(mockAnnotationTypes);
       labkeyClient.getBarcodePrefixes.resolves(mockBarcodePrefixes);
@@ -135,6 +139,8 @@ describe("Metadata logics", () => {
       labkeyClient.getUnits.resolves([mockUnit]);
 
       const expectedAction = receiveMetadata({
+        annotations: mockAnnotations,
+        annotationOptions: mockAnnotationOptions,
         annotationLookups: mockAnnotationLookups,
         annotationTypes: mockAnnotationTypes,
         barcodePrefixes: mockBarcodePrefixes,

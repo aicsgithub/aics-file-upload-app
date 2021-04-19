@@ -8,11 +8,12 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { MMSClient } from "../../../services";
+import { LabkeyClient, MMSClient } from "../../../services";
 import { ColumnType } from "../../../services/labkey-client/types";
 import { Template } from "../../../services/mms-client/types";
 import { requestFailed } from "../../actions";
 import { getAlert } from "../../feedback/selectors";
+import { receiveMetadata } from "../../metadata/actions";
 import { openTemplateEditor } from "../../selection/actions";
 import {
   createMockReduxStore,
@@ -21,6 +22,9 @@ import {
 } from "../../test/configure-mock-store";
 import {
   mockAnnotationDraft,
+  mockAnnotationLookups,
+  mockAnnotationOptions,
+  mockAnnotations,
   mockAnnotationTypes,
   mockAuditInfo,
   mockFavoriteColorAnnotation,
@@ -34,21 +38,26 @@ import { AsyncRequest, State } from "../../types";
 import {
   addExistingAnnotation,
   addExistingTemplate,
+  createAnnotation,
   removeAnnotations,
   saveTemplate,
   saveTemplateSucceeded,
   startTemplateDraft,
   startTemplateDraftFailed,
+  updateTemplateDraft,
 } from "../actions";
 import { getTemplateDraft } from "../selectors";
 
 describe("Template Logics", () => {
   const sandbox = createSandbox();
   let mmsClient: SinonStubbedInstance<MMSClient>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
 
   beforeEach(() => {
     mmsClient = createStubInstance(MMSClient);
     sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    labkeyClient = createStubInstance(LabkeyClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
   });
 
   afterEach(() => {
@@ -66,6 +75,74 @@ describe("Template Logics", () => {
       lookups: mockLookups,
     },
   };
+
+  describe("createAnnotation", () => {
+    it("creates annotation & adds to template given OK response", async () => {
+      // Arrange
+      mmsClient.createAnnotation.resolves(mockFavoriteColorAnnotation);
+      labkeyClient.getAnnotations.resolves(mockAnnotations);
+      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
+      labkeyClient.getAnnotationLookups.resolves(mockAnnotationLookups);
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+      });
+
+      // Act
+      store.dispatch(createAnnotation(mockFavoriteColorAnnotation));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          receiveMetadata(
+            {
+              annotationOptions: mockAnnotationOptions,
+              annotations: mockAnnotations,
+              annotationLookups: mockAnnotationLookups,
+            },
+            AsyncRequest.CREATE_ANNOTATION
+          )
+        )
+      ).to.be.true;
+      expect(
+        actions.includesMatch(
+          updateTemplateDraft({
+            annotations: [
+              {
+                ...mockFavoriteColorAnnotation,
+                annotationTypeName: ColumnType.TEXT,
+                required: false,
+                index: 0,
+              },
+            ],
+          })
+        )
+      ).to.be.true;
+    });
+
+    it("dispatches requestFailed given failed response", async () => {
+      // Arrange
+      const error = "Failed creation :(";
+      mmsClient.createAnnotation.rejects(new Error(error));
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+      });
+
+      // Act
+      store.dispatch(createAnnotation(mockFavoriteColorAnnotation));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            `Could not create annotation: ${error}`,
+            AsyncRequest.CREATE_ANNOTATION
+          )
+        )
+      ).to.be.true;
+    });
+  });
 
   describe("addExistingAnnotationLogic", () => {
     it("adds annotation to draft annotations", () => {
@@ -388,6 +465,49 @@ describe("Template Logics", () => {
       expect(annotations.length).to.equal(1);
       expect(annotations[0].annotationId).to.equal(1);
       expect(annotations[0].name).to.equal("Favorite Color");
+    });
+
+    it("overwrites duplicate annotations with new template's annotations", async () => {
+      // Arrange
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          ...startState.template,
+          draft: {
+            ...mockMMSTemplate,
+            annotations: [
+              {
+                ...mockMMSTemplate.annotations[0],
+                annotationTypeName: ColumnType.TEXT,
+                required: false,
+                index: 0,
+              },
+            ],
+          },
+        },
+      });
+
+      // (sanity-check) ensure annotation exists, but was not required before
+      let state = store.getState();
+      expect(getTemplateDraft(state).annotations.length).to.equal(1);
+      let annotations = getTemplateDraft(state).annotations;
+      expect(annotations.length).to.equal(1);
+      expect(annotations[0].annotationId).to.equal(1);
+      expect(annotations[0].name).to.equal("Favorite Color");
+      expect(annotations[0].required).to.be.false;
+
+      // Act
+      store.dispatch(addExistingTemplate(1));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      state = store.getState();
+      annotations = getTemplateDraft(state).annotations;
+      expect(annotations.length).to.equal(1);
+      expect(annotations[0].annotationId).to.equal(1);
+      expect(annotations[0].name).to.equal("Favorite Color");
+      expect(annotations[0].required).to.be.true;
     });
   });
 

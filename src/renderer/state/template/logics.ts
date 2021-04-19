@@ -212,6 +212,7 @@ const addExistingAnnotationLogic = createLogic({
           lookupSchema,
           lookupTable,
           name,
+          required: false,
           ...action.payload,
         },
       ];
