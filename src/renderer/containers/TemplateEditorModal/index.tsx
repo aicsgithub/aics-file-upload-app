@@ -162,7 +162,10 @@ function TemplateEditorModal(props: Props) {
 
   function onRemoveAnnotation(index: number) {
     dispatch(removeAnnotations([index]));
-    if (focusedAnnotation === template.annotations[index]) {
+    if (
+      focusedAnnotation?.annotationId ===
+      template.annotations[index].annotationId
+    ) {
       setFocusedAnnotation(undefined);
     }
   }
@@ -285,7 +288,7 @@ function TemplateEditorModal(props: Props) {
   );
 
   const title = isEditing
-    ? `Edit ${SCHEMA_SYNONYM}: ${name}`
+    ? `Edit ${SCHEMA_SYNONYM}: ${template.name}`
     : `Create ${SCHEMA_SYNONYM}`;
   return (
     <>
