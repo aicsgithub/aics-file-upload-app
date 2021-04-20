@@ -1,10 +1,6 @@
 import { BarcodePrefix } from "../../services/labkey-client/types";
 import { AsyncRequest, MetadataStateBranch } from "../types";
 
-export interface GetAnnotationsAction {
-  type: string;
-}
-
 export interface GetOptionsForLookupAction {
   payload: {
     lookupAnnotationName: string;

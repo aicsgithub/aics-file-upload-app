@@ -11,15 +11,7 @@ export const CLEAR_TEMPLATE_DRAFT = makeConstant(
   BRANCH_NAME,
   "clear-template-draft"
 );
-export const CLEAR_TEMPLATE_HISTORY = makeConstant(
-  BRANCH_NAME,
-  "clear-template-history"
-);
-export const JUMP_TO_PAST_TEMPLATE = makeConstant(
-  BRANCH_NAME,
-  "jump-to-past-template"
-);
-export const JUMP_TO_TEMPLATE = makeConstant(BRANCH_NAME, "jump-to-template");
+export const CREATE_ANNOTATION = makeConstant(BRANCH_NAME, "create-annotation");
 export const REMOVE_ANNOTATIONS = makeConstant(
   BRANCH_NAME,
   "remove-annotations"
@@ -38,8 +30,6 @@ export const UPDATE_TEMPLATE_DRAFT = makeConstant(
   "update-template-draft"
 );
 
-export const DEFAULT_TEMPLATE_DRAFT = { annotations: [] };
-
 export const START_TEMPLATE_DRAFT = makeConstant(
   BRANCH_NAME,
   "start-template-draft"
@@ -48,3 +38,5 @@ export const START_TEMPLATE_DRAFT_FAILED = makeConstant(
   BRANCH_NAME,
   "start-template-draft-failed"
 );
+
+export const DEFAULT_TEMPLATE_DRAFT = { annotations: [] };

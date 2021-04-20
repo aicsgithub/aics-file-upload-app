@@ -6,9 +6,11 @@ import {
   UploadMetadata as AicsFilesUploadMetadata,
 } from "../aicsfiles/types";
 import HttpCacheClient from "../http-cache-client";
+import { Annotation } from "../labkey-client/types";
 import { AicsSuccessResponse, HttpClient } from "../types";
 
 import {
+  CreateAnnotationRequest,
   GetPlateResponse,
   SaveTemplateRequest,
   Template,
@@ -102,6 +104,17 @@ export default class MMSClient extends HttpCacheClient {
   public async getFileMetadata(fileId: string): Promise<FileMetadata> {
     const url = `${mmsURL}/1.0/filemetadata/${fileId}`;
     const response = await this.get<AicsSuccessResponse<FileMetadata>>(url);
+    return response.data[0];
+  }
+
+  public async createAnnotation(
+    annotationRequest: CreateAnnotationRequest
+  ): Promise<Annotation> {
+    const url = `${mmsURL}/1.0/annotation/`;
+    const response = await this.post<AicsSuccessResponse<Annotation>>(
+      url,
+      annotationRequest
+    );
     return response.data[0];
   }
 }

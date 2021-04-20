@@ -43,7 +43,6 @@ export const initialState: MetadataStateBranch = {
   channels: [],
   history: {
     selection: {},
-    template: {},
     upload: {},
   },
   imagingSessions: [],
@@ -80,7 +79,6 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
       ...state,
       history: {
         selection: {},
-        template: {},
         upload: {},
       },
     }),
@@ -97,10 +95,6 @@ const actionToConfigMap: TypeToDescriptionMap<MetadataStateBranch> = {
         selection: {
           ...state.history.selection,
           ...action.payload.selection,
-        },
-        template: {
-          ...state.history.template,
-          ...action.payload.template,
         },
         upload: {
           ...state.history.upload,

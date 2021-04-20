@@ -1108,13 +1108,13 @@ describe("Upload logics", () => {
     it("converts array of Moment objects to array of dates", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockDateAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Birth Date": [],
@@ -1140,13 +1140,13 @@ describe("Upload logics", () => {
     it("converts moment objects to dates", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockDateAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Birth Date": [],
@@ -1173,13 +1173,13 @@ describe("Upload logics", () => {
     it("converts strings to arrays of strings if type is TEXT", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockTextAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Another Garbage Text Annotation": [],
@@ -1206,13 +1206,13 @@ describe("Upload logics", () => {
     it("converts strings to arrays of numbers if type is NUMBER", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockNumberAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
@@ -1238,13 +1238,13 @@ describe("Upload logics", () => {
     it("converts ['1, 2e3, 3.86, bad'] to [1, 2000, 3.86] if type is NUMBER", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockNumberAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
@@ -1272,13 +1272,13 @@ describe("Upload logics", () => {
     it("converts '' to [] if type is NUMBER", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockNumberAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Clone Number Garbage": undefined,
@@ -1305,13 +1305,13 @@ describe("Upload logics", () => {
     it("converts '' to [] if type is TEXT", () => {
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockTextAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             [mockTextAnnotation.name]: [],
@@ -1343,13 +1343,13 @@ describe("Upload logics", () => {
       const badTemplateId = 4;
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...mockState,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             templateId,
           },
-        }),
+        },
         setting: {
           ...mockState.setting,
           templateId: badTemplateId,
@@ -1392,13 +1392,13 @@ describe("Upload logics", () => {
 
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockDateAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             file: "/path/to/file1",
@@ -1426,13 +1426,13 @@ describe("Upload logics", () => {
 
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
             annotations: [mockDateAnnotation],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey1]: {
             file: "/path/to/file1",
@@ -1466,7 +1466,7 @@ describe("Upload logics", () => {
 
       const { store } = createMockReduxStore({
         ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: {
             ...mockTemplateWithManyValues,
@@ -1477,7 +1477,7 @@ describe("Upload logics", () => {
               },
             ],
           },
-        }),
+        },
         upload: getMockStateWithHistory({
           [uploadRowKey]: {
             "Birth Date": undefined,
@@ -1654,10 +1654,10 @@ describe("Upload logics", () => {
     it("sets error alert if no applied template", () => {
       const { actions, store } = createMockReduxStore({
         ...mockStateForEditingMetadata,
-        template: getMockStateWithHistory({
+        template: {
           ...mockTemplateStateBranch,
           appliedTemplate: undefined,
-        }),
+        },
       });
       store.dispatch(submitFileMetadataUpdate());
       expect(

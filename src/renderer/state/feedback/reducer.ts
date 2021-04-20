@@ -7,7 +7,6 @@ import { RECEIVE_JOBS } from "../job/constants";
 import { ReceiveJobsAction } from "../job/types";
 import {
   CREATE_BARCODE,
-  GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
@@ -16,7 +15,6 @@ import {
 } from "../metadata/constants";
 import {
   CreateBarcodeAction,
-  GetAnnotationsAction,
   GetBarcodeSearchResultsAction,
   GetOptionsForLookupAction,
   GetTemplatesAction,
@@ -37,6 +35,7 @@ import { SELECT_BARCODE, SET_PLATE } from "../selection/constants";
 import { SelectBarcodeAction, SetPlateAction } from "../selection/types";
 import { clearTemplateDraft } from "../template/actions";
 import {
+  CREATE_ANNOTATION,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
   SET_APPLIED_TEMPLATE,
@@ -44,6 +43,7 @@ import {
   START_TEMPLATE_DRAFT_FAILED,
 } from "../template/constants";
 import {
+  CreateAnnotationAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
   SetAppliedTemplateAction,
@@ -697,14 +697,14 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
       ),
     }),
   },
-  [GET_ANNOTATIONS]: {
-    accepts: (action: AnyAction): action is GetAnnotationsAction =>
-      action.type === GET_ANNOTATIONS,
+  [CREATE_ANNOTATION]: {
+    accepts: (action: AnyAction): action is CreateAnnotationAction =>
+      action.type === CREATE_ANNOTATION,
     perform: (state: FeedbackStateBranch) => ({
       ...state,
       requestsInProgress: addRequestToInProgress(
         state,
-        AsyncRequest.GET_ANNOTATIONS
+        AsyncRequest.CREATE_ANNOTATION
       ),
     }),
   },

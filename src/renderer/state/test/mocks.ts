@@ -368,7 +368,7 @@ export const mockState: State = {
   route: route.initialState,
   selection: getMockStateWithHistory(selection.initialState),
   setting: setting.initialState,
-  template: getMockStateWithHistory(template.initialState),
+  template: template.initialState,
   upload: getMockStateWithHistory(upload.initialState),
 };
 
@@ -565,6 +565,7 @@ export const mockAnnotationDraft: AnnotationDraft = {
   index: 0,
   name: "Color",
   required: false,
+  ...mockAuditInfo,
 };
 
 export const mockTemplateDraft: TemplateDraft = {
@@ -665,9 +666,9 @@ export const nonEmptyStateForInitiatingUpload: State = {
     barcode: "1234",
     selectedWells: [{ col: 0, row: 0 }],
   }),
-  template: getMockStateWithHistory({
+  template: {
     ...mockTemplateStateBranch,
     appliedTemplate: mockMMSTemplate,
-  }),
+  },
   upload: getMockStateWithHistory(mockWellUpload),
 };

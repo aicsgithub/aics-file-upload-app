@@ -1,14 +1,16 @@
 import { PREFERRED_TEMPLATE_ID } from "../../../shared/constants";
 import { Annotation } from "../../services/labkey-client/types";
-import { Template } from "../../services/mms-client/types";
+import {
+  CreateAnnotationRequest,
+  Template,
+} from "../../services/mms-client/types";
 import { TemplateDraft, UploadStateBranch } from "../types";
 
 import {
   ADD_ANNOTATION,
   ADD_EXISTING_TEMPLATE,
   CLEAR_TEMPLATE_DRAFT,
-  CLEAR_TEMPLATE_HISTORY,
-  JUMP_TO_PAST_TEMPLATE,
+  CREATE_ANNOTATION,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
@@ -21,8 +23,7 @@ import {
   AddExistingAnnotationAction,
   AddExistingTemplateAction,
   ClearTemplateDraftAction,
-  ClearTemplateHistoryAction,
-  JumpToPastTemplateAction,
+  CreateAnnotationAction,
   RemoveAnnotationsAction,
   SaveTemplateAction,
   SaveTemplateSucceededAction,
@@ -56,16 +57,12 @@ export function clearTemplateDraft(): ClearTemplateDraftAction {
   };
 }
 
-export function clearTemplateHistory(): ClearTemplateHistoryAction {
+export function createAnnotation(
+  annotationRequest: CreateAnnotationRequest
+): CreateAnnotationAction {
   return {
-    type: CLEAR_TEMPLATE_HISTORY,
-  };
-}
-
-export function jumpToPastTemplate(index: number): JumpToPastTemplateAction {
-  return {
-    index,
-    type: JUMP_TO_PAST_TEMPLATE,
+    payload: annotationRequest,
+    type: CREATE_ANNOTATION,
   };
 }
 
@@ -120,14 +117,12 @@ export function updateTemplateDraft(
 
 export function startTemplateDraft(
   original: Template,
-  draft: TemplateDraft,
-  originalHasBeenUsed: boolean
+  draft: TemplateDraft
 ): StartTemplateDraftAction {
   return {
     payload: {
       original,
       draft,
-      originalTemplateHasBeenUsed: originalHasBeenUsed,
     },
     type: START_TEMPLATE_DRAFT,
   };

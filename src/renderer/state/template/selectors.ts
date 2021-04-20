@@ -1,17 +1,15 @@
-import { difference, intersection, isEmpty, trim, uniqBy } from "lodash";
+import { trim } from "lodash";
 import { createSelector } from "reselect";
 
 import {
   Annotation,
   AnnotationType,
   ColumnType,
-  LabkeyTemplate,
 } from "../../services/labkey-client/types";
-import { Template, TemplateAnnotation } from "../../services/mms-client/types";
+import { Template } from "../../services/mms-client/types";
 import {
   getAnnotationTypes,
   getNotesAnnotation,
-  getTemplates,
   getWellAnnotation,
 } from "../metadata/selectors";
 import { AnnotationDraft, State, TemplateDraft } from "../types";
@@ -19,110 +17,9 @@ import { AnnotationDraft, State, TemplateDraft } from "../types";
 import { TemplateWithTypeNames } from "./types";
 
 export const getAppliedTemplate = (state: State) =>
-  state.template.present.appliedTemplate;
-export const getCurrentTemplateIndex = (state: State) => state.template.index;
-export const getTemplateDraft = (state: State) => state.template.present.draft;
-export const getTemplateDraftName = (state: State) =>
-  state.template.present.draft.name;
-export const getTemplateDraftAnnotations = (state: State) =>
-  state.template.present.draft.annotations;
-export const getTemplatePast = (state: State) => state.template.past;
-export const getOriginalTemplate = (state: State) =>
-  state.template.present.original;
-export const getOriginalTemplateHasBeenUsed = (state: State) =>
-  state.template.present.originalTemplateHasBeenUsed;
-
-export const getTemplateDraftErrors = createSelector(
-  [
-    getTemplates,
-    getTemplateDraft,
-    getTemplateDraftAnnotations,
-    getTemplateDraftName,
-  ],
-  (
-    allTemplates: LabkeyTemplate[],
-    draft: TemplateDraft,
-    annotations: AnnotationDraft[],
-    templateName?: string
-  ) => {
-    const errors = [];
-    if (!trim(templateName)) {
-      errors.push("Template is missing a name");
-    }
-    let annotationNameMissing = false;
-    let annotationDescriptionMissing = false;
-    annotations.forEach(
-      ({
-        description,
-        name,
-        annotationOptions,
-        annotationTypeId,
-        annotationTypeName,
-        lookupTable,
-      }) => {
-        if (!trim(description)) {
-          annotationDescriptionMissing = true;
-        }
-
-        if (!trim(name)) {
-          annotationNameMissing = true;
-        }
-
-        if (!annotationTypeId) {
-          errors.push(`Annotation ${name} is missing a data type`);
-        }
-
-        if (annotationTypeName === ColumnType.DROPDOWN) {
-          if (isEmpty(annotationOptions)) {
-            errors.push(
-              `Annotation ${name} is a dropdown but is missing dropdown options`
-            );
-          }
-          if (annotationOptions && annotationOptions.length === 1) {
-            errors.push(`Dropdowns require at least two options.`);
-          }
-        }
-
-        if (annotationTypeName === ColumnType.LOOKUP && !lookupTable) {
-          errors.push(
-            `Annotation ${name} is a lookup but no lookup table is specified`
-          );
-        }
-      }
-    );
-    if (annotationDescriptionMissing) {
-      errors.push("At least one annotation is missing a description");
-    }
-
-    if (annotationNameMissing) {
-      errors.push("At least one annotation is missing a name");
-    }
-
-    if (isEmpty(annotations)) {
-      errors.push("Templates need at least one annotation");
-    }
-
-    const duplicateNamesFound: boolean =
-      uniqBy(
-        annotations.filter((c: AnnotationDraft) => !!c.name),
-        "name"
-      ).length !== annotations.length;
-
-    if (duplicateNamesFound) {
-      errors.push("Found duplicate annotation names");
-    }
-
-    const notMostRecent = allTemplates.find(
-      ({ Name, Version }) =>
-        Name === templateName && !!draft.version && Version > draft.version
-    );
-    if (draft.templateId && notMostRecent) {
-      errors.push("Must edit the most recent version of a template");
-    }
-
-    return errors;
-  }
-);
+  state.template.appliedTemplate;
+export const getTemplateDraft = (state: State) => state.template.draft;
+export const getOriginalTemplate = (state: State) => state.template.original;
 
 export const getSaveTemplateRequest = createSelector(
   [getTemplateDraft],
@@ -222,60 +119,5 @@ export const getCompleteAppliedTemplate = createSelector(
         },
       ],
     };
-  }
-);
-
-export const getWarnAboutTemplateVersionMessage = createSelector(
-  [getTemplateDraft, getOriginalTemplate, getOriginalTemplateHasBeenUsed],
-  (
-    draft: TemplateDraft,
-    original?: Template,
-    originalTemplateHasBeenUsed?: boolean
-  ): string | undefined => {
-    if (!original || !originalTemplateHasBeenUsed || !draft.templateId) {
-      return undefined;
-    }
-
-    const originalAnnotationNames: string[] = [];
-    const draftAnnotationNames: string[] = [];
-    const originalAnnotationsThatWereOptional: string[] = [];
-    const draftAnnotationsThatAreRequired: string[] = [];
-    original.annotations.forEach((a: TemplateAnnotation) => {
-      originalAnnotationNames.push(a.name);
-      if (!a.required) {
-        originalAnnotationsThatWereOptional.push(a.name);
-      }
-    });
-    draft.annotations.forEach((a: AnnotationDraft) => {
-      if (a.name) {
-        draftAnnotationNames.push(a.name);
-        if (a.required) {
-          draftAnnotationsThatAreRequired.push(a.name);
-        }
-      }
-    });
-
-    const addedAnnotations = difference(
-      draftAnnotationNames,
-      originalAnnotationNames
-    );
-    const removedAnnotations = difference(
-      originalAnnotationNames,
-      draftAnnotationNames
-    );
-    if (addedAnnotations.length || removedAnnotations.length) {
-      return "Adding or removing annotations will version your template";
-    }
-
-    if (
-      intersection(
-        originalAnnotationsThatWereOptional,
-        draftAnnotationsThatAreRequired
-      )
-    ) {
-      return "Changing an annotation to be required will version your template";
-    }
-
-    return undefined;
   }
 );

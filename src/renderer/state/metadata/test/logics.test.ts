@@ -41,7 +41,6 @@ import { AsyncRequest } from "../../types";
 import {
   createBarcode,
   receiveMetadata,
-  requestAnnotations,
   requestBarcodeSearchResults,
   requestMetadata,
   requestTemplates,
@@ -129,6 +128,8 @@ describe("Metadata logics", () => {
   describe("requestMetadata", () => {
     it("sets metadata given OK response", async () => {
       const channels = [mockChannel];
+      labkeyClient.getAnnotations.resolves(mockAnnotations);
+      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
       labkeyClient.getAnnotationLookups.resolves(mockAnnotationLookups);
       labkeyClient.getAnnotationTypes.resolves(mockAnnotationTypes);
       labkeyClient.getBarcodePrefixes.resolves(mockBarcodePrefixes);
@@ -138,6 +139,8 @@ describe("Metadata logics", () => {
       labkeyClient.getUnits.resolves([mockUnit]);
 
       const expectedAction = receiveMetadata({
+        annotations: mockAnnotations,
+        annotationOptions: mockAnnotationOptions,
         annotationLookups: mockAnnotationLookups,
         annotationTypes: mockAnnotationTypes,
         barcodePrefixes: mockBarcodePrefixes,
@@ -157,30 +160,7 @@ describe("Metadata logics", () => {
       );
     });
   });
-  describe("requestAnnotations", () => {
-    it("sets annotations given OK response", async () => {
-      labkeyClient.getAnnotations.resolves(mockAnnotations);
-      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
-      await runRequestSucceededTest(
-        requestAnnotations(),
-        receiveMetadata(
-          {
-            annotations: mockAnnotations,
-            annotationOptions: mockAnnotationOptions,
-          },
-          AsyncRequest.GET_ANNOTATIONS
-        )
-      );
-    });
-    it("dispatches requestFailed given not OK response", async () => {
-      labkeyClient.getAnnotations.rejects(new Error("foo"));
-      await runRequestFailedTest(
-        requestAnnotations(),
-        "Could not retrieve annotations: foo",
-        AsyncRequest.GET_ANNOTATIONS
-      );
-    });
-  });
+
   describe("requestTemplates", () => {
     it("sets templates given OK response", async () => {
       const templates: LabkeyTemplate[] = [];

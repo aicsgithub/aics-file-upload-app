@@ -494,7 +494,7 @@ describe("feedback reducer", () => {
           ...initialState,
           requestsInProgress: [AsyncRequest.GET_TEMPLATE],
         },
-        startTemplateDraft(mockMMSTemplate, mockTemplateDraft, true)
+        startTemplateDraft(mockMMSTemplate, mockTemplateDraft)
       );
       expect(result.requestsInProgress).not.includes(AsyncRequest.GET_TEMPLATE);
     });

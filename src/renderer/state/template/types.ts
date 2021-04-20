@@ -1,5 +1,9 @@
 import { Annotation, Audited } from "../../services/labkey-client/types";
-import { Template, TemplateAnnotation } from "../../services/mms-client/types";
+import {
+  CreateAnnotationRequest,
+  Template,
+  TemplateAnnotation,
+} from "../../services/mms-client/types";
 import {
   AutoSaveAction,
   TemplateDraft,
@@ -27,6 +31,11 @@ export interface ClearTemplateDraftAction {
 }
 
 export interface ClearTemplateHistoryAction {
+  type: string;
+}
+
+export interface CreateAnnotationAction {
+  payload: CreateAnnotationRequest;
   type: string;
 }
 
@@ -85,7 +94,6 @@ export interface StartTemplateDraftAction {
   payload: {
     draft: TemplateDraft;
     original: Template;
-    originalTemplateHasBeenUsed: boolean;
   };
   type: string;
 }

@@ -22,6 +22,7 @@ import {
   AnnotationLookup,
   AnnotationOption,
   AnnotationType,
+  Audited,
   BarcodePrefix,
   Channel,
   ImagingSession,
@@ -138,7 +139,7 @@ export enum AlertType {
 
 export enum AsyncRequest {
   CANCEL_UPLOAD = "CANCEL_UPLOAD",
-  GET_ANNOTATIONS = "GET_ANNOTATIONS",
+  CREATE_ANNOTATION = "CREATE_ANNOTATION",
   GET_BARCODE_SEARCH_RESULTS = "GET_BARCODE_SEARCH_RESULTS",
   GET_PLATE = "GET_PLATE",
   GET_JOBS = "GET_JOBS",
@@ -250,7 +251,6 @@ export interface MetadataStateBranch {
   // Stores last redux-undo index per page for each state branch (that we want to be able to undo)
   history: {
     selection: PageToIndexMap;
-    template: PageToIndexMap;
     upload: PageToIndexMap;
   };
 
@@ -327,14 +327,14 @@ export interface UploadFile {
   loadFiles(): Promise<Array<Promise<UploadFile>>>;
 }
 
-export interface AnnotationDraft {
-  annotationId?: number;
+export interface AnnotationDraft extends Audited {
+  annotationId: number;
   annotationOptions?: string[];
   annotationTypeId: number;
   annotationTypeName: string;
-  description?: string;
+  description: string;
   index: number;
-  name?: string;
+  name: string;
   lookupSchema?: string;
   lookupTable?: string;
   required: boolean;
@@ -351,7 +351,6 @@ export interface TemplateStateBranch {
   appliedTemplate?: Template;
   draft: TemplateDraft;
   original?: Template;
-  originalTemplateHasBeenUsed?: boolean;
 }
 
 export interface EnabledNotifications {
@@ -394,7 +393,7 @@ export interface State {
   setting: SettingStateBranch;
 
   // Annotation template
-  template: StateWithHistory<TemplateStateBranch>;
+  template: TemplateStateBranch;
 
   // Tracks current upload metadata (no jobId).
   upload: StateWithHistory<UploadStateBranch>;

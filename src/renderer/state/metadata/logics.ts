@@ -24,7 +24,6 @@ import {
 import { receiveMetadata } from "./actions";
 import {
   CREATE_BARCODE,
-  GET_ANNOTATIONS,
   GET_BARCODE_SEARCH_RESULTS,
   GET_OPTIONS_FOR_LOOKUP,
   GET_TEMPLATES,
@@ -77,6 +76,8 @@ const requestMetadataLogic = createLogic({
     try {
       const request = () =>
         Promise.all([
+          labkeyClient.getAnnotations(),
+          labkeyClient.getAnnotationOptions(),
           labkeyClient.getAnnotationLookups(),
           labkeyClient.getAnnotationTypes(),
           labkeyClient.getBarcodePrefixes(),
@@ -86,6 +87,8 @@ const requestMetadataLogic = createLogic({
           labkeyClient.getUnits(),
         ]);
       const [
+        annotations,
+        annotationOptions,
         annotationLookups,
         annotationTypes,
         barcodePrefixes,
@@ -96,6 +99,8 @@ const requestMetadataLogic = createLogic({
       ] = await getWithRetry(request, dispatch);
       dispatch(
         receiveMetadata({
+          annotations,
+          annotationOptions,
           annotationLookups,
           annotationTypes,
           barcodePrefixes,
@@ -163,41 +168,6 @@ const getBarcodeSearchResultsLogic = createLogic({
       });
     }
   },
-});
-
-const requestAnnotationsLogic = createLogic({
-  process: async (
-    { labkeyClient }: ReduxLogicProcessDependencies,
-    dispatch: ReduxLogicNextCb,
-    done: ReduxLogicDoneCb
-  ) => {
-    try {
-      const request = () =>
-        Promise.all([
-          labkeyClient.getAnnotations(),
-          labkeyClient.getAnnotationOptions(),
-        ]);
-      const [annotations, annotationOptions] = await getWithRetry(
-        request,
-        dispatch
-      );
-      dispatch(
-        receiveMetadata(
-          { annotationOptions, annotations },
-          AsyncRequest.GET_ANNOTATIONS
-        )
-      );
-    } catch (e) {
-      dispatch(
-        requestFailed(
-          `Could not retrieve annotations: ${e.message}`,
-          AsyncRequest.GET_ANNOTATIONS
-        )
-      );
-    }
-    done();
-  },
-  type: GET_ANNOTATIONS,
 });
 
 const requestOptionsForLookupLogic = createLogic({
@@ -317,7 +287,6 @@ const requestTemplatesLogicLogic = createLogic({
 
 export default [
   createBarcodeLogic,
-  requestAnnotationsLogic,
   getBarcodeSearchResultsLogic,
   requestMetadataLogic,
   requestOptionsForLookupLogic,

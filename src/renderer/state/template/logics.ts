@@ -1,11 +1,17 @@
-import { get, includes } from "lodash";
+import { get, includes, isNil } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { SaveTemplateRequest } from "../../services/mms-client/types";
+import { OPEN_TEMPLATE_MENU_ITEM_CLICKED } from "../../../shared/constants";
+import {
+  SaveTemplateRequest,
+  TemplateAnnotation,
+} from "../../services/mms-client/types";
 import { getApplyTemplateInfo } from "../../util";
 import { requestFailed } from "../actions";
 import { setAlert } from "../feedback/actions";
-import { requestTemplates } from "../metadata/actions";
+import { OpenTemplateEditorAction } from "../feedback/types";
+import { getWithRetry } from "../feedback/util";
+import { receiveMetadata, requestTemplates } from "../metadata/actions";
 import {
   getAnnotationLookups,
   getAnnotationTypes,
@@ -20,7 +26,7 @@ import {
   ReduxLogicDoneCb,
   ReduxLogicNextCb,
   ReduxLogicProcessDependencies,
-  ReduxLogicRejectCb,
+  ReduxLogicProcessDependenciesWithAction,
   ReduxLogicTransformDependencies,
   ReduxLogicTransformDependenciesWithAction,
 } from "../types";
@@ -28,13 +34,17 @@ import { getCanSaveUploadDraft, getUpload } from "../upload/selectors";
 import { ApplyTemplateAction } from "../upload/types";
 
 import {
+  addExistingAnnotation,
   saveTemplateSucceeded,
   setAppliedTemplate,
+  startTemplateDraft,
+  startTemplateDraftFailed,
   updateTemplateDraft,
 } from "./actions";
 import {
   ADD_ANNOTATION,
   ADD_EXISTING_TEMPLATE,
+  CREATE_ANNOTATION,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
 } from "./constants";
@@ -42,10 +52,109 @@ import {
   getAppliedTemplate,
   getSaveTemplateRequest,
   getTemplateDraft,
-  getTemplateDraftAnnotations,
-  getWarnAboutTemplateVersionMessage,
 } from "./selectors";
-import { SaveTemplateAction } from "./types";
+import { CreateAnnotationAction } from "./types";
+
+const createAnnotation = createLogic({
+  process: async (
+    {
+      action,
+      labkeyClient,
+      mmsClient,
+    }: ReduxLogicProcessDependenciesWithAction<CreateAnnotationAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    try {
+      // Create the new annotation via MMS
+      const annotationRequest = action.payload;
+      const annotation = await mmsClient.createAnnotation(annotationRequest);
+
+      // Refresh our store of annotation information
+      const request = () =>
+        Promise.all([
+          labkeyClient.getAnnotations(),
+          labkeyClient.getAnnotationOptions(),
+          labkeyClient.getAnnotationLookups(),
+        ]);
+      const [
+        annotations,
+        annotationOptions,
+        annotationLookups,
+      ] = await getWithRetry(request, dispatch);
+      dispatch(
+        receiveMetadata(
+          { annotationOptions, annotations, annotationLookups },
+          AsyncRequest.CREATE_ANNOTATION
+        )
+      );
+
+      // Add newly created annotation to the template
+      dispatch(addExistingAnnotation(annotation));
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          `Could not create annotation: ${e.message}`,
+          AsyncRequest.CREATE_ANNOTATION
+        )
+      );
+    }
+    done();
+  },
+  type: CREATE_ANNOTATION,
+});
+
+const openTemplateEditorLogic = createLogic({
+  process: async (
+    {
+      action,
+      getState,
+      mmsClient,
+    }: ReduxLogicProcessDependenciesWithAction<OpenTemplateEditorAction>,
+    dispatch: ReduxLogicNextCb,
+    done: ReduxLogicDoneCb
+  ) => {
+    const templateId = action.payload;
+    if (!isNil(templateId)) {
+      const annotationTypes = getAnnotationTypes(getState());
+      try {
+        const [template] = await getWithRetry(
+          () => Promise.all([mmsClient.getTemplate(templateId)]),
+          dispatch
+        );
+        const { annotations, ...etc } = template;
+        dispatch(
+          startTemplateDraft(template, {
+            ...etc,
+            annotations: annotations.map(
+              (a: TemplateAnnotation, index: number) => {
+                const type = annotationTypes.find(
+                  (t) => t.annotationTypeId === a.annotationTypeId
+                );
+                if (!type) {
+                  throw new Error(`Could not find matching type for annotation named ${a.name},
+                       annotationTypeId: ${a.annotationTypeId}`);
+                }
+                return {
+                  ...a,
+                  annotationTypeName: type.name,
+                  index,
+                };
+              }
+            ),
+          })
+        );
+      } catch (e) {
+        const error: string | undefined = e?.response?.data?.error || e.message;
+        dispatch(
+          startTemplateDraftFailed("Could not retrieve template: " + error)
+        );
+      }
+    }
+    done();
+  },
+  type: OPEN_TEMPLATE_MENU_ITEM_CLICKED,
+});
 
 const addExistingAnnotationLogic = createLogic({
   transform: (
@@ -53,13 +162,7 @@ const addExistingAnnotationLogic = createLogic({
     next: ReduxLogicNextCb
   ) => {
     const state = getState();
-    const {
-      annotationId,
-      annotationOptions,
-      annotationTypeId,
-      description,
-      name,
-    } = action.payload;
+    const { annotationId, annotationTypeId, name } = action.payload;
     const { annotations: oldAnnotations } = getTemplateDraft(state);
     const annotationTypes = getAnnotationTypes(state);
     const annotationType = annotationTypes.find(
@@ -104,16 +207,13 @@ const addExistingAnnotationLogic = createLogic({
       const annotations: AnnotationDraft[] = [
         ...oldAnnotations,
         {
-          annotationId,
-          annotationOptions,
-          annotationTypeId,
           annotationTypeName: annotationType.name,
-          description,
           index: oldAnnotations.length,
           lookupSchema,
           lookupTable,
           name,
           required: false,
+          ...action.payload,
         },
       ];
 
@@ -156,7 +256,6 @@ const saveTemplateLogic = createLogic({
   ) => {
     const draft = getTemplateDraft(getState());
     const request: SaveTemplateRequest = getSaveTemplateRequest(getState());
-
     let createdTemplateId;
     try {
       if (draft.templateId) {
@@ -182,7 +281,6 @@ const saveTemplateLogic = createLogic({
     }
 
     // this need to be dispatched separately because it has logics associated with them
-    // todo create util method for this so we dispatch less often
     dispatch(requestTemplates());
 
     if (getCanSaveUploadDraft(getState())) {
@@ -197,6 +295,7 @@ const saveTemplateLogic = createLogic({
         done();
         return;
       }
+
       try {
         const { template, uploads } = await getApplyTemplateInfo(
           createdTemplateId,
@@ -219,35 +318,6 @@ const saveTemplateLogic = createLogic({
     done();
   },
   type: SAVE_TEMPLATE,
-  validate: async (
-    {
-      action,
-      dialog,
-      getState,
-    }: ReduxLogicTransformDependenciesWithAction<SaveTemplateAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
-  ) => {
-    const warning: string | undefined = getWarnAboutTemplateVersionMessage(
-      getState()
-    );
-    if (warning) {
-      const { response } = await dialog.showMessageBox({
-        buttons: ["Cancel", "Continue"],
-        defaultId: 1,
-        message: `This template has been used for uploading other files. ${warning}. Continuing will submit this update.`,
-        type: "warning",
-      });
-      if (response === 0) {
-        reject({ type: "ignore" });
-        return;
-      } else {
-        next(action);
-        return;
-      }
-    }
-    next(action);
-  },
 });
 
 const applyExistingTemplateAnnotationsLogic = createLogic({
@@ -262,29 +332,25 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
     const state = getState();
     const templateId = action.payload;
     const annotationTypes = getAnnotationTypes(state);
-    const currentAnnotations = getTemplateDraftAnnotations(state);
+    const { annotations: currentAnnotations } = getTemplateDraft(state);
 
     try {
       const { annotations: newAnnotations } = await mmsClient.getTemplate(
         templateId
+      );
+      const annotationsToKeep = currentAnnotations.filter(
+        (a) =>
+          !newAnnotations.find(
+            (newAnnotation) => a.annotationId === newAnnotation.annotationId
+          )
       );
       const newAnnotationDrafts = newAnnotations.map((annotation, index) => {
         const annotationType = annotationTypes.find(
           (at) => at.annotationTypeId === annotation.annotationTypeId
         );
 
-        const {
-          annotationId,
-          annotationOptions,
-          annotationTypeId,
-          description,
-          lookupSchema,
-          lookupTable,
-          name,
-          required,
-        } = annotation;
-
         if (!annotationType) {
+          const { annotationTypeId, name } = annotation;
           throw new Error(
             `Annotation "${name}" does not have a valid annotationTypeId: ${annotationTypeId}.
                      Contact Software.`
@@ -292,20 +358,13 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
         }
 
         return {
-          annotationId,
-          annotationOptions,
-          annotationTypeId,
+          ...annotation,
           annotationTypeName: annotationType.name,
-          description,
-          index: currentAnnotations.length + index,
-          lookupSchema,
-          lookupTable,
-          name,
-          required,
+          index: annotationsToKeep.length + index,
         };
       });
       const annotations: AnnotationDraft[] = [
-        ...currentAnnotations,
+        ...annotationsToKeep,
         ...newAnnotationDrafts,
       ];
       next(updateTemplateDraft({ annotations }));
@@ -326,8 +385,10 @@ const applyExistingTemplateAnnotationsLogic = createLogic({
 });
 
 export default [
+  createAnnotation,
   addExistingAnnotationLogic,
   removeAnnotationsLogic,
   saveTemplateLogic,
   applyExistingTemplateAnnotationsLogic,
+  openTemplateEditorLogic,
 ];

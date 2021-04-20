@@ -29,8 +29,6 @@ export const getBarcodePrefixes = (state: State) =>
   state.metadata.barcodePrefixes;
 export const getSelectionHistory = (state: State) =>
   state.metadata.history.selection;
-export const getTemplateHistory = (state: State) =>
-  state.metadata.history.template;
 export const getUploadHistory = (state: State) => state.metadata.history.upload;
 export const getBarcodeSearchResults = (state: State) =>
   state.metadata.barcodeSearchResults;
@@ -48,17 +46,6 @@ export const getAnnotations = createSelector(
   [getAllAnnotations],
   (allAnnotations: Annotation[]): Annotation[] =>
     allAnnotations.filter((annotation) => annotation.exposeToFileUploadApp)
-);
-
-// These annotations are used purely for displaying data to users in the File Explorer
-export const getForbiddenAnnotationNames = createSelector(
-  [getAllAnnotations],
-  (allAnnotations: Annotation[]): Set<string> =>
-    new Set(
-      allAnnotations
-        .filter((annotation) => !annotation.exposeToFileUploadApp)
-        .map(({ name }) => name)
-    )
 );
 
 // COMPOSED SELECTORS

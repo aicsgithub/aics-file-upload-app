@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { AnyAction } from "redux";
 import {
   createSandbox,
   SinonStub,
@@ -7,45 +8,56 @@ import {
   createStubInstance,
 } from "sinon";
 
-import { MMSClient } from "../../../services";
+import { LabkeyClient, MMSClient } from "../../../services";
 import { ColumnType } from "../../../services/labkey-client/types";
 import { Template } from "../../../services/mms-client/types";
 import { requestFailed } from "../../actions";
 import { getAlert } from "../../feedback/selectors";
+import { receiveMetadata } from "../../metadata/actions";
+import { openTemplateEditor } from "../../selection/actions";
 import {
   createMockReduxStore,
   dialog,
   mockReduxLogicDeps,
 } from "../../test/configure-mock-store";
 import {
-  getMockStateWithHistory,
   mockAnnotationDraft,
+  mockAnnotationLookups,
+  mockAnnotationOptions,
+  mockAnnotations,
   mockAnnotationTypes,
   mockAuditInfo,
   mockFavoriteColorAnnotation,
+  mockFavoriteColorTemplateAnnotation,
   mockLookups,
   mockMMSTemplate,
   mockState,
-  mockTemplateDraft,
   nonEmptyStateForInitiatingUpload,
 } from "../../test/mocks";
 import { AsyncRequest, State } from "../../types";
 import {
   addExistingAnnotation,
   addExistingTemplate,
+  createAnnotation,
   removeAnnotations,
   saveTemplate,
   saveTemplateSucceeded,
+  startTemplateDraft,
+  startTemplateDraftFailed,
+  updateTemplateDraft,
 } from "../actions";
-import { getTemplateDraftAnnotations } from "../selectors";
+import { getTemplateDraft } from "../selectors";
 
 describe("Template Logics", () => {
   const sandbox = createSandbox();
   let mmsClient: SinonStubbedInstance<MMSClient>;
+  let labkeyClient: SinonStubbedInstance<LabkeyClient>;
 
   beforeEach(() => {
     mmsClient = createStubInstance(MMSClient);
     sandbox.replace(mockReduxLogicDeps, "mmsClient", mmsClient);
+    labkeyClient = createStubInstance(LabkeyClient);
+    sandbox.replace(mockReduxLogicDeps, "labkeyClient", labkeyClient);
   });
 
   afterEach(() => {
@@ -64,12 +76,80 @@ describe("Template Logics", () => {
     },
   };
 
+  describe("createAnnotation", () => {
+    it("creates annotation & adds to template given OK response", async () => {
+      // Arrange
+      mmsClient.createAnnotation.resolves(mockFavoriteColorAnnotation);
+      labkeyClient.getAnnotations.resolves(mockAnnotations);
+      labkeyClient.getAnnotationOptions.resolves(mockAnnotationOptions);
+      labkeyClient.getAnnotationLookups.resolves(mockAnnotationLookups);
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+      });
+
+      // Act
+      store.dispatch(createAnnotation(mockFavoriteColorAnnotation));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          receiveMetadata(
+            {
+              annotationOptions: mockAnnotationOptions,
+              annotations: mockAnnotations,
+              annotationLookups: mockAnnotationLookups,
+            },
+            AsyncRequest.CREATE_ANNOTATION
+          )
+        )
+      ).to.be.true;
+      expect(
+        actions.includesMatch(
+          updateTemplateDraft({
+            annotations: [
+              {
+                ...mockFavoriteColorAnnotation,
+                annotationTypeName: ColumnType.TEXT,
+                required: false,
+                index: 0,
+              },
+            ],
+          })
+        )
+      ).to.be.true;
+    });
+
+    it("dispatches requestFailed given failed response", async () => {
+      // Arrange
+      const error = "Failed creation :(";
+      mmsClient.createAnnotation.rejects(new Error(error));
+      const { actions, logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+      });
+
+      // Act
+      store.dispatch(createAnnotation(mockFavoriteColorAnnotation));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      expect(
+        actions.includesMatch(
+          requestFailed(
+            `Could not create annotation: ${error}`,
+            AsyncRequest.CREATE_ANNOTATION
+          )
+        )
+      ).to.be.true;
+    });
+  });
+
   describe("addExistingAnnotationLogic", () => {
     it("adds annotation to draft annotations", () => {
       const { store } = createMockReduxStore({ ...startState });
 
       let state = store.getState();
-      expect(getTemplateDraftAnnotations(state).length).to.equal(0);
+      expect(getTemplateDraft(state).annotations.length).to.equal(0);
 
       store.dispatch(
         addExistingAnnotation({
@@ -79,7 +159,7 @@ describe("Template Logics", () => {
       );
 
       state = store.getState();
-      expect(getTemplateDraftAnnotations(state).length).to.equal(1);
+      expect(getTemplateDraft(state).annotations.length).to.equal(1);
     });
     it("sets alert if the annotation type is not recognized", () => {
       const { store } = createMockReduxStore({ ...startState });
@@ -147,8 +227,8 @@ describe("Template Logics", () => {
     it("removes annotations from template draft", () => {
       const { store } = createMockReduxStore({
         ...startState,
-        template: getMockStateWithHistory({
-          ...startState.template.present,
+        template: {
+          ...startState.template,
           draft: {
             annotations: [
               {
@@ -157,6 +237,9 @@ describe("Template Logics", () => {
                 annotationTypeName: ColumnType.TEXT,
                 index: 0,
                 required: false,
+                description: "",
+                name: "",
+                ...mockAuditInfo,
               },
               {
                 annotationId: 2,
@@ -164,6 +247,9 @@ describe("Template Logics", () => {
                 annotationTypeName: ColumnType.TEXT,
                 index: 1,
                 required: false,
+                description: "",
+                name: "",
+                ...mockAuditInfo,
               },
               {
                 annotationId: 3,
@@ -171,15 +257,18 @@ describe("Template Logics", () => {
                 annotationTypeName: ColumnType.TEXT,
                 index: 2,
                 required: false,
+                description: "",
+                name: "",
+                ...mockAuditInfo,
               },
             ],
             name: "My template",
           },
-        }),
+        },
       });
 
       store.dispatch(removeAnnotations([0, 2]));
-      expect(getTemplateDraftAnnotations(store.getState()).length).to.equal(1);
+      expect(getTemplateDraft(store.getState()).annotations).to.be.lengthOf(1);
     });
   });
 
@@ -202,16 +291,15 @@ describe("Template Logics", () => {
       };
       stateWithChangedTemplateDraft = {
         ...startState,
-        template: getMockStateWithHistory({
-          ...startState.template.present,
+        template: {
+          ...startState.template,
           draft: {
             annotations: [mockAnnotationDraft],
             name: "My Template",
             templateId: 1,
           },
           original: originalTemplate,
-          originalTemplateHasBeenUsed: true,
-        }),
+        },
       };
     });
     const stubMethods = (showMessageBoxOverride?: SinonStub) => {
@@ -223,74 +311,6 @@ describe("Template Logics", () => {
       return { showMessageBoxStub };
     };
 
-    it("shows a dialog if user should be warned about a versioning change and continues saving if user clicks Continue", async () => {
-      const { showMessageBoxStub } = stubMethods();
-      const { logicMiddleware, store } = createMockReduxStore(
-        stateWithChangedTemplateDraft
-      );
-
-      expect(showMessageBoxStub.called).to.be.false;
-      expect(mmsClient.editTemplate.called).to.be.false;
-
-      store.dispatch(saveTemplate());
-      await logicMiddleware.whenComplete();
-
-      expect(showMessageBoxStub.called).to.be.true;
-      expect(mmsClient.editTemplate.called).to.be.true;
-    });
-
-    it("allows users to cancel saving template if they click cancel in the warning dialog", async () => {
-      const { showMessageBoxStub } = stubMethods(
-        stub().resolves({ response: 0 })
-      );
-      const { logicMiddleware, store } = createMockReduxStore(
-        stateWithChangedTemplateDraft
-      );
-
-      expect(showMessageBoxStub.called).to.be.false;
-      expect(mmsClient.editTemplate.called).to.be.false;
-
-      store.dispatch(saveTemplate());
-      await logicMiddleware.whenComplete();
-
-      expect(showMessageBoxStub.called).to.be.true;
-      expect(mmsClient.editTemplate.called).to.be.false;
-    });
-
-    it("doesn't show warning dialog if user is creating a template", async () => {
-      const { showMessageBoxStub } = stubMethods();
-
-      const { logicMiddleware, store } = createMockReduxStore(
-        nonEmptyStateForInitiatingUpload
-      );
-
-      expect(showMessageBoxStub.called).to.be.false;
-
-      store.dispatch(saveTemplate());
-      await logicMiddleware.whenComplete();
-
-      expect(showMessageBoxStub.called).to.be.false;
-    });
-    it("doesn't show warning dialog if changes won't cause versioning", async () => {
-      const { showMessageBoxStub } = stubMethods();
-
-      const { logicMiddleware, store } = createMockReduxStore({
-        ...nonEmptyStateForInitiatingUpload,
-        template: getMockStateWithHistory({
-          ...nonEmptyStateForInitiatingUpload.template.present,
-          draft: mockTemplateDraft,
-          original: mockMMSTemplate,
-          originalTemplateHasBeenUsed: false,
-        }),
-      });
-
-      expect(showMessageBoxStub.called).to.be.false;
-
-      store.dispatch(saveTemplate());
-      await logicMiddleware.whenComplete();
-
-      expect(showMessageBoxStub.called).to.be.false;
-    });
     it("calls editTemplate endpoint if draft has template id", async () => {
       stubMethods();
       const { logicMiddleware, store } = createMockReduxStore(
@@ -307,13 +327,13 @@ describe("Template Logics", () => {
       stubMethods();
       const { logicMiddleware, store } = createMockReduxStore({
         ...startState,
-        template: getMockStateWithHistory({
-          ...startState.template.present,
+        template: {
+          ...startState.template,
           draft: {
             annotations: [mockAnnotationDraft],
             name: "My Template",
           },
-        }),
+        },
       });
 
       expect(mmsClient.createTemplate.called).to.be.false;
@@ -333,14 +353,14 @@ describe("Template Logics", () => {
       });
       const { actions, logicMiddleware, store } = createMockReduxStore({
         ...startState,
-        template: getMockStateWithHistory({
-          ...startState.template.present,
+        template: {
+          ...startState.template,
           draft: {
             annotations: [mockAnnotationDraft],
             name: "My Template",
             templateId: 1,
           },
-        }),
+        },
       });
 
       store.dispatch(saveTemplate());
@@ -435,16 +455,111 @@ describe("Template Logics", () => {
       const { logicMiddleware, store } = createMockReduxStore(startState);
 
       let state = store.getState();
-      expect(getTemplateDraftAnnotations(state).length).to.equal(0);
+      expect(getTemplateDraft(state).annotations.length).to.equal(0);
 
       store.dispatch(addExistingTemplate(1));
       await logicMiddleware.whenComplete();
 
       state = store.getState();
-      const annotations = getTemplateDraftAnnotations(state);
+      const annotations = getTemplateDraft(state).annotations;
       expect(annotations.length).to.equal(1);
       expect(annotations[0].annotationId).to.equal(1);
       expect(annotations[0].name).to.equal("Favorite Color");
+    });
+
+    it("overwrites duplicate annotations with new template's annotations", async () => {
+      // Arrange
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
+      const { logicMiddleware, store } = createMockReduxStore({
+        ...startState,
+        template: {
+          ...startState.template,
+          draft: {
+            ...mockMMSTemplate,
+            annotations: [
+              {
+                ...mockMMSTemplate.annotations[0],
+                annotationTypeName: ColumnType.TEXT,
+                required: false,
+                index: 0,
+              },
+            ],
+          },
+        },
+      });
+
+      // (sanity-check) ensure annotation exists, but was not required before
+      let state = store.getState();
+      expect(getTemplateDraft(state).annotations.length).to.equal(1);
+      let annotations = getTemplateDraft(state).annotations;
+      expect(annotations.length).to.equal(1);
+      expect(annotations[0].annotationId).to.equal(1);
+      expect(annotations[0].name).to.equal("Favorite Color");
+      expect(annotations[0].required).to.be.false;
+
+      // Act
+      store.dispatch(addExistingTemplate(1));
+      await logicMiddleware.whenComplete();
+
+      // Assert
+      state = store.getState();
+      annotations = getTemplateDraft(state).annotations;
+      expect(annotations.length).to.equal(1);
+      expect(annotations[0].annotationId).to.equal(1);
+      expect(annotations[0].name).to.equal("Favorite Color");
+      expect(annotations[0].required).to.be.true;
+    });
+  });
+
+  describe("openTemplateEditorLogic", () => {
+    afterEach(() => {
+      mmsClient.getTemplate.restore();
+    });
+
+    const runTest = async (expectedAction: AnyAction) => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+      expect(actions.includesMatch(expectedAction)).to.be.false;
+
+      store.dispatch(openTemplateEditor(1));
+      await logicMiddleware.whenComplete();
+
+      expect(actions.includesMatch(expectedAction)).to.be.true;
+    };
+
+    it("dispatches startTemplateDraft given OK requests", async () => {
+      mmsClient.getTemplate.resolves(mockMMSTemplate);
+      const expectedAction = startTemplateDraft(mockMMSTemplate, {
+        ...mockMMSTemplate,
+        annotations: [
+          {
+            ...mockFavoriteColorTemplateAnnotation,
+            annotationTypeName: "Text",
+            index: 0,
+          },
+        ],
+      });
+      await runTest(expectedAction);
+    });
+
+    it("dispatches startTemplateDraftFailed if getting template fails", async () => {
+      mmsClient.getTemplate.rejects(new Error("foo"));
+      const expectedAction = startTemplateDraftFailed(
+        "Could not retrieve template: foo"
+      );
+      await runTest(expectedAction);
+    });
+
+    it("dispatches getTemplate without a templateId", async () => {
+      const { actions, logicMiddleware, store } = createMockReduxStore(
+        nonEmptyStateForInitiatingUpload
+      );
+      const action = openTemplateEditor();
+      store.dispatch(action);
+      await logicMiddleware.whenComplete();
+
+      expect(actions.list).to.deep.equal([action]);
     });
   });
 });
