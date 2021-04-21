@@ -2,7 +2,7 @@ import { Divider, Icon, Select, Form, Alert } from "antd";
 import * as classNames from "classnames";
 import { sortBy } from "lodash";
 import { ReactNode } from "react";
-import React, { useEffect, useState } from "react";
+import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { SCHEMA_SYNONYM } from "../../../shared/constants";
@@ -30,11 +30,11 @@ export default function TemplateSearch(props: TemplateSearchProps) {
   const loading = requestsInProgress.includes(AsyncRequest.GET_TEMPLATES);
   const templates = useSelector(getTemplates);
   const dispatch = useDispatch();
-  useEffect(() => {
+  React.useEffect(() => {
     dispatch(requestTemplates());
   }, [dispatch]);
-  const [open, setOpen] = useState<boolean>(false);
-  const [elClicked, setElClicked] = useState<EventTarget | undefined>(
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [elClicked, setElClicked] = React.useState<EventTarget | undefined>(
     undefined
   );
 
