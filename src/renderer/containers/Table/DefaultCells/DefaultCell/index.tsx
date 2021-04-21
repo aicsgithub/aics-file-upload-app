@@ -3,8 +3,10 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { CellProps } from "react-table";
 
+import { ColumnType } from "../../../../services/labkey-client/types";
 import { updateUpload } from "../../../../state/upload/actions";
 import { UploadJobTableRow } from "../../../../state/upload/types";
+import { Duration } from "../../../../types";
 import { ColumnValue } from "../../types";
 import DisplayCell from "../DisplayCell";
 
@@ -42,11 +44,25 @@ export default function DefaultCell(
   function onStopEditing() {
     setIsEditing(false);
     if (value !== props.value) {
-      dispatch(
-        updateUpload(props.row.id, {
-          [props.column.id]: (value as any[]).filter((v) => !isNil(v)),
-        })
-      );
+      if (props.column.type === ColumnType.DURATION) {
+        const durationValue = value[0] as Duration;
+        // Return duration object if any key has a value greater than 0
+        if (Object.values(durationValue).some((val) => val > 0)) {
+          dispatch(
+            updateUpload(props.row.id, {
+              [props.column.id]: [durationValue],
+            })
+          );
+        } else {
+          dispatch(updateUpload(props.row.id, { [props.column.id]: [] }));
+        }
+      } else {
+        dispatch(
+          updateUpload(props.row.id, {
+            [props.column.id]: (value as any[]).filter((v) => !isNil(v)),
+          })
+        );
+      }
     }
   }
 
