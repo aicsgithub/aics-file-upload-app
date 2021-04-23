@@ -6,12 +6,12 @@ import { ColumnType } from "../../../services/labkey-client/types";
 import { updateUpload } from "../../../state/upload/actions";
 import { UploadJobTableRow } from "../../../state/upload/types";
 import { Duration } from "../../../types";
-import BooleanCell from "../CustomCells/BooleanCell";
-import DateCell from "../CustomCells/DateCell";
-import DropdownCell from "../CustomCells/DropdownCell";
-import DurationCell from "../CustomCells/DurationCell";
-import LookupCell from "../CustomCells/LookupCell";
-import TextCell from "../CustomCells/TextCell";
+import BooleanEditor from "../Editors/BooleanEditor";
+import DateEditor from "../Editors/DateEditor";
+import DropdownEditor from "../Editors/DropdownEditor";
+import DurationEditor from "../Editors/DurationEditor";
+import LookupEditor from "../Editors/LookupEditor";
+import TextEditor from "../Editors/TextEditor";
 import { ColumnValue } from "../types";
 
 import DisplayCell from "./DisplayCell";
@@ -37,7 +37,7 @@ export default function DefaultCell(
     switch (column.type) {
       case ColumnType.BOOLEAN:
         return (
-          <BooleanCell
+          <BooleanEditor
             initialValue={value as boolean[]}
             commitChanges={commitChanges}
           />
@@ -45,21 +45,21 @@ export default function DefaultCell(
       case ColumnType.TEXT:
       case ColumnType.NUMBER:
         return (
-          <TextCell
+          <TextEditor
             initialValue={value as string[]}
             commitChanges={commitChanges}
           />
         );
       case ColumnType.DURATION:
         return (
-          <DurationCell
+          <DurationEditor
             initialValue={value as Duration[]}
             commitChanges={commitChanges}
           />
         );
       case ColumnType.DROPDOWN:
         return (
-          <DropdownCell
+          <DropdownEditor
             initialValue={value as string[]}
             options={column?.dropdownValues ?? []}
             commitChanges={commitChanges}
@@ -67,7 +67,7 @@ export default function DefaultCell(
         );
       case ColumnType.LOOKUP:
         return (
-          <LookupCell
+          <LookupEditor
             initialValue={value as string[]}
             lookupAnnotationName={column.id}
             commitChanges={commitChanges}
@@ -76,7 +76,7 @@ export default function DefaultCell(
       case ColumnType.DATE:
       case ColumnType.DATETIME:
         return (
-          <DateCell
+          <DateEditor
             initialValue={value as Date[]}
             column={column}
             commitChanges={commitChanges}

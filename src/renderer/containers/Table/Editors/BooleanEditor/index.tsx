@@ -8,7 +8,7 @@ interface Props {
   commitChanges: (value: boolean[]) => void;
 }
 
-export default function BooleanCell({ initialValue, commitChanges }: Props) {
+export default function BooleanEditor({ initialValue, commitChanges }: Props) {
   const [value, setValue] = useState<boolean>(initialValue[0] ?? false);
 
   function onKeyDown(e: React.KeyboardEvent) {

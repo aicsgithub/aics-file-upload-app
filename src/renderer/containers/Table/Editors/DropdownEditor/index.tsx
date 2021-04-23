@@ -9,7 +9,7 @@ interface Props {
   commitChanges: (value: string[]) => void;
 }
 
-export default function DropdownCell({
+export default function DropdownEditor({
   initialValue,
   options,
   commitChanges,

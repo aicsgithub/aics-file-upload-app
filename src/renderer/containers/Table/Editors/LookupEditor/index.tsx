@@ -11,7 +11,7 @@ interface Props {
   commitChanges: (value: string[]) => void;
 }
 
-export default function LookupCell({
+export default function LookupEditor({
   initialValue,
   lookupAnnotationName,
   commitChanges,

@@ -8,7 +8,7 @@ interface Props {
   commitChanges: (value: string[]) => void;
 }
 
-export default function TextCell({ initialValue, commitChanges }: Props) {
+export default function TextEditor({ initialValue, commitChanges }: Props) {
   const [value, setValue] = useState<string>(initialValue.join(", "));
 
   function handleCommit() {

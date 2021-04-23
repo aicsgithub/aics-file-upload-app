@@ -15,7 +15,7 @@ interface Props {
   commitChanges: (value: Date[]) => void;
 }
 
-export default function DateCell({
+export default function DateEditor({
   initialValue,
   column,
   commitChanges,

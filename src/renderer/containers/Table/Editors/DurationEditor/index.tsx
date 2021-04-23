@@ -18,7 +18,7 @@ interface State {
   seconds: string;
 }
 
-export default function DurationCell({ initialValue, commitChanges }: Props) {
+export default function DurationEditor({ initialValue, commitChanges }: Props) {
   const [value, setValue] = useState<State>(() => {
     if (initialValue.length === 1) {
       const initialDuration = initialValue[0];
