@@ -59,6 +59,8 @@ export default function DurationEditor({ initialValue, commitChanges }: Props) {
   }
 
   function handleBlur(e: React.FocusEvent) {
+    // Only commit if navigating to the next cell, and not one of the other
+    // duration inputs.
     if (
       !(e.relatedTarget instanceof Node) ||
       !e.currentTarget.contains(e.relatedTarget)
