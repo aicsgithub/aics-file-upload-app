@@ -1,6 +1,8 @@
 import { Select } from "antd";
 import React, { useState } from "react";
 
+import { createEnterKeyHandler } from "../util";
+
 const styles = require("../defaultInputStyles.pcss");
 
 interface Props {
@@ -20,12 +22,6 @@ export default function DropdownEditor({
     commitChanges(value);
   }
 
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      handleCommit();
-    }
-  }
-
   return (
     <Select
       autoFocus
@@ -34,7 +30,7 @@ export default function DropdownEditor({
       className={styles.defaultInput}
       mode="multiple"
       onBlur={handleCommit}
-      onInputKeyDown={onKeyDown}
+      onInputKeyDown={createEnterKeyHandler(handleCommit)}
       onChange={(v: string[]) => setValue(v)}
       value={value}
     >

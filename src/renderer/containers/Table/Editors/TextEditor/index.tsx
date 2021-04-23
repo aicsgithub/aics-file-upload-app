@@ -1,6 +1,8 @@
 import { Input } from "antd";
 import React, { useState } from "react";
 
+import { createEnterKeyHandler } from "../util";
+
 const styles = require("../defaultInputStyles.pcss");
 
 interface Props {
@@ -15,18 +17,12 @@ export default function TextEditor({ initialValue, commitChanges }: Props) {
     commitChanges(value.split(",").map((v) => v.trim()));
   }
 
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      handleCommit();
-    }
-  }
-
   return (
     <Input
       autoFocus
       className={styles.defaultInput}
       onBlur={handleCommit}
-      onKeyDown={onKeyDown}
+      onKeyDown={createEnterKeyHandler(handleCommit)}
       onChange={(e) => setValue(e.target.value)}
       value={value}
     />

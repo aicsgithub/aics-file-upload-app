@@ -2,8 +2,9 @@ import React, { useState } from "react";
 
 import { MetadataStateBranch } from "../../../../state/types";
 import LookupSearch from "../../../LookupSearch";
+import { createEnterKeyHandler } from "../util";
 
-const styles = require("../defaultInputStyles.pcss.pcss");
+const styles = require("../defaultInputStyles.pcss");
 
 interface Props {
   initialValue: string[];
@@ -22,14 +23,8 @@ export default function LookupEditor({
     commitChanges(value);
   }
 
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      handleCommit();
-    }
-  }
-
   return (
-    <div onKeyDown={onKeyDown}>
+    <div onKeyDown={createEnterKeyHandler(handleCommit)}>
       <LookupSearch
         defaultOpen
         className={styles.defaultInput}

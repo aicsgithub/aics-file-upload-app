@@ -3,6 +3,7 @@ import classNames from "classnames";
 import React, { useState } from "react";
 
 import { Duration } from "../../../../types";
+import { createEnterKeyHandler } from "../util";
 
 const defaultInputStyles = require("../defaultInputStyles.pcss");
 
@@ -66,18 +67,12 @@ export default function DurationEditor({ initialValue, commitChanges }: Props) {
     }
   }
 
-  function onKeyPress(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      handleCommit();
-    }
-  }
-
   function updateValue(update: Partial<State>) {
     setValue((prev) => ({ ...prev, ...update }));
   }
 
   return (
-    <div onKeyPress={onKeyPress}>
+    <div onKeyPress={createEnterKeyHandler(handleCommit)}>
       <Input.Group
         compact
         className={classNames(

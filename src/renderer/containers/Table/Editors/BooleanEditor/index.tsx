@@ -1,6 +1,8 @@
 import { Checkbox } from "antd";
 import React, { useState } from "react";
 
+import { createEnterKeyHandler } from "../util";
+
 const styles = require("./styles.pcss");
 
 interface Props {
@@ -11,17 +13,15 @@ interface Props {
 export default function BooleanEditor({ initialValue, commitChanges }: Props) {
   const [value, setValue] = useState<boolean>(initialValue[0] ?? false);
 
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      commitChanges([value]);
-    }
+  function handleCommit() {
+    commitChanges([value]);
   }
 
   return (
     <div
       className={styles.checkboxContainer}
-      onBlur={() => commitChanges([value])}
-      onKeyPress={onKeyDown}
+      onBlur={handleCommit}
+      onKeyDown={createEnterKeyHandler(handleCommit)}
     >
       <Checkbox
         autoFocus
