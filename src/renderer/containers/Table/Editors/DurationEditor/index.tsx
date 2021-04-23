@@ -4,6 +4,8 @@ import React, { useState } from "react";
 
 import { Duration } from "../../../../types";
 
+const defaultInputStyles = require("../defaultInputStyles.pcss");
+
 const styles = require("./styles.pcss");
 
 interface Props {
@@ -78,7 +80,10 @@ export default function DurationEditor({ initialValue, commitChanges }: Props) {
     <div onKeyPress={onKeyPress}>
       <Input.Group
         compact
-        className={classNames(styles.defaultInput, styles.durationInput)}
+        className={classNames(
+          defaultInputStyles.defaultInput,
+          styles.durationInput
+        )}
         onBlur={handleBlur}
       >
         <Input

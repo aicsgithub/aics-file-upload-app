@@ -1,7 +1,7 @@
 import { Input } from "antd";
 import React, { useState } from "react";
 
-const styles = require("./styles.pcss");
+const styles = require("../defaultInputStyles.pcss");
 
 interface Props {
   initialValue: string[];

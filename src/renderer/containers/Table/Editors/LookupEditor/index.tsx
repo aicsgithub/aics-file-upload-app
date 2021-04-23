@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { MetadataStateBranch } from "../../../../state/types";
 import LookupSearch from "../../../LookupSearch";
 
-const styles = require("./styles.pcss");
+const styles = require("../defaultInputStyles.pcss.pcss");
 
 interface Props {
   initialValue: string[];
