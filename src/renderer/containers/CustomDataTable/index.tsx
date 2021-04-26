@@ -40,7 +40,7 @@ const sortTypes: Record<string, SortByFn<UploadJobTableRow>> = {
     rowA: Row<UploadJobTableRow>,
     rowB: Row<UploadJobTableRow>,
     columnId: string
-  ) => `${rowA.values[columnId]}`.localeCompare(`${rowB.values[columnId]}`),
+  ) => `${rowA.original[columnId]}`.localeCompare(`${rowB.original[columnId]}`),
 };
 
 /*
