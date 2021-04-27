@@ -1,3 +1,5 @@
+import { basename } from "path";
+
 import { createSelector } from "reselect";
 
 import {
@@ -47,6 +49,8 @@ const DEFAULT_COLUMNS: CustomColumn[] = [
     Cell: FilenameCell,
     description: "Filename of file supplied",
     width: 200,
+    sortType: (a, b) =>
+      basename(a.original.file).localeCompare(basename(b.original.file)),
   },
   {
     accessor: NOTES_ANNOTATION_NAME,
