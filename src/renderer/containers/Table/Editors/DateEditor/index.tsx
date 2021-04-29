@@ -1,4 +1,4 @@
-import { DatePicker } from "antd";
+import { Button, DatePicker } from "antd";
 import moment from "moment";
 import React, { useState } from "react";
 import { ColumnInstance } from "react-table";
@@ -8,6 +8,8 @@ import { ColumnType } from "../../../../services/labkey-client/types";
 import { UploadJobTableRow } from "../../../../state/upload/types";
 
 const styles = require("./styles.pcss");
+
+const CLEAR_BUTTON = "clear-button";
 
 interface Props {
   initialValue: Date[];
@@ -20,12 +22,12 @@ export default function DateEditor({
   column,
   commitChanges,
 }: Props) {
-  const [value, setValue] = useState<(Date | null)[]>(
-    initialValue.length > 0 ? initialValue : [null]
+  const [value, setValue] = useState<Date | undefined>(
+    initialValue.length > 0 ? initialValue[0] : undefined
   );
 
   function handleCommit() {
-    commitChanges(value.filter((v) => v instanceof Date) as Date[]);
+    commitChanges(value ? [value] : []);
   }
 
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
@@ -34,6 +36,7 @@ export default function DateEditor({
     if (
       !(e.relatedTarget instanceof Element) ||
       (e.relatedTarget.className !== "ant-calendar-date-panel" &&
+        e.relatedTarget.id !== CLEAR_BUTTON &&
         (e.relatedTarget.tagName !== "LI" ||
           e.relatedTarget.attributes.getNamedItem("role")?.value !== "button"))
     ) {
@@ -46,13 +49,24 @@ export default function DateEditor({
       <DatePicker
         open
         autoFocus
-        allowClear={false}
         onOk={handleCommit}
         className={styles.datePicker}
         showTime={column.type === ColumnType.DATETIME}
         placeholder="Add a Date"
-        value={value[0] ? moment(value[0]) : undefined}
-        onChange={(d) => setValue([d?.toDate() ?? null])}
+        value={value ? moment(value) : undefined}
+        onChange={(d) => setValue(d?.toDate() ?? undefined)}
+        renderExtraFooter={() => (
+          <div className={styles.footer}>
+            <Button
+              className={styles.clearButton}
+              icon="delete"
+              onClick={() => setValue(undefined)}
+              id={CLEAR_BUTTON}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
         format={
           column.type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT
         }
