@@ -1,4 +1,4 @@
-import { Button, DatePicker, Icon, Modal, Tooltip } from "antd";
+import { DatePicker } from "antd";
 import moment from "moment";
 import React, { useState } from "react";
 import { ColumnInstance } from "react-table";
@@ -28,57 +28,35 @@ export default function DateEditor({
     commitChanges(value.filter((v) => v instanceof Date) as Date[]);
   }
 
+  function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
+    // Only commit if navigating to the next cell and not clicking an
+    // element in the Date window
+    if (
+      !(e.relatedTarget instanceof Element) ||
+      (e.relatedTarget.className !== "ant-calendar-date-panel" &&
+        (e.relatedTarget.tagName !== "LI" ||
+          e.relatedTarget.attributes.getNamedItem("role")?.value !== "button"))
+    ) {
+      handleCommit();
+    }
+  }
+
   return (
-    <Modal
-      visible
-      okText="Save"
-      onCancel={() => commitChanges(initialValue)}
-      onOk={handleCommit}
-      title={`Adjust ${column.id}`}
-      width="50%"
-    >
-      {value.map((date, index) => (
-        <div key={date?.toString() || ""} className={styles.dateInput}>
-          <Tooltip title={date ? "Delete this date" : ""}>
-            <Icon
-              className={date ? undefined : styles.hidden}
-              type="delete"
-              onClick={() =>
-                setValue((prev) => [
-                  ...prev.slice(0, index),
-                  ...prev.slice(index + 1),
-                ])
-              }
-            />
-          </Tooltip>
-          <DatePicker
-            autoFocus
-            allowClear={false}
-            className={styles.datePicker}
-            showTime={column.type === ColumnType.DATETIME}
-            placeholder="Add a Date"
-            value={date ? moment(date) : undefined}
-            onChange={(d) =>
-              setValue((prev) => [
-                ...prev.slice(0, index),
-                d?.toDate() ?? null,
-                ...prev.slice(index + 1),
-              ])
-            }
-            format={
-              column.type === ColumnType.DATETIME
-                ? DATETIME_FORMAT
-                : DATE_FORMAT
-            }
-          />
-        </div>
-      ))}
-      <Button
-        className={styles.datePlusButton}
-        disabled={!(value?.length > 0) || !value[value.length - 1]}
-        icon="plus"
-        onClick={() => setValue((prev) => [...prev, null])}
+    <div onBlur={handleBlur}>
+      <DatePicker
+        open
+        autoFocus
+        allowClear={false}
+        onOk={handleCommit}
+        className={styles.datePicker}
+        showTime={column.type === ColumnType.DATETIME}
+        placeholder="Add a Date"
+        value={value[0] ? moment(value[0]) : undefined}
+        onChange={(d) => setValue([d?.toDate() ?? null])}
+        format={
+          column.type === ColumnType.DATETIME ? DATETIME_FORMAT : DATE_FORMAT
+        }
       />
-    </Modal>
+    </div>
   );
 }
