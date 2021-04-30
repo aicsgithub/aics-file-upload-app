@@ -1,5 +1,11 @@
 # Version Notes
 
+## 2.2.0 (04/30/21)
+- Feature: New template editor
+- Feature: Simplified date editor
+- Improvement: Modify well editor behavior so it doesn't get cut off by window
+- Various other minor fixes
+
 ## 2.1.0 (03/31/21)
 - Feature: New upload metadata editor
 - Feature: Improved UX around upload data entry steps
