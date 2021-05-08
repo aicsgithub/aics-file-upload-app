@@ -62,7 +62,7 @@
     "js-logger": "1.6.0",
     "jsdom": "14.0.0",
     "jsdom-global": "3.0.2",
-    "lodash": "4.17.20",
+    "lodash": "4.17.21",
     "moment": "2.24.0",
     "object-hash": "2.0.3",
     "react": "16.9.0",
