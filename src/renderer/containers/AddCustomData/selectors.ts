@@ -6,24 +6,19 @@ import {
   JSSJob,
 } from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
-import { getCurrentJobName } from "../../state/job/selectors";
 import { getOriginalUpload } from "../../state/metadata/selectors";
 import { getSelectedJob } from "../../state/selection/selectors";
 import { AsyncRequest, UploadStateBranch } from "../../state/types";
-import { getUpload } from "../../state/upload/selectors";
+import { getUpload, getUploadFileNames } from "../../state/upload/selectors";
 
 export const getUploadInProgress = createSelector(
-  [getRequestsInProgress, getCurrentJobName],
-  (requestsInProgress: string[], jobName?: string) => {
-    if (!jobName) {
-      return false;
-    }
-    return (
-      requestsInProgress.includes(
-        `${AsyncRequest.UPDATE_FILE_METADATA}-${jobName}`
-      ) ||
-      requestsInProgress.includes(`${AsyncRequest.INITIATE_UPLOAD}-${jobName}`)
-    );
+  [getRequestsInProgress, getUploadFileNames],
+  (requestsInProgress: string[], fileNames: string[]) => {
+    const uploadRelatedRequests = fileNames.flatMap((file) => [
+      `${AsyncRequest.UPDATE_FILE_METADATA}-${file}`,
+      `${AsyncRequest.INITIATE_UPLOAD}-${file}`,
+    ]);
+    return requestsInProgress.some((r) => uploadRelatedRequests.includes(r));
   }
 );
 
@@ -31,33 +26,32 @@ export const getCanSubmitUpload = createSelector(
   [
     getRequestsInProgress,
     getUpload,
+    getUploadFileNames,
     getOriginalUpload,
     getSelectedJob,
-    getCurrentJobName,
     getUploadInProgress,
   ],
   (
     requestsInProgress: string[],
     upload: UploadStateBranch,
+    fileNames: string[],
     originalUpload?: UploadStateBranch,
     selectedJob?: JSSJob,
-    currentJobName?: string,
     uploadInProgress?: boolean
   ): boolean => {
-    if (uploadInProgress || !Object.keys(upload).length) {
+    if (uploadInProgress || !fileNames.length) {
       return false;
     }
-    const uploadRelatedRequests = [
-      `${AsyncRequest.UPDATE_FILE_METADATA}-${currentJobName}`,
-      `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`,
-    ];
-    const requestsInProgressRelatedToUpload = requestsInProgress.filter((r) =>
-      uploadRelatedRequests.includes(r)
-    );
-    const noRequestsInProgress = requestsInProgressRelatedToUpload.length === 0;
     if (selectedJob && FAILED_STATUSES.includes(selectedJob.status)) {
       return true;
     }
+    const uploadRelatedRequests = fileNames.flatMap((file) => [
+      `${AsyncRequest.UPDATE_FILE_METADATA}-${file}`,
+      `${AsyncRequest.INITIATE_UPLOAD}-${file}`,
+    ]);
+    const noRequestsInProgress = !requestsInProgress.some((r) =>
+      uploadRelatedRequests.includes(r)
+    );
     return originalUpload
       ? noRequestsInProgress && !isEqual(upload, originalUpload)
       : noRequestsInProgress;

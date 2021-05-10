@@ -32,7 +32,6 @@ import { requestFailed } from "../../actions";
 import { REQUEST_FAILED } from "../../constants";
 import { setErrorAlert } from "../../feedback/actions";
 import { getAlert } from "../../feedback/selectors";
-import { getCurrentJobName } from "../../job/selectors";
 import { closeUpload, resetUpload } from "../../route/actions";
 import { setAppliedTemplate } from "../../template/actions";
 import {
@@ -1636,7 +1635,7 @@ describe("Upload logics", () => {
           cat: catUpload,
         }),
       };
-      jobName = getCurrentJobName(mockStateForEditingMetadata) || "";
+      jobName = mockSuccessfulUploadJob.jobName || "";
     });
 
     afterEach(() => {

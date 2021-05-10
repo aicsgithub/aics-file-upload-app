@@ -1,3 +1,5 @@
+import { basename } from "path";
+
 import {
   castArray,
   flatMap,
@@ -41,10 +43,7 @@ import { requestFailed } from "../actions";
 import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
-import {
-  getCurrentJobName,
-  getJobIdToUploadJobMapGlobal,
-} from "../job/selectors";
+import { getJobIdToUploadJobMapGlobal } from "../job/selectors";
 import {
   getAnnotationTypes,
   getBooleanAnnotationTypeId,
@@ -116,6 +115,7 @@ import {
   getEditFileMetadataRequests,
   getFileIdsToDelete,
   getUpload,
+  getUploadFileNames,
   getUploadPayload,
 } from "./selectors";
 import {
@@ -202,7 +202,6 @@ const addUploadFilesLogic = createLogic({
 const initiateUploadLogic = createLogic({
   process: async (
     {
-      ctx,
       fms,
       getState,
       logger,
@@ -211,98 +210,93 @@ const initiateUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const { jobName } = ctx;
     // validate and get jobId
-    let startUploadResponse: StartUploadResponse;
-    const payload = getUploadPayload(getState());
-    try {
-      startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
-        payload,
-        jobName
-      );
-      // Wait for upload job from FSS to exist in JSS to prevent
-      // a race condition when trying to create child jobs. Ideally this
-      // would not be necessary if the app interacted with JSS asynchronously
-      // more detail in FUA-218 - Sean M 02/11/21
-      let attempts = 11;
-      let jobExists = await jssClient.existsById(startUploadResponse.jobId);
-      // Continously try to see if the job exists up to 11 times over ~1 minute
-      while (!jobExists) {
-        if (attempts <= 0) {
-          throw new Error("unable to verify upload job started, try again");
-        }
-        attempts--;
-        // Wait 5 seconds before trying again to give JSS room to breathe
-        await new Promise((r) => setTimeout(r, 5 * 1_000));
-        jobExists = await jssClient.existsById(startUploadResponse.jobId);
-      }
-    } catch (e) {
-      // This will show an error on the last page of the upload wizard
-      dispatch(
-        initiateUploadFailed(
-          jobName,
-          e.message || "Upload failed to start, " + e
-        )
-      );
-      done();
-      return;
-    }
+    await Promise.all(
+      Object.entries(getUploadPayload(getState())).map(
+        async ([filePath, metadata]) => {
+          const fileName = basename(filePath);
+          let startUploadResponse: StartUploadResponse;
+          try {
+            startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
+              { [filePath]: metadata },
+              fileName
+            );
+            // Wait for upload job from FSS to exist in JSS to prevent
+            // a race condition when trying to create child jobs. Ideally this
+            // would not be necessary if the app interacted with JSS asynchronously
+            // more detail in FUA-218 - Sean M 02/11/21
+            let attempts = 11;
+            let jobExists = await jssClient.existsById(
+              startUploadResponse.jobId
+            );
+            // Continously try to see if the job exists up to 11 times over ~1 minute
+            while (!jobExists) {
+              if (attempts <= 0) {
+                throw new Error(
+                  "unable to verify upload job started, try again"
+                );
+              }
+              attempts--;
+              // Wait 5 seconds before trying again to give JSS room to breathe
+              await new Promise((r) => setTimeout(r, 5 * 1_000));
+              jobExists = await jssClient.existsById(startUploadResponse.jobId);
+            }
+          } catch (e) {
+            // This will show an error on the last page of the upload wizard
+            dispatch(
+              initiateUploadFailed(
+                fileName,
+                e.message || "Upload failed to start, " + e
+              )
+            );
+            done();
+            return;
+          }
 
-    dispatch(
-      initiateUploadSucceeded(
-        jobName,
-        startUploadResponse.jobId,
-        getLoggedInUser(getState())
+          dispatch(
+            initiateUploadSucceeded(
+              fileName,
+              startUploadResponse.jobId,
+              getLoggedInUser(getState())
+            )
+          );
+          dispatch(batchActions([...resetHistoryActions]));
+          try {
+            await fms.uploadFiles(
+              startUploadResponse,
+              { [filePath]: metadata },
+              fileName,
+              handleUploadProgress([filePath], (progress: UploadProgressInfo) =>
+                dispatch(
+                  updateUploadProgressInfo(startUploadResponse.jobId, progress)
+                )
+              ),
+              COPY_PROGRESS_THROTTLE_MS
+            );
+            done();
+          } catch (e) {
+            const error = `Upload ${fileName} failed: ${e.message}`;
+            logger.error(`Upload failed`, e);
+            dispatch(uploadFailed(error, fileName));
+            done();
+          }
+        }
       )
     );
-    dispatch(batchActions([...resetHistoryActions]));
-    try {
-      await fms.uploadFiles(
-        startUploadResponse,
-        payload,
-        jobName,
-        handleUploadProgress(
-          Object.keys(payload),
-          (progress: UploadProgressInfo) =>
-            dispatch(
-              updateUploadProgressInfo(startUploadResponse.jobId, progress)
-            )
-        ),
-        COPY_PROGRESS_THROTTLE_MS
-      );
-      done();
-    } catch (e) {
-      const error = `Upload ${jobName} failed: ${e.message}`;
-      logger.error(`Upload failed`, e);
-      dispatch(uploadFailed(error, jobName));
-      done();
-    }
   },
-  type: INITIATE_UPLOAD,
-  validate: (
+  transform: (
     {
       action,
-      ctx,
       getState,
     }: ReduxLogicTransformDependenciesWithAction<InitiateUploadAction>,
-    next: ReduxLogicNextCb,
-    reject: ReduxLogicRejectCb
+    next: ReduxLogicNextCb
   ) => {
-    ctx.jobName = getCurrentJobName(getState());
-    if (!ctx.jobName) {
-      reject(setErrorAlert("Nothing to upload"));
-      return;
-    }
-
     next({
       ...action,
-      payload: {
-        ...action.payload,
-        jobName: ctx.jobName,
-      },
-      writeToStore: true,
+      payload: getUploadFileNames(getState()),
     });
   },
+  type: INITIATE_UPLOAD,
   warnTimeout: 0,
 });
 
@@ -975,7 +969,7 @@ const submitFileMetadataUpdateLogic = createLogic({
               `Could not delete file ${fileId}: ${
                 e?.response?.data?.error || e.message
               }`,
-              ctx.jobName
+              ctx.selectedJob.jobName
             )
           );
           done();
@@ -996,7 +990,7 @@ const submitFileMetadataUpdateLogic = createLogic({
           `Could not update upload with deleted fileIds: ${
             e?.response?.data?.error || e.message
           }`,
-          ctx.jobName
+          ctx.selectedJob.jobName
         )
       );
     }
@@ -1011,7 +1005,10 @@ const submitFileMetadataUpdateLogic = createLogic({
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
       dispatch(
-        editFileMetadataFailed("Could not edit files: " + message, ctx.jobName)
+        editFileMetadataFailed(
+          "Could not edit files: " + message,
+          ctx.selectedJob.jobName
+        )
       );
       done();
       return;
@@ -1019,7 +1016,7 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     dispatch(
       batchActions([
-        editFileMetadataSucceeded(ctx.jobName),
+        editFileMetadataSucceeded(ctx.selectedJob.jobName),
         closeUpload(),
         resetUpload(),
       ])
@@ -1039,8 +1036,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     const selectedJob = getSelectedJob(getState());
-    const jobName = getCurrentJobName(getState());
-    if (!selectedJob || !jobName) {
+    if (!selectedJob || !selectedJob.jobName) {
       reject(setErrorAlert("Nothing found to update"));
       return;
     }
@@ -1050,10 +1046,9 @@ const submitFileMetadataUpdateLogic = createLogic({
       );
     }
     ctx.selectedJobId = selectedJob.jobId;
-    ctx.jobName = jobName;
     next({
       ...action,
-      payload: jobName,
+      payload: selectedJob.jobName,
     });
   },
 });
@@ -1068,16 +1063,15 @@ const updateAndRetryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const { selectedJob: originalJob } = ctx;
-    const { files, jobName } = ctx;
-    const requestType = `${AsyncRequest.UPLOAD}-${jobName}`;
+    const { files, selectedJob: originalJob } = ctx;
+    const requestType = `${AsyncRequest.UPLOAD}-${originalJob.jobName}`;
 
     let selectedJob = originalJob;
     try {
       selectedJob = await jssClient.updateJob(
         originalJob.jobId,
         {
-          jobName,
+          jobName: originalJob.jobName,
           serviceFields: {
             files,
           },
@@ -1103,7 +1097,7 @@ const updateAndRetryUploadLogic = createLogic({
     } catch (e) {
       dispatch(
         requestFailed(
-          `Retry upload ${jobName} failed: ${e.message}`,
+          `Retry upload ${originalJob.jobName} failed: ${e.message}`,
           requestType
         )
       );
@@ -1137,8 +1131,7 @@ const updateAndRetryUploadLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     ctx.selectedJob = getSelectedJob(getState());
-    ctx.jobName = getCurrentJobName(getState());
-    if (!ctx.selectedJob) {
+    if (!ctx.selectedJob || !ctx.selectedJob.jobName) {
       reject(setErrorAlert("No upload selected"));
     } else if (FAILED_STATUSES.includes(ctx.selectedJob.status)) {
       try {

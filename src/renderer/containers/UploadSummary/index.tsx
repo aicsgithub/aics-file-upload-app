@@ -82,7 +82,7 @@ class UploadSummary extends React.Component<Props, {}> {
         dataIndex: "jobName",
         ellipsis: true,
         key: "fileName",
-        title: "File Names",
+        title: "File Name",
         width: "100%",
         render: (filename: string, row: UploadSummaryTableRow) => (
           <>
@@ -96,7 +96,7 @@ class UploadSummary extends React.Component<Props, {}> {
         key: "modified",
         render: (modified: Date) =>
           modified.toLocaleTimeString([], TIME_DISPLAY_CONFIG),
-        title: "Last Modified",
+        title: "Last Updated",
         width: "300px",
       },
       {
@@ -172,7 +172,7 @@ class UploadSummary extends React.Component<Props, {}> {
                   icon="plus"
                   onClick={this.props.startNewUpload}
                 >
-                  Create New Upload
+                  Upload New Files
                 </Button>
               </Col>
             </Row>

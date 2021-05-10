@@ -1,6 +1,4 @@
-import { basename } from "path";
-
-import { isEmpty, orderBy } from "lodash";
+import { orderBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
@@ -11,16 +9,13 @@ import {
   SUCCESSFUL_STATUS,
 } from "../../services/job-status-client/types";
 import { convertToArray } from "../../util";
-import { getCurrentUploadFilePath } from "../metadata/selectors";
 import {
   JobFilter,
   JobStateBranch,
   State,
   UploadProgressInfo,
-  UploadStateBranch,
   UploadSummaryTableRow,
 } from "../types";
-import { getUpload, getUploadFileNames } from "../upload/selectors";
 
 export const getUploadJobs = (state: State) => state.job.uploadJobs;
 export const getJobFilter = (state: State) => state.job.jobFilter;
@@ -131,24 +126,5 @@ export const getIsSafeToExit = createSelector(
           StepName.Waiting.toString(),
         ].includes(job.currentStage || "")
     );
-  }
-);
-
-export const getCurrentJobName = createSelector(
-  [getUpload, getUploadFileNames, getCurrentUploadFilePath],
-  (
-    upload: UploadStateBranch,
-    fileNames: string,
-    currentUploadFilePath?: string
-  ): string | undefined => {
-    if (isEmpty(upload)) {
-      return undefined;
-    }
-
-    if (currentUploadFilePath) {
-      return basename(currentUploadFilePath, ".json");
-    }
-
-    return fileNames;
   }
 );

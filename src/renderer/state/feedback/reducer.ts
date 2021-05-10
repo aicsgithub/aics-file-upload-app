@@ -452,16 +452,15 @@ const actionToConfigMap: TypeToDescriptionMap<FeedbackStateBranch> = {
   [INITIATE_UPLOAD]: {
     accepts: (action: AnyAction): action is InitiateUploadAction =>
       action.type === INITIATE_UPLOAD,
-    perform: (
-      state: FeedbackStateBranch,
-      { payload: { jobName } }: InitiateUploadAction
-    ) => ({
+    perform: (state: FeedbackStateBranch, action: InitiateUploadAction) => ({
       ...state,
       alert: getInfoAlert("Starting upload"),
-      requestsInProgress: addRequestToInProgress(
-        state,
-        `${AsyncRequest.INITIATE_UPLOAD}-${jobName}`
-      ),
+      requestsInProgress: uniq([
+        ...state.requestsInProgress,
+        ...action.payload.map(
+          (file) => `${AsyncRequest.INITIATE_UPLOAD}-${file}`
+        ),
+      ]),
     }),
   },
   [INITIATE_UPLOAD_SUCCEEDED]: {

@@ -117,9 +117,8 @@ export function removeUploads(fullPaths: string[]): RemoveUploadsAction {
 export function initiateUpload(): InitiateUploadAction {
   return {
     autoSave: true,
-    payload: {
-      jobName: undefined,
-    },
+    payload: [],
+    writeToStore: true,
     type: INITIATE_UPLOAD,
   };
 }
