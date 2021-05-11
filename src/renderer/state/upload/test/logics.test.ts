@@ -190,20 +190,7 @@ describe("Upload logics", () => {
       jobId,
       uploadDirectory: "/test",
     };
-    const jobName = "file1, file2, file3";
-
-    it("prevents the user from uploading if we cannot name the upload", async () => {
-      const { actions, logicMiddleware, store } = createMockReduxStore(
-        mockState,
-        undefined,
-        uploadLogics
-      );
-      store.dispatch(initiateUpload());
-      await logicMiddleware.whenComplete();
-      expect(actions.includesMatch(initiateUpload())).to.be.false;
-      expect(actions.includesMatch(setErrorAlert("Nothing to upload"))).to.be
-        .true;
-    });
+    const jobName = "file1";
 
     it("adds job name to action payload, dispatches initiateUploadSucceeded and selectPageActions, and starts a web worker", async () => {
       fms.validateMetadataAndGetUploadDirectory.resolves(startUploadResponse);
@@ -228,9 +215,6 @@ describe("Upload logics", () => {
       expect(
         actions.includesMatch({
           autoSave: true,
-          payload: {
-            jobName,
-          },
           type: INITIATE_UPLOAD,
         })
       ).to.be.true;
@@ -1908,6 +1892,7 @@ describe("Upload logics", () => {
   });
   describe("updateAndRetryUpload", () => {
     let nonEmptyState: State;
+    const jobName = "bar";
     beforeEach(() => {
       nonEmptyState = {
         ...nonEmptyStateForInitiatingUpload,
@@ -1917,7 +1902,7 @@ describe("Upload logics", () => {
         },
         selection: getMockStateWithHistory({
           ...mockSelection,
-          job: { ...mockFailedUploadJob, jobName: "bar" },
+          job: { ...mockFailedUploadJob, jobName },
         }),
       };
     });
@@ -1966,7 +1951,7 @@ describe("Upload logics", () => {
         actions.includesMatch(
           requestFailed(
             "Could not update and retry upload: foo",
-            `${AsyncRequest.UPLOAD}-file1, file2, file3`
+            `${AsyncRequest.UPLOAD}-${jobName}`
           )
         )
       ).to.be.true;
@@ -1982,8 +1967,8 @@ describe("Upload logics", () => {
       expect(
         actions.includesMatch(
           requestFailed(
-            "Retry upload file1, file2, file3 failed: foo",
-            `${AsyncRequest.UPLOAD}-file1, file2, file3`
+            `Retry upload ${jobName} failed: foo`,
+            `${AsyncRequest.UPLOAD}-${jobName}`
           )
         )
       ).to.be.true;

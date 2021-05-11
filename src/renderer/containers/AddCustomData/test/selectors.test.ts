@@ -44,9 +44,7 @@ describe("AddCustomData selectors", () => {
         ...nonEmptyStateForInitiatingUpload,
         feedback: {
           ...nonEmptyStateForInitiatingUpload.feedback,
-          requestsInProgress: [
-            `${AsyncRequest.INITIATE_UPLOAD}-file1, file2, file3`,
-          ],
+          requestsInProgress: [`${AsyncRequest.INITIATE_UPLOAD}-file1`],
         },
       });
       expect(result).to.be.false;
@@ -56,9 +54,7 @@ describe("AddCustomData selectors", () => {
         ...nonEmptyStateForInitiatingUpload,
         feedback: {
           ...nonEmptyStateForInitiatingUpload.feedback,
-          requestsInProgress: [
-            `${AsyncRequest.UPDATE_FILE_METADATA}-file1, file2, file3`,
-          ],
+          requestsInProgress: [`${AsyncRequest.UPDATE_FILE_METADATA}-file1`],
         },
       });
       expect(result).to.be.false;
@@ -94,9 +90,7 @@ describe("AddCustomData selectors", () => {
         ...nonEmptyStateForInitiatingUpload,
         feedback: {
           ...nonEmptyStateForInitiatingUpload.feedback,
-          requestsInProgress: [
-            `${AsyncRequest.UPDATE_FILE_METADATA}-file1, file2, file3`,
-          ],
+          requestsInProgress: [`${AsyncRequest.UPDATE_FILE_METADATA}-file1`],
         },
       });
       expect(result).to.be.true;
@@ -115,24 +109,6 @@ describe("AddCustomData selectors", () => {
     it("returns false if requestsInProgress does not contain INITIATE_UPLOAD-currentUploadName", () => {
       const inProgress = getUploadInProgress(mockState);
       expect(inProgress).to.be.false;
-    });
-    it("returns true if requestsInProgress contains INITIATE_UPLOAD-currentUploadName", () => {
-      const currentJobName = `foo`;
-      const inProgress = getUploadInProgress({
-        ...mockState,
-        feedback: {
-          ...mockState.feedback,
-          requestsInProgress: [
-            `${AsyncRequest.INITIATE_UPLOAD}-${currentJobName}`,
-          ],
-        },
-        metadata: {
-          ...mockState.metadata,
-          currentUploadFilePath: "/path/foo.json",
-        },
-        upload: getMockStateWithHistory(mockWellUpload),
-      });
-      expect(inProgress).to.be.true;
     });
     it("returns false if requestsInProgress contains request belonging to a different upload", () => {
       const inProgress = getUploadInProgress({

@@ -1036,7 +1036,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     const selectedJob = getSelectedJob(getState());
-    if (!selectedJob || !selectedJob.jobName) {
+    if (!selectedJob) {
       reject(setErrorAlert("Nothing found to update"));
       return;
     }
