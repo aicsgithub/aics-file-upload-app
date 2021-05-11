@@ -7,6 +7,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { ActionCreator } from "redux";
 
+import { TIME_DISPLAY_CONFIG } from "../../components/JobOverviewDisplay";
 import StatusCircle from "../../components/StatusCircle";
 import {
   IN_PROGRESS_STATUSES,
@@ -44,15 +45,6 @@ import UploadProgress from "./UploadProgress";
 const styles = require("./styles.pcss");
 
 const jobStatusOptions: JobFilter[] = map(JobFilter, (value) => value);
-
-const TIME_DISPLAY_CONFIG = Object.freeze({
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "short",
-  weekday: "short",
-  year: "numeric",
-});
 
 interface Props {
   cancelUpload: ActionCreator<CancelUploadAction>;
