@@ -969,7 +969,7 @@ const submitFileMetadataUpdateLogic = createLogic({
               `Could not delete file ${fileId}: ${
                 e?.response?.data?.error || e.message
               }`,
-              ctx.selectedJob.jobName
+              ctx.jobName
             )
           );
           done();
@@ -990,7 +990,7 @@ const submitFileMetadataUpdateLogic = createLogic({
           `Could not update file, has been deleted: ${
             e?.response?.data?.error || e.message
           }`,
-          ctx.selectedJob.jobName
+          ctx.jobName
         )
       );
     }
@@ -1005,10 +1005,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     } catch (e) {
       const message = e?.response?.data?.error || e.message;
       dispatch(
-        editFileMetadataFailed(
-          "Could not edit file: " + message,
-          ctx.selectedJob.jobName
-        )
+        editFileMetadataFailed("Could not edit file: " + message, ctx.jobName)
       );
       done();
       return;
@@ -1016,7 +1013,7 @@ const submitFileMetadataUpdateLogic = createLogic({
 
     dispatch(
       batchActions([
-        editFileMetadataSucceeded(ctx.selectedJob.jobName),
+        editFileMetadataSucceeded(ctx.jobName),
         closeUpload(),
         resetUpload(),
       ])
@@ -1046,6 +1043,7 @@ const submitFileMetadataUpdateLogic = createLogic({
       );
     }
     ctx.selectedJobId = selectedJob.jobId;
+    ctx.jobName = selectedJob.jobName;
     next({
       ...action,
       payload: selectedJob.jobName,
