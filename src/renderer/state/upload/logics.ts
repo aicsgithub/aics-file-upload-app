@@ -214,12 +214,12 @@ const initiateUploadLogic = createLogic({
     await Promise.all(
       Object.entries(getUploadPayload(getState())).map(
         async ([filePath, metadata]) => {
-          const fileName = basename(filePath);
+          const jobName = basename(filePath);
           let startUploadResponse: StartUploadResponse;
           try {
             startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
               { [filePath]: metadata },
-              fileName
+              jobName
             );
             // Wait for upload job from FSS to exist in JSS to prevent
             // a race condition when trying to create child jobs. Ideally this
@@ -245,7 +245,7 @@ const initiateUploadLogic = createLogic({
             // This will show an error on the last page of the upload wizard
             dispatch(
               initiateUploadFailed(
-                fileName,
+                jobName,
                 e.message || "Upload failed to start, " + e
               )
             );
@@ -255,7 +255,7 @@ const initiateUploadLogic = createLogic({
 
           dispatch(
             initiateUploadSucceeded(
-              fileName,
+              jobName,
               startUploadResponse.jobId,
               getLoggedInUser(getState())
             )
@@ -265,7 +265,7 @@ const initiateUploadLogic = createLogic({
             await fms.uploadFiles(
               startUploadResponse,
               { [filePath]: metadata },
-              fileName,
+              jobName,
               handleUploadProgress([filePath], (progress: UploadProgressInfo) =>
                 dispatch(
                   updateUploadProgressInfo(startUploadResponse.jobId, progress)
@@ -275,9 +275,9 @@ const initiateUploadLogic = createLogic({
             );
             done();
           } catch (e) {
-            const error = `Upload ${fileName} failed: ${e.message}`;
+            const error = `Upload ${jobName} failed: ${e.message}`;
             logger.error(`Upload failed`, e);
-            dispatch(uploadFailed(error, fileName));
+            dispatch(uploadFailed(error, jobName));
             done();
           }
         }
