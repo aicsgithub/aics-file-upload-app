@@ -987,7 +987,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     } catch (e) {
       dispatch(
         editFileMetadataFailed(
-          `Could not update upload with deleted fileIds: ${
+          `Could not update file, has been deleted: ${
             e?.response?.data?.error || e.message
           }`,
           ctx.selectedJob.jobName
@@ -1006,7 +1006,7 @@ const submitFileMetadataUpdateLogic = createLogic({
       const message = e?.response?.data?.error || e.message;
       dispatch(
         editFileMetadataFailed(
-          "Could not edit files: " + message,
+          "Could not edit file: " + message,
           ctx.selectedJob.jobName
         )
       );
@@ -1036,7 +1036,7 @@ const submitFileMetadataUpdateLogic = createLogic({
     reject: ReduxLogicRejectCb
   ) => {
     const selectedJob = getSelectedJob(getState());
-    if (!selectedJob) {
+    if (!selectedJob || !selectedJob.jobName) {
       reject(setErrorAlert("Nothing found to update"));
       return;
     }

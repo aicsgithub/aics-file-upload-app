@@ -1742,7 +1742,7 @@ describe("Upload logics", () => {
       expect(
         actions.includesMatch(
           editFileMetadataFailed(
-            "Could not update upload with deleted fileIds: foo",
+            "Could not update file, has been deleted: foo",
             jobName
           )
         )
@@ -1765,7 +1765,7 @@ describe("Upload logics", () => {
 
       expect(
         actions.includesMatch(
-          editFileMetadataFailed("Could not edit files: foo", jobName)
+          editFileMetadataFailed("Could not edit file: foo", jobName)
         )
       ).to.be.true;
     });
