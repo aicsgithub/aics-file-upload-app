@@ -24,7 +24,6 @@ export const getUploadInProgress = createSelector(
 
 export const getCanSubmitUpload = createSelector(
   [
-    getRequestsInProgress,
     getUpload,
     getUploadFileNames,
     getOriginalUpload,
@@ -32,7 +31,6 @@ export const getCanSubmitUpload = createSelector(
     getUploadInProgress,
   ],
   (
-    requestsInProgress: string[],
     upload: UploadStateBranch,
     fileNames: string[],
     originalUpload?: UploadStateBranch,
@@ -42,18 +40,12 @@ export const getCanSubmitUpload = createSelector(
     if (uploadInProgress || !fileNames.length) {
       return false;
     }
-    if (selectedJob && FAILED_STATUSES.includes(selectedJob.status)) {
+    if (
+      !originalUpload ||
+      (selectedJob && FAILED_STATUSES.includes(selectedJob.status))
+    ) {
       return true;
     }
-    const uploadRelatedRequests = fileNames.flatMap((file) => [
-      `${AsyncRequest.UPDATE_FILE_METADATA}-${file}`,
-      `${AsyncRequest.INITIATE_UPLOAD}-${file}`,
-    ]);
-    const noRequestsInProgress = !requestsInProgress.some((r) =>
-      uploadRelatedRequests.includes(r)
-    );
-    return originalUpload
-      ? noRequestsInProgress && !isEqual(upload, originalUpload)
-      : noRequestsInProgress;
+    return !isEqual(upload, originalUpload);
   }
 );
