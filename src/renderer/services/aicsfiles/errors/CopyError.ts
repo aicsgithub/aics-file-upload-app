@@ -1,7 +1,5 @@
-import { COPY_ERROR } from "../constants";
-
-export class CopyError extends Error {
-  public name = COPY_ERROR;
+export default class CopyError extends Error {
+  public name = "CopyError";
   public constructor(...args: any[]) {
     super(...args);
     Error.captureStackTrace(this, CopyError);

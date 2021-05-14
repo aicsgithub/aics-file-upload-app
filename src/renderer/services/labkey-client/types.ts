@@ -1,3 +1,18 @@
+export enum FilterType {
+  EQUALS = "EQUALS",
+  IN = "IN",
+}
+
+export interface Filter {
+  filterColumn: string;
+  searchValue?: any | any[];
+  type?: FilterType;
+}
+
+export interface LabKeyResponse<T> {
+  rows: T[];
+}
+
 export interface Audited {
   created: Date;
   createdBy: number;

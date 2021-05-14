@@ -6,7 +6,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../../constants";
-import { UploadMetadata, Uploads } from "../../../services/aicsfiles/types";
+import { UploadMetadata, Uploads } from "../../../services/aicsfiles/util";
 import { TemplateAnnotation } from "../../../services/mms-client/types";
 import { Duration } from "../../../types";
 import {

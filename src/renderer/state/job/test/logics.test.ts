@@ -5,7 +5,7 @@ import { FileManagementSystem } from "../../../services/aicsfiles";
 import {
   StepName,
   UploadServiceFields,
-} from "../../../services/aicsfiles/types";
+} from "../../../services/aicsfiles/util";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
 import { setErrorAlert, setInfoAlert } from "../../feedback/actions";

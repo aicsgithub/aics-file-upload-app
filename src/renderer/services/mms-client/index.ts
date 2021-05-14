@@ -4,7 +4,7 @@ import { LocalStorage } from "../../types";
 import {
   FileMetadata,
   UploadMetadata as AicsFilesUploadMetadata,
-} from "../aicsfiles/types";
+} from "../aicsfiles/util";
 import HttpCacheClient from "../http-cache-client";
 import { Annotation } from "../labkey-client/types";
 import { AicsSuccessResponse, HttpClient } from "../types";

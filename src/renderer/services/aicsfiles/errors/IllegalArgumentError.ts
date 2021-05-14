@@ -1,7 +1,5 @@
-import { ILLEGAL_ARGUMENT_ERROR } from "../constants";
-
-export class IllegalArgumentError extends Error {
-  public name = ILLEGAL_ARGUMENT_ERROR;
+export default class IllegalArgumentError extends Error {
+  public name = "IllegalArgument";
   public constructor(...args: any[]) {
     super(...args);
     Error.captureStackTrace(this, IllegalArgumentError);

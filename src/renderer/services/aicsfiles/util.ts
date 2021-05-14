@@ -1,32 +1,11 @@
-import { BigIntStats, PathLike, StatOptions, Stats } from "fs";
+import { FSSResponseFile } from "../file-storage-client";
 
-import { JSSJob } from "../../job-status-client/types";
+import { LabKeyFileMetadata } from "./helpers/querier";
 
-export interface Uploads {
-  [filePath: string]: UploadMetadata;
-}
+// Misc.
+export const AICSFILES_LOGGER = "aicsfiles";
 
-export interface UploadResponse {
-  [originalPath: string]: FSSResponseFile;
-}
-
-// FSS Request Types
-
-export interface FSSRequestFile {
-  fileName: string;
-  md5hex: string;
-  fileType: string;
-  metadata: UploadMetadata;
-  shouldBeInArchive?: boolean;
-  shouldBeInLocal?: boolean;
-}
-
-export interface UploadMetadataRequest {
-  jobId: string;
-  files: FSSRequestFile[];
-}
-
-export interface ImageModelBase {
+interface ImageModelBase {
   channelId?: string;
   fovId?: number;
   positionIndex?: number;
@@ -35,74 +14,26 @@ export interface ImageModelBase {
 }
 
 // This is used for the POST request to mms for creating file metadata
-export interface CustomFileAnnotationRequest extends ImageModelBase {
+interface CustomFileAnnotationRequest extends ImageModelBase {
   annotationId: number;
   values: string[];
 }
 
-// This is used for the POST request to mms for creating file metadata
-export interface CustomFileMetadataRequest {
-  annotations: CustomFileAnnotationRequest[];
-  templateId?: number;
-}
-
-export interface UploadMetadata {
-  customMetadata: CustomFileMetadataRequest;
-  fileType?: string;
-  file: File;
-  [id: string]: any;
-}
-
-export interface File {
+interface File {
   originalPath: string;
   fileName?: string;
   fileType: string;
   [id: string]: any;
 }
 
-// FSS Response Types
-
-export interface StartUploadResponse {
-  jobId: string;
-  uploadDirectory: string;
-}
-
-export interface UploadMetadataResponse {
-  jobId: string;
-  files: FSSResponseFile[];
-}
-
-export interface FSSResponseFile {
-  fileName: string;
-  fileId: string;
-  readPath: string;
-}
-
-export enum StepName {
-  AddMetadata = "Add metadata about file and complete upload",
-  CopyFilesChild = "Copy file",
-  CopyFiles = "Copy files in parallel",
-  Waiting = "Waiting for file copy",
-}
-
-export interface Step {
-  // Called if step's job status is succeeded. This is for updating the upload
-  // context with info stored in the job.
-  skip: (ctx: UploadContext) => Promise<UploadContext>;
-
-  // Called after running start (and not called if step is skipped)
-  // Should include job updates that don't need to be awaited (like adding outputs from the last step)
-  end: (ctx: UploadContext) => Promise<void>;
-
-  // Job associated with step
-  job: JSSJob;
-
-  // Human readable name for step
-  name: StepName;
-
-  // Contains main procedure of step. It will return an updated upload context with
-  // properties needed for the next steps.
-  start: (ctx: UploadContext) => Promise<UploadContext>;
+export interface UploadMetadata {
+  customMetadata: {
+    annotations: CustomFileAnnotationRequest[];
+    templateId?: number;
+  };
+  fileType?: string;
+  file: File;
+  [id: string]: any;
 }
 
 // properties that belong to both parent and child jobs created through FMS
@@ -194,59 +125,9 @@ export interface AddMetadataServiceFields extends BaseServiceFields {
   output?: FSSResponseFile[]; // populated after step completes
 }
 
-// TODO: FUA-97 lisah there are other steps that are not being in JSS past the add metadata step.
-// These will need to be created in FMS in order to produce more accurate upload progress reporting.
-// One step that the app currently does not use when calculating upload progress is a step representing the ETL step.
-
-export type UploadChildJobServiceFields =
-  | AddMetadataServiceFields
-  | CopyFilesServiceFields
-  | CopyFileServiceFields;
-
-export interface UploadContext {
-  uploadChildJobIds?: string[];
-  copyChildJobs?: JSSJob<CopyFileServiceFields>[];
-  resultFiles?: FSSResponseFile[];
-  sourceFiles?: SourceFiles;
-  startUploadResponse: StartUploadResponse;
-  totalBytesToCopy?: number;
-  uploadJobName: string;
-  uploads: Uploads;
-  uploadJob?: JSSJob<UploadServiceFields>;
-}
-
-export interface SourceFiles {
-  [file: string]: FSSRequestFile;
-}
-
-export enum FilterType {
-  EQUALS = "EQUALS",
-  IN = "IN",
-}
-
-export interface Filter {
-  filterColumn: string;
-  searchValue?: any | any[];
-  type?: FilterType;
-}
-
 export interface Annotation extends ImageModelBase {
   annotationId: number;
   values: any[];
-}
-
-export interface LabKeyFileMetadata {
-  archiveFilePath?: string;
-  filename: string;
-  fileId: string;
-  fileSize: number;
-  fileType: string;
-  localFilePath?: string;
-  publicFilePath?: string;
-  thumbnailLocalFilePath?: string;
-  thumbnailId?: string;
-  modified: string;
-  modifiedBy: string;
 }
 
 export interface CustomFileMetadata {
@@ -276,21 +157,4 @@ export interface ImageModelMetadata extends ImageModelBase, LabKeyFileMetadata {
   shouldBeInArchive?: boolean;
   shouldBeInLocal?: boolean;
   [key: string]: any;
-}
-
-export interface LabKeyResponse<T> {
-  rows: T[];
-}
-
-// These are mocked in the tests so they need to be constructor arguments
-// Bundling them into an object makes them easier to stub
-
-export interface FileSystemUtil {
-  access: (path: PathLike, mode?: number) => Promise<void>;
-  exists: (path: PathLike) => Promise<boolean>;
-  stat: (path: PathLike, options?: StatOptions) => Promise<Stats | BigIntStats>;
-}
-
-export interface FullPathHashToLastModifiedDate {
-  [fullPathHash: string]: Date;
 }

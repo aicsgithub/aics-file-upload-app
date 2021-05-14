@@ -52,10 +52,7 @@ const actionToConfigMap: TypeToDescriptionMap<JobStateBranch> = {
       if (jobType === "upload") {
         return {
           ...state,
-          uploadJobs: [
-            updatedJob as JSSJob<UploadServiceFields>,
-            ...state.uploadJobs,
-          ],
+          uploadJobs: [updatedJob, ...state.uploadJobs],
         };
       }
 

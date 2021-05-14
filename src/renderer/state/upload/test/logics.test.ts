@@ -19,7 +19,7 @@ import { mockJob } from "../../../services/aicsfiles/test/mocks";
 import {
   StartUploadResponse,
   UploadServiceFields,
-} from "../../../services/aicsfiles/types";
+} from "../../../services/aicsfiles/util";
 import JobStatusClient from "../../../services/job-status-client";
 import {
   JSSJob,

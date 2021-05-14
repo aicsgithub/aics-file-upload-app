@@ -24,7 +24,7 @@ import {
   StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
   UploadServiceFields,
-} from "../../services/aicsfiles/types";
+} from "../../services/aicsfiles/util";
 import {
   FAILED_STATUSES,
   JSSJob,

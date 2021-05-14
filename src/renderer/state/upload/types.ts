@@ -3,7 +3,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
-import { UploadServiceFields } from "../../services/aicsfiles/types";
+import { UploadServiceFields } from "../../services/aicsfiles/util";
 import { JSSJob } from "../../services/job-status-client/types";
 import {
   AutoSaveAction,

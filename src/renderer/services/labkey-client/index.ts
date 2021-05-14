@@ -2,7 +2,7 @@ import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
 import { LocalStorage } from "../../types";
-import { Filter, FilterType, LabKeyResponse } from "../aicsfiles/types";
+import { Filter, FilterType } from "../aicsfiles/util";
 import HttpCacheClient from "../http-cache-client";
 import { HttpClient } from "../types";
 
@@ -91,6 +91,18 @@ export default class LabkeyClient extends HttpCacheClient {
 
     return base;
   };
+
+  public async existsByFileNameAndMD5(
+    fileName: string,
+    md5: string
+  ): Promise<boolean> {
+    const query = LabkeyClient.getSelectRowsURL(LK_FMS_SCHEMA, "File", [
+      `query.filename~eq=${fileName}`,
+      `query.md5~eq=${md5}`,
+    ]);
+    const response = await this.get(query);
+    return response.rows.length > 0;
+  }
 
   /**
    * Gets all annotation types

@@ -21,7 +21,7 @@ import {
   titleCase,
 } from "../";
 import { FileManagementSystem } from "../../services/aicsfiles";
-import { ImageModelMetadata } from "../../services/aicsfiles/types";
+import { ImageModelMetadata } from "../../services/aicsfiles/util";
 import MMSClient from "../../services/mms-client";
 import {
   GetPlateResponse,

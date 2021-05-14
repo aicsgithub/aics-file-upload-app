@@ -14,7 +14,7 @@ import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
 import { FileManagementSystem } from "../services/aicsfiles";
-import { UploadServiceFields } from "../services/aicsfiles/types";
+import { UploadServiceFields } from "../services/aicsfiles/util";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {

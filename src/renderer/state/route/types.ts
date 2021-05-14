@@ -1,4 +1,4 @@
-import { UploadServiceFields } from "../../services/aicsfiles/types";
+import { UploadServiceFields } from "../../services/aicsfiles/util";
 import { JSSJob } from "../../services/job-status-client/types";
 import { Page, UploadStateBranch } from "../types";
 

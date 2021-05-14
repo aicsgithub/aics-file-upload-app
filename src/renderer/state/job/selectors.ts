@@ -1,7 +1,7 @@
 import { orderBy } from "lodash";
 import { createSelector } from "reselect";
 
-import { StepName, UploadServiceFields } from "../../services/aicsfiles/types";
+import { StepName, UploadServiceFields } from "../../services/aicsfiles/util";
 import {
   FAILED_STATUSES,
   IN_PROGRESS_STATUSES,

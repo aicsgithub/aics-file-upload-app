@@ -10,7 +10,7 @@ import { WELL_ANNOTATION_NAME } from "../../constants";
 import {
   FSSResponseFile,
   ImageModelMetadata,
-} from "../../services/aicsfiles/types";
+} from "../../services/aicsfiles/util";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";

@@ -29,7 +29,7 @@ import {
   FileToFileMetadata,
   ImageModelMetadata,
   UploadMetadata as FMSUploadMetadata,
-} from "../services/aicsfiles/types";
+} from "../services/aicsfiles/util";
 import { ImagingSession } from "../services/labkey-client/types";
 import MMSClient from "../services/mms-client";
 import {

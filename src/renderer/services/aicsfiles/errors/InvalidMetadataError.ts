@@ -1,7 +1,5 @@
-import { INVALID_METADATA_ERROR } from "../constants";
-
-export class InvalidMetadataError extends Error {
-  public name = INVALID_METADATA_ERROR;
+export default class InvalidMetadataError extends Error {
+  public name = "InvalidMetadata";
   public constructor(...args: any[]) {
     super(...args);
     Error.captureStackTrace(this, InvalidMetadataError);
