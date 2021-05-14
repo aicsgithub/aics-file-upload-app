@@ -187,10 +187,12 @@ function NotesCell(props: Props) {
       </Modal>
       <Tooltip title={note ? `${note?.substring(0, 50)}...` : ""}>
         <div className={styles.alignCenter} onContextMenu={onContextMenu}>
-          <Icon
-            onClick={() => setIsModalOpen(true)}
-            type={note ? "file-text" : "plus-circle"}
-          />
+          {(!props.column.isReadOnly || notes) && (
+            <Icon
+              onClick={() => setIsModalOpen(true)}
+              type={note ? "file-text" : "plus-circle"}
+            />
+          )}
         </div>
       </Tooltip>
     </>

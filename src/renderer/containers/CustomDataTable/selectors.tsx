@@ -123,10 +123,13 @@ export const getColumnsForTable = createSelector(
   [getTemplateColumnsForTable, getIsSelectedJobInFlight],
   (templateColumns, isReadOnly): CustomColumn[] => {
     if (isReadOnly) {
-      return [...DEFAULT_COLUMNS, ...templateColumns].map((column) => ({
+      const columns = templateColumns.map((column) => ({
+        ...column,
+        Cell: ReadOnlyCell,
+      }));
+      return [...DEFAULT_COLUMNS, ...columns].map((column) => ({
         ...column,
         isReadOnly: true,
-        Cell: ReadOnlyCell,
       }));
     }
     return [SELECTION_COLUMN, ...DEFAULT_COLUMNS, ...templateColumns];
