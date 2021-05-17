@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { mockJob } from "../../../services/aicsfiles/test/mocks";
+import { mockJob } from "../../../services/file-management-system/test/mocks";
 import { ColumnType } from "../../../services/labkey-client/types";
 import {
   getMockStateWithHistory,

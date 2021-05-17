@@ -26,7 +26,7 @@ import {
   upload,
 } from "../";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../../services";
-import { FileManagementSystem } from "../../services/aicsfiles";
+import FileManagementSystem from "../../services/file-management-system";
 import EnvironmentAwareStorage from "../EnvironmentAwareStorage";
 import { State } from "../types";
 

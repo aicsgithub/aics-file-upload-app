@@ -19,9 +19,9 @@ import CopyWorker from "worker-loader!../services/aicsfiles/steps/copy-worker";
 
 import { TEMP_UPLOAD_STORAGE_KEY } from "../../shared/constants";
 import { JobStatusClient, LabkeyClient, MMSClient } from "../services";
-import { FileManagementSystem } from "../services/aicsfiles";
-import { defaultFs } from "../services/aicsfiles/constants";
-import { FSSClient } from "../services/aicsfiles/helpers/fss-client";
+import FileManagementSystem from "../services/file-management-system";
+import { defaultFs } from "../services/file-management-system/constants";
+import { FSSClient } from "../services/file-management-system/helpers/fss-client";
 
 import EnvironmentAwareStorage from "./EnvironmentAwareStorage";
 import { addEvent } from "./feedback/actions";

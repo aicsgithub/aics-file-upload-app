@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { StepName } from "../../../services/aicsfiles/util";
+import { StepName } from "../../../services/file-management-system/util";
 import {
   JSSJob,
   JSSJobStatus,

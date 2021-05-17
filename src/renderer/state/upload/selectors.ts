@@ -32,8 +32,7 @@ import {
 } from "../../constants";
 import {
   UploadMetadata as AicsFilesUploadMetadata,
-  Uploads,
-} from "../../services/aicsfiles/util";
+} from "../../services/file-management-system/util";
 import { JSSJob } from "../../services/job-status-client/types";
 import { ColumnType, ImagingSession } from "../../services/labkey-client/types";
 import { PlateResponse, WellResponse } from "../../services/mms-client/types";

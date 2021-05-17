@@ -2,7 +2,7 @@ import { camelizeKeys } from "humps";
 import { isEmpty, map, pick, uniq } from "lodash";
 
 import { LocalStorage } from "../../types";
-import { Filter, FilterType } from "../aicsfiles/util";
+import { Filter, FilterType } from "../file-management-system/util";
 import HttpCacheClient from "../http-cache-client";
 import { HttpClient } from "../types";
 

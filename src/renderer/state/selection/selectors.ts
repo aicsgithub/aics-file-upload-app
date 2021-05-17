@@ -4,7 +4,7 @@ import { createSelector } from "reselect";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
 import { GridCell } from "../../entities";
-import { UploadServiceFields } from "../../services/aicsfiles/util";
+import { UploadServiceFields } from "../../services/file-management-system/util";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import { ImagingSession, Unit } from "../../services/labkey-client/types";
 import {

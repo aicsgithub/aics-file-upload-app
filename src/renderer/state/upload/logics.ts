@@ -24,7 +24,7 @@ import {
   StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
   UploadServiceFields,
-} from "../../services/aicsfiles/util";
+} from "../../services/file-management-system/util";
 import {
   FAILED_STATUSES,
   JSSJob,
@@ -210,79 +210,43 @@ const initiateUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    // validate and get jobId
-    await Promise.all(
-      Object.entries(getUploadPayload(getState())).map(
-        async ([filePath, metadata]) => {
-          const jobName = basename(filePath);
-          let startUploadResponse: StartUploadResponse;
-          try {
-            startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
-              { [filePath]: metadata },
-              jobName
-            );
-            // Wait for upload job from FSS to exist in JSS to prevent
-            // a race condition when trying to create child jobs. Ideally this
-            // would not be necessary if the app interacted with JSS asynchronously
-            // more detail in FUA-218 - Sean M 02/11/21
-            let attempts = 11;
-            let jobExists = await jssClient.existsById(
-              startUploadResponse.jobId
-            );
-            // Continously try to see if the job exists up to 11 times over ~1 minute
-            while (!jobExists) {
-              if (attempts <= 0) {
-                throw new Error(
-                  "unable to verify upload job started, try again"
-                );
-              }
-              attempts--;
-              // Wait 5 seconds before trying again to give JSS room to breathe
-              await new Promise((r) => setTimeout(r, 5 * 1_000));
-              jobExists = await jssClient.existsById(startUploadResponse.jobId);
-            }
-          } catch (e) {
-            // This will show an error on the last page of the upload wizard
-            dispatch(
-              initiateUploadFailed(
-                jobName,
-                e.message || "Upload failed to start, " + e
-              )
-            );
-            done();
-            return;
-          }
-
-          dispatch(
-            initiateUploadSucceeded(
-              jobName,
-              startUploadResponse.jobId,
-              getLoggedInUser(getState())
-            )
-          );
-          dispatch(batchActions([...resetHistoryActions]));
-          try {
-            await fms.uploadFiles(
-              startUploadResponse,
-              { [filePath]: metadata },
-              jobName,
-              handleUploadProgress([filePath], (progress: UploadProgressInfo) =>
-                dispatch(
-                  updateUploadProgressInfo(startUploadResponse.jobId, progress)
-                )
-              ),
-              COPY_PROGRESS_THROTTLE_MS
-            );
-            done();
-          } catch (e) {
-            const error = `Upload ${jobName} failed: ${e.message}`;
-            logger.error(`Upload failed`, e);
-            dispatch(uploadFailed(error, jobName));
-            done();
-          }
-        }
+    // TODO: Create
+    let parentJobId: string;
+    try {
+      // TODO: Create parent job
+      parentJobId = "";
+    } catch (err) {
+      dispatch(
+        initiateUploadFailed(e.message || "Upload failed to start, " + e)
+      );
+      done();
+      return;
+    }
+    dispatch(
+      initiateUploadSucceeded(
+        jobName,
+        startUploadResponse.jobId,
+        getLoggedInUser(getState())
       )
     );
+    dispatch(batchActions([...resetHistoryActions]));
+
+    try {
+      const uploadPayload = getUploadPayload(getState());
+      const onCopyProgress = handleUploadProgress([filePath], (jobId: string, bytesCopied: number, totalBytes: number) =>
+        dispatch(
+          updateUploadProgressInfo(jobId, { bytesCopied, totalBytes })
+        )
+      );
+      await fms.uploadFiles(parentJobId, uploadPayload, onCopyProgress);
+        ;
+      done();
+    } catch (e) {
+      const error = `Upload ${jobName} failed: ${e.message}`;
+      logger.error(`Upload failed`, e);
+      dispatch(uploadFailed(error, jobName));
+      done();
+    }
   },
   transform: (
     {

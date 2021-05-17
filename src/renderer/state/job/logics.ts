@@ -4,7 +4,7 @@ import {
   StepName,
   UploadMetadata as AicsFilesUploadMetadata,
   UploadServiceFields,
-} from "../../services/aicsfiles/util";
+} from "../../services/file-management-system/util";
 import {
   IN_PROGRESS_STATUSES,
   JSSJob,

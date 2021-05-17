@@ -15,21 +15,19 @@ import {
   difference,
   forEach,
   isNil,
-  reduce,
   startCase,
   trim,
   uniq,
 } from "lodash";
 
 import { LIST_DELIMITER_SPLIT, MAIN_FONT_WIDTH } from "../constants";
-import { FileManagementSystem } from "../services/aicsfiles";
+import FileManagementSystem from "../services/file-management-system";
 import {
   CustomFileMetadata,
-  FileMetadata,
   FileToFileMetadata,
   ImageModelMetadata,
   UploadMetadata as FMSUploadMetadata,
-} from "../services/aicsfiles/util";
+} from "../services/file-management-system/util";
 import { ImagingSession } from "../services/labkey-client/types";
 import MMSClient from "../services/mms-client";
 import {
@@ -291,33 +289,6 @@ export const getPlateInfo = async (
     plate: imagingSessionIdToPlate,
     wells: imagingSessionIdToWells,
   };
-};
-
-/**
- * Helper for logics that need to retrieve file metadata
- * @param {string[]} fileIds
- * @param {FileManagementSystem} fms
- * @returns {Promise<ImageModelMetadata[]>} a list of metadata for each image model
- */
-export const retrieveFileMetadata = async (
-  fileIds: string[],
-  fms: FileManagementSystem
-): Promise<ImageModelMetadata[]> => {
-  const resolvedPromises: FileMetadata[] = await Promise.all(
-    fileIds.map((fileId: string) => fms.getCustomMetadataForFile(fileId))
-  );
-  const fileMetadataForFileIds = reduce(
-    resolvedPromises,
-    (
-      filesToFileMetadata: FileToFileMetadata<FileMetadata>,
-      fileMetadata: FileMetadata
-    ) => ({
-      ...filesToFileMetadata,
-      [fileMetadata.fileId]: fileMetadata,
-    }),
-    {}
-  );
-  return await fms.transformFileMetadataIntoTable(fileMetadataForFileIds);
 };
 
 /***

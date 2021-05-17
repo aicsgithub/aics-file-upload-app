@@ -9,8 +9,8 @@ import {
 } from "sinon";
 
 import { WELL_ANNOTATION_NAME } from "../../../constants";
-import { FileManagementSystem } from "../../../services/aicsfiles";
-import { ImageModelMetadata } from "../../../services/aicsfiles/util";
+import FileManagementSystem from "../../../services/file-management-system";
+import { ImageModelMetadata } from "../../../services/file-management-system/util";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJobStatus } from "../../../services/job-status-client/types";
 import LabkeyClient from "../../../services/labkey-client";

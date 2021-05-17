@@ -1,4 +1,4 @@
-import { BaseServiceFields } from "../../services/aicsfiles/util";
+import { BaseServiceFields } from "../../services/file-management-system/util";
 import { JSSJob } from "../../services/job-status-client/types";
 import { JobFilter, UploadProgressInfo } from "../types";
 

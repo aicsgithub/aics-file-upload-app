@@ -5,7 +5,7 @@ import { GridCell } from "../../entities";
 import {
   AddMetadataServiceFields,
   UploadServiceFields,
-} from "../../services/aicsfiles/util";
+} from "../../services/file-management-system/util";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   Annotation,

@@ -1,10 +1,11 @@
+import * as fs from "fs";
 import * as path from "path";
 
 import axios, { AxiosRequestConfig } from "axios";
 import * as humps from "humps";
 import { castArray } from "lodash";
 
-import { UploadMetadata } from "../aicsfiles/util";
+import { UploadMetadata } from "../file-management-system/util";
 import HttpCacheClient from "../http-cache-client";
 import { AicsSuccessResponse } from "../types";
 
@@ -56,8 +57,6 @@ export class FileStorageClient extends HttpCacheClient {
       jobName: fileName,
       serviceFields: {
         files: [metadata],
-        lastModified,
-        md5: {},
         type: UPLOAD_TYPE,
       },
     };

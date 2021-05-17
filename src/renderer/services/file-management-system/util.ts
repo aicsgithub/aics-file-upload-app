@@ -52,9 +52,6 @@ export interface BaseServiceFields {
 }
 
 export interface UploadServiceFields extends BaseServiceFields {
-  // populated by app if a file from this upload was deleted
-  deletedFileIds?: string[];
-
   // populated by FSS when the app requests to start an upload.
   files: UploadMetadata[];
 
@@ -93,36 +90,6 @@ export interface UploadServiceFields extends BaseServiceFields {
   // Tracks how many bytes have been processed by FSS during its copy and MD5
   // calculation step. This field is populated by FSS.
   fssBytesProcessed?: number;
-}
-
-// Represents the job of copying a batch of files
-export interface CopyFilesServiceFields extends BaseServiceFields {
-  // populated after step completes
-  output?: SourceFiles;
-
-  // number of bytes total in this upload (that potentially spans multiple files)
-  // used by app for showing upload progress.
-  totalBytesToCopy: number;
-}
-
-// Represents the job of copying a single files
-export interface CopyFileServiceFields extends BaseServiceFields {
-  // source destination of file being copied
-  originalPath: string;
-
-  // populated after step completes
-  output?: SourceFiles;
-
-  // size of the file being copied
-  totalBytes: number;
-
-  // upload job id
-  uploadJobId: string;
-}
-
-// Represents the job of reporting to FSS
-export interface AddMetadataServiceFields extends BaseServiceFields {
-  output?: FSSResponseFile[]; // populated after step completes
 }
 
 export interface Annotation extends ImageModelBase {

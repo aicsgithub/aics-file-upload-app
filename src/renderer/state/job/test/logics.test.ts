@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import { createSandbox, createStubInstance, SinonStubbedInstance } from "sinon";
 
-import { FileManagementSystem } from "../../../services/aicsfiles";
+import FileManagementSystem from "../../../services/file-management-system";
 import {
   StepName,
   UploadServiceFields,
-} from "../../../services/aicsfiles/util";
+} from "../../../services/file-management-system/util";
 import JobStatusClient from "../../../services/job-status-client";
 import { JSSJob } from "../../../services/job-status-client/types";
 import { setErrorAlert, setInfoAlert } from "../../feedback/actions";

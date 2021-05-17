@@ -17,7 +17,7 @@ import { JSSJobStatus } from "../job-status-client/types";
 import { InvalidMetadataError, UnrecoverableJobError } from "./errors";
 import Copier from "./helpers/copier";
 import Querier from "./helpers/querier";
-import { AICSFILES_LOGGER } from "./util";
+import { AICSFILES_LOGGER, FileToFileMetadata } from "./util";
 import { ImageModelMetadata, UploadMetadata } from "./util";
 
 const exists = promisify(fs.exists);
@@ -125,8 +125,12 @@ export default class FileManagementSystem {
 
   // This method queries for metadata related to the given File ID.
   public async findByFileIds(fileIds: string[]): Promise<ImageModelMetadata[]> {
-    const fileIdToMetadata = this.querier.queryByFileIds(fileIds);
-    return await this.querier.transformFileMetadataIntoTable(fileIdToMetadata);
+    const fileIdToMetadata = await this.querier.queryByFileIds(fileIds);
+    return this.transformFileMetadataIntoTable(fileIdToMetadata);
+  }
+
+  public transformFileMetadataIntoTable(fileIdToMetadata: FileToFileMetadata): Promise<ImageModelMetadata[]> {
+    return this.querier.transformFileMetadataIntoTable(fileIdToMetadata);
   }
 
   // Upload files individually to FSS each as their own independent upload

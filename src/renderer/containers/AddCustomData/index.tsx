@@ -13,7 +13,7 @@ import DragAndDrop from "../../components/DragAndDrop";
 import JobOverviewDisplay from "../../components/JobOverviewDisplay";
 import LabeledInput from "../../components/LabeledInput";
 import TemplateSearch from "../../components/TemplateSearch";
-import { UploadServiceFields } from "../../services/aicsfiles/util";
+import { UploadServiceFields } from "../../services/file-management-system/util";
 import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import {
   BarcodePrefix,

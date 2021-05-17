@@ -13,8 +13,8 @@ import { StateWithHistory } from "redux-undo";
 import { LimsUrl } from "../../shared/types";
 import { WELL_ANNOTATION_NAME } from "../constants";
 import { JobStatusClient, MMSClient } from "../services";
-import { FileManagementSystem } from "../services/aicsfiles";
-import { UploadServiceFields } from "../services/aicsfiles/util";
+import FileManagementSystem from "../services/file-management-system";
+import { UploadServiceFields } from "../services/file-management-system/util";
 import { JSSJob } from "../services/job-status-client/types";
 import LabkeyClient from "../services/labkey-client";
 import {

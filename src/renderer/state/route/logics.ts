@@ -2,15 +2,12 @@ import { existsSync } from "fs";
 import { platform } from "os";
 
 import { Menu, MenuItem } from "electron";
-import { castArray, difference, isEmpty } from "lodash";
+import { castArray, isEmpty } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { WELL_ANNOTATION_NAME } from "../../constants";
-import {
-  FSSResponseFile,
-  ImageModelMetadata,
-} from "../../services/aicsfiles/util";
+import { ImageModelMetadata } from "../../services/file-management-system/util";
 import { JSSJobStatus } from "../../services/job-status-client/types";
 import LabkeyClient from "../../services/labkey-client";
 import MMSClient from "../../services/mms-client";
@@ -20,7 +17,6 @@ import {
   getApplyTemplateInfo,
   getPlateInfo,
   makePosixPathCompatibleWithPlatform,
-  retrieveFileMetadata,
 } from "../../util";
 import { requestFailed } from "../actions";
 import {
@@ -288,7 +284,7 @@ const openEditFileMetadataTabLogic = createLogic({
     if (ctx.fileIds) {
       // acquired during validate phase
       const { fileIds } = ctx;
-      const request = () => retrieveFileMetadata(fileIds, fms);
+      const request = () => fms.findByFileIds(fileIds);
       try {
         fileMetadataForJob = await getWithRetry(request, dispatch);
       } catch (e) {
@@ -428,13 +424,10 @@ const openEditFileMetadataTabLogic = createLogic({
       Array.isArray(job?.serviceFields?.result) &&
       !isEmpty(job?.serviceFields?.result)
     ) {
-      const originalFileIds = job.serviceFields.result.map(
+      const fileIds = job.serviceFields.result.map(
         ({ fileId }: FSSResponseFile) => fileId
       );
-      const deletedFileIds = job.serviceFields.deletedFileIds
-        ? castArray(job.serviceFields.deletedFileIds)
-        : [];
-      ctx.fileIds = difference(originalFileIds, deletedFileIds);
+      ctx.fileIds = fileIds;
       if (isEmpty(ctx.fileIds)) {
         reject(setErrorAlert("All files in this upload have been deleted!"));
       } else {
