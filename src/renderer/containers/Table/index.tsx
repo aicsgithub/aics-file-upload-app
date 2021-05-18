@@ -84,7 +84,7 @@ export default function Table(props: {
             height={400}
             itemCount={rows.length}
             itemSize={35}
-            width={totalColumnsWidth}
+            width={totalColumnsWidth + 15 /* TODO scrollbar size*/}
           >
             {RenderRow}
           </List>
