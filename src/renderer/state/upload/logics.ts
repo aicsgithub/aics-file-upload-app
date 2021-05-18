@@ -92,7 +92,6 @@ import {
   removeUploads,
   replaceUpload,
   saveUploadDraftSuccess,
-  submitFileMetadataUpdate,
   updateUploads,
   uploadFailed,
 } from "./actions";
@@ -1048,7 +1047,8 @@ const submitFileMetadataUpdateLogic = createLogic({
         setErrorAlert("Cannot submit update: no template has been applied.")
       );
     }
-    ctx.selectedJob = selectedJob;
+    ctx.selectedJobId = selectedJob.jobId;
+    ctx.jobName = selectedJob.jobName;
     next({
       ...action,
       payload: selectedJob.jobName,
@@ -1066,72 +1066,63 @@ const updateAndRetryUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    dispatch(submitFileMetadataUpdate());
-    const jobs: JSSJob[] = [
-      ctx.selectedJob,
-      ...(ctx.selectedJob.uploadGroup || []),
-    ];
-    // TODO: Update may not come in time due to clearing away upload branch...?
-    // TODO: upload progress bar may be wrong :(
-    for (const job of jobs) {
-      if (job.status !== JSSJobStatus.SUCCEEDED) {
-        const requestType = `${AsyncRequest.UPLOAD}-${job.jobName}`;
+    const { files, selectedJob: originalJob } = ctx;
+    const requestType = `${AsyncRequest.UPLOAD}-${originalJob.jobName}`;
 
-        let selectedJob = job;
-        try {
-          selectedJob = await jssClient.updateJob(
-            job.jobId,
-            {
-              jobName: job.jobName,
-              serviceFields: {
-                files: job.serviceFields.files,
-              },
-            },
-            false
-          );
-        } catch (e) {
-          dispatch(
-            requestFailed(
-              `Could not update and retry upload: ${e.message}`,
-              requestType
-            )
-          );
-          done();
-          return;
-        }
-
-        // close the tab to let user watch progress from upload summary page
-        dispatch(closeUpload());
-
-        try {
-          await fms.retryUpload(selectedJob);
-        } catch (e) {
-          dispatch(
-            requestFailed(
-              `Retry upload ${job.jobName} failed: ${e.message}`,
-              requestType
-            )
-          );
-
-          // attempt to revert job back to previous state
-          try {
-            await jssClient.updateJob(job.jobId, {
-              jobName: job.jobName,
-              serviceFields: {
-                files: job.serviceFields.files,
-              },
-            });
-          } catch (e) {
-            dispatch(
-              setErrorAlert(
-                `Unable to revert upload back to original state: ${e.message}`
-              )
-            );
-          }
-        }
-      }
+    let selectedJob = originalJob;
+    try {
+      selectedJob = await jssClient.updateJob(
+        originalJob.jobId,
+        {
+          jobName: originalJob.jobName,
+          serviceFields: {
+            files,
+          },
+        },
+        false
+      );
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          `Could not update and retry upload: ${e.message}`,
+          requestType
+        )
+      );
+      done();
+      return;
     }
-    done();
+
+    // close the tab to let user watch progress from upload summary page
+    dispatch(closeUpload());
+
+    try {
+      await fms.retryUpload(selectedJob);
+    } catch (e) {
+      dispatch(
+        requestFailed(
+          `Retry upload ${originalJob.jobName} failed: ${e.message}`,
+          requestType
+        )
+      );
+
+      // attempt to revert job back to previous state
+      try {
+        await jssClient.updateJob(originalJob.jobId, {
+          jobName: originalJob.jobName,
+          serviceFields: {
+            files: originalJob.serviceFields.files,
+          },
+        });
+      } catch (e) {
+        dispatch(
+          setErrorAlert(
+            `Unable to revert upload back to original state: ${e.message}`
+          )
+        );
+      }
+    } finally {
+      done();
+    }
   },
   validate: (
     {
@@ -1147,6 +1138,8 @@ const updateAndRetryUploadLogic = createLogic({
       reject(setErrorAlert("No upload selected"));
     } else if (FAILED_STATUSES.includes(ctx.selectedJob.status)) {
       try {
+        // get this information before the tab closes and everything gets cleared out
+        ctx.files = Object.values(getUploadPayload(getState()));
         next({
           ...action,
           payload: ctx.jobName,

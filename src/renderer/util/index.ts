@@ -331,23 +331,17 @@ export const convertUploadPayloadToImageModelMetadata = async (
   files: FMSUploadMetadata[],
   fms: FileManagementSystem
 ): Promise<ImageModelMetadata[]> => {
-  const filePathToMetadata = files.reduce(
-    (mapSoFar, file) => ({
-      ...mapSoFar,
-      [file.file.originalPath]: {
-        annotations: file.customMetadata.annotations,
-        originalPath: file.file.originalPath,
-        shouldBeInArchive: file.file.shouldBeInArchive,
-        shouldBeInLocal: file.file.shouldBeInLocal,
-        templateId: file.customMetadata.templateId,
-        jobId: file.file.jobId,
-      },
-    }),
-    {} as FileToFileMetadata<CustomFileMetadata>
-  );
-  console.log("files", files);
-  console.log("filePathToMetadata", filePathToMetadata);
-  return await fms.transformFileMetadataIntoTable(filePathToMetadata);
+  const fileMetadataForFiles: FileToFileMetadata<CustomFileMetadata> = {};
+  for (const file of files) {
+    fileMetadataForFiles[file.file.originalPath] = {
+      annotations: file.customMetadata.annotations,
+      originalPath: file.file.originalPath,
+      shouldBeInArchive: file.file.shouldBeInArchive,
+      shouldBeInLocal: file.file.shouldBeInLocal,
+      templateId: file.customMetadata.templateId,
+    };
+  }
+  return await fms.transformFileMetadataIntoTable(fileMetadataForFiles);
 };
 
 export interface ApplyTemplateInfo {

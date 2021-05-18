@@ -191,14 +191,6 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
       uploadInProgress,
       uploads,
     } = this.props;
-    let saveButtonText = "Upload";
-    if (selectedJob) {
-      if (selectedJob.status === JSSJobStatus.SUCCEEDED) {
-        saveButtonText = "Update";
-      } else {
-        saveButtonText = "Retry";
-      }
-    }
     return (
       <DragAndDrop
         disabled={Boolean(selectedJob)}
@@ -257,8 +249,10 @@ class AddCustomData extends React.Component<Props, AddCustomDataState> {
                 Loading&nbsp;
                 <Icon type="loading" className={styles.loading} spin={true} />
               </>
+            ) : selectedJob ? (
+              "Update"
             ) : (
-              saveButtonText
+              "Upload"
             )}
           </Button>
         </div>

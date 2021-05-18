@@ -1,10 +1,7 @@
 import { isEqual } from "lodash";
 import { createSelector } from "reselect";
 
-import {
-  FAILED_STATUSES,
-  JSSJob,
-} from "../../services/job-status-client/types";
+import { JSSJob, JSSJobStatus } from "../../services/job-status-client/types";
 import { getRequestsInProgress } from "../../state/feedback/selectors";
 import { getOriginalUpload } from "../../state/metadata/selectors";
 import { getSelectedJob } from "../../state/selection/selectors";
@@ -23,27 +20,16 @@ export const getUploadInProgress = createSelector(
 );
 
 export const getCanSubmitUpload = createSelector(
-  [
-    getUpload,
-    getUploadFileNames,
-    getOriginalUpload,
-    getSelectedJob,
-    getUploadInProgress,
-  ],
+  [getUpload, getOriginalUpload, getSelectedJob],
   (
     upload: UploadStateBranch,
-    fileNames: string[],
     originalUpload?: UploadStateBranch,
-    selectedJob?: JSSJob,
-    uploadInProgress?: boolean
+    selectedJob?: JSSJob
   ): boolean => {
-    if (uploadInProgress || !fileNames.length) {
+    if (selectedJob && selectedJob.status !== JSSJobStatus.SUCCEEDED) {
       return false;
     }
-    if (
-      !originalUpload ||
-      (selectedJob && FAILED_STATUSES.includes(selectedJob.status))
-    ) {
+    if (!originalUpload) {
       return true;
     }
     return !isEqual(upload, originalUpload);
