@@ -316,19 +316,6 @@ const openEditFileMetadataTabLogic = createLogic({
       return;
     }
 
-    if (action.payload.uploadGroup) {
-      const subJobFiles = action.payload.uploadGroup.flatMap(
-        (upload) => upload?.serviceFields?.files || []
-      );
-      const subJobRows = await convertUploadPayloadToImageModelMetadata(
-        subJobFiles,
-        fms
-      );
-      fileMetadataForJob = [...fileMetadataForJob, ...subJobRows].sort((a, b) =>
-        (a.originalPath || "").localeCompare(b.originalPath || "")
-      );
-    }
-
     let updateUploadsAction: AnyAction = updateUploads({}, true);
     const actions: AnyAction[] = [];
     const newUpload = convertImageModelMetadataToUploadStateBranch(
@@ -441,19 +428,9 @@ const openEditFileMetadataTabLogic = createLogic({
       Array.isArray(job?.serviceFields?.result) &&
       !isEmpty(job?.serviceFields?.result)
     ) {
-      let originalFileIds = job.serviceFields.result.map(
+      const originalFileIds = job.serviceFields.result.map(
         ({ fileId }: FSSResponseFile) => fileId
       );
-      if (job.uploadGroup) {
-        originalFileIds = [
-          ...originalFileIds,
-          ...(job.uploadGroup?.flatMap(
-            (job) =>
-              job.serviceFields?.result?.map(({ fileId }) => fileId) || []
-          ),
-          []),
-        ];
-      }
       const deletedFileIds = job.serviceFields.deletedFileIds
         ? castArray(job.serviceFields.deletedFileIds)
         : [];
