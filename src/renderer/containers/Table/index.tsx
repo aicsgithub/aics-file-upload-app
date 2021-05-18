@@ -1,5 +1,7 @@
 import React from "react";
+import { useCallback } from "react";
 import { HeaderGroup, TableInstance } from "react-table";
+import { FixedSizeList as List } from "react-window";
 
 import { UploadJobTableRow } from "../../state/upload/types";
 
@@ -16,6 +18,28 @@ export default function Table(props: {
   tableInstance: TableInstance<UploadJobTableRow>;
 }) {
   const { tableInstance } = props;
+
+  const RenderRow = useCallback(
+    ({ index, style }) => {
+      const row = tableInstance.rows[index];
+      tableInstance.prepareRow(row);
+      return (
+        <tr {...row.getRowProps({ style })} key={row.getRowProps().key}>
+          {row.cells.map((cell) => (
+            <td
+              {...cell.getCellProps()}
+              className={styles.tableCell}
+              key={cell.getCellProps().key}
+            >
+              {cell.render("Cell")}
+            </td>
+          ))}
+        </tr>
+      );
+    },
+    [tableInstance]
+  );
+
   return (
     <div className={styles.tableContainer}>
       <table
@@ -52,22 +76,14 @@ export default function Table(props: {
           ))}
         </thead>
         <tbody {...tableInstance.getTableBodyProps()}>
-          {tableInstance.rows.map((row) => {
-            tableInstance.prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.getRowProps().key}>
-                {row.cells.map((cell) => (
-                  <td
-                    {...cell.getCellProps()}
-                    className={styles.tableCell}
-                    key={cell.getCellProps().key}
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+          <List
+            height={400}
+            itemCount={tableInstance.rows.length}
+            itemSize={35}
+            width={tableInstance.totalColumnsWidth}
+          >
+            {RenderRow}
+          </List>
         </tbody>
       </table>
     </div>
