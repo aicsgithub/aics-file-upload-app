@@ -17,12 +17,19 @@ const styles = require("./styles.pcss");
 export default function Table(props: {
   tableInstance: TableInstance<UploadJobTableRow>;
 }) {
-  const { tableInstance } = props;
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    prepareRow,
+    rows,
+    totalColumnsWidth,
+  } = props.tableInstance;
 
   const RenderRow = useCallback(
     ({ index, style }) => {
-      const row = tableInstance.rows[index];
-      tableInstance.prepareRow(row);
+      const row = rows[index];
+      prepareRow(row);
       return (
         <tr {...row.getRowProps({ style })} key={row.getRowProps().key}>
           {row.cells.map((cell) => (
@@ -37,17 +44,14 @@ export default function Table(props: {
         </tr>
       );
     },
-    [tableInstance]
+    [prepareRow, rows]
   );
 
   return (
     <div className={styles.tableContainer}>
-      <table
-        className={styles.tableContainer}
-        {...tableInstance.getTableProps()}
-      >
+      <table className={styles.tableContainer} {...getTableProps()}>
         <thead>
-          {tableInstance.headerGroups.map((headerGroup) => (
+          {headerGroups.map((headerGroup) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
               key={headerGroup.getHeaderGroupProps().key}
@@ -75,12 +79,12 @@ export default function Table(props: {
             </tr>
           ))}
         </thead>
-        <tbody {...tableInstance.getTableBodyProps()}>
+        <tbody {...getTableBodyProps()}>
           <List
             height={400}
-            itemCount={tableInstance.rows.length}
+            itemCount={rows.length}
             itemSize={35}
-            width={tableInstance.totalColumnsWidth}
+            width={totalColumnsWidth}
           >
             {RenderRow}
           </List>
