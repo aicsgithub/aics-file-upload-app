@@ -12,14 +12,12 @@ import { getAnnotationTypes } from "../../state/metadata/selectors";
 import {
   getIsSelectedJobInFlight,
   getSelectedBarcode,
-  getSelectedJob,
 } from "../../state/selection/selectors";
 import { getAppliedTemplate } from "../../state/template/selectors";
 import { getTextWidth } from "../../util";
 import FilenameCell from "../Table/CustomCells/FilenameCell";
 import NotesCell from "../Table/CustomCells/NotesCell";
 import SelectionCell from "../Table/CustomCells/SelectionCell";
-import StatusCell from "../Table/CustomCells/StatusCell";
 import WellCell from "../Table/CustomCells/WellCell";
 import ReadOnlyCell from "../Table/DefaultCells/ReadOnlyCell";
 import SelectionHeader from "../Table/Headers/SelectionHeader";
@@ -32,13 +30,6 @@ const SELECTION_COLUMN: CustomColumn = {
   Header: SelectionHeader,
   Cell: SelectionCell,
   maxWidth: 35,
-};
-
-const STATUS_CIRCLE: CustomColumn = {
-  id: "Status",
-  Cell: StatusCell,
-  description: "Upload status",
-  maxWidth: 50,
 };
 
 const WELL_COLUMN: CustomColumn = {
@@ -129,26 +120,15 @@ export const getTemplateColumnsForTable = createSelector(
 );
 
 export const getColumnsForTable = createSelector(
-  [getTemplateColumnsForTable, getIsSelectedJobInFlight, getSelectedJob],
-  (templateColumns, isReadOnly, job): CustomColumn[] => {
-    const actionColumns = [];
-    if (job?.serviceFields?.groupId) {
-      actionColumns.push(STATUS_CIRCLE);
-    }
+  [getTemplateColumnsForTable, getIsSelectedJobInFlight],
+  (templateColumns, isReadOnly): CustomColumn[] => {
     if (isReadOnly) {
-      return [...actionColumns, ...DEFAULT_COLUMNS, ...templateColumns].map(
-        (column) => ({
-          ...column,
-          isReadOnly: true,
-          Cell: ReadOnlyCell,
-        })
-      );
+      return [...DEFAULT_COLUMNS, ...templateColumns].map((column) => ({
+        ...column,
+        isReadOnly: true,
+        Cell: ReadOnlyCell,
+      }));
     }
-    return [
-      ...actionColumns,
-      SELECTION_COLUMN,
-      ...DEFAULT_COLUMNS,
-      ...templateColumns,
-    ];
+    return [SELECTION_COLUMN, ...DEFAULT_COLUMNS, ...templateColumns];
   }
 );

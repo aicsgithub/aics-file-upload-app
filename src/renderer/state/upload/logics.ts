@@ -244,9 +244,9 @@ const initiateUploadLogic = createLogic({
               await new Promise((r) => setTimeout(r, 5 * 1_000));
               jobExists = await jssClient.existsById(startUploadResponse.jobId);
             }
-            await jssClient.updateJob(
-              startUploadResponse.jobId, { serviceFields: { groupId }}
-            );
+            await jssClient.updateJob(startUploadResponse.jobId, {
+              serviceFields: { groupId },
+            });
           } catch (e) {
             // This will show an error on the last page of the upload wizard
             dispatch(
@@ -961,74 +961,69 @@ const submitFileMetadataUpdateLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const jobs: JSSJob[] = [ctx.selectedJob, ...(ctx.selectedJob.uploadGroup || [])];
-    for (const job of jobs) {
-      if (job.jobName && job.status === JSSJobStatus.SUCCEEDED) {
-        const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
-    
-        // We delete files in series so that we can ignore the files that have already been deleted
-        for (const fileId of fileIdsToDelete) {
-          try {
-            await mmsClient.deleteFileMetadata(fileId, true);
-          } catch (e) {
-            // ignoring not found to keep this idempotent
-            if (e?.status !== HTTP_STATUS.NOT_FOUND) {
-              dispatch(
-                editFileMetadataFailed(
-                  `Could not delete file ${fileId}: ${
-                    e?.response?.data?.error || e.message
-                  }`,
-                  job.jobName
-                )
-              );
-              done();
-              return;
-            }
-          }
-        }
-    
-        try {
-          await jssClient.updateJob(
-            job.jobId,
-            { serviceFields: { deletedFileIds: fileIdsToDelete } },
-            true
-          );
-        } catch (e) {
+    const fileIdsToDelete: string[] = getFileIdsToDelete(getState());
+
+    // We delete files in series so that we can ignore the files that have already been deleted
+    for (const fileId of fileIdsToDelete) {
+      try {
+        await mmsClient.deleteFileMetadata(fileId, true);
+      } catch (e) {
+        // ignoring not found to keep this idempotent
+        if (e?.status !== HTTP_STATUS.NOT_FOUND) {
           dispatch(
             editFileMetadataFailed(
-              `Could not update file, has been deleted: ${
+              `Could not delete file ${fileId}: ${
                 e?.response?.data?.error || e.message
               }`,
-              job.jobName
+              ctx.jobName
             )
-          );
-        }
-    
-        const editFileMetadataRequests = getEditFileMetadataRequests(getState());
-        try {
-          await Promise.all(
-            editFileMetadataRequests.map(({ fileId, request }) =>
-              mmsClient.editFileMetadata(fileId, request)
-            )
-          );
-        } catch (e) {
-          const message = e?.response?.data?.error || e.message;
-          dispatch(
-            editFileMetadataFailed("Could not edit file: " + message, job.jobName)
           );
           done();
           return;
         }
-    
-        dispatch(
-          batchActions([
-            editFileMetadataSucceeded(job.jobName),
-            closeUpload(),
-            resetUpload(),
-          ])
-        );
       }
     }
+
+    try {
+      await jssClient.updateJob(
+        ctx.selectedJobId,
+        { serviceFields: { deletedFileIds: fileIdsToDelete } },
+        true
+      );
+    } catch (e) {
+      dispatch(
+        editFileMetadataFailed(
+          `Could not update file, has been deleted: ${
+            e?.response?.data?.error || e.message
+          }`,
+          ctx.jobName
+        )
+      );
+    }
+
+    const editFileMetadataRequests = getEditFileMetadataRequests(getState());
+    try {
+      await Promise.all(
+        editFileMetadataRequests.map(({ fileId, request }) =>
+          mmsClient.editFileMetadata(fileId, request)
+        )
+      );
+    } catch (e) {
+      const message = e?.response?.data?.error || e.message;
+      dispatch(
+        editFileMetadataFailed("Could not edit file: " + message, ctx.jobName)
+      );
+      done();
+      return;
+    }
+
+    dispatch(
+      batchActions([
+        editFileMetadataSucceeded(ctx.jobName),
+        closeUpload(),
+        resetUpload(),
+      ])
+    );
     done();
   },
   type: SUBMIT_FILE_METADATA_UPDATE,
@@ -1072,13 +1067,16 @@ const updateAndRetryUploadLogic = createLogic({
     done: ReduxLogicDoneCb
   ) => {
     dispatch(submitFileMetadataUpdate());
-    const jobs: JSSJob[] = [ctx.selectedJob, ...(ctx.selectedJob.uploadGroup || [])];
+    const jobs: JSSJob[] = [
+      ctx.selectedJob,
+      ...(ctx.selectedJob.uploadGroup || []),
+    ];
     // TODO: Update may not come in time due to clearing away upload branch...?
     // TODO: upload progress bar may be wrong :(
     for (const job of jobs) {
       if (job.status !== JSSJobStatus.SUCCEEDED) {
         const requestType = `${AsyncRequest.UPLOAD}-${job.jobName}`;
-    
+
         let selectedJob = job;
         try {
           selectedJob = await jssClient.updateJob(
@@ -1101,10 +1099,10 @@ const updateAndRetryUploadLogic = createLogic({
           done();
           return;
         }
-    
+
         // close the tab to let user watch progress from upload summary page
         dispatch(closeUpload());
-    
+
         try {
           await fms.retryUpload(selectedJob);
         } catch (e) {
@@ -1114,7 +1112,7 @@ const updateAndRetryUploadLogic = createLogic({
               requestType
             )
           );
-    
+
           // attempt to revert job back to previous state
           try {
             await jssClient.updateJob(job.jobId, {
