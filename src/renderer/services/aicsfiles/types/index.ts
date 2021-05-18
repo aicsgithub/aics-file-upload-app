@@ -165,6 +165,9 @@ export interface UploadServiceFields extends BaseServiceFields {
   // Tracks how many bytes have been processed by FSS during its copy and MD5
   // calculation step. This field is populated by FSS.
   fssBytesProcessed?: number;
+
+  // Populated after upload completes
+  output?: SourceFiles;
 }
 
 // Represents the job of copying a batch of files
@@ -292,8 +295,4 @@ export interface FileSystemUtil {
   access: (path: PathLike, mode?: number) => Promise<void>;
   exists: (path: PathLike) => Promise<boolean>;
   stat: (path: PathLike, options?: StatOptions) => Promise<Stats | BigIntStats>;
-}
-
-export interface FullPathHashToLastModifiedDate {
-  [fullPathHash: string]: Date;
 }

@@ -10,7 +10,6 @@ import {
   JSSJob,
   JSSJobStatus,
 } from "../../services/job-status-client/types";
-import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import { setErrorAlert, setInfoAlert } from "../feedback/actions";
 import {
   ReduxLogicDoneCb,
@@ -80,8 +79,7 @@ export const handleAbandonedJobsLogic = createLogic({
               updatedJob,
               handleUploadProgress(fileNames, (progress) =>
                 dispatch(updateUploadProgressInfo(updatedJob.jobId, progress))
-              ),
-              COPY_PROGRESS_THROTTLE_MS
+              )
             );
           } catch (e) {
             logger.error(`Retry for upload "${updatedJob.jobName}" failed`, e);

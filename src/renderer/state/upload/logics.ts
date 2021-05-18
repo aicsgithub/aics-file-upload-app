@@ -9,7 +9,6 @@ import {
   isEmpty,
   isNil,
   trim,
-  uniqueId,
   values,
 } from "lodash";
 import { isDate, isMoment } from "moment";
@@ -21,6 +20,7 @@ import {
   NOTES_ANNOTATION_NAME,
   WELL_ANNOTATION_NAME,
 } from "../../constants";
+import { getUUID } from "../../services/aicsfiles/helpers/uploader";
 import {
   StartUploadResponse,
   UploadMetadata as AicsFilesUploadMetadata,
@@ -41,7 +41,6 @@ import {
   splitTrimAndFilter,
 } from "../../util";
 import { requestFailed } from "../actions";
-import { COPY_PROGRESS_THROTTLE_MS } from "../constants";
 import { setErrorAlert } from "../feedback/actions";
 import { updateUploadProgressInfo } from "../job/actions";
 import { getJobIdToUploadJobMapGlobal } from "../job/selectors";
@@ -211,7 +210,7 @@ const initiateUploadLogic = createLogic({
     dispatch: ReduxLogicNextCb,
     done: ReduxLogicDoneCb
   ) => {
-    const groupId = uniqueId();
+    const groupId = getUUID();
     // validate and get jobId
     await Promise.all(
       Object.entries(getUploadPayload(getState())).map(
@@ -220,8 +219,9 @@ const initiateUploadLogic = createLogic({
           let startUploadResponse: StartUploadResponse;
           try {
             startUploadResponse = await fms.validateMetadataAndGetUploadDirectory(
-              { [filePath]: metadata },
-              jobName
+              filePath,
+              metadata,
+              { groupId }
             );
             // Wait for upload job from FSS to exist in JSS to prevent
             // a race condition when trying to create child jobs. Ideally this
@@ -243,9 +243,6 @@ const initiateUploadLogic = createLogic({
               await new Promise((r) => setTimeout(r, 5 * 1_000));
               jobExists = await jssClient.existsById(startUploadResponse.jobId);
             }
-            await jssClient.updateJob(startUploadResponse.jobId, {
-              serviceFields: { groupId },
-            });
           } catch (e) {
             // This will show an error on the last page of the upload wizard
             dispatch(
@@ -275,8 +272,7 @@ const initiateUploadLogic = createLogic({
                 dispatch(
                   updateUploadProgressInfo(startUploadResponse.jobId, progress)
                 )
-              ),
-              COPY_PROGRESS_THROTTLE_MS
+              )
             );
             done();
           } catch (e) {
@@ -409,8 +405,7 @@ const retryUploadLogic = createLogic({
         uploadJob,
         handleUploadProgress(fileNames, (progress: UploadProgressInfo) =>
           dispatch(updateUploadProgressInfo(uploadJob.jobId, progress))
-        ),
-        COPY_PROGRESS_THROTTLE_MS
+        )
       );
       done();
     } catch (e) {

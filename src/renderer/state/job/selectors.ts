@@ -116,8 +116,8 @@ export const getJobsForTable = createSelector(
         if (serviceFields && serviceFields.groupId) {
           serviceFields = {
             ...serviceFields,
-            files: groupIdToJobs[serviceFields.groupId].flatMap((j) =>
-              j.serviceFields ? j.serviceFields.files : []
+            files: groupIdToJobs[serviceFields.groupId].flatMap(
+              (j) => j?.serviceFields?.files || []
             ),
           };
         }

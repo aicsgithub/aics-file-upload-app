@@ -1,5 +1,3 @@
-import * as path from "path";
-
 import * as Logger from "js-logger";
 import { ILogger, ILogLevel } from "js-logger/src/types";
 import { isEmpty, noop } from "lodash";
@@ -19,7 +17,7 @@ import { InvalidMetadataError } from "./errors";
 import { UnrecoverableJobError } from "./errors/UnrecoverableJobError";
 import { CustomMetadataQuerier } from "./helpers/custom-metadata-querier";
 import { FSSClient } from "./helpers/fss-client";
-import { Uploader } from "./helpers/uploader";
+import { CopyProgressCallBack, Uploader } from "./helpers/uploader";
 import {
   FileMetadata,
   FileSystemUtil,
@@ -29,6 +27,7 @@ import {
   UploadMetadata,
   UploadResponse,
   Uploads,
+  UploadServiceFields,
 } from "./types";
 
 // Configuration object for FMS. Either host and port have to be defined or fss needs
@@ -150,63 +149,40 @@ export class FileManagementSystem {
   }
 
   /***
-     * Check for duplicate file names in a metadata mapping.
-     FSS will allow multiple files with the same name to be uploaded, but ultimately only
+     * FSS will allow multiple files with the same name to be uploaded, but ultimately only
      the most recently added will have precedence. This will raise an exception if a file
      with a duplicate name (but in a different folder) is found
+     * @param filePath
      * @param metadata
-     * @param uploadJobName
+     * @param serviceFields
      * Throws InvalidMetadataError if a file was not found or if more than one files have the same name
      * returns StartUploadResponse
      */
   public async validateMetadataAndGetUploadDirectory(
-    metadata: Uploads,
-    uploadJobName: string
+    filePath: string,
+    metadata: UploadMetadata,
+    serviceFields: Partial<UploadServiceFields>
   ): Promise<StartUploadResponse> {
     Logger.get(AICSFILES_LOGGER).info("Received uploadFiles request", metadata);
-
-    const names = new Set();
-    for (const [fullpath, fileMetadata] of Object.entries(metadata)) {
-      const name = path.basename(fullpath);
-      if (names.has(name)) {
-        throw new InvalidMetadataError(getDuplicateFilesError(name));
-      } else {
-        names.add(name);
-      }
-
-      if (!(await this.fs.exists(fullpath))) {
-        throw new InvalidMetadataError(getFileDoesNotExistError(fullpath));
-      }
-
-      if (!fileMetadata.file) {
-        throw new InvalidMetadataError(getFilePropertyMissingError(fullpath));
-      } else if (!fileMetadata.file.fileType) {
-        throw new InvalidMetadataError(
-          getFileTypePropertyMissingError(fullpath)
-        );
-      } else if (!fileMetadata.file.originalPath) {
-        throw new InvalidMetadataError(
-          getOriginalPathPropertyMissingError(fullpath)
-        );
-      } else if (fileMetadata.file.originalPath !== fullpath) {
-        throw new InvalidMetadataError(
-          getOriginalPathPropertyDoesntMatch(
-            fullpath,
-            fileMetadata.file.originalPath
-          )
-        );
-      }
+    if (!(await this.fs.exists(filePath))) {
+      throw new InvalidMetadataError(getFileDoesNotExistError(filePath));
     }
 
-    if (names.size === 0) {
-      throw new InvalidMetadataError(noFilesError);
+    if (!metadata.file) {
+      throw new InvalidMetadataError(getFilePropertyMissingError(filePath));
+    } else if (!metadata.file.fileType) {
+      throw new InvalidMetadataError(getFileTypePropertyMissingError(filePath));
+    } else if (!metadata.file.originalPath) {
+      throw new InvalidMetadataError(
+        getOriginalPathPropertyMissingError(filePath)
+      );
+    } else if (metadata.file.originalPath !== filePath) {
+      throw new InvalidMetadataError(
+        getOriginalPathPropertyDoesntMatch(filePath, metadata.file.originalPath)
+      );
     }
 
-    return this.fss.startUpload(
-      metadata,
-      uploadJobName,
-      await this.uploader.getLastModified(Object.keys(metadata))
-    );
+    return this.fss.startUpload(filePath, metadata, serviceFields);
   }
 
   /***
@@ -223,12 +199,7 @@ export class FileManagementSystem {
     startUploadResponse: StartUploadResponse,
     uploads: Uploads,
     jobName: string,
-    copyProgressCb: (
-      originalFilePath: string,
-      bytesCopied: number,
-      totalBytes: number
-    ) => void = noop,
-    copyProgressCbThrottleMs?: number
+    copyProgressCb: CopyProgressCallBack = noop
   ): Promise<UploadResponse> {
     this.logger.time("upload");
     try {
@@ -236,8 +207,7 @@ export class FileManagementSystem {
         startUploadResponse,
         uploads,
         jobName,
-        copyProgressCb,
-        copyProgressCbThrottleMs
+        copyProgressCb
       );
       this.logger.timeEnd("upload");
       return response;
@@ -250,41 +220,24 @@ export class FileManagementSystem {
 
   public async retryUpload(
     uploadJob: JSSJob,
-    copyProgressCb: (
-      originalFilePath: string,
-      bytesCopied: number,
-      totalBytes: number
-    ) => void = noop,
-    copyProgressCbThrottleMs?: number
-  ): Promise<UploadResponse> {
+    copyProgressCb: CopyProgressCallBack = noop
+  ): Promise<Promise<UploadResponse>[]> {
     this.logger.time("upload");
     if (!uploadJob.serviceFields || isEmpty(uploadJob.serviceFields.files)) {
+      const message = "Missing crucial upload data (serviceFields.files)";
       await this.failUpload(
         uploadJob.jobId,
-        "Missing serviceFields.files",
+        message,
         JSSJobStatus.UNRECOVERABLE
       );
-      throw new UnrecoverableJobError(
-        "Upload job is missing serviceFields.files"
-      );
+      throw new UnrecoverableJobError(message);
     }
-
-    const uploads = uploadJob.serviceFields.files.reduce(
-      (uploads: Uploads, file: UploadMetadata) => ({
-        ...uploads,
-        [file.file.originalPath]: file,
-      }),
-      {}
-    );
     this.logger.info(`Retrying upload for jobId=${uploadJob.jobId}.`);
-    this.logger.info("uploads", uploads);
 
     try {
       const response = await this.uploader.retryUpload(
-        uploads,
-        uploadJob,
-        copyProgressCb,
-        copyProgressCbThrottleMs
+        uploadJob.jobId,
+        copyProgressCb
       );
       this.logger.timeEnd("upload");
       return response;
