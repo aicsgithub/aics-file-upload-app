@@ -1,3 +1,5 @@
+import { UploadServiceFields } from "../aicsfiles/types";
+
 export interface JobBase<T = any> {
   // Array of child ids of this job.  Optional, supplied by client
   childIds?: string[];
@@ -77,6 +79,9 @@ export interface JSSJob<T = any> extends JobBase<T> {
 
   // Datestamp for when the job was last modified.  Required, created by JSS
   modified: Date;
+
+  // List of the other jobs that make up the upload this job was a part of
+  uploadGroup?: JSSJob<UploadServiceFields>[];
 }
 
 export interface JobQuery {
