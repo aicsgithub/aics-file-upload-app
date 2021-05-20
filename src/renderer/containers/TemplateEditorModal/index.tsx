@@ -39,8 +39,7 @@ import {
 import { getTemplateDraft } from "../../state/template/selectors";
 import { AnnotationDraft, AsyncRequest } from "../../state/types";
 
-import CreateAnnotationModal from "./CreateAnnotationModal";
-import DropdownEditorModal from "./DropdownEditorModal";
+import CreateAnnotationModal from "./AnnotationEditorModal";
 
 const styles = require("./styles.pcss");
 
@@ -99,10 +98,10 @@ function TemplateEditorModal(props: Props) {
   const [annotationSearchValue, setAnnotationSearchValue] = React.useState<
     string
   >();
-  const [showDropdownEditor, setShowDropdownEditor] = React.useState<
+  const [showAnnotationEditor, setShowAnnotationEditor] = React.useState(false);
+  const [annotationToEdit, setAnnotationToEdit] = React.useState<
     AnnotationDraft
   >();
-  const [showAnnotationEditor, setShowAnnotationEditor] = React.useState(false);
   const [focusedAnnotation, setFocusedAnnotation] = React.useState<
     AnnotationDraft
   >();
@@ -144,19 +143,6 @@ function TemplateEditorModal(props: Props) {
     dispatch(updateTemplateDraft({ annotations }));
     if (focusedAnnotation === template.annotations[index]) {
       setFocusedAnnotation(annotation);
-    }
-  }
-
-  function onDropdownOptionsUpdate(newDropdownOptions: string[]) {
-    if (showDropdownEditor) {
-      const index = template.annotations.findIndex(
-        (a) => a.annotationId === showDropdownEditor.annotationId
-      );
-      const annotationOptions = [
-        ...(showDropdownEditor.annotationOptions || []),
-        ...newDropdownOptions,
-      ];
-      onUpdateTemplateAnnotation(index, { annotationOptions });
     }
   }
 
@@ -215,13 +201,11 @@ function TemplateEditorModal(props: Props) {
               title="View"
               onClick={() => setFocusedAnnotation(row)}
             />
-            {!!row.annotationOptions?.length && (
-              <Button
-                icon="edit"
-                disabled={!row.annotationOptions?.length}
-                onClick={() => setShowDropdownEditor(row)}
-              />
-            )}
+            <Button
+              icon="edit"
+              title="Edit"
+              onClick={() => setAnnotationToEdit(row)}
+            />
             <Button
               icon="delete"
               title="Remove"
@@ -248,6 +232,11 @@ function TemplateEditorModal(props: Props) {
       return [];
     });
   }, [focusedAnnotation]);
+
+  function onCloseAnnotationModal() {
+    setAnnotationToEdit(undefined);
+    setShowAnnotationEditor(false);
+  }
 
   const annotationOptionList = (
     <>
@@ -381,13 +370,9 @@ function TemplateEditorModal(props: Props) {
         )}
       </Modal>
       <CreateAnnotationModal
-        visible={showAnnotationEditor}
-        onClose={() => setShowAnnotationEditor(false)}
-      />
-      <DropdownEditorModal
-        annotation={showDropdownEditor}
-        onSave={onDropdownOptionsUpdate}
-        onClose={() => setShowDropdownEditor(undefined)}
+        visible={showAnnotationEditor || !!annotationToEdit}
+        annotation={annotationToEdit}
+        onClose={onCloseAnnotationModal}
       />
     </>
   );

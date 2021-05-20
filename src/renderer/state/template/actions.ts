@@ -11,6 +11,7 @@ import {
   ADD_EXISTING_TEMPLATE,
   CLEAR_TEMPLATE_DRAFT,
   CREATE_ANNOTATION,
+  EDIT_ANNOTATION,
   REMOVE_ANNOTATIONS,
   SAVE_TEMPLATE,
   SAVE_TEMPLATE_SUCCEEDED,
@@ -63,6 +64,13 @@ export function createAnnotation(
   return {
     payload: annotationRequest,
     type: CREATE_ANNOTATION,
+  };
+}
+
+export function editAnnotation(annotationRequest: CreateAnnotationRequest) {
+  return {
+    payload: annotationRequest,
+    type: EDIT_ANNOTATION,
   };
 }
 

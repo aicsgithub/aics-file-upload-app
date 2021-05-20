@@ -1,4 +1,4 @@
-import { Input, Modal, Select } from "antd";
+import { Alert, Input, Modal, Select } from "antd";
 import { trim } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,11 @@ import {
   getAnnotationTypes,
   getLookups,
 } from "../../../state/metadata/selectors";
-import { createAnnotation } from "../../../state/template/actions";
+import {
+  createAnnotation,
+  editAnnotation,
+} from "../../../state/template/actions";
+import { AnnotationDraft } from "../../../state/types";
 
 const { TextArea } = Input;
 
@@ -18,6 +22,7 @@ const styles = require("./styles.pcss");
 
 interface Props {
   visible: boolean;
+  annotation?: AnnotationDraft;
   onClose: () => void;
 }
 
@@ -32,18 +37,25 @@ function CreateAnnotationModal(props: Props) {
   const annotations = useSelector(getAnnotations);
   const annotationTypes = useSelector(getAnnotationTypes);
 
-  const [name, setName] = React.useState("");
+  const [name, setName] = React.useState(props.annotation?.name || "");
   const [description, setDescription] = React.useState("");
   const [showErrors, setShowErrors] = React.useState(false);
-  const [lookupTable, setLookupTable] = React.useState<string>();
-  const [annotationType, setAnnotationType] = React.useState<string>();
-  const [dropdownOptions, setDropdownOptions] = React.useState<string[]>([]);
+  const [lookupTable, setLookupTable] = React.useState<string | undefined>(
+    props.annotation?.lookupTable
+  );
+  const [annotationType, setAnnotationType] = React.useState<
+    string | undefined
+  >(props.annotation?.annotationTypeName);
+  const [dropdownOptions, setDropdownOptions] = React.useState<string[]>(
+    props.annotation?.annotationOptions || []
+  );
 
   const isDropdown = annotationType === ColumnType.DROPDOWN;
   const isLookup = !isDropdown && annotationType === ColumnType.LOOKUP;
   const isUniqueName = !annotations.find(
     (a) => a.name.toLowerCase() === name.toLowerCase()
   );
+  const existsAndIsUnused = false;
 
   function onSave() {
     const lookup = lookups.find((l) => l.tableName === lookupTable);
@@ -56,17 +68,31 @@ function CreateAnnotationModal(props: Props) {
       (!isLookup || lookup) &&
       isUniqueName
     ) {
-      dispatch(
-        createAnnotation({
-          name,
-          annotationTypeId: type.annotationTypeId,
-          description,
-          annotationOptions: dropdownOptions,
-          lookupSchema: lookup?.schemaName,
-          lookupTable: lookup?.tableName,
-          lookupColumn: lookup?.columnName,
-        })
-      );
+      if (props.annotation) {
+        dispatch(
+          editAnnotation({
+            name,
+            annotationTypeId: type.annotationTypeId,
+            description,
+            annotationOptions: dropdownOptions,
+            lookupSchema: lookup?.schemaName,
+            lookupTable: lookup?.tableName,
+            lookupColumn: lookup?.columnName,
+          })
+        );
+      } else {
+        dispatch(
+          createAnnotation({
+            name,
+            annotationTypeId: type.annotationTypeId,
+            description,
+            annotationOptions: dropdownOptions,
+            lookupSchema: lookup?.schemaName,
+            lookupTable: lookup?.tableName,
+            lookupColumn: lookup?.columnName,
+          })
+        );
+      }
       props.onClose();
     } else if (!showErrors) {
       setShowErrors(true);
@@ -84,6 +110,14 @@ function CreateAnnotationModal(props: Props) {
       okText="Save"
       maskClosable={false}
     >
+      {existsAndIsUnused && (
+        <Alert
+          showIcon
+          type="info"
+          message="Limited Editing"
+          description="Some fields are not available for editing since this annotation has been used."
+        />
+      )}
       <p className={styles.subTitle}>
         Create a new annotation below. After making adjustments, click
         &quotSave&quot to successfully create the annotation.

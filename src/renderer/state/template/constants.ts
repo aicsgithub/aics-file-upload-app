@@ -12,6 +12,7 @@ export const CLEAR_TEMPLATE_DRAFT = makeConstant(
   "clear-template-draft"
 );
 export const CREATE_ANNOTATION = makeConstant(BRANCH_NAME, "create-annotation");
+export const EDIT_ANNOTATION = makeConstant(BRANCH_NAME, "edit-annotation");
 export const REMOVE_ANNOTATIONS = makeConstant(
   BRANCH_NAME,
   "remove-annotations"
